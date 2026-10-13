@@ -10,7 +10,7 @@ await figma.setCurrentPageAsync(page)
 const roots = ROOT_IDS.length ? await Promise.all(ROOT_IDS.map((id) => figma.getNodeByIdAsync(id))) : [page]
 const r = { gap: 0, pad: 0, radius: 0, fill: 0, stroke: 0, textNoStyle: 0, detached: 0, samples: [] }
 const hit = (k, n) => { r[k]++; if (r.samples.length < 15) r.samples.push(`${k}: ${n.name} (${n.id})`) }
-for (const root of roots) for (const n of root.findAll(() => true)) {
+for (const root of roots) for (const n of (root.type === 'PAGE' ? [] : [root]).concat(root.findAll(() => true))) {
   let p = n.parent, inInstance = false, exempt = EXEMPT.test(n.name)
   while (p && p.type !== 'PAGE') { if (p.type === 'INSTANCE') inInstance = true; if (EXEMPT.test(p.name)) exempt = true; p = p.parent }
   if (inInstance || exempt || n.type === 'INSTANCE' || n.type === 'SECTION') continue

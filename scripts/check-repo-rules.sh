@@ -31,7 +31,9 @@ if scan 'sectionGap\.(mobile|desktop)' 'apps/mobile/**/*.ts' 'apps/mobile/**/*.t
 fi
 
 # R5. No numeric literals for spacing, radius or type in app styles. Use @vaultme/tokens. 0 is allowed.
-if scan '\b(padding|margin)(Horizontal|Vertical|Top|Bottom|Left|Right|Start|End)?: *[1-9][0-9.]*|\b(gap|rowGap|columnGap|fontSize|lineHeight|letterSpacing): *[1-9][0-9.]*|\bborder[A-Za-z]*Radius: *[1-9][0-9.]*' 'apps/mobile/src/**/*.tsx' 'apps/mobile/src/**/*.ts' 'apps/mobile/app/**/*.tsx'; then
+# Matches non-zero values, including decimals (0.5) and negatives (-4).
+num='-?(0?\.[0-9]*[1-9]|[1-9][0-9.]*)'
+if scan "\\b(padding|margin)(Horizontal|Vertical|Top|Bottom|Left|Right|Start|End)?: *$num|\\b(gap|rowGap|columnGap|fontSize|lineHeight|letterSpacing): *$num|\\bborder[A-Za-z]*Radius: *$num" 'apps/mobile/src/**/*.tsx' 'apps/mobile/src/**/*.ts' 'apps/mobile/app/**/*.tsx'; then
   err "R5: numeric style literal in apps/mobile; use @vaultme/tokens"
 fi
 

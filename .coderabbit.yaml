@@ -56,8 +56,8 @@ reviews:
         mode: warning
         instructions: >-
           If the PR changes apps/mobile UI files or Figma screens, pass only when the description
-          names the Figma node IDs used and links an app-vs-Figma image pair for each changed screen
-          (or, for Figma-only changes, includes the audit.js result with all counts 0).
+          names the Figma node IDs used, links a light-mode app-vs-Figma image pair for each changed screen,
+          and links at least one dark-mode pair (or, for Figma-only changes, includes the audit.js result with all counts 0).
           Otherwise pass.
       - name: Linked issue
         mode: warning
