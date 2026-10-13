@@ -70,7 +70,7 @@ Blue A는 action 역할이다. Success, 가격 gain, 안전성 의미로 사용�
 | `border.focus`, `border.selected`, `icon.brand` | `{brand.primary}` |
 | `text.link` | `{color.identity.blue.700}` |
 
-Status, financial.change, check.clear의 기존 색은 유지했다. Secondary action은 neutral. Default/hover/pressed는 기존 neutral 50/100/200에 연결한다. 이는 Secondary 브랜드 surface와 다른 역할이다.
+Status, financial.change, check.clear의 기존 색은 유지했다. Secondary action은 neutral. Default/hover/pressed는 기존 neutral 200/300/400에 연결한다 (2026-10-13 변경: canvas가 neutral 50이 된 뒤 default가 canvas와 같아져 버튼이 보이지 않았다). 이는 Secondary 브랜드 surface와 다른 역할이다.
 
 ### Surface 위계: Light + C23 Secondary tint
 
@@ -119,6 +119,7 @@ Inter는 UI, IBM Plex Mono는 주소·hash에 쓴다. 기존 marketing type scal
 | `typography.title` | 24 / 32 px | Semi Bold | 제품 화면 제목 |
 | `typography.section` | 16 / 24 px | Semi Bold | 목록·section 제목 |
 | `typography.balance` | 40 / 48 px | Medium | 한 화면의 주요 총액 |
+| `typography.amountHero` | 40 / 48 px | Bold | 보내기 금액 단계와 검토 화면의 보낼 금액 (화면당 하나) |
 | `typography.amount` | 32 / 40 px | Medium | 금액 입력 |
 | `typography.reviewAmount` | 28 / 36 px | Medium | 서명 전 핵심 금액 |
 | `typography.row` | 16 / 24 px | Medium | 자산명·수량·Activity 금액 |

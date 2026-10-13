@@ -266,6 +266,13 @@ export const light = {
           "lineHeight": 48,
           "letterSpacing": -0.8
         },
+        "amountHero": {
+          "fontFamily": "Inter",
+          "fontWeight": "700",
+          "fontSize": 40,
+          "lineHeight": 48,
+          "letterSpacing": -0.8
+        },
         "amount": {
           "fontFamily": "Inter",
           "fontWeight": "500",
@@ -465,9 +472,9 @@ export const light = {
       },
       "secondary": {
         "bg": {
-          "default": "#F6F8FB",
-          "hover": "#EEF2F7",
-          "pressed": "#DDE4EC"
+          "default": "#DDE4EC",
+          "hover": "#C7D1DD",
+          "pressed": "#98A4B3"
         },
         "fg": "#11161D",
         "border": "#808D9D"
@@ -557,6 +564,13 @@ export const light = {
       "balance": {
         "fontFamily": "Inter",
         "fontWeight": "500",
+        "fontSize": 40,
+        "lineHeight": 48,
+        "letterSpacing": -0.8
+      },
+      "amountHero": {
+        "fontFamily": "Inter",
+        "fontWeight": "700",
         "fontSize": 40,
         "lineHeight": 48,
         "letterSpacing": -0.8
@@ -672,9 +686,9 @@ export const light = {
       },
       "secondary": {
         "bg": {
-          "default": "#F6F8FB",
-          "hover": "#EEF2F7",
-          "pressed": "#DDE4EC",
+          "default": "#DDE4EC",
+          "hover": "#C7D1DD",
+          "pressed": "#98A4B3",
           "disabled": "#DDE4EC"
         },
         "fg": {

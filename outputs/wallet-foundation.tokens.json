@@ -881,6 +881,20 @@
           },
           "type": "typography"
         },
+        "amountHero": {
+          "value": {
+            "fontFamily": "{font.family.sans}",
+            "fontWeight": "{font.weight.bold}",
+            "fontSize": "{font.size.product40}",
+            "lineHeight": "{font.lineHeight.px48}",
+            "letterSpacing": "{font.tracking.tight}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
         "amount": {
           "value": {
             "fontFamily": "{font.family.sans}",
@@ -1364,17 +1378,17 @@
       "secondary": {
         "bg": {
           "default": {
-            "value": "{color.neutral.50}",
+            "value": "{color.neutral.200}",
             "type": "color",
             "description": "action.secondary.bg.default: Action control state. Primary Blue A means an action, not success, financial gain or safety."
           },
           "hover": {
-            "value": "{color.neutral.100}",
+            "value": "{color.neutral.300}",
             "type": "color",
             "description": "action.secondary.bg.hover: Action control state. Primary Blue A means an action, not success, financial gain or safety."
           },
           "pressed": {
-            "value": "{color.neutral.200}",
+            "value": "{color.neutral.400}",
             "type": "color",
             "description": "action.secondary.bg.pressed: Action control state. Primary Blue A means an action, not success, financial gain or safety."
           }
@@ -1612,6 +1626,11 @@
         "value": "{type.product.balance}",
         "type": "typography",
         "description": "typography.balance: Product typography role. Components must consume their specific typography alias when one exists."
+      },
+      "amountHero": {
+        "value": "{type.product.amountHero}",
+        "type": "typography",
+        "description": "typography.amountHero: Product typography role. One emphasized transfer amount per screen (Review, Send amount). 40/48 Bold."
       },
       "amount": {
         "value": "{type.product.amount}",

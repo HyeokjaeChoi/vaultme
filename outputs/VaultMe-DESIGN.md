@@ -81,7 +81,7 @@ Phosphor regular의 기능·상태·Navigation icon을 유지한다. 자산 iden
 
 ## 제품 type와 layout
 
-Inter UI와 IBM Plex Mono 주소·hash를 유지한다. `typography.balance`는 40/48 px, amount 32/40 px, reviewAmount 28/36 px, title 24/32 px, row 16/24 px, body·label·address 14/20 px다. 12/18 px meta는 보조 시간과 문서 caption에만 쓴다. 기본 제품 TEXT를 역할 Style에 연결한다. T02의 22개 TEXT는 200% font-size override로 Style 연결이 해제된 stress 예외다.
+Inter UI와 IBM Plex Mono 주소·hash를 유지한다. `typography.balance`는 40/48 px, `typography.amountHero`는 40/48 px Bold(보낼 금액, 화면당 하나), amount 32/40 px, reviewAmount 28/36 px, title 24/32 px, row 16/24 px, body·label·address 14/20 px다. 12/18 px meta는 보조 시간과 문서 caption에만 쓴다. 기본 제품 TEXT를 역할 Style에 연결한다. T02의 22개 TEXT는 200% font-size override로 Style 연결이 해제된 stress 예외다.
 
 웹 숫자는 tabular numerals, 우측 정렬, 단위 표시를 사용한다. Native TNUM 적용은 미확인이다. 아주 작은 수량은 전체 정밀도를 Review에서 읽을 수 있게 한다. 금액에 ellipsis를 쓰지 않는다. 긴 이름·값이 충돌하면 값 영역을 다음 줄로 옮긴다.
 

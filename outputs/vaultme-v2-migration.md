@@ -263,3 +263,10 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 `wallet-foundation.tokens.json`에 Tokens Studio 방식으로 추가했다: 최상위 set `semanticDark`(위 60개 override, `{color…}` alias만), `$metadata.tokenSetOrder`, `$themes`(Light, Dark). 기존 `primitive`, `semantic`, `component`의 경로와 값은 바꾸지 않았다. 나머지 34개는 Light와 같다.
 
 `packages/tokens/build.mjs`가 Dark를 이 set에서 만든다. 임시 `dark.json`은 삭제했다. 기존 JSON을 읽는 다른 도구는 repo에서 찾지 못했다. `work/build_foundation.py`는 이 workspace에 없어서 실행하지 못했다. Tokens Studio에서 실제 import한 확인은 하지 않았다.
+
+## 2026-10-13 Secondary action fill과 amountHero
+
+- `semantic.action.secondary.bg.{default,hover,pressed}` Light: `neutral.50/100/200` → `neutral.200/300/400`. 이유: 2026-10-05에 `surface.canvas`가 `neutral.50`이 되어 Secondary default가 canvas와 같은 색이 됐다. Ink 대비 14.2:1 / 11.8:1 / 7.2:1. 버튼 면과 canvas 대비는 1.2:1이다. 버튼은 라벨로 식별되므로 1.4.11 대상이 아니다. Dark 값은 바꾸지 않았다. 경로·ID 유지 (Figma `action/secondary/bg/*` VariableID:2:186–188).
+- 새 Primitive `type.product.amountHero`(40/48 Bold)와 Semantic `typography.amountHero`. Figma Text Style `Product / Amount Hero`. 기존 Style은 바꾸지 않았다.
+- 추가 컴포넌트(미게시): `Icon button / Plain` 330:3401, `Keypad` 330:3423, `Summary row` 330:10480, `Icon / action / backspace` 330:2747 (Phosphor, MIT).
+- Library 게시는 소유자 검토 후 별도 단계다.

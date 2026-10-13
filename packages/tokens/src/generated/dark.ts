@@ -266,6 +266,13 @@ export const dark = {
           "lineHeight": 48,
           "letterSpacing": -0.8
         },
+        "amountHero": {
+          "fontFamily": "Inter",
+          "fontWeight": "700",
+          "fontSize": 40,
+          "lineHeight": 48,
+          "letterSpacing": -0.8
+        },
         "amount": {
           "fontFamily": "Inter",
           "fontWeight": "500",
@@ -557,6 +564,13 @@ export const dark = {
       "balance": {
         "fontFamily": "Inter",
         "fontWeight": "500",
+        "fontSize": 40,
+        "lineHeight": 48,
+        "letterSpacing": -0.8
+      },
+      "amountHero": {
+        "fontFamily": "Inter",
+        "fontWeight": "700",
         "fontSize": 40,
         "lineHeight": 48,
         "letterSpacing": -0.8
