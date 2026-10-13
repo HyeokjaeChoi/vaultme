@@ -62,3 +62,9 @@ describe('generate / derive', () => {
     expect(a).toMatchInlineSnapshot(`"0x9858EfFD232B4033E47d90003D41EC34EcaEda94"`)
   })
 })
+
+describe('Mnemonic constructor', () => {
+  test('rejects invalid phrases', () => {
+    expect(() => new Mnemonic('not a valid phrase')).toThrow(TypeError)
+  })
+})
