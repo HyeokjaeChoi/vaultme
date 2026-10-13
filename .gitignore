@@ -27,3 +27,4 @@ work/c2a/screens/
 .impeccable/mocks/
 .impeccable/review/
 .impeccable/payload-*.json
+.impeccable/questions/

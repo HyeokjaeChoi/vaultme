@@ -22,3 +22,9 @@ Extra captures: `<key>-dark-app.png` (home, send, send-amount, review, review-lo
 | home-dark | 336:11570 | `/home?variant=restored`, appearance dark | Device chrome. |
 
 Android: home, send-amount, review render the same layout as iOS. Fonts and safe areas follow the platform.
+
+Android repro (emulator `signaldock-api37`, Expo Go 57.0.9):
+- Open a route with `adb shell am start -p host.exp.exponent -a android.intent.action.VIEW -d exp://10.0.2.2:<port>/--/<route>`. Without `-p`, another installed dev build can take the `exp://` link.
+- `10.0.2.2` is the host machine from the emulator. Check that `<port>` is the Metro of this worktree.
+- On a fresh Expo Go install, tap Continue on the welcome sheet once. Before that, the app can stay on a spinner.
+- `*-fontscale-android.png` use font scale 1.3: review notice sits under the footer and scrolls into view; send-amount "Tools" pill is Expo Go dev chrome.
