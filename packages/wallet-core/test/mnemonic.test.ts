@@ -1,0 +1,64 @@
+import { inspect } from 'node:util'
+import { describe, expect, test } from 'vitest'
+import { deriveAddress, generateMnemonic, toMnemonic, validateMnemonic, Mnemonic } from '../src'
+import { BIP39_12, BIP39_24, PUBLIC_JUNK_ADDRESS, PUBLIC_JUNK_PHRASE } from './fixtures'
+
+describe('Mnemonic masking', () => {
+  const m = new Mnemonic(PUBLIC_JUNK_PHRASE)
+  test('no printing path reveals words', () => {
+    const outs = [
+      String(m),
+      `${m}`,
+      m + '',
+      JSON.stringify(m),
+      JSON.stringify({ m }),
+      inspect(m),
+      inspect({ nested: [m] }, { depth: 5 }),
+      Object.keys(m).join(),
+      JSON.stringify(Object.getOwnPropertyNames(m)),
+    ]
+    for (const o of outs) expect(o).not.toContain('test test')
+    expect(outs.join(' ')).not.toContain('junk')
+  })
+  test('reveal() is the only way out', () => expect(m.reveal()).toBe(PUBLIC_JUNK_PHRASE))
+})
+
+describe('validateMnemonic', () => {
+  test('ok for 12 and 24 words', () => {
+    expect(validateMnemonic(BIP39_12)).toEqual({ kind: 'ok' })
+    expect(validateMnemonic(BIP39_24)).toEqual({ kind: 'ok' })
+    expect(validateMnemonic(`  ${BIP39_12.toUpperCase()} \n`)).toEqual({ kind: 'ok' })
+  })
+  test('wrongLength', () => {
+    expect(validateMnemonic('abandon abandon')).toEqual({ kind: 'wrongLength', count: 2 })
+    expect(validateMnemonic('')).toEqual({ kind: 'wrongLength', count: 0 })
+  })
+  test('unknownWord reports the index', () => {
+    const bad = BIP39_12.replace(/^((\S+ ){4})\S+/, '$1zzzzzz')
+    expect(validateMnemonic(bad)).toEqual({ kind: 'unknownWord', index: 4 })
+  })
+  test('badChecksum', () => {
+    expect(validateMnemonic(BIP39_12.replace(/about$/, 'abandon'))).toEqual({ kind: 'badChecksum' })
+  })
+})
+
+describe('generate / derive', () => {
+  test('generated phrase has 12 valid words and is masked', () => {
+    const m = generateMnemonic()
+    expect(m.reveal().split(' ')).toHaveLength(12)
+    expect(validateMnemonic(m.reveal())).toEqual({ kind: 'ok' })
+    expect(generateMnemonic().reveal()).not.toBe(m.reveal())
+  })
+  test('toMnemonic rejects invalid phrase', () => {
+    expect(toMnemonic('nope')).toBeNull()
+    expect(toMnemonic(BIP39_12)?.reveal()).toBe(BIP39_12)
+  })
+  test('published vector: junk phrase -> Anvil account 0 (viem test suite, see fixtures.ts)', () => {
+    expect(deriveAddress(new Mnemonic(PUBLIC_JUNK_PHRASE))).toBe(PUBLIC_JUNK_ADDRESS)
+  })
+  test('BIP39 "abandon..about" derivation is stable (expected value NOT verified against a source)', () => {
+    const a = deriveAddress(new Mnemonic(BIP39_12))
+    expect(a).toMatch(/^0x[0-9a-fA-F]{40}$/)
+    expect(a).toMatchInlineSnapshot(`"0x9858EfFD232B4033E47d90003D41EC34EcaEda94"`)
+  })
+})

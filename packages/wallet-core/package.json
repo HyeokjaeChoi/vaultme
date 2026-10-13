@@ -1,0 +1,24 @@
+{
+  "name": "@vaultme/wallet-core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@scure/bip39": "^2.4.0",
+    "viem": "^2.57.3"
+  },
+  "devDependencies": {
+    "@vaultme/config": "workspace:*",
+    "eslint": "^10.12.0",
+    "fast-check": "^4.10.2",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
+  }
+}
