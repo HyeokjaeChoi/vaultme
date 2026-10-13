@@ -13,7 +13,8 @@ const MASK = '[Mnemonic: hidden]'
 export class Mnemonic {
   readonly #words: string
   constructor(words: string) {
-    this.#words = words
+    if (validateMnemonic(words).kind !== 'ok') throw new TypeError('Invalid mnemonic')
+    this.#words = normalize(words).join(' ')
   }
   reveal(): string {
     return this.#words
