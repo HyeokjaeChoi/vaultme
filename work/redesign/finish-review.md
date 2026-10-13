@@ -32,3 +32,23 @@ Verified in code: Reduce Motion handled in usePressScale, useFoldIn (starts at 1
 Back as bare 44 pt arrow, one question per screen, 24/32 titles, 40/48 amount hero, borderless flat rows, full address with chunk-marking, sheet with Cancel as the primary action.
 
 fix
+
+## Verdict pass (commit 6b1c8a3)
+Evidence: 10 dark captures, 3 xxxl captures, light home/settings/send-amount/sheet present. Viewed home, send, send-amount, review, sheet, receive, settings dark; home, settings, send-amount, review light/xxxl. activity-dark and review-lookalike-dark exist but were not opened. Stray file "review-xxxl-app review.png" in compare/ (delete it).
+
+| # | Fix | Verdict | Evidence |
+|---|-----|---------|----------|
+| 1 | Dark secondary fill invisible | resolved | home/send/receive/sheet dark: 받기, 붙여넣기, 주소 복사, 그래도 보내기 all read as buttons (1.46:1 fill is owner-approved; label 12:1). |
+| 2 | Dark coverage | resolved | send, send-amount, review, sheet, receive, settings dark show no regressions (lookalike and activity not opened). |
+| 3 | Tab bar | resolved | full width, 8 pt top padding, icon clear of hairline, fill reaches safe area (light and dark). |
+| 4 | Settings toggles | resolved | 3 real Switches (on/off/on), 복구 구문 보기 keeps chevron only, light + dark + xxxl. |
+| 5 | Dynamic Type | partial | send-amount and settings hold at xxxl (keypad intact, wrapped label ok). review-xxxl: body scrolls above pinned CTA, so the "확인 결과" notice shows only its title and its body ("not a safety guarantee", rule 3) is cut off with no scroll cue. Sheet at xxxl and Android font scale uncaptured. |
+| 6 | Home "..." | resolved | visible top right, light and dark. Not checked: its label/44 pt target. |
+| 7 | Scrim role | resolved only if code check below is satisfied | see grep result in the reply. |
+| 8 | Notice tint / arrow offset / gap | partial | send-amount gap now 16 pt (resolved); notice tint and arrow offset declined by owner (open, accepted). |
+
+Regressions introduced: (a) review at xxxl hides the safety notice body behind the pinned footer; (b) stray duplicate capture file; (c) none other seen.
+
+remaining: review xxxl notice reachability (give the notice a scroll cue or move it above the fee rows, or pin less footer at large text); Android font-scale and sheet-at-xxxl captures; open the two unviewed dark captures.
+
+disposition: fix
