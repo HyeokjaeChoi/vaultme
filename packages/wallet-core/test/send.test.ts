@@ -97,6 +97,12 @@ describe('signAndSubmit (fake submit, no network)', () => {
     expect(res).toEqual({ status: 'NeedsReview' })
     expect(called).toBe(false)
   })
+  test('nonce changed since review -> NeedsReview, nothing submitted', async () => {
+    let called = false
+    const res = await run(undefined, { ...snap, nonce: snap.nonce + 1 }, async () => ((called = true), '0x'))
+    expect(res).toEqual({ status: 'NeedsReview' })
+    expect(called).toBe(false)
+  })
   test('latest fee cap over absolute cap -> Blocked', async () => {
     let called = false
     const huge = { ...snap, baseFeePerGas: ABS_MAX_FEE_WEI } // cap = gas * 2*base >> 0.005 ETH

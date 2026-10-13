@@ -131,13 +131,15 @@ export async function signAndSubmit(
   const latestCap = fees(latest).feeCap
   if (approved.feeCap > ABS_MAX_FEE_WEI || latestCap > ABS_MAX_FEE_WEI) return { status: 'Blocked' }
   if (latestCap > approved.feeCap) return { status: 'NeedsReview' }
+  // The signed tx must match the reviewed model. A new nonce means a new review.
+  if (latest.nonce !== approved.nonce) return { status: 'NeedsReview' }
 
   const asset = ASSETS[approved.asset]
   const account = mnemonicToAccount(deps.mnemonic.reveal(), { path: DERIVATION_PATH })
   const raw = await account.signTransaction({
     type: 'eip1559',
     chainId: CHAIN.id,
-    nonce: latest.nonce,
+    nonce: approved.nonce,
     gas: approved.gasLimit,
     maxFeePerGas: approved.maxFeePerGas,
     maxPriorityFeePerGas: approved.maxPriorityFeePerGas,
