@@ -11,5 +11,5 @@ type Props = TextProps & { variant?: TextVariant; color?: string }
 
 export function Text({ variant = 'body', color, style, ...rest }: Props) {
   const t = useTheme()
-  return <RNText {...rest} style={[textStyle(variant === 'display' ? t.primitive.type.display.mobile : t.semantic.typography[variant]), { color: color ?? t.semantic.text.primary }, style]} />
+  return <RNText maxFontSizeMultiplier={variant === 'amountHero' ? 1.2 : 1.5} {...rest} style={[textStyle(variant === 'display' ? t.primitive.type.display.mobile : t.semantic.typography[variant]), { color: color ?? t.semantic.text.primary }, style]} />
 }

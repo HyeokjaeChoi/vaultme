@@ -11,6 +11,7 @@ export function Switch({ value, onValueChange, label, disabled }: Props) {
   const h = t.primitive.size.avatar_sm
   const pad = t.primitive.space['0_5']
   const thumb = h - pad * 2
+  const slop = { top: (t.primitive.size.touch_min - h) / 2, bottom: (t.primitive.size.touch_min - h) / 2, left: 0, right: 0 }
   return (
     <Pressable
       accessibilityRole="switch"
@@ -18,7 +19,8 @@ export function Switch({ value, onValueChange, label, disabled }: Props) {
       accessibilityState={{ checked: value, disabled: !!disabled }}
       disabled={disabled}
       onPress={() => onValueChange(!value)}
-      style={{ minHeight: t.primitive.size.touch_min, minWidth: t.primitive.size.touch_min, justifyContent: 'center', opacity: disabled ? t.primitive.opacity[40] : t.primitive.opacity[100] }}
+      hitSlop={slop}
+      style={{ justifyContent: 'center', opacity: disabled ? t.primitive.opacity[40] : t.primitive.opacity[100] }}
     >
       <View
         style={{

@@ -4680,17 +4680,17 @@
       "secondary": {
         "bg": {
           "default": {
-            "value": "{color.neutral.900}",
+            "value": "{color.neutral.800}",
             "type": "color",
             "description": "action.secondary.bg.default: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
           },
           "hover": {
-            "value": "{color.neutral.800}",
+            "value": "{color.neutral.700}",
             "type": "color",
             "description": "action.secondary.bg.hover: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
           },
           "pressed": {
-            "value": "{color.neutral.700}",
+            "value": "{color.neutral.600}",
             "type": "color",
             "description": "action.secondary.bg.pressed: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
           }

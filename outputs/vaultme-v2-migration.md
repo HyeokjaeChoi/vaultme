@@ -273,3 +273,12 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - 소유자 승인: `component.button.size.lg.paddingX` `space.5`(20) → `space.4`(16), `component.receivePanel.radius` `radius.xl`(20) → `radius.lg`(16). Figma VariableID:2:253, VariableID:30:48 alias 변경, 경로·ID 유지. Library 게시 완료는 이 단계 이후 기록.
 
 - Figma에만 있던 C29–C33 Component Variable 24개를 portable JSON `component`에 추가했다 (`switch` 4, `segmented` 6, `listItem` 7, `bottomSheet` 1, `sensitiveReveal` 6). 모두 기존 Semantic/Primitive alias이며 raw 값은 없다. Primitive와 Semantic은 추가 없음 (`space/*`는 이미 JSON에 있음). 기존 값은 바꾸지 않았다. Figma 읽기 전용 비교: Figma 717 Variable, JSON-only는 Text Style/Effect Style 참조(typography, shadow) 80개뿐이다. `segmented.bg`(`action.secondary.bg.default`)는 앱의 기존 `surface.subtle`과 값이 달라 앱 코드는 바꾸지 않았다.
+
+## 2026-10-14 Dark Secondary fill과 Tab bar (finish-review 수정)
+
+- `semanticDark.action.secondary.bg.{default,hover,pressed}`: `neutral.900/800/700` → `neutral.800/700/600`. 이유: Dark canvas(`neutral.950`)와 default 면이 1.06:1이라 버튼이 보이지 않았다. 새 값은 canvas 대비 1.46 / 1.97 / 2.82:1이다. `action.secondary.fg`(`neutral.50`)와의 대비는 12.38 / 9.18 / 6.39:1로 모두 4.5:1 이상이다. Figma `02 Semantic` Dark mode(`298:0`)의 VariableID:2:186–188을 같은 alias로 바꿨다. 경로·ID 유지. `segmented.bg`와 Secondary Button이 이 변수를 alias하므로 Dark에서 함께 바뀐다.
+- Product navigation(`67:342`): 모든 variant에 `paddingTop` = `space/2`(8, 변수 binding)를 추가했다. 높이(`productNavigation/height` 64), 색, divider 토큰, 44 pt 대상은 그대로다. master ID는 유지했다. 앱 frame 5개는 Tab bar를 Body 밖으로 옮겨 화면 전체 너비(390)로 쓰고, Home indicator 영역 fill을 `productNavigation/bg`에 binding해 bar 색이 하단 safe area까지 이어진다.
+- 앱 `ProductNavigation`: 화면 전체 너비, 상단 padding `space[2]`, bar fill이 safe area까지 확장, `minHeight`, label `maxFontSizeMultiplier` 1.3.
+- Settings(R-S60): 거래 알림, 0원 거래 표시, 기기 보안 경고는 List item `Trailing=Switch` + C29 Switch(켜짐/꺼짐/켜짐). 복구 구문 보기는 값 없는 disclosure.
+- Library 게시는 이 변경 이후 별도로 기록한다.
+- Library 게시 완료 (2026-10-14). 변경 목록 13개: `02 Semantic` 3 변수(dark secondary), `03 Component` 4 변수(`button/secondary/bg/*`, `segmented/bg`), Component 11개(Product navigation, 그리고 Button / Secondary를 쓰거나 binding하는 Button / Secondary, Card / Group, Segmented control, Collection state, Receive address, Review footer, Transaction result, Backup status, Connected app row, Token allowance row). 그 외 항목은 없었다. 설명: "2026-10-14: dark Secondary fill neutral 800/700/600, full-width tab bar with top padding, settings switches."

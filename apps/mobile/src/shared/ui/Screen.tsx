@@ -12,10 +12,12 @@ type Props = {
   edges?: ('top' | 'bottom')[]
   /** `section` = layout.sectionGap.product (24, default). `group` = layout.groupGap (16), used by frame S10N. `row` = layout.rowGap (12), used by S40. */
   gap?: 'section' | 'group' | 'row'
+  /** Space between the header and the first block. `field` = 8 (default), `group` = 16 (frame S20B). */
+  topGap?: 'field' | 'group'
 }
 
 /** Safe-area screen with canvas background, scroll body and optional pinned footer. */
-export function Screen({ children, header, footer, edges = ['top', 'bottom'], gap = 'section' }: Props) {
+export function Screen({ children, header, footer, edges = ['top', 'bottom'], gap = 'section', topGap = 'field' }: Props) {
   const t = useTheme()
   const l = t.semantic.layout
   return (
@@ -24,7 +26,7 @@ export function Screen({ children, header, footer, edges = ['top', 'bottom'], ga
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: l.screen.padding,
-          paddingTop: t.primitive.space[2],
+          paddingTop: topGap === 'group' ? l.groupGap : t.primitive.space[2],
           paddingBottom: t.primitive.space[2],
           gap: gap === 'group' ? l.groupGap : gap === 'row' ? l.rowGap : l.sectionGap.product,
           flexGrow: 1,

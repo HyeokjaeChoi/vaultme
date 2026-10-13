@@ -28,7 +28,7 @@ export function SummaryRow({ label, value, format = 'text', highlight, mono, edi
       accessibilityLabel={onEdit ? undefined : `${label}, ${value}`}
       style={{ flexDirection: 'row', alignItems: 'flex-start', gap: t.semantic.layout.rowGap, minHeight: t.primitive.size.touch_min, paddingVertical: t.primitive.space[3] }}
     >
-      <Text variant={total ? 'label' : 'body'} color={total ? t.semantic.text.primary : t.semantic.text.secondary} style={{ width: labelWidth }}>{label}</Text>
+      <Text variant={total ? 'label' : 'body'} color={total ? t.semantic.text.primary : t.semantic.text.secondary} style={{ minWidth: labelWidth }}>{label}</Text>
       <View style={{ flex: 1 }}>
         {format === 'address' ? (
           <AddressText address={value} highlight={highlight ?? []} markColor={t.semantic.status.warning.fg} />

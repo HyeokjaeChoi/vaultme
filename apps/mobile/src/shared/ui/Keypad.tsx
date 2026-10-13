@@ -27,15 +27,15 @@ function Key({ k, labels, onKey }: { k: KeypadKey; labels: Labels; onKey: (k: Ke
         accessibilityLabel={label}
         onPress={() => onKey(k)}
         {...handlers}
-        style={{ height: t.primitive.size.control_lg, alignItems: 'center', justifyContent: 'center' }}
+        style={{ minHeight: t.primitive.size.control_lg, alignItems: 'center', justifyContent: 'center' }}
       >
-        {k === 'backspace' ? <Icon name="backspace" size={t.component.icon.size.control} color={t.semantic.text.primary} /> : <Text variant="title">{k}</Text>}
+        {k === 'backspace' ? <Icon name="backspace" size={t.component.icon.size.control} color={t.semantic.text.primary} /> : <Text variant="title" maxFontSizeMultiplier={1.3}>{k}</Text>}
       </Pressable>
     </Animated.View>
   )
 }
 
-/** C34 Keypad. 3x4 text-only keys (1-9, ., 0, backspace), 52 pt rows. Every key is a button with a label; backspace is icon-only ("지우기"). Press feedback only: scale 0.97, 160 ms. */
+/** C34 Keypad. 3x4 text-only keys (1-9, ., 0, backspace), 52 pt min-height rows that grow with large text (digits capped at 1.3x). Every key is a button with a label; backspace is icon-only ("지우기"). Press feedback only: scale 0.97, 160 ms. */
 export function Keypad({ onKey, labels }: { onKey: (k: KeypadKey) => void; labels: Labels }) {
   const t = useTheme()
   return (

@@ -472,9 +472,9 @@ export const dark = {
       },
       "secondary": {
         "bg": {
-          "default": "#11161D",
-          "hover": "#28313C",
-          "pressed": "#394553"
+          "default": "#28313C",
+          "hover": "#394553",
+          "pressed": "#505C6C"
         },
         "fg": "#F6F8FB",
         "border": "#505C6C"
@@ -686,9 +686,9 @@ export const dark = {
       },
       "secondary": {
         "bg": {
-          "default": "#11161D",
-          "hover": "#28313C",
-          "pressed": "#394553",
+          "default": "#28313C",
+          "hover": "#394553",
+          "pressed": "#505C6C",
           "disabled": "#28313C"
         },
         "fg": {
@@ -1761,7 +1761,7 @@ export const dark = {
       "radius": 999
     },
     "segmented": {
-      "bg": "#11161D",
+      "bg": "#28313C",
       "selectedBg": "#28313C",
       "border": "#28313C",
       "fg": "#C7D1DD",

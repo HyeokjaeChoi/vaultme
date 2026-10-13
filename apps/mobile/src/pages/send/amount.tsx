@@ -23,6 +23,7 @@ export function SendAmountPage() {
   const gap = th.semantic.layout.fieldGap
   return (
     <Screen
+      topGap="group"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}
       footer={<Button label={t('send.next')} disabled={isZeroAmount(amount)} onPress={() => router.push('/review')} />}
     >
