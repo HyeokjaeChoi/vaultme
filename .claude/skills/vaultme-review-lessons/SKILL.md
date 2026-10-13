@@ -29,3 +29,15 @@ Use this format. Keep it short. Link the PRs.
   Button labels may wrap to 2 lines. Never put a real recovery phrase or key in code, tests or logs.
 - Check: manual
 - Source: outputs/design/text-200-check.md
+
+### L01. App screens use the product spacing scale
+- Why: C2a used `sectionGap.mobile` (64, landing page) and screens looked broken.
+- Do: `sectionGap.product` 24, `groupGap` 16, `rowGap` 12, `fieldGap` 8, screen padding 16. No numeric style literals.
+- Check: `scripts/check-repo-rules.sh` R4, R5
+- Source: docs/retro/2026-10-13-design-system-not-applied.md
+
+### L02. UI is built from Figma components, and proven with a comparison
+- Why: Figma screen layers had 900+ unbound values; app components were rebuilt from docs with inverted button hierarchy.
+- Do: Figma via `vaultme-figma-screen` (audit = 0). Code via `vaultme-design-to-code` (`get_design_context`, `// Figma:` header, app-vs-Figma pairs).
+- Check: R6 + audit.js + PR comparison images (manual review by the main agent)
+- Source: docs/retro/2026-10-13-design-system-not-applied.md

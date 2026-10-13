@@ -4,7 +4,9 @@ set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 "$ROOT/scripts/check-repo-rules.sh"
 base="$(git merge-base HEAD origin/main 2>/dev/null || echo "")"
-if [ -z "$base" ] || [ -n "$(git diff --name-only "$base"..HEAD -- . ':!*.md' ':!outputs/' ':!docs/')" ]; then
+if [ ! -f "$ROOT/package.json" ]; then
+  echo "pre-push: no package.json yet, skipping typecheck lint test" >&2
+elif [ -z "$base" ] || [ -n "$(git diff --name-only "$base"..HEAD -- . ':!*.md' ':!outputs/' ':!docs/')" ]; then
   echo "pre-push: code changed, running typecheck lint test" >&2
   (cd "$ROOT" && pnpm turbo run typecheck lint test)
 fi

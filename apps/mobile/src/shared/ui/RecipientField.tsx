@@ -1,4 +1,5 @@
 // Figma: Recipient field 40:17
+import { useState } from 'react'
 import { TextInput, View } from 'react-native'
 import { groupAddress } from '../lib/address'
 import { textStyle } from '../theme/fonts'
@@ -9,6 +10,7 @@ type Props = { label: string; value: string; onChangeText: (v: string) => void; 
 
 /** C13 Recipient field: bordered group, Label, address in Product / Address (mono), shown in 4-char groups, helper. Format check is not a safety claim. */
 export function RecipientField({ label, value, onChangeText, helper }: Props) {
+  const [focused, setFocused] = useState(false)
   const t = useTheme()
   const c = t.component.recipientField
   return (
@@ -16,7 +18,9 @@ export function RecipientField({ label, value, onChangeText, helper }: Props) {
       <Text variant="label" color={c.label}>{label}</Text>
       <TextInput
         accessibilityLabel={label}
-        value={groupAddress(value).join(' ')}
+        value={focused ? value : groupAddress(value).join(' ')}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         onChangeText={(v) => onChangeText(v.replace(/\s/g, ''))}
         multiline
         autoCapitalize="none"
