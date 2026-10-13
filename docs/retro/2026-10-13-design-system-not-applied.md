@@ -65,7 +65,7 @@
 
 ## 7. 더 찾아본 개선책 (후속 issue 후보)
 
-1. **Figma Code Connect**: Figma 컴포넌트를 `apps/mobile/src/shared/ui` 컴포넌트에 연결한다. 그러면 `get_design_context`가 새 코드를 만들지 않고 기존 컴포넌트 사용 코드를 돌려준다. 손으로 다시 만드는 일을 구조적으로 막는다.
+1. **Figma Code Connect**: Figma 컴포넌트를 `apps/mobile/src/shared/ui` 컴포넌트에 연결한다. `get_design_context`는 연결된 구현 정보를 제공한다. 구현에서 기존 컴포넌트의 재사용 여부를 확인한다.
 2. **화면 시각 회귀 테스트**: Maestro 또는 `xcrun simctl io` 캡처를 기준 이미지와 비교한다. 기준 이미지는 Figma 프레임 export로 시작한다.
 3. **Figma 감사의 CI화**: Figma REST API로 `11 Prototype` 노드를 읽어 raw 값 개수를 세는 스크립트. 토큰이 필요하므로 secret 관리를 먼저 정한다.
 4. **ESLint 규칙화**: R5 grep 검사를 `no-restricted-syntax` 규칙으로 옮겨 에디터에서 바로 보이게 한다.

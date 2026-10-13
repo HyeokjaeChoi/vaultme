@@ -20,7 +20,7 @@ for (const root of roots) for (const n of (root.type === 'PAGE' ? [] : [root]).c
     if (n.itemSpacing > 0 && !bv.itemSpacing) hit('gap', n)
     if (['paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom'].some((k) => n[k] > 0 && !bv[k])) hit('pad', n)
   }
-  if (typeof n.cornerRadius === 'number' && n.cornerRadius > 0 && !bv.topLeftRadius) hit('radius', n)
+  if (['topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'].some((k) => n[k] > 0 && !bv[k])) hit('radius', n)
   if (Array.isArray(n.fills) && n.fills.some((f) => f.type === 'SOLID' && f.visible !== false && !f.boundVariables?.color)) hit('fill', n)
   if (Array.isArray(n.strokes) && n.strokes.some((f) => f.type === 'SOLID' && !f.boundVariables?.color)) hit('stroke', n)
   // A frame that looks like a component copy (has a component-like name but is not an instance).
