@@ -1,0 +1,39 @@
+// Figma: Segmented control 300:622
+import { Pressable, View } from 'react-native'
+import { useTheme } from '../theme'
+import { Text } from './Text'
+
+type Props<T extends string> = { options: readonly { value: T; label: string }[]; value: T; onChange: (v: T) => void }
+
+/** C30 Segmented control. Two exclusive choices; selection is instant. Track subtle, selected segment white with a hairline border. */
+export function Segmented<T extends string>({ options, value, onChange }: Props<T>) {
+  const t = useTheme()
+  const pad = t.primitive.space[1]
+  return (
+    <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', gap: pad, padding: pad, borderRadius: t.semantic.shape.control, backgroundColor: t.semantic.surface.subtle }}>
+      {options.map((o) => {
+        const on = o.value === value
+        return (
+          <Pressable
+            key={o.value}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: on }}
+            onPress={() => onChange(o.value)}
+            style={{
+              flex: 1,
+              minHeight: t.primitive.size.touch_min,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: t.semantic.shape.control,
+              borderWidth: on ? t.primitive.borderWidth.hairline : t.primitive.borderWidth.none,
+              borderColor: t.semantic.border.subtle,
+              backgroundColor: on ? t.semantic.surface.raised : t.semantic.surface.subtle,
+            }}
+          >
+            <Text variant="label" color={on ? t.semantic.text.primary : t.semantic.text.secondary}>{o.label}</Text>
+          </Pressable>
+        )
+      })}
+    </View>
+  )
+}

@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "VaultMe",
+    "slug": "vaultme",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "scheme": "vaultme",
+    "userInterfaceStyle": "automatic",
+    "ios": { "bundleIdentifier": "app.vaultme.mobile", "supportsTablet": false },
+    "plugins": ["expo-router"]
+  }
+}
