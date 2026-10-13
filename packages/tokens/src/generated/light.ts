@@ -744,7 +744,7 @@ export const light = {
         },
         "lg": {
           "height": 52,
-          "paddingX": 20,
+          "paddingX": 16,
           "label": {
             "fontFamily": "Inter",
             "fontWeight": "600",
@@ -1226,7 +1226,7 @@ export const light = {
         "fg": "#865007",
         "bg": "#FFF8E9"
       },
-      "radius": 20,
+      "radius": 16,
       "padding": 24,
       "titleStyle": {
         "fontFamily": "Inter",

@@ -270,3 +270,4 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - 새 Primitive `type.product.amountHero`(40/48 Bold)와 Semantic `typography.amountHero`. Figma Text Style `Product / Amount Hero`. 기존 Style은 바꾸지 않았다.
 - 추가 컴포넌트(미게시): `Icon button / Plain` 330:3401, `Keypad` 330:3423, `Summary row` 330:10480, `Icon / action / backspace` 330:2747 (Phosphor, MIT).
 - Library 게시는 소유자 검토 후 별도 단계다.
+- 소유자 승인: `component.button.size.lg.paddingX` `space.5`(20) → `space.4`(16), `component.receivePanel.radius` `radius.xl`(20) → `radius.lg`(16). Figma VariableID:2:253, VariableID:30:48 alias 변경, 경로·ID 유지. Library 게시 완료는 이 단계 이후 기록.

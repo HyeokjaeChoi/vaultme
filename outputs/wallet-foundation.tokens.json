@@ -1987,7 +1987,7 @@
             "description": "button.size.lg.height: C01 Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
           },
           "paddingX": {
-            "value": "{space.5}",
+            "value": "{space.4}",
             "type": "spacing",
             "description": "button.size.lg.paddingX: C01 Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
           },
@@ -3154,7 +3154,7 @@
         }
       },
       "radius": {
-        "value": "{radius.xl}",
+        "value": "{radius.lg}",
         "type": "borderRadius",
         "description": "receivePanel.radius: C11 Receive address. Keep account, network and full address. A copy result is not a transfer confirmation."
       },

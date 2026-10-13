@@ -744,7 +744,7 @@ export const dark = {
         },
         "lg": {
           "height": 52,
-          "paddingX": 20,
+          "paddingX": 16,
           "label": {
             "fontFamily": "Inter",
             "fontWeight": "600",
@@ -1226,7 +1226,7 @@ export const dark = {
         "fg": "#FFC65D",
         "bg": "#53340F"
       },
-      "radius": 20,
+      "radius": 16,
       "padding": 24,
       "titleStyle": {
         "fontFamily": "Inter",
