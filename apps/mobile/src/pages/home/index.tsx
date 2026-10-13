@@ -20,7 +20,7 @@ export function HomePage() {
       <PortfolioBalance label={t('home.totalLabel')} value={t('home.unavailable')} note={t('home.unavailableNote')} />
       <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
         <Button label={t('home.send')} style={{ flex: 1 }} onPress={() => router.push('/send')} />
-        <Button label={t('home.receive')} variant="secondary" style={{ flex: 1 }} onPress={() => router.push('/receive')} />
+        <Button label={t('home.receive')} variant="secondary" style={{ flex: 1 }} onPress={() => router.push(isNew ? '/receive' : '/receive?backedUp=1')} />
       </View>
       {/* Static: backup flow (S31/S03) is not part of C2a. */}
       {isNew ? <BackupStatus title={t('home.backupTitle')} body={t('home.backupBody')} cta={t('home.backupCta')} /> : null}

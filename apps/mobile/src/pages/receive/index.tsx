@@ -4,16 +4,28 @@ import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { PushOptInSheet } from '@/features/push-optin/ui/PushOptInSheet'
-import { Button, PlaceholderQr, ReceivePanel, Screen, ScreenHeader } from '@/shared/ui'
+import { BackupStatus, Button, PlaceholderQr, ReceivePanel, Screen, ScreenHeader } from '@/shared/ui'
 import { useTheme } from '@/shared/theme'
 
-/** S30 받기. QR is a labelled placeholder: no real QR is rendered (AGENTS rule 4). `sheet=1` opens S50. Copy and share are inert in C2a. */
+/**
+ * S30 받기. QR is a labelled placeholder: no real QR is rendered (AGENTS rule 4). `sheet=1` opens S50. Copy and share are inert in C2a.
+ * The address shows only with `backedUp=1` (ux-flow §3: no backup -> S31). Otherwise the backup notice shows instead.
+ * ponytail: route param stands in for the stored backup state until C2b wires wallet-core state.
+ */
 export function ReceivePage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { sheet } = useLocalSearchParams<{ sheet?: string }>()
+  const { sheet, backedUp } = useLocalSearchParams<{ sheet?: string; backedUp?: string }>()
   const [open, setOpen] = useState(sheet === '1')
+  if (backedUp !== '1') {
+    return (
+      <Screen>
+        <ScreenHeader title={t('receive.title')} backLabel={t('common.back')} onBack={() => router.back()} />
+        <BackupStatus title={t('home.backupTitle')} body={t('home.backupBody')} cta={t('home.backupCta')} />
+      </Screen>
+    )
+  }
   return (
     <Screen
       footer={

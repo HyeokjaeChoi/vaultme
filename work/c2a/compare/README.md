@@ -36,7 +36,7 @@ Primitives (Figma vs token notes)
 
 # Round 2 (start, precheck, receive, receive+sheet, send, activity, settings)
 
-Keys: `start` (S01 306:143), `precheck` (S02 306:188), `receive` (S30 308:824), `receive-sheet` (S30+S50 308:1281, app: `/receive?sheet=1`),
+Keys: `start` (S01 306:143), `precheck` (S02 306:188), `receive` (S30 308:824), `receive-sheet` (S30+S50 308:1281, app: `/receive?backedUp=1&sheet=1`; `receive` uses `/receive?backedUp=1`. Without `backedUp=1` the screen shows the backup notice, not the address),
 `send` (S20 309:858), `activity` (S40 310:1666), `settings` (S60 310:2096). Fix rounds used: 1 (send address shown as one raw string; receive address fixture).
 Round 1 `review` and `review-lookalike` were re-captured: the safe S22 recipient is `0bD4 e6C8` in Figma (round 1 wrongly used the look-alike address); fixtures now have `recipient` (0bD4 e6C8) and `lookalike` (0bD5 e6C9).
 Dark receive pair: skipped. No "S30+S50 Dark" frame was found (only S10R Dark 312:2187 is known).
