@@ -1,0 +1,24 @@
+node_modules
+dist
+.turbo
+coverage
+*.tsbuildinfo
+.env
+.env.*
+.DS_Store
+src/generated
+ios
+android
+.expo
+# Private: job application material (not for the public repo)
+outputs/vaultme-bithumb-pay-portfolio-plan.md
+work/research-v2/planning/bithumb-pay-job-source-*.md
+# Design binaries and local tool state
+*.fig
+*.sketch
+*.xd
+*.zip
+.claude/worktrees/
+.claude/settings.local.json
+AGENTS.local.md
+work/c2a/screens/

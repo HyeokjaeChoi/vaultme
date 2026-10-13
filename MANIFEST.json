@@ -1,0 +1,279 @@
+{
+  "created": "2026-10-11",
+  "archive_root": "VaultMe-Claude-Handoff/",
+  "file_count_excluding_manifest_and_index": 70,
+  "files": [
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C01-button.md",
+      "sha256": "d87039e1cbf89193bc8e8c9fa0046b96c0d069f2a011f0511a54cc5e11e419bf"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C02-icon-button.md",
+      "sha256": "26f5b2012a4eec740ed4a19e52a35b329d0c6b49f5a9a7b6b39145064d2a2337"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C03-input.md",
+      "sha256": "e13553f3786d585dd31da4ea15aa2d7e3750e44a3c558b49ffa718745e3334b5"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C04-card-group.md",
+      "sha256": "85c3d731da297192f7b3a46de3c9b80000534a5d0d606e25e7d197deb00bcb4b"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C05-status-label.md",
+      "sha256": "4c3aa8f398c5bf0e4a27451afd30d8b96e80f87051404bc97d25e14005f0ebaf"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C06-navigation.md",
+      "sha256": "3dab870a5a31b68bbfe96044fdbad309e11d31371e079785739c70c1f3795d1e"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C07-account-selector.md",
+      "sha256": "27d0dc999c4d4a08427912becf0b560625eb3cc00d270c35e73dbda4cbff3440"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C08-network-selector.md",
+      "sha256": "d9f95a2564d5dd4c3cbb561212a0b4cc1bf74a94fa9daf04e189994547016113"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C09-asset-row.md",
+      "sha256": "fb4152fe4519de3e6a1f6bd69a221270890e09b5d94d2eb0a132a7baee080741"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C10-activity-row.md",
+      "sha256": "37df21859ae5ac92cdfef85f29e8a0e31e1e191ac87f88c015ff54908f2edec5"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C11-receive-address.md",
+      "sha256": "6ec8bdf8999fbf2dbe675353383a73bd3a30dadf109c48d9903832ff489abdf1"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C12-recipient-field.md",
+      "sha256": "c8583c8d481afc2f69c8e6832410998b4b9b94ebcb73fa0ec01859229c4b677c"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C13-amount-field.md",
+      "sha256": "4726c2ff745f2dacbf9a70da60ae47cbce2496751885ff2003e157273f225e41"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C14-fee-summary.md",
+      "sha256": "65027ec157a8b1716c78f3ad250ea4c7150a78f53871ace8fb9904de8e88a74b"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C15-transaction-panel.md",
+      "sha256": "22148db51c68826953cf35ba498431ef1892840e13527c518df38a9185a46c1e"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C16-approval-panel.md",
+      "sha256": "73429d5ad0001f3b5082ca100c6bf6fc3de5ba9665514fd04748f5a476719158"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C17-connection-request.md",
+      "sha256": "626bb5ced889af4653f1c9590e9de43f045799ad12ed1eb466fe1bb00d52c986"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C18-signature-request.md",
+      "sha256": "6363ec023c7791eb1afa53a7802c09df7582c349c4790cc63e9b3932e6870758"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C19-backup-status.md",
+      "sha256": "4503a089769a1a62cee697e194fc55b82093223a6f60d6fcb2dea64438070c33"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C20-connected-app-row.md",
+      "sha256": "fd4243a04ed8454a1780842e84f363a68eb3462815bad7a0caf466e46383b663"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C21-allowance-row.md",
+      "sha256": "1d6a3ba8c2630305fe8fe5b7a7ad8e952aa5adc04fdad18871a02b068703c45e"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C22-product-header.md",
+      "sha256": "6d0d78d0a66e3a4a1d14fbb6f3f7514f918306c03ee5503df602347c1bd5a232"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C23-portfolio-balance.md",
+      "sha256": "ffc8b6c779e120b4a4bcade24636897907b8c50e06c542981c7065e24e0e05ff"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C24-review-footer.md",
+      "sha256": "40ff53e71ef63dcb1892ab6a0f5cd0c9a0d3b19dbf63c209d419340ea239b7fa"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C25-status-notice.md",
+      "sha256": "7c4efb00139cfca46b044ad7a16a9f9cf64f7ad57fc46304cb8297b99989fcd7"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C26-address-block.md",
+      "sha256": "4a4220e058d94174f925d10f50c241522a8eb55399446d49d6dd12497da49c5c"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C27-collection-state.md",
+      "sha256": "c38651e9ddaece6057d6ca5696628a261c75321a8bfeaa197c54ef44a5d221ea"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/C28-result.md",
+      "sha256": "1efc1912c871f8f8811ae67b5f917c04bd54a5d0e457bd7f649e41e4827aa1df"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/components/README.md",
+      "sha256": "7404601853c344e47a9de5f0a55896da568b340d04e3e3a7336037b899a287aa"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/manyfast-vaultme-import/features/01-R-BEXZTL.md",
+      "sha256": "de147da266336f612cd915a09512b6a90e74712f69e58dbe6b59a8f895e791b4"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/manyfast-vaultme-import/features/02-R-SLMSYW.md",
+      "sha256": "a6496765e1bb2e205b32dbee5cdf932e36d894302c07912317e85a7f153c2121"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/manyfast-vaultme-import/features/03-R-CMMQXK.md",
+      "sha256": "be715336166bd6e8990d450c2de6f0af505a9f32287a930303cc74ec1873317c"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/manyfast-vaultme-import/features/04-R-XVLPFM.md",
+      "sha256": "b564e87b9bcefaaa423b5292f7b035bee15114b6cea51cceb8db54751f102d87"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/manyfast-vaultme-import/features/05-R-MOKBXD.md",
+      "sha256": "f32c39284f4627537f4ab8cf3133a19cc03ba2ccb83cf8b05249f8194600f917"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/manyfast-vaultme-import/features/06-R-WAJTMB.md",
+      "sha256": "5031ec611893a45fbe6e0a80b9e5510eb9a7b8eb63a98f256afa9a907db4b09b"
+    },
+    {
+      "path": "/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/manyfast-vaultme-import/features/README.md",
+      "sha256": "084bc2b7228a58e3d41655bfda778425d2ed408e81571400872e41d7ac120a98"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "c834c5f71923aaa5119440ef2e83655f233b5b646a2277a0490a70d18bad6b55"
+    },
+    {
+      "path": "PRODUCT.md",
+      "sha256": "43e3378f3051d5b57c880fc353e36bfd865cb0ea3e7bc6a0dfcdacbba9c1a5bd"
+    },
+    {
+      "path": "outputs/HANDOFF_TO_CLAUDE.md",
+      "sha256": "2c0f8b6e04c493ca096ad049ba730c7478c0098d0bd946b40f7144790f6b869d"
+    },
+    {
+      "path": "outputs/README.md",
+      "sha256": "e06fd75fe37f30250eb27d2ea9e60249c998617e8d7164270da68d5a12c1dff3"
+    },
+    {
+      "path": "outputs/VaultMe-DESIGN.md",
+      "sha256": "0b1e004cdd904253946c02a45997e098488c3b020ae696ba795fd4baf6dbdd31"
+    },
+    {
+      "path": "outputs/figma-organization.md",
+      "sha256": "9050e6c920036e6f0bc3301ac093d0e8dab6f23b5e1e2d5c10278398f15f054d"
+    },
+    {
+      "path": "outputs/make-kit-review-2026-10-11.md",
+      "sha256": "c59240491321076ad888a102bd9c045b7fd607758b55feaaab135b78ef4a7c55"
+    },
+    {
+      "path": "outputs/manyfast-vaultme-import/PRD.md",
+      "sha256": "7176d719d76ab4cb166e58520139ba9ab83b81e691f172b8ccb1d1afd8a774db"
+    },
+    {
+      "path": "outputs/manyfast-vaultme-import/README.md",
+      "sha256": "d00b0f22b8586bf4c3aa97ecaf061ce552dcd012f9c6181bf229241bf898013d"
+    },
+    {
+      "path": "outputs/manyfast-vaultme-import/source-manifest.json",
+      "sha256": "3ccffec5ffec5c9c79430e7de885e1a25ac2a3a8febbf0aa8a215ed5dcd148a2"
+    },
+    {
+      "path": "outputs/manyfast-vaultme-import/user-flow/user-flow.json",
+      "sha256": "6b5ab1b8c9045c9de627c8f8709da17e2597916ee353bb2f58cd6c833f4dbd37"
+    },
+    {
+      "path": "outputs/manyfast-vaultme-import/user-flow/user-flow.md",
+      "sha256": "aca6ca0c49afdc2e9ccebf9fe127e329dd2f4f8e94174e07c8deec795aefc879"
+    },
+    {
+      "path": "outputs/vaultme-hono-push-review.md",
+      "sha256": "991d6e06837ce5cdeea4fc0207834f04d24d4f7c20d7a19399c084d1a52c9872"
+    },
+    {
+      "path": "outputs/vaultme-passkey-recovery-review.md",
+      "sha256": "26e12c884d2af57eef7695f5fe1e1568283ce3bbc49dcc35bdc14bd3b103d981"
+    },
+    {
+      "path": "outputs/vaultme-reference-review.md",
+      "sha256": "59af8d316ac443fcc2abfc9a0f1ac4a02029a6fde871b1945df89d3b4e75faae"
+    },
+    {
+      "path": "outputs/vaultme-release-guide.md",
+      "sha256": "fbc3f81811f2cb2d9e2976e181e47a7b8a4e197f61debf44b90039a283cd618d"
+    },
+    {
+      "path": "outputs/vaultme-release.json",
+      "sha256": "5a60af83f92b30cc12cd63fdd56fe1bd89fa3248978b8e7583d02a996186175b"
+    },
+    {
+      "path": "outputs/vaultme-requirements-session.md",
+      "sha256": "a8c809dab360cb86c3c51c43523666f5bfefbf40fad6b2bc0b1ee6fcf786c543"
+    },
+    {
+      "path": "outputs/vaultme-v2-change-log.md",
+      "sha256": "a173cb9e7854b90b086f3b44bbe97b62605c3cfb05352908defcd948247c52c8"
+    },
+    {
+      "path": "outputs/vaultme-v2-migration.md",
+      "sha256": "4fd04509e28e7b245c11e35ea1bf10ffb20e7080238abf2bc79c1737b112b687"
+    },
+    {
+      "path": "outputs/wallet-component-contracts.md",
+      "sha256": "04030777269f3f02cd5bc5dbf7fc972480e293e65865932a8315696ad9b70570"
+    },
+    {
+      "path": "outputs/wallet-component-research.md",
+      "sha256": "c22d495a94afce7c425b8eb9f56f4203d8eb9ad3bf0dec0d1c643b801a9da32e"
+    },
+    {
+      "path": "outputs/wallet-foundation-guide.md",
+      "sha256": "964acc33896a4cbddecd7b913ce9af0aeb074ff5e5f01d6f89f05ef6fed17d7f"
+    },
+    {
+      "path": "outputs/wallet-foundation.tokens.json",
+      "sha256": "e8a6e9e0a1c75d640720c582af97ec65bf657e16be53a3b4f158dfad2f4b3c79"
+    },
+    {
+      "path": "outputs/wallet-icon-guide.md",
+      "sha256": "54cc32346772a40378dccf2a1678783533158ea34ef41ba496b260a923c80caf"
+    },
+    {
+      "path": "work/research-v2/planning/evm-push-event-tracking.md",
+      "sha256": "b7cd70e003c626dfd352d9a7c10a8185bbf798d7acdea4e8fd3649eff2f71994"
+    },
+    {
+      "path": "work/research-v2/planning/hono-push-backend-options.md",
+      "sha256": "bb446d786fce004bafd65908ecd15ce1eb9506b75293021a825c374bff2fd238"
+    },
+    {
+      "path": "work/research-v2/planning/mobile-push-security-contract.md",
+      "sha256": "80e11dbb3bf39a8c93c2d889e522b054a93cec08ec6cedb32f130acf90a547c1"
+    },
+    {
+      "path": "work/research-v2/planning/passkey-account-architecture.md",
+      "sha256": "0097316818673239eadbd868fa0bd803f90cf367bb063898a1f745a1896204d5"
+    },
+    {
+      "path": "work/research-v2/planning/passkey-mobile-complexity.md",
+      "sha256": "27fd2151df64e4fffa13e78b3d7f60c79c5bfeea0ef2e732b5c5307971c0f6df"
+    },
+    {
+      "path": "work/research-v2/planning/passkey-product-tradeoffs.md",
+      "sha256": "c48921eeda87a65f27d992e1150323ba56586604ae97fbc25007a341ad6f2799"
+    },
+    {
+      "path": "work/research-v2/planning/passkey-recovery-comparison.md",
+      "sha256": "05942cb729039383b98f2d8fd0af2c87cdbc24cbd9ce05d440e662d2705874a9"
+    }
+  ]
+}

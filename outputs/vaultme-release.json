@@ -1,0 +1,423 @@
+{
+  "schemaVersion": 1,
+  "releaseId": "2026-10-05-spacing-r1",
+  "status": "verified-local",
+  "updatedAt": "2026-10-04T15:40:16.703273+00:00",
+  "sourceDigest": "e8a6e9e0a1c75d640720c582af97ec65bf657e16be53a3b4f158dfad2f4b3c79",
+  "packages": {
+    "consumer": {
+      "manifest": {
+        "path": "outputs/releases/2026-10-05-spacing-r1/vaultme-consumer-package-manifest.json",
+        "bytes": 100134,
+        "sha256": "b2f75a9dd86466bf69e4be6afb0297f52d566d78b40bb46ed496e7d0549cca2e"
+      },
+      "archive": {
+        "path": "outputs/releases/2026-10-05-spacing-r1/VaultMe-consumer-package.zip",
+        "bytes": 938289,
+        "sha256": "5e294130322f93a64bf821f4225eb2a44a495ed689e9a5a6e2eb8ffef4761462"
+      },
+      "compatibilityArchive": "outputs/VaultMe-consumer-package.zip",
+      "compatibilityManifest": "outputs/vaultme-consumer-package-manifest.json"
+    },
+    "audit": {
+      "manifest": {
+        "path": "outputs/releases/2026-10-05-spacing-r1/vaultme-v2-package-manifest.json",
+        "bytes": 211548,
+        "sha256": "65775975352124d01ba955a4b58fc6a85dd5a02045ff2cedf6ba594208bfb20a"
+      },
+      "archive": {
+        "path": "outputs/releases/2026-10-05-spacing-r1/VaultMe-foundation-package.zip",
+        "bytes": 35135063,
+        "sha256": "945ed9f1a64d4733f7c0fcf5beac2afa5f33f4c811628514809be2c5943ee8be"
+      },
+      "compatibilityArchive": "outputs/VaultMe-foundation-package.zip",
+      "compatibilityManifest": "outputs/vaultme-v2-package-manifest.json"
+    },
+    "prototype": {
+      "manifest": {
+        "path": "outputs/releases/2026-10-05-spacing-r1/vaultme-prototype-package-manifest.json",
+        "bytes": 16520,
+        "sha256": "df09e941ef257d6ba7a33fa9d5cf4b2f6dbe9cf54144bb8947cac4478cfa5cfc"
+      },
+      "archive": {
+        "path": "outputs/releases/2026-10-05-spacing-r1/VaultMe-prototype-package.zip",
+        "bytes": 492938,
+        "sha256": "b9ca09b7d3433fcac13d20ea309b2de22037badc009fb3f8fb98ec91ed83036b"
+      },
+      "compatibilityArchive": "outputs/VaultMe-prototype-package.zip",
+      "compatibilityManifest": "outputs/vaultme-prototype-package-manifest.json"
+    }
+  },
+  "verification": {
+    "path": "outputs/releases/2026-10-05-spacing-r1/verification/package-fd5e63a6bbd741ca9e23531634a0e4a6.json",
+    "bytes": 3111,
+    "sha256": "81642956f3e8052a933b8b69ac4de7918603e5e397c20eb403549c413e9d38ba"
+  },
+  "checks": {
+    "currentPackageRebuilt": true,
+    "sourceDigestMatchesManifest": true,
+    "packageVerified": true,
+    "nativeSourceVerified": true,
+    "libraryPublicationVerified": true,
+    "consumerAdoptionVerified": true,
+    "consumerWebVerified": true,
+    "consumerFigmaVerified": true
+  },
+  "pending": [],
+  "scope": "Design Foundation, portable packages and synthetic consumer examples; no wallet runtime",
+  "sourceFigma": "https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8",
+  "previousPublishedRelease": {
+    "dateKST": "2026-10-03",
+    "status": "recorded-published-snapshot",
+    "sourceDigest": "a9ea852b1ae5f6e39ac9ef74ada67aa6f3bbd49940f4d9412f834b177b4e7d6c",
+    "fileKey": "NMXrn0q75G1SX2Bn1L1jP8",
+    "evidence": "work/v2/verification/library-icons-release.json",
+    "evidenceSha256": "c56304533af4689dcfe72e7aa89f283b83a493648ecc329ef1b963f487e0e9a0",
+    "assets": {
+      "total": 85,
+      "collections": 3,
+      "styles": 26,
+      "componentSets": 31,
+      "components": 25,
+      "componentEntries": 56,
+      "variableMembers": 682,
+      "managedVariableMembers": 679
+    },
+    "sourcePages": 10,
+    "scope": "Historical publication proof. Does not verify the next source digest."
+  },
+  "lifecycle": {
+    "tokenPaths": "existing stable paths retained",
+    "consumerExamples": "preview",
+    "sourceIds": "preserve existing Figma IDs",
+    "removalPolicy": "Owner review and consumer migration evidence required"
+  },
+  "consumerAdoption": {
+    "web": {
+      "status": "provided-proof-bound",
+      "proof": {
+        "scope": "web",
+        "file": {
+          "path": "work/v6/spacing-audit/consumer-web-proof.json",
+          "bytes": 2179,
+          "sha256": "f4aa14a80156f76618c4643766e49932ce6fe5df4842e93a6826b5a30f544998"
+        },
+        "sourceDigest": "e8a6e9e0a1c75d640720c582af97ec65bf657e16be53a3b4f158dfad2f4b3c79",
+        "releaseId": "2026-10-05-spacing-r1",
+        "sourceFiles": [
+          {
+            "path": "outputs/wallet-foundation.tokens.json",
+            "bytes": 176128,
+            "sha256": "e8a6e9e0a1c75d640720c582af97ec65bf657e16be53a3b4f158dfad2f4b3c79"
+          },
+          {
+            "path": "outputs/vaultme-v2.tokens.css",
+            "bytes": 100357,
+            "sha256": "d3cc7ad626f996a8f92efb0739b39dd37482caea4f5423c30197fd7ef4497fbb"
+          },
+          {
+            "path": "outputs/vaultme-consumer-example/index.html",
+            "bytes": 4569,
+            "sha256": "48e4e6ec3164a9ca05f1dad163bb8f2655936b120ed9c9c9938aa31169eb0056"
+          },
+          {
+            "path": "outputs/vaultme-consumer-example/consumer.css",
+            "bytes": 6174,
+            "sha256": "c364dd17afc7dfac297f6eaf3cd35c5bb77d37a302eeb5a0a509b4504940fbf1"
+          },
+          {
+            "path": "outputs/vaultme-consumer-example/consumer.js",
+            "bytes": 298,
+            "sha256": "b926d1eb03359a7f492a6922ca5ca05f889144f6cd1f3bd7da1bb5ae6e98c8f8"
+          },
+          {
+            "path": "outputs/vaultme-v2-review/product.html",
+            "bytes": 644,
+            "sha256": "ba1d0d8321c5ddaf4da4d8b1d9fe52b84dadb0022637fbcebc98b0a5b27301ea"
+          },
+          {
+            "path": "outputs/vaultme-v2-review/product.css",
+            "bytes": 40506,
+            "sha256": "0320680b7ed2b315151ea0588e6be2d99af3c951c434dd76b11e698f7f4767ff"
+          },
+          {
+            "path": "outputs/vaultme-v2-review/app.js",
+            "bytes": 46090,
+            "sha256": "b08c7c8c3a81d3a23eb9edfa5e2f8de00d61995db75c3de3a1eb96ab6eab09b9"
+          }
+        ],
+        "linkedEvidence": [
+          {
+            "path": "work/v6/spacing-audit/consumer-web-observation.json",
+            "bytes": 926,
+            "sha256": "044e29120f11088b3bbaa458da4d04cfbff55bf23dd995e922b8c80d3450157c"
+          },
+          {
+            "path": "work/v6/spacing-audit/web-after.json",
+            "bytes": 814,
+            "sha256": "67d2b699d1792c13457f9682323e1851bbe3f7e065f17051f055179f64e78ee0"
+          },
+          {
+            "path": "work/v6/spacing-audit/web-responsive-after.json",
+            "bytes": 2779,
+            "sha256": "6393e1f8ea001e375f6fb0819232060cd32277fac43b381c8ceb49a191b32eaf"
+          },
+          {
+            "path": "work/v6/spacing-audit/home-mobile-after.jpg",
+            "bytes": 31836,
+            "sha256": "0adfb727e692befad87572dafa24f4f911a2b0bd6f3fa9bc50d0349820f1afc2"
+          },
+          {
+            "path": "work/v6/spacing-audit/home-desktop-after.jpg",
+            "bytes": 67341,
+            "sha256": "4e681d2a67408c865c98666d45e6487244470ded68d47e624a562516d690973c"
+          }
+        ],
+        "scopeLimit": "Provided independent consumer proof; local verifier checks source/evidence binding"
+      }
+    },
+    "figma": {
+      "status": "provided-proof-bound",
+      "proof": {
+        "scope": "figma",
+        "file": {
+          "path": "work/v6/spacing-audit/consumer-figma-proof.json",
+          "bytes": 1015,
+          "sha256": "0f75009e3e84c1dc383a84e39b8c6751f68f3d4ad4030655e4ebf106957e6374"
+        },
+        "sourceDigest": "e8a6e9e0a1c75d640720c582af97ec65bf657e16be53a3b4f158dfad2f4b3c79",
+        "releaseId": "2026-10-05-spacing-r1",
+        "sourceFiles": [],
+        "linkedEvidence": [
+          {
+            "path": "work/v6/spacing-audit/consumer-figma-readback.json",
+            "bytes": 2200,
+            "sha256": "aa43763051196d331d3057b893898c58c7f51be4539ed968416f80dfb0cd71d6"
+          },
+          {
+            "path": "work/v5/verification/consumer-after.json",
+            "bytes": 2785,
+            "sha256": "808685be07661fd7f999494ddeb7af5257d7de3b8dfc78b224be7ba288ebf2ad"
+          },
+          {
+            "path": "work/v5/verification/consumer-figma-proof.json",
+            "bytes": 981,
+            "sha256": "2ec375af6eb4584eecb6d0a675d38bcc0574b016b5b7f7690c09f8291fb59ae8"
+          },
+          {
+            "path": "work/v6/spacing-audit/library-unchanged.jpg",
+            "bytes": 52641,
+            "sha256": "9595d9f87b448f7394879ab67b76ac9d53bd732b0bb2d76142f102a01112b331"
+          }
+        ],
+        "scopeLimit": "Provided independent consumer proof; local verifier checks source/evidence binding"
+      }
+    }
+  },
+  "guidance": "outputs/vaultme-release-guide.md",
+  "readinessAuthority": "This current pointer; historical docs-readiness snapshots do not authorize a new release",
+  "candidate": {
+    "path": "outputs/releases/2026-10-05-spacing-r1/candidate.json",
+    "bytes": 11026,
+    "sha256": "d7beae603f443bf5c3560b8b7062b77b00f712fee37a0f20ce69e575e5ce8ec0"
+  },
+  "nativeProof": {
+    "kind": "native",
+    "file": {
+      "path": "work/v6/spacing-audit/native-proof.json",
+      "bytes": 909,
+      "sha256": "b966fd77198a4b9bfc4e593b30f5236ea0528c2dc7ab86d101a6af24b7de915b"
+    },
+    "sourceDigest": "e8a6e9e0a1c75d640720c582af97ec65bf657e16be53a3b4f158dfad2f4b3c79",
+    "linkedEvidence": [
+      {
+        "path": "work/v6/spacing-audit/native-product-write.json",
+        "bytes": 335,
+        "sha256": "76a84c864f70904016d9444742ebb7d7dd28ad9a0d0877eaa0ec8bf14d639df3"
+      },
+      {
+        "path": "work/v6/spacing-audit/native-stress-write.json",
+        "bytes": 514,
+        "sha256": "14282cf3a6f54e81a879ce790526e12bc8a9e90eb0c006d8cf58c58b7c26d82c"
+      },
+      {
+        "path": "work/v6/spacing-audit/native-product-after.json",
+        "bytes": 4353,
+        "sha256": "79da95909e74f7e88ad2515d61da3e39f6b0bc0faa0b6c6373432a4495eb3c7c"
+      },
+      {
+        "path": "work/v6/spacing-audit/native-stress-after.json",
+        "bytes": 4259,
+        "sha256": "f09461ec7070fd219c61b93e13cebd8d67c6e698049f79715b2815a65cfd1067"
+      },
+      {
+        "path": "work/v6/spacing-audit/native-home-after.png",
+        "bytes": 34503,
+        "sha256": "d3ffe67b49833cba64922ce00de55bd217b8bc0199afe255f2b33280dfe96ab1"
+      },
+      {
+        "path": "work/v6/spacing-audit/native-permissions-after.png",
+        "bytes": 26996,
+        "sha256": "5a821c19724e1dbf61c525593f30b55d6d06a6cb97cc1d8b3f5ab4cf36828049"
+      }
+    ],
+    "scope": "Provided local proof and source binding; remote observation is the proof author's responsibility"
+  },
+  "publicationProof": {
+    "kind": "publication",
+    "file": {
+      "path": "work/v6/spacing-audit/publication-proof.json",
+      "bytes": 672,
+      "sha256": "7a3f8bcb2bf75315d9a7266f94f48fbf5e6aa6090a1473a9599491410e9b6bcb"
+    },
+    "sourceDigest": "e8a6e9e0a1c75d640720c582af97ec65bf657e16be53a3b4f158dfad2f4b3c79",
+    "linkedEvidence": [
+      {
+        "path": "work/v6/spacing-audit/library-unchanged.jpg",
+        "bytes": 52641,
+        "sha256": "9595d9f87b448f7394879ab67b76ac9d53bd732b0bb2d76142f102a01112b331"
+      },
+      {
+        "path": "work/v5/verification/publication-proof.json",
+        "bytes": 629,
+        "sha256": "e934eea440fea7d77102f671329de34ffb9889f8ac56b9d6e02ae2237d40183d"
+      }
+    ],
+    "scope": "Provided local proof and source binding; remote observation is the proof author's responsibility"
+  },
+  "consumerProofs": [
+    {
+      "scope": "web",
+      "file": {
+        "path": "work/v6/spacing-audit/consumer-web-proof.json",
+        "bytes": 2179,
+        "sha256": "f4aa14a80156f76618c4643766e49932ce6fe5df4842e93a6826b5a30f544998"
+      },
+      "sourceDigest": "e8a6e9e0a1c75d640720c582af97ec65bf657e16be53a3b4f158dfad2f4b3c79",
+      "releaseId": "2026-10-05-spacing-r1",
+      "sourceFiles": [
+        {
+          "path": "outputs/wallet-foundation.tokens.json",
+          "bytes": 176128,
+          "sha256": "e8a6e9e0a1c75d640720c582af97ec65bf657e16be53a3b4f158dfad2f4b3c79"
+        },
+        {
+          "path": "outputs/vaultme-v2.tokens.css",
+          "bytes": 100357,
+          "sha256": "d3cc7ad626f996a8f92efb0739b39dd37482caea4f5423c30197fd7ef4497fbb"
+        },
+        {
+          "path": "outputs/vaultme-consumer-example/index.html",
+          "bytes": 4569,
+          "sha256": "48e4e6ec3164a9ca05f1dad163bb8f2655936b120ed9c9c9938aa31169eb0056"
+        },
+        {
+          "path": "outputs/vaultme-consumer-example/consumer.css",
+          "bytes": 6174,
+          "sha256": "c364dd17afc7dfac297f6eaf3cd35c5bb77d37a302eeb5a0a509b4504940fbf1"
+        },
+        {
+          "path": "outputs/vaultme-consumer-example/consumer.js",
+          "bytes": 298,
+          "sha256": "b926d1eb03359a7f492a6922ca5ca05f889144f6cd1f3bd7da1bb5ae6e98c8f8"
+        },
+        {
+          "path": "outputs/vaultme-v2-review/product.html",
+          "bytes": 644,
+          "sha256": "ba1d0d8321c5ddaf4da4d8b1d9fe52b84dadb0022637fbcebc98b0a5b27301ea"
+        },
+        {
+          "path": "outputs/vaultme-v2-review/product.css",
+          "bytes": 40506,
+          "sha256": "0320680b7ed2b315151ea0588e6be2d99af3c951c434dd76b11e698f7f4767ff"
+        },
+        {
+          "path": "outputs/vaultme-v2-review/app.js",
+          "bytes": 46090,
+          "sha256": "b08c7c8c3a81d3a23eb9edfa5e2f8de00d61995db75c3de3a1eb96ab6eab09b9"
+        }
+      ],
+      "linkedEvidence": [
+        {
+          "path": "work/v6/spacing-audit/consumer-web-observation.json",
+          "bytes": 926,
+          "sha256": "044e29120f11088b3bbaa458da4d04cfbff55bf23dd995e922b8c80d3450157c"
+        },
+        {
+          "path": "work/v6/spacing-audit/web-after.json",
+          "bytes": 814,
+          "sha256": "67d2b699d1792c13457f9682323e1851bbe3f7e065f17051f055179f64e78ee0"
+        },
+        {
+          "path": "work/v6/spacing-audit/web-responsive-after.json",
+          "bytes": 2779,
+          "sha256": "6393e1f8ea001e375f6fb0819232060cd32277fac43b381c8ceb49a191b32eaf"
+        },
+        {
+          "path": "work/v6/spacing-audit/home-mobile-after.jpg",
+          "bytes": 31836,
+          "sha256": "0adfb727e692befad87572dafa24f4f911a2b0bd6f3fa9bc50d0349820f1afc2"
+        },
+        {
+          "path": "work/v6/spacing-audit/home-desktop-after.jpg",
+          "bytes": 67341,
+          "sha256": "4e681d2a67408c865c98666d45e6487244470ded68d47e624a562516d690973c"
+        }
+      ],
+      "scopeLimit": "Provided independent consumer proof; local verifier checks source/evidence binding"
+    },
+    {
+      "scope": "figma",
+      "file": {
+        "path": "work/v6/spacing-audit/consumer-figma-proof.json",
+        "bytes": 1015,
+        "sha256": "0f75009e3e84c1dc383a84e39b8c6751f68f3d4ad4030655e4ebf106957e6374"
+      },
+      "sourceDigest": "e8a6e9e0a1c75d640720c582af97ec65bf657e16be53a3b4f158dfad2f4b3c79",
+      "releaseId": "2026-10-05-spacing-r1",
+      "sourceFiles": [],
+      "linkedEvidence": [
+        {
+          "path": "work/v6/spacing-audit/consumer-figma-readback.json",
+          "bytes": 2200,
+          "sha256": "aa43763051196d331d3057b893898c58c7f51be4539ed968416f80dfb0cd71d6"
+        },
+        {
+          "path": "work/v5/verification/consumer-after.json",
+          "bytes": 2785,
+          "sha256": "808685be07661fd7f999494ddeb7af5257d7de3b8dfc78b224be7ba288ebf2ad"
+        },
+        {
+          "path": "work/v5/verification/consumer-figma-proof.json",
+          "bytes": 981,
+          "sha256": "2ec375af6eb4584eecb6d0a675d38bcc0574b016b5b7f7690c09f8291fb59ae8"
+        },
+        {
+          "path": "work/v6/spacing-audit/library-unchanged.jpg",
+          "bytes": 52641,
+          "sha256": "9595d9f87b448f7394879ab67b76ac9d53bd732b0bb2d76142f102a01112b331"
+        }
+      ],
+      "scopeLimit": "Provided independent consumer proof; local verifier checks source/evidence binding"
+    }
+  ],
+  "previousRelease": {
+    "releaseId": "2026-10-05-canvas-r1",
+    "status": "verified-local",
+    "verification": {
+      "path": "outputs/releases/2026-10-05-canvas-r1/verification/package-3462eaf6f36944f0bed1f013691b6c5d.json",
+      "bytes": 3102,
+      "sha256": "da7643ee1e50dcbf9598deb807898ad02ddcf73fd7200e8fb9ad2f7ec6e29f4d"
+    }
+  },
+  "previousArchive": {
+    "releaseId": "2026-10-05-canvas-r1",
+    "path": "outputs/releases/2026-10-05-canvas-r1/candidate.json"
+  },
+  "buildError": [
+    {
+      "type": "FileNotFoundError",
+      "message": "[Errno 2] No such file or directory: '/Users/hyukjaechoi/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/work/v6/spacing-audit/native-proof.json'"
+    }
+  ]
+}

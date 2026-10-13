@@ -1,0 +1,21 @@
+# CodeRabbit reads only about the first 3,800 characters of a PR description.
+name: pr-description
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          body=$(printf '%s' "$BODY" | sed '/<!-- This is an auto-generated comment: release notes by coderabbit.ai -->/,/<!-- end of auto-generated comment: release notes by coderabbit.ai -->/d')
+          len=$(printf '%s' "$body" | LC_ALL=C.UTF-8 wc -m)
+          echo "PR description: $len characters (limit 3500)"
+          [ "$len" -le 3500 ] || { echo "::error::Keep the PR description at 3500 characters or less."; exit 1; }
+          printf '%s' "$body" | grep -Eiq '(closes|fixes|resolves) #[0-9]+' || { echo "::error::Link the issue with 'Closes #N'."; exit 1; }

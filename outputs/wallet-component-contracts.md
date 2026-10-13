@@ -1,0 +1,220 @@
+# VaultMe v2 Component 계약
+
+상태: 현행 Component·action 계약 · 문서 갱신: 2026-10-04
+
+범위: C01–C28, P01–P12, synthetic state·data·locale
+
+[문서 홈](README.md) · [현재 release](vaultme-release.json) · [변경 이력](vaultme-v2-change-log.md)
+
+
+기준: [확정 계획](../work/research-v2/planning/redesign-plan.md) §3–6.
+
+이 문서는 Figma와 로컬 Prototype의 **닫힌 상태 계약**이다. 실제 wallet API가 아니다. C01–C28/P01–P12의 현재 구현과 증거는 [release record](vaultme-release.json)를 따른다. Family 사용법은 [Component 목록](components/README.md)에 있다.
+
+## Source와 값
+
+[Token JSON](wallet-foundation.tokens.json) → [Foundation guide](wallet-foundation-guide.md) → [DESIGN](VaultMe-DESIGN.md)를 따른다. Semantic과 Component는 정확한 단일 alias다. 가장 구체적인 Component path를 쓴다. 없는 path를 임의 값으로 보완하지 않는다.
+
+코드의 `state`, `scope`, `size`, `quote`는 unrestricted string 대신 literal union을 사용한다. 알 수 없는 상태를 기본 success로 표시하지 않는다. Figma property label과 코드 union의 대응을 기록한다.
+
+## C01–C28: 상태와 구조
+
+아래 목록은 이번 v2 실행 계약이다. 새 public family를 임의로 늘리지 않는다. 내부 subcomponent는 가능하다.
+
+| ID | Family | 닫힌 상태 / 속성 | 필수 구조 |
+| --- | --- | --- | --- |
+| C01 | Button / Primary·Secondary·Ghost | Size=Small/Medium/Large; State=Default/Hover/Focused/Pressed/Disabled/Loading | label hug, Loading 폭 유지, duplicate action 차단 |
+| C02 | Icon button | Default/Hover/Focused/Pressed/Disabled | 44 px target, 일관된 icon, accessible name |
+| C03 | Input | Default/Focused/Filled/Invalid/Disabled | label/input/helper-error 세로 배치 |
+| C04 | Card / Group | Default/Task | 독립 task 또는 정보 묶음 |
+| C05 | Status label | Pending/Confirmed/Failed/Warning/Info/Unknown | icon+정확한 label |
+| C06 | Navigation | Marketing Desktop; Product Mobile/Desktop; active/focus | Assets / Activity / Settings |
+| C07 | Account selector | Selected/Available | 이름+주소, selected check, 긴 이름 |
+| C08 | Network selector | Active/Available/Unavailable | 이름+상태 이유, unavailable 선택 차단 |
+| C09 | Asset row | Quote=Available/Unavailable/Stale; Selected/Focused specimen | token balance와 fiat quote 분리, flat row |
+| C10 | Activity row | Pending/Confirmed/Failed/Unknown | action/counterparty/amount/status |
+| C11 | Receive address | Default/Copied/Copy failed | 전체 주소/network/copy/network 일치 안내. QR 없음 |
+| C12 | Recipient field | Empty/Entered/Review/Invalid | 편집과 전체 주소 review 구분 |
+| C13 | Amount field | Ready/Insufficient asset/Insufficient fee | 32 px 입력, unit, available balance, 부족 이유 |
+| C14 | Fee summary | Fresh/Stale/Unavailable/Insufficient | native fee, fiat estimate, freshness, 차감 방식 |
+| C15 | Transaction panel | No risk signals/Review required/Unable to verify | context, 자산 변화, full recipient, fee, checks/detail |
+| C16 | Approval panel | Limited/Unlimited/Editing limit | token, full spender, limit, native fee, 권한 의미 |
+| C17 | Connection request | One account/Two accounts | origin, 실제 1/2개 선택 행, network, 공개 정보 |
+| C18 | Signature request | Readable/Unrecognized | origin/account, 읽힌 필드 또는 원문, 해석 범위, 행동 |
+| C19 | Backup status | Pending/Confirmed | 상태별 문구, 비밀 없음, content height |
+| C20 | Connected app row | Connected/Disconnected | origin, account/network, Disconnect와 status 분리 |
+| C21 | Token allowance row | Scope=Limited/Unlimited; Layout=Mobile/Desktop | token/spender/network/current allowance/review |
+| C22 | Product header | Mobile/Desktop | account/network, back/detail |
+| C23 | Portfolio balance | Complete quote/Partial quote/Unavailable | 총 quote, 기준 통화, 누락 범위 |
+| C24 | Review footer | Ready/Busy/Blocked | Cancel+정확한 행동, 주 버튼 52 px, 차단 이유 |
+| C25 | Status notice | Info/Warning/Danger/Unknown/Confirmed | icon/title/reason/해당 다음 행동 |
+| C26 | Address block | Compact/Full | Compact는 목록만. Review/Detail은 Full, copy target 44 px |
+| C27 | Collection state | Loading/Empty/Unavailable | 같은 list footprint, 설명, 가능한 다음 행동 |
+| C28 | Transaction result | Action=Send/Receive/Approve/Revoke; State=Submitting/Pending/Confirmed/Failed/Unknown | 관찰한 상태, hash/time/다음 행동 |
+
+C21은 Scope와 Layout 두 축을 함께 사용한다. 기존 Limited/Unlimited master ID는 Mobile로 보존했다. Desktop은 allowance table, Mobile은 label을 보존한 stacked item이다.
+
+Figma에서는 기존 master ID를 가능한 한 보존한다. User content는 TEXT property로 노출한다. `Unlimited`, Pending, stale 안내 등 state copy는 Variant별 고정 내용이다. 전체 set의 공통 TEXT 기본값에 연결하지 않는다.
+
+```ts
+// 제안된 UI 계약. 실제 wallet API가 아니다.
+type CheckState = "no-risk-signals" | "review-required" | "unable-to-verify";
+type TransactionState = "submitting" | "pending" | "confirmed" | "failed" | "unknown";
+type QuoteState = "available" | "unavailable" | "stale";
+type FeeState = "fresh" | "stale" | "unavailable" | "insufficient";
+type ApprovalScope = "limited" | "unlimited";
+type SignatureData = "readable" | "unrecognized";
+```
+
+CheckState와 TransactionState는 별개다. “검사에서 문제를 못 찾음”은 “거래 확정”이 아니다. Generic dialog open/closed와 wallet lifecycle도 별개다.
+
+## Surface와 host 계약
+
+Wallet Home의 C23만 대표 Secondary tint 요약 면을 갖는다. Complete/Partial/Unavailable은 같은 `portfolioBalance.bg`를 사용한다. `portfolioBalance.value`와 `portfolioBalance.note`는 Ink의 `text.primary`다. Valuation scope·currency·estimate·coverage/time을 함께 표시한다. Missing quote를 0으로 바꾸지 않는다. Passive balance는 Tab stop이 아니다.
+
+C23 root는 `portfolioBalance.padding/radius/borderWidth`로 조립한다. Borderless이며 shadow가 없다. 큰 balance는 한 곳이다. C04 중첩·페이지별 tint hero·클릭 가능한 balance card를 만들지 않는다. C06 Navigation·Asset·Activity·권한·Review는 기존 neutral 또는 white 읽기 면을 사용한다. Review account/network/asset/full address/amount 또는 allowance/native estimated fee/status는 그대로 읽게 한다.
+
+`overlay.*`는 C07/C08 picker와 C15–C18 review를 담는 기존 floating host의 내부 token 역할이다. 새 C29와 public consumer prop은 없다. `overlay.bg/fg/radius/shadow`는 white·Ink·기존 overlay shape/elevation에 alias한다. 자식 상태 foreground를 덮지 않는다. Modal에만 `overlay.scrimBg/scrimOpacity`를 적용한다. Nonmodal popover에는 scrim이 없다. Fixed drawer는 기존 `transactionPanel.drawerBorderWidth` 기능 경계를 유지한다.
+
+Host 구현자는 accessible title·초기 focus·modal focus containment·Escape/close·trigger로 focus restore를 제공한다. Close는 chain transaction 취소가 아니다. Token 또는 Figma Variant만으로 이 동작이 구현되지 않는다. Inline panel은 dialog가 아니다.
+
+사용 안내는 Anatomy → States → Tokens → Accessibility → Usage → Lifecycle/Evidence 순서로 읽는다. Preview contract와 제품 runtime 상태를 구분한다. 새 Surface의 native 적용·Library publication·독립 consumer update는 각각 새 증거가 있어야 완료로 기록한다.
+
+### 이번 Surface의 실제 적용 범위
+
+[Native review](../work/v4/verification/native/native-review-proof.json)에서 C23의 binding·세 Quote·기존 IDs·영향받은 합성 화면의 PNG를 확인했습니다. 감사한 native pages에는 floating dialog/popover/scrim host가 0개였습니다. Overlay alias는 기존 host를 채택할 때 사용할 내부 역할이며 native host 구현 완료가 아닙니다. 두 shadow alias는 `nativeType=null`이며 기존 `elevation/md` Effect Style에 대응합니다.
+
+[Web observation](../work/v4/verification/web/browser-observation.json)은 C23 responsive·explicit text200 Partial과 독립 consumer의 세 Quote·긴 balance·320 px overflow·기존 form feedback을 기록합니다. 합성 overlay의 Escape/focus return도 확인했습니다. Browser zoom·manual screen reader·실제 wallet 검증으로 확대하지 않습니다. [Publication proof](../work/v4/verification/native/publication-proof.json)에서 Surface와 별도 review한 두 geometry repair의 발행을 확인했습니다. [Figma consumer proof](../work/v4/verification/native/consumer-surface-proof.json)는 기존 세 remote specimen의 update/override 보존과 새 C23 세 Quote·longBalance의 발행 후 채택을 기록합니다. 새 C23의 update 전후 override 보존은 미검증입니다. [Web consumer proof](../work/v4/verification/web/consumer-web-proof.json)는 합성 browser 범위입니다. Package 완료는 별도 확인합니다.
+
+## 행동별 필수 데이터
+
+| 행동 | Review에서 유지할 데이터 | 별도 경계 |
+| --- | --- | --- |
+| Connection | origin, 선택 account 수/전체 목록, network scope, 공개 정보 | allowance나 on-chain fee를 부여하지 않음 |
+| Message signing | origin/account, exact message 또는 raw payload, 해석 상태 | Readable은 안전 보증 아님. Unknown specimen은 signing blocked |
+| Token approval | account/network/token, full spender, exact scope/limit, native estimated fee, 의미 | Unlimited는 향후 입금분도 영향. Disconnect와 별개 |
+| On-chain send | account/network/asset, amount, full recipient, native estimated fee, total deduction, check/result status | estimate/pending/confirmed/failed/unknown 구분 |
+
+Network fee는 native asset로 표시한다. Fiat는 부가 estimate다. ETH와 ETH fee는 합산 가능하다. USDC와 ETH fee는 별도 줄로 유지한다. Request에 해당하지 않는 allowance를 transaction에 항상 넣지 않는다.
+
+Origin은 요청의 출처다. 검증 시스템이 없는 Prototype에서 `Verified` badge를 만들지 않는다. Explorer/retry/cancel/revoke는 해당 제품 동작이 실제 구현된 뒤 연결한다.
+
+## 상태별 고정 내용
+
+아래 transaction copy는 Send의 기본 의미입니다. C28은 Action별로 title·이유·counterparty·amount 또는 allowance를 구분합니다. Exact copy와 native property는 [C28 recipe](components/C28-result.md)를 따릅니다.
+
+| 상태 | 문구 / 데이터 | 허용된 다음 행동 |
+| --- | --- | --- |
+| Quote unavailable | `Price unavailable`, token balance 유지 | 가격이 없는 이유 확인 |
+| Partial quote | `Priced assets` / `1 asset has no price` | 누락 범위 확인 |
+| Stale price | `Price updated 12 min ago` | Refresh prices |
+| RPC unavailable | `Could not reach Ethereum` / `Balances may be out of date.` | Try again |
+| Invalid recipient | `Enter a valid Ethereum address.` | 편집. Continue blocked |
+| Insufficient asset | `Amount exceeds available balance.` | amount 편집 |
+| Insufficient fee | `Add ETH to pay the network fee.` | signing blocked |
+| Stale fee | `Fee estimate expired. Refresh it before you continue.` | Refresh fee |
+| Fee unavailable | `Network fee unavailable`. Estimated total도 알 수 없음. Fee 확인 완료 문구 금지 | Retry estimate, signing blocked |
+| No risk signals | `No issues found in available checks` + 범위/시각 | 중립 notice, details |
+| Unable to verify | `Could not simulate this request` + 이유 | details |
+| Unlimited | `Unlimited USDC` / `This spender can use future USDC deposits until you revoke this approval.` | Set a limit |
+| Submitting | `Submitting transaction` | 중복 행동 차단 |
+| Pending | `Waiting for confirmation` + 관찰된 hash | detail |
+| Confirmed | `Transaction confirmed` + 시각/chain evidence fixture | View activity |
+| Failed | `Transaction failed` + 원인 fixture | Review details |
+| Unknown | `Transaction status unavailable` / `Check the original transaction before sending again.` | Check status. Send again 없음 |
+| Backup confirmed | `Backup confirmed` | 확인 절차 완료 가정은 frame 밖 caption에 표시 |
+
+## P01–P12: 조립 화면
+
+| ID | Screen | Frame | 필수 내용 |
+| --- | --- | --- | --- |
+| P01 | Wallet / Assets | 390×844 | account/network, 큰 balance, Send/Receive, asset list, nav |
+| P02 | Wallet / Assets desktop | 1440×1024 | max1200, 자산 main + recent Activity side |
+| P03 | Send / Compose | 390×844 | context, recipient, amount, available balance, estimated fee, Continue |
+| P04 | Send / Review | 390×844 | full recipient, amount/native fee/total, status, Confirm send |
+| P05 | Send / Review desktop | 1440×1024 | P02 + 480 px drawer, review content 432 px |
+| P06 | Connect | 390×844 | reserved origin, 두 account 행, network, 공개 정보, Cancel/Connect |
+| P07 | Sign message / Readable | 390×844 | origin/account, domain/nonce/message, 해석 범위, Reject/Sign message |
+| P08 | Sign message / Unrecognized | 390×844 | raw payload, 해석 불가 이유, Reject 우선, signing disabled |
+| P09 | Token approval / Limited | 390×844 | full spender, 1,500 USDC limit, Edit, fee, Approve limit |
+| P10 | Token approval / Unlimited | 390×844 | Unlimited USDC, 향후 입금분 설명, Set a limit |
+| P11 | Permissions desktop | 1440×1024 | Connected apps와 Token allowances 별도 section, allowance table |
+| P12 | Receive | 390×844 | account/network/full address/Copy/network 안내. QR slot 없음 |
+
+P04의 결과는 Submitting/Pending/Confirmed/Failed/Unknown 다섯 화면이다. Prototype는 바깥 scenario control로 합성 결과를 선택한다. Confirm 버튼 클릭만으로 Confirmed가 되지 않는다. 모든 frame 밖에 `Design prototype · Synthetic data` caption을 둔다.
+
+## 합성 fixture와 Stress
+
+Address: account `0x1111111111111111111111111111111111111111`, second `0x2222222222222222222222222222222222222222`, recipient `0x3333333333333333333333333333333333333333`, spender `0x4444444444444444444444444444444444444444`. EVM fixture는 0x + 40 hex, hash는 0x + 64 hex다. Origin은 `swap.example`이다.
+
+Account는 `Everyday`, `Long-term holdings`. 잔액은 `1.284732 ETH`, `2,482.17 USDC`. Send는 `0.042 ETH`, fee `0.00063 ETH`, estimated total `0.04263 ETH`. Ethereum/ETH/USDC는 예시 맥락이며 지원 선언이 아니다. Decimal 값은 문자열로 보관한다.
+
+| ID | 검사 내용 |
+| --- | --- |
+| T01–T02 | 320 px, 200% text |
+| T03–T05 | 48자 account, 긴 origin, full address/hash |
+| T06–T07 | `0.000000000000000001 ETH`, `12,345,678.123456 USDC` |
+| T08–T09 | missing quote, stale quote/fee |
+| T10 | empty/one/20 asset rows |
+| T11 | 긴 한국어 설명, 독일식 number formatting |
+| T12–T13 | 두 account, warning 3줄 |
+| T14–T15 | unknown result, offline 후 retry |
+| T16 | allowance/revoke와 Disconnect 상태 독립 |
+
+## 접근성과 적용 확인
+
+### Border 계약
+
+일반 container와 flat row는 borderless를 기본으로 한다. C04/C23/C25/C26/C27/C28의 장식 perimeter, C14의 작은 묶음 내부 반복 선, C07/C08의 picker box를 자동 추가하지 않는다. 목록의 마지막 선도 기본으로 제거한다. Type·정렬·기존 min-height와 spacing으로 같은 항목을 읽게 한다.
+
+| 기능상 예외 | 지켜야 할 상태 |
+| --- | --- |
+| C03/C12/C13 editable Input | 입력 인지, label/helper/error, focus. Amount wrapper에 내부 invalid 전달 |
+| C07/C08 선택 | check·label·selected surface 유지. 보조 outline은 필요한 경우만 |
+| C09/C10/C20/C21 긴 목록·table | 항목 비교가 어려울 때 separator. C21 Scope/Layout 축과 row label 유지 |
+| C06/C22/C24 chrome | 고정 bar/body·footer 또는 독립 drawer가 섞일 때 경계 |
+| C16/C25 위험·미확인 | icon/title/reason/다음 행동 유지. 색만 남기지 않음 |
+
+Width는 Component 역할 alias로 관리한다. 기존 border-color path는 삭제하거나 전역 transparent로 바꾸지 않는다. 기본 none과 기능상 예외 hairline은 기존 Primitive width 역할에 연결한다. Focus의 3 px ring과 2 px offset은 일반 border width와 별도다. 전역 `border:0`/`outline:none`을 사용하지 않는다.
+
+사용자는 Borderless + Blue A를 승인했다. Blue A는 action 역할이며 success/gain/safety state와 다르다. Primary white text, Secondary tint의 Ink text, neutral secondary action을 유지한다. Width path의 적용 결과는 release record를 따른다. Input/Recipient/Amount outer는 `{borderWidth.hairline}`, amount inner는 `{borderWidth.none}`다. `allowanceRow.table.dividerWidth`, `productNavigation.borderWidth`, `reviewFooter.borderWidth`, `transactionPanel.drawerBorderWidth/sectionDividerWidth`도 hairline이다. 일반 정보 container/row는 none이다. 기존 generic `button.borderWidth`보다 variant별 `button.primary/secondary/ghost.borderWidth`를 사용한다.
+
+Amount wrapper와 내부 input은 같은 validation 결과를 사용한다. Invalid 경계와 오류 문구를 함께 표시한다.
+
+44 × 44 px target, 3 px focus + 2 px offset, persistent label/error, tab order, dialog Escape/focus restore, reduced motion을 확인한다. 숫자를 자르지 않는다. Warning을 hover에 숨기지 않는다. Footer가 full address를 가리지 않게 한다.
+
+Native TNUM은 미확인이다. T02의 22개 TEXT는 직접 font-size 2배 override로 Style 연결이 해제된 stress 예외다. 기본 product Style 누락으로 계산하지 않는다.
+
+Static color contrast, Figma geometry, Prototype keyboard 검사를 구분한다. Figma만으로 screen reader·wallet 기능 통과를 주장하지 않는다. 최종 증거는 [변경 기록](vaultme-v2-change-log.md)에 연결한다.
+
+## Icons 계약
+
+| 적용 위치 | 유지할 계약 |
+| --- | --- |
+| C01 주요 Button | Send/Approve/Sign/Revoke의 정확한 visible label. Icon은 보조 |
+| C02 Icon button | accessible action name, 44 px target, focus/disabled 이유 |
+| C05/C25/C28 상태 | icon + label + 이유. clear check와 confirmed를 구분 |
+| C11/C15/C16/C17/C18/C21/C24/C26 Review | 관련 account/network/asset/full address/amount 또는 allowance/estimated fee/status |
+| C07/C08 Account/Network | Wallet/Ethereum glyph와 실제 이름·선택 marker. 지원·인증 claim 금지 |
+| C09 Asset row | 원본 identity, 이름·symbol·balance. 같은 상단 network만 반복 생략 |
+| C06 Navigation | Assets/Activity/Settings visible label과 active state |
+
+기능은 Phosphor regular, identity는 별도 원본 color SVG다. Label 옆 SVG/img는 aria-hidden이다. 미확인 identity에는 neutral fallback을 사용한다. Local icon 25개 연결은 정적 확인 완료이며 Native와 Library 통합도 완료했다. 최종 증거는 아래 적용 기록을 따른다. [Icons 안내](wallet-icon-guide.md), [로컬 검증](../work/v2/verification/icons-local.json).
+
+Icons의 390 px Assets/Send Review는 실제 browser에서 logo load, wallet Review 데이터, 44 px target, overflow 0을 확인했다. Catalog 25행과 status 검색 7개도 확인했다. [Browser 증거](../work/v2/verification/icons-runtime.json). 확인한 합성 화면에 한정한 결과이며 screen reader·실제 wallet 검증은 아니다.
+
+## Locale 계약
+
+현재 UI specimen과 기본 copy는 `en-US`다. 이는 localized product가 아닌 합성 Prototype 계약이다. 한국어 문서는 제품 UI의 한국어 지원 선언이 아니다. T11의 한국어·독일식 숫자는 stress fixture다.
+
+| 데이터 | 현재 계약 |
+| --- | --- |
+| 수량의 source | Decimal 문자열. Group separator 없음. 예: `1500.25` |
+| 기본 표시 | `en-US`, 소수점 `.`, grouping `,`. Unit과 fiat 통화 구분 |
+| Amount 입력 | 검증된 decimal 문자열로 변환. 미지원 separator를 추정 변환하지 않음 |
+| 작은 수량 | Review에서 원래 precision 보존. 반올림된 0으로 표시하지 않음 |
+| Quote/fee unknown | 0으로 대체하지 않음. unavailable 또는 unknown 표시 |
+| 언어와 방향 | 기본 UI `lang="en-US"`, `dir="ltr"`. 한국어 stress 구간은 `lang="ko"` |
+| 주소·hash | 번역하지 않음. 전체 문자열과 순서 보존 |
+
+Localized product를 만들 때 입력 허용 문자, locale fallback, 통화 위치, 화면 copy, 오류 copy, `lang`/`dir`, font glyph를 함께 확정하고 검사한다. 현재 Prototype의 mixed-language stress는 그 검사의 대체물이 아니다.

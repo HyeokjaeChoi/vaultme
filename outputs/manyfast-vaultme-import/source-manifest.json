@@ -1,0 +1,30 @@
+{
+  "project_name": "다중 체인 셀프 커스터디 암호화폐 지갑 모바일 앱",
+  "manyfast_project_id": "ac918ed5-2faf-4792-afa0-266068a8d8fc",
+  "source_base_url": "https://manyfast.io/editor/ac918ed5-2faf-4792-afa0-266068a8d8fc",
+  "captured_at": "2026-10-05T12:35:00+09:00",
+  "capture_method": "Authenticated Chrome session via Computer Use accessibility tree",
+  "direct_export_status": "blocked_by_manyfast_quota",
+  "direct_export_message": "내보내기 횟수를 모두 사용했어요",
+  "project_views_verified": [
+    "PRD",
+    "기능명세서",
+    "유저플로우"
+  ],
+  "feature_requirements_count": 6,
+  "generated_child_feature_nodes_seen": 0,
+  "files": [
+    "PRD.md",
+    "features/README.md",
+    "features/01-R-BEXZTL.md",
+    "features/02-R-SLMSYW.md",
+    "features/03-R-CMMQXK.md",
+    "features/04-R-XVLPFM.md",
+    "features/05-R-MOKBXD.md",
+    "features/06-R-WAJTMB.md",
+    "user-flow/user-flow.md",
+    "user-flow/user-flow.json",
+    "README.md",
+    "source-manifest.json"
+  ]
+}

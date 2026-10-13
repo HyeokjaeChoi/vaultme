@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# Design sources are the rule sources. docs/agents/design-index.md maps areas to them.
+# CodeRabbit learnings only calibrate the reviewer. They hold no design facts.
+language: en-US
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  auto_review:
+    enabled: true
+    drafts: true
+  path_filters:
+    - "!pnpm-lock.yaml"
+    - "!**/src/generated/**"
+    - "!work/**"
+  path_instructions:
+    - path: "packages/wallet-core/**"
+      instructions: >-
+        Judge against outputs/design/lld.md §3, §6, §11 and AGENTS.md rule 4.
+        Amounts use decimal strings and bigint only, never Number. No IO, no React/RN.
+        Recovery phrases and keys must never reach logs, errors, toString or JSON.
+        Flag any state transition that is not in the lld.md §6 table.
+    - path: "apps/mobile/**"
+      instructions: >-
+        Judge against AGENTS.md (Foundation contract), outputs/design/lld.md §1.1 and §12,
+        outputs/design/ux-flow.md, outputs/design/ux-terminology.md and outputs/components/.
+        Use token values only (no raw hex or numeric spacing). Review screens show account,
+        network, asset, full recipient, amount, estimated fee and status. Korean copy must
+        match ux-terminology.md. 44 pt targets, accessibility labels on icon-only controls.
+    - path: "packages/tokens/**"
+      instructions: >-
+        Values come from outputs/wallet-foundation.tokens.json only. Semantic and Component
+        values alias Primitive tokens. Flag any raw value outside Primitive.
+    - path: "packages/i18n/**"
+      instructions: >-
+        Strings must follow outputs/design/ux-terminology.md and outputs/design/ux-copy.md.
+    - path: "outputs/**"
+      instructions: >-
+        These are design sources. Treat changes to decisions (requirements session, hld, lld)
+        as decision changes: the PR description must name each changed decision and its reason.
+    - path: ".github/workflows/**"
+      instructions: >-
+        Pin third-party actions to a full commit SHA with a version comment. Least privilege
+        permissions. persist-credentials false on checkout.
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
+    custom_checks:
+      - name: Verification evidence
+        mode: warning
+        instructions: >-
+          Pass if every item the PR description reports as verified, passed or tested names
+          the command that ran and where it ran. Fail if an item claims verification without
+          a run, or if a step that could not run is not stated as not run.
+      - name: Linked issue
+        mode: warning
+        instructions: >-
+          Pass if the PR description links exactly one GitHub issue with "Closes #N".
+  tools:
+    gitleaks:
+      enabled: true
+    actionlint:
+      enabled: true
+    shellcheck:
+      enabled: true
+    eslint:
+      enabled: true
+knowledge_base:
+  learnings:
+    scope: local
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - files: AGENTS.md
+        applyTo: "**"
+      - files: docs/agents/design-index.md
+        applyTo: "**"
+      - files: .claude/skills/vaultme-review-lessons/SKILL.md
+        applyTo: "**"

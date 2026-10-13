@@ -1,0 +1,14 @@
+name: Task
+description: One unit of work. One issue = one branch = one PR.
+body:
+  - type: textarea
+    id: goal
+    attributes: { label: Goal }
+    validations: { required: true }
+  - type: textarea
+    id: sources
+    attributes: { label: Design sources, description: Sections from docs/agents/design-index.md }
+  - type: textarea
+    id: done
+    attributes: { label: Done when, description: Checks that must pass }
+    validations: { required: true }
