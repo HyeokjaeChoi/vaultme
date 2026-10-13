@@ -18,8 +18,8 @@ export function ReviewPanel({ risk }: { risk: boolean }) {
       risk={risk}
       amount={review.amount}
       recipientLabel={t('review.recipient')}
-      recipient={review.recipient}
-      highlight={risk ? diffGroups(review.recipient, review.previous) : []}
+      recipient={risk ? review.lookalike : review.recipient}
+      highlight={risk ? diffGroups(review.lookalike, review.recipient) : []}
       feeLabel={t('review.fee')}
       fee={review.fee}
       totalLabel={t('review.total')}

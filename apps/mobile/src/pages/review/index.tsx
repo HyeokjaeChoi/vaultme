@@ -6,7 +6,7 @@ import { review } from '@/entities/transaction/fixtures'
 import { diffGroups, groupAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { textStyle } from '@/shared/theme/fonts'
-import { BottomSheet, Button, IconButton, ReviewFooter, Screen, StatusNotice, Text } from '@/shared/ui'
+import { BottomSheet, Button, ReviewFooter, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 import { ReviewPanel } from '@/widgets/review-panel/ReviewPanel'
 
 const SHOWN_GROUPS = 4 // sheet compares only the leading chunks, then "…"
@@ -16,15 +16,15 @@ function Compare() {
   const { t } = useTranslation()
   const th = useTheme()
   const fg = th.component.statusNotice.info.fg
-  const diff = diffGroups(review.recipient, review.previous)
+  const diff = diffGroups(review.lookalike, review.recipient)
   const mark = { ...textStyle({ ...th.semantic.typography.label }), color: th.semantic.status.danger.fg, textDecorationLine: 'underline' as const }
   const cut = (a: string) => groupAddress(a).slice(0, SHOWN_GROUPS)
   return (
     <View>
-      <Text variant="body" color={fg}>{`${t('review.lookalike.previous')}   ${cut(review.previous).join(' ')} …`}</Text>
+      <Text variant="body" color={fg}>{`${t('review.lookalike.previous')}   ${cut(review.recipient).join(' ')} …`}</Text>
       <Text variant="body" color={fg}>
         {`${t('review.lookalike.current')}   `}
-        {cut(review.recipient).map((g, i) => (
+        {cut(review.lookalike).map((g, i) => (
           <Text key={i} color={fg}>
             {i > 0 ? ' ' : ''}
             <Text style={diff.includes(i) ? mark : undefined}>{g}</Text>
@@ -53,10 +53,7 @@ export function ReviewPage() {
         </ReviewFooter>
       }
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.primitive.space[1] }}>
-        <IconButton icon="back" label={t('common.back')} onPress={() => router.back()} />
-        <Text variant="title" accessibilityRole="header" style={{ flex: 1 }}>{t('review.title')}</Text>
-      </View>
+      <ScreenHeader title={t('review.title')} backLabel={t('common.back')} onBack={() => router.back()} />
       <ReviewPanel risk={isRisk} />
       <BottomSheet
         visible={sheet}

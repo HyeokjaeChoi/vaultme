@@ -8,8 +8,8 @@ type Props = {
   children: ReactNode
   footer?: ReactNode
   edges?: ('top' | 'bottom')[]
-  /** `section` = layout.sectionGap.product (24, default). `group` = layout.groupGap (16), used by frame S10N. */
-  gap?: 'section' | 'group'
+  /** `section` = layout.sectionGap.product (24, default). `group` = layout.groupGap (16), used by frame S10N. `row` = layout.rowGap (12), used by S40. */
+  gap?: 'section' | 'group' | 'row'
 }
 
 /** Safe-area screen with canvas background, scroll body and optional pinned footer. */
@@ -23,7 +23,7 @@ export function Screen({ children, footer, edges = ['top', 'bottom'], gap = 'sec
           paddingHorizontal: l.screen.padding,
           paddingTop: t.primitive.space[2],
           paddingBottom: t.primitive.space[2],
-          gap: gap === 'group' ? l.groupGap : l.sectionGap.product,
+          gap: gap === 'group' ? l.groupGap : gap === 'row' ? l.rowGap : l.sectionGap.product,
           flexGrow: 1,
         }}
       >

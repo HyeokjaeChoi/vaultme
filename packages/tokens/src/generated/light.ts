@@ -142,6 +142,181 @@ export const light = {
       "72": 0.72,
       "100": 1
     },
+    "type": {
+      "display": {
+        "desktop": {
+          "fontFamily": "Inter",
+          "fontWeight": "700",
+          "fontSize": 72,
+          "lineHeight": 79,
+          "letterSpacing": -1.44
+        },
+        "mobile": {
+          "fontFamily": "Inter",
+          "fontWeight": "700",
+          "fontSize": 36,
+          "lineHeight": 43,
+          "letterSpacing": -0.36
+        }
+      },
+      "heading": {
+        "h1": {
+          "desktop": {
+            "fontFamily": "Inter",
+            "fontWeight": "700",
+            "fontSize": 48,
+            "lineHeight": 58,
+            "letterSpacing": -0.48
+          },
+          "mobile": {
+            "fontFamily": "Inter",
+            "fontWeight": "700",
+            "fontSize": 30,
+            "lineHeight": 36,
+            "letterSpacing": -0.3
+          }
+        },
+        "h2": {
+          "fontFamily": "Inter",
+          "fontWeight": "600",
+          "fontSize": 30,
+          "lineHeight": 36,
+          "letterSpacing": -0.3
+        },
+        "h3": {
+          "fontFamily": "Inter",
+          "fontWeight": "600",
+          "fontSize": 24,
+          "lineHeight": 32,
+          "letterSpacing": 0
+        }
+      },
+      "body": {
+        "lg": {
+          "fontFamily": "Inter",
+          "fontWeight": "400",
+          "fontSize": 18,
+          "lineHeight": 27,
+          "letterSpacing": 0
+        },
+        "md": {
+          "fontFamily": "Inter",
+          "fontWeight": "400",
+          "fontSize": 16,
+          "lineHeight": 24,
+          "letterSpacing": 0
+        },
+        "sm": {
+          "fontFamily": "Inter",
+          "fontWeight": "400",
+          "fontSize": 14,
+          "lineHeight": 21,
+          "letterSpacing": 0
+        }
+      },
+      "label": {
+        "lg": {
+          "fontFamily": "Inter",
+          "fontWeight": "600",
+          "fontSize": 16,
+          "lineHeight": 22,
+          "letterSpacing": 0
+        },
+        "md": {
+          "fontFamily": "Inter",
+          "fontWeight": "600",
+          "fontSize": 14,
+          "lineHeight": 19,
+          "letterSpacing": 0
+        }
+      },
+      "caption": {
+        "fontFamily": "Inter",
+        "fontWeight": "500",
+        "fontSize": 12,
+        "lineHeight": 18,
+        "letterSpacing": 0
+      },
+      "data": {
+        "fontFamily": "IBM Plex Mono",
+        "fontWeight": "500",
+        "fontSize": 14,
+        "lineHeight": 19,
+        "letterSpacing": 0
+      },
+      "product": {
+        "title": {
+          "fontFamily": "Inter",
+          "fontWeight": "600",
+          "fontSize": 24,
+          "lineHeight": 32,
+          "letterSpacing": -0.24
+        },
+        "section": {
+          "fontFamily": "Inter",
+          "fontWeight": "600",
+          "fontSize": 16,
+          "lineHeight": 24,
+          "letterSpacing": 0
+        },
+        "balance": {
+          "fontFamily": "Inter",
+          "fontWeight": "500",
+          "fontSize": 40,
+          "lineHeight": 48,
+          "letterSpacing": -0.8
+        },
+        "amount": {
+          "fontFamily": "Inter",
+          "fontWeight": "500",
+          "fontSize": 32,
+          "lineHeight": 40,
+          "letterSpacing": -0.32
+        },
+        "reviewAmount": {
+          "fontFamily": "Inter",
+          "fontWeight": "500",
+          "fontSize": 28,
+          "lineHeight": 36,
+          "letterSpacing": -0.28
+        },
+        "row": {
+          "fontFamily": "Inter",
+          "fontWeight": "500",
+          "fontSize": 16,
+          "lineHeight": 24,
+          "letterSpacing": 0
+        },
+        "body": {
+          "fontFamily": "Inter",
+          "fontWeight": "400",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": 0
+        },
+        "label": {
+          "fontFamily": "Inter",
+          "fontWeight": "600",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": 0
+        },
+        "meta": {
+          "fontFamily": "Inter",
+          "fontWeight": "500",
+          "fontSize": 12,
+          "lineHeight": 18,
+          "letterSpacing": 0
+        },
+        "address": {
+          "fontFamily": "IBM Plex Mono",
+          "fontWeight": "400",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": 0
+        }
+      }
+    },
     "elevation": {
       "sm": {
         "shadowColor": "#11161D14",

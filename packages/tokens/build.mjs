@@ -76,7 +76,7 @@ StyleDictionary.registerFormat({
     const tree = {}
     for (const t of dictionary.allTokens) {
       const path = t.path.map((k) => (k === ESC ? 'value' : k))
-      if (path[0] === 'primitive' && ['type', 'font'].includes(path[1])) continue // composite sources, not for apps
+      if (path[0] === 'primitive' && ['font'].includes(path[1])) continue // composite font source, not for apps. primitive.type (display, heading) is emitted for app screens (S01, S40, S60)
       let n = tree
       for (const k of path.slice(0, -1)) n = n[k] ??= {}
       n[path.at(-1)] = convert(t.type, t.value)

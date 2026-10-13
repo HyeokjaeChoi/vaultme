@@ -1,12 +1,10 @@
 import { Stack } from 'expo-router'
 import { useFonts } from 'expo-font'
-import { useTranslation } from 'react-i18next'
 import { Providers } from '@/shell/providers'
 import { useTheme } from '@/shared/theme'
 import { fontAssets, textStyle } from '@/shared/theme/fonts'
 
 function Navigator() {
-  const { t } = useTranslation()
   const th = useTheme()
   return (
     <Stack
@@ -20,10 +18,10 @@ function Navigator() {
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="precheck" options={{ title: '' }} />
+      <Stack.Screen name="precheck" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false, gestureEnabled: false }} />
-      <Stack.Screen name="send" options={{ title: t('send.title') }} />
-      <Stack.Screen name="receive" options={{ title: t('receive.title') }} />
+      <Stack.Screen name="send" options={{ headerShown: false }} />
+      <Stack.Screen name="receive" options={{ headerShown: false }} />
       <Stack.Screen name="review" options={{ headerShown: false }} />
       <Stack.Screen name="kit" options={{ title: 'Kit' }} />
     </Stack>
