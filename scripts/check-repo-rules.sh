@@ -43,14 +43,11 @@ for f in $(files 'apps/mobile/src/shared/ui/*.tsx'); do
 done
 
 # R7. README.md and README.ko.md stay in step (issue 11): same heading count per
-# level, same set of relative link targets, every target exists in the index, and
-# each links to the other. In-page #anchors are ignored (Korean headings give other
-# anchors). Fenced code is skipped.
+# level, same set of relative link targets, every target exists in the working tree,
+# and each links to the other. Inline [text](path) links only. In-page #anchors are
+# ignored (Korean headings give other anchors). Fenced code is skipped.
 if ! python3 - <<'PY'
-import re, subprocess, sys
-
-def git(*a):
-    return subprocess.run(["git", *a], capture_output=True, text=True, check=True).stdout
+import os, re, sys
 
 def scan(text):
     levels, links, fenced = {}, set(), False
@@ -69,9 +66,9 @@ def scan(text):
     return levels, links
 
 try:
-    en, ko = scan(git("show", ":README.md")), scan(git("show", ":README.ko.md"))
-except subprocess.CalledProcessError:
-    sys.exit("error: README.md or README.ko.md is not in the git index")
+    en, ko = scan(open("README.md").read()), scan(open("README.ko.md").read())
+except OSError:
+    sys.exit("error: README.md or README.ko.md is missing")
 bad = []
 if en[0] != ko[0]:
     bad.append(f"heading counts per level differ: README.md {sorted(en[0].items())} vs README.ko.md {sorted(ko[0].items())}")
@@ -80,13 +77,11 @@ for name, a, b in (("README.md", en[1], ko[1]), ("README.ko.md", ko[1], en[1])):
     diff = (a - b) - mutual
     if diff:
         bad.append(f"link targets only in {name}: {sorted(diff)}")
-files = set(git("ls-files").splitlines())
-dirs = {f.rsplit("/", i)[0] for f in files for i in range(1, f.count("/") + 1)}
 for name, (_, links) in (("README.md", en), ("README.ko.md", ko)):
     for t in sorted(links):
         path = t.split("#", 1)[0].rstrip("/")
-        if path and path not in files and path not in dirs:
-            bad.append(f"{name} links to {t}, which is not in the git index")
+        if path and not os.path.exists(path):
+            bad.append(f"{name} links to {t}, which does not exist")
 if "README.ko.md" not in en[1]:
     bad.append("README.md has no link to README.ko.md")
 if "README.md" not in ko[1]:
