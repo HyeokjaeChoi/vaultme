@@ -57,7 +57,7 @@ def scan(text):
             continue
         if fenced:
             continue
-        m = re.match(r"(#{1,6})\s", line)
+        m = re.match(r" {0,3}(#{1,6})\s", line)
         if m:
             levels[len(m.group(1))] = levels.get(len(m.group(1)), 0) + 1
         for t in re.findall(r"\]\(([^)\s]+)\)", line):
@@ -72,9 +72,9 @@ except OSError:
 bad = []
 if en[0] != ko[0]:
     bad.append(f"heading counts per level differ: README.md {sorted(en[0].items())} vs README.ko.md {sorted(ko[0].items())}")
-mutual = {"README.md", "README.ko.md"}  # each file links to the other by design
-for name, a, b in (("README.md", en[1], ko[1]), ("README.ko.md", ko[1], en[1])):
-    diff = (a - b) - mutual
+# each file links to the other by design; exempt only that one link per file
+for name, a, b, other in (("README.md", en[1], ko[1], "README.ko.md"), ("README.ko.md", ko[1], en[1], "README.md")):
+    diff = (a - b) - {other}
     if diff:
         bad.append(f"link targets only in {name}: {sorted(diff)}")
 for name, (_, links) in (("README.md", en), ("README.ko.md", ko)):
