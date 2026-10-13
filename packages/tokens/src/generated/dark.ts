@@ -1751,6 +1751,42 @@ export const dark = {
         "unknown": "#C7D1DD",
         "clear": "#C7D1DD"
       }
+    },
+    "switch": {
+      "track": {
+        "on": "#3152FF",
+        "off": "#505C6C"
+      },
+      "thumb": "#FFFFFF",
+      "radius": 999
+    },
+    "segmented": {
+      "bg": "#11161D",
+      "selectedBg": "#28313C",
+      "border": "#28313C",
+      "fg": "#C7D1DD",
+      "selectedFg": "#F6F8FB",
+      "radius": 12
+    },
+    "listItem": {
+      "bg": "#11161D",
+      "label": "#F6F8FB",
+      "value": "#C7D1DD",
+      "icon": "#98A4B3",
+      "divider": "#28313C",
+      "paddingX": 16,
+      "paddingY": 12
+    },
+    "bottomSheet": {
+      "grabber": "#505C6C"
+    },
+    "sensitiveReveal": {
+      "bg": "#0B0F15",
+      "border": "#28313C",
+      "fg": "#F6F8FB",
+      "hint": "#C7D1DD",
+      "wordBg": "#11161D",
+      "radius": 16
     }
   }
 } as const

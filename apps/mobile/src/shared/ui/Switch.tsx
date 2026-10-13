@@ -4,7 +4,7 @@ import { useTheme } from '../theme'
 
 type Props = { value: boolean; onValueChange: (v: boolean) => void; label: string; disabled?: boolean }
 
-// Figma C29 is 51x31 with no Foundation size tokens yet. Nearest: control_lg 52 x avatar_sm 32 (1 px larger). Track on = brand, off = border.default, thumb = onBrand.
+// Figma C29 is 51x31 with no Foundation size tokens yet. Nearest: control_lg 52 x avatar_sm 32 (1 px larger). Colors and radius use component.switch.*.
 export function Switch({ value, onValueChange, label, disabled }: Props) {
   const t = useTheme()
   const w = t.primitive.size.control_lg
@@ -24,14 +24,14 @@ export function Switch({ value, onValueChange, label, disabled }: Props) {
         style={{
           width: w,
           height: h,
-          borderRadius: t.primitive.radius.pill,
+          borderRadius: t.component.switch.radius,
           padding: pad,
           justifyContent: 'center',
           alignItems: value ? 'flex-end' : 'flex-start',
-          backgroundColor: value ? t.semantic.brand.primary : t.semantic.border.default,
+          backgroundColor: value ? t.component.switch.track.on : t.component.switch.track.off,
         }}
       >
-        <View style={{ width: thumb, height: thumb, borderRadius: t.primitive.radius.pill, backgroundColor: t.semantic.text.onBrand }} />
+        <View style={{ width: thumb, height: thumb, borderRadius: t.component.switch.radius, backgroundColor: t.component.switch.thumb }} />
       </View>
     </Pressable>
   )

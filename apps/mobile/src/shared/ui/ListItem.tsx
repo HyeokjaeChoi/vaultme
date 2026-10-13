@@ -21,28 +21,28 @@ export function ListItem({ title, mono, trailing, divider, onPress }: Props) {
   const t = useTheme()
   const { style, handlers } = usePressScale()
   const row = (
-    <View style={{ backgroundColor: t.semantic.surface.default }}>
+    <View style={{ backgroundColor: t.component.listItem.bg }}>
       <View
         style={{
           minHeight: t.primitive.size.control_lg,
           flexDirection: 'row',
           alignItems: 'center',
           gap: t.semantic.layout.rowGap,
-          paddingHorizontal: t.semantic.layout.screen.padding,
-          paddingVertical: t.semantic.layout.rowGap,
+          paddingHorizontal: t.component.listItem.paddingX,
+          paddingVertical: t.component.listItem.paddingY,
         }}
       >
-        <Text variant={mono ? 'address' : 'row'} style={{ flex: 1 }}>{title}</Text>
-        {trailing?.kind === 'value' ? <Text variant="meta" color={t.semantic.text.secondary}>{trailing.text}</Text> : null}
+        <Text variant={mono ? 'address' : 'row'} color={t.component.listItem.label} style={{ flex: 1 }}>{title}</Text>
+        {trailing?.kind === 'value' ? <Text variant="meta" color={t.component.listItem.value}>{trailing.text}</Text> : null}
         {trailing?.kind === 'disclosure' ? (
           <>
-            {trailing.text ? <Text variant="meta" color={t.semantic.text.secondary}>{trailing.text}</Text> : null}
-            <Icon name="disclosure" size={t.component.icon.size.control} color={t.semantic.icon.secondary} />
+            {trailing.text ? <Text variant="meta" color={t.component.listItem.value}>{trailing.text}</Text> : null}
+            <Icon name="disclosure" size={t.component.icon.size.control} color={t.component.listItem.icon} />
           </>
         ) : null}
         {trailing?.kind === 'custom' ? trailing.node : null}
       </View>
-      {divider ? <View style={{ height: t.primitive.borderWidth.hairline, backgroundColor: t.semantic.border.subtle }} /> : null}
+      {divider ? <View style={{ height: t.primitive.borderWidth.hairline, backgroundColor: t.component.listItem.divider }} /> : null}
     </View>
   )
   return onPress ? (

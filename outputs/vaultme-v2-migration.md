@@ -271,3 +271,5 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - 추가 컴포넌트(미게시): `Icon button / Plain` 330:3401, `Keypad` 330:3423, `Summary row` 330:10480, `Icon / action / backspace` 330:2747 (Phosphor, MIT).
 - Library 게시는 소유자 검토 후 별도 단계다.
 - 소유자 승인: `component.button.size.lg.paddingX` `space.5`(20) → `space.4`(16), `component.receivePanel.radius` `radius.xl`(20) → `radius.lg`(16). Figma VariableID:2:253, VariableID:30:48 alias 변경, 경로·ID 유지. Library 게시 완료는 이 단계 이후 기록.
+
+- Figma에만 있던 C29–C33 Component Variable 24개를 portable JSON `component`에 추가했다 (`switch` 4, `segmented` 6, `listItem` 7, `bottomSheet` 1, `sensitiveReveal` 6). 모두 기존 Semantic/Primitive alias이며 raw 값은 없다. Primitive와 Semantic은 추가 없음 (`space/*`는 이미 JSON에 있음). 기존 값은 바꾸지 않았다. Figma 읽기 전용 비교: Figma 717 Variable, JSON-only는 Text Style/Effect Style 참조(typography, shadow) 80개뿐이다. `segmented.bg`(`action.secondary.bg.default`)는 앱의 기존 `surface.subtle`과 값이 달라 앱 코드는 바꾸지 않았다.

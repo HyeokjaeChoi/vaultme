@@ -1751,6 +1751,42 @@ export const light = {
         "unknown": "#394553",
         "clear": "#394553"
       }
+    },
+    "switch": {
+      "track": {
+        "on": "#3152FF",
+        "off": "#808D9D"
+      },
+      "thumb": "#FFFFFF",
+      "radius": 999
+    },
+    "segmented": {
+      "bg": "#DDE4EC",
+      "selectedBg": "#FFFFFF",
+      "border": "#DDE4EC",
+      "fg": "#394553",
+      "selectedFg": "#11161D",
+      "radius": 12
+    },
+    "listItem": {
+      "bg": "#FFFFFF",
+      "label": "#11161D",
+      "value": "#394553",
+      "icon": "#505C6C",
+      "divider": "#DDE4EC",
+      "paddingX": 16,
+      "paddingY": 12
+    },
+    "bottomSheet": {
+      "grabber": "#808D9D"
+    },
+    "sensitiveReveal": {
+      "bg": "#F6F8FB",
+      "border": "#DDE4EC",
+      "fg": "#11161D",
+      "hint": "#394553",
+      "wordBg": "#FFFFFF",
+      "radius": 16
     }
   }
 } as const
