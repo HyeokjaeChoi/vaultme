@@ -1,8 +1,9 @@
-// Figma: Product header 68:167 (Icon / account 137:41, Icon / Asset / ETH 137:402, account details control 80:343)
-import { Pressable, View } from 'react-native'
+// Figma: Product header 68:167 (Icon / account 137:41, Icon / Asset / ETH 137:402, account details control 80:343 = Icon button / Plain 330:3401)
+import { View } from 'react-native'
 import { useTheme } from '../theme'
 import { AssetIcon, type AssetSymbol } from './AssetIcon'
 import { Icon } from './Icon'
+import { IconButton } from './IconButton'
 import { Text } from './Text'
 
 type Props = { title: string; subtitle?: string; networkSymbol?: AssetSymbol; detailsLabel: string; onDetails?: () => void }
@@ -26,14 +27,7 @@ export function ProductHeader({ title, subtitle, networkSymbol = 'ETH', detailsL
           </View>
         ) : null}
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={detailsLabel}
-        onPress={onDetails}
-        style={{ width: t.component.iconButton.hitTarget, height: t.component.iconButton.hitTarget, alignItems: 'center', justifyContent: 'center' }}
-      >
-        <Icon name="more" size={t.component.iconButton.iconSize} color={t.component.iconButton.fg} />
-      </Pressable>
+      <IconButton icon="more" variant="plain" label={detailsLabel} {...(onDetails ? { onPress: onDetails } : {})} />
     </View>
   )
 }

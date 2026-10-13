@@ -1,9 +1,10 @@
-// Figma: Icon set 137:3 (Phosphor regular; Icon button swap slot 67:205 / Icon / swappable action 158:506)
+// Figma: Icon set 137:3 (Phosphor regular; Icon button swap slot 67:205 / Icon / swappable action 158:506; Icon / action / backspace 330:2747)
 import { View } from 'react-native'
 import {
   ArrowDownLeft,
   ArrowLeft,
   ArrowUpRight,
+  Backspace,
   CaretRight,
   CheckCircle,
   CircleNotch,
@@ -40,6 +41,7 @@ const ICONS = {
   settings: GearSix,
   disclosure: CaretRight,
   back: ArrowLeft,
+  backspace: Backspace,
   more: DotsThree,
   copy: Copy,
   backup: LockKey,

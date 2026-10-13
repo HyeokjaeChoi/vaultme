@@ -1,12 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { review } from '@/entities/transaction/fixtures'
 import { diffGroups, groupAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { textStyle } from '@/shared/theme/fonts'
-import { BottomSheet, Button, ReviewFooter, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
+import { BottomSheet, Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 import { ReviewPanel } from '@/widgets/review-panel/ReviewPanel'
 
 const SHOWN_GROUPS = 4 // sheet compares only the leading chunks, then "…"
@@ -36,25 +36,24 @@ function Compare() {
   )
 }
 
-/** S22 검토. `risk=1` = S22L lookalike (High risk): confirm opens the address-check sheet. Confirm is inert: no signing in C2a. */
+/** R-S22 검토. `risk=1` = R-S22L look-alike: confirm opens the address-check sheet. `sheet=1` opens it on arrival (R-S22L+Sheet). Confirm is inert: no signing in C2a. */
 export function ReviewPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { risk } = useLocalSearchParams<{ risk?: string }>()
+  const { risk, sheet: sheetParam } = useLocalSearchParams<{ risk?: string; sheet?: string }>()
   const isRisk = risk === '1'
-  const [sheet, setSheet] = useState(false)
+  const [sheet, setSheet] = useState(isRisk && sheetParam === '1')
+  // Same route re-opened with ?sheet=1 keeps this screen mounted, so follow the param.
+  useEffect(() => {
+    if (isRisk && sheetParam === '1') setSheet(true)
+  }, [isRisk, sheetParam])
   return (
     <Screen
-      footer={
-        <ReviewFooter>
-          <Button label={t('review.confirm')} icon="send" onPress={() => isRisk && setSheet(true)} />
-          <Button label={t('review.edit')} variant="secondary" onPress={() => router.back()} />
-        </ReviewFooter>
-      }
+      header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}
+      footer={<Button label={t('review.confirm')} onPress={() => isRisk && setSheet(true)} />}
     >
-      <ScreenHeader title={t('review.title')} backLabel={t('common.back')} onBack={() => router.back()} />
-      <ReviewPanel risk={isRisk} />
+      <ReviewPanel risk={isRisk} onEditRecipient={() => router.dismissTo('/send')} onEditAmount={() => router.back()} />
       <BottomSheet
         visible={sheet}
         onClose={() => setSheet(false)}

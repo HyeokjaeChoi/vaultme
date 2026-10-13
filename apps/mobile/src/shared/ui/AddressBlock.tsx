@@ -7,16 +7,16 @@ import { useTheme } from '../theme'
 import { Icon } from './Icon'
 import { Text } from './Text'
 
-type TextProps = { address: string; highlight?: number[]; color?: string }
+type TextProps = { address: string; highlight?: number[]; color?: string; markColor?: string }
 
 /**
  * Full address as one wrapping run of 4-char groups. Only the groups listed in `highlight` are marked
  * (danger color, underline, Medium weight); every other group keeps the normal style.
  */
-export function AddressText({ address, highlight = [], color }: TextProps) {
+export function AddressText({ address, highlight = [], color, markColor }: TextProps) {
   const t = useTheme()
   const base = t.component.addressBlock.textStyle
-  const hit = { ...textStyle({ ...base, fontWeight: '500' }), color: t.semantic.status.danger.fg, textDecorationLine: 'underline' as const }
+  const hit = { ...textStyle({ ...base, fontWeight: '500' }), color: markColor ?? t.semantic.status.danger.fg, textDecorationLine: 'underline' as const }
   const groups = groupAddress(address)
   return (
     <Text variant="address" color={color ?? t.component.addressBlock.value} accessibilityLabel={addressA11yLabel(address)}>

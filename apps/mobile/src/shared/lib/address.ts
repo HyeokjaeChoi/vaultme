@@ -16,3 +16,9 @@ export function diffGroups(a: string, b: string): number[] {
   const [ga, gb] = [groupAddress(a), groupAddress(b)]
   return ga.flatMap((g, i) => (g.toLowerCase() === gb[i]?.toLowerCase() ? [] : [i]))
 }
+
+/** "0x9F3c…41aB": first 6 and last 4 characters, for summary rows. The full address is always shown on Review. */
+export const shortAddress = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`
+
+/** Format check only (0x + 40 hex). It does not establish ownership or safety. */
+export const isAddressFormat = (address: string) => /^0x[0-9a-fA-F]{40}$/.test(address)
