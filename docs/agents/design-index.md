@@ -11,4 +11,5 @@ Read the listed sources before you edit an area. The sources win over general be
 | `apps/api/` (later) | `outputs/design/hld.md` · `outputs/design/lld.md` §4–§10 |
 | `.github/`, `.githooks/`, `scripts/` | `docs/agents/workflow.md` |
 | Decisions | `outputs/vaultme-requirements-session.md` (Qn records) |
+| Any UI (Figma or app) | `.claude/skills/vaultme-figma-screen/SKILL.md` · `.claude/skills/vaultme-design-to-code/SKILL.md` · `docs/retro/2026-10-13-design-system-not-applied.md` |
 | Repeated review lessons | `.claude/skills/vaultme-review-lessons/SKILL.md` |

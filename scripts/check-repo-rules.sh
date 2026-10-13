@@ -25,4 +25,19 @@ if files | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$'; then
   err "R3: .env file is tracked"
 fi
 
+# R4. Landing-page section gaps are banned in app code (retro 2026-10-13).
+if scan 'sectionGap\.(mobile|desktop)' 'apps/mobile/**/*.ts' 'apps/mobile/**/*.tsx'; then
+  err "R4: use semantic.layout.sectionGap.product (or groupGap/rowGap/fieldGap) in apps/mobile"
+fi
+
+# R5. No numeric literals for spacing, radius or type in app styles. Use @vaultme/tokens. 0 is allowed.
+if scan '\b(padding|margin)(Horizontal|Vertical|Top|Bottom|Left|Right|Start|End)?: *[1-9][0-9.]*|\b(gap|rowGap|columnGap|fontSize|lineHeight|letterSpacing): *[1-9][0-9.]*|\bborder[A-Za-z]*Radius: *[1-9][0-9.]*' 'apps/mobile/src/**/*.tsx' 'apps/mobile/src/**/*.ts' 'apps/mobile/app/**/*.tsx'; then
+  err "R5: numeric style literal in apps/mobile; use @vaultme/tokens"
+fi
+
+# R6. Each shared UI primitive names its Figma component (retro 2026-10-13).
+for f in $(files 'apps/mobile/src/shared/ui/*.tsx'); do
+  head -3 "$f" | grep -q '// Figma: ' || err "R6: $f has no '// Figma: <name> <node id>' header"
+done
+
 exit "$fail"
