@@ -65,6 +65,8 @@ export const ko = {
     fee: '예상 네트워크 수수료',
     feeCap: '최대 네트워크 수수료',
     recalc: '다시 계산',
+    recalcLabel: '수수료 다시 계산',
+    checkedAt: '확인 시각',
     total: '예상 총 차감액',
     checkedTitle: '확인 결과',
     checkedBody: '잔액, 수수료, 주소 형식을 {{time}}에 확인했어요. 받는 사람의 안전을 보증하지는 않아요.',

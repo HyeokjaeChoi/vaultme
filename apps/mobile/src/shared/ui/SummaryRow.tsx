@@ -14,11 +14,13 @@ type Props = {
   /** Text value in Product / Address (mono), e.g. a shortened address. */
   mono?: boolean
   editLabel?: string
+  /** Overrides the edit link's accessibilityLabel (default: `${editLabel} ${label}`). */
+  editAccessibilityLabel?: string
   onEdit?: () => void
 }
 
 /** C35 Summary row: label, value, optional trailing link (44 pt target). Flat and without a divider: group rows in <Group>. */
-export function SummaryRow({ label, value, format = 'text', highlight, mono, editLabel, onEdit }: Props) {
+export function SummaryRow({ label, value, format = 'text', highlight, mono, editLabel, editAccessibilityLabel, onEdit }: Props) {
   const t = useTheme()
   const labelWidth = t.primitive.space[10] + t.primitive.space[8] // 72
   const total = format === 'total'
@@ -28,7 +30,7 @@ export function SummaryRow({ label, value, format = 'text', highlight, mono, edi
     <View
       accessible={!onEdit}
       accessibilityLabel={onEdit ? undefined : `${label}, ${value}`}
-      style={{ flexDirection: stacked ? 'column' : 'row', alignItems: stacked ? 'stretch' : 'flex-start', gap: t.semantic.layout.rowGap, minHeight: t.primitive.size.touch_min, paddingVertical: t.primitive.space[3] }}
+      style={{ flexDirection: stacked ? 'column' : 'row', alignItems: stacked ? 'stretch' : format === 'address' ? 'flex-start' : 'center', gap: t.semantic.layout.rowGap, minHeight: t.primitive.size.touch_min, paddingVertical: t.primitive.space[3] }}
     >
       <Text variant={total ? 'label' : 'body'} color={total ? t.semantic.text.primary : t.semantic.text.secondary} style={stacked ? undefined : { minWidth: labelWidth }}>{label}</Text>
       <View style={stacked ? undefined : { flex: 1 }}>
@@ -41,7 +43,7 @@ export function SummaryRow({ label, value, format = 'text', highlight, mono, edi
       {onEdit ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${editLabel ?? ''} ${label}`.trim()}
+          accessibilityLabel={editAccessibilityLabel ?? `${editLabel ?? ''} ${label}`.trim()}
           onPress={onEdit}
           style={{ minWidth: t.primitive.size.touch_min, minHeight: t.primitive.size.touch_min, alignSelf: stacked ? 'flex-start' : 'stretch', alignItems: 'center', justifyContent: 'center', paddingHorizontal: t.primitive.space[2] }}
         >

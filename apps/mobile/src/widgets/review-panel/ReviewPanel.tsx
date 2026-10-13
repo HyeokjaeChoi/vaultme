@@ -6,7 +6,7 @@ import { review } from '@/entities/transaction/fixtures'
 import type { ReviewValues } from '@/entities/transaction/review'
 import { diffGroups, groupAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
-import { Button, Group, StatusNotice, SummaryRow, Text } from '@/shared/ui'
+import { Group, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 
 const nowHHMM = () => new Date().toTimeString().slice(0, 5)
 
@@ -15,7 +15,7 @@ type Props = { values: ReviewValues; onEditRecipient: () => void; onEditAmount: 
 /**
  * R-S22 Review body: question, amount, the answers as flat Summary rows in one white group, fee and total, then one check notice.
  * `values.previous` set = look-alike recipient (R-S22L): the differing 4-char chunks are marked and the notice is a warning.
- * Values come from the entered recipient and amount; fee and check time are fixtures. "다시 계산" re-reads the fixture and sets the check time to now.
+ * Values come from the entered recipient and amount; fee and check time are fixtures. the "다시 계산" link on the check-time row sets the check time to now.
  */
 export function ReviewPanel({ values, onEditRecipient, onEditAmount }: Props) {
   const { t } = useTranslation()
@@ -43,7 +43,7 @@ export function ReviewPanel({ values, onEditRecipient, onEditAmount }: Props) {
         <SummaryRow label={t('review.fee')} value={values.fee} />
         <SummaryRow label={t('review.feeCap')} value={values.feeCap} />
         <SummaryRow format="total" label={t('review.total')} value={values.total} />
-        <Button label={t('review.recalc')} variant="ghost" size="sm" onPress={() => setCheckedAt(nowHHMM())} />
+        <SummaryRow label={t('review.checkedAt')} value={checkedAt} editLabel={t('review.recalc')} editAccessibilityLabel={t('review.recalcLabel')} onEdit={() => setCheckedAt(nowHHMM())} />
       </Group>
       {risk ? (
         <StatusNotice tone="warning" title={t('review.lookalike.title', { count: diff.length })} body={t('review.lookalike.body', { chunks })} />
