@@ -25,7 +25,7 @@ export function SendAmountPage() {
     <Screen
       topGap="group"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}
-      footer={<Button label={t('send.next')} disabled={isZeroAmount(amount)} onPress={() => router.push('/review')} />}
+      footer={<Button label={t('send.next')} disabled={isZeroAmount(amount)} onPress={() => router.push({ pathname: '/review', params: { to: to ?? review.recipient, amount } })} />}
     >
       <View style={{ flex: 1, justifyContent: 'space-between', gap: th.semantic.layout.sectionGap.product }}>
         <View style={{ gap: th.semantic.layout.groupGap }}>
@@ -41,8 +41,8 @@ export function SendAmountPage() {
             <Text variant="amountHero">{amount}</Text>
             <Text variant="title" color={th.semantic.text.secondary}>ETH</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap }}>
-            <Text variant="body" color={th.semantic.text.secondary}>{`${t('send.maxSendable')} ${available} ETH`}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap }}>
+            <Text variant="body" style={{ textAlign: 'center' }} color={th.semantic.text.secondary}>{`${t('send.maxSendable')} ${available} ETH`}</Text>
             <Button label={t('send.max')} variant="secondary" size="sm" style={{ minWidth: th.primitive.space[10] + th.primitive.space[8] }} onPress={() => setAmount(available)} />
           </View>
         </View>

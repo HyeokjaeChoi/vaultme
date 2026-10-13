@@ -13,6 +13,8 @@ export const transactions: Tx[] = [
 export const review = {
   amount: '0.05 ETH',
   fee: '0.000042 ETH',
+  // wallet-core fee model: gasLimit 21000 x (2 x base 1.5 gwei + tip 0.5 gwei) = 21000 x 3.5 gwei
+  feeCap: '0.0000735 ETH',
   total: '0.050042 ETH',
   checkedAt: '09:41',
   recipient: '0x9F3c7A210bD4e6C855a13F90c2E78d16Ab0441aB',
