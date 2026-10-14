@@ -160,6 +160,14 @@ describe('kv key + store', () => {
     expect(kv.getLockState().backgroundedAt).toBeNull()
   })
 
+  it('round-trips the account address', async () => {
+    const kv = await import('../src/shared/storage/kv')
+    await kv.openKv()
+    expect(kv.getAccountAddress()).toBeNull()
+    kv.setAccountAddress('0x9858EfFD232B4033E47d90003D41EC34EcaEda94')
+    expect(kv.getAccountAddress()).toBe('0x9858EfFD232B4033E47d90003D41EC34EcaEda94')
+  })
+
   it('round-trips a pending tx and rejects malformed records', async () => {
     const kv = await import('../src/shared/storage/kv')
     await kv.openKv()

@@ -29,6 +29,10 @@ function store(): MMKV {
 export const getBackupDone = (): boolean => store().getBoolean('backupDone') ?? false
 export const setBackupDone = (v: boolean): void => store().set('backupDone', v)
 
+// --- account address: first-account public address, derived at creation (no auth needed to show it) ---
+export const getAccountAddress = (): string | null => store().getString('account.address') ?? null
+export const setAccountAddress = (a: string): void => store().set('account.address', a)
+
 // --- lock (Q13): 30 s grace after a real background; cold start is locked ---
 export type LockSettings = { graceSeconds: number }
 export type LockState = { locked: boolean; backgroundedAt: number | null }
