@@ -13,7 +13,11 @@ const envPath = process.env.ETHERSCAN_ENV ?? `${homedir()}/.config/vaultme/ether
 const key = readFileSync(envPath, 'utf8').match(/^ETHERSCAN_API_KEY=(.+)$/m)?.[1]?.trim()
 if (!key) throw new Error('ETHERSCAN_API_KEY missing in env file')
 const redact = (s) => s.split(key).join('REDACTED')
-const kv = (args) => Object.fromEntries(args.map((a) => [a.slice(0, a.indexOf('=')), a.slice(a.indexOf('=') + 1)]))
+const kv = (args) => Object.fromEntries(args.map((a) => {
+  const i = a.indexOf('=')
+  if (i < 1) throw new Error(`bad argument (expected k=v): ${a}`)
+  return [a.slice(0, i), a.slice(i + 1)]
+}))
 
 async function call(params) {
   const q = new URLSearchParams({ chainid: '11155111', ...params, apikey: key })
@@ -42,6 +46,7 @@ if (cmd === 'get') {
     result: list ? result.slice(0, show) : result,
     last: list && result.length > show ? result[result.length - 1] : undefined })
 } else if (cmd === 'dump') {
+  if (!file) { console.error('dump needs file=PATH'); process.exit(2) }
   const r = await call(params)
   writeFileSync(file, JSON.stringify(r.body))
   console.log(r.http, r.ms, r.body.status, r.body.message, Array.isArray(r.body.result) ? r.body.result.length : r.body.result)
