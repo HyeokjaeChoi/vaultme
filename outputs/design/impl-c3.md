@@ -62,7 +62,7 @@
 
 - Android emulator와 iOS simulator에서 앱을 실행해 보지 않았다. Keychain 기기 key 저장과 kv installId는 단위 테스트에서 mock이다.
 - 실제 Sepolia 전송과 잔액은 확인하지 못했다 (RPC key 없음).
-- `Included`는 receipt가 있다는 뜻이다. reverted(Failed)와 `safe` 확정(Q37)은 구분하지 않는다. 화면은 `Included`를 Pending 문구로 그린다. #44에서 정한다.
+- `Included`는 receipt가 있다는 뜻이다. reverted(Failed)와 `safe` 확정(Q37)은 구분하지 않는다. 화면은 `Included`를 "블록에 포함됨"(ux-terminology)으로 그린다. 실패와 확정은 #44에서 정한다.
 - 보내기 직후 Pending이 영원히 남지 않게 "상태 다시 확인"을 눌러야 한다. 자동 재조회는 없다.
 - Activity는 실제 모드에서 pending 한 건만 보인다. API 내역은 #42(서버)와 #44(화면)가 끝나야 보인다.
 - 사용자에게 보이는 `network`, `unavailable`, `update_required`, `clock_skew` 문구와 화면은 없다. 오류는 지금 `ChainError` 등으로만 드러난다.

@@ -200,6 +200,7 @@ export const ko = {
   activity: {
     title: '내역',
     pending: '처리 중',
+    included: '블록에 포함됨',
     confirmed: '확정',
     failed: '실패',
     unknown: '확인 못 함',

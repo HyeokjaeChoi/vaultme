@@ -28,7 +28,7 @@ export function ActivityPage() {
             {day === 'today' && tx ? (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${t('activity.send')}, ${shortAddress(tx.to)}, −${tx.amount} ${tx.asset}, ${t(tx.state === 'Unknown' ? 'activity.unknown' : 'activity.pending')}`}
+                accessibilityLabel={`${t('activity.send')}, ${shortAddress(tx.to)}, −${tx.amount} ${tx.asset}, ${t(tx.state === 'Unknown' ? 'activity.unknown' : tx.state === 'Included' ? 'activity.included' : 'activity.pending')}`}
                 onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: tx.hash } })}>
                 <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
                 <ActivityRow
@@ -38,7 +38,7 @@ export function ActivityPage() {
                   amount={`−${tx.amount} ${tx.asset}`}
                   kind="send"
                   status={tx.state === 'Unknown' ? 'unknown' : 'pending'}
-                  statusLabel={t(tx.state === 'Unknown' ? 'activity.unknown' : 'activity.pending')}
+                  statusLabel={t(tx.state === 'Unknown' ? 'activity.unknown' : tx.state === 'Included' ? 'activity.included' : 'activity.pending')}
                 />
                 </View>
               </Pressable>

@@ -19,7 +19,7 @@ export function useLiveBalances(): Record<AssetId, string> | null {
       let alive = true
       chain.getBalances(address as `0x${string}`).then(
         (r) => alive && setB({ ETH: fromUnits(r.ETH, 'ETH'), USDC: fromUnits(r.USDC, 'USDC') }),
-        () => undefined,
+        () => alive && setB(null),
       )
       return () => {
         alive = false

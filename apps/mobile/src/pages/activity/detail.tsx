@@ -53,7 +53,7 @@ export function TxDetailPage() {
       }
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>
-        <StatusLabel state={unknown ? 'unknown' : 'pending'} label={t(unknown ? 'activity.unknown' : 'activity.pending')} />
+        <StatusLabel state={unknown ? 'unknown' : 'pending'} label={t(unknown ? 'activity.unknown' : tx.state === 'Included' ? 'activity.included' : 'activity.pending')} />
         <Text variant="title" accessibilityRole="header">{t('detail.title')}</Text>
         <Text variant="body" color={th.semantic.text.secondary}>{t(unknown ? 'result.unknownTitle' : 'result.title')}</Text>
       </View>
