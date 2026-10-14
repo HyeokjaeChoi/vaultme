@@ -1,6 +1,7 @@
 import * as Crypto from 'expo-crypto'
 import * as Keychain from 'react-native-keychain'
 import { Mnemonic } from '@vaultme/wallet-core'
+import { withAuthInProgress } from '../auth/inProgress'
 
 // Keychain access for the app (lld.md §3: wallet-core does not know storage).
 // Two items, two tiers (hld.md §5, Q34, Q63):
@@ -30,7 +31,7 @@ const KV_KEY_OPTIONS = {
 export type AuthPrompt = { title: string; cancel: string }
 
 export async function savePhrase(m: Mnemonic, prompt: AuthPrompt): Promise<void> {
-  const ok = await Keychain.setGenericPassword(USER, m.reveal(), { ...PHRASE_OPTIONS, authenticationPrompt: prompt })
+  const ok = await withAuthInProgress(() => Keychain.setGenericPassword(USER, m.reveal(), { ...PHRASE_OPTIONS, authenticationPrompt: prompt }))
   if (!ok) throw new Error('keychain: save failed')
 }
 
@@ -43,11 +44,13 @@ export const loadFailureStatus = (e: unknown): 'cancelled' | 'error' =>
 /** Asks the OS for auth. Never throws: the UI gets `ok`, `cancelled` (user dismissed auth) or `error` (missing/corrupt item, keychain failure). */
 export async function loadPhrase(prompt: AuthPrompt): Promise<LoadPhraseResult> {
   try {
-    const item = await Keychain.getGenericPassword({
-      service: PHRASE_SERVICE,
-      accessControl: PHRASE_OPTIONS.accessControl,
-      authenticationPrompt: prompt,
-    })
+    const item = await withAuthInProgress(() =>
+      Keychain.getGenericPassword({
+        service: PHRASE_SERVICE,
+        accessControl: PHRASE_OPTIONS.accessControl,
+        authenticationPrompt: prompt,
+      }),
+    )
     if (!item) return { status: 'error' }
     return { status: 'ok', mnemonic: new Mnemonic(item.password) }
   } catch (e) {

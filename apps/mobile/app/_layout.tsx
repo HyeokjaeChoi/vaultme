@@ -6,6 +6,7 @@ import { Providers } from '@/shell/providers'
 import { useTheme } from '@/shared/theme'
 import { fontAssets } from '@/shared/theme/fonts'
 import { openKv } from '@/shared/storage'
+import { LockGate } from '@/shell/LockGate'
 
 function Navigator() {
   const th = useTheme()
@@ -32,7 +33,9 @@ export default function RootLayout() {
   if ((!loaded && !error) || !kvReady) return null // fonts are bundled; this is one frame
   return (
     <Providers>
-      <Navigator />
+      <LockGate>
+        <Navigator />
+      </LockGate>
     </Providers>
   )
 }

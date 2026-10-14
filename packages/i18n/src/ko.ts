@@ -8,6 +8,20 @@ export const ko = {
     create: '새 지갑 만들기',
     restore: '기존 지갑 복구',
   },
+  // S90: title, button and the Face ID body are approved (ux-copy.md). The other bodies (device type), authPrompt and the two notices are new (listed in the PR for approval).
+  lock: {
+    title: 'VaultMe',
+    body: {
+      faceId: '잠겨 있어요. Face ID로 잠금을 푸세요.',
+      face: '잠겨 있어요. 얼굴로 잠금을 푸세요.',
+      fingerprint: '잠겨 있어요. 지문으로 잠금을 푸세요.',
+      passcode: '잠겨 있어요. 기기 암호로 잠금을 푸세요.',
+    },
+    unlock: '잠금 해제',
+    authPrompt: '잠금을 풀려면 인증하세요',
+    error: { title: '잠금을 풀지 못했어요', body: '다시 시도하세요.' },
+    unavailable: { title: '기기 인증을 쓸 수 없어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도하세요.' },
+  },
   precheck: {
     title: '시작 전에 확인',
     lose: { title: '복구 구문을 잃으면 되찾을 수 없어요', body: 'VaultMe는 복구 구문을 보관하지도, 되찾아 주지도 않아요.' },
