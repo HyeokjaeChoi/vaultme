@@ -1,7 +1,8 @@
-import { useRouter } from 'expo-router'
+import { Redirect, useRouter } from 'expo-router'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/shared/theme'
+import { useAccountAddress } from '@/features/backup/model/useAccountAddress'
 import { Button, Icon, Screen, Text } from '@/shared/ui'
 
 /** R-S01 시작 */
@@ -9,7 +10,9 @@ export function StartPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
+  const address = useAccountAddress()
   const mark = th.primitive.space[10] + th.primitive.space[8] // 72
+  if (address) return <Redirect href="/home" /> // a wallet exists: cold start (after unlock) opens Home
   return (
     <Screen
       footer={

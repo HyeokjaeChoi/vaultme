@@ -25,3 +25,13 @@ Light mode unless noted. iOS: iPhone 18 Pro simulator, 402x874 pt at 3x. Figma f
 | S06 restore result | C2b-S06 365:965 | `s06-app.png` | `s06-figma.png` | None seen (fixture address, as in Figma). |
 
 Android emulator (signaldock-api37, 1080x2400) results from the real flow with the published vector: `android-s05e-unknown.png`, `android-s05e-checksum.png`, `android-s05-exists.png` (a phrase is already stored), `android-s06.png` (0x9858…da94), `android-home-restored.png` (no backup card), `android-receive.png` (same address). The iOS simulator cannot store a phrase (no passcode), so S06 there uses the fixture.
+
+## C2b lock (#22) app vs Figma
+
+Light mode unless noted. iOS: iPhone 18 Pro simulator, 402x874 pt at 3x, Face ID enrolled with `notifyutil`. Figma frame is 390x844. The simulator has no wallet (no passcode, so Keychain cannot store a phrase), so the iOS capture forces "wallet exists" in a temporary local edit (not committed). Android: `signaldock-api37`, PIN set, real wallet.
+
+| Screen | Figma node | App | Figma | Remaining differences |
+|---|---|---|---|---|
+| S90 lock (iOS, Face ID body) | C2b-S90 365:1285 | `s90-app.png` | `s90-figma.png` | Mark icon is 32 pt (token `icon_xl`), Figma draws 30. Simulator status bar and dev-menu gear are not app UI. |
+| S90 dark (iOS) | none (Figma frame is light only) | `s90-app-dark.png` | n/a | Dark mapping comes from the token modes. |
+| S90 (Android light / dark) | same | `s90-android-light.png`, `s90-android-dark.png` | n/a | Body names the device method: "기기 암호로" (emulator has PIN only, no biometrics). |
