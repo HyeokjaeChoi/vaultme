@@ -9,6 +9,7 @@ import { isAddressFormat, shortAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { useFoldIn } from '@/shared/theme/motion'
 import { Button, Group, Keypad, Screen, ScreenHeader, SummaryRow, Text } from '@/shared/ui'
+import { goBack } from '@/shared/lib/nav'
 
 /** R-S20B 얼마를 보낼까요? Amount step. The recipient answer folds into a summary row above the question. 최대 fills the fixture spendable balance. */
 export function SendAmountPage() {
@@ -25,14 +26,14 @@ export function SendAmountPage() {
   return (
     <Screen
       topGap="group"
-      header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}
+      header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
       footer={<Button label={t('send.next')} disabled={isZeroAmount(amount) || tooMuch} onPress={() => router.push({ pathname: '/review', params: { to, amount } })} />}
     >
       <View style={{ flex: 1, justifyContent: 'space-between', gap: th.semantic.layout.sectionGap.product }}>
         <View style={{ gap: th.semantic.layout.groupGap }}>
           <Animated.View style={fold}>
             <Group>
-              <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to)} mono editLabel={t('common.edit')} onEdit={() => router.back()} />
+              <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to)} mono editLabel={t('common.edit')} onEdit={() => goBack()} />
             </Group>
           </Animated.View>
           <Text variant="title" accessibilityRole="header">{t('send.amountQuestion')}</Text>

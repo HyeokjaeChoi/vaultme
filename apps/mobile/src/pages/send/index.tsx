@@ -6,6 +6,7 @@ import { recents } from '@/entities/transaction/fixtures'
 import { isAddressFormat, shortAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { Button, Group, ListItem, RecipientField, Screen, ScreenHeader, Text } from '@/shared/ui'
+import { goBack } from '@/shared/lib/nav'
 
 /** R-S20A 누구에게 보낼까요? Recipient step. 붙여넣기 and QR 스캔 are inert in C2a (no clipboard or camera wiring). */
 export function SendPage() {
@@ -16,7 +17,7 @@ export function SendPage() {
   const valid = isAddressFormat(to)
   return (
     <Screen
-      header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}
+      header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
       footer={<Button label={t('send.next')} disabled={!valid} onPress={() => router.push({ pathname: '/send/amount', params: { to } })} />}
     >
       <Text variant="title" accessibilityRole="header">{t('send.recipientQuestion')}</Text>

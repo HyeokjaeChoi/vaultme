@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
+import { goBack } from '@/shared/lib/nav'
 
 /** S02 시작 전에 확인 */
 export function PrecheckPage() {
@@ -8,7 +9,7 @@ export function PrecheckPage() {
   const router = useRouter()
   return (
     <Screen
-      header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}
+      header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/')} />}
       footer={<Button label={t('precheck.cta')} onPress={() => router.replace('/home')} />}
     >
       <Text variant="title" accessibilityRole="header">{t('precheck.title')}</Text>
