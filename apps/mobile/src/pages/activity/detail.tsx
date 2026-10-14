@@ -1,15 +1,15 @@
-import { Redirect, useLocalSearchParams } from 'expo-router'
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Linking, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { readPendingTx } from '@/features/send'
+import { clearTestTx, readPendingTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { explorerUrl } from '@/shared/chain/port'
 import { goBack } from '@/shared/lib/nav'
 import { shortAddress } from '@/shared/lib/address'
 import { setPendingTx } from '@/shared/storage'
 import { useTheme } from '@/shared/theme'
-import { Button, Group, Screen, ScreenHeader, StatusLabel, StatusNotice, SummaryRow, Text } from '@/shared/ui'
+import { BottomSheet, Button, Group, Screen, ScreenHeader, StatusLabel, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 
 const hhmm = (at: number) => new Date(at).toTimeString().slice(0, 5)
 
@@ -18,6 +18,8 @@ export function TxDetailPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const { hash } = useLocalSearchParams<{ hash: string }>()
+  const router = useRouter()
+  const [confirmClear, setConfirmClear] = useState(false)
   const [stored, setStored] = useState(readPendingTx)
   const tx = stored !== 'corrupt' && stored?.hash === hash ? stored : null
   if (!tx) return <Redirect href="/activity" />
@@ -34,7 +36,11 @@ export function TxDetailPage() {
       footer={
         <View style={{ gap: th.semantic.layout.fieldGap }}>
           <Button label={t('detail.recheck')} onPress={recheck} />
-          {explorer ? <Button label={t('detail.etherscan')} variant="ghost" onPress={() => void Linking.openURL(explorer)} /> : null}
+          {explorer ? (
+            <Button label={t('detail.etherscan')} variant="ghost" onPress={() => void Linking.openURL(explorer)} />
+          ) : (
+            <Button label={t('detail.clearTest')} variant="ghost" onPress={() => setConfirmClear(true)} />
+          )}
         </View>
       }
     >
@@ -52,6 +58,25 @@ export function TxDetailPage() {
       </Group>
       <Text variant="body" color={th.semantic.text.secondary} accessibilityLiveRegion="polite">{t('detail.auto')}</Text>
       {chain.broadcasts ? null : <StatusNotice tone="warning" title={t('notBroadcast.title')} body={t('notBroadcast.body')} />}
+      <BottomSheet
+        visible={confirmClear}
+        onClose={() => setConfirmClear(false)}
+        title={t('detail.clearTitle')}
+        actions={
+          <>
+            <Button
+              label={t('detail.clearConfirm')}
+              onPress={() => {
+                setConfirmClear(false)
+                if (clearTestTx(chain, setPendingTx)) router.replace('/activity')
+              }}
+            />
+            <Button label={t('common.cancel')} variant="ghost" onPress={() => setConfirmClear(false)} />
+          </>
+        }
+      >
+        <Text color={th.semantic.text.secondary}>{t('detail.clearBody')}</Text>
+      </BottomSheet>
     </Screen>
   )
 }

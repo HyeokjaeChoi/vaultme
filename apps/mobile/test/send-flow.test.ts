@@ -1,5 +1,6 @@
 import { Mnemonic, prepare, type ChainSnapshot } from '@vaultme/wallet-core'
 import { describe, expect, it, vi } from 'vitest'
+import { clearTestTx } from '../src/features/send/model/clearTestTx'
 import { blocksNewSend, runSend, type SendDeps } from '../src/features/send/model/runSend'
 import { createFakeChain } from '../src/shared/chain/fake'
 import type { PendingTx } from '../src/shared/storage'
@@ -99,5 +100,18 @@ describe('runSend', () => {
     }
     expect(blocksNewSend({ ...tx, state: 'Included' })).toBe(false)
     expect(blocksNewSend(null)).toBe(false)
+  })
+})
+
+describe('clearTestTx', () => {
+  it('clears the pending tx while the adapter does not broadcast', () => {
+    const set = vi.fn()
+    expect(clearTestTx({ broadcasts: false }, set)).toBe(true)
+    expect(set).toHaveBeenCalledWith(null)
+  })
+  it('does nothing with a real adapter', () => {
+    const set = vi.fn()
+    expect(clearTestTx({ broadcasts: true }, set)).toBe(false)
+    expect(set).not.toHaveBeenCalled()
   })
 })

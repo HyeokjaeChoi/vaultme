@@ -157,6 +157,11 @@ export const ko = {
     auto: '자동으로 다시 확인해요.',
     recheck: '상태 다시 확인',
     etherscan: 'Etherscan에서 보기',
+    // Test mode only (fake chain adapter): approved by the coordinator 2026-10-14.
+    clearTest: '테스트 거래 지우기',
+    clearTitle: '테스트 거래를 지울까요?',
+    clearBody: '이 기기에서 만든 예시 거래예요. 지우면 새로 보낼 수 있어요.',
+    clearConfirm: '지우기',
   },
   review: {
     title: '이대로 보낼까요?',

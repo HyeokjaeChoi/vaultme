@@ -47,3 +47,6 @@ Light mode unless noted. App captures are from the Android emulator signaldock-a
 | S41 transaction detail | C2b-S41 365:1171 | `s41-app.png` | `s41-figma.png` | Figma back icon is an arrow; app uses the shared back button. No Etherscan button: hidden while `chain.broadcasts === false` (Figma draws it). |
 | Home test-data notice | C2b-S10R Test data 370:1126 (new, audit 0) | `home-testdata-android.png` | `home-testdata-figma.png` | Notice sits between the action row and the asset list in both. |
 | Activity test-data notice | C2b-S40 Test data 370:1195 (new, audit 0) | `activity-testdata-android.png` | `activity-testdata-figma.png` | App top row is the real pending send (fixture "pending" row hidden). |
+| S41 test mode (테스트 거래 지우기 replaces Etherscan) | C2b-S41 Test mode 371:1344 (audit 0) | `s41-testmode-app.png` | `s41-testmode-figma.png` | None seen. Android: clear -> sheet -> Home 보내기 starts a send again. |
+
+The grey box behind the S23 status pill on Android is the keyboard-focus highlight from adb key events (same as PR #28), not an app bug.

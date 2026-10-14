@@ -53,4 +53,6 @@ it('has the C2b send result, detail and test-data copy', () => {
   expect(i18n.t('result.unknownBody')).toBe('다시 보내지 말고 상태를 확인해 주세요.')
   expect(i18n.t('detail.auto')).toBe('자동으로 다시 확인해요.')
   expect(i18n.t('detail.etherscan')).toBe('Etherscan에서 보기')
+  expect(i18n.t('detail.clearTest')).toBe('테스트 거래 지우기')
+  expect(i18n.t('detail.clearTitle')).toBe('테스트 거래를 지울까요?')
 })
