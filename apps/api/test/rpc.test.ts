@@ -94,6 +94,8 @@ describe('POST /v1/rpc', () => {
     ['5xx', () => new Response('boom', { status: 502 })],
     ['429', () => new Response('slow down', { status: 429 })],
     ['timeout', () => Promise.reject(new DOMException('timed out', 'TimeoutError'))],
+    ['HTML body', () => new Response('<html>oops</html>')],
+    ['non-RPC JSON', () => new Response('[]')],
     ['network error', () => Promise.reject(new TypeError('fetch failed'))],
   ])('falls back to alchemy on primary %s', async (_n, bad) => {
     const f = mock(bad, () => ok('0x2'))

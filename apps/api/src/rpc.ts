@@ -1,4 +1,4 @@
-import { BALANCE_OF_SELECTOR, USDC_SEPOLIA, type RpcMethod, type RpcRequest, RPC_ALLOWED_METHODS } from '@vaultme/contracts'
+import { BALANCE_OF_SELECTOR, RpcResponse, USDC_SEPOLIA, type RpcMethod, type RpcRequest, RPC_ALLOWED_METHODS } from '@vaultme/contracts'
 import type { Env } from './env.ts'
 
 const UPSTREAM_TIMEOUT_MS = 5000
@@ -61,7 +61,9 @@ export async function proxyRpc(env: Env['Bindings'], req: RpcRequest): Promise<s
         continue
       }
       const text = await res.text()
-      JSON.parse(text) // not JSON (for example an HTML error page) counts as a failure
+      // Not a JSON-RPC response (HTML error page, array, no result/error) counts as a failure.
+      const parsed = RpcResponse.safeParse(JSON.parse(text))
+      if (!parsed.success || !('result' in parsed.data || 'error' in parsed.data)) throw new Error('bad body')
       if (text.includes(u.key)) throw new Error('key echoed') // never pass a body that contains the key
       return text
     } catch (e) {
