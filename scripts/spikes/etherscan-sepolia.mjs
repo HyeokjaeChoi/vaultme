@@ -36,6 +36,7 @@ const [cmd, ...rest] = process.argv.slice(2)
 const { n: nStr, show: showStr, file, ...params } = kv(rest)
 const n = Number(nStr ?? (cmd === 'burst' ? 6 : 20))
 const show = Number(showStr ?? 2)
+if (!Number.isSafeInteger(n) || n < 1) { console.error('n must be a positive integer'); process.exit(2) }
 
 if (cmd === 'get') {
   const r = await call(params)
@@ -62,9 +63,9 @@ if (cmd === 'get') {
   const bn = async () => parseInt((await call({ module: 'proxy', action: 'eth_blockNumber' })).body.result, 16)
   const tip = await bn()
   const r = await call({ module: 'account', action: 'txlist', address: params.address, sort: 'desc', page: '1', offset: '1' })
-  const top = r.body.result?.[0]
+  const top = Array.isArray(r.body.result) ? r.body.result[0] : undefined
   const tip2 = await bn()
-  out({ tipBefore: tip, tipAfter: tip2, newestTxBlock: top && Number(top.blockNumber), newestTxTime: top && new Date(top.timeStamp * 1000).toISOString(), now: new Date().toISOString() })
+  out({ tipBefore: tip, tipAfter: tip2, status: r.body.status, message: r.body.message, newestTxBlock: top && Number(top.blockNumber), newestTxTime: top && new Date(top.timeStamp * 1000).toISOString(), now: new Date().toISOString() })
 } else {
   console.error('usage: get|dump|latency|burst|fresh k=v...'); process.exit(2)
 }

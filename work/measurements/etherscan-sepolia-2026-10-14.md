@@ -114,11 +114,11 @@ dedupe key (병합 전에 먼저 가짜 ETH 행 `contractAddress == 0xff…fe`�
 
 정렬: `(blockNumber, transactionIndex)` 내림차순, 같은 tx 안에서는 native → internal(`traceId` 순) → token(응답 순).
 
-cursor (proxy가 만드는 불투명 문자열): `<blockNumber>:<transactionIndex>:<seq>`. `seq`는 같은 tx 안의 정렬 위치. 다음 page는 세 목록 모두 `sort=desc`, `endblock=<blockNumber>`(inclusive), `page=1`, `offset=<필요한 개수>`로 다시 읽고, cursor보다 오래된 항목만 남긴다.
+cursor (proxy가 만드는 불투명 문자열): `<주소hash8>:<blockNumber>:<transactionIndex>:<seq>`. `seq`는 같은 tx 안의 정렬 위치. 다음 page는 세 목록 모두 `sort=desc`, `endblock=<blockNumber>`(inclusive), `page=1`, `offset=<필요한 개수>`로 다시 읽고, cursor보다 오래된 항목만 남긴다.
 - 사용자에게 줄 page 크기 N이면 각 목록에서 N건씩만 읽어도 병합 상위 N건이 맞다 (한 목록이 N건 넘게 차지할 수 없다).
 - 가짜 ETH 행을 버려서 `tokentx`가 N건보다 적게 남고 목록이 꽉 찼으면 (`offset`만큼 왔으면) 다음 page(`page=2`…, `page × offset ≤ 10000`)를 더 읽는다.
 - block 단위로 다시 읽으므로 중복은 key로 제거한다. 목록 3개를 병렬로 부르면 1개 page에 Etherscan 3회, rate limit 3/s 중 토큰 3개를 쓴다.
-- 서버는 내역을 저장하지 않는다. cursor에는 주소가 없다.
+- 서버는 내역을 저장하지 않는다. cursor에는 주소 자체가 없고, 다른 주소에 재사용되지 않게 주소 hash 앞 8 hex를 붙인다 (다르면 거부).
 
 ## Alchemy `alchemy_getAssetTransfers`와의 차이 (문서만, key 없음)
 

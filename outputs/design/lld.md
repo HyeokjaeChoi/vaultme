@@ -184,7 +184,7 @@ export function reduce(state: SendState, event: SendEvent): SendState
 근거: [실측](../../work/measurements/etherscan-sepolia-2026-10-14.md). 아래는 **제안**이다.
 
 - 요청 `{address, cursor?}`. `address`는 proxy가 `^0x[0-9a-fA-F]{40}$`로 먼저 검증한다. Etherscan은 틀린 주소에도 "빈 결과"를 돌려준다.
-- 응답 `{items, nextCursor}`. `items`는 최신순 최대 **50건**, `nextCursor`는 불투명 문자열(`<blockNumber>:<transactionIndex>:<seq>`, 주소 없음) 또는 `null`.
+- 응답 `{items, nextCursor}`. `items`는 최신순 최대 **50건**, `nextCursor`는 불투명 문자열(`<주소 SHA-256 앞 8 hex>:<blockNumber>:<transactionIndex>:<seq>`, 주소 자체는 없음) 또는 `null`. cursor는 요청 `address`에 묶인다. 주소 hash가 다르면 `400 invalid_cursor`로 거부한다. 앱은 주소가 바뀌면 cursor를 버린다.
 - 항목: `kind`(`native`·`internal`·`erc20`), `hash`, `from`, `to`, `value`(wei·최소 단위 문자열), `blockNumber`, `timestamp`, `status`(`ok`·`failed`), `zeroValue`(boolean, Q71). erc20이면 `token`(`address`, `symbol`, `decimals`).
 - 병합: `txlist`·`txlistinternal`·`tokentx`를 병렬로 읽는다. **`tokentx`의 `contractAddress == 0xfffffffffffffffffffffffffffffffffffffffe`(가짜 `ETH` token) 행은 버린다.** Sepolia에서 native 이동이 중복으로 나온다.
 - 실패: `isError=1`(txlist·internal) 행은 `status: failed`로 표시한다. 값은 이동하지 않았다.
