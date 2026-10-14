@@ -5,6 +5,10 @@ import { z } from 'zod'
 export const ERROR_CODES = [
   'invalid_request', // 400
   'origin_forbidden', // 403
+  'unauthorized', // 401 missing, bad or expired token; unknown install
+  'signature_invalid', // 401
+  'nonce_reused', // 401
+  'clock_skew', // 401, client clock is off by more than CLOCK_SKEW_SECONDS
   'not_found', // 404
   'update_required', // 426
   'rate_limited', // 429
@@ -27,6 +31,10 @@ export type ErrorEnvelope = z.infer<typeof ErrorEnvelope>
 const RETRYABLE: Record<ErrorCode, boolean> = {
   invalid_request: false,
   origin_forbidden: false,
+  unauthorized: false,
+  signature_invalid: false,
+  nonce_reused: false,
+  clock_skew: false,
   not_found: false,
   update_required: false,
   rate_limited: true,

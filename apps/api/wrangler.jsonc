@@ -4,16 +4,35 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-13",
   // vars only. No account IDs, no secrets here. Secrets go in `.dev.vars` (local) or `wrangler secret` (deployed).
-  // Vars are not inherited by named environments, so each env repeats them.
+  // Vars and bindings are not inherited by named environments, so each env repeats them.
   "vars": { "MIN_APP_VERSION": "0.0.0" },
+  // TOKEN_SECRET (>= 32 chars) is a secret: .dev.vars locally, `wrangler secret put TOKEN_SECRET` when deployed.
+  // database_id is left out so wrangler provisions the D1 database on first deploy. Local dev needs none.
+  "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api", "migrations_dir": "migrations" }],
+  // Cloudflare limits count per location and are approximate (LLD §5.0). period is 10 or 60 only.
+  // namespace_id is account-wide: each env needs its own ids (1xxx top level, 2xxx staging, 3xxx production).
+  "ratelimits": [
+    { "name": "INSTALL_IP_LIMITER", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } },
+    { "name": "INSTALL_LIMITER", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } }
+  ],
   "env": {
     "staging": {
       "name": "vaultme-api-staging",
-      "vars": { "MIN_APP_VERSION": "0.0.0" }
+      "vars": { "MIN_APP_VERSION": "0.0.0" },
+      "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api-staging", "migrations_dir": "migrations" }],
+      "ratelimits": [
+        { "name": "INSTALL_IP_LIMITER", "namespace_id": "2001", "simple": { "limit": 3, "period": 60 } },
+        { "name": "INSTALL_LIMITER", "namespace_id": "2002", "simple": { "limit": 60, "period": 60 } }
+      ]
     },
     "production": {
       "name": "vaultme-api-production",
-      "vars": { "MIN_APP_VERSION": "0.0.0" }
+      "vars": { "MIN_APP_VERSION": "0.0.0" },
+      "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api-production", "migrations_dir": "migrations" }],
+      "ratelimits": [
+        { "name": "INSTALL_IP_LIMITER", "namespace_id": "3001", "simple": { "limit": 3, "period": 60 } },
+        { "name": "INSTALL_LIMITER", "namespace_id": "3002", "simple": { "limit": 60, "period": 60 } }
+      ]
     }
   }
 }

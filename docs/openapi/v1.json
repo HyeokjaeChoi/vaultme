@@ -32,6 +32,10 @@
             "enum": [
               "invalid_request",
               "origin_forbidden",
+              "unauthorized",
+              "signature_invalid",
+              "nonce_reused",
+              "clock_skew",
               "not_found",
               "update_required",
               "rate_limited",
@@ -50,6 +54,59 @@
           "code",
           "message",
           "retryable"
+        ]
+      },
+      "RegisterResponse": {
+        "type": "object",
+        "properties": {
+          "installId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "installId"
+        ]
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "publicKey": {
+            "type": "string",
+            "minLength": 87,
+            "maxLength": 87,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          }
+        },
+        "required": [
+          "publicKey"
+        ]
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "token",
+          "expiresAt"
+        ]
+      },
+      "InstallMeResponse": {
+        "type": "object",
+        "properties": {
+          "installId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "installId"
         ]
       }
     },
@@ -71,6 +128,124 @@
           },
           "403": {
             "description": "Request had an Origin header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/installs": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Install registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid public key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/installs/token": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Short-lived token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid signed-request headers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/installs/me": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Token is valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallMeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
             "content": {
               "application/json": {
                 "schema": {
