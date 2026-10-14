@@ -58,7 +58,7 @@ export async function deletePhrase(): Promise<void> {
 
 export const biometryType = () => Keychain.getSupportedBiometryType()
 
-/** 16 random bytes as 32 hex chars = a 32-byte AES-256 key string for MMKV. Created once, then reused. */
+/** 16 random bytes as 32 hex chars: a 32-char AES-256 key string for MMKV with 128 bits of entropy. Created once, then reused. */
 export async function getOrCreateKvKey(): Promise<string> {
   const existing = await Keychain.getGenericPassword({ service: KV_KEY_SERVICE })
   if (existing) return existing.password
