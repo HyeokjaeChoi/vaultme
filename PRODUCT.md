@@ -10,7 +10,7 @@
 
 adaptive
 
-Expo(React Native) 앱 하나로 iOS와 Android를 대상으로 합니다. 현재 `apps/mobile`은 iOS 설정과 실행 script만 있습니다. 웹은 랜딩과 운영 대시보드 계획이며 지갑 기능은 없습니다. 범위는 [HLD](outputs/design/hld.md)를 따릅니다.
+Expo(React Native) 앱 하나로 iOS와 Android를 대상으로 합니다. Expo Go로 iOS와 Android 에뮬레이터에서 실행을 확인했습니다. 네이티브 빌드 설정(`app.json`, `expo run:ios`)은 아직 iOS만 있습니다. 웹은 랜딩과 운영 대시보드 계획이며 지갑 기능은 없습니다. 범위는 [HLD](outputs/design/hld.md)를 따릅니다.
 
 ## Product Purpose
 
