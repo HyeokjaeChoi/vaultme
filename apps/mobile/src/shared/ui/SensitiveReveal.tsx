@@ -1,29 +1,36 @@
 // Figma: Sensitive reveal 301:668 (Icon / account / backup 137:385)
-import { useEffect, useState } from 'react'
-import { AppState, Pressable, View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { ko } from '@vaultme/i18n'
 import { useTheme } from '../theme'
 import { Icon } from './Icon'
 import { Text } from './Text'
 
-type Props = { words: readonly string[] }
+type Props = {
+  /** `null` = hidden. The owner decides when to reveal (after OS auth) and clears it on leave/background. */
+  words: readonly string[] | null
+  /** Tap on the hidden card. */
+  onReveal: () => void
+  /** Small line under the hidden label. */
+  hint?: string
+  /** Blocks taps while auth is pending. */
+  busy?: boolean
+}
 
 const COLUMNS = 3
 
-/** C33 Sensitive reveal. Hidden by default; tap to show; hides again when the app leaves the foreground. */
-export function SensitiveReveal({ words }: Props) {
+/** C33 Sensitive reveal. Controlled: hidden while `words` is null, shows the numbered words otherwise. Tapping the hidden card asks the owner to reveal; it holds no secret state itself. */
+export function SensitiveReveal({ words, onReveal, hint, busy }: Props) {
   const t = useTheme()
-  const [shown, setShown] = useState(false)
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (s) => s !== 'active' && setShown(false))
-    return () => sub.remove()
-  }, [])
-  const rows = Array.from({ length: Math.ceil(words.length / COLUMNS) }, (_, r) => words.slice(r * COLUMNS, r * COLUMNS + COLUMNS).map((w, c) => ({ w, n: r * COLUMNS + c + 1 })))
+  const shown = words !== null
+  const list = words ?? []
+  const rows = Array.from({ length: Math.ceil(list.length / COLUMNS) }, (_, r) => list.slice(r * COLUMNS, r * COLUMNS + COLUMNS).map((w, c) => ({ w, n: r * COLUMNS + c + 1 })))
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={shown ? words.map((w, i) => `${i + 1}, ${w}`).join(', ') : ko.a11y.reveal}
-      onPress={() => setShown((s) => !s)}
+      accessibilityLabel={shown ? list.map((w, i) => `${i + 1}, ${w}`).join(', ') : ko.a11y.reveal}
+      accessibilityState={{ disabled: shown || busy === true, busy: busy === true }}
+      disabled={shown || busy}
+      onPress={onReveal}
       style={{
         gap: t.semantic.layout.fieldGap,
         padding: t.primitive.space[3],
@@ -47,7 +54,8 @@ export function SensitiveReveal({ words }: Props) {
       ) : (
         <>
           <Icon name="backup" size={t.component.icon.size.control} color={t.component.icon.action.fg} />
-          <Text variant="label">{ko.a11y.reveal}</Text>
+          <Text variant="label" color={t.component.sensitiveReveal.fg}>{ko.a11y.reveal}</Text>
+          {hint ? <Text variant="meta" color={t.component.sensitiveReveal.hint}>{hint}</Text> : null}
         </>
       )}
     </Pressable>

@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // Published BIP39 test vector (all-zero entropy). Not a wallet phrase.
 const VECTOR = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
+const PROMPT = { title: '인증하세요', cancel: '취소' }
+
 const items = new Map<string, { username: string; password: string }>()
 const calls: { fn: string; service: string; opts?: Record<string, unknown> }[] = []
-let failGet = false
+let failGet: string | false = false
 
 vi.mock('react-native-keychain', () => ({
   ACCESS_CONTROL: { BIOMETRY_ANY_OR_DEVICE_PASSCODE: 'BiometryAnyOrDevicePasscode' },
@@ -20,7 +22,7 @@ vi.mock('react-native-keychain', () => ({
   }),
   getGenericPassword: vi.fn(async (o: { service: string }) => {
     calls.push({ fn: 'get', service: o.service, opts: o })
-    if (failGet && o.service.endsWith('phrase')) throw new Error('user canceled')
+    if (failGet && o.service.endsWith('phrase')) throw new Error(failGet)
     return items.get(o.service) ?? false
   }),
   hasGenericPassword: vi.fn(async (o: { service: string }) => items.has(o.service)),
@@ -65,19 +67,21 @@ describe('keychain phrase', () => {
     const { Mnemonic } = await import('@vaultme/wallet-core')
     const k = await import('../src/shared/storage/keychain')
     expect(await k.hasPhrase()).toBe(false)
-    await k.savePhrase(new Mnemonic(VECTOR))
+    await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
     expect(await k.hasPhrase()).toBe(true)
     const set = calls.find((c) => c.fn === 'set')!
     expect(set.opts).toMatchObject({
       accessControl: 'BiometryAnyOrDevicePasscode',
       accessible: 'AccessibleWhenPasscodeSetThisDeviceOnly',
       cloudSync: false,
+      authenticationPrompt: PROMPT,
     })
-    const loaded = await k.loadPhrase('unlock')
-    expect(loaded?.reveal()).toBe(VECTOR)
+    const loaded = await k.loadPhrase(PROMPT)
+    expect(calls.find((c) => c.fn === 'get')!.opts).toMatchObject({ authenticationPrompt: PROMPT })
+    expect(loaded.status === 'ok' && loaded.mnemonic.reveal()).toBe(VECTOR)
     await k.deletePhrase()
     expect(await k.hasPhrase()).toBe(false)
-    expect(await k.loadPhrase('unlock')).toBeNull()
+    expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'error' })
   })
 
   it('deletePhrase throws only when the item survives a failed reset', async () => {
@@ -91,18 +95,21 @@ describe('keychain phrase', () => {
     await expect(k.deletePhrase()).resolves.toBeUndefined()
   })
 
-  it('returns null when the user cancels auth', async () => {
+  it('maps a user cancel to cancelled and other failures to error', async () => {
     const { Mnemonic } = await import('@vaultme/wallet-core')
     const k = await import('../src/shared/storage/keychain')
-    await k.savePhrase(new Mnemonic(VECTOR))
-    failGet = true
-    expect(await k.loadPhrase('unlock')).toBeNull()
+    await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
+    failGet = 'User canceled the operation.'
+    expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'cancelled' })
+    failGet = 'keychain exploded'
+    expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'error' })
+    expect(k.loadFailureStatus('not an Error')).toBe('error')
   })
 
-  it('returns null for a stored value that is not a valid phrase', async () => {
+  it('returns error for a stored value that is not a valid phrase', async () => {
     const k = await import('../src/shared/storage/keychain')
     items.set('app.vaultme.phrase', { username: 'vaultme', password: 'not a phrase' })
-    expect(await k.loadPhrase('unlock')).toBeNull()
+    expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'error' })
   })
 })
 
@@ -151,6 +158,14 @@ describe('kv key + store', () => {
     expect(kv.getLockState()).toEqual({ locked: false, backgroundedAt: 123 })
     kv.setLockState({ locked: false, backgroundedAt: null })
     expect(kv.getLockState().backgroundedAt).toBeNull()
+  })
+
+  it('round-trips the account address', async () => {
+    const kv = await import('../src/shared/storage/kv')
+    await kv.openKv()
+    expect(kv.getAccountAddress()).toBeNull()
+    kv.setAccountAddress('0x9858EfFD232B4033E47d90003D41EC34EcaEda94')
+    expect(kv.getAccountAddress()).toBe('0x9858EfFD232B4033E47d90003D41EC34EcaEda94')
   })
 
   it('round-trips a pending tx and rejects malformed records', async () => {

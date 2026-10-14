@@ -37,6 +37,7 @@ export function KitPage() {
   const { t } = useTranslation()
   const [seg, setSeg] = useState<'12' | '24'>('12')
   const [on, setOn] = useState(true)
+  const [revealed, setRevealed] = useState(false)
   return (
     <Screen header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}>
       <Text variant="title">Kit</Text>
@@ -45,7 +46,7 @@ export function KitPage() {
       <Switch label="switch" value={on} onValueChange={setOn} />
       <Input label="단어 1" placeholder="단어 입력" />
       <Input label="단어 2" error="형식이 맞지 않아요" />
-      <SensitiveReveal words={words} />
+      <SensitiveReveal words={revealed ? words : null} onReveal={() => setRevealed(true)} />
       <View style={{ gap: th.semantic.layout.fieldGap }}>
         <Button label="Primary" />
         <Button label="Secondary" variant="secondary" />

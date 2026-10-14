@@ -56,3 +56,5 @@ adb shell am start -a android.intent.action.VIEW -d vaultme://kit app.vaultme.mo
 - 첫 실행 때 dev menu 안내가 떠요. `Continue`를 눌러요.
 - Android `userInterfaceStyle` 경고는 `expo-system-ui`가 없어서예요. 필요하면 나중에 추가해요.
 - Keychain 생체 인증은 simulator에서 `none`이에요 (Face ID 등록 전).
+- **iOS simulator는 복구 구문을 저장하지 못해요.** 구문 저장은 `WHEN_PASSCODE_SET_THIS_DEVICE_ONLY`라서 기기 암호가 필요한데, simulator에는 암호가 없어요 (Face ID를 등록해도 같아요). `errSecParam`으로 실패해요. 지갑 만들기 → 인증 → 공개 흐름은 실제 기기에서 확인해요.
+- Android 에뮬레이터는 `adb shell locksettings set-pin <PIN>`으로 PIN을 설정하면 저장과 인증이 돼요. Metro는 `adb reverse tcp:8081 tcp:8081`로 연결해요.

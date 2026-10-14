@@ -25,3 +25,12 @@ it('has the Redesign A send and review copy', () => {
   expect(i18n.t('review.recalc')).toBe('다시 계산')
   expect(i18n.t('activity.today')).toBe('오늘')
 })
+
+it('has the S03/S04 backup copy', () => {
+  expect(i18n.t('backup.title')).toBe('복구 구문')
+  expect(i18n.t('backup.reveal')).toBe('탭해서 보기')
+  expect(i18n.t('backup.done')).toBe('다 적었어요')
+  expect(i18n.t('backup.check.title')).toBe('단어 확인')
+  expect(i18n.t('backup.check.position', { n: 7 })).toBe('7번째 단어')
+  expect(i18n.t('backup.check.confirm')).toBe('확인')
+})

@@ -14,6 +14,8 @@ export const ko = {
     scam: { title: '알림으로 복구 구문을 묻지 않아요', body: '복구 구문을 묻는 메시지는 모두 사기예요.' },
     testnet: { title: '테스트넷 전용이에요', body: 'Sepolia 자산만 다뤄요. 실제 가치는 없어요.' },
     cta: '지갑 만들기',
+    // Not in ux-copy.md yet (PR #20 open question): shown when the OS refuses to store the phrase (e.g. no screen lock).
+    createError: { title: '지갑을 만들지 못했어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도하세요.' },
   },
   home: {
     account: '계정 1',
@@ -28,6 +30,27 @@ export const ko = {
     backupBody: '복구 구문을 백업해야 받기 주소가 보여요.',
     backupCta: '백업 시작',
     noQuote: '시장 가격 없음',
+  },
+  // S03/S04: approved copy (ux-copy.md). authPrompt*, loadError, check.wrong and precheck.createError were approved by the owner in PR #28 (not yet in ux-copy.md); the S03 body drops the capture promise (Q43).
+  backup: {
+    title: '복구 구문',
+    body: '아래 12단어를 순서대로 종이에 적으세요. 화면을 캡처하지 마세요.',
+    reveal: '탭해서 보기',
+    revealHint: '주변에 아무도 없는지 확인하세요',
+    warnTitle: '누구에게도 보여 주지 마세요',
+    warnBody: 'VaultMe도, 고객지원도 복구 구문을 묻지 않아요.',
+    done: '다 적었어요',
+    authPrompt: '복구 구문을 보려면 인증하세요',
+    authPromptSave: '지갑을 만들려면 인증하세요',
+    loadError: { title: '복구 구문을 불러오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
+    check: {
+      title: '단어 확인',
+      body: '적어 둔 복구 구문에서 아래 순서의 단어를 입력하세요.',
+      position: '{{n}}번째 단어',
+      placeholder: '단어 입력',
+      confirm: '확인',
+      wrong: '입력한 단어가 맞지 않아요. 적어 둔 복구 구문을 다시 확인하세요.',
+    },
   },
   receive: {
     title: '받기',
