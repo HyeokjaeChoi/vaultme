@@ -2,3 +2,6 @@
 # At least 32 random characters, for example: openssl rand -base64 48
 TOKEN_SECRET=replace-me-with-a-random-string-of-32-or-more-chars
 # Example: ETHERSCAN_API_KEY=
+# RPC upstream keys for POST /v1/rpc (Sepolia). Get your own from infura.io and alchemy.com.
+INFURA_KEY=replace-me
+ALCHEMY_KEY=replace-me

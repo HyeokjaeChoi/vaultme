@@ -6,6 +6,9 @@ declare namespace Cloudflare {
     TOKEN_SECRET: string
     INSTALL_IP_LIMITER: RateLimit
     INSTALL_LIMITER: RateLimit
+    RPC_IP_LIMITER: RateLimit
+    INFURA_KEY: string
+    ALCHEMY_KEY: string
     TEST_MIGRATIONS: import('cloudflare:test').D1Migration[]
   }
 }
