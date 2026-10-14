@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router'
 import { allowScreenCaptureAsync, preventScreenCaptureAsync } from 'expo-screen-capture'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppState, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { startCheck } from '@/features/backup/model/check'
@@ -27,26 +27,33 @@ export function BackupPage({ demo = false }: { demo?: boolean }) {
   const router = useRouter()
   const [words, setWords] = useState<string[] | null>(null)
   const [load, setLoad] = useState<Load>('idle')
+  const gen = useRef(0) // bumped on blur and background: an auth result from an older generation is dropped
 
   useFocusEffect(
     useCallback(() => {
       void preventScreenCaptureAsync(CAPTURE_KEY)
       return () => {
         void allowScreenCaptureAsync(CAPTURE_KEY)
+        gen.current++
         setWords(null)
         setLoad('idle')
       }
     }, []),
   )
   useEffect(() => {
-    const sub = AppState.addEventListener('change', (s) => s !== 'active' && setWords(null))
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'background') gen.current++ // 'inactive' is also the OS auth sheet: it must not cancel the reveal
+      if (s !== 'active') setWords(null)
+    })
     return () => sub.remove()
   }, [])
 
   const reveal = async () => {
     if (demo) return setWords(DEMO_WORDS)
     setLoad('busy')
+    const g = gen.current
     const r = await loadPhrase(t('backup.authPrompt'))
+    if (g !== gen.current || AppState.currentState !== 'active') return setLoad('idle') // left the screen or app meanwhile: never show it
     if (r.status === 'ok') {
       setWords(r.mnemonic.reveal().split(' '))
       setLoad('idle')
