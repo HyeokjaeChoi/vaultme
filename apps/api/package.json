@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint .",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AppVersion, ErrorEnvelope, HistoryRequest, errorEnvelope, isBelow } from '../src/index.ts'
+import { AppVersion, canonicalString, ErrorEnvelope, HistoryRequest, errorEnvelope, isBelow } from '../src/index.ts'
 
 describe('contracts', () => {
   it('builds a valid error envelope', () => {
@@ -15,5 +15,20 @@ describe('contracts', () => {
   it('validates the history body', () => {
     expect(HistoryRequest.safeParse({ address: '0x' + 'a'.repeat(40) }).success).toBe(true)
     expect(HistoryRequest.safeParse({ address: '0x12' }).success).toBe(false)
+  })
+  it('canonical string test vector', () => {
+    // The mobile client (#43) must reproduce this exact string.
+    expect(
+      canonicalString({
+        method: 'post',
+        path: '/v1/installs/token',
+        installId: '123e4567-e89b-42d3-a456-426614174000',
+        ts: 1760400000,
+        nonce: 'AAAAAAAAAAAAAAAAAAAAAA',
+        bodySha256Hex: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      }),
+    ).toBe(
+      'vaultme-v1\nPOST\n/v1/installs/token\n123e4567-e89b-42d3-a456-426614174000\n1760400000\nAAAAAAAAAAAAAAAAAAAAAA\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    )
   })
 })

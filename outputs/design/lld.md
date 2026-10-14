@@ -137,8 +137,9 @@ export function reduce(state: SendState, event: SendEvent): SendState
 
 | Method · Path | 인증 | 용도 | 결정 |
 |---|---|---|---|
-| `POST /v1/installs` | 없음 (rate limit) | 익명 설치 등록, 짧은 수명 token 발급 | Q57 |
-| `POST /v1/installs/token` | 설치 서명 | token 갱신 | Q57 |
+| `POST /v1/installs` | 없음 (IP rate limit) | 기기 공개 key 등록 `{publicKey}` → `{installId}` (201) | Q57 |
+| `POST /v1/installs/token` | 설치 서명 | token 발급·갱신 → `{token, expiresAt}` | Q57 |
+| `GET /v1/installs/me` | 설치 token | token 확인 → `{installId}`. `/v1/rpc`·`/v1/history`가 같은 방식으로 token을 검사한다 | Q57 |
 | `POST /v1/rpc` | 설치 | JSON-RPC proxy. 허용 method 목록만 통과 | Q58 |
 | `POST /v1/history` (body `{address, cursor}`) | 설치 | Etherscan 3종 병합·중복 제거·0원 표시 flag. 주소를 URL(log)에 남기지 않으려고 POST body로 받는다 (owner 결정 2026-10-14) | Q30, Q32, Q71 |
 | `POST /v1/push/challenge` | 설치 | SIWE challenge 발급 (nonce, 만료) | Q28 |
@@ -147,6 +148,19 @@ export function reduce(state: SendState, event: SendEvent): SendState
 | `DELETE /v1/push/subscriptions` | 기기 session | 해지, 연결 삭제 | Q27 |
 | `POST /v1/push/tracked-tx` | 기기 session | 송신 hash·nonce 추적 등록 | Q24 |
 | `GET /v1/ops/metrics` | Cloudflare Access | Admin 집계 지표 | Q44 |
+
+### 4.1 설치 인증 (owner 결정 2026-10-14, Q57)
+
+- **기기 key**: 앱이 설치 때 ECDSA P-256 key pair를 만든다. 지갑 key와 별개다. 공개 key(비압축 점 65바이트, base64url 87자)만 `POST /v1/installs`로 등록한다. 개인 key는 기기를 떠나지 않는다.
+- **서명 header**: `X-Install-Id`(UUID), `X-Timestamp`(unix 초), `X-Nonce`(무작위 16바이트, base64url), `X-Signature`(서명 r‖s 64바이트, base64url 86자).
+- **서명 대상** (`contracts`의 `canonicalString`, 줄바꿈 `\n`으로 연결, 끝 줄바꿈 없음):
+  `vaultme-v1` / `METHOD`(대문자) / `path`(query 제외) / `installId` / `ts` / `nonce` / `body의 SHA-256 소문자 hex`(body가 없으면 빈 문자열의 hash). 서명은 이 문자열의 UTF-8에 대한 ECDSA P-256 + SHA-256이다. 서버는 WebCrypto(`ECDSA`, 서명 형식 r‖s)로 검증한다. 앱은 `@noble/curves`(`p256`, compact 서명)로 만들 수 있다. 같은 byte가 나온다.
+- **검증 순서**: header 형식 → `|now - ts| ≤ 300초`(`clock_skew`) → 설치 조회(`unauthorized`) → 서명(`signature_invalid`) → nonce를 D1에 저장, 이미 있으면 `nonce_reused`. 서명이 맞은 요청만 nonce를 쓰므로 남이 nonce를 소모시킬 수 없다.
+- **Nonce**: `nonces(install_id, nonce, expires_at)`. `expires_at = ts + 300초`로 timestamp 허용 구간이 끝날 때까지 재사용을 막는다. 만료된 행은 같은 설치의 다음 서명 요청 때 지운다.
+- **Token**: `POST /v1/installs/token`(서명 필요)이 발급한다. 형식 `<installId>.<exp>.<base64url(HMAC-SHA256(TOKEN_SECRET, "<installId>.<exp>"))>`, `exp`는 unix 초, 수명 **15분**. `Authorization: Bearer <token>`으로 보낸다. 서버는 상태를 저장하지 않고 HMAC·`exp`만 확인한다. `TOKEN_SECRET`(32자 이상)은 wrangler secret이며, 없거나 짧으면 `500`으로 막는다.
+- **적용**: `/v1/installs/token`은 서명이 필요하다. `/v1/rpc`, `/v1/history`는 token이 필요하다 (`requireToken`). 요청마다 서명까지 요구해야 하는 경로는 `requireSigned`를 추가로 붙인다.
+- **오류** (모두 `401`): `unauthorized`(header 없음·token 오류·만료·모르는 설치), `signature_invalid`, `nonce_reused`, `clock_skew`(앱은 시계 보정을 안내). 한도 초과는 `429` `rate_limited` + `Retry-After: 60`(binding이 남은 시간을 알려주지 않아 period를 쓴다).
+- **Rate limit**: `POST /v1/installs`는 IP key 60초당 3회(`INSTALL_IP_LIMITER`). token이 필요한 경로와 `/v1/installs/token`은 설치 ID key 60초당 60회(`INSTALL_LIMITER`). 설정은 `wrangler.jsonc`의 `ratelimits`.
 
 - RPC 허용 method (기본값): `eth_chainId`, `eth_blockNumber`, `eth_getBalance`, `eth_getTransactionCount`, `eth_estimateGas`, `eth_maxPriorityFeePerGas`, `eth_feeHistory`, `eth_getBlockByNumber`, `eth_call`(USDC `balanceOf`만), `eth_sendRawTransaction`, `eth_getTransactionReceipt`.
 - 오류 응답 형식: `{ code, message, retryable }`. `code`는 `contracts`의 enum이다. 앱은 모르는 `code`를 `Unknown`으로 처리한다 (Q61).
@@ -215,7 +229,8 @@ Etherscan 무료 한도는 key 하나당 초당 3회다 (Q36 조사). 사용자�
 
 | 테이블 | 주요 열 | 보관 (Q31) |
 |---|---|---|
-| `installs` | `id`, `pubkey`, `created_at`, `last_seen_at` | 90일 미접속 시 삭제 |
+| `installs` | `id`, `public_key`, `created_at`, `last_seen_at` | 90일 미접속 시 삭제 |
+| `nonces` | `install_id`, `nonce`, `expires_at` (PK `install_id`+`nonce`) | 만료 후 삭제 (설치 삭제 시 함께) |
 | `push_subscriptions` | `id`, `install_id`, `address`, `expo_token`, `session_hash`, `created_at`, `last_seen_at` | 해지·무효·90일 |
 | `siwe_nonces` | `nonce`, `install_id`, `expires_at`, `used_at` | 만료 후 삭제 |
 | `chain_cursor` | `chain_id`, `block_number`, `block_hash`, `updated_at` | 영구 (1행) |

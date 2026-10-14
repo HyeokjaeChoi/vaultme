@@ -1,2 +1,4 @@
-# Copy to .dev.vars (git-ignored) for local secrets. The skeleton needs none yet.
+# Copy to .dev.vars (git-ignored) for local secrets.
+# At least 32 random characters, for example: openssl rand -base64 48
+TOKEN_SECRET=replace-me-with-a-random-string-of-32-or-more-chars
 # Example: ETHERSCAN_API_KEY=

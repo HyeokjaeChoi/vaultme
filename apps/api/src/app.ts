@@ -1,7 +1,19 @@
 import { OpenAPIHono, createRoute } from '@hono/zod-openapi'
-import { APP_VERSION_HEADER, AppVersion, ErrorEnvelope, HealthResponse, isBelow } from '@vaultme/contracts'
+import {
+  APP_VERSION_HEADER,
+  AppVersion,
+  ErrorEnvelope,
+  HealthResponse,
+  InstallMeResponse,
+  RegisterRequest,
+  RegisterResponse,
+  TokenResponse,
+  errorEnvelope,
+  isBelow,
+} from '@vaultme/contracts'
 import type { ErrorHandler } from 'hono'
 import pkg from '../package.json' with { type: 'json' }
+import { importPublicKey, issueToken, limitInstall, nowSeconds, rateLimited, requireSigned, requireToken } from './auth.ts'
 import type { Env } from './env.ts'
 import { fail } from './errors.ts'
 
@@ -44,6 +56,73 @@ app.openapi(
     },
   }),
   (c) => c.json({ ok: true as const, version: pkg.version }, 200),
+)
+
+const signed = { 401: errorResponse('Missing or invalid signed-request headers'), 429: errorResponse('Rate limited') }
+
+// Coarse IP limit. Mobile networks share IPs, so this only slows down mass registration.
+app.use('/v1/installs', async (c, next) => {
+  const key = c.req.header('CF-Connecting-IP') ?? 'unknown'
+  if (!(await c.env.INSTALL_IP_LIMITER.limit({ key })).success) return rateLimited(c)
+  await next()
+})
+app.use('/v1/installs/token', requireSigned, limitInstall)
+app.use('/v1/installs/me', requireToken)
+
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/v1/installs',
+    request: { body: { content: { 'application/json': { schema: RegisterRequest } }, required: true } },
+    responses: {
+      201: { description: 'Install registered', content: { 'application/json': { schema: RegisterResponse } } },
+      400: errorResponse('Invalid public key'),
+      429: errorResponse('Rate limited'),
+    },
+  }),
+  async (c) => {
+    const { publicKey } = c.req.valid('json')
+    try {
+      await importPublicKey(publicKey)
+    } catch {
+      return c.json(errorEnvelope('invalid_request', 'Invalid public key'), 400)
+    }
+    const installId = crypto.randomUUID()
+    const now = nowSeconds()
+    await c.env.DB.prepare('INSERT INTO installs (id, public_key, created_at, last_seen_at) VALUES (?, ?, ?, ?)')
+      .bind(installId, publicKey, now, now)
+      .run()
+    return c.json({ installId }, 201)
+  },
+)
+
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/v1/installs/token',
+    responses: {
+      200: { description: 'Short-lived token', content: { 'application/json': { schema: TokenResponse } } },
+      ...signed,
+    },
+  }),
+  async (c) => {
+    const installId = c.get('installId')
+    await c.env.DB.prepare('UPDATE installs SET last_seen_at = ? WHERE id = ?').bind(nowSeconds(), installId).run()
+    return c.json(await issueToken(c, installId), 200)
+  },
+)
+
+// Token check. Also the template for /v1/rpc and /v1/history, which mount requireToken the same way.
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/v1/installs/me',
+    responses: {
+      200: { description: 'Token is valid', content: { 'application/json': { schema: InstallMeResponse } } },
+      ...signed,
+    },
+  }),
+  (c) => c.json({ installId: c.get('installId') }, 200),
 )
 
 app.notFound((c) => fail(c, 404, 'not_found', 'Not found'))
