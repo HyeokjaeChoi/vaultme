@@ -34,7 +34,7 @@
 | 단위 | 기술 | 책임 |
 |---|---|---|
 | `apps/mobile` | Expo (dev build, EAS) + React Native + TS | Key 생성·보관·서명, 송신·수신 UX, 내역 표시, Push 수신 |
-| `apps/web` | React Router v7 (`ssr: false`, 랜딩만 prerender), Cloudflare Pages | 공개 랜딩, 운영 대시보드 (Cloudflare Access 뒤) |
+| `apps/web` | React Router v7 (`ssr: false`, 랜딩만 prerender), 별도 Worker + Static Assets (ADR-0001) | 공개 랜딩, 운영 대시보드 (Cloudflare Access 뒤) |
 | `apps/api` | Cloudflare Workers + Hono + Cron + Queues + D1 | 설치 등록, 구독·session, 내역·RPC proxy, watcher, Push 발송, 데이터 삭제, 지표 |
 | `packages/wallet-core` | 순수 TS + viem | Key 파생, 거래 구성, 서명, 금액 규칙, 송신 상태 전이 |
 | `packages/contracts` | zod + OpenAPI | API 계약, 공유 schema |
@@ -60,7 +60,7 @@ flowchart LR
     Q["Queues<br/>push 발송·재시도·DLQ"]
     D1[("D1<br/>구독·cursor·event·outbox")]
     AE[("Analytics Engine<br/>집계 지표")]
-    Web["Pages<br/>랜딩·Admin"]
+    Web["Workers Static Assets<br/>랜딩·Admin"]
     Access["Cloudflare Access"]
     API --> D1
     Cron --> D1
@@ -299,7 +299,7 @@ pnpm workspaces + Turborepo monorepo (Q51). 앱·웹·API·공유 package가 한
 | staging | 통합·migration·배포 리허설 | 전용 D1·Queue·secret·provider key, EAS `staging` channel |
 | production | 외부 평가자용 공개 환경 (Sepolia) | 전용 리소스, EAS `production` channel |
 
-웹은 PR마다 Pages 미리보기 URL을 쓴다 (Q52).
+웹은 PR마다 Workers 미리보기 URL을 쓴다 (Q52, ADR-0001). Workers Builds 또는 `wrangler versions upload --preview-alias pr-<number>`를 쓴다.
 
 ### 9.3 Zero downtime 원칙
 
@@ -308,7 +308,7 @@ pnpm workspaces + Turborepo monorepo (Q51). 앱·웹·API·공유 package가 한
 1. **API**: v1은 필드 추가만 허용한다. 깨지는 변경은 `/v2`. 앱 버전 header, 최소 지원 버전 미만이면 업데이트 안내.
 2. **D1**: expand → 새 코드 배포 → 데이터 이전 → contract. 한 migration에 열 삭제·이름 변경·테이블 재생성 금지.
 3. **Workers**: gradual deployment, 오류율 확인 후 확대, 이상 시 rollback.
-4. **Web**: Pages 원자 배포, 즉시 rollback.
+4. **Web**: Workers Static Assets 원자 배포. 배포는 100% 단일 버전(gradual 미사용: HTML·asset 버전 불일치 위험), 이상 시 `wrangler rollback` (ADR-0001). Web과 API는 별도 Worker로 둔다.
 5. **Mobile**: JS 변경은 EAS Update, native 변경은 store 빌드, runtime version으로 비호환 업데이트 차단.
 
 ### 9.4 CI/CD 큰 흐름
