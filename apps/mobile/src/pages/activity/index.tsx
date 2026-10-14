@@ -1,24 +1,44 @@
+import { useRouter } from 'expo-router'
+import { Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { transactions } from '@/entities/transaction/fixtures'
+import { usePendingTx } from '@/features/send'
+import { shortAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
+import { TestDataNotice } from '@/widgets/test-data-notice/TestDataNotice'
 import { ActivityRow, Group, Screen, Text } from '@/shared/ui'
-import { View } from 'react-native'
 
 const DAYS = ['today', 'oct12', 'oct11'] as const
 
-/** R-S40 내역: one white group per date, flat rows inside. */
+/** R-S40 내역: one white group per date, flat rows inside. The pending send from the kv is the top row of 오늘 and opens S41. */
 export function ActivityPage() {
   const { t } = useTranslation()
   const th = useTheme()
+  const router = useRouter()
+  const { tx } = usePendingTx()
   return (
     <Screen edges={['top']}>
       <Text variant="title" accessibilityRole="header">{t('activity.title')}</Text>
+      <TestDataNotice />
       {DAYS.map((day) => (
         <View key={day} style={{ gap: th.semantic.layout.fieldGap }}>
           <Text variant="label" color={th.semantic.text.secondary} accessibilityRole="header">{t(`activity.${day}`)}</Text>
           <Group>
+            {day === 'today' && tx ? (
+              <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: tx.hash } })}>
+                <ActivityRow
+                  title={t('activity.send')}
+                  detail={shortAddress(tx.to)}
+                  time={new Date(tx.createdAt).toTimeString().slice(0, 5)}
+                  amount={`−${tx.amount} ${tx.asset}`}
+                  kind="send"
+                  status={tx.state === 'Unknown' ? 'unknown' : 'pending'}
+                  statusLabel={t(tx.state === 'Unknown' ? 'activity.unknown' : 'activity.pending')}
+                />
+              </Pressable>
+            ) : null}
             {transactions
-              .filter((x) => x.when === day)
+              .filter((x) => x.when === day && !(tx && x.id === '1')) // the real pending send replaces the example pending row
               .map((x) => (
                 <ActivityRow
                   key={x.id}

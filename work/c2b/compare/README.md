@@ -35,3 +35,15 @@ Light mode unless noted. iOS: iPhone 18 Pro simulator, 402x874 pt at 3x, Face ID
 | S90 lock (iOS, Face ID body) | C2b-S90 365:1285 | `s90-app.png` | `s90-figma.png` | Mark icon is 32 pt (token `icon_xl`), Figma draws 30. Simulator status bar and dev-menu gear are not app UI. |
 | S90 dark (iOS) | none (Figma frame is light only) | `s90-app-dark.png` | n/a | Dark mapping comes from the token modes. |
 | S90 (Android light / dark) | same | `s90-android-light.png`, `s90-android-dark.png` | n/a | Body names the device method: "기기 암호로" (emulator has PIN only, no biometrics). |
+
+## C2b send wiring (#23) and S23 / S41 (#24) app vs Figma
+
+Light mode unless noted. App captures are from the Android emulator signaldock-api37 (1080x2400) with the real flow (restored with the published vector, PIN auth, fake chain adapter). The iOS simulator cannot store a phrase, so no iOS pairs. Figma frames are 390x844. Address casing differs from Figma: the fixture addresses are now EIP-55 checksummed (wallet-core `isAddress` rejects the old mixed case).
+
+| Screen | Figma node | App | Figma | Remaining differences |
+|---|---|---|---|---|
+| S23 send result (Pending) | C2b-S23 365:1049 | `s23-app.png` | `s23-figma.png` | Fixture address/hash text only. Android shows a grey box behind the status pill in the first frame after navigation (StatusLabel, existing component; gone on S41). |
+| S23 dark | C2b-S23 Dark 365:1345 | `s23-app-dark.png` | `s23-figma-dark.png` | None seen. |
+| S41 transaction detail | C2b-S41 365:1171 | `s41-app.png` | `s41-figma.png` | Figma back icon is an arrow; app uses the shared back button. No Etherscan button: hidden while `chain.broadcasts === false` (Figma draws it). |
+| Home test-data notice | C2b-S10R Test data 370:1126 (new, audit 0) | `home-testdata-android.png` | `home-testdata-figma.png` | Notice sits between the action row and the asset list in both. |
+| Activity test-data notice | C2b-S40 Test data 370:1195 (new, audit 0) | `activity-testdata-android.png` | `activity-testdata-figma.png` | App top row is the real pending send (fixture "pending" row hidden). |

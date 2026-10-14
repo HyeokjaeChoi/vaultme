@@ -9,6 +9,9 @@ import { textStyle } from '@/shared/theme/fonts'
 import { BottomSheet, Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 import { ReviewPanel } from '@/widgets/review-panel/ReviewPanel'
 import { goBack } from '@/shared/lib/nav'
+import { runSend, sendFrom, useReviewCore, readPendingTx, type SendOutcome } from '@/features/send'
+import { chain } from '@/shared/chain'
+import { loadPhrase, setPendingTx } from '@/shared/storage'
 
 const SHOWN_GROUPS = 4 // sheet compares only the leading chunks, then "…"
 
@@ -37,13 +40,57 @@ function Compare({ current, previous }: { current: string; previous: string }) {
   )
 }
 
-/** R-S22 검토. `risk=1` = R-S22L look-alike: confirm opens the address-check sheet. `sheet=1` opens it on arrival (R-S22L+Sheet). Confirm is inert: no signing in C2a. */
+type Notice = 'authError' | 'chainError' | 'needsReview' | 'blocked' | 'pending' | 'prepareError'
+const NOTICE: Record<Notice, { tone: 'danger' | 'warning'; key: 'send.authError' | 'send.chainError' | 'send.needsReview' | 'send.blocked' | 'send.pendingBlock' | 'send.prepareError' }> = {
+  authError: { tone: 'danger', key: 'send.authError' },
+  chainError: { tone: 'danger', key: 'send.chainError' },
+  needsReview: { tone: 'warning', key: 'send.needsReview' },
+  blocked: { tone: 'danger', key: 'send.blocked' },
+  pending: { tone: 'warning', key: 'send.pendingBlock' },
+  prepareError: { tone: 'danger', key: 'send.prepareError' },
+}
+
+/**
+ * R-S22 검토. `risk=1` = R-S22L look-alike: confirm opens the address-check sheet (ACK first). `sheet=1` opens it on arrival (R-S22L+Sheet).
+ * Confirm = per-send OS auth + sign + submit through the ChainPort (fake in C2b). Cancel stays here silently.
+ */
 export function ReviewPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
   const { risk, sheet: sheetParam, to, amount } = useLocalSearchParams<{ risk?: string; sheet?: string; to?: string; amount?: string }>()
-  const values = resolveReview(to, amount, risk === '1')
+  const base = resolveReview(to, amount, risk === '1')
+  const core = useReviewCore(base.recipient, base.amount.replace(' ETH', ''))
+  const values = core.review ? resolveReview(to, amount, risk === '1', core.review) : base
+  const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState<Notice | null>(null)
+  const send = async () => {
+    if (!core.review || busy) return
+    setBusy(true)
+    setNotice(null)
+    let out: SendOutcome
+    try {
+      out = await runSend(core.review, base.amount.replace(' ETH', ''), sendFrom(), {
+        chain,
+        loadPhrase,
+        readPending: readPendingTx,
+        savePending: setPendingTx,
+        now: Date.now,
+        prompt: { title: t('send.authPrompt'), cancel: t('common.cancel') },
+      })
+    } finally {
+      setBusy(false)
+    }
+    if (out.status === 'Pending' || out.status === 'Unknown') {
+      router.dismissAll()
+      router.push('/send/result')
+    } else if (out.status === 'Cancelled') return
+    else {
+      if (out.status === 'NeedsReview') await core.refresh()
+      setNotice(out.status === 'AuthError' ? 'authError' : out.status === 'ChainError' ? 'chainError' : out.status === 'NeedsReview' ? 'needsReview' : out.status === 'Blocked' ? 'blocked' : 'pending')
+    }
+  }
+  const shownNotice: Notice | null = notice ?? (core.error && core.error !== 'chain' ? 'prepareError' : core.error === 'chain' ? 'chainError' : null)
   const isRisk = values.previous !== null
   const [sheet, setSheet] = useState(isRisk && sheetParam === '1')
   // Same route re-opened with ?sheet=1 keeps this screen mounted, so follow the param.
@@ -53,9 +100,10 @@ export function ReviewPage() {
   return (
     <Screen
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
-      footer={<Button label={t('review.confirm')} onPress={() => isRisk && setSheet(true)} />}
+      footer={<Button label={t('review.confirm')} busy={busy} disabled={!core.review} onPress={() => (isRisk ? setSheet(true) : void send())} />}
     >
-      <ReviewPanel values={values} onEditRecipient={() => router.dismissTo('/send')} onEditAmount={() => router.dismissTo({ pathname: '/send/amount', params: { to: values.recipient, amount: values.amount.replace(' ETH', '') } })} />
+      <ReviewPanel values={values} checkedAt={core.checkedAt} onRecalc={() => void core.refresh()} onEditRecipient={() => router.dismissTo('/send')} onEditAmount={() => router.dismissTo({ pathname: '/send/amount', params: { to: values.recipient, amount: values.amount.replace(' ETH', '') } })} />
+      {shownNotice ? <StatusNotice tone={NOTICE[shownNotice].tone} title={t(`${NOTICE[shownNotice].key}.title`)} body={t(`${NOTICE[shownNotice].key}.body`)} /> : null}
       <BottomSheet
         visible={sheet}
         onClose={() => setSheet(false)}
@@ -63,7 +111,14 @@ export function ReviewPage() {
         actions={
           <>
             <Button label={t('common.cancel')} onPress={() => setSheet(false)} />
-            <Button label={t('review.lookalike.proceed')} variant="ghost" onPress={() => setSheet(false)} />
+            <Button
+              label={t('review.lookalike.proceed')}
+              variant="ghost"
+              onPress={() => {
+                setSheet(false)
+                void send()
+              }}
+            />
           </>
         }
       >

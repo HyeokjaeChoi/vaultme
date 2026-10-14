@@ -120,6 +120,43 @@ export const ko = {
     maxSendable: '보낼 수 있는 금액',
     insufficient: '보낼 수 있는 금액보다 커요.',
     keypad: { dot: '소수점', delete: '지우기' },
+    // C2b #23. pendingBlock is approved copy (ux-copy.md S10P+S24); the rest is new (listed in the PR for approval).
+    authPrompt: '보내려면 인증하세요',
+    authError: { title: '인증하지 못했어요', body: '다시 시도하세요.' },
+    chainError: { title: '네트워크 정보를 가져오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
+    needsReview: { title: '수수료가 바뀌었어요', body: '최신 값으로 다시 계산했어요. 확인하고 다시 보내세요.' },
+    blocked: { title: '수수료가 너무 높아 보낼 수 없어요', body: '잠시 뒤에 다시 시도하세요.' },
+    prepareError: { title: '보낼 수 없어요', body: '받는 주소와 금액을 확인하세요.' },
+    pendingBlock: {
+      title: '진행 중인 보내기가 있어요',
+      body: '이전 거래가 아직 처리되지 않았어요. 끝난 뒤에 다시 보내세요. 지금 보내면 같은 금액이 두 번 나갈 수 있어요.',
+      view: '진행 중인 거래 보기',
+    },
+  },
+  // C2b #23/#24, shown while the fake chain adapter is on. testData and notBroadcast are new (listed in the PR for approval).
+  testData: { title: '테스트 데이터예요', body: '잔액과 내역은 예시예요. 실제 네트워크와 연결되지 않았어요.' },
+  notBroadcast: { title: '네트워크로 보내지 않았어요 (테스트)', body: '테스트 버전이라 거래 해시와 상태는 이 기기에서 만든 예시예요.' },
+  // S23: Figma C2b-S23 + ux-copy.md. unknown.* from ux-flow.md S23 state table.
+  result: {
+    title: '네트워크 처리를 기다리는 중이에요',
+    body: '보냈어요. 다시 보내지 마세요. 처리되면 알려 드려요.',
+    unknownTitle: '보낸 결과를 확인하지 못했어요',
+    unknownBody: '다시 보내지 말고 상태를 확인해 주세요.',
+    amount: '보낸 금액',
+    recipient: '받는 주소',
+    hash: '거래 해시',
+    fee: '예상 네트워크 수수료',
+    history: '내역 보기',
+    home: '홈으로',
+  },
+  // S41: Figma C2b-S41 + ux-copy.md.
+  detail: {
+    title: '거래 상세',
+    amount: '금액',
+    lastChecked: '마지막 확인',
+    auto: '자동으로 다시 확인해요.',
+    recheck: '상태 다시 확인',
+    etherscan: 'Etherscan에서 보기',
   },
   review: {
     title: '이대로 보낼까요?',

@@ -13,6 +13,10 @@ import { ABS_MAX_FEE_WEI, ASSETS, CHAIN, DERIVATION_PATH, type AssetId } from '.
 import type { Mnemonic } from './mnemonic'
 import { recipientRisk, type RecipientRisk } from './risk'
 
+/** Local tx hash: keccak256 of the signed raw tx (Q73). */
+export const txHash = (raw: Hex): Hash => keccak256(raw)
+export type { Address, Hash, Hex }
+
 export type SendIntent = {
   asset: AssetId
   to: Address
