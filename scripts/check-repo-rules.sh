@@ -42,15 +42,15 @@ for f in $(files 'apps/mobile/src/shared/ui/*.tsx'); do
   head -3 "$f" | grep -q '// Figma: ' || err "R6: $f has no '// Figma: <name> <node id>' header"
 done
 
-# R7. README.md and README.ko.md stay in step (issue 11): same heading count per
-# level, same set of relative link targets, every target exists in the working tree,
+# R7. README.md and README.ko.md stay in step (issue 11): same heading levels in the same
+# order, same set of relative link targets, every target exists in the working tree,
 # and each links to the other. Inline [text](path) links only. In-page #anchors are
 # ignored (Korean headings give other anchors). Fenced code is skipped.
 if ! python3 - <<'PY'
 import os, re, sys
 
 def scan(text):
-    levels, links, fenced = {}, set(), False
+    levels, links, fenced = [], set(), False
     for line in text.splitlines():
         if line.lstrip().startswith("```"):
             fenced = not fenced
@@ -59,7 +59,7 @@ def scan(text):
             continue
         m = re.match(r" {0,3}(#{1,6})\s", line)
         if m:
-            levels[len(m.group(1))] = levels.get(len(m.group(1)), 0) + 1
+            levels.append(len(m.group(1)))
         for t in re.findall(r"\]\(([^)\s]+)\)", line):
             if not t.startswith(("#", "http://", "https://", "mailto:")):
                 links.add(t)
@@ -71,7 +71,7 @@ except OSError:
     sys.exit("error: README.md or README.ko.md is missing")
 bad = []
 if en[0] != ko[0]:
-    bad.append(f"heading counts per level differ: README.md {sorted(en[0].items())} vs README.ko.md {sorted(ko[0].items())}")
+    bad.append(f"heading level order differs: README.md {en[0]} vs README.ko.md {ko[0]}")
 # each file links to the other by design; exempt only that one link per file
 for name, a, b, other in (("README.md", en[1], ko[1], "README.ko.md"), ("README.ko.md", ko[1], en[1], "README.md")):
     diff = (a - b) - {other}
