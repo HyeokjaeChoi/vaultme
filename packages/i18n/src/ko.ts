@@ -152,7 +152,7 @@ export const ko = {
   // S23: Figma C2b-S23 + ux-copy.md. unknown.* from ux-flow.md S23 state table.
   result: {
     title: '네트워크 처리를 기다리는 중이에요',
-    body: '보냈어요. 다시 보내지 마세요. 처리되면 알려 드려요.',
+    body: '보냈어요. 다시 보내지 마세요.',
     unknownTitle: '보낸 결과를 확인하지 못했어요',
     unknownBody: '다시 보내지 말고 상태를 확인해 주세요.',
     amount: '보낸 금액',
@@ -224,7 +224,7 @@ export const ko = {
     confirmed: '확정',
     failed: '실패',
     unknown: '확인 못 함',
-    replaced: '대체됨',
+    replaced: '실행되지 않음',
     send: '보내기',
     receive: '받기',
     today: '오늘',

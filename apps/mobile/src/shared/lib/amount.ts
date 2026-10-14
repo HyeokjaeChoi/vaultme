@@ -1,4 +1,4 @@
-import { toUnits } from '@vaultme/wallet-core'
+import { ASSETS, formatDecimal, toUnits, type AssetId } from '@vaultme/wallet-core'
 
 export type KeypadKey = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '.' | 'backspace'
 
@@ -27,4 +27,9 @@ export function exceedsBalance(amount: string, available: string): boolean {
   } catch {
     return false
   }
+}
+
+/** "0.05 ETH" for a stored or API amount string: `floor` in lists, `exact` on Review, result and detail (wallet-core formatDecimal). An unknown asset is shown as given. */
+export function showAmount(amount: string, asset: string, mode: 'floor' | 'exact'): string {
+  return `${asset in ASSETS ? formatDecimal(amount, asset as AssetId, mode) : amount} ${asset}`
 }

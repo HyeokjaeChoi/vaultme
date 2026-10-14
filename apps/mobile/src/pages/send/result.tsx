@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { txNotice, txView, useTrackedTx } from '@/features/send'
 import { shortAddress } from '@/shared/lib/address'
+import { showAmount } from '@/shared/lib/amount'
 import { useTheme } from '@/shared/theme'
 import { Button, Group, Screen, StatusLabel, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 import { chain } from '@/shared/chain'
@@ -37,7 +38,7 @@ export function SendResultPage() {
       <Group>
         <SummaryRow label={t('detail.sender')} value={account.name} />
         <SummaryRow label={t('review.network')} value={account.network} />
-        <SummaryRow label={t('result.amount')} value={`${tx.amount} ${tx.asset}`} />
+        <SummaryRow label={t('result.amount')} value={showAmount(tx.amount, tx.asset, 'exact')} />
         <SummaryRow format="address" label={t('result.recipient')} value={tx.to} />
         <SummaryRow label={t('result.hash')} value={shortAddress(tx.hash)} />
         <SummaryRow label={t('result.fee')} value={`${tx.fee ?? '—'} ETH`} />

@@ -6,6 +6,7 @@ import { useHistory, type HistoryItem } from '@/features/history'
 import { txView, usePendingTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { shortAddress } from '@/shared/lib/address'
+import { showAmount } from '@/shared/lib/amount'
 import { clock, dayGroup, formatUpdated } from '@/shared/lib/time'
 import { useTheme } from '@/shared/theme'
 import { TestDataNotice } from '@/widgets/test-data-notice/TestDataNotice'
@@ -29,14 +30,14 @@ function FakeHistory() {
             {day === 'today' && tx ? (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${t('activity.send')}, ${shortAddress(tx.to)}, −${tx.amount} ${tx.asset}, ${t(txView(tx.state).label)}`}
+                accessibilityLabel={`${t('activity.send')}, ${shortAddress(tx.to)}, −${showAmount(tx.amount, tx.asset, 'floor')}, ${t(txView(tx.state).label)}`}
                 onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: tx.hash } })}>
                 <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
                   <ActivityRow
                     title={t('activity.send')}
                     detail={shortAddress(tx.to)}
                     time={clock(tx.createdAt)}
-                    amount={`−${tx.amount} ${tx.asset}`}
+                    amount={`−${showAmount(tx.amount, tx.asset, 'floor')}`}
                     kind="send"
                     status={txView(tx.state).status}
                     statusLabel={t(txView(tx.state).label)}
@@ -65,7 +66,7 @@ function Row({ item }: { item: HistoryItem }) {
       title={t(`activity.${item.kind}`)}
       detail={shortAddress(item.counterparty)}
       time={clock(item.at)}
-      amount={`${sign}${item.amount} ${item.asset}`}
+      amount={`${sign}${showAmount(item.amount, item.asset, 'floor')}`}
       kind={item.kind}
       status={item.status}
       statusLabel={t(item.label)}
@@ -75,7 +76,7 @@ function Row({ item }: { item: HistoryItem }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${t('activity.send')}, ${shortAddress(item.counterparty)}, −${item.amount} ${item.asset}, ${t(item.label)}`}
+      accessibilityLabel={`${t('activity.send')}, ${shortAddress(item.counterparty)}, −${showAmount(item.amount, item.asset, 'floor')}, ${t(item.label)}`}
       onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: item.hash } })}>
       <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>{row}</View>
     </Pressable>

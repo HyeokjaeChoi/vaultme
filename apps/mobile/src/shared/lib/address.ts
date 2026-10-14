@@ -19,7 +19,7 @@ export function diffGroups(a: string, b: string): number[] {
   return ga.flatMap((g, i) => (g.toLowerCase() === gb[i]?.toLowerCase() ? [] : [i]))
 }
 
-/** "0x9F3c…41aB": first 6 and last 4 characters, for summary rows. The full address is always shown on Review. */
+/** "0x9F3C…41Ab": first 6 and last 4 characters, for summary rows. The full address is always shown on Review. */
 export const shortAddress = (address: string) => {
   const a = toChecksumAddress(address) // display form; a tx hash is not an address and stays as is
   return `${a.slice(0, 6)}…${a.slice(-4)}`

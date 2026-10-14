@@ -32,3 +32,9 @@ it('shows an address in EIP-55 form, leaves hashes alone', () => {
   const hash = '0x' + 'ab'.repeat(32)
   expect(shortAddress(hash)).toBe('0xabab…abab')
 })
+
+it('fixture recipients are valid EIP-55 addresses, so captures match the checksum display', async () => {
+  const { review, recents } = await import('../src/entities/transaction/fixtures')
+  const { toChecksumAddress } = await import('@vaultme/wallet-core')
+  for (const a of [review.recipient, ...recents.map((r) => r.address)]) expect(toChecksumAddress(a)).toBe(a)
+})

@@ -9,6 +9,7 @@ import { chain } from '@/shared/chain'
 import { explorerUrl } from '@/shared/chain/port'
 import { goBack } from '@/shared/lib/nav'
 import { shortAddress } from '@/shared/lib/address'
+import { showAmount } from '@/shared/lib/amount'
 import { useTheme } from '@/shared/theme'
 import { BottomSheet, Button, Group, Screen, ScreenHeader, StatusLabel, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 
@@ -52,7 +53,7 @@ export function TxDetailPage() {
       <Group>
         <SummaryRow label={t('detail.sender')} value={account.name} />
         <SummaryRow label={t('review.network')} value={account.network} />
-        <SummaryRow label={t('detail.amount')} value={`−${tx.amount} ${tx.asset}`} />
+        <SummaryRow label={t('detail.amount')} value={`−${showAmount(tx.amount, tx.asset, 'exact')}`} />
         <SummaryRow format="address" label={t('result.recipient')} value={tx.to} />
         <SummaryRow label={t('result.hash')} value={shortAddress(tx.hash)} />
         <SummaryRow label={t('result.fee')} value={`${tx.fee ?? '—'} ETH`} />
