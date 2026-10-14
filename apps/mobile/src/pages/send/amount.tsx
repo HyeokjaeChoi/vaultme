@@ -33,7 +33,7 @@ export function SendAmountPage() {
         <View style={{ gap: th.semantic.layout.groupGap }}>
           <Animated.View style={fold}>
             <Group>
-              <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to)} mono editLabel={t('common.edit')} onEdit={() => goBack('/send')} />
+              <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to)} mono editLabel={t('common.edit')} onEdit={() => router.dismissTo('/send')} />
             </Group>
           </Animated.View>
           <Text variant="title" accessibilityRole="header">{t('send.amountQuestion')}</Text>
