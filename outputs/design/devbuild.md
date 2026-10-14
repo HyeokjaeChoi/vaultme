@@ -4,7 +4,7 @@ Expo Go는 쓰지 않아요. 네이티브 모듈(`react-native-keychain`, `react
 
 ## 준비물
 
-- Xcode 27 + iOS 27 simulator (`iPhone 18 Pro`).
+- Xcode 27 + iOS 27 simulator (예: `iPhone 18 Pro`).
 - Android SDK (`~/Library/Android/sdk`) + AVD `signaldock-api37`.
 - JDK 17~21. JDK 26은 안 돼요. Android Studio의 JBR(JDK 21)을 써요.
 - CocoaPods.
@@ -23,8 +23,10 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ## 명령 (`apps/mobile`)
 
 ```sh
+xcrun simctl list devices booted                           # UDID 확인
+export UDID=<위에서 확인한 UDID>
 npx expo prebuild --clean                                  # ios/ android/ 생성 (gitignore)
-npx expo run:ios --device C8E58DF0-3912-42DC-B823-6BF184E65D50
+npx expo run:ios --device $UDID
 emulator -avd signaldock-api37 &                           # 에뮬레이터가 없을 때
 npx expo run:android --device signaldock-api37
 ```
@@ -34,7 +36,7 @@ npx expo run:android --device signaldock-api37
 ## 화면 열기
 
 ```sh
-xcrun simctl openurl C8E58DF0-3912-42DC-B823-6BF184E65D50 vaultme://kit
+xcrun simctl openurl $UDID vaultme://kit
 adb shell am start -a android.intent.action.VIEW -d vaultme://kit app.vaultme.mobile
 ```
 
