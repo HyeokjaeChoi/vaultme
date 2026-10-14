@@ -1,3 +1,5 @@
+import { toUnits } from '@vaultme/wallet-core'
+
 export type KeypadKey = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '.' | 'backspace'
 
 const MAX_LENGTH = 12 // amounts wrap in layout, but the keypad stops before the hero text gets too wide
@@ -17,3 +19,12 @@ export function applyKey(amount: string, key: KeypadKey): string {
 }
 
 export const isZeroAmount = (amount: string) => !/[1-9]/.test(amount)
+
+/** True when `amount` (keypad string, "5." allowed) is more ETH than `available`. Unparseable counts as not exceeding. */
+export function exceedsBalance(amount: string, available: string): boolean {
+  try {
+    return toUnits(amount.replace(/\.$/, '') || '0', 'ETH') > toUnits(available, 'ETH')
+  } catch {
+    return false
+  }
+}

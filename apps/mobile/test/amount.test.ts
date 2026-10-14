@@ -32,3 +32,11 @@ it('address format needs 0x and 40 hex characters', () => {
   expect(isAddressFormat('0x9F3c')).toBe(false)
   expect(isAddressFormat('9F3c7A210bD4e6C855a13F90c2E78d16Ab0441aBxx')).toBe(false)
 })
+
+it('exceedsBalance compares amount with available', async () => {
+  const { exceedsBalance } = await import('../src/shared/lib/amount')
+  expect(exceedsBalance('999', '1.284732')).toBe(true)
+  expect(exceedsBalance('1.284732', '1.284732')).toBe(false)
+  expect(exceedsBalance('5.', '1.284732')).toBe(true)
+  expect(exceedsBalance('0.05', '1.284732')).toBe(false)
+})

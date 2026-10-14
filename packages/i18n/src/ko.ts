@@ -54,6 +54,7 @@ export const ko = {
     amountQuestion: '얼마를 보낼까요?',
     max: '최대',
     maxSendable: '보낼 수 있는 금액',
+    insufficient: '보낼 수 있는 금액보다 커요.',
     keypad: { dot: '소수점', delete: '지우기' },
   },
   review: {
@@ -71,6 +72,14 @@ export const ko = {
     checkedTitle: '확인 결과',
     checkedBody: '잔액, 수수료, 주소 형식을 {{time}}에 확인했어요. 받는 사람의 안전을 보증하지는 않아요.',
     confirm: '확인하고 보내기',
+    burn: {
+      title: '소각 주소예요',
+      body: '이 주소로 보낸 자산은 되찾을 수 없어요. 받는 주소를 다시 확인하세요.',
+    },
+    tokenContract: {
+      title: '토큰 컨트랙트 주소예요',
+      body: '토큰 컨트랙트로 보낸 자산은 되찾을 수 없을 수 있어요. 받는 주소를 다시 확인하세요.',
+    },
     lookalike: {
       title: '최근 주소와 {{count}}묶음이 달라요',
       body: '가운데 두 묶음({{chunks}})이 최근 보낸 주소와 달라요. 한 글자씩 비교하세요.',

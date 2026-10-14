@@ -45,7 +45,9 @@ export function ReviewPanel({ values, onEditRecipient, onEditAmount }: Props) {
         <SummaryRow format="total" label={t('review.total')} value={values.total} />
         <SummaryRow label={t('review.checkedAt')} value={checkedAt} editLabel={t('review.recalc')} editAccessibilityLabel={t('review.recalcLabel')} onEdit={() => setCheckedAt(nowHHMM())} />
       </Group>
-      {risk ? (
+      {values.risk === 'burn' || values.risk === 'tokenContract' ? (
+        <StatusNotice tone="warning" title={t(`review.${values.risk}.title`)} body={t(`review.${values.risk}.body`)} />
+      ) : risk ? (
         <StatusNotice tone="warning" title={t('review.lookalike.title', { count: diff.length })} body={t('review.lookalike.body', { chunks })} />
       ) : (
         <StatusNotice tone="info" title={t('review.checkedTitle')} body={t('review.checkedBody', { time: checkedAt })} />

@@ -21,3 +21,10 @@ it('marks a look-alike of a recent address and names the recent one', () => {
 it('?risk=1 keeps working without an entered address', () => {
   expect(resolveReview(undefined, undefined, true)).toMatchObject({ recipient: review.lookalike, previous: review.recipient })
 })
+it('keeps burn and tokenContract risk instead of dropping it', async () => {
+  const { BURN_ADDRESSES } = await import('@vaultme/wallet-core')
+  const r = resolveReview(BURN_ADDRESSES[0])
+  expect(r.risk).toBe('burn')
+  expect(r.previous).toBeNull()
+  expect(resolveReview(undefined, undefined, true).risk).toBe('lookalike')
+})

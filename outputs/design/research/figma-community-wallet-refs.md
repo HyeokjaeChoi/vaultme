@@ -60,6 +60,7 @@ Not found: any Community file with explicit suspicious-address warning states or
 | Motion | Not visible in static assets; success screens use an illustration | n/a |
 
 ## Recommendations for VaultMe (light mode, Korean, 390pt canvas)
+Note: values below (20pt padding, 4/32 gaps, etc.) are observations of community kits, not VaultMe decisions. VaultMe tokens win: screen padding 16, product gaps 24/16/12/8 (`layout/screen/padding`, `layout/groupGap`, `layout/fieldGap`, `layout/sectionGap/product`). Map: 20pt padding -> 16; 32 section gap -> 24; 4 gap -> not used (use 8). Tokens are unchanged.
 - Page title: nav/step title 20-22pt semibold (Korean glyphs read lighter; step questions on Send like Toss = 24pt bold, left-aligned, max 2 lines). Hero numerals (balance, amount) 40pt bold tabular numerals. Section headers 13-14pt medium gray.
 - Content padding: 20pt horizontal everywhere; card inner 16pt; sheet inner 24pt. Keep one value, no per-screen variants.
 - Gap scale: 4 / 8 / 12 / 16 / 24 / 32. 8 between related controls, 16 within a group, 24 between groups, 32 before a new section or above the sticky CTA area. Bottom CTA: 20 side, 16 above home indicator.

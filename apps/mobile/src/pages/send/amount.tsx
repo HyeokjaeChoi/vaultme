@@ -1,12 +1,11 @@
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next'
 import { assets } from '@/entities/asset/fixtures'
-import { review } from '@/entities/transaction/fixtures'
-import { applyKey, isZeroAmount } from '@/shared/lib/amount'
-import { shortAddress } from '@/shared/lib/address'
+import { applyKey, exceedsBalance, isZeroAmount } from '@/shared/lib/amount'
+import { isAddressFormat, shortAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { useFoldIn } from '@/shared/theme/motion'
 import { Button, Group, Keypad, Screen, ScreenHeader, SummaryRow, Text } from '@/shared/ui'
@@ -20,18 +19,20 @@ export function SendAmountPage() {
   const [amount, setAmount] = useState('0.05')
   const fold = useFoldIn(th.primitive.space[2])
   const available = assets[0].balance
+  const tooMuch = exceedsBalance(amount, available)
   const gap = th.semantic.layout.fieldGap
+  if (!to || !isAddressFormat(to)) return <Redirect href="/send" />
   return (
     <Screen
       topGap="group"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}
-      footer={<Button label={t('send.next')} disabled={isZeroAmount(amount)} onPress={() => router.push({ pathname: '/review', params: { to: to ?? review.recipient, amount } })} />}
+      footer={<Button label={t('send.next')} disabled={isZeroAmount(amount) || tooMuch} onPress={() => router.push({ pathname: '/review', params: { to, amount } })} />}
     >
       <View style={{ flex: 1, justifyContent: 'space-between', gap: th.semantic.layout.sectionGap.product }}>
         <View style={{ gap: th.semantic.layout.groupGap }}>
           <Animated.View style={fold}>
             <Group>
-              <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to ?? review.recipient)} mono editLabel={t('common.edit')} onEdit={() => router.back()} />
+              <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to)} mono editLabel={t('common.edit')} onEdit={() => router.back()} />
             </Group>
           </Animated.View>
           <Text variant="title" accessibilityRole="header">{t('send.amountQuestion')}</Text>
@@ -45,6 +46,7 @@ export function SendAmountPage() {
             <Text variant="body" style={{ textAlign: 'center' }} color={th.semantic.text.secondary}>{`${t('send.maxSendable')} ${available} ETH`}</Text>
             <Button label={t('send.max')} variant="secondary" size="sm" style={{ minWidth: th.primitive.space[10] + th.primitive.space[8] }} onPress={() => setAmount(available)} />
           </View>
+          {tooMuch ? <Text variant="body" color={th.semantic.status.danger.fg} accessibilityLiveRegion="polite">{t('send.insufficient')}</Text> : null}
         </View>
         <Keypad labels={{ dot: t('send.keypad.dot'), delete: t('send.keypad.delete') }} onKey={(k) => setAmount((a) => applyKey(a, k))} />
       </View>

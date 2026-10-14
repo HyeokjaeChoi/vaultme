@@ -1,4 +1,4 @@
-import { fromUnits, recipientRisk, toUnits } from '@vaultme/wallet-core'
+import { fromUnits, recipientRisk, toUnits, type RecipientRisk } from '@vaultme/wallet-core'
 import { diffGroups, isAddressFormat } from '../../shared/lib/address'
 import { recents, review } from './fixtures'
 
@@ -8,6 +8,8 @@ export type ReviewValues = {
   recipient: string
   /** The recent address the recipient is compared with. Set only for a look-alike. */
   previous: string | null
+  /** Full wallet-core result; burn and tokenContract get a warning on Review. */
+  risk: RecipientRisk
   amount: string
   fee: string
   feeCap: string
@@ -33,7 +35,8 @@ function cleanAmount(raw: string | undefined): string | null {
 export function resolveReview(to?: string, amount?: string, forceRisk = false): ReviewValues {
   const entered = to && isAddressFormat(to) ? to : null
   const recipient = entered ?? (forceRisk ? review.lookalike : review.recipient)
-  const lookalike = forceRisk || recipientRisk(recipient as `0x${string}`, recents.map((r) => r.address as `0x${string}`)) === 'lookalike'
+  const risk: RecipientRisk = forceRisk ? 'lookalike' : recipientRisk(recipient as `0x${string}`, recents.map((r) => r.address as `0x${string}`))
+  const lookalike = risk === 'lookalike'
   // Previous = the recent address that differs from the recipient in the fewest (but not zero) 4-char groups.
   const previous = lookalike
     ? ([...recents.map((r) => r.address)]
@@ -44,5 +47,5 @@ export function resolveReview(to?: string, amount?: string, forceRisk = false): 
   const clean = cleanAmount(amount)
   const shown = clean ?? review.amount.replace(' ETH', '')
   const total = fromUnits(toUnits(shown, 'ETH') + toUnits(FEE, 'ETH'), 'ETH')
-  return { recipient, previous, amount: `${shown} ETH`, fee: review.fee, feeCap: review.feeCap, total: `${total} ETH` }
+  return { recipient, previous, risk, amount: `${shown} ETH`, fee: review.fee, feeCap: review.feeCap, total: `${total} ETH` }
 }
