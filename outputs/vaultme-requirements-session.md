@@ -98,7 +98,7 @@ Q51 승인(HLD): pnpm workspaces + Turborepo monorepo로 구성한다. `apps/mob
 
 Q52 승인(HLD): 환경은 local + staging + production이다. 모두 Sepolia를 쓴다. 환경마다 Cloudflare D1·Queue·secret·provider key와 EAS channel을 분리한다. 웹은 PR마다 Cloudflare Pages 미리보기 URL을 쓴다. Migration과 배포 절차는 staging에서 먼저 실행한다. PR 단위 API 임시 환경은 필요가 반복될 때 추가한다.
 
-변경(2026-10-14, #36): Q52의 웹 미리보기를 Cloudflare Pages 미리보기 URL에서 Workers 미리보기로 바꾼다. Workers Builds 또는 `wrangler versions upload --preview-alias`를 쓴다. Staging은 `wrangler deploy --env staging`, release는 100% 단일 버전 배포와 `wrangler rollback`이다(Web은 gradual 미사용) (docs/adr/0001-web-hosting-workers-static-assets.md). 나머지 Q52 결정은 그대로다.
+변경(2026-10-14, #36): Q52의 웹 미리보기를 Cloudflare Pages 미리보기 URL에서 Workers 미리보기로 바꾼다. Workers Builds 또는 `wrangler versions upload --preview-alias pr-<number>`를 쓴다. Staging은 `wrangler deploy --env staging`, release는 100% 단일 버전 배포와 `wrangler rollback`이다(Web은 gradual 미사용) 이유: Cloudflare가 새 프로젝트에 Workers를 권하고 Pages는 유지보수 상태이며, 미리보기·staging·rollback 도구를 API와 맞추기 위해서다 (ADR-0001). (docs/adr/0001-web-hosting-workers-static-assets.md). 나머지 Q52 결정은 그대로다.
 
 Q53 승인(HLD): 배포는 예전 모바일 앱 호환을 zero downtime의 기준으로 삼는다. ① API v1은 필드 추가만 허용하고 깨지는 변경은 `/v2`로 분리한다. 앱은 버전 header를 보내고 서버는 최소 지원 버전 미만에 업데이트 안내를 응답한다. ② D1은 expand → 새 코드 배포 → 데이터 이전 → contract 순서로 바꾸며 한 migration에 열 삭제·이름 변경을 넣지 않는다. ③ Workers는 gradual deployment 후 오류율 확인 뒤 확대하고 이상 시 rollback한다. ④ Mobile은 JS 수정은 EAS Update, native 변경은 store 빌드로 하고 runtime version으로 비호환 업데이트를 막는다. Web은 Pages 원자 배포·즉시 rollback. 블루/그린은 D1 데이터 분리 문제로 쓰지 않는다. 규칙 강제 도구는 LLD·CI/CD에서 정한다.
 

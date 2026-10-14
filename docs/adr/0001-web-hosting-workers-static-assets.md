@@ -18,7 +18,7 @@ Q45는 `apps/web`을 Cloudflare Pages에 정적 배포하기로 했다. Cloudfla
 - `public/_headers`로 보안 header를 붙인다.
 - Web과 API는 별도 Worker로 둔다. 보안 경계와 배포 결합을 분리하기 위해서다.
 - Cloudflare Access에는 `/admin`과 `/admin/*`를 둘 다 등록한다.
-- CI: 미리보기는 Workers Builds 또는 `wrangler versions upload --preview-alias`, staging은 `wrangler deploy --env staging`, release는 100% 단일 버전 `wrangler deploy`와 `wrangler rollback`이다. Web은 gradual deployment를 쓰지 않는다. Gradual 중에는 HTML과 해시 asset 요청이 서로 다른 버전으로 가 새 HTML의 asset이 없을 수 있고, SPA fallback이 그 오류를 200 HTML로 가린다. 쓰려면 먼저 version affinity(`Cloudflare-Workers-Version-Key`)를 적용한다.
+- CI: 미리보기는 Workers Builds 또는 `wrangler versions upload --preview-alias pr-<number>`, staging은 `wrangler deploy --env staging`, release는 100% 단일 버전 `wrangler deploy`와 `wrangler rollback`이다. Web은 gradual deployment를 쓰지 않는다. Gradual 중에는 HTML과 해시 asset 요청이 서로 다른 버전으로 가 새 HTML의 asset이 없을 수 있고, SPA fallback이 그 오류를 200 HTML로 가린다. 쓰려면 먼저 version affinity(`Cloudflare-Workers-Version-Key`)를 적용한다.
 
 ## Spike 증거
 

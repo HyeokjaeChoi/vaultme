@@ -299,7 +299,7 @@ pnpm workspaces + Turborepo monorepo (Q51). 앱·웹·API·공유 package가 한
 | staging | 통합·migration·배포 리허설 | 전용 D1·Queue·secret·provider key, EAS `staging` channel |
 | production | 외부 평가자용 공개 환경 (Sepolia) | 전용 리소스, EAS `production` channel |
 
-웹은 PR마다 Workers 미리보기 URL을 쓴다 (Q52, ADR-0001). Workers Builds 또는 `wrangler versions upload --preview-alias`를 쓴다.
+웹은 PR마다 Workers 미리보기 URL을 쓴다 (Q52, ADR-0001). Workers Builds 또는 `wrangler versions upload --preview-alias pr-<number>`를 쓴다.
 
 ### 9.3 Zero downtime 원칙
 
