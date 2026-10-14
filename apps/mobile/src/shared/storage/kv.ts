@@ -73,6 +73,8 @@ export type PendingTx = {
   amount: string
   createdAt: number
   lastCheckedAt: number
+  /** Estimated fee at send time, decimal ETH string (S23/S41 show it). Optional: older records have none. */
+  fee?: string
   state: 'Pending' | 'Unknown' | 'Included'
 }
 
@@ -96,6 +98,7 @@ export function parsePendingTx(raw: string): PendingTx | null {
   return {
     hash: o.hash, nonce: o.nonce, asset: o.asset, to: o.to, amount: o.amount,
     createdAt: o.createdAt, lastCheckedAt: o.lastCheckedAt, state: o.state as PendingTx['state'],
+    ...(isStr(o.fee) ? { fee: o.fee } : {}),
   }
 }
 
@@ -111,3 +114,7 @@ export function setPendingTx(tx: PendingTx | null): void {
   if (tx === null) store().remove('pendingTx')
   else store().set('pendingTx', JSON.stringify(tx))
 }
+
+// --- fake chain adapter nonce counter (C2b only; C3 reads the nonce from the network) ---
+export const getFakeNonce = (): number => store().getNumber('fakeChain.nonce') ?? 0
+export const setFakeNonce = (n: number): void => store().set('fakeChain.nonce', n)

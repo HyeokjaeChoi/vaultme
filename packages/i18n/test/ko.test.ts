@@ -43,3 +43,16 @@ it('has the S05/S06 restore copy', () => {
   expect(i18n.t('restore.done.title')).toBe('복구 완료')
   expect(i18n.t('restore.open')).toBe('지갑 열기')
 })
+
+it('has the C2b send result, detail and test-data copy', () => {
+  expect(i18n.t('send.authPrompt')).toBe('보내려면 인증하세요')
+  expect(i18n.t('send.pendingBlock.title')).toBe('진행 중인 보내기가 있어요')
+  expect(i18n.t('testData.title')).toBe('테스트 데이터예요')
+  expect(i18n.t('notBroadcast.title')).toBe('네트워크로 보내지 않았어요 (테스트)')
+  expect(i18n.t('result.title')).toBe('네트워크 처리를 기다리는 중이에요')
+  expect(i18n.t('result.unknownBody')).toBe('다시 보내지 말고 상태를 확인해 주세요.')
+  expect(i18n.t('detail.auto')).toBe('자동으로 다시 확인해요.')
+  expect(i18n.t('detail.etherscan')).toBe('Etherscan에서 보기')
+  expect(i18n.t('detail.clearTest')).toBe('테스트 거래 지우기')
+  expect(i18n.t('detail.clearTitle')).toBe('테스트 거래를 지울까요?')
+})

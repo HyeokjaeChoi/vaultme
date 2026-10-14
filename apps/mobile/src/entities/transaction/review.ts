@@ -1,4 +1,4 @@
-import { fromUnits, recipientRisk, toUnits, type RecipientRisk } from '@vaultme/wallet-core'
+import { fromUnits, recipientRisk, toUnits, type RecipientRisk, type Review } from '@vaultme/wallet-core'
 import { diffGroups, isAddressFormat } from '../../shared/lib/address'
 import { recents, review } from './fixtures'
 
@@ -31,8 +31,9 @@ export function cleanAmount(raw: string | undefined): string | null {
  * Values shown on Review. Entered `to` and `amount` win; a missing or malformed param falls back to the fixture, so old deep links still work.
  * Look-alike = wallet-core `recipientRisk` against recent addresses. `forceRisk` (?risk=1) marks the fixture look-alike.
  * Total = amount + estimated fee (not the fee cap).
+ * `core` = wallet-core `prepare()` result: fee, cap and total come from it. Without it (fixture preview) they come from the Review fixture.
  */
-export function resolveReview(to?: string, amount?: string, forceRisk = false): ReviewValues {
+export function resolveReview(to?: string, amount?: string, forceRisk = false, core?: Review): ReviewValues {
   const entered = to && isAddressFormat(to) ? to : null
   const recipient = entered ?? (forceRisk ? review.lookalike : review.recipient)
   const risk: RecipientRisk = forceRisk ? 'lookalike' : recipientRisk(recipient as `0x${string}`, recents.map((r) => r.address as `0x${string}`))
@@ -46,6 +47,8 @@ export function resolveReview(to?: string, amount?: string, forceRisk = false): 
     : null
   const clean = cleanAmount(amount)
   const shown = clean ?? review.amount.replace(' ETH', '')
-  const total = fromUnits(toUnits(shown, 'ETH') + toUnits(FEE, 'ETH'), 'ETH')
-  return { recipient, previous, risk, amount: `${shown} ETH`, fee: review.fee, feeCap: review.feeCap, total: `${total} ETH` }
+  const fee = core ? fromUnits(core.estimatedFee, 'ETH') : FEE
+  const feeCap = core ? `${fromUnits(core.feeCap, 'ETH')} ETH` : review.feeCap
+  const total = fromUnits(toUnits(shown, 'ETH') + toUnits(fee, 'ETH'), 'ETH')
+  return { recipient, previous, risk, amount: `${shown} ETH`, fee: `${fee} ETH`, feeCap, total: `${total} ETH` }
 }
