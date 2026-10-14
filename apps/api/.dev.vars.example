@@ -1,0 +1,2 @@
+# Copy to .dev.vars (git-ignored) for local secrets. The skeleton needs none yet.
+# Example: ETHERSCAN_API_KEY=
