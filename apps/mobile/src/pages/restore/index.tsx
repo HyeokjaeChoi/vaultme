@@ -1,6 +1,6 @@
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppState, Platform, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { inspectPhrase, type PhraseIssue } from '@/features/restore/model/phrase'
@@ -22,10 +22,21 @@ export function RestorePage({ initial = '' }: { initial?: string }) {
   const [outcome, setOutcome] = useState<'exists' | 'error' | null>(null)
   const [submitIssue, setSubmitIssue] = useState<PhraseIssue | null>(null)
 
-  useFocusEffect(useCallback(() => () => setText(''), []))
+  const pasteId = useRef(0) // bumped on every leave: a clipboard read still in flight must not refill the field
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        pasteId.current++
+        setText('')
+      },
+      [],
+    ),
+  )
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'background') setText('')
+      if (s === 'active') return
+      pasteId.current++
+      setText('')
     })
     return () => sub.remove()
   }, [])
@@ -46,7 +57,11 @@ export function RestorePage({ initial = '' }: { initial?: string }) {
     setOutcome(null)
     setLeft(false)
   }
-  const paste = async () => change(await Clipboard.getStringAsync())
+  const paste = async () => {
+    const id = ++pasteId.current
+    const clip = await Clipboard.getStringAsync()
+    if (id === pasteId.current && AppState.currentState === 'active') change(clip)
+  }
   const submit = async () => {
     setBusy(true)
     setOutcome(null)
