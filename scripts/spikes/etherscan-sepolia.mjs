@@ -4,7 +4,7 @@
 //   dump file=PATH k=v... write the full redacted response body to PATH (use a scratch dir, not the repo)
 //   latency n=20 k=v...   n sequential calls, prints p50/p95 (ms)
 //   burst n=6 k=v...      n parallel calls, prints each status and message
-//   fresh                 compare proxy eth_blockNumber with newest block seen in txlist
+//   fresh address=0x...   compare proxy eth_blockNumber with newest block seen in txlist
 // Env file path: ETHERSCAN_ENV (default ~/.config/vaultme/etherscan.env). The key never leaves this process.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -53,6 +53,7 @@ if (cmd === 'get') {
   const rs = await Promise.all(Array.from({ length: n }, () => call(params)))
   out(rs.map((r) => ({ http: r.http, ms: r.ms, status: r.body.status, message: r.body.message, result: typeof r.body.result === 'string' ? r.body.result.slice(0, 160) : `array:${r.body.result?.length}` })))
 } else if (cmd === 'fresh') {
+  if (!/^0x[0-9a-fA-F]{40}$/.test(params.address ?? '')) { console.error('fresh needs address=0x<40 hex> (use a recently active one)'); process.exit(2) }
   const bn = async () => parseInt((await call({ module: 'proxy', action: 'eth_blockNumber' })).body.result, 16)
   const tip = await bn()
   const r = await call({ module: 'account', action: 'txlist', address: params.address, sort: 'desc', page: '1', offset: '1' })
