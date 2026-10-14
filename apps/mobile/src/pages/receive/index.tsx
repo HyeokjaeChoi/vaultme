@@ -1,8 +1,9 @@
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
+import { useBackupDone } from '@/features/backup'
 import { PushOptInSheet } from '@/features/push-optin/ui/PushOptInSheet'
 import { BackupStatus, Button, PlaceholderQr, ReceivePanel, Screen, ScreenHeader, Text } from '@/shared/ui'
 import { useTheme } from '@/shared/theme'
@@ -10,19 +11,21 @@ import { goBack } from '@/shared/lib/nav'
 
 /**
  * R-S30 받기. QR is a labelled placeholder: no real QR is rendered (AGENTS rule 4). `sheet=1` opens S50. Copy and share are inert in C2a.
- * The address shows only with `backedUp=1` (ux-flow §3: no backup -> S31). Otherwise the backup notice shows instead.
- * ponytail: route param stands in for the stored backup state until C2b wires wallet-core state.
+ * The address shows only once the backup is done (kv flag; ux-flow §3: no backup -> S31), otherwise the backup notice shows instead.
+ * `backedUp=1` stays as the restored-wallet / design-capture override (Q16: a restored wallet can receive without the backup check).
  */
 export function ReceivePage() {
   const { t } = useTranslation()
   const th = useTheme()
   const { sheet, backedUp } = useLocalSearchParams<{ sheet?: string; backedUp?: string }>()
   const [open, setOpen] = useState(sheet === '1')
-  if (backedUp !== '1') {
+  const done = useBackupDone()
+  const router = useRouter()
+  if (!done && backedUp !== '1') {
     return (
       <Screen header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}>
         <Text variant="title" accessibilityRole="header">{t('receive.title')}</Text>
-        <BackupStatus title={t('home.backupTitle')} body={t('home.backupBody')} cta={t('home.backupCta')} />
+        <BackupStatus title={t('home.backupTitle')} body={t('home.backupBody')} cta={t('home.backupCta')} onPress={() => router.push('/backup')} />
       </Screen>
     )
   }

@@ -5,7 +5,7 @@ const VECTOR = 'abandon abandon abandon abandon abandon abandon abandon abandon 
 
 const items = new Map<string, { username: string; password: string }>()
 const calls: { fn: string; service: string; opts?: Record<string, unknown> }[] = []
-let failGet = false
+let failGet: string | false = false
 
 vi.mock('react-native-keychain', () => ({
   ACCESS_CONTROL: { BIOMETRY_ANY_OR_DEVICE_PASSCODE: 'BiometryAnyOrDevicePasscode' },
@@ -20,7 +20,7 @@ vi.mock('react-native-keychain', () => ({
   }),
   getGenericPassword: vi.fn(async (o: { service: string }) => {
     calls.push({ fn: 'get', service: o.service, opts: o })
-    if (failGet && o.service.endsWith('phrase')) throw new Error('user canceled')
+    if (failGet && o.service.endsWith('phrase')) throw new Error(failGet)
     return items.get(o.service) ?? false
   }),
   hasGenericPassword: vi.fn(async (o: { service: string }) => items.has(o.service)),
@@ -74,10 +74,10 @@ describe('keychain phrase', () => {
       cloudSync: false,
     })
     const loaded = await k.loadPhrase('unlock')
-    expect(loaded?.reveal()).toBe(VECTOR)
+    expect(loaded.status === 'ok' && loaded.mnemonic.reveal()).toBe(VECTOR)
     await k.deletePhrase()
     expect(await k.hasPhrase()).toBe(false)
-    expect(await k.loadPhrase('unlock')).toBeNull()
+    expect(await k.loadPhrase('unlock')).toEqual({ status: 'error' })
   })
 
   it('deletePhrase throws only when the item survives a failed reset', async () => {
@@ -91,18 +91,21 @@ describe('keychain phrase', () => {
     await expect(k.deletePhrase()).resolves.toBeUndefined()
   })
 
-  it('returns null when the user cancels auth', async () => {
+  it('maps a user cancel to cancelled and other failures to error', async () => {
     const { Mnemonic } = await import('@vaultme/wallet-core')
     const k = await import('../src/shared/storage/keychain')
     await k.savePhrase(new Mnemonic(VECTOR))
-    failGet = true
-    expect(await k.loadPhrase('unlock')).toBeNull()
+    failGet = 'User canceled the operation.'
+    expect(await k.loadPhrase('unlock')).toEqual({ status: 'cancelled' })
+    failGet = 'keychain exploded'
+    expect(await k.loadPhrase('unlock')).toEqual({ status: 'error' })
+    expect(k.loadFailureStatus('not an Error')).toBe('error')
   })
 
-  it('returns null for a stored value that is not a valid phrase', async () => {
+  it('returns error for a stored value that is not a valid phrase', async () => {
     const k = await import('../src/shared/storage/keychain')
     items.set('app.vaultme.phrase', { username: 'vaultme', password: 'not a phrase' })
-    expect(await k.loadPhrase('unlock')).toBeNull()
+    expect(await k.loadPhrase('unlock')).toEqual({ status: 'error' })
   })
 })
 
