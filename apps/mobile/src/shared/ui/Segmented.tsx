@@ -10,7 +10,7 @@ export function Segmented<T extends string>({ options, value, onChange }: Props<
   const t = useTheme()
   const pad = t.primitive.space[1]
   return (
-    <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', gap: pad, padding: pad, borderRadius: t.component.segmented.radius, backgroundColor: t.semantic.surface.subtle }}>
+    <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', gap: pad, padding: pad, borderRadius: t.component.segmented.radius, backgroundColor: t.component.segmented.bg }}>
       {options.map((o) => {
         const on = o.value === value
         return (
@@ -27,7 +27,7 @@ export function Segmented<T extends string>({ options, value, onChange }: Props<
               borderRadius: t.component.segmented.radius,
               borderWidth: on ? t.primitive.borderWidth.hairline : t.primitive.borderWidth.none,
               borderColor: t.component.segmented.border,
-              backgroundColor: on ? t.component.segmented.selectedBg : t.semantic.surface.subtle,
+              backgroundColor: on ? t.component.segmented.selectedBg : t.component.segmented.bg,
             }}
           >
             <Text variant="label" color={on ? t.component.segmented.selectedFg : t.component.segmented.fg}>{o.label}</Text>
