@@ -4,7 +4,7 @@
 
 상태: 현행 · 문서 갱신: 2026-10-14
 
-[문서 홈](outputs/README.md) · [HLD](outputs/design/hld.md) · [디자인 언어](outputs/VaultMe-DESIGN.md)
+[README](README.ko.md) · [문서 홈](outputs/README.md) · [HLD](outputs/design/hld.md) · [디자인 언어](outputs/VaultMe-DESIGN.md)
 
 ## Platform
 
