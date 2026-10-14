@@ -1,17 +1,20 @@
 import { useState } from 'react'
+import { router } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { View } from 'react-native'
 import { useTheme } from '@/shared/theme'
-import { Button, Input, Screen, Segmented, SensitiveReveal, Switch, Text } from '@/shared/ui'
+import { Button, Input, Screen, ScreenHeader, Segmented, SensitiveReveal, Switch, Text } from '@/shared/ui'
 
 // Dev-only gallery for the C29-C33 primitives (not linked from the app). Words are placeholders.
 const words = ['word', 'word', 'word', 'word', 'word', 'word'] as const
 
 export function KitPage() {
   const th = useTheme()
+  const { t } = useTranslation()
   const [seg, setSeg] = useState<'12' | '24'>('12')
   const [on, setOn] = useState(true)
   return (
-    <Screen>
+    <Screen header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}>
       <Text variant="title">Kit</Text>
       <Segmented options={[{ value: '24', label: '24단어' }, { value: '12', label: '12단어' }]} value={seg} onChange={setSeg} />
       <Switch label="switch" value={on} onValueChange={setOn} />
