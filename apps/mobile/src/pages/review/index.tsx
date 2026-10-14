@@ -8,6 +8,7 @@ import { useTheme } from '@/shared/theme'
 import { textStyle } from '@/shared/theme/fonts'
 import { BottomSheet, Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 import { ReviewPanel } from '@/widgets/review-panel/ReviewPanel'
+import { goBack } from '@/shared/lib/nav'
 
 const SHOWN_GROUPS = 4 // sheet compares only the leading chunks, then "…"
 
@@ -51,10 +52,10 @@ export function ReviewPage() {
   }, [isRisk, sheetParam])
   return (
     <Screen
-      header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}
+      header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
       footer={<Button label={t('review.confirm')} onPress={() => isRisk && setSheet(true)} />}
     >
-      <ReviewPanel values={values} onEditRecipient={() => router.dismissTo('/send')} onEditAmount={() => router.back()} />
+      <ReviewPanel values={values} onEditRecipient={() => router.dismissTo('/send')} onEditAmount={() => router.dismissTo({ pathname: '/send/amount', params: { to: values.recipient, amount: values.amount.replace(' ETH', '') } })} />
       <BottomSheet
         visible={sheet}
         onClose={() => setSheet(false)}

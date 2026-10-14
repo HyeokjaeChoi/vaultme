@@ -4,19 +4,21 @@ import { View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next'
 import { assets } from '@/entities/asset/fixtures'
+import { cleanAmount } from '@/entities/transaction/review'
 import { applyKey, exceedsBalance, isZeroAmount } from '@/shared/lib/amount'
 import { isAddressFormat, shortAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { useFoldIn } from '@/shared/theme/motion'
 import { Button, Group, Keypad, Screen, ScreenHeader, SummaryRow, Text } from '@/shared/ui'
+import { goBack } from '@/shared/lib/nav'
 
 /** R-S20B 얼마를 보낼까요? Amount step. The recipient answer folds into a summary row above the question. 최대 fills the fixture spendable balance. */
 export function SendAmountPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { to } = useLocalSearchParams<{ to?: string }>()
-  const [amount, setAmount] = useState('0.05')
+  const { to, amount: initial } = useLocalSearchParams<{ to?: string; amount?: string }>()
+  const [amount, setAmount] = useState(initial === undefined ? '0.05' : (cleanAmount(initial) ?? '0'))
   const fold = useFoldIn(th.primitive.space[2])
   const available = assets[0].balance
   const tooMuch = exceedsBalance(amount, available)
@@ -25,14 +27,14 @@ export function SendAmountPage() {
   return (
     <Screen
       topGap="group"
-      header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}
+      header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
       footer={<Button label={t('send.next')} disabled={isZeroAmount(amount) || tooMuch} onPress={() => router.push({ pathname: '/review', params: { to, amount } })} />}
     >
       <View style={{ flex: 1, justifyContent: 'space-between', gap: th.semantic.layout.sectionGap.product }}>
         <View style={{ gap: th.semantic.layout.groupGap }}>
           <Animated.View style={fold}>
             <Group>
-              <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to)} mono editLabel={t('common.edit')} onEdit={() => router.back()} />
+              <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to)} mono editLabel={t('common.edit')} onEdit={() => router.dismissTo({ pathname: '/send', params: { to } })} />
             </Group>
           </Animated.View>
           <Text variant="title" accessibilityRole="header">{t('send.amountQuestion')}</Text>
