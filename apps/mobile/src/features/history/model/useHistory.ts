@@ -1,5 +1,5 @@
 import { useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { api, createHistory, historyCache } from '@/shared/api'
 import { readPendingTx } from '@/features/send/model/usePendingTx'
 import { getAccountAddress } from '@/shared/storage'
@@ -11,7 +11,9 @@ const history = client ? createHistory({ fetchPage: (a, c) => client.history(a, 
 /** `null` until the first answer (loading); then the list state of S40. Real mode only (the fake adapter shows example rows). Reloads on focus. */
 export function useHistory(): { view: HistoryView | null; reload: () => void } {
   const [view, setView] = useState<HistoryView | null>(null)
+  const seq = useRef(0)
   const load = useCallback(async () => {
+    const id = ++seq.current // only the newest request may set the view
     const raw = readPendingTx()
     const local = raw === 'corrupt' ? null : raw
     let address: string | null = null
@@ -22,9 +24,10 @@ export function useHistory(): { view: HistoryView | null; reload: () => void } {
     }
     if (!history || !address) return setView(toView({ source: 'local', sent: [] }, local, Date.now()))
     try {
-      setView(toView(await history.load(address), local, Date.now()))
+      const r = await history.load(address)
+      if (id === seq.current) setView(toView(r, local, Date.now()))
     } catch {
-      setView(failedView(local)) // update_required also lands here; the client has already raised the S91 gate
+      if (id === seq.current) setView(failedView(local)) // update_required also lands here; the client has already raised the S91 gate
     }
   }, [])
   const reload = useCallback(() => {
