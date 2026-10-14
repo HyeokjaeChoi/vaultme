@@ -76,7 +76,7 @@ function Row({ item }: { item: HistoryItem }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${t('activity.send')}, ${shortAddress(item.counterparty)}, −${showAmount(item.amount, item.asset, 'floor')}, ${t(item.label)}`}
+      accessibilityLabel={`${t('activity.send')}, ${shortAddress(item.counterparty)}, ${clock(item.at)}, −${showAmount(item.amount, item.asset, 'floor')}, ${t(item.label)}`}
       onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: item.hash } })}>
       <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>{row}</View>
     </Pressable>

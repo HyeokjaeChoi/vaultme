@@ -36,5 +36,6 @@ it('shows an address in EIP-55 form, leaves hashes alone', () => {
 it('fixture recipients are valid EIP-55 addresses, so captures match the checksum display', async () => {
   const { review, recents } = await import('../src/entities/transaction/fixtures')
   const { toChecksumAddress } = await import('@vaultme/wallet-core')
-  for (const a of [review.recipient, ...recents.map((r) => r.address)]) expect(toChecksumAddress(a)).toBe(a)
+  // Checksum from the lowercase form: a wrongly mixed-case fixture would not round-trip.
+  for (const a of [review.recipient, ...recents.map((r) => r.address)]) expect(toChecksumAddress(a.toLowerCase())).toBe(a)
 })
