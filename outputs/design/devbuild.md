@@ -23,8 +23,7 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ## 명령 (`apps/mobile`)
 
 ```sh
-xcrun simctl list devices booted                           # UDID 확인
-export UDID=<위에서 확인한 UDID>
+export UDID=$(xcrun simctl list devices booted | grep -Eo '[0-9A-F-]{36}' | head -1)   # 부팅된 simulator
 npx expo prebuild --clean                                  # ios/ android/ 생성 (gitignore)
 npx expo run:ios --device $UDID
 emulator -avd signaldock-api37 &                           # 에뮬레이터가 없을 때
