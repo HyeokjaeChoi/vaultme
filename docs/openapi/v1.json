@@ -31,6 +31,7 @@
             "type": "string",
             "enum": [
               "invalid_request",
+              "invalid_cursor",
               "origin_forbidden",
               "method_not_allowed",
               "unauthorized",
@@ -190,6 +191,143 @@
           "jsonrpc",
           "id",
           "method"
+        ]
+      },
+      "HistoryResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryItem"
+            },
+            "maxItems": 50,
+            "description": "Newest first."
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Null on the last page."
+          },
+          "incomplete": {
+            "type": "boolean",
+            "description": "One block had more rows than the server can read for one address. Its rows are missing; `nextCursor` continues below it."
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "incomplete"
+        ]
+      },
+      "HistoryItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique within a response: `<hash>:<seq>`."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "native",
+              "internal",
+              "erc20"
+            ]
+          },
+          "hash": {
+            "type": "string"
+          },
+          "blockNumber": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "txIndex": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "timestamp": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Unix seconds."
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "in",
+              "out"
+            ],
+            "description": "Relative to the address. A transfer to itself is `out`."
+          },
+          "asset": {
+            "type": "string",
+            "enum": [
+              "ETH",
+              "USDC"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "pattern": "^\\d+$",
+            "description": "Raw units (wei, or USDC with 6 decimals), decimal string."
+          },
+          "from": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "description": "Null for a contract creation."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed"
+            ],
+            "description": "`failed`: the value did not move."
+          },
+          "zeroValue": {
+            "type": "boolean",
+            "description": "value is 0 (contract call, or an address-poisoning transfer, Q71)."
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "hash",
+          "blockNumber",
+          "txIndex",
+          "timestamp",
+          "direction",
+          "asset",
+          "value",
+          "from",
+          "to",
+          "status",
+          "zeroValue"
+        ]
+      },
+      "HistoryRequest": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "address"
         ]
       }
     },
@@ -405,6 +543,72 @@
           },
           "503": {
             "description": "Both upstreams failed (retryable)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/history": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HistoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "One page of history, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid address or cursor (`invalid_cursor`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Etherscan failed or was throttled (retryable)",
             "content": {
               "application/json": {
                 "schema": {

@@ -1,7 +1,8 @@
 # Copy to .dev.vars (git-ignored) for local secrets.
 # At least 32 random characters, for example: openssl rand -base64 48
 TOKEN_SECRET=replace-me-with-a-random-string-of-32-or-more-chars
-# Example: ETHERSCAN_API_KEY=
+# Etherscan V2 key for POST /v1/history. Get your own from etherscan.io/apis.
+ETHERSCAN_API_KEY=replace-me
 # RPC upstream keys for POST /v1/rpc (Sepolia). Get your own from infura.io and alchemy.com.
 INFURA_KEY=replace-me
 ALCHEMY_KEY=replace-me

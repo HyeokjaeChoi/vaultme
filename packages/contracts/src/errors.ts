@@ -4,6 +4,7 @@ import { z } from 'zod'
 // Names are chosen here; LLD fixes only the shape and the 426/429/503 cases.
 export const ERROR_CODES = [
   'invalid_request', // 400
+  'invalid_cursor', // 400, history cursor is malformed or belongs to another address
   'origin_forbidden', // 403
   'method_not_allowed', // 403, JSON-RPC method or eth_call target outside the allow-list
   'unauthorized', // 401 missing, bad or expired token; unknown install
@@ -31,6 +32,7 @@ export type ErrorEnvelope = z.infer<typeof ErrorEnvelope>
 
 const RETRYABLE: Record<ErrorCode, boolean> = {
   invalid_request: false,
+  invalid_cursor: false,
   origin_forbidden: false,
   method_not_allowed: false,
   unauthorized: false,

@@ -4,6 +4,8 @@ import {
   AppVersion,
   ErrorEnvelope,
   HealthResponse,
+  HistoryRequest,
+  HistoryResponse,
   InstallMeResponse,
   RegisterRequest,
   RegisterResponse,
@@ -13,11 +15,12 @@ import {
   errorEnvelope,
   isBelow,
 } from '@vaultme/contracts'
-import type { ErrorHandler } from 'hono'
+import type { ErrorHandler, MiddlewareHandler } from 'hono'
 import pkg from '../package.json' with { type: 'json' }
 import { importPublicKey, issueToken, limitInstall, nowSeconds, rateLimited, requireSigned, requireToken } from './auth.ts'
 import type { Env } from './env.ts'
-import { fail } from './errors.ts'
+import { getHistory } from './etherscan.ts'
+import { InvalidCursorError, UpstreamError, fail } from './errors.ts'
 import { proxyRpc, rpcAllowed } from './rpc.ts'
 
 // No CORS headers on purpose: the only client is the native app (LLD §4).
@@ -72,12 +75,13 @@ app.use('/v1/installs', async (c, next) => {
 })
 app.use('/v1/installs/token', requireSigned, limitInstall)
 app.use('/v1/installs/me', requireToken)
-app.use('/v1/rpc', async (c, next) => {
+const ipLimit = (name: 'RPC_IP_LIMITER' | 'HISTORY_IP_LIMITER'): MiddlewareHandler<Env> => async (c, next) => {
   const key = c.req.header('CF-Connecting-IP') ?? 'unknown'
-  if (!(await c.env.RPC_IP_LIMITER.limit({ key })).success) return rateLimited(c)
+  if (!(await c.env[name].limit({ key })).success) return rateLimited(c)
   await next()
-})
-app.use('/v1/rpc', requireToken)
+}
+app.use('/v1/rpc', ipLimit('RPC_IP_LIMITER'), requireToken)
+app.use('/v1/history', ipLimit('HISTORY_IP_LIMITER'), requireToken)
 
 app.openapi(
   createRoute({
@@ -154,6 +158,30 @@ app.openapi(
     const text = await proxyRpc(c.env, req)
     if (text === null) return c.json(errorEnvelope('unavailable', 'RPC upstream unavailable'), 503)
     return c.body(text, 200, { 'content-type': 'application/json' }) as never
+  },
+)
+
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/v1/history',
+    request: { body: { content: { 'application/json': { schema: HistoryRequest } }, required: true } },
+    responses: {
+      200: { description: 'One page of history, newest first', content: { 'application/json': { schema: HistoryResponse } } },
+      400: errorResponse('Invalid address or cursor (`invalid_cursor`)'),
+      503: errorResponse('Etherscan failed or was throttled (retryable)'),
+      ...bearer,
+    },
+  }),
+  async (c) => {
+    const { address, cursor } = c.req.valid('json')
+    try {
+      return c.json(await getHistory(c.env, address, cursor), 200)
+    } catch (e) {
+      if (e instanceof InvalidCursorError) return c.json(errorEnvelope('invalid_cursor', 'Invalid cursor'), 400)
+      if (e instanceof UpstreamError) return c.json(errorEnvelope('unavailable', 'History unavailable'), 503)
+      throw e
+    }
   },
 )
 

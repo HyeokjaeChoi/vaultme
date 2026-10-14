@@ -153,7 +153,7 @@ export function reduce(state: SendState, event: SendEvent): SendState
 | `POST /v1/installs/token` | 설치 서명 | token 발급·갱신 → `{token, expiresAt}` | Q57 |
 | `GET /v1/installs/me` | 설치 token | token 확인 → `{installId}`. `/v1/rpc`·`/v1/history`가 같은 방식으로 token을 검사한다 | Q57 |
 | `POST /v1/rpc` | 설치 | JSON-RPC proxy. 허용 method 목록만 통과 | Q58 |
-| `POST /v1/history` (body `{address, cursor}`) | 설치 | Etherscan 3종 병합·중복 제거·0원 표시 flag. 주소를 URL(log)에 남기지 않으려고 POST body로 받는다 (owner 결정 2026-10-14) | Q30, Q32, Q71 |
+| `POST /v1/history` (body `{address, cursor}`) | 설치 | Etherscan 3종 병합·중복 제거·0원 표시 flag. 응답·cursor는 §4.2. 주소를 URL(log)에 남기지 않으려고 POST body로 받는다 (owner 결정 2026-10-14) | Q30, Q32, Q71 |
 | `POST /v1/push/challenge` | 설치 | SIWE challenge 발급 (nonce, 만료) | Q28 |
 | `POST /v1/push/subscriptions` | 설치 + SIWE 서명 | 구독 생성, 기기 session 발급 | Q27, Q28 |
 | `PUT /v1/push/subscriptions/token` | 기기 session | push token 교체 | Q28 |
@@ -179,18 +179,29 @@ export function reduce(state: SendState, event: SendEvent): SendState
   - Upstream은 Infura(1순위), Alchemy(2순위)다. key는 wrangler secret `INFURA_KEY`, `ALCHEMY_KEY`. 네트워크 오류, timeout(5초), HTTP 2xx 아님(5xx·429·key 오류), 본문이 JSON-RPC 응답 형식이 아니면(HTML 등) 다음 upstream으로 넘긴다. 200 안의 JSON-RPC error는 정상 응답이라 재시도 없이 그대로 돌려준다. `eth_sendRawTransaction` 재전송은 같은 hash라 안전하다. 둘 다 실패하면 `503` `unavailable`(`retryable: true`). key가 없으면 `500`. URL·upstream 오류 본문은 log·응답에 남기지 않고, key가 든 응답 본문은 버린다.
 - 오류 응답 형식: `{ code, message, retryable }`. `code`는 `contracts`의 enum이다. 앱은 모르는 `code`를 `Unknown`으로 처리한다 (Q61).
 
-### 4.2 `/v1/history` 응답 (제안, #38 실측. 구현 전 확정 필요)
+### 4.2 `/v1/history` 응답 (확정, #42)
 
-근거: [실측](../../work/measurements/etherscan-sepolia-2026-10-14.md). 아래는 **제안**이다.
+근거: [실측](../../work/measurements/etherscan-sepolia-2026-10-14.md). 계약은 `packages/contracts/src/history.ts`, 구현은 `apps/api/src/history.ts`(병합·cursor), `etherscan.ts`(호출·cache)다.
 
-- 요청 `{address, cursor?}`. `address`는 proxy가 `^0x[0-9a-fA-F]{40}$`로 먼저 검증한다. Etherscan은 틀린 주소에도 "빈 결과"를 돌려준다.
-- 응답 `{items, nextCursor}`. `items`는 최신순 최대 **50건**, `nextCursor`는 불투명 문자열(`<주소 SHA-256 앞 8 hex>:<blockNumber>:<transactionIndex>:<seq>`, 주소 자체는 없음) 또는 `null`. cursor는 요청 `address`에 묶인다. 주소 hash가 다르면 `400 invalid_cursor`로 거부한다. 앱은 주소가 바뀌면 cursor를 버린다.
-- 항목: `kind`(`native`·`internal`·`erc20`), `hash`, `from`, `to`, `value`(wei·최소 단위 문자열), `blockNumber`, `timestamp`, `status`(`ok`·`failed`), `zeroValue`(boolean, Q71). erc20이면 `token`(`address`, `symbol`, `decimals`).
-- 병합: `txlist`·`txlistinternal`·`tokentx`를 병렬로 읽는다. **`tokentx`의 `contractAddress == 0xfffffffffffffffffffffffffffffffffffffffe`(가짜 `ETH` token) 행은 버린다.** Sepolia에서 native 이동이 중복으로 나온다.
-- 실패: `isError=1`(txlist·internal) 행은 `status: failed`로 표시한다. 값은 이동하지 않았다.
-- dedupe key: native `hash`, internal `hash+traceId`, erc20 `hash+contractAddress+from+to+value+n` (`n` = 같은 값 행의 응답 순서). `tokentx`에 logIndex가 없다.
-- 상류 한도: 요청당 최대 1000건, `page × offset ≤ 10000`. 깊은 page는 `endblock`으로 넘긴다.
-- Etherscan 오류는 HTTP 200 body로 온다. `message == "No transactions found"`는 빈 결과, `result`에 `rate limit` 또는 `Query Timeout`이 있으면 retryable(`503`), 나머지 `status=0`은 `503 unavailable`.
+- 요청 `{address, cursor?}`. `address`는 `^0x[0-9a-fA-F]{40}$`로 Etherscan 호출 전에 검증한다(틀리면 `400 invalid_request`). Etherscan은 틀린 주소에도 "빈 결과"를 돌려주기 때문이다.
+- 응답 `{items, nextCursor, incomplete}`. `items`는 최신순 최대 **50건**. `nextCursor`는 다음 page의 불투명 문자열이고, 마지막 page면 `null`이다.
+- 항목: `id`(`<hash>:<seq>`, 응답 안에서 유일), `kind`(`native`·`internal`·`erc20`), `hash`, `blockNumber`, `txIndex`, `timestamp`(unix 초), `direction`(`in`·`out`, 요청 주소 기준. 자기 자신에게 보낸 건 `out`), `asset`(`ETH`·`USDC`), `value`(wei·USDC 최소 단위 10진 문자열), `from`, `to`(소문자. contract 생성은 `null`), `status`(`ok`·`failed`), `zeroValue`(Q71). 서버는 token 정보를 따로 주지 않는다. token은 USDC 하나뿐이다.
+- 호출: `txlist`·`txlistinternal`·`tokentx`를 병렬로 읽는다(`chainid=11155111`, `sort=desc`). `tokentx`는 `contractaddress`를 USDC로 거른다. 그래도 `contractAddress`가 USDC가 아닌 행(가짜 `ETH` token `0xff…fe`)은 버린다.
+- 실패: `isError=1` 또는 `txreceipt_status=0`(txlist), `isError=1`(internal)은 `status: failed`. 값은 이동하지 않았다. `tokentx`는 성공한 Transfer만 있다.
+- dedupe key: native `hash`, internal `hash+traceId`, erc20 `hash+contract+from+to+value+n`(`n` = 같은 값 행의 개수 순번. logIndex가 없다). 같은 key는 한 번만 남긴다.
+- 정렬: `blockNumber` 내림차순, `transactionIndex` 내림차순. 같은 tx 안은 native → internal(`traceId`를 `_` 구간별 숫자순) → erc20(`from`, `to`, `value`, `n`순). 응답 순서에 기대지 않는다. Etherscan이 같은 block 안 순서를 바꿔도 결과가 같다.
+- Etherscan 오류는 HTTP 200 body로 온다. `message == "No transactions found"`는 빈 결과다. `result`에 `rate limit`이 있으면 bucket을 거쳐 한 번 더 부르고, 또 실패하면 `503`. `Query Timeout`, key 오류, 형식이 틀린 행, 네트워크 오류, HTTP 2xx 아님, timeout(8초)은 모두 `503 unavailable`(`retryable: true`)이다. key가 없으면 `500`(호출 전). URL·key·upstream 본문은 응답·log에 남기지 않는다.
+
+**Cursor** `<h8>:<blockNumber>:<txIndex>:<seq>` = page의 **마지막 행의 위치**. 다음 page = 이 위치보다 **엄격히 뒤**의 행.
+
+- `h8` = 소문자 주소 SHA-256의 앞 8 hex. 주소 자체는 들어가지 않는다. 요청 주소의 `h8`과 다르거나 형식이 틀리면 `400 invalid_cursor`(Etherscan 호출 전). 앱은 주소가 바뀌면 cursor를 버린다.
+- `seq` = 같은 `(blockNumber, txIndex)` 묶음 안에서, 위 정렬로 병합한 목록의 0부터 센 위치다. 목록 3개를 모두 합친 위치라서 **목록 사이 tie-breaker**(native < internal < erc20)가 seq에 들어 있다. 묶음 전체를 읽으면 매번 같은 값이 나온다.
+- 다음 page는 세 목록을 모두 `endblock=<cursor의 blockNumber>`(inclusive), `page=1`로 다시 읽는다. 그래서 경계 block은 목록마다 처음부터 끝까지 다시 읽히고, cursor 위치 이전(포함) 행은 걸러진다. 깊은 page는 page 번호가 아니라 `endblock`으로 넘긴다(`page × offset ≤ 10000` 제한 회피).
+- **안전한 구간**: 첫 읽기는 목록마다 `offset=100`. 창이 꽉 찬 목록은 가장 낮은 block `bottom`의 행이 더 있을 수 있다. 그래서 H = (꽉 찬 목록들의 `bottom` 중 최댓값)보다 **높은 block의 행만** 응답에 쓴다.
+- 안전한 행이 50건보다 적고 꽉 찬 목록이 있으면, H를 정하는 목록들을 더 깊게 읽는다. 순서는 `offset=1000, page=1`(앞의 읽기를 대체) → `page=2` → `page=3`. 한 요청의 Etherscan 호출은 최대 12회다.
+- **경계 block을 다 못 읽을 때** (한 목록의 한 block이 3000행을 넘음, spam 주소): 안전한 행만 돌려주고 `incomplete: true`, `nextCursor`는 그 block 전체를 건너뛰는 `<h8>:<H>:-1:0`이다(`txIndex = -1`은 "그 block 끝"). 그 block의 행은 빠진다. 추측해서 채우지 않고 flag로 알린다. 안전한 행이 0건이어도 응답은 `200`이고 cursor로 계속 갈 수 있다.
+- 한 목록이 정확히 창 크기만큼 와서 더 없는 경우도 "꽉 참"으로 본다. 한 번 더 읽어 빈 결과를 확인하므로 마지막 page의 `nextCursor`가 빈 page를 가리킬 수 있다(`items: []`, `nextCursor: null`).
+- 한계: 읽는 중에 새 행이 색인되면(`page ≥ 2` 읽기) 겹치는 행은 key로 지워진다. 단, **완전히 같은 erc20 행**은 겹침인지 진짜 반복인지 구분할 수 없어 `n`이 늘 수 있다(드문 경우).
 
 ## 5. Rate limit
 
@@ -220,11 +231,12 @@ Rate Limiting binding 제약 (Cloudflare 문서): period는 10초 또는 60초�
 
 Etherscan 무료 한도는 key 하나당 초당 3회다 (Q36 조사). 사용자별 rate limit과 별개로 서버 전체 호출을 이 한도 아래로 유지한다.
 
-- **Durable Object 1개**를 token bucket으로 쓴다 (초당 3 token, 기본값으로 2.5/초 사용해 여유를 둔다). Worker isolate가 여러 개여도 한 곳에서 판정해야 하기 때문이다. Durable Object는 Q38 구성에 추가되는 Cloudflare 구성 요소다.
-- `/v1/history` 응답은 주소별로 **30초** cache한다 (Cache API, 기본값). 같은 사용자의 반복 새로고침이 Etherscan을 다시 부르지 않는다. Cache key에는 주소를 hash해서 쓴다.
-- Token을 얻지 못하면 최대 2초 기다린다. 그래도 없으면 `503` + `retryable: true`를 응답한다. 앱은 기기 cache와 업데이트 시각을 보여준다 (Q58).
-- 한 `/v1/history` page는 Etherscan을 3회 부른다(목록 3개). 3개를 한 번에 부르면 token 3개가 필요하다 (#38 제안, 위 4.2).
-- 지표: `etherscan_throttled_total`, `etherscan_429_total`. Admin에 표시하고 provider 오류율 알림에 포함한다 (Q44, Q56).
+- **Durable Object 1개**(`EtherscanBucket`, 이름 `global`)를 token bucket으로 쓴다. 초당 **2.5** token(Etherscan 한도 3의 여유), 최대 3개(= history 1 page). Worker isolate가 여러 개여도 한 곳에서 판정해야 하기 때문이다. DO는 메모리만 쓴다. 유휴 뒤에만 내려가고, 그때는 bucket이 가득 찬 상태라 잃을 상태가 없다.
+- 호출마다 `acquire()` 한 번. DO가 token을 **미리 예약**하고 기다릴 시간(ms)을 돌려준다(0이면 바로). Worker는 그만큼 기다린 뒤 부른다. 기다릴 시간이 **2초**를 넘으면 거절하고(상태는 바뀌지 않는다), `/v1/history`는 `503` + `retryable: true`를 응답한다. 앱은 기기 cache와 업데이트 시각을 보여준다 (Q58).
+- Etherscan이 그래도 rate limit 메시지를 주면(`result`에 `rate limit`) bucket에서 token을 다시 받아 **한 번만** 재시도하고, 또 실패하면 `503`.
+- `/v1/history` 응답은 (주소 hash, cursor)별로 **30초** cache한다 (Cache API, 기본값). 같은 사용자의 반복 새로고침이 Etherscan을 다시 부르지 않는다. Cache key에는 주소 SHA-256만 쓰고 주소는 쓰지 않는다. 성공 응답만 cache한다. Cache API는 colo별이고 `workers.dev` 도메인에서는 동작하지 않는다(custom domain 필요).
+- 한 `/v1/history` page는 Etherscan을 **3회** 부른다(목록 3개). 경계 block이 크면 최대 12회까지 늘 수 있다(§4.2).
+- 지표: `etherscan_throttled_total`, `etherscan_429_total`(지금은 log 한 줄 `metric <name>`, 집계는 Ops 대시보드 작업에서). 성공한 호출의 지연만 log에 남긴다(실패는 제외). Admin에 표시하고 provider 오류율 알림에 포함한다 (Q44, Q56).
 
 ## 6. 송신 상태 전이
 

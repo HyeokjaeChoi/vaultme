@@ -6,36 +6,46 @@
   // vars only. No account IDs, no secrets here. Secrets go in `.dev.vars` (local) or `wrangler secret` (deployed).
   // Vars and bindings are not inherited by named environments, so each env repeats them.
   "vars": { "MIN_APP_VERSION": "0.0.0" },
+  // ETHERSCAN_API_KEY (history upstream) is a secret too. The EtherscanBucket Durable Object is one global token bucket (LLD §5.1).
   // INFURA_KEY and ALCHEMY_KEY (RPC upstreams) are secrets too, set the same way.
   // TOKEN_SECRET (>= 32 chars) is a secret: .dev.vars locally, `wrangler secret put TOKEN_SECRET` when deployed.
   // database_id is left out so wrangler provisions the D1 database on first deploy. Local dev needs none.
+  "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
   "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api", "migrations_dir": "migrations" }],
   // Cloudflare limits count per location and are approximate (LLD §5.0). period is 10 or 60 only.
   // namespace_id is account-wide: each env needs its own ids (1xxx top level, 2xxx staging, 3xxx production).
   "ratelimits": [
     { "name": "INSTALL_IP_LIMITER", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } },
     { "name": "INSTALL_LIMITER", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } },
-    { "name": "RPC_IP_LIMITER", "namespace_id": "1003", "simple": { "limit": 300, "period": 60 } }
+    { "name": "RPC_IP_LIMITER", "namespace_id": "1003", "simple": { "limit": 300, "period": 60 } },
+    { "name": "HISTORY_IP_LIMITER", "namespace_id": "1004", "simple": { "limit": 300, "period": 60 } }
   ],
   "env": {
     "staging": {
       "name": "vaultme-api-staging",
       "vars": { "MIN_APP_VERSION": "0.0.0" },
+      "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
+      "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
       "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api-staging", "migrations_dir": "migrations" }],
       "ratelimits": [
         { "name": "INSTALL_IP_LIMITER", "namespace_id": "2001", "simple": { "limit": 3, "period": 60 } },
         { "name": "INSTALL_LIMITER", "namespace_id": "2002", "simple": { "limit": 60, "period": 60 } },
-        { "name": "RPC_IP_LIMITER", "namespace_id": "2003", "simple": { "limit": 300, "period": 60 } }
+        { "name": "RPC_IP_LIMITER", "namespace_id": "2003", "simple": { "limit": 300, "period": 60 } },
+        { "name": "HISTORY_IP_LIMITER", "namespace_id": "2004", "simple": { "limit": 300, "period": 60 } }
       ]
     },
     "production": {
       "name": "vaultme-api-production",
       "vars": { "MIN_APP_VERSION": "0.0.0" },
+      "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
+      "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
       "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api-production", "migrations_dir": "migrations" }],
       "ratelimits": [
         { "name": "INSTALL_IP_LIMITER", "namespace_id": "3001", "simple": { "limit": 3, "period": 60 } },
         { "name": "INSTALL_LIMITER", "namespace_id": "3002", "simple": { "limit": 60, "period": 60 } },
-        { "name": "RPC_IP_LIMITER", "namespace_id": "3003", "simple": { "limit": 300, "period": 60 } }
+        { "name": "RPC_IP_LIMITER", "namespace_id": "3003", "simple": { "limit": 300, "period": 60 } },
+        { "name": "HISTORY_IP_LIMITER", "namespace_id": "3004", "simple": { "limit": 300, "period": 60 } }
       ]
     }
   }
