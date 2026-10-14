@@ -8,7 +8,7 @@ import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
 import { Button, Input, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 
-/** R-S04 단어 확인. Asks the 3 positions picked by S03. Wrong: error text, stay. Right: backup flag set, back to Home. */
+/** R-S04 단어 확인. Asks the 3 positions picked by S03. Wrong: error text, stay. Right: backup flag set, then Receive (S30) with Home beneath. */
 export function BackupCheckPage() {
   const { t } = useTranslation()
   const th = useTheme()
@@ -26,6 +26,7 @@ export function BackupCheckPage() {
     setBackupDone(true)
     clearCheck()
     router.dismissTo('/home')
+    router.push('/receive') // ux-flow §4: S04 ok -> S30; back from Receive lands on Home
   }
 
   return (

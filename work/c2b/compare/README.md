@@ -9,4 +9,6 @@ Light mode unless noted. App: iPhone 18 Pro simulator, 402x874 pt at 3x. Figma f
 | S03R revealed (dev fixture `/backup?demo=1`) | C2b-S03R 364:929 | `s03r-app.png` | `s03r-figma.png` | None seen. |
 | S04 word check (dev fixture `/backup/check?demo=1`) | C2b-S04 364:1030 | `s04-app.png` | `s04-figma.png` | Figma shows the first field focused; the app has no autofocus. |
 
+S03 body text no longer promises a capture block (Q43): "화면을 캡처하지 마세요." in app and in Figma 364:849 / 364:929 (audit 0).
+
 Status bar, nav row and the floating gear in the app captures are the simulator and the Expo dev menu button, not app UI.

@@ -13,6 +13,7 @@ export function AssetRow({ name, symbol, balance, note }: Props) {
   return (
     <View
       accessible
+      focusable={false} // Android: no grey keyboard-focus highlight on a read-only row
       accessibilityLabel={`${name}, ${balance} ${symbol}, ${note}`}
       style={{
         minHeight: c.minHeight,

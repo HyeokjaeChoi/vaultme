@@ -15,7 +15,7 @@ export function PrecheckPage() {
     setBusy(true)
     setFailed(false)
     try {
-      await createWallet()
+      await createWallet({ title: t('backup.authPromptSave'), cancel: t('common.cancel') })
       router.replace('/home')
     } catch {
       setBusy(false)

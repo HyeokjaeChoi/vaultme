@@ -14,6 +14,7 @@ export function PlaceholderQr({ note }: { note: string }) {
   return (
     <View
       accessible
+      focusable={false} // Android: no grey keyboard-focus highlight on a read-only row
       accessibilityLabel={note}
       style={{ width: card, height: card, borderRadius: t.semantic.shape.group, backgroundColor: t.primitive.color.neutral[0], alignItems: 'center', justifyContent: 'center' }}
     >

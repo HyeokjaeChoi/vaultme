@@ -15,6 +15,7 @@ export function ActivityRow({ title, detail, time, amount, kind, status, statusL
   return (
     <View
       accessible
+      focusable={false} // Android: no grey keyboard-focus highlight on a read-only row
       accessibilityLabel={`${title}, ${time}, ${amount}, ${statusLabel}`}
       style={{ minHeight: c.minHeight, gap, paddingVertical: c.list.paddingY }}
     >

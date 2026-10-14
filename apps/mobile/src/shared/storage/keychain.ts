@@ -26,8 +26,11 @@ const KV_KEY_OPTIONS = {
   cloudSync: false,
 } as const
 
-export async function savePhrase(m: Mnemonic): Promise<void> {
-  const ok = await Keychain.setGenericPassword(USER, m.reveal(), PHRASE_OPTIONS)
+/** OS auth sheet text, shown by BiometricPrompt on Android (the OS default is English). */
+export type AuthPrompt = { title: string; cancel: string }
+
+export async function savePhrase(m: Mnemonic, prompt: AuthPrompt): Promise<void> {
+  const ok = await Keychain.setGenericPassword(USER, m.reveal(), { ...PHRASE_OPTIONS, authenticationPrompt: prompt })
   if (!ok) throw new Error('keychain: save failed')
 }
 
@@ -38,12 +41,12 @@ export const loadFailureStatus = (e: unknown): 'cancelled' | 'error' =>
   e instanceof Error && /cancel/i.test(e.message) ? 'cancelled' : 'error'
 
 /** Asks the OS for auth. Never throws: the UI gets `ok`, `cancelled` (user dismissed auth) or `error` (missing/corrupt item, keychain failure). */
-export async function loadPhrase(prompt: string): Promise<LoadPhraseResult> {
+export async function loadPhrase(prompt: AuthPrompt): Promise<LoadPhraseResult> {
   try {
     const item = await Keychain.getGenericPassword({
       service: PHRASE_SERVICE,
       accessControl: PHRASE_OPTIONS.accessControl,
-      authenticationPrompt: { title: prompt },
+      authenticationPrompt: prompt,
     })
     if (!item) return { status: 'error' }
     return { status: 'ok', mnemonic: new Mnemonic(item.password) }

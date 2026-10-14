@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // Published BIP39 test vector (all-zero entropy). Not a wallet phrase.
 const VECTOR = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
+const PROMPT = { title: '인증하세요', cancel: '취소' }
+
 const items = new Map<string, { username: string; password: string }>()
 const calls: { fn: string; service: string; opts?: Record<string, unknown> }[] = []
 let failGet: string | false = false
@@ -65,19 +67,21 @@ describe('keychain phrase', () => {
     const { Mnemonic } = await import('@vaultme/wallet-core')
     const k = await import('../src/shared/storage/keychain')
     expect(await k.hasPhrase()).toBe(false)
-    await k.savePhrase(new Mnemonic(VECTOR))
+    await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
     expect(await k.hasPhrase()).toBe(true)
     const set = calls.find((c) => c.fn === 'set')!
     expect(set.opts).toMatchObject({
       accessControl: 'BiometryAnyOrDevicePasscode',
       accessible: 'AccessibleWhenPasscodeSetThisDeviceOnly',
       cloudSync: false,
+      authenticationPrompt: PROMPT,
     })
-    const loaded = await k.loadPhrase('unlock')
+    const loaded = await k.loadPhrase(PROMPT)
+    expect(calls.find((c) => c.fn === 'get')!.opts).toMatchObject({ authenticationPrompt: PROMPT })
     expect(loaded.status === 'ok' && loaded.mnemonic.reveal()).toBe(VECTOR)
     await k.deletePhrase()
     expect(await k.hasPhrase()).toBe(false)
-    expect(await k.loadPhrase('unlock')).toEqual({ status: 'error' })
+    expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'error' })
   })
 
   it('deletePhrase throws only when the item survives a failed reset', async () => {
@@ -94,18 +98,18 @@ describe('keychain phrase', () => {
   it('maps a user cancel to cancelled and other failures to error', async () => {
     const { Mnemonic } = await import('@vaultme/wallet-core')
     const k = await import('../src/shared/storage/keychain')
-    await k.savePhrase(new Mnemonic(VECTOR))
+    await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
     failGet = 'User canceled the operation.'
-    expect(await k.loadPhrase('unlock')).toEqual({ status: 'cancelled' })
+    expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'cancelled' })
     failGet = 'keychain exploded'
-    expect(await k.loadPhrase('unlock')).toEqual({ status: 'error' })
+    expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'error' })
     expect(k.loadFailureStatus('not an Error')).toBe('error')
   })
 
   it('returns error for a stored value that is not a valid phrase', async () => {
     const k = await import('../src/shared/storage/keychain')
     items.set('app.vaultme.phrase', { username: 'vaultme', password: 'not a phrase' })
-    expect(await k.loadPhrase('unlock')).toEqual({ status: 'error' })
+    expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'error' })
   })
 })
 

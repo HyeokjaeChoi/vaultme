@@ -40,7 +40,7 @@ export function SendAmountPage() {
           <Text variant="title" accessibilityRole="header">{t('send.amountQuestion')}</Text>
         </View>
         <View style={{ alignItems: 'center', gap }}>
-          <View accessible accessibilityLabel={`${amount} ETH`} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'center', gap }}>
+          <View accessible focusable={false} accessibilityLabel={`${amount} ETH`} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'center', gap }}>
             <Text variant="amountHero">{amount}</Text>
             <Text variant="title" color={th.semantic.text.secondary}>ETH</Text>
           </View>

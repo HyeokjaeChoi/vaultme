@@ -31,16 +31,17 @@ export const ko = {
     backupCta: '백업 시작',
     noQuote: '시장 가격 없음',
   },
-  // S03/S04: approved copy (ux-copy.md). authPrompt, loadError and check.wrong are not in ux-copy yet (PR #20 open question).
+  // S03/S04: approved copy (ux-copy.md). authPrompt*, loadError, check.wrong and precheck.createError were approved by the owner in PR #28 (not yet in ux-copy.md); the S03 body drops the capture promise (Q43).
   backup: {
     title: '복구 구문',
-    body: '아래 12단어를 순서대로 종이에 적으세요. 이 화면은 캡처할 수 없어요.',
+    body: '아래 12단어를 순서대로 종이에 적으세요. 화면을 캡처하지 마세요.',
     reveal: '탭해서 보기',
     revealHint: '주변에 아무도 없는지 확인하세요',
     warnTitle: '누구에게도 보여 주지 마세요',
     warnBody: 'VaultMe도, 고객지원도 복구 구문을 묻지 않아요.',
     done: '다 적었어요',
     authPrompt: '복구 구문을 보려면 인증하세요',
+    authPromptSave: '지갑을 만들려면 인증하세요',
     loadError: { title: '복구 구문을 불러오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
     check: {
       title: '단어 확인',

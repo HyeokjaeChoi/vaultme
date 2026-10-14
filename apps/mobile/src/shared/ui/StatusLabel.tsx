@@ -22,6 +22,7 @@ export function StatusLabel({ state, label }: { state: State; label: string }) {
   return (
     <View
       accessible
+      focusable={false} // Android: no grey keyboard-focus highlight on a read-only row
       accessibilityLabel={label}
       style={{
         alignSelf: 'flex-start',
