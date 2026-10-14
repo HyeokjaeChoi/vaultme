@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AppVersion, canonicalString, ErrorEnvelope, HistoryRequest, errorEnvelope, isBelow } from '../src/index.ts'
+import { AppVersion, canonicalString, ErrorEnvelope, HistoryRequest, HistoryResponse, errorEnvelope, isBelow } from '../src/index.ts'
 
 describe('contracts', () => {
   it('builds a valid error envelope', () => {
@@ -15,6 +15,11 @@ describe('contracts', () => {
   it('validates the history body', () => {
     expect(HistoryRequest.safeParse({ address: '0x' + 'a'.repeat(40) }).success).toBe(true)
     expect(HistoryRequest.safeParse({ address: '0x12' }).success).toBe(false)
+  })
+  it('history response and the invalid_cursor error', () => {
+    expect(HistoryResponse.safeParse({ items: [], nextCursor: null, incomplete: false }).success).toBe(true)
+    expect(HistoryResponse.safeParse({ items: [] }).success).toBe(false)
+    expect(errorEnvelope('invalid_cursor', 'x')).toEqual({ code: 'invalid_cursor', message: 'x', retryable: false })
   })
   it('canonical string test vector', () => {
     // The mobile client (#43) must reproduce this exact string.

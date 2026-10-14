@@ -181,7 +181,7 @@ export function createApiClient(d: ApiDeps) {
       if (!('result' in r)) throw unknown('rpc: no result')
       return r.result
     },
-    /** POST /v1/history (lld.md §4). The response shape is not fixed yet (#42), so it is returned as is. */
+    /** POST /v1/history (lld.md §4). Returned as is (`HistoryResponse`, lld §4.2): the history model checks each item, so one unknown item does not fail the page. */
     history(address: string, cursor?: string): Promise<unknown> {
       return post('/v1/history', HistoryRequest.parse({ address, ...(cursor === undefined ? {} : { cursor }) }), (v) => v)
     },

@@ -1,8 +1,9 @@
+import { HistoryItem as ApiHistoryItem } from '@vaultme/contracts'
+import { fromUnits } from '@vaultme/wallet-core'
 import type { HistoryResult } from '@/shared/api/history'
 import type { PendingTx } from '@/shared/storage'
 import type { ActivityStatus } from '@/shared/ui'
 import { txView } from '@/features/send/model/txView'
-import type { TxState } from '@/features/send/model/txState'
 
 export type HistoryItem = {
   hash: string
@@ -20,21 +21,30 @@ export type HistoryItem = {
   local: boolean
 }
 
-const STATUS: Record<string, TxState> = { pending: 'Pending', confirmed: 'Confirmed', failed: 'Failed' }
-const str = (v: unknown): v is string => typeof v === 'string' && v.length > 0
-
 /**
- * ponytail: the `POST /v1/history` response shape is not fixed yet (#42). This reads `{ items: [{ hash, kind, asset, amount, counterparty,
- * timestamp (unix seconds), status: pending | confirmed | failed }] }` and drops anything else. Change it together with #42.
+ * `POST /v1/history` response (lld.md §4.2): `{ items: HistoryItem[], nextCursor, incomplete }`. Each item is checked against the
+ * contract and dropped when it does not fit (a newer server may send what this app does not know). Items are always on-chain
+ * (`ok` | `failed`); pending sends come from the local record. Incoming zero-value rows are hidden (Q71). Paging with `nextCursor` is not used yet.
  */
 export function parseItems(data: unknown): HistoryItem[] {
   const items = (data as { items?: unknown } | null)?.items
   if (!Array.isArray(items)) return []
   const out: HistoryItem[] = []
-  for (const x of items as Record<string, unknown>[]) {
-    const state = typeof x?.status === 'string' ? STATUS[x.status] : undefined
-    if (!str(x?.hash) || (x.kind !== 'send' && x.kind !== 'receive') || !str(x.asset) || !str(x.amount) || !str(x.counterparty) || typeof x.timestamp !== 'number' || !state) continue
-    out.push({ hash: x.hash, kind: x.kind, asset: x.asset, amount: x.amount, counterparty: x.counterparty, at: x.timestamp * 1000, ...txView(state), local: false })
+  for (const x of items) {
+    const p = ApiHistoryItem.safeParse(x)
+    if (!p.success) continue
+    const i = p.data
+    if (i.zeroValue && i.direction === 'in') continue // Q71: incoming 0-value rows are the address-poisoning vector. Own calls stay.
+    out.push({
+      hash: i.hash,
+      kind: i.direction === 'out' ? 'send' : 'receive',
+      asset: i.asset,
+      amount: fromUnits(BigInt(i.value), i.asset),
+      counterparty: (i.direction === 'out' ? i.to : i.from) ?? '',
+      at: i.timestamp * 1000,
+      ...txView(i.status === 'ok' ? 'Confirmed' : 'Failed'),
+      local: false,
+    })
   }
   return out
 }

@@ -10,14 +10,36 @@ const A = '0x' + 'a'.repeat(40)
 const H1 = '0x' + '1'.repeat(64)
 const H2 = '0x' + '2'.repeat(64)
 const local: PendingTx = { hash: H1, nonce: 0, asset: 'ETH', to: A, amount: '0.05', createdAt: 5_000_000, lastCheckedAt: 1, state: 'Pending' }
-const item = (hash: string, timestamp: number, status = 'confirmed') => ({ hash, kind: 'receive', asset: 'ETH', amount: '0.2', counterparty: A, timestamp, status })
+const B = '0x' + 'b'.repeat(40)
+// HistoryItem of the API contract (lld §4.2). `out` rows show the recipient, `in` rows the sender.
+const item = (hash: string, timestamp: number, status = 'ok', o: Record<string, unknown> = {}) => ({
+  id: `${hash}:0`, kind: 'native', hash, blockNumber: 1, txIndex: 0, timestamp, direction: 'in', asset: 'ETH', value: '200000000000000000', from: B, to: A, status, zeroValue: false, ...o,
+})
 
 describe('history view (Q58)', () => {
-  it('parses provisional items and drops what it does not understand', () => {
+  it('parses contract items and drops what it does not understand', () => {
     expect(parseItems({ items: [item(H2, 100), { hash: 'x' }, null, item(H2, 100, 'weird')] })).toHaveLength(1)
     expect(parseItems(undefined)).toEqual([])
     expect(parseItems({ items: 'no' })).toEqual([])
     expect(parseItems({ items: [item(H2, 100)] })[0]).toMatchObject({ at: 100_000, status: 'confirmed', label: 'activity.confirmed', local: false })
+  })
+  it('hides incoming zero-value rows (Q71), keeps own zero-value calls', () => {
+    const rows = parseItems({ items: [item(H2, 1, 'ok', { value: '0', zeroValue: true }), item(H2, 2, 'ok', { direction: 'out', from: A, to: B, value: '0', zeroValue: true })] })
+    expect(rows.map((r) => r.kind)).toEqual(['send'])
+  })
+  it('maps direction, raw value and status', () => {
+    const [recv, sent, usdc, bad] = parseItems({
+      items: [
+        item(H2, 1),
+        item(H2, 2, 'ok', { direction: 'out', from: A, to: B, value: '1500000000000000000' }),
+        item(H2, 3, 'ok', { kind: 'erc20', asset: 'USDC', value: '12340000' }),
+        item(H2, 4, 'failed', { direction: 'out', from: A, to: null }),
+      ],
+    })
+    expect(recv).toMatchObject({ kind: 'receive', asset: 'ETH', amount: '0.2', counterparty: B })
+    expect(sent).toMatchObject({ kind: 'send', amount: '1.5', counterparty: B })
+    expect(usdc).toMatchObject({ asset: 'USDC', amount: '12.34' })
+    expect(bad).toMatchObject({ kind: 'send', status: 'failed', label: 'activity.failed', counterparty: '' })
   })
   it('api result: updatedAt is the fetch time, not failed; the local send wins over the same hash and sorts newest first', () => {
     const v = toView({ source: 'api', data: { items: [item(H1, 1), item(H2, 9000)] }, updatedAt: 777 }, local, 99)
@@ -29,7 +51,7 @@ describe('history view (Q58)', () => {
     expect(v).toMatchObject({ updatedAt: 123, failed: true })
     expect(v.items).toHaveLength(1)
   })
-  it('404 (no history API yet): only what this device sent, updated now', () => {
+  it('404 / no client / no address: only what this device sent, updated now', () => {
     const v = toView({ source: 'local', sent: [] }, local, 555)
     expect(v).toMatchObject({ updatedAt: 555, failed: false })
     expect(v.items.map((i) => i.hash)).toEqual([H1])

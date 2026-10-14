@@ -16,7 +16,7 @@ export type HistoryResult =
   | { source: 'local'; sent: PendingTx[] }
 
 /**
- * Q58: last good result is kept with its update time. `POST /v1/history` may not exist yet (#42): 404 -> locally recorded sends.
+ * Q58: last good result is kept with its update time. 404 (an API without `/v1/history`, e.g. an old deployment) -> locally recorded sends. The same list is shown when there is no API client or no address.
  * Other failures show the cache (with the error) or throw. `update_required` always throws (S91 is #44).
  */
 export function createHistory(d: HistoryDeps) {
