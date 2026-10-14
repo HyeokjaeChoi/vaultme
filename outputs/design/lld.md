@@ -85,7 +85,7 @@ vaultme/
 | 관측 | `@sentry/react-native`, `@sentry/cloudflare`, Workers Analytics Engine | Q50, Q56 |
 | Lint | ESLint flat + typescript-eslint + Prettier + Steiger + Stylelint | Q68 |
 | 루팅·탈옥 탐지 | `expo-device` `isRootedExperimentalAsync` | 기본값 검토 |
-| 테스트 | Vitest, fast-check, `@cloudflare/vitest-pool-workers`, anvil (`anvil_reorg`, `anvil_snapshot`/`anvil_revert`), Maestro, Playwright + axe, oasdiff | Q67, Q76 |
+| 테스트 | Vitest, fast-check, `@cloudflare/vitest-plugin` (구 vitest-pool-workers, rename·deprecated), anvil (`anvil_reorg`, `anvil_snapshot`/`anvil_revert`), Maestro, Playwright + axe, oasdiff | Q67, Q76 |
 | 의존성 갱신 | Renovate | Q74 |
 
 ## 3. `wallet-core` interface
@@ -140,7 +140,7 @@ export function reduce(state: SendState, event: SendEvent): SendState
 | `POST /v1/installs` | 없음 (rate limit) | 익명 설치 등록, 짧은 수명 token 발급 | Q57 |
 | `POST /v1/installs/token` | 설치 서명 | token 갱신 | Q57 |
 | `POST /v1/rpc` | 설치 | JSON-RPC proxy. 허용 method 목록만 통과 | Q58 |
-| `GET /v1/history?cursor=` | 설치 | Etherscan 3종 병합·중복 제거·0원 표시 flag | Q30, Q32, Q71 |
+| `POST /v1/history` (body `{address, cursor}`) | 설치 | Etherscan 3종 병합·중복 제거·0원 표시 flag. 주소를 URL(log)에 남기지 않으려고 POST body로 받는다 (owner 결정 2026-10-14) | Q30, Q32, Q71 |
 | `POST /v1/push/challenge` | 설치 | SIWE challenge 발급 (nonce, 만료) | Q28 |
 | `POST /v1/push/subscriptions` | 설치 + SIWE 서명 | 구독 생성, 기기 session 발급 | Q27, Q28 |
 | `PUT /v1/push/subscriptions/token` | 기기 session | push token 교체 | Q28 |

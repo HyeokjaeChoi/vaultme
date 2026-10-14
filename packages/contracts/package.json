@@ -1,0 +1,22 @@
+{
+  "name": "@vaultme/contracts",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "zod": "^4.6.0"
+  },
+  "devDependencies": {
+    "@vaultme/config": "workspace:*",
+    "eslint": "^10.12.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
+  }
+}

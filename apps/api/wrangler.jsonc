@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vaultme-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-13",
+  // vars only. No account IDs, no secrets here. Secrets go in `.dev.vars` (local) or `wrangler secret` (deployed).
+  // Vars are not inherited by named environments, so each env repeats them.
+  "vars": { "MIN_APP_VERSION": "0.0.0" },
+  "env": {
+    "staging": {
+      "name": "vaultme-api-staging",
+      "vars": { "MIN_APP_VERSION": "0.0.0" }
+    },
+    "production": {
+      "name": "vaultme-api-production",
+      "vars": { "MIN_APP_VERSION": "0.0.0" }
+    }
+  }
+}
