@@ -23,7 +23,7 @@ vaultme/
 │  ├─ web/                     # React Router v7 framework mode (Q45)
 │  │  ├─ app/routes/           # route 파일만
 │  │  ├─ src/{pages,widgets,features,entities,shared}
-│  │  ├─ public/{_headers,_redirects}  # 보안 header, /admin/* → /__spa-fallback 200 rewrite
+│  │  ├─ public/{_headers,_redirects}  # 보안 header, /admin 및 /admin/* → /__spa-fallback 200 rewrite
 │  │  └─ wrangler.jsonc        # assets.directory=./build/client, SPA fallback, env: staging, production
 │  └─ api/                     # Cloudflare Workers (Q38)
 │     ├─ src/
