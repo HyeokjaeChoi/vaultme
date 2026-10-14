@@ -59,12 +59,13 @@ export function ReviewPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { risk, sheet: sheetParam, to, amount } = useLocalSearchParams<{ risk?: string; sheet?: string; to?: string; amount?: string }>()
+  const { risk, sheet: sheetParam, to, amount, notice: noticeParam } = useLocalSearchParams<{ risk?: string; sheet?: string; to?: string; amount?: string; notice?: string }>()
   const base = resolveReview(to, amount, risk === '1')
   const core = useReviewCore(base.recipient, base.amount.replace(' ETH', ''))
   const values = core.review ? resolveReview(to, amount, risk === '1', core.review) : base
   const [busy, setBusy] = useState(false)
-  const [notice, setNotice] = useState<Notice | null>(null)
+  // `?notice=` is a __DEV__ capture override (Figma C3-S22 notice states).
+  const [notice, setNotice] = useState<Notice | null>(__DEV__ && noticeParam && noticeParam in NOTICE ? (noticeParam as Notice) : null)
   const [cause, setCause] = useState<unknown>(null)
   const send = async () => {
     if (!core.review || busy) return
