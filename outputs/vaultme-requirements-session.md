@@ -80,6 +80,8 @@ Q44 승인: Admin은 읽기 전용 운영 대시보드(React + TypeScript)로 �
 
 Q45 승인: 공개 랜딩과 Admin 대시보드는 하나의 React Router v7 framework mode 프로젝트로 만든다. `ssr: false`로 두고 랜딩 경로만 `prerender`해 SEO를 충족한다. Admin 경로는 SPA fallback으로 로그인 후 브라우저에서 데이터를 불러온다. Cloudflare Pages에 정적 배포한다. 쓰기 작업은 Hono API가 맡는다. Next.js·런타임 SSR은 쓰지 않는다.
 
+변경(2026-10-14, #36): Q45의 배포 대상을 Cloudflare Pages에서 별도 Worker + Static Assets로 바꾼다. 근거는 Cloudflare Workers Best Practices의 새 프로젝트 권고와 로컬 spike다 (docs/adr/0001-web-hosting-workers-static-assets.md). 나머지 Q45 결정은 그대로다.
+
 Q46 승인: Review에 예상 수수료와 최대 수수료(EIP-1559 `maxFeePerGas` 기반 상한)를 함께 표시하고 사용자는 상한을 승인한다. 제출 시 필요한 상한이 승인한 상한보다 높아질 때만 재검토·재인증한다. 상한 이하의 변동은 다시 묻지 않는다. Native Max는 상한 기준으로 계산한다. 오래된 추정값에는 업데이트 시각과 재계산 버튼을 둔다. 공개 랜딩 SEO는 prerender HTML로 충족하며 route `meta`, sitemap, robots를 둔다.
 
 Q47 승인: Pending 또는 Unknown 송신이 있으면 새 송신을 막는다. 이유와 기존 거래 상태(재조회, explorer 링크)를 보여준다. 이중 송금과 nonce 대기열 문제를 피한다. 동시 송신·nonce 대기열은 replacement transaction과 함께 후속 범위다.
@@ -95,6 +97,8 @@ Q50 승인: 앱은 Sentry로 크래시와 성능 측정만 수집한다. 전송 
 Q51 승인(HLD): pnpm workspaces + Turborepo monorepo로 구성한다. `apps/mobile`(Expo), `apps/web`(React Router), `apps/api`(Cloudflare Workers), `packages/*`(API schema, 도메인 타입·상태 모델, Foundation token, decimal 규칙 등 공유 코드). Expo native 빌드 의존성 문제가 생기면 `nodeLinker: hoisted`로 대응한다. module 경계는 LLD에서 ESLint 규칙으로 정한다.
 
 Q52 승인(HLD): 환경은 local + staging + production이다. 모두 Sepolia를 쓴다. 환경마다 Cloudflare D1·Queue·secret·provider key와 EAS channel을 분리한다. 웹은 PR마다 Cloudflare Pages 미리보기 URL을 쓴다. Migration과 배포 절차는 staging에서 먼저 실행한다. PR 단위 API 임시 환경은 필요가 반복될 때 추가한다.
+
+변경(2026-10-14, #36): Q52의 웹 미리보기를 Cloudflare Pages 미리보기 URL에서 Workers 미리보기로 바꾼다. Workers Builds 또는 `wrangler versions upload --preview-alias`를 쓴다. Staging은 `wrangler deploy --env staging`, release는 gradual deployment와 `wrangler rollback`이다 (docs/adr/0001-web-hosting-workers-static-assets.md). 나머지 Q52 결정은 그대로다.
 
 Q53 승인(HLD): 배포는 예전 모바일 앱 호환을 zero downtime의 기준으로 삼는다. ① API v1은 필드 추가만 허용하고 깨지는 변경은 `/v2`로 분리한다. 앱은 버전 header를 보내고 서버는 최소 지원 버전 미만에 업데이트 안내를 응답한다. ② D1은 expand → 새 코드 배포 → 데이터 이전 → contract 순서로 바꾸며 한 migration에 열 삭제·이름 변경을 넣지 않는다. ③ Workers는 gradual deployment 후 오류율 확인 뒤 확대하고 이상 시 rollback한다. ④ Mobile은 JS 수정은 EAS Update, native 변경은 store 빌드로 하고 runtime version으로 비호환 업데이트를 막는다. Web은 Pages 원자 배포·즉시 rollback. 블루/그린은 D1 데이터 분리 문제로 쓰지 않는다. 규칙 강제 도구는 LLD·CI/CD에서 정한다.
 
