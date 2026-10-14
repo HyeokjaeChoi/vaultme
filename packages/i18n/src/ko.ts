@@ -8,7 +8,7 @@ export const ko = {
     create: '새 지갑 만들기',
     restore: '기존 지갑 복구',
   },
-  // S90: title, button and the Face ID body are approved (ux-copy.md). The other bodies (device type), authPrompt and the two notices are new (listed in the PR for approval).
+  // S90: title, button and the Face ID body are the ux-copy.md proposal (not yet approved wording). The other bodies (device type), authPrompt and the two notices are new (listed in the PR for approval).
   lock: {
     title: 'VaultMe',
     body: {
