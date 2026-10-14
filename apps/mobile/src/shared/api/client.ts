@@ -30,6 +30,8 @@ export type ApiDeps = {
   /** ms since epoch */
   now?: () => number
   nonce?: () => string
+  /** Called once a response says this app version is no longer supported (426). The caller blocks the app (S91). */
+  onUpdateRequired?: () => void
 }
 
 /** A token is renewed this long before `expiresAt`, so a request never leaves with a token about to expire. */
@@ -77,7 +79,11 @@ export function createApiClient(d: ApiDeps) {
     } catch {
       json = undefined
     }
-    if (!res.ok) throw toApiError(res.status, json)
+    if (!res.ok) {
+      const err = toApiError(res.status, json)
+      if (err.code === 'update_required') d.onUpdateRequired?.()
+      throw err
+    }
     return json
   }
 

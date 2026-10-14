@@ -127,3 +127,19 @@ describe('send with the real adapter (Q73 hash compare)', () => {
     expect(out.status).toBe('Unknown')
   })
 })
+
+describe('safe block and safe nonce (Q37, Q77)', () => {
+  it('getSafeBlock asks eth_getBlockByNumber("safe", false) and reads the number', async () => {
+    const n = node({ eth_getBlockByNumber: () => ({ number: '0x64', hash: '0x1' }) })
+    expect(await createRpcChain(n.rpc).getSafeBlock()).toBe(100n)
+    expect(n.calls).toEqual([['eth_getBlockByNumber', ['safe', false]]])
+  })
+  it('getSafeBlock rejects a null block', async () => {
+    await expect(createRpcChain(node({ eth_getBlockByNumber: () => null }).rpc).getSafeBlock()).rejects.toThrow()
+  })
+  it('getSafeNonce asks the transaction count at "safe"', async () => {
+    const n = node({ eth_getTransactionCount: () => '0x9' })
+    expect(await createRpcChain(n.rpc).getSafeNonce(FROM)).toBe(9n)
+    expect(n.calls).toEqual([['eth_getTransactionCount', [FROM, 'safe']]])
+  })
+})

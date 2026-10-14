@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router'
 import { View } from 'react-native'
 import { Redirect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { usePendingTx } from '@/features/send'
+import { txNotice, txView, useTrackedTx } from '@/features/send'
 import { shortAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { Button, Group, Screen, StatusLabel, StatusNotice, SummaryRow, Text } from '@/shared/ui'
@@ -13,9 +13,10 @@ export function SendResultPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { tx } = usePendingTx()
+  const { tx } = useTrackedTx() // re-checks a Pending or Included send every 15 s while focused
   if (!tx) return <Redirect href="/home" />
-  const unknown = tx.state === 'Unknown'
+  const view = txView(tx.state)
+  const copy = txNotice(tx.state)
   const gap = th.semantic.layout.fieldGap
   return (
     <Screen
@@ -28,9 +29,9 @@ export function SendResultPage() {
       }
     >
       <View style={{ gap }}>
-        <StatusLabel state={unknown ? 'unknown' : 'pending'} label={t(unknown ? 'activity.unknown' : 'activity.pending')} />
-        <Text variant="title" accessibilityRole="header">{t(unknown ? 'result.unknownTitle' : 'result.title')}</Text>
-        <Text variant="body" color={th.semantic.text.secondary}>{t(unknown ? 'result.unknownBody' : 'result.body')}</Text>
+        <StatusLabel state={view.status} label={t(view.label)} />
+        <Text variant="title" accessibilityRole="header">{t(copy.title)}</Text>
+        <Text variant="body" color={th.semantic.text.secondary}>{t(copy.body)}</Text>
       </View>
       <Group>
         <SummaryRow label={t('result.amount')} value={`${tx.amount} ${tx.asset}`} />

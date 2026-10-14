@@ -75,10 +75,10 @@ export type PendingTx = {
   lastCheckedAt: number
   /** Estimated fee at send time, decimal ETH string (S23/S41 show it). Optional: older records have none. */
   fee?: string
-  state: 'Pending' | 'Unknown' | 'Included'
+  state: 'Pending' | 'Unknown' | 'Included' | 'Confirmed' | 'Failed' | 'Replaced'
 }
 
-const STATES = ['Pending', 'Unknown', 'Included']
+const STATES = ['Pending', 'Unknown', 'Included', 'Confirmed', 'Failed', 'Replaced']
 const isStr = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 

@@ -79,6 +79,13 @@ export function createRpcChain(rpc: RpcCall): ChainPort {
       if (typeof h !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(h)) throw new Error('rpc: bad tx hash')
       return h as Hash // wallet-core compares it with the locally computed hash (Q73)
     },
+    async getSafeBlock() {
+      const b = (await rpc('eth_getBlockByNumber', ['safe', false])) as { number?: unknown } | null
+      return toBig(b?.number)
+    },
+    async getSafeNonce(address) {
+      return toBig(await rpc('eth_getTransactionCount', [address, 'safe']))
+    },
     async getReceipt(hash: Hash): Promise<Receipt | null> {
       const r = await rpc('eth_getTransactionReceipt', [hash])
       if (r === null) return null

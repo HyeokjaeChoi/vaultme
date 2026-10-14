@@ -56,3 +56,13 @@ it('has the C2b send result, detail and test-data copy', () => {
   expect(i18n.t('detail.clearTest')).toBe('테스트 거래 지우기')
   expect(i18n.t('detail.clearTitle')).toBe('테스트 거래를 지울까요?')
 })
+
+it('has the C3 real-state copy (#44)', () => {
+  expect(i18n.t('send.needsReview.title')).toBe('내용이 바뀌었어요')
+  expect(i18n.t('send.blocked.title')).toBe('수수료가 너무 높아요')
+  expect(i18n.t('review.reconfirm')).toBe('다시 검토')
+  expect(i18n.t('activity.updatedAt', { time: '09:41' })).toBe('마지막 업데이트 09:41')
+  expect(i18n.t('activity.included')).toBe('블록에 포함됨 (확정 대기)')
+  expect(i18n.t('updateRequired.body')).toContain('자산은 블록체인에 그대로 있어요.')
+  expect(i18n.t('updateRequired.cta')).toBe('스토어에서 업데이트')
+})

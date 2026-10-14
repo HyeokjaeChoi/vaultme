@@ -88,7 +88,7 @@ describe('runSend', () => {
   it('a snapshot failure is a ChainError', async () => {
     const { review } = await base()
     const { d } = deps({ chain: { broadcasts: false, getSnapshot: async () => { throw new Error('x') }, submit: vi.fn() } })
-    expect(await runSend(review, '0.05', FROM, d)).toEqual({ status: 'ChainError' })
+    expect(await runSend(review, '0.05', FROM, d)).toMatchObject({ status: 'ChainError', error: expect.any(Error) })
   })
   it('Q47: a Pending or Unknown or corrupt record blocks before any auth', async () => {
     const { review, snap } = await base()
