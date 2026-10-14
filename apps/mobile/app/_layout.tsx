@@ -30,7 +30,7 @@ export default function RootLayout() {
     // The encrypted kv (backup flag, lock state) must be open before any screen reads it. On failure the gate stays closed.
     // ponytail: blank screen on a failed open; a boot-error screen belongs to the lock gate.
     openKv()
-      .then(() => hasPhrase().catch(() => false)) // phrase without an address (interrupted creation) still counts as a wallet for the lock
+      .then(() => hasPhrase().catch(() => true)) // phrase without an address (interrupted creation) counts as a wallet; a failed lookup fails closed (locked)
       .then((has) => {
         setPhraseStored(has)
         setKvReady(true)
