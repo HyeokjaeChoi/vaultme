@@ -98,11 +98,11 @@ Q51 승인(HLD): pnpm workspaces + Turborepo monorepo로 구성한다. `apps/mob
 
 Q52 승인(HLD): 환경은 local + staging + production이다. 모두 Sepolia를 쓴다. 환경마다 Cloudflare D1·Queue·secret·provider key와 EAS channel을 분리한다. 웹은 PR마다 Cloudflare Pages 미리보기 URL을 쓴다. Migration과 배포 절차는 staging에서 먼저 실행한다. PR 단위 API 임시 환경은 필요가 반복될 때 추가한다.
 
-변경(2026-10-14, #36): Q52의 웹 미리보기를 Cloudflare Pages 미리보기 URL에서 Workers 미리보기로 바꾼다. Workers Builds 또는 `wrangler versions upload --preview-alias`를 쓴다. Staging은 `wrangler deploy --env staging`, release는 gradual deployment와 `wrangler rollback`이다 (docs/adr/0001-web-hosting-workers-static-assets.md). 나머지 Q52 결정은 그대로다.
+변경(2026-10-14, #36): Q52의 웹 미리보기를 Cloudflare Pages 미리보기 URL에서 Workers 미리보기로 바꾼다. Workers Builds 또는 `wrangler versions upload --preview-alias`를 쓴다. Staging은 `wrangler deploy --env staging`, release는 100% 단일 버전 배포와 `wrangler rollback`이다(Web은 gradual 미사용) (docs/adr/0001-web-hosting-workers-static-assets.md). 나머지 Q52 결정은 그대로다.
 
 Q53 승인(HLD): 배포는 예전 모바일 앱 호환을 zero downtime의 기준으로 삼는다. ① API v1은 필드 추가만 허용하고 깨지는 변경은 `/v2`로 분리한다. 앱은 버전 header를 보내고 서버는 최소 지원 버전 미만에 업데이트 안내를 응답한다. ② D1은 expand → 새 코드 배포 → 데이터 이전 → contract 순서로 바꾸며 한 migration에 열 삭제·이름 변경을 넣지 않는다. ③ Workers는 gradual deployment 후 오류율 확인 뒤 확대하고 이상 시 rollback한다. ④ Mobile은 JS 수정은 EAS Update, native 변경은 store 빌드로 하고 runtime version으로 비호환 업데이트를 막는다. Web은 Pages 원자 배포·즉시 rollback. 블루/그린은 D1 데이터 분리 문제로 쓰지 않는다. 규칙 강제 도구는 LLD·CI/CD에서 정한다.
 
-변경(2026-10-14, #36): Q53의 "Web은 Pages 원자 배포·즉시 rollback"을 "Web은 Workers Static Assets 배포, gradual deployment, `wrangler rollback`"으로 바꾼다 (docs/adr/0001-web-hosting-workers-static-assets.md). 나머지 Q53 결정은 그대로다.
+변경(2026-10-14, #36): Q53의 "Web은 Pages 원자 배포·즉시 rollback"을 "Web은 Workers Static Assets 100% 단일 버전 배포, `wrangler rollback`"으로 바꾼다 (docs/adr/0001-web-hosting-workers-static-assets.md). 나머지 Q53 결정은 그대로다.
 
 Q54 승인(HLD): 테스트는 위험 기반으로 설계한다. 위험 목록(금액 계산, 송신 상태 전이, 재인증 규칙, watcher reorg·중복·cursor, API 계약·예전 앱 호환, phrase 저장·캡처 차단·Sentry 정보 제거)마다 가장 싼 테스트 레벨을 지정한다. 레벨: 순수 함수 unit+property, 공유 schema 계약 테스트(예전 앱 요청 유지), Worker 통합 테스트(로컬 D1·가짜/로컬 체인으로 reorg·중복 재현), 소수 E2E(온보딩→수신→송신→상태, 실패 시 배포 차단), 실기기 수동 체크리스트, staging Sepolia smoke. 완료 기준은 커버리지 %가 아니라 위험 목록이다. 도구는 LLD에서 정한다.
 

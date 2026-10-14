@@ -253,7 +253,7 @@ GitHub Actions. Action은 commit SHA로 고정 (Q74). Secret은 GitHub Environme
 |---|---|---|
 | `ci.yml` | PR | `turbo run lint typecheck test --affected`, Steiger, Stylelint, OpenAPI 생성 → `oasdiff breaking` (main 대비), migration lint, `wallet-core` 의존성 검사, osv-scanner, 웹 미리보기 (Workers Builds 또는 `wrangler versions upload --preview-alias`) |
 | `staging.yml` | main push | Workers staging 배포 → `wrangler d1 migrations apply --env staging` → 웹 `wrangler deploy --env staging` → EAS Update `staging` → Maestro (EAS Workflows) + Playwright + Sepolia smoke |
-| `release.yml` | `v*` tag | 수동 승인 → D1 migration (expand만) → Workers gradual 10% → 오류율 확인 → 100% → 웹 gradual deployment (실패 시 `wrangler rollback`) → EAS Update `production` 또는 store 빌드 |
+| `release.yml` | `v*` tag | 수동 승인 → D1 migration (expand만) → Workers gradual 10% → 오류율 확인 → 100% → 웹 `wrangler deploy` 100% (실패 시 `wrangler rollback`) → EAS Update `production` 또는 store 빌드 |
 
 - Native 변경 감지: Expo fingerprint가 바뀌면 EAS Update 대신 store 빌드 경로로 간다 (Q53).
 - CI 시간과 Turborepo cache 적중률을 기록한다 (Q55).

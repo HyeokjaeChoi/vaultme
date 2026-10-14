@@ -308,7 +308,7 @@ pnpm workspaces + Turborepo monorepo (Q51). 앱·웹·API·공유 package가 한
 1. **API**: v1은 필드 추가만 허용한다. 깨지는 변경은 `/v2`. 앱 버전 header, 최소 지원 버전 미만이면 업데이트 안내.
 2. **D1**: expand → 새 코드 배포 → 데이터 이전 → contract. 한 migration에 열 삭제·이름 변경·테이블 재생성 금지.
 3. **Workers**: gradual deployment, 오류율 확인 후 확대, 이상 시 rollback.
-4. **Web**: Workers Static Assets 원자 배포. 배포는 gradual deployment, 이상 시 `wrangler rollback` (ADR-0001). Web과 API는 별도 Worker로 둔다.
+4. **Web**: Workers Static Assets 원자 배포. 배포는 100% 단일 버전(gradual 미사용: HTML·asset 버전 불일치 위험), 이상 시 `wrangler rollback` (ADR-0001). Web과 API는 별도 Worker로 둔다.
 5. **Mobile**: JS 변경은 EAS Update, native 변경은 store 빌드, runtime version으로 비호환 업데이트 차단.
 
 ### 9.4 CI/CD 큰 흐름
