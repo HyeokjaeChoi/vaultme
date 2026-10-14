@@ -4,6 +4,7 @@ import { View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next'
 import { assets } from '@/entities/asset/fixtures'
+import { cleanAmount } from '@/entities/transaction/review'
 import { applyKey, exceedsBalance, isZeroAmount } from '@/shared/lib/amount'
 import { isAddressFormat, shortAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
@@ -16,8 +17,8 @@ export function SendAmountPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { to } = useLocalSearchParams<{ to?: string }>()
-  const [amount, setAmount] = useState('0.05')
+  const { to, amount: initial } = useLocalSearchParams<{ to?: string; amount?: string }>()
+  const [amount, setAmount] = useState(cleanAmount(initial) ?? '0.05')
   const fold = useFoldIn(th.primitive.space[2])
   const available = assets[0].balance
   const tooMuch = exceedsBalance(amount, available)
@@ -33,7 +34,7 @@ export function SendAmountPage() {
         <View style={{ gap: th.semantic.layout.groupGap }}>
           <Animated.View style={fold}>
             <Group>
-              <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to)} mono editLabel={t('common.edit')} onEdit={() => router.dismissTo('/send')} />
+              <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to)} mono editLabel={t('common.edit')} onEdit={() => router.dismissTo({ pathname: '/send', params: { to } })} />
             </Group>
           </Animated.View>
           <Text variant="title" accessibilityRole="header">{t('send.amountQuestion')}</Text>

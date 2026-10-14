@@ -17,7 +17,7 @@ export type ReviewValues = {
 }
 
 /** Amount param from the keypad ("5." allowed) -> clean decimal string, or null when it is not a usable ETH amount. */
-function cleanAmount(raw: string | undefined): string | null {
+export function cleanAmount(raw: string | undefined): string | null {
   const a = raw?.replace(/\.$/, '')
   if (!a) return null
   try {

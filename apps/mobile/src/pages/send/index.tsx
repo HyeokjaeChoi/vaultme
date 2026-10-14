@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
@@ -13,7 +13,8 @@ export function SendPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const [to, setTo] = useState('')
+  const { to: initial } = useLocalSearchParams<{ to?: string }>()
+  const [to, setTo] = useState(initial ?? '')
   const valid = isAddressFormat(to)
   return (
     <Screen
