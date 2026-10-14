@@ -179,6 +179,19 @@ export function reduce(state: SendState, event: SendEvent): SendState
   - Upstream은 Infura(1순위), Alchemy(2순위)다. key는 wrangler secret `INFURA_KEY`, `ALCHEMY_KEY`. 네트워크 오류, timeout(5초), HTTP 2xx 아님(5xx·429·key 오류), 본문이 JSON-RPC 응답 형식이 아니면(HTML 등) 다음 upstream으로 넘긴다. 200 안의 JSON-RPC error는 정상 응답이라 재시도 없이 그대로 돌려준다. `eth_sendRawTransaction` 재전송은 같은 hash라 안전하다. 둘 다 실패하면 `503` `unavailable`(`retryable: true`). key가 없으면 `500`. URL·upstream 오류 본문은 log·응답에 남기지 않고, key가 든 응답 본문은 버린다.
 - 오류 응답 형식: `{ code, message, retryable }`. `code`는 `contracts`의 enum이다. 앱은 모르는 `code`를 `Unknown`으로 처리한다 (Q61).
 
+### 4.2 `/v1/history` 응답 (제안, #38 실측. 구현 전 확정 필요)
+
+근거: [실측](../../work/measurements/etherscan-sepolia-2026-10-14.md). 아래는 **제안**이다.
+
+- 요청 `{address, cursor?}`. `address`는 proxy가 `^0x[0-9a-fA-F]{40}$`로 먼저 검증한다. Etherscan은 틀린 주소에도 "빈 결과"를 돌려준다.
+- 응답 `{items, nextCursor}`. `items`는 최신순 최대 **50건**, `nextCursor`는 불투명 문자열(`<주소 SHA-256 앞 8 hex>:<blockNumber>:<transactionIndex>:<seq>`, 주소 자체는 없음) 또는 `null`. cursor는 요청 `address`에 묶인다. 주소 hash가 다르면 `400 invalid_cursor`로 거부한다. 앱은 주소가 바뀌면 cursor를 버린다.
+- 항목: `kind`(`native`·`internal`·`erc20`), `hash`, `from`, `to`, `value`(wei·최소 단위 문자열), `blockNumber`, `timestamp`, `status`(`ok`·`failed`), `zeroValue`(boolean, Q71). erc20이면 `token`(`address`, `symbol`, `decimals`).
+- 병합: `txlist`·`txlistinternal`·`tokentx`를 병렬로 읽는다. **`tokentx`의 `contractAddress == 0xfffffffffffffffffffffffffffffffffffffffe`(가짜 `ETH` token) 행은 버린다.** Sepolia에서 native 이동이 중복으로 나온다.
+- 실패: `isError=1`(txlist·internal) 행은 `status: failed`로 표시한다. 값은 이동하지 않았다.
+- dedupe key: native `hash`, internal `hash+traceId`, erc20 `hash+contractAddress+from+to+value+n` (`n` = 같은 값 행의 응답 순서). `tokentx`에 logIndex가 없다.
+- 상류 한도: 요청당 최대 1000건, `page × offset ≤ 10000`. 깊은 page는 `endblock`으로 넘긴다.
+- Etherscan 오류는 HTTP 200 body로 온다. `message == "No transactions found"`는 빈 결과, `result`에 `rate limit` 또는 `Query Timeout`이 있으면 retryable(`503`), 나머지 `status=0`은 `503 unavailable`.
+
 ## 5. Rate limit
 
 ### 5.0 구현 방식
@@ -210,6 +223,7 @@ Etherscan 무료 한도는 key 하나당 초당 3회다 (Q36 조사). 사용자�
 - **Durable Object 1개**를 token bucket으로 쓴다 (초당 3 token, 기본값으로 2.5/초 사용해 여유를 둔다). Worker isolate가 여러 개여도 한 곳에서 판정해야 하기 때문이다. Durable Object는 Q38 구성에 추가되는 Cloudflare 구성 요소다.
 - `/v1/history` 응답은 주소별로 **30초** cache한다 (Cache API, 기본값). 같은 사용자의 반복 새로고침이 Etherscan을 다시 부르지 않는다. Cache key에는 주소를 hash해서 쓴다.
 - Token을 얻지 못하면 최대 2초 기다린다. 그래도 없으면 `503` + `retryable: true`를 응답한다. 앱은 기기 cache와 업데이트 시각을 보여준다 (Q58).
+- 한 `/v1/history` page는 Etherscan을 3회 부른다(목록 3개). 3개를 한 번에 부르면 token 3개가 필요하다 (#38 제안, 위 4.2).
 - 지표: `etherscan_throttled_total`, `etherscan_429_total`. Admin에 표시하고 provider 오류율 알림에 포함한다 (Q44, Q56).
 
 ## 6. 송신 상태 전이

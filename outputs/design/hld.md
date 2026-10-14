@@ -345,7 +345,7 @@ flowchart LR
 
 | 항목 | 결정 | 확인 방법 |
 |---|---|---|
-| Etherscan 입금·내부 native, pagination | Q36 | **구현 첫 작업으로 연기** (key 필요, 계정 생성은 사용자가 수행). 실패 시 Alchemy |
+| Etherscan 입금·내부 native, pagination | Q36 | ✅ Etherscan 유지 ([측정](../../work/measurements/etherscan-sepolia-2026-10-14.md)). internal 입금은 `txlistinternal`로만 얻는다. Sepolia `tokentx`의 가짜 `ETH` 행은 버린다. Alchemy는 문서상 Sepolia internal 없음 |
 | RPC 주·예비 provider | Q36, Q58, Q78 | ✅ 주 Infura, 예비 Alchemy |
 | `safe` 확정 지연 | Q37 | 1차 실측: 최신 대비 408–768초, 포함→`safe` 약 7–13분 ([측정](../../work/measurements/sepolia-safe-lag-2026-10-12.md)). staging에서 재측정 |
 | Circle USDC 주소, faucet 한도 | Q41 | ✅ `0x1c7D…7238`, decimals 6 on-chain 확인, faucet 20 USDC/2시간 |
