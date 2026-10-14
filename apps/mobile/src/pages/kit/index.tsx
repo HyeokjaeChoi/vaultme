@@ -1,26 +1,28 @@
 import { useEffect, useState } from 'react'
-import * as Keychain from 'react-native-keychain'
-import { createMMKV } from 'react-native-mmkv'
 import { useTranslation } from 'react-i18next'
 import { View } from 'react-native'
 import { useTheme } from '@/shared/theme'
 import { Button, Input, Screen, ScreenHeader, Segmented, SensitiveReveal, Switch, Text } from '@/shared/ui'
 import { goBack } from '@/shared/lib/nav'
+import { biometryType, getBackupDone, hasPhrase, openKv, setBackupDone } from '@/shared/storage'
 
 // Dev-only gallery for the C29-C33 primitives (not linked from the app). Words are placeholders.
 const words = ['word', 'word', 'word', 'word', 'word', 'word'] as const
 
-// Dev-only smoke check: native modules load in the dev build. No secrets involved.
+// Dev-only smoke check through shared/storage: encrypted MMKV round-trip + keychain status. No secrets shown.
 function NativeSmoke() {
   const [line, setLine] = useState('native: …')
   useEffect(() => {
     const run = async () => {
       try {
-        const kv = createMMKV({ id: 'devsmoke' })
-        kv.set('ping', 'pong')
-        const mmkv = kv.getString('ping') === 'pong' ? 'ok' : 'FAIL'
-        const bio = await Keychain.getSupportedBiometryType()
-        setLine(`native: mmkv ${mmkv} / keychain biometry ${bio ?? 'none'}`)
+        await openKv()
+        const before = getBackupDone()
+        setBackupDone(!before)
+        const mmkv = getBackupDone() === !before ? 'ok' : 'FAIL'
+        setBackupDone(before)
+        const has = await hasPhrase()
+        const bio = await biometryType()
+        setLine(`native: mmkv ${mmkv} / keychain phrase ${has ? 'yes' : 'no'} / biometry ${bio ?? 'none'}`)
       } catch (e) {
         setLine(`native: error ${e instanceof Error ? e.message : String(e)}`)
       }
