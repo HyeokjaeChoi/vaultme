@@ -231,7 +231,7 @@ Rate Limiting binding 제약 (Cloudflare 문서): period는 10초 또는 60초�
 
 Etherscan 무료 한도는 key 하나당 초당 3회다 (Q36 조사). 사용자별 rate limit과 별개로 서버 전체 호출을 이 한도 아래로 유지한다.
 
-- **Durable Object 1개**(`EtherscanBucket`, 이름 `global`)를 token bucket으로 쓴다. 초당 **2.5** token(Etherscan 한도 3의 여유), 최대 3개(= history 1 page). Worker isolate가 여러 개여도 한 곳에서 판정해야 하기 때문이다. DO는 메모리만 쓴다. 유휴 뒤에만 내려가고, 그때는 bucket이 가득 찬 상태라 잃을 상태가 없다.
+- **Durable Object 1개**(`EtherscanBucket`, 이름 `global`)를 token bucket으로 쓴다. 초당 **2.5** token(Etherscan 한도 3의 여유), 최대 **1개**(burst 없음). bucket이 B개면 1초에 B+2.5회가 나가 3회를 넘길 수 있다(B=3으로 실측해 `rate limit` 응답을 받았다). B=1이면 호출이 400 ms 이상 떨어져 1초에 3회를 넘지 않는다. history 1 page(3회)의 대기는 약 0.8초다. 대기 한도 2초 = 큐에 호출 5개(약 1.7 page). Worker isolate가 여러 개여도 한 곳에서 판정해야 하기 때문이다. DO는 메모리만 쓴다. 유휴 뒤에만 내려가고, 그때는 bucket이 가득 찬 상태라 잃을 상태가 없다.
 - 호출마다 `acquire()` 한 번. DO가 token을 **미리 예약**하고 기다릴 시간(ms)을 돌려준다(0이면 바로). Worker는 그만큼 기다린 뒤 부른다. 기다릴 시간이 **2초**를 넘으면 거절하고(상태는 바뀌지 않는다), `/v1/history`는 `503` + `retryable: true`를 응답한다. 앱은 기기 cache와 업데이트 시각을 보여준다 (Q58).
 - Etherscan이 그래도 rate limit 메시지를 주면(`result`에 `rate limit`) bucket에서 token을 다시 받아 **한 번만** 재시도하고, 또 실패하면 `503`.
 - `/v1/history` 응답은 (주소 hash, cursor)별로 **30초** cache한다 (Cache API, 기본값). 같은 사용자의 반복 새로고침이 Etherscan을 다시 부르지 않는다. Cache key에는 주소 SHA-256만 쓰고 주소는 쓰지 않는다. 성공 응답만 cache한다. Cache API는 colo별이고 `workers.dev` 도메인에서는 동작하지 않는다(custom domain 필요).

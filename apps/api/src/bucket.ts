@@ -1,8 +1,10 @@
 import { DurableObject } from 'cloudflare:workers'
 
-// Etherscan free tier: 3 calls/s per key. We use 2.5/s (LLD §5.1). Burst = one history page (3 calls).
+// Etherscan free tier: 3 calls/s per key. We use 2.5/s (LLD §5.1). No burst: a bucket of B tokens lets B + rate calls
+// through in one second, so any B > 0.5 can break the limit (seen live: B = 3 got `rate limit` answers). With B = 1
+// calls are at least 400 ms apart, so at most 3 fall in any second. A 3-call history page therefore takes ~0.8 s.
 export const RATE_PER_SEC = 2.5
-export const BURST = 3
+export const BURST = 1
 export const MAX_WAIT_MS = 2000
 
 export type Bucket = { tokens: number; at: number }
