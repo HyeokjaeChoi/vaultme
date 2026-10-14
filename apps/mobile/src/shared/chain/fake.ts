@@ -12,10 +12,16 @@ const GAS_LIMIT: Record<AssetId, bigint> = { ETH: 21_000n, USDC: 65_000n }
 
 const balance = (symbol: AssetId) => toUnits(assets.find((a) => a.symbol === symbol)?.balance ?? '0', symbol)
 
-/** Fake adapter (C2b, owner decision 2026-10-14): fixture snapshot, local hash, no network. Real broadcast is C3. */
+/** Fake adapter (dev and tests without an API, `EXPO_PUBLIC_API_URL` unset): fixture snapshot, local hash, no network. */
 export function createFakeChain(nonce: NonceStore): ChainPort {
   return {
     broadcasts: false,
+    async getBalances() {
+      return { ETH: balance('ETH'), USDC: balance('USDC') }
+    },
+    async getReceipt() {
+      return null // nothing was sent, so nothing is ever mined
+    },
     async getSnapshot(_address, asset): Promise<ChainSnapshot> {
       return {
         nonce: nonce.get(),

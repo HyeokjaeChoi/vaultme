@@ -5,8 +5,10 @@ import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { assets } from '@/entities/asset/fixtures'
 import { useBackupDone } from '@/features/backup'
+import { useLiveBalances } from '@/features/balances'
 import { useRestored } from '@/features/restore'
 import { usePendingTx } from '@/features/send'
+import { chain } from '@/shared/chain'
 import { useTheme } from '@/shared/theme'
 import { AssetRow, BackupStatus, BottomSheet, Button, Group, PortfolioBalance, ProductHeader, Screen, Text } from '@/shared/ui'
 import { TestDataNotice } from '@/widgets/test-data-notice/TestDataNotice'
@@ -19,6 +21,7 @@ export function HomePage() {
   const { variant } = useLocalSearchParams<{ variant?: string }>()
   const backedUp = useBackupDone()
   const pending = usePendingTx()
+  const live = useLiveBalances()
   const [blockSheet, setBlockSheet] = useState(false)
   const restored = useRestored() || (__DEV__ && variant === 'restored')
   return (
@@ -33,7 +36,7 @@ export function HomePage() {
       {!restored && !backedUp ? <BackupStatus title={t('home.backupTitle')} body={t('home.backupBody')} cta={t('home.backupCta')} onPress={() => router.push('/backup')} /> : null}
       <Group>
         {assets.map((a) => (
-          <AssetRow key={a.symbol} name={a.name} symbol={a.symbol} balance={restored ? a.balance : '0'} note={t('home.noQuote')} />
+          <AssetRow key={a.symbol} name={a.name} symbol={a.symbol} balance={chain.broadcasts ? (live?.[a.symbol] ?? '—') : restored ? a.balance : '0'} note={t('home.noQuote')} />
         ))}
       </Group>
       <BottomSheet

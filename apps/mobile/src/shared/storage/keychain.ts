@@ -7,6 +7,7 @@ import { withAuthInProgress } from '../auth/inProgress'
 // Two items, two tiers (hld.md §5, Q34, Q63):
 const PHRASE_SERVICE = 'app.vaultme.phrase'
 const KV_KEY_SERVICE = 'app.vaultme.kvkey'
+const DEVICE_KEY_SERVICE = 'app.vaultme.devicekey'
 const USER = 'vaultme'
 
 // Phrase (Q34): "BIOMETRY_ANY_OR_DEVICE_PASSCODE, this device only, no cloud backup".
@@ -78,4 +79,18 @@ export async function getOrCreateKvKey(): Promise<string> {
   const ok = await Keychain.setGenericPassword(USER, key, KV_KEY_OPTIONS)
   if (!ok) throw new Error('keychain: kv key save failed')
   return key
+}
+
+/**
+ * Install auth key (lld.md §4.1): ECDSA P-256 private key, hex. Same no-auth tier as the MMKV key, so API calls need no prompt.
+ * It signs token requests only. It is not the wallet key and cannot move funds.
+ */
+export async function loadDeviceKey(): Promise<string | null> {
+  const item = await Keychain.getGenericPassword({ service: DEVICE_KEY_SERVICE })
+  return item ? item.password : null
+}
+
+export async function saveDeviceKey(hex: string): Promise<void> {
+  const ok = await Keychain.setGenericPassword(USER, hex, { ...KV_KEY_OPTIONS, service: DEVICE_KEY_SERVICE })
+  if (!ok) throw new Error('keychain: device key save failed')
 }

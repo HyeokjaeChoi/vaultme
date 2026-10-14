@@ -8,7 +8,7 @@ Ethereum Sepolia 테스트넷용 self-custody 지갑입니다. 학습과 포트�
 실서비스 지갑이 아닙니다. 테스트 자금만 사용하세요.
 
 > **상태: 2026-10-14**
-> C1(`packages/wallet-core`), C2a(정적 화면이 있는 모바일 UI), Redesign A("한 화면, 한 질문", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)), C2b(보안 저장소, 백업, 복구, 앱 잠금, 보내기)가 `main`에 merge되었습니다. C2b는 가짜 체인 어댑터를 씁니다. 잔액과 내역은 예시이고, 어떤 거래도 기기 밖으로 나가지 않습니다. 다음 단계는 C3(API와 실제 체인 접근)입니다. 설계 문서는 목표를 설명하며, 동작하는 시스템이 아닙니다. 앱은 네트워크 호출을 하지 않고, API와 web 앱은 아직 없습니다.
+> C1(`packages/wallet-core`), C2a(정적 화면이 있는 모바일 UI), Redesign A("한 화면, 한 질문", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)), C2b(보안 저장소, 백업, 복구, 앱 잠금, 보내기)가 `main`에 merge되었습니다. C2b는 가짜 체인 어댑터를 씁니다. C3-6(#43)이 실제 체인 어댑터와 API client를 더했습니다. `EXPO_PUBLIC_API_URL`이 있으면 앱이 설치를 등록하고 `POST /v1/rpc`를 씁니다. 없으면 가짜 어댑터가 그대로 돌고 어떤 거래도 기기 밖으로 나가지 않습니다. `POST /v1/history`와 실제 상태 화면은 아직 열려 있습니다(#42, #44). 설계 문서는 목표를 설명하며, 동작하는 시스템이 아닙니다. [C3 기록](outputs/design/impl-c3.md)을 보세요.
 
 ## 여기서 시작
 

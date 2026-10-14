@@ -8,7 +8,7 @@ This monorepo holds the wallet logic, a React Native (Expo) app, the design toke
 It does not hold a production wallet. Use test funds only.
 
 > **Status: 2026-10-14**
-> C1 (`packages/wallet-core`), C2a (the mobile UI with static screens), Redesign A ("one screen, one question", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)), and C2b (secure storage, backup, restore, app lock, and send) are merged into `main`. C2b uses a fake chain adapter: balances and history are examples and no transaction leaves the device. The next step is C3 (API and real chain access). The design documents describe a target, not a running system: the app makes no network calls and the API and web apps do not exist yet.
+> C1 (`packages/wallet-core`), C2a (the mobile UI with static screens), Redesign A ("one screen, one question", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)), and C2b (secure storage, backup, restore, app lock, and send) are merged into `main`. C2b uses a fake chain adapter. C3-6 (#43) adds the real chain adapter and API client: when `EXPO_PUBLIC_API_URL` is set the app registers an install and uses `POST /v1/rpc`; when it is not set the fake adapter still runs and no transaction leaves the device. `POST /v1/history` and the real-state screens are open (#42, #44). The design documents describe a target, not a running system; see [C3 notes](outputs/design/impl-c3.md).
 
 ## Start here
 

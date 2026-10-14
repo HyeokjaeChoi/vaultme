@@ -10,7 +10,7 @@ export type SendOutcome =
   | { status: 'NeedsReview' | 'Blocked' | 'Cancelled' | 'AuthError' | 'ChainError' | 'PendingExists' }
 
 export type SendDeps = {
-  chain: ChainPort
+  chain: Pick<ChainPort, 'getSnapshot' | 'submit' | 'broadcasts'>
   loadPhrase: (prompt: AuthPrompt) => Promise<LoadPhraseResult>
   readPending: () => PendingTx | null | 'corrupt'
   savePending: (tx: PendingTx) => void
