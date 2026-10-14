@@ -1,4 +1,4 @@
-// Figma: Asset row 36:20 (Icon / Asset / ETH 137:402, USDC 137:429)
+// Figma: Asset row 36:20 (inside the white Assets group 333:258) (Icon / Asset / ETH 137:402, USDC 137:429)
 import { View } from 'react-native'
 import { useTheme } from '../theme'
 import { AssetIcon, type AssetSymbol } from './AssetIcon'
@@ -6,7 +6,7 @@ import { Text } from './Text'
 
 type Props = { name: string; symbol: AssetSymbol; balance: string; note: string }
 
-/** C09 Asset row. Flat white row: identity (icon, name, symbol) and trailing values (exact balance, quote note). A missing quote is not zero. */
+/** C09 Asset row. Flat row (no fill or radius, paddingX 0): rows sit together inside one white <Group>. identity (icon, name, symbol) and trailing values (exact balance, quote note). A missing quote is not zero. */
 export function AssetRow({ name, symbol, balance, note }: Props) {
   const t = useTheme()
   const c = t.component.assetRow
@@ -21,8 +21,6 @@ export function AssetRow({ name, symbol, balance, note }: Props) {
         gap: t.semantic.layout.rowGap,
         paddingHorizontal: c.list.paddingX,
         paddingVertical: c.list.paddingY,
-        backgroundColor: c.bg,
-        borderRadius: c.list.radius,
       }}
     >
       <View style={{ width: c.iconSize, height: c.iconSize, borderRadius: t.semantic.shape.control, backgroundColor: t.semantic.surface.subtle, alignItems: 'center', justifyContent: 'center' }}>

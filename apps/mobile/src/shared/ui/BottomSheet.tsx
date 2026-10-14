@@ -42,7 +42,7 @@ export function BottomSheet({ visible, onClose, title, children, actions }: Prop
     <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <View style={{ flex: 1, justifyContent: 'flex-end' }}>
         <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }, scrim]}>
-          <Pressable accessibilityLabel={ko.common.close} onPress={onClose} style={{ flex: 1, backgroundColor: t.semantic.surface.inverse, opacity: t.semantic.effect.modalScrimOpacity }} />
+          <Pressable accessibilityRole="button" accessibilityLabel={ko.common.close} onPress={onClose} style={{ flex: 1, backgroundColor: t.semantic.surface.inverse, opacity: t.semantic.effect.modalScrimOpacity }} />
         </Animated.View>
         <Animated.View
           accessibilityViewIsModal
@@ -63,7 +63,7 @@ export function BottomSheet({ visible, onClose, title, children, actions }: Prop
           ]}
         >
           {/* ponytail: grabber height 5 has no token; space-1 (4) is the nearest. */}
-          <View style={{ width: t.primitive.size.control_sm, height: t.primitive.space[1], borderRadius: t.primitive.radius.pill, backgroundColor: t.semantic.border.default }} />
+          <View style={{ width: t.primitive.size.control_sm, height: t.primitive.space[1], borderRadius: t.primitive.radius.pill, backgroundColor: t.component.bottomSheet.grabber }} />
           <ScrollView style={{ flexShrink: 1, alignSelf: 'stretch' }} contentContainerStyle={{ gap: t.semantic.layout.groupGap }}>
             <Text variant="title" accessibilityRole="header" color={t.component.overlay.fg}>{title}</Text>
             {children}

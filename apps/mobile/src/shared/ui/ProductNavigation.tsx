@@ -7,20 +7,20 @@ import { Text } from './Text'
 
 export type NavItem = { key: string; label: string; icon: IconName; active: boolean; onPress: () => void }
 
-/** C21 Product navigation (tab bar). White bar inset by screen padding, 1 px top border, icon over Label text; active = brand color. */
+/** C21 Product navigation (tab bar). Full screen width, bar fill extends into the bottom safe area, 1 px top border, space-2 top padding, icon over Label text; active = brand color. */
 export function ProductNavigation({ items }: { items: NavItem[] }) {
   const t = useTheme()
   const nav = t.component.productNavigation
   const insets = useSafeAreaInsets()
   return (
-    <View style={{ backgroundColor: t.semantic.surface.canvas, paddingHorizontal: t.semantic.layout.screen.padding, paddingBottom: Math.max(insets.bottom, t.primitive.space[2]) }}>
+    <View style={{ backgroundColor: nav.bg, paddingBottom: Math.max(insets.bottom, t.primitive.space[2]) }}>
       <View
         accessibilityRole="tablist"
         style={{
-          height: nav.height,
+          minHeight: nav.height,
           flexDirection: 'row',
           gap: t.semantic.layout.fieldGap,
-          backgroundColor: nav.bg,
+          paddingTop: t.primitive.space[2],
           borderTopWidth: nav.borderWidth,
           borderTopColor: nav.border,
         }}
@@ -37,7 +37,7 @@ export function ProductNavigation({ items }: { items: NavItem[] }) {
               style={{ flex: 1, minHeight: t.primitive.size.touch_min, alignItems: 'center', gap: t.semantic.layout.fieldGap, borderWidth: nav.itemBorderWidth }}
             >
               <Icon name={i.icon} size={t.component.icon.size.control} color={color} />
-              <Text variant="label" color={color} style={{ textAlign: 'center' }}>{i.label}</Text>
+              <Text variant="label" color={color} maxFontSizeMultiplier={1.3} style={{ textAlign: 'center' }}>{i.label}</Text>
             </Pressable>
           )
         })}

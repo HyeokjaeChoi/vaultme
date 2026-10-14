@@ -8,7 +8,7 @@ Ethereum Sepolia 테스트넷용 self-custody 지갑입니다. 학습과 포트�
 실서비스 지갑이 아닙니다. 테스트 자금만 사용하세요.
 
 > **상태: 2026-10-14**
-> C1(`packages/wallet-core`)과 C2a(정적 화면이 있는 모바일 UI)가 `main`에 merge되었습니다. Redesign A("한 화면, 한 질문")는 열려 있는 [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)에 있습니다. C2b와 C3는 시작하지 않았습니다. 설계 문서는 목표를 설명하며, 동작하는 시스템이 아닙니다. 앱은 실제 네트워크 호출을 하지 않고, API와 web 앱은 아직 없습니다.
+> C1(`packages/wallet-core`), C2a(정적 화면이 있는 모바일 UI), Redesign A("한 화면, 한 질문", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10))가 `main`에 merge되었습니다. C2b와 C3는 시작하지 않았습니다. 설계 문서는 목표를 설명하며, 동작하는 시스템이 아닙니다. 앱은 실제 네트워크 호출을 하지 않고, API와 web 앱은 아직 없습니다.
 
 ## 여기서 시작
 

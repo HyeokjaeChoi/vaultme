@@ -1,22 +1,40 @@
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
+import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { assets } from '@/entities/asset/fixtures'
-import { review } from '@/entities/transaction/fixtures'
-import { AmountField, Button, RecipientField, Screen, ScreenHeader } from '@/shared/ui'
+import { recents } from '@/entities/transaction/fixtures'
+import { isAddressFormat, shortAddress } from '@/shared/lib/address'
+import { useTheme } from '@/shared/theme'
+import { Button, Group, ListItem, RecipientField, Screen, ScreenHeader, Text } from '@/shared/ui'
 
-/** S20 보내기 입력 (static: no validation, no wallet-core) */
+/** R-S20A 누구에게 보낼까요? Recipient step. 붙여넣기 and QR 스캔 are inert in C2a (no clipboard or camera wiring). */
 export function SendPage() {
   const { t } = useTranslation()
+  const th = useTheme()
   const router = useRouter()
-  const [to, setTo] = useState<string>(review.recipient)
-  const [amount, setAmount] = useState('0.05')
+  const [to, setTo] = useState('')
+  const valid = isAddressFormat(to)
   return (
-    <Screen footer={<Button label={t('send.review')} onPress={() => router.push('/review')} />}>
-      <ScreenHeader title={t('send.title')} backLabel={t('common.back')} onBack={() => router.back()} />
-      <RecipientField label={t('send.recipientLabel')} value={to} onChangeText={setTo} helper={t('send.recipientHint')} />
-      <Button label={t('send.scan')} variant="ghost" />
-      <AmountField label={t('send.amountLabel')} value={amount} onChangeText={setAmount} balance={`${t('send.maxSendable')} ${assets[0].balance} ETH`} note={t('send.feeReserve')} />
+    <Screen
+      header={<ScreenHeader backLabel={t('common.back')} onBack={() => router.back()} />}
+      footer={<Button label={t('send.next')} disabled={!valid} onPress={() => router.push({ pathname: '/send/amount', params: { to } })} />}
+    >
+      <Text variant="title" accessibilityRole="header">{t('send.recipientQuestion')}</Text>
+      <View style={{ gap: th.semantic.layout.fieldGap }}>
+        <RecipientField label={t('send.recipientLabel')} value={to} onChangeText={setTo} placeholder={t('send.recipientPlaceholder')} helper={valid ? t('send.recipientHint') : t('send.recipientHelper')} />
+        <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
+          <Button label={t('send.paste')} variant="secondary" size="sm" style={{ flex: 1 }} />
+          <Button label={t('send.scan')} variant="secondary" size="sm" style={{ flex: 1 }} />
+        </View>
+      </View>
+      <View style={{ gap: th.semantic.layout.rowGap }}>
+        <Text variant="section" accessibilityRole="header">{t('send.recent')}</Text>
+        <Group inset={false}>
+          {recents.map((r) => (
+            <ListItem key={r.address} mono title={shortAddress(r.address)} trailing={{ kind: 'value', text: t(r.label) }} onPress={() => setTo(r.address)} />
+          ))}
+        </Group>
+      </View>
     </Screen>
   )
 }

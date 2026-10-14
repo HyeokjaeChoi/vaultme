@@ -1,38 +1,57 @@
+import { useState } from 'react'
+import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { review } from '@/entities/transaction/fixtures'
-import { diffGroups } from '@/shared/lib/address'
-import { StatusNotice, TransactionPanel } from '@/shared/ui'
+import type { ReviewValues } from '@/entities/transaction/review'
+import { diffGroups, groupAddress } from '@/shared/lib/address'
+import { useTheme } from '@/shared/theme'
+import { Group, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 
-/** C15 Transaction panel (static). `risk` = High risk state: danger status line and notice, only the differing 4-char chunks marked. */
-export function ReviewPanel({ risk }: { risk: boolean }) {
+const nowHHMM = () => new Date().toTimeString().slice(0, 5)
+
+type Props = { values: ReviewValues; onEditRecipient: () => void; onEditAmount: () => void }
+
+/**
+ * R-S22 Review body: question, amount, the answers as flat Summary rows in one white group, fee and total, then one check notice.
+ * `values.previous` set = look-alike recipient (R-S22L): the differing 4-char chunks are marked and the notice is a warning.
+ * Values come from the entered recipient and amount; fee and check time are fixtures. the "다시 계산" link on the check-time row sets the check time to now.
+ */
+export function ReviewPanel({ values, onEditRecipient, onEditAmount }: Props) {
   const { t } = useTranslation()
+  const th = useTheme()
+  const { recipient, previous } = values
+  const risk = previous !== null
+  const diff = risk ? diffGroups(recipient, previous) : []
+  const chunks = diff.map((i) => groupAddress(recipient)[i]).join(' ')
+  const [checkedAt, setCheckedAt] = useState<string>(review.checkedAt)
   return (
-    <TransactionPanel
-      accountLabel={t('review.account')}
-      account={account.name}
-      networkLabel={t('review.network')}
-      network={account.network}
-      heading={t('review.heading')}
-      status={risk ? t('review.lookalike.status') : t('review.ready')}
-      risk={risk}
-      amount={review.amount}
-      recipientLabel={t('review.recipient')}
-      recipient={risk ? review.lookalike : review.recipient}
-      highlight={risk ? diffGroups(review.lookalike, review.recipient) : []}
-      feeLabel={t('review.fee')}
-      fee={review.fee}
-      totalLabel={t('review.total')}
-      total={review.total}
-      note={t('review.feeNote')}
-      notice={
-        risk ? (
-          <StatusNotice tone="danger" title={t('review.lookalike.title')} body={t('review.lookalike.body')} />
-        ) : (
-          <StatusNotice tone="clear" title={t('review.checkedTitle')} body={t('review.checkedBody', { time: review.checkedAt })} />
-        )
-      }
-      detailsLabel={t('review.rawData')}
-    />
+    <>
+      <View style={{ gap: th.semantic.layout.sectionGap.product }}>
+        <Text variant="title" accessibilityRole="header">{t('review.title')}</Text>
+        <View style={{ gap: th.semantic.layout.fieldGap }}>
+          <Text variant="amountHero">{values.amount}</Text>
+          <Text variant="body" color={th.semantic.text.secondary}>{t('review.scope', { network: account.network, account: account.name })}</Text>
+        </View>
+      </View>
+      <Group>
+        <SummaryRow format="address" label={t('review.recipient')} value={recipient} highlight={diff} editLabel={t('common.edit')} onEdit={onEditRecipient} />
+        <SummaryRow label={t('review.amount')} value={values.amount} editLabel={t('common.edit')} onEdit={onEditAmount} />
+        <SummaryRow label={t('review.network')} value={account.network} />
+      </Group>
+      <Group surface={false}>
+        <SummaryRow label={t('review.fee')} value={values.fee} />
+        <SummaryRow label={t('review.feeCap')} value={values.feeCap} />
+        <SummaryRow format="total" label={t('review.total')} value={values.total} />
+        <SummaryRow label={t('review.checkedAt')} value={checkedAt} editLabel={t('review.recalc')} editAccessibilityLabel={t('review.recalcLabel')} onEdit={() => setCheckedAt(nowHHMM())} />
+      </Group>
+      {values.risk === 'burn' || values.risk === 'tokenContract' ? (
+        <StatusNotice tone="warning" title={t(`review.${values.risk}.title`)} body={t(`review.${values.risk}.body`)} />
+      ) : risk ? (
+        <StatusNotice tone="warning" title={t('review.lookalike.title', { count: diff.length })} body={t('review.lookalike.body', { chunks })} />
+      ) : (
+        <StatusNotice tone="info" title={t('review.checkedTitle')} body={t('review.checkedBody', { time: checkedAt })} />
+      )}
+    </>
   )
 }

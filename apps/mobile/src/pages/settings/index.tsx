@@ -1,27 +1,29 @@
 import Constants from 'expo-constants'
-import { View } from 'react-native'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
-import { useTheme } from '@/shared/theme'
-import { ListItem, Screen, Text } from '@/shared/ui'
+import { Group, ListItem, Screen, Switch, Text } from '@/shared/ui'
 
-/** S60 설정. Rows are static in C2a (disclosure rows open nothing yet). */
+/** R-S60 설정. Preferences are local state only (no persistence in C2a); the recovery phrase row opens nothing yet. */
 export function SettingsPage() {
   const { t } = useTranslation()
-  const th = useTheme()
+  const [push, setPush] = useState(true)
+  const [zero, setZero] = useState(false)
+  const [device, setDevice] = useState(true)
+  const toggle = (title: string, value: boolean, set: (v: boolean) => void) => (
+    <ListItem title={title} trailing={{ kind: 'custom', node: <Switch label={title} value={value} onValueChange={set} /> }} />
+  )
   return (
     <Screen edges={['top']}>
-      <View style={{ paddingTop: th.primitive.space[2] }}>
-        <Text variant="h1" accessibilityRole="header">{t('settings.title')}</Text>
-      </View>
-      <View style={{ borderRadius: th.component.card.group.radius, overflow: 'hidden' }}>
-        <ListItem title={t('settings.phrase')} trailing={{ kind: 'disclosure', text: t('settings.on') }} />
-        <ListItem title={t('settings.push')} trailing={{ kind: 'disclosure', text: t('settings.on') }} />
-        <ListItem title={t('settings.zero')} trailing={{ kind: 'disclosure', text: t('settings.hidden') }} />
-        <ListItem title={t('settings.device')} trailing={{ kind: 'disclosure', text: t('settings.on') }} />
+      <Text variant="title" accessibilityRole="header">{t('settings.title')}</Text>
+      <Group inset={false}>
+        <ListItem title={t('settings.phrase')} trailing={{ kind: 'disclosure' }} />
+        {toggle(t('settings.push'), push, setPush)}
+        {toggle(t('settings.zero'), zero, setZero)}
+        {toggle(t('settings.device'), device, setDevice)}
         <ListItem title={t('settings.network')} trailing={{ kind: 'value', text: account.network }} />
         <ListItem title={t('settings.version')} trailing={{ kind: 'value', text: Constants.expoConfig?.version ?? '' }} />
-      </View>
+      </Group>
     </Screen>
   )
 }

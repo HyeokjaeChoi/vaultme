@@ -14,6 +14,7 @@
   "dependencies": {
     "@vaultme/i18n": "workspace:*",
     "@vaultme/tokens": "workspace:*",
+    "@vaultme/wallet-core": "workspace:*",
     "expo": "~57.0.0",
     "expo-constants": "~57.0.0",
     "expo-linking": "~57.0.0",

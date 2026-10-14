@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/shared/theme'
 import { Button, Icon, Screen, Text } from '@/shared/ui'
 
-/** S01 시작 */
+/** R-S01 시작 */
 export function StartPage() {
   const { t } = useTranslation()
   const th = useTheme()
@@ -15,7 +15,7 @@ export function StartPage() {
       footer={
         <View style={{ gap: th.semantic.layout.fieldGap }}>
           <Button label={t('start.create')} onPress={() => router.push('/precheck')} />
-          <Button label={t('start.restore')} variant="ghost" onPress={() => router.replace({ pathname: '/home', params: { variant: 'restored' } })} />
+          <Button label={t('start.restore')} variant="secondary" onPress={() => router.replace({ pathname: '/home', params: { variant: 'restored' } })} />
         </View>
       }
     >

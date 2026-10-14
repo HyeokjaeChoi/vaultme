@@ -20,7 +20,8 @@ function Navigator() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="precheck" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false, gestureEnabled: false }} />
-      <Stack.Screen name="send" options={{ headerShown: false }} />
+      <Stack.Screen name="send/index" options={{ headerShown: false }} />
+      <Stack.Screen name="send/amount" options={{ headerShown: false }} />
       <Stack.Screen name="receive" options={{ headerShown: false }} />
       <Stack.Screen name="review" options={{ headerShown: false }} />
       <Stack.Screen name="kit" options={{ title: 'Kit' }} />

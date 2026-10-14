@@ -8,7 +8,7 @@ This monorepo holds the wallet logic, a React Native (Expo) app, the design toke
 It does not hold a production wallet. Use test funds only.
 
 > **Status: 2026-10-14**
-> C1 (`packages/wallet-core`) and C2a (the mobile UI with static screens) are merged into `main`. Redesign A ("one screen, one question") is in the open [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10). C2b and C3 have not started. The design documents describe a target, not a running system: the app has no live network calls and the API and web apps do not exist yet.
+> C1 (`packages/wallet-core`), C2a (the mobile UI with static screens), and Redesign A ("one screen, one question", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)) are merged into `main`. C2b and C3 have not started. The design documents describe a target, not a running system: the app has no live network calls and the API and web apps do not exist yet.
 
 ## Start here
 

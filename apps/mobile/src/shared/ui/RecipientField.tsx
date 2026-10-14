@@ -6,10 +6,10 @@ import { textStyle } from '../theme/fonts'
 import { useTheme } from '../theme'
 import { Text } from './Text'
 
-type Props = { label: string; value: string; onChangeText: (v: string) => void; helper: string }
+type Props = { label: string; value: string; onChangeText: (v: string) => void; helper: string; placeholder?: string }
 
 /** C13 Recipient field: bordered group, Label, address in Product / Address (mono), shown in 4-char groups, helper. Format check is not a safety claim. */
-export function RecipientField({ label, value, onChangeText, helper }: Props) {
+export function RecipientField({ label, value, onChangeText, helper, placeholder }: Props) {
   const [focused, setFocused] = useState(false)
   const t = useTheme()
   const c = t.component.recipientField
@@ -23,6 +23,8 @@ export function RecipientField({ label, value, onChangeText, helper }: Props) {
         onBlur={() => setFocused(false)}
         onChangeText={(v) => onChangeText(v.replace(/\s/g, ''))}
         multiline
+        placeholder={placeholder}
+        placeholderTextColor={t.component.input.placeholder}
         autoCapitalize="none"
         autoCorrect={false}
         style={{ padding: 0, color: c.value, ...textStyle(c.valueStyle) }}

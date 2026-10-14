@@ -27,10 +27,10 @@ export function SensitiveReveal({ words }: Props) {
       style={{
         gap: t.semantic.layout.fieldGap,
         padding: t.primitive.space[3],
-        borderRadius: t.semantic.shape.group,
+        borderRadius: t.component.sensitiveReveal.radius,
         borderWidth: t.primitive.borderWidth.hairline,
-        borderColor: t.semantic.border.subtle,
-        backgroundColor: t.semantic.surface.subtle,
+        borderColor: t.component.sensitiveReveal.border,
+        backgroundColor: t.component.sensitiveReveal.bg,
         ...(shown ? {} : { minHeight: t.primitive.size.wallet_status_card, alignItems: 'center' as const, justifyContent: 'center' as const }),
       }}
     >
@@ -38,7 +38,7 @@ export function SensitiveReveal({ words }: Props) {
         rows.map((row, r) => (
           <View key={r} style={{ flexDirection: 'row', gap: t.semantic.layout.fieldGap }}>
             {row.map(({ w, n }) => (
-              <View key={n} style={{ flex: 1, padding: t.primitive.space[3], borderRadius: t.semantic.shape.control, backgroundColor: t.semantic.surface.default }}>
+              <View key={n} style={{ flex: 1, padding: t.primitive.space[3], borderRadius: t.semantic.shape.control, backgroundColor: t.component.sensitiveReveal.wordBg }}>
                 <Text variant="address">{`${n}. ${w}`}</Text>
               </View>
             ))}

@@ -1,24 +1,24 @@
-// Figma: Receive address 68:150 (Button / Copy address 80:319)
+// Figma: Receive address 68:150 inside Address block 342:836
 import { View } from 'react-native'
 import { useTheme } from '../theme'
 import { AddressText } from './AddressBlock'
-import { Button } from './Button'
+import { Group } from './Group'
 import { Text } from './Text'
 
-type Props = { title: string; account: string; network: string; address: string; copyLabel: string; note: string; onCopy?: () => void }
+type Props = { account: string; network: string; address: string; note: string }
 
-/** C07 Receive address: title, account, network, full address in 4-char groups, Secondary copy button and the network warning line. */
-export function ReceivePanel({ title, account, network, address, copyLabel, note, onCopy }: Props) {
+/** C07 Receive address: one white group with account, network, full address in 4-char groups and the network warning line. Copy and Share are page actions, not part of this panel. */
+export function ReceivePanel({ account, network, address, note }: Props) {
   const t = useTheme()
   const c = t.component.receivePanel
   return (
-    <View style={{ gap: t.semantic.layout.fieldGap, borderRadius: c.radius, borderWidth: c.borderWidth }}>
-      <Text variant="title" color={c.title} accessibilityRole="header">{title}</Text>
-      <Text variant="row">{account}</Text>
-      <Text variant="body" color={c.helper}>{network}</Text>
-      <AddressText address={address} color={c.address} />
-      <Button label={copyLabel} variant="secondary" {...(onCopy ? { onPress: onCopy } : {})} />
-      <Text variant="body" color={c.helper}>{note}</Text>
-    </View>
+    <Group>
+      <View style={{ gap: t.semantic.layout.fieldGap, paddingVertical: t.primitive.space[3] }}>
+        <Text variant="row">{account}</Text>
+        <Text variant="body" color={c.helper}>{network}</Text>
+        <AddressText address={address} color={c.address} />
+        <Text variant="body" color={c.helper}>{note}</Text>
+      </View>
+    </Group>
   )
 }

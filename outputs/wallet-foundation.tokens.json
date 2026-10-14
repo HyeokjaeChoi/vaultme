@@ -881,6 +881,20 @@
           },
           "type": "typography"
         },
+        "amountHero": {
+          "value": {
+            "fontFamily": "{font.family.sans}",
+            "fontWeight": "{font.weight.bold}",
+            "fontSize": "{font.size.product40}",
+            "lineHeight": "{font.lineHeight.px48}",
+            "letterSpacing": "{font.tracking.tight}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
         "amount": {
           "value": {
             "fontFamily": "{font.family.sans}",
@@ -1364,17 +1378,17 @@
       "secondary": {
         "bg": {
           "default": {
-            "value": "{color.neutral.50}",
+            "value": "{color.neutral.200}",
             "type": "color",
             "description": "action.secondary.bg.default: Action control state. Primary Blue A means an action, not success, financial gain or safety."
           },
           "hover": {
-            "value": "{color.neutral.100}",
+            "value": "{color.neutral.300}",
             "type": "color",
             "description": "action.secondary.bg.hover: Action control state. Primary Blue A means an action, not success, financial gain or safety."
           },
           "pressed": {
-            "value": "{color.neutral.200}",
+            "value": "{color.neutral.400}",
             "type": "color",
             "description": "action.secondary.bg.pressed: Action control state. Primary Blue A means an action, not success, financial gain or safety."
           }
@@ -1612,6 +1626,11 @@
         "value": "{type.product.balance}",
         "type": "typography",
         "description": "typography.balance: Product typography role. Components must consume their specific typography alias when one exists."
+      },
+      "amountHero": {
+        "value": "{type.product.amountHero}",
+        "type": "typography",
+        "description": "typography.amountHero: Product typography role. One emphasized transfer amount per screen (Review, Send amount). 40/48 Bold."
       },
       "amount": {
         "value": "{type.product.amount}",
@@ -1968,7 +1987,7 @@
             "description": "button.size.lg.height: C01 Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
           },
           "paddingX": {
-            "value": "{space.5}",
+            "value": "{space.4}",
             "type": "spacing",
             "description": "button.size.lg.paddingX: C01 Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
           },
@@ -3135,7 +3154,7 @@
         }
       },
       "radius": {
-        "value": "{radius.xl}",
+        "value": "{radius.lg}",
         "type": "borderRadius",
         "description": "receivePanel.radius: C11 Receive address. Keep account, network and full address. A copy result is not a transfer confirmation."
       },
@@ -4363,6 +4382,138 @@
           "description": "icon.status.clear: Contextual icon role. Functional vectors use current foreground; asset identity artwork keeps its original fills."
         }
       }
+    },
+    "switch": {
+      "track": {
+        "on": {
+          "value": "{action.primary.bg.default}",
+          "type": "color",
+          "description": "switch.track.on: C29 Switch. Keep the visible label, 44 px target, focus and the checked state announced."
+        },
+        "off": {
+          "value": "{border.default}",
+          "type": "color",
+          "description": "switch.track.off: C29 Switch. Keep the visible label, 44 px target, focus and the checked state announced."
+        }
+      },
+      "thumb": {
+        "value": "{action.primary.fg.default}",
+        "type": "color",
+        "description": "switch.thumb: C29 Switch. Keep the visible label, 44 px target, focus and the checked state announced."
+      },
+      "radius": {
+        "value": "{radius.pill}",
+        "type": "borderRadius",
+        "description": "switch.radius: C29 Switch. Keep the visible label, 44 px target, focus and the checked state announced."
+      }
+    },
+    "segmented": {
+      "bg": {
+        "value": "{action.secondary.bg.default}",
+        "type": "color",
+        "description": "segmented.bg: C30 Segmented control. Two exclusive choices; selection is instant. Keep the visible label and 44 px target."
+      },
+      "selectedBg": {
+        "value": "{surface.raised}",
+        "type": "color",
+        "description": "segmented.selectedBg: C30 Segmented control. Two exclusive choices; selection is instant. Keep the visible label and 44 px target."
+      },
+      "border": {
+        "value": "{border.subtle}",
+        "type": "color",
+        "description": "segmented.border: C30 Segmented control. Two exclusive choices; selection is instant. Keep the visible label and 44 px target."
+      },
+      "fg": {
+        "value": "{text.secondary}",
+        "type": "color",
+        "description": "segmented.fg: C30 Segmented control. Two exclusive choices; selection is instant. Keep the visible label and 44 px target."
+      },
+      "selectedFg": {
+        "value": "{text.primary}",
+        "type": "color",
+        "description": "segmented.selectedFg: C30 Segmented control. Two exclusive choices; selection is instant. Keep the visible label and 44 px target."
+      },
+      "radius": {
+        "value": "{shape.control}",
+        "type": "borderRadius",
+        "description": "segmented.radius: C30 Segmented control. Two exclusive choices; selection is instant. Keep the visible label and 44 px target."
+      }
+    },
+    "listItem": {
+      "bg": {
+        "value": "{surface.default}",
+        "type": "color",
+        "description": "listItem.bg: C31 List item. Keep the visible label, 44 px target when pressable, and a divider only when asked."
+      },
+      "label": {
+        "value": "{text.primary}",
+        "type": "color",
+        "description": "listItem.label: C31 List item. Keep the visible label, 44 px target when pressable, and a divider only when asked."
+      },
+      "value": {
+        "value": "{text.secondary}",
+        "type": "color",
+        "description": "listItem.value: C31 List item. Keep the visible label, 44 px target when pressable, and a divider only when asked."
+      },
+      "icon": {
+        "value": "{icon.secondary}",
+        "type": "color",
+        "description": "listItem.icon: C31 List item. Keep the visible label, 44 px target when pressable, and a divider only when asked."
+      },
+      "divider": {
+        "value": "{border.subtle}",
+        "type": "color",
+        "description": "listItem.divider: C31 List item. Keep the visible label, 44 px target when pressable, and a divider only when asked."
+      },
+      "paddingX": {
+        "value": "{layout.screen.padding}",
+        "type": "spacing",
+        "description": "listItem.paddingX: C31 List item. Keep the visible label, 44 px target when pressable, and a divider only when asked."
+      },
+      "paddingY": {
+        "value": "{layout.rowGap}",
+        "type": "spacing",
+        "description": "listItem.paddingY: C31 List item. Keep the visible label, 44 px target when pressable, and a divider only when asked."
+      }
+    },
+    "bottomSheet": {
+      "grabber": {
+        "value": "{border.default}",
+        "type": "color",
+        "description": "bottomSheet.grabber: C32 Bottom sheet. Only the content scrolls; actions stay pinned. Keep focus inside and a close action."
+      }
+    },
+    "sensitiveReveal": {
+      "bg": {
+        "value": "{surface.subtle}",
+        "type": "color",
+        "description": "sensitiveReveal.bg: C33 Sensitive reveal. Hidden by default; show on tap; hide again when the app leaves the foreground. Never log or copy the revealed words."
+      },
+      "border": {
+        "value": "{border.subtle}",
+        "type": "color",
+        "description": "sensitiveReveal.border: C33 Sensitive reveal. Hidden by default; show on tap; hide again when the app leaves the foreground. Never log or copy the revealed words."
+      },
+      "fg": {
+        "value": "{text.primary}",
+        "type": "color",
+        "description": "sensitiveReveal.fg: C33 Sensitive reveal. Hidden by default; show on tap; hide again when the app leaves the foreground. Never log or copy the revealed words."
+      },
+      "hint": {
+        "value": "{text.secondary}",
+        "type": "color",
+        "description": "sensitiveReveal.hint: C33 Sensitive reveal. Hidden by default; show on tap; hide again when the app leaves the foreground. Never log or copy the revealed words."
+      },
+      "wordBg": {
+        "value": "{surface.default}",
+        "type": "color",
+        "description": "sensitiveReveal.wordBg: C33 Sensitive reveal. Hidden by default; show on tap; hide again when the app leaves the foreground. Never log or copy the revealed words."
+      },
+      "radius": {
+        "value": "{shape.group}",
+        "type": "borderRadius",
+        "description": "sensitiveReveal.radius: C33 Sensitive reveal. Hidden by default; show on tap; hide again when the app leaves the foreground. Never log or copy the revealed words."
+      }
     }
   },
   "semanticDark": {
@@ -4529,17 +4680,17 @@
       "secondary": {
         "bg": {
           "default": {
-            "value": "{color.neutral.900}",
+            "value": "{color.neutral.800}",
             "type": "color",
             "description": "action.secondary.bg.default: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
           },
           "hover": {
-            "value": "{color.neutral.800}",
+            "value": "{color.neutral.700}",
             "type": "color",
             "description": "action.secondary.bg.hover: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
           },
           "pressed": {
-            "value": "{color.neutral.700}",
+            "value": "{color.neutral.600}",
             "type": "color",
             "description": "action.secondary.bg.pressed: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
           }

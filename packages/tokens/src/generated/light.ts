@@ -266,6 +266,13 @@ export const light = {
           "lineHeight": 48,
           "letterSpacing": -0.8
         },
+        "amountHero": {
+          "fontFamily": "Inter",
+          "fontWeight": "700",
+          "fontSize": 40,
+          "lineHeight": 48,
+          "letterSpacing": -0.8
+        },
         "amount": {
           "fontFamily": "Inter",
           "fontWeight": "500",
@@ -465,9 +472,9 @@ export const light = {
       },
       "secondary": {
         "bg": {
-          "default": "#F6F8FB",
-          "hover": "#EEF2F7",
-          "pressed": "#DDE4EC"
+          "default": "#DDE4EC",
+          "hover": "#C7D1DD",
+          "pressed": "#98A4B3"
         },
         "fg": "#11161D",
         "border": "#808D9D"
@@ -557,6 +564,13 @@ export const light = {
       "balance": {
         "fontFamily": "Inter",
         "fontWeight": "500",
+        "fontSize": 40,
+        "lineHeight": 48,
+        "letterSpacing": -0.8
+      },
+      "amountHero": {
+        "fontFamily": "Inter",
+        "fontWeight": "700",
         "fontSize": 40,
         "lineHeight": 48,
         "letterSpacing": -0.8
@@ -672,9 +686,9 @@ export const light = {
       },
       "secondary": {
         "bg": {
-          "default": "#F6F8FB",
-          "hover": "#EEF2F7",
-          "pressed": "#DDE4EC",
+          "default": "#DDE4EC",
+          "hover": "#C7D1DD",
+          "pressed": "#98A4B3",
           "disabled": "#DDE4EC"
         },
         "fg": {
@@ -730,7 +744,7 @@ export const light = {
         },
         "lg": {
           "height": 52,
-          "paddingX": 20,
+          "paddingX": 16,
           "label": {
             "fontFamily": "Inter",
             "fontWeight": "600",
@@ -1212,7 +1226,7 @@ export const light = {
         "fg": "#865007",
         "bg": "#FFF8E9"
       },
-      "radius": 20,
+      "radius": 16,
       "padding": 24,
       "titleStyle": {
         "fontFamily": "Inter",
@@ -1737,6 +1751,42 @@ export const light = {
         "unknown": "#394553",
         "clear": "#394553"
       }
+    },
+    "switch": {
+      "track": {
+        "on": "#3152FF",
+        "off": "#808D9D"
+      },
+      "thumb": "#FFFFFF",
+      "radius": 999
+    },
+    "segmented": {
+      "bg": "#DDE4EC",
+      "selectedBg": "#FFFFFF",
+      "border": "#DDE4EC",
+      "fg": "#394553",
+      "selectedFg": "#11161D",
+      "radius": 12
+    },
+    "listItem": {
+      "bg": "#FFFFFF",
+      "label": "#11161D",
+      "value": "#394553",
+      "icon": "#505C6C",
+      "divider": "#DDE4EC",
+      "paddingX": 16,
+      "paddingY": 12
+    },
+    "bottomSheet": {
+      "grabber": "#808D9D"
+    },
+    "sensitiveReveal": {
+      "bg": "#F6F8FB",
+      "border": "#DDE4EC",
+      "fg": "#11161D",
+      "hint": "#394553",
+      "wordBg": "#FFFFFF",
+      "radius": 16
     }
   }
 } as const
