@@ -16,19 +16,19 @@ export function sendFrom(): `0x${string}` {
   }
 }
 
-export type ReviewCore = { review: Review | null; error: PrepareError | 'chain' | null; checkedAt: string; refresh: () => Promise<Review | null> }
+export type ReviewCore = { review: Review | null; error: PrepareError | 'chain' | null; /** What the snapshot call threw, when `error` is 'chain'. */ cause: unknown; checkedAt: string; refresh: () => Promise<Review | null> }
 
 /** Fresh chain snapshot -> wallet-core prepare(). Fee, cap and nonce on Review come from here, never from fixtures. `refresh` re-fetches (다시 계산, and after NeedsReview). */
 export function useReviewCore(to: string, amount: string): ReviewCore {
-  const [state, setState] = useState<{ review: Review | null; error: PrepareError | 'chain' | null; checkedAt: string }>({ review: null, error: null, checkedAt: hhmm() })
+  const [state, setState] = useState<{ review: Review | null; error: PrepareError | 'chain' | null; cause: unknown; checkedAt: string }>({ review: null, error: null, cause: null, checkedAt: hhmm() })
   const refresh = useCallback(async () => {
     try {
       const snap = await chain.getSnapshot(sendFrom(), 'ETH', to as `0x${string}`, amount)
       const r = prepare({ asset: 'ETH', to: to as `0x${string}`, amount, previous: recents.map((x) => x.address as `0x${string}`) }, snap)
-      setState({ review: r.ok ? r.review : null, error: r.ok ? null : r.error, checkedAt: hhmm() })
+      setState({ review: r.ok ? r.review : null, error: r.ok ? null : r.error, cause: null, checkedAt: hhmm() })
       return r.ok ? r.review : null
-    } catch {
-      setState({ review: null, error: 'chain', checkedAt: hhmm() })
+    } catch (cause) {
+      setState({ review: null, error: 'chain', cause, checkedAt: hhmm() })
       return null
     }
   }, [to, amount])

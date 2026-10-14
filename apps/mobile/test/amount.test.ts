@@ -24,8 +24,8 @@ it('zero check ignores dots and zeros', () => {
   expect(isZeroAmount('0.00')).toBe(true)
   expect(isZeroAmount('0.01')).toBe(false)
 })
-it('short address keeps 6 leading and 4 trailing characters', () => {
-  expect(shortAddress('0x9F3c7A210bD4e6C855a13F90c2E78d16Ab0441aB')).toBe('0x9F3c…41aB')
+it('short address (EIP-55 form) keeps 6 leading and 4 trailing characters', () => {
+  expect(shortAddress('0x9F3c7A210bD4e6C855a13F90c2E78d16Ab0441aB')).toBe('0x9F3C…41Ab')
 })
 it('address format needs 0x and 40 hex characters', () => {
   expect(isAddressFormat('0x9F3c7A210bD4e6C855a13F90c2E78d16Ab0441aB')).toBe(true)
@@ -39,4 +39,13 @@ it('exceedsBalance compares amount with available', async () => {
   expect(exceedsBalance('1.284732', '1.284732')).toBe(false)
   expect(exceedsBalance('5.', '1.284732')).toBe(true)
   expect(exceedsBalance('0.05', '1.284732')).toBe(false)
+})
+
+it('showAmount: floor in lists, exact elsewhere, unknown asset untouched', async () => {
+  const { showAmount } = await import('../src/shared/lib/amount')
+  expect(showAmount('1.2847329', 'ETH', 'floor')).toBe('1.284732 ETH')
+  expect(showAmount('1.2847329', 'ETH', 'exact')).toBe('1.2847329 ETH')
+  expect(showAmount('1.5', 'USDC', 'exact')).toBe('1.50 USDC')
+  expect(showAmount('0.001', 'USDC', 'floor')).toBe('<0.01 USDC')
+  expect(showAmount('3', 'DAI', 'floor')).toBe('3 DAI')
 })

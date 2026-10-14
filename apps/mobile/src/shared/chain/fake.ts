@@ -22,6 +22,12 @@ export function createFakeChain(nonce: NonceStore): ChainPort {
     async getReceipt() {
       return null // nothing was sent, so nothing is ever mined
     },
+    async getSafeBlock() {
+      return 0n
+    },
+    async getSafeNonce() {
+      return 0n
+    },
     async getSnapshot(_address, asset): Promise<ChainSnapshot> {
       return {
         nonce: nonce.get(),

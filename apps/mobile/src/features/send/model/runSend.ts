@@ -7,7 +7,9 @@ export const blocksNewSend = (tx: PendingTx | null | 'corrupt'): boolean => tx =
 
 export type SendOutcome =
   | { status: 'Pending' | 'Unknown'; tx: PendingTx }
-  | { status: 'NeedsReview' | 'Blocked' | 'Cancelled' | 'AuthError' | 'ChainError' | 'PendingExists' }
+  | { status: 'NeedsReview' | 'Blocked' | 'Cancelled' | 'AuthError' | 'PendingExists' }
+  /** `error` = what the network call threw (an ApiError says why: offline, busy, clock). */
+  | { status: 'ChainError'; error: unknown }
 
 export type SendDeps = {
   chain: Pick<ChainPort, 'getSnapshot' | 'submit' | 'broadcasts'>
@@ -34,8 +36,8 @@ export async function runSend(approved: ApprovedSend, amount: string, from: Addr
   try {
     const latest = await d.chain.getSnapshot(from, approved.asset, approved.to, amount)
     result = await signAndSubmit(approved, latest, { mnemonic: auth.mnemonic, submit: (raw) => d.chain.submit(raw) })
-  } catch {
-    return { status: 'ChainError' }
+  } catch (error) {
+    return { status: 'ChainError', error }
   }
   if (result.status === 'NeedsReview' || result.status === 'Blocked') return { status: result.status }
 

@@ -67,3 +67,11 @@
 - Activity는 실제 모드에서 pending 한 건만 보인다. API 내역은 #42(서버)와 #44(화면)가 끝나야 보인다.
 - 사용자에게 보이는 `network`, `unavailable`, `update_required`, `clock_skew` 문구와 화면은 없다. 오류는 지금 `ChainError` 등으로만 드러난다.
 - `getBalances` 실패는 `—`로만 보인다.
+
+## 6. 이슈 #44 (화면과 상태)
+
+- **상태 판정.** `features/send/model/txState.ts`의 `deriveState`. receipt가 `safe` block 이하면 성공=Confirmed, reverted=Failed. 위면 Included. receipt가 없고 `safe` 기준 nonce가 우리 nonce보다 크면 Replaced (Q77). 시간만으로는 바꾸지 않고 자동 재송신도 없다 (Q22). `ChainPort`에 `getSafeBlock`, `getSafeNonce`를 더했다.
+- **자동 재확인.** S41, S23이 focus일 때 Pending, Included를 15초마다 확인한다. blur, 백그라운드, 최종 상태에서 멈춘다. Unknown은 수동 "상태 다시 확인"만.
+- **내역.** `POST /v1/history` 응답 형태는 #42가 정할 때까지 임시 형태(`{ items: [...] }`)로 읽는다 (`features/history/model/view.ts`). 404는 이 기기의 보낸 tx만 보인다.
+- **426.** API client가 `onUpdateRequired`를 부르면 `shell/UpdateGate`가 앱을 S91로 바꾼다. 스토어 URL은 자리표시자다 (TODO).
+- **확인.** Android emulator에서 mock API(`http://10.0.2.2:8787`)로 평문 HTTP 요청이 동작함을 확인했다.

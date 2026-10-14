@@ -98,8 +98,8 @@ vaultme/
 // 상수: 서버에서 받지 않는다 (Q73)
 export const CHAIN = { id: 11155111, name: 'Sepolia' } as const
 export const ASSETS = {
-  ETH:  { kind: 'native', decimals: 18 },
-  USDC: { kind: 'erc20', decimals: 6, address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' }, // Circle 문서 + on-chain decimals()=6, symbol()=USDC 확인 (2026-10-12)
+  ETH:  { kind: 'native', decimals: 18, display: { minFraction: 0, maxFraction: 6 } },
+  USDC: { kind: 'erc20', decimals: 6, display: { minFraction: 2, maxFraction: 2 }, address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' }, // Circle 문서 + on-chain decimals()=6, symbol()=USDC 확인 (2026-10-12)
 } as const
 export const DERIVATION_PATH = "m/44'/60'/0'/0/0"     // Q40
 export const ABS_MAX_FEE_WEI = parseEther('0.005')     // 기본값, testnet 전용 (Q73)
@@ -121,6 +121,7 @@ export function signAndSubmit(
 export function toUnits(decimal: string, asset: AssetId): bigint
 export function fromUnits(raw: bigint, asset: AssetId): string   // 반올림 없음
 export function maxSendable(balance: bigint, asset: AssetId, feeCap: bigint, nativeBalance: bigint): MaxResult
+export function formatAmount(raw: bigint, asset: AssetId, mode: 'floor' | 'exact'): string   // 표시 전용, 아래 §3.1
 
 // 주소 오염 방어 (Q71) + burn·토큰 컨트랙트 (Q79). 우선순위: burn > tokenContract > lookalike > first > known
 export const BURN_ADDRESSES = ['0x0000000000000000000000000000000000000000', '0x000000000000000000000000000000000000dEaD'] as const
@@ -132,6 +133,15 @@ export function reduce(state: SendState, event: SendEvent): SendState
 
 - `Mnemonic`은 branded type이다. 로그·Sentry로 나가지 않게 `toString`/`toJSON`이 마스킹된다.
 - Keychain 접근은 앱의 `features/backup`·`features/send`가 맡는다. `wallet-core`는 저장소를 모른다. 그래서 Node에서 테스트할 수 있다.
+
+### 3.1 금액 표시 정밀도
+
+- `ASSETS[x].display = { minFraction, maxFraction }`가 표시 자릿수를 정한다. ETH는 0~6자리(끝의 0은 지움), USDC는 2~2자리이다.
+- `formatAmount(raw, asset, mode)` (`wallet-core/src/format.ts`):
+  - `floor`: 잔액과 목록 행(S10, S40). 내림한다. 가진 것보다 많이 보이지 않는다. 0이 아닌데 표시 단위보다 작으면 `<0.000001 ETH`, `<0.01 USDC`로 보인다.
+  - `exact`: Review(S22), 결과(S23), 상세(S41). 반올림 없이 전체 자릿수를 보인다. USDC는 최소 2자리까지 0을 채운다 (`1.50 USDC`).
+- 입력과 parse(`toUnits`, `fromUnits`)는 바꾸지 않는다. 표시 정밀도는 표현일 뿐이고 앱 상수로 둔다.
+- 자산이 많아지거나 동적으로 늘면 그때 서버 필드를 앱 기본값과 함께 쓰는 방식(Kraken `display_decimals` 방식)을 다시 본다.
 
 ## 4. API 계약 (v1)
 

@@ -2,8 +2,10 @@ import { useRouter } from 'expo-router'
 import { View } from 'react-native'
 import { Redirect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { usePendingTx } from '@/features/send'
+import { account } from '@/entities/account/fixtures'
+import { txNotice, txView, useTrackedTx } from '@/features/send'
 import { shortAddress } from '@/shared/lib/address'
+import { showAmount } from '@/shared/lib/amount'
 import { useTheme } from '@/shared/theme'
 import { Button, Group, Screen, StatusLabel, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 import { chain } from '@/shared/chain'
@@ -13,9 +15,10 @@ export function SendResultPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { tx } = usePendingTx()
+  const { tx } = useTrackedTx() // re-checks a Pending or Included send every 15 s while focused
   if (!tx) return <Redirect href="/home" />
-  const unknown = tx.state === 'Unknown'
+  const view = txView(tx.state)
+  const copy = txNotice(tx.state)
   const gap = th.semantic.layout.fieldGap
   return (
     <Screen
@@ -28,12 +31,14 @@ export function SendResultPage() {
       }
     >
       <View style={{ gap }}>
-        <StatusLabel state={unknown ? 'unknown' : 'pending'} label={t(unknown ? 'activity.unknown' : 'activity.pending')} />
-        <Text variant="title" accessibilityRole="header">{t(unknown ? 'result.unknownTitle' : 'result.title')}</Text>
-        <Text variant="body" color={th.semantic.text.secondary}>{t(unknown ? 'result.unknownBody' : 'result.body')}</Text>
+        <StatusLabel state={view.status} label={t(view.label)} />
+        <Text variant="title" accessibilityRole="header">{t(copy.title)}</Text>
+        <Text variant="body" color={th.semantic.text.secondary}>{t(copy.body)}</Text>
       </View>
       <Group>
-        <SummaryRow label={t('result.amount')} value={`${tx.amount} ${tx.asset}`} />
+        <SummaryRow label={t('detail.sender')} value={account.name} />
+        <SummaryRow label={t('review.network')} value={account.network} />
+        <SummaryRow label={t('result.amount')} value={showAmount(tx.amount, tx.asset, 'exact')} />
         <SummaryRow format="address" label={t('result.recipient')} value={tx.to} />
         <SummaryRow label={t('result.hash')} value={shortAddress(tx.hash)} />
         <SummaryRow label={t('result.fee')} value={`${tx.fee ?? '—'} ETH`} />

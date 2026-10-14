@@ -1,7 +1,7 @@
 // Figma: Address block 68:197 (Icon / action / copy 137:144)
 import { Fragment } from 'react'
 import { Pressable, Text as RNText, View } from 'react-native'
-import { addressA11yLabel, groupAddress } from '../lib/address'
+import { addressA11yLabel, displayGroups } from '../lib/address'
 import { textStyle } from '../theme/fonts'
 import { useTheme } from '../theme'
 import { Icon } from './Icon'
@@ -17,7 +17,7 @@ export function AddressText({ address, highlight = [], color, markColor }: TextP
   const t = useTheme()
   const base = t.component.addressBlock.textStyle
   const hit = { ...textStyle({ ...base, fontWeight: '500' }), color: markColor ?? t.semantic.status.danger.fg, textDecorationLine: 'underline' as const }
-  const groups = groupAddress(address)
+  const groups = displayGroups(address)
   return (
     <Text variant="address" color={color ?? t.component.addressBlock.value} accessibilityLabel={addressA11yLabel(address)}>
       {groups.map((g, i) => (

@@ -1,7 +1,7 @@
 // Approved Korean copy: outputs/design/ux-copy.md + ux-terminology.md. Screens in C2a only.
 export const ko = {
   tab: { assets: '자산', activity: '내역', settings: '설정' },
-  common: { cancel: '취소', close: '닫기', later: '나중에', edit: '수정', back: '뒤로' },
+  common: { cancel: '취소', close: '닫기', later: '나중에', edit: '수정', back: '뒤로', retry: '다시 시도' },
   start: {
     title: 'VaultMe',
     body: '내 기기에 열쇠를 두는 Sepolia 테스트넷 지갑이에요.',
@@ -124,8 +124,9 @@ export const ko = {
     authPrompt: '보내려면 인증하세요',
     authError: { title: '인증하지 못했어요', body: '다시 시도하세요.' },
     chainError: { title: '네트워크 정보를 가져오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
-    needsReview: { title: '수수료가 바뀌었어요', body: '최신 값으로 다시 계산했어요. 확인하고 다시 보내세요.' },
-    blocked: { title: '수수료가 너무 높아 보낼 수 없어요', body: '잠시 뒤에 다시 시도하세요.' },
+    // C3 (#44): needsReview, blocked and the retry buttons are the owner-approved Figma frames C3-S22 (379:2099, 379:2187, 379:2279).
+    needsReview: { title: '내용이 바뀌었어요', body: '수수료나 거래 순서가 바뀌어서 보내지 않았어요. 새 내용을 확인한 뒤 다시 보내세요.' },
+    blocked: { title: '수수료가 너무 높아요', body: '정해 둔 최대 수수료를 넘어서 보내지 않았어요. 나중에 다시 시도하세요.' },
     prepareError: { title: '보낼 수 없어요', body: '받는 주소와 금액을 확인하세요.' },
     pendingBlock: {
       title: '진행 중인 보내기가 있어요',
@@ -133,13 +134,25 @@ export const ko = {
       view: '진행 중인 거래 보기',
     },
   },
+  // C3 (#44): a failed API call, by cause (draft, owner approval pending). Unknown causes use send.chainError. 426 is `updateRequired`.
+  apiError: {
+    network: { title: '서버에 연결하지 못했어요', body: '인터넷 연결을 확인하고 다시 시도하세요.' },
+    unavailable: { title: '서버가 지금 바빠요', body: '잠시 뒤에 다시 시도하세요.' },
+    clockSkew: { title: '기기 시간이 맞지 않아요', body: '날짜와 시간을 자동으로 맞춘 뒤 다시 시도하세요.' },
+  },
+  // S91 (Figma C3-S91 377:2528; body line 2 per issue #44 comment).
+  updateRequired: {
+    title: '앱을 업데이트하세요',
+    body: '이 버전은 더 이상 지원하지 않아요.\n자산은 블록체인에 그대로 있어요.\n업데이트한 뒤 계속 쓰세요.',
+    cta: '스토어에서 업데이트',
+  },
   // C2b #23/#24, shown while the fake chain adapter is on. testData and notBroadcast are new (listed in the PR for approval).
   testData: { title: '테스트 데이터예요', body: '잔액과 내역은 예시예요. 실제 네트워크와 연결되지 않았어요.' },
   notBroadcast: { title: '네트워크로 보내지 않았어요 (테스트)', body: '테스트 버전이라 거래 해시와 상태는 이 기기에서 만든 예시예요.' },
   // S23: Figma C2b-S23 + ux-copy.md. unknown.* from ux-flow.md S23 state table.
   result: {
     title: '네트워크 처리를 기다리는 중이에요',
-    body: '보냈어요. 다시 보내지 마세요. 처리되면 알려 드려요.',
+    body: '보냈어요. 다시 보내지 마세요.',
     unknownTitle: '보낸 결과를 확인하지 못했어요',
     unknownBody: '다시 보내지 말고 상태를 확인해 주세요.',
     amount: '보낸 금액',
@@ -153,8 +166,14 @@ export const ko = {
   detail: {
     title: '거래 상세',
     amount: '금액',
+    sender: '보낸 계정',
     lastChecked: '마지막 확인',
     auto: '자동으로 다시 확인해요.',
+    // Result notice by state (draft; texts from ux-flow.md S23 state table). Pending and Unknown reuse result.*.
+    included: { title: '블록에 포함됐어요', body: '확정을 기다리는 중이에요. 다시 보내지 마세요.' },
+    confirmed: { title: '확정됐어요', body: '이 거래는 네트워크에서 확정됐어요.' },
+    failed: { title: '실행에 실패했어요', body: '네트워크 수수료는 나갔어요. 보내려던 금액은 나가지 않았어요.' },
+    replaced: { title: '실행되지 않았어요', body: '다른 거래가 먼저 처리되어 이 거래는 실행되지 않았어요.' },
     recheck: '상태 다시 확인',
     etherscan: 'Etherscan에서 보기',
     // Test mode only (fake chain adapter): approved by the coordinator 2026-10-14.
@@ -178,6 +197,7 @@ export const ko = {
     checkedTitle: '확인 결과',
     checkedBody: '잔액, 수수료, 주소 형식을 {{time}}에 확인했어요. 받는 사람의 안전을 보증하지는 않아요.',
     confirm: '확인하고 보내기',
+    reconfirm: '다시 검토',
     burn: {
       title: '소각 주소예요',
       body: '이 주소로 보낸 자산은 되찾을 수 없어요. 받는 주소를 다시 확인하세요.',
@@ -200,15 +220,22 @@ export const ko = {
   activity: {
     title: '내역',
     pending: '처리 중',
-    included: '블록에 포함됨',
+    included: '블록에 포함됨 (확정 대기)',
     confirmed: '확정',
     failed: '실패',
     unknown: '확인 못 함',
+    replaced: '실행되지 않음',
     send: '보내기',
     receive: '받기',
     today: '오늘',
     oct12: '10월 12일',
     oct11: '10월 11일',
+    // C3 (#44): Figma C3-S40 frames 377:2216 (loading), 377:2261 (empty), 377:2332 (error cached), 377:2388 (normal).
+    updatedAt: '마지막 업데이트 {{time}}',
+    loading: '내역을 불러오는 중이에요',
+    empty: { title: '아직 거래가 없어요', body: '받기 주소를 공유하면 여기에 거래가 보여요.', cta: '받기 주소 보기' },
+    error: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요. 아래는 마지막으로 받은 내역이에요.' },
+    errorNoCache: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요.' },
   },
   settings: {
     title: '설정',

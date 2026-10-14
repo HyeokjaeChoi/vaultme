@@ -4,9 +4,10 @@ import { parseEther, type Address } from 'viem'
 export const CHAIN = { id: 11155111, name: 'Sepolia' } as const
 
 export const ASSETS = {
-  ETH: { kind: 'native', decimals: 18 },
+  // `display` is presentation only (formatAmount): fraction digits shown. It never changes what is stored, parsed or sent.
+  ETH: { kind: 'native', decimals: 18, display: { minFraction: 0, maxFraction: 6 } },
   // Circle docs + on-chain decimals()=6, symbol()=USDC (checked 2026-10-12)
-  USDC: { kind: 'erc20', decimals: 6, address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' },
+  USDC: { kind: 'erc20', decimals: 6, address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', display: { minFraction: 2, maxFraction: 2 } },
 } as const
 
 export type AssetId = keyof typeof ASSETS

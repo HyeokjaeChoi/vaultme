@@ -15,6 +15,10 @@ export type ChainPort = {
   getBalances(address: Address): Promise<Record<AssetId, bigint>>
   /** eth_getTransactionReceipt: null while the tx is not in a block. */
   getReceipt(hash: Hash): Promise<Receipt | null>
+  /** eth_getBlockByNumber('safe', false): the number of the newest `safe` block (Q37). A receipt at or below it is final. */
+  getSafeBlock(): Promise<bigint>
+  /** eth_getTransactionCount(address, 'safe'): the account nonce as of the `safe` block (Replaced, Q77). */
+  getSafeNonce(address: Address): Promise<bigint>
   /** false = nothing leaves the device (fake adapter). The UI says so and hides explorer links. */
   readonly broadcasts: boolean
 }

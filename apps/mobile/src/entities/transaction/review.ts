@@ -1,4 +1,4 @@
-import { fromUnits, recipientRisk, toUnits, type RecipientRisk, type Review } from '@vaultme/wallet-core'
+import { formatDecimal, fromUnits, recipientRisk, toUnits, type RecipientRisk, type Review } from '@vaultme/wallet-core'
 import { diffGroups, isAddressFormat } from '../../shared/lib/address'
 import { recents, review } from './fixtures'
 
@@ -50,5 +50,5 @@ export function resolveReview(to?: string, amount?: string, forceRisk = false, c
   const fee = core ? fromUnits(core.estimatedFee, 'ETH') : FEE
   const feeCap = core ? `${fromUnits(core.feeCap, 'ETH')} ETH` : review.feeCap
   const total = fromUnits(toUnits(shown, 'ETH') + toUnits(fee, 'ETH'), 'ETH')
-  return { recipient, previous, risk, amount: `${shown} ETH`, fee: `${fee} ETH`, feeCap, total: `${total} ETH` }
+  return { recipient, previous, risk, amount: `${formatDecimal(shown, 'ETH', 'exact')} ETH`, fee: `${fee} ETH`, feeCap, total: `${total} ETH` }
 }

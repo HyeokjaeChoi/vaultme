@@ -27,8 +27,9 @@ export function readPendingTx(): PendingTx | null | 'corrupt' {
 }
 
 /** Pending tx from the kv, re-read whenever the screen regains focus. `blocked` = Q47. */
-export function usePendingTx(): { tx: PendingTx | null; blocked: boolean } {
+export function usePendingTx(): { tx: PendingTx | null; blocked: boolean; reload: () => void } {
   const [raw, setRaw] = useState(readPendingTx)
-  useFocusEffect(useCallback(() => setRaw(readPendingTx()), []))
-  return { tx: raw === 'corrupt' ? null : raw, blocked: blocksNewSend(raw) }
+  const reload = useCallback(() => setRaw(readPendingTx()), [])
+  useFocusEffect(reload)
+  return { tx: raw === 'corrupt' ? null : raw, blocked: blocksNewSend(raw), reload }
 }
