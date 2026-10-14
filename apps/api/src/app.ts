@@ -58,6 +58,7 @@ app.openapi(
   (c) => c.json({ ok: true as const, version: pkg.version }, 200),
 )
 
+const bearer = { 401: errorResponse('Missing, invalid or expired token'), 429: errorResponse('Rate limited') }
 const signed = { 401: errorResponse('Missing or invalid signed-request headers'), 429: errorResponse('Rate limited') }
 
 // Coarse IP limit. Mobile networks share IPs, so this only slows down mass registration.
@@ -119,7 +120,7 @@ app.openapi(
     path: '/v1/installs/me',
     responses: {
       200: { description: 'Token is valid', content: { 'application/json': { schema: InstallMeResponse } } },
-      ...signed,
+      ...bearer,
     },
   }),
   (c) => c.json({ installId: c.get('installId') }, 200),

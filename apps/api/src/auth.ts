@@ -109,7 +109,7 @@ export const requireToken: MiddlewareHandler<Env> = async (c, next) => {
   if (parts.length !== 3 || !id || !exp || !mac || !InstallId.safeParse(id).success || !/^\d{1,12}$/.test(exp)) {
     return fail(c, 401, 'unauthorized', 'Token is required')
   }
-  if (!/^[A-Za-z0-9_-]+$/.test(mac)) return fail(c, 401, 'unauthorized', 'Token is required')
+  if (!/^[A-Za-z0-9_-]{43}$/.test(mac)) return fail(c, 401, 'unauthorized', 'Token is required')
   const valid = await crypto.subtle.verify('HMAC', await hmacKey(c, 'verify'), b64uDecode(mac), enc.encode(`${id}.${exp}`))
   if (!valid) return fail(c, 401, 'unauthorized', 'Token is invalid')
   if (Number(exp) <= nowSeconds()) return fail(c, 401, 'unauthorized', 'Token expired')

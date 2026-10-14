@@ -235,7 +235,7 @@
             }
           },
           "401": {
-            "description": "Missing or invalid signed-request headers",
+            "description": "Missing, invalid or expired token",
             "content": {
               "application/json": {
                 "schema": {

@@ -158,7 +158,7 @@ describe('installs', () => {
     const { body } = await d.token()
     const [, exp, mac] = body.token.split('.')
     const forged = `${crypto.randomUUID()}.${exp}.${mac}`
-    for (const auth of [`Bearer ${forged}`, 'Bearer nope', undefined]) {
+    for (const auth of [`Bearer ${forged}`, 'Bearer nope', `Bearer ${d.installId}.1.abcde`, undefined]) {
       const r = await call('/v1/installs/me', auth ? { headers: { Authorization: auth } } : {})
       expect(r.status).toBe(401)
     }
