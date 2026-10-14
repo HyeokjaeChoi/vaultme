@@ -45,6 +45,9 @@ export function generateMnemonic(): Mnemonic {
   return new Mnemonic(bip39Generate(wordlist, 128))
 }
 
+/** True when `word` (already lower-case) is in the BIP39 English wordlist. For live checks while the user types. */
+export const isMnemonicWord = (word: string): boolean => wordlist.includes(word)
+
 export function validateMnemonic(words: string): MnemonicCheck {
   const list = normalize(words)
   if (list.length !== 12 && list.length !== 24) return { kind: 'wrongLength', count: list.length }

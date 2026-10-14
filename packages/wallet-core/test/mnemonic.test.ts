@@ -1,6 +1,6 @@
 import { inspect } from 'node:util'
 import { describe, expect, test } from 'vitest'
-import { deriveAddress, generateMnemonic, toMnemonic, validateMnemonic, Mnemonic } from '../src'
+import { deriveAddress, generateMnemonic, isMnemonicWord, toMnemonic, validateMnemonic, Mnemonic } from '../src'
 import { BIP39_12, BIP39_24, PUBLIC_JUNK_ADDRESS, PUBLIC_JUNK_PHRASE } from './fixtures'
 
 describe('Mnemonic masking', () => {
@@ -39,6 +39,15 @@ describe('validateMnemonic', () => {
   })
   test('badChecksum', () => {
     expect(validateMnemonic(BIP39_12.replace(/about$/, 'abandon'))).toEqual({ kind: 'badChecksum' })
+  })
+})
+
+describe('isMnemonicWord', () => {
+  test('wordlist membership', () => {
+    expect(isMnemonicWord('abandon')).toBe(true)
+    expect(isMnemonicWord('zoo')).toBe(true)
+    expect(isMnemonicWord('abcd')).toBe(false)
+    expect(isMnemonicWord('')).toBe(false)
   })
 })
 

@@ -29,6 +29,10 @@ function store(): MMKV {
 export const getBackupDone = (): boolean => store().getBoolean('backupDone') ?? false
 export const setBackupDone = (v: boolean): void => store().set('backupDone', v)
 
+// --- restored flag (Q16): set by a successful restore (S05/S06), cleared when a new wallet is created. It is not backup proof ---
+export const getRestored = (): boolean => store().getBoolean('wallet.restored') ?? false
+export const setRestored = (v: boolean): void => store().set('wallet.restored', v)
+
 // --- account address: first-account public address, derived at creation (no auth needed to show it) ---
 export const getAccountAddress = (): string | null => store().getString('account.address') ?? null
 export const setAccountAddress = (a: string): void => store().set('account.address', a)

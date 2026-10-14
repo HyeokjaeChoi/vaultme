@@ -5,7 +5,11 @@ import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
 import { Text } from './Text'
 
-type Props = Pick<TextInputProps, 'value' | 'onChangeText' | 'placeholder' | 'autoCapitalize' | 'keyboardType' | 'multiline'> & {
+type Props = Pick<
+  TextInputProps,
+  | 'value' | 'onChangeText' | 'placeholder' | 'autoCapitalize' | 'keyboardType' | 'multiline' | 'autoCorrect' | 'spellCheck'
+  | 'autoComplete' | 'textContentType' | 'importantForAutofill' | 'onBlur' | 'testID'
+> & {
   label: string
   helper?: string
   error?: string
@@ -13,7 +17,7 @@ type Props = Pick<TextInputProps, 'value' | 'onChangeText' | 'placeholder' | 'au
 }
 
 /** C03 Input. Border is functional (editable recognition, focus, error). */
-export function Input({ label, helper, error, editable = true, ...field }: Props) {
+export function Input({ label, helper, error, editable = true, onBlur, ...field }: Props) {
   const t = useTheme()
   const c = t.component.input
   const [focused, setFocused] = useState(false)
@@ -27,10 +31,15 @@ export function Input({ label, helper, error, editable = true, ...field }: Props
         accessibilityLabel={label}
         placeholderTextColor={c.placeholder}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={(e) => {
+          setFocused(false)
+          onBlur?.(e)
+        }}
         style={{
           minHeight: c.height,
           paddingHorizontal: c.paddingX,
+          // A multiline field wraps, so its height follows the text; the padding keeps one line centered in the 52 px control.
+          ...(field.multiline ? { paddingVertical: (c.height - t.semantic.typography.row.lineHeight) / 2, textAlignVertical: 'center' as const } : {}),
           borderRadius: c.radius,
           borderWidth: c.borderWidth,
           borderColor: border,
