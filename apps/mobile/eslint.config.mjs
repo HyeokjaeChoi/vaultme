@@ -15,4 +15,4 @@ const noRawStyle = {
   },
 }
 
-export default [{ ignores: ['.expo', 'dist'] }, ...base, noRawStyle]
+export default [{ ignores: ['.expo', 'dist', 'plugins'] }, ...base, noRawStyle]

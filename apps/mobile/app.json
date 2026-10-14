@@ -6,7 +6,17 @@
     "orientation": "portrait",
     "scheme": "vaultme",
     "userInterfaceStyle": "automatic",
-    "ios": { "bundleIdentifier": "app.vaultme.mobile", "supportsTablet": false },
-    "plugins": ["expo-router"]
+    "ios": {
+      "bundleIdentifier": "app.vaultme.mobile",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "지갑을 열고 거래에 서명할 때 Face ID를 사용해요."
+      }
+    },
+    "android": {
+      "package": "app.vaultme.mobile",
+      "permissions": ["android.permission.USE_BIOMETRIC"]
+    },
+    "plugins": ["expo-router", "expo-dev-client", "./plugins/withSceneLifecycle"]
   }
 }
