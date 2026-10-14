@@ -172,7 +172,7 @@ export const ko = {
     // Result notice by state (draft; texts from ux-flow.md S23 state table). Pending and Unknown reuse result.*.
     included: { title: '블록에 포함됐어요', body: '확정을 기다리는 중이에요. 다시 보내지 마세요.' },
     confirmed: { title: '확정됐어요', body: '이 거래는 네트워크에서 확정됐어요.' },
-    failed: { title: '실행에 실패했어요', body: '수수료는 사용됐을 수 있어요.' },
+    failed: { title: '실행에 실패했어요', body: '네트워크 수수료는 나갔어요. 보내려던 금액은 나가지 않았어요.' },
     replaced: { title: '실행되지 않았어요', body: '다른 거래가 먼저 처리되어 이 거래는 실행되지 않았어요.' },
     recheck: '상태 다시 확인',
     etherscan: 'Etherscan에서 보기',

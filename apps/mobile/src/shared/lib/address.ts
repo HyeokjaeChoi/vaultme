@@ -1,3 +1,5 @@
+import { toChecksumAddress } from '@vaultme/wallet-core'
+
 /** Splits an address into 4-char groups (LLD §12). The "0x" prefix stays attached to the first group, as drawn in Figma ("0x9F3c 7A21 ..."). */
 export function groupAddress(address: string): string[] {
   const prefix = address.startsWith('0x') ? '0x' : ''
@@ -18,7 +20,13 @@ export function diffGroups(a: string, b: string): number[] {
 }
 
 /** "0x9F3c…41aB": first 6 and last 4 characters, for summary rows. The full address is always shown on Review. */
-export const shortAddress = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`
+export const shortAddress = (address: string) => {
+  const a = toChecksumAddress(address) // display form; a tx hash is not an address and stays as is
+  return `${a.slice(0, 6)}…${a.slice(-4)}`
+}
+
+/** 4-char groups of the EIP-55 form, for showing an address. Stored and compared values stay as they are. */
+export const displayGroups = (address: string): string[] => groupAddress(toChecksumAddress(address))
 
 /** Format check only (0x + 40 hex). It does not establish ownership or safety. */
 export const isAddressFormat = (address: string) => /^0x[0-9a-fA-F]{40}$/.test(address)

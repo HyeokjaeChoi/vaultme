@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router'
 import { View } from 'react-native'
 import { Redirect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
+import { account } from '@/entities/account/fixtures'
 import { txNotice, txView, useTrackedTx } from '@/features/send'
 import { shortAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
@@ -34,6 +35,8 @@ export function SendResultPage() {
         <Text variant="body" color={th.semantic.text.secondary}>{t(copy.body)}</Text>
       </View>
       <Group>
+        <SummaryRow label={t('detail.sender')} value={account.name} />
+        <SummaryRow label={t('review.network')} value={account.network} />
         <SummaryRow label={t('result.amount')} value={`${tx.amount} ${tx.asset}`} />
         <SummaryRow format="address" label={t('result.recipient')} value={tx.to} />
         <SummaryRow label={t('result.hash')} value={shortAddress(tx.hash)} />

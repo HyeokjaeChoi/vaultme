@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { resolveReview } from '@/entities/transaction/review'
-import { diffGroups, groupAddress } from '@/shared/lib/address'
+import { diffGroups, displayGroups } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { textStyle } from '@/shared/theme/fonts'
 import { BottomSheet, Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
@@ -23,7 +23,7 @@ function Compare({ current, previous }: { current: string; previous: string }) {
   const fg = th.component.statusNotice.info.fg
   const diff = diffGroups(current, previous)
   const mark = { ...textStyle({ ...th.semantic.typography.label }), color: th.semantic.status.danger.fg, textDecorationLine: 'underline' as const }
-  const cut = (a: string) => groupAddress(a).slice(0, SHOWN_GROUPS)
+  const cut = (a: string) => displayGroups(a).slice(0, SHOWN_GROUPS)
   return (
     <View>
       <Text variant="body" color={fg}>{`${t('review.lookalike.previous')}   ${cut(previous).join(' ')} …`}</Text>

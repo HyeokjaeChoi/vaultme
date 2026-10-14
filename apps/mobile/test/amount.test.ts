@@ -24,8 +24,8 @@ it('zero check ignores dots and zeros', () => {
   expect(isZeroAmount('0.00')).toBe(true)
   expect(isZeroAmount('0.01')).toBe(false)
 })
-it('short address keeps 6 leading and 4 trailing characters', () => {
-  expect(shortAddress('0x9F3c7A210bD4e6C855a13F90c2E78d16Ab0441aB')).toBe('0x9F3c…41aB')
+it('short address (EIP-55 form) keeps 6 leading and 4 trailing characters', () => {
+  expect(shortAddress('0x9F3c7A210bD4e6C855a13F90c2E78d16Ab0441aB')).toBe('0x9F3C…41Ab')
 })
 it('address format needs 0x and 40 hex characters', () => {
   expect(isAddressFormat('0x9F3c7A210bD4e6C855a13F90c2E78d16Ab0441aB')).toBe(true)

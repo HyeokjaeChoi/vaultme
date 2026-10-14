@@ -2,7 +2,7 @@ import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import type { ReviewValues } from '@/entities/transaction/review'
-import { diffGroups, groupAddress } from '@/shared/lib/address'
+import { diffGroups, displayGroups } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { Group, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 
@@ -19,7 +19,7 @@ export function ReviewPanel({ values, checkedAt, onRecalc, onEditRecipient, onEd
   const { recipient, previous } = values
   const risk = previous !== null
   const diff = risk ? diffGroups(recipient, previous) : []
-  const chunks = diff.map((i) => groupAddress(recipient)[i]).join(' ')
+  const chunks = diff.map((i) => displayGroups(recipient)[i]).join(' ')
   return (
     <>
       <View style={{ gap: th.semantic.layout.sectionGap.product }}>
