@@ -133,7 +133,7 @@ export function reduce(state: SendState, event: SendEvent): SendState
 
 ## 4. API 계약 (v1)
 
-모든 요청은 `X-App-Version` header를 보낸다. 서버는 최소 지원 버전 미만이면 `426`과 업데이트 안내를 응답한다 (Q53). 앱 요청은 설치 token + `ts`·`nonce`·서명 header를 붙인다 (Q57).
+모든 요청은 `X-App-Version` header를 보낸다. 서버는 최소 지원 버전 미만이면 `426`과 업데이트 안내를 응답한다 (Q53). 앱 요청은 설치 token(`Authorization: Bearer`)을 붙인다. 서명 header(`ts`·`nonce`·서명)는 token 발급 때만 쓴다 (Q57, §4.1).
 
 | Method · Path | 인증 | 용도 | 결정 |
 |---|---|---|---|
