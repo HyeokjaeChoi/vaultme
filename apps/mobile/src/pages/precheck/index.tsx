@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 import { goBack } from '@/shared/lib/nav'
@@ -11,12 +11,14 @@ export function PrecheckPage() {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
+  const alive = useRef(true)
+  useEffect(() => () => { alive.current = false }, [])
   const create = async () => {
     setBusy(true)
     setFailed(false)
     try {
       await createWallet({ title: t('backup.authPromptSave'), cancel: t('common.cancel') })
-      router.replace('/home')
+      if (alive.current) router.replace('/home') // not if the user left while the OS auth sheet was open
     } catch {
       setBusy(false)
       setFailed(true) // keychain refused to save (e.g. no device passcode): stay here and say so

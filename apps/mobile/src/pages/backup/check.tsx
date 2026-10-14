@@ -1,6 +1,6 @@
 import { Redirect, useFocusEffect, useRouter } from 'expo-router'
-import { useCallback, useState } from 'react'
-import { View } from 'react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { AppState, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { checkAnswers, clearCheck, getCheck } from '@/features/backup/model/check'
 import { setBackupDone } from '@/shared/storage'
@@ -9,7 +9,7 @@ import { useTheme } from '@/shared/theme'
 import { Button, Input, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 
 /** R-S04 단어 확인. Asks the 3 positions picked by S03. Wrong: error text, stay. Right: backup flag set, then Receive (S30) with Home beneath. */
-export function BackupCheckPage() {
+export function BackupCheckPage({ demo = false }: { demo?: boolean }) {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
@@ -18,12 +18,22 @@ export function BackupCheckPage() {
   const [wrong, setWrong] = useState(false)
 
   useFocusEffect(useCallback(() => clearCheck, []))
+  useEffect(() => {
+    // Leaving the app drops the check and starts the backup over from S03 (Q15 spirit: nothing about the phrase lingers).
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s !== 'background') return
+      clearCheck()
+      setAnswers(['', '', ''])
+      router.dismissTo('/backup')
+    })
+    return () => sub.remove()
+  }, [router])
   if (!session) return <Redirect href="/backup" /> // restart or deep link: begin the backup again
 
   const filled = answers.every((a) => a.trim() !== '')
   const confirm = () => {
     if (!checkAnswers(session.words, answers)) return setWrong(true)
-    setBackupDone(true)
+    if (!demo) setBackupDone(true) // the dev fixture never records a real backup
     clearCheck()
     router.dismissTo('/home')
     router.push('/receive') // ux-flow §4: S04 ok -> S30; back from Receive lands on Home

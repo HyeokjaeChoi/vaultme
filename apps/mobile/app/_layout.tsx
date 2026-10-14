@@ -25,8 +25,9 @@ export default function RootLayout() {
   const [loaded, error] = useFonts(fontAssets)
   const [kvReady, setKvReady] = useState(false)
   useEffect(() => {
-    // The encrypted kv (backup flag, lock state) must be open before any screen reads it.
-    openKv().then(() => setKvReady(true), () => setKvReady(true)) // ponytail: a failed open still renders; kv readers then throw. Real boot-error screen belongs to the lock gate.
+    // The encrypted kv (backup flag, lock state) must be open before any screen reads it. On failure the gate stays closed.
+    // ponytail: blank screen on a failed open; a boot-error screen belongs to the lock gate.
+    openKv().then(() => setKvReady(true), () => undefined)
   }, [])
   if ((!loaded && !error) || !kvReady) return null // fonts are bundled; this is one frame
   return (

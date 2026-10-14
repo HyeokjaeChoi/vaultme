@@ -8,9 +8,10 @@ const DEMO_RAND = [0.17, 0.5, 0.85]
 
 export default function BackupCheckRoute() {
   const { demo } = useLocalSearchParams<{ demo?: string }>()
-  if (__DEV__ && demo === '1' && !getCheck()) {
+  const isDemo = __DEV__ && demo === '1'
+  if (isDemo && !getCheck()) {
     let i = 0
     startCheck(DEMO_WORDS, () => DEMO_RAND[i++] ?? 0)
   }
-  return <BackupCheckPage />
+  return <BackupCheckPage demo={isDemo} />
 }
