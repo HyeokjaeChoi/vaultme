@@ -15,6 +15,9 @@
   "dependencies": {
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
+    "@noble/curves": "1.9.1",
+    "@noble/hashes": "1.8.0",
+    "@vaultme/contracts": "workspace:*",
     "@vaultme/i18n": "workspace:*",
     "@vaultme/tokens": "workspace:*",
     "@vaultme/wallet-core": "workspace:*",

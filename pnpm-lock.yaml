@@ -63,6 +63,15 @@ importers:
       '@expo-google-fonts/inter':
         specifier: ^0.4.2
         version: 0.4.2
+      '@noble/curves':
+        specifier: 1.9.1
+        version: 1.9.1
+      '@noble/hashes':
+        specifier: 1.8.0
+        version: 1.8.0
+      '@vaultme/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@vaultme/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n

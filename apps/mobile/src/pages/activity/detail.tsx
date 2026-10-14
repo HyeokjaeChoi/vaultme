@@ -12,7 +12,7 @@ import { BottomSheet, Button, Group, Screen, ScreenHeader, StatusLabel, StatusNo
 
 const hhmm = (at: number) => new Date(at).toTimeString().slice(0, 5)
 
-/** C2b-S41 거래 상세 for the pending tx in the kv. 상태 다시 확인: with the fake adapter it only updates the last-checked time. Etherscan link is hidden while the adapter does not broadcast. */
+/** C2b-S41 거래 상세 for the pending tx in the kv. 상태 다시 확인: asks for the receipt (real adapter) and updates the last-checked time; the fake adapter only updates the time. Etherscan link is hidden while the adapter does not broadcast. */
 export function TxDetailPage() {
   const { t } = useTranslation()
   const th = useTheme()
@@ -24,8 +24,17 @@ export function TxDetailPage() {
   if (!tx) return <Redirect href="/activity" />
   const explorer = explorerUrl(chain, tx.hash)
   const unknown = tx.state === 'Unknown'
-  const recheck = () => {
-    const next = { ...tx, lastCheckedAt: Date.now() }
+  const recheck = async () => {
+    let state = tx.state
+    if (chain.broadcasts) {
+      // A receipt means the tx is in a block, which lifts the Q47 send block. Success vs reverted and `safe` finality are #44.
+      try {
+        if (await chain.getReceipt(tx.hash as `0x${string}`)) state = 'Included'
+      } catch {
+        return // could not ask: keep the old state and the old checked time
+      }
+    }
+    const next = { ...tx, state, lastCheckedAt: Date.now() }
     writePendingTx(next)
     setStored(next)
   }
@@ -34,7 +43,7 @@ export function TxDetailPage() {
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/activity')} />}
       footer={
         <View style={{ gap: th.semantic.layout.fieldGap }}>
-          <Button label={t('detail.recheck')} onPress={recheck} />
+          <Button label={t('detail.recheck')} onPress={() => void recheck()} />
           {explorer ? (
             <Button label={t('detail.etherscan')} variant="ghost" onPress={() => void Linking.openURL(explorer)} />
           ) : (

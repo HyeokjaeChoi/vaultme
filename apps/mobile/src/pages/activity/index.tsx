@@ -3,6 +3,7 @@ import { Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { transactions } from '@/entities/transaction/fixtures'
 import { usePendingTx } from '@/features/send'
+import { chain } from '@/shared/chain'
 import { shortAddress } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { TestDataNotice } from '@/widgets/test-data-notice/TestDataNotice'
@@ -42,7 +43,7 @@ export function ActivityPage() {
                 </View>
               </Pressable>
             ) : null}
-            {transactions
+            {(chain.broadcasts ? [] : transactions) // example rows only in fake mode; real history is #44 (API: #42)
               .filter((x) => x.when === day && !(tx && x.id === '1')) // the real pending send replaces the example pending row
               .map((x) => (
                 <ActivityRow

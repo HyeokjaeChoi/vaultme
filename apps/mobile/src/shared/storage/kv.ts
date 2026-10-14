@@ -115,6 +115,27 @@ export function setPendingTx(tx: PendingTx | null): void {
   else store().set('pendingTx', JSON.stringify(tx))
 }
 
-// --- fake chain adapter nonce counter (C2b only; C3 reads the nonce from the network) ---
+// --- API install id (lld.md §4.1). The device key itself is in Keychain. ---
+export const getInstallId = (): string | null => store().getString('api.installId') ?? null
+export function setInstallId(id: string | null): void {
+  if (id === null) store().remove('api.installId')
+  else store().set('api.installId', id)
+}
+
+// --- last /v1/history result and when it was fetched (Q58) ---
+export type HistoryCache = { address: string; json: string; updatedAt: number }
+export function getHistoryCache(): HistoryCache | null {
+  const raw = store().getString('history.cache')
+  if (raw === undefined) return null
+  try {
+    const v = JSON.parse(raw) as Partial<HistoryCache>
+    return typeof v.address === 'string' && typeof v.json === 'string' && typeof v.updatedAt === 'number' ? (v as HistoryCache) : null
+  } catch {
+    return null
+  }
+}
+export const setHistoryCache = (c: HistoryCache): void => store().set('history.cache', JSON.stringify(c))
+
+// --- fake chain adapter nonce counter (fake mode only; the real adapter reads the nonce from the network) ---
 export const getFakeNonce = (): number => store().getNumber('fakeChain.nonce') ?? 0
 export const setFakeNonce = (n: number): void => store().set('fakeChain.nonce', n)
