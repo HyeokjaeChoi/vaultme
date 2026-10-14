@@ -55,7 +55,7 @@ export function ReviewPage() {
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
       footer={<Button label={t('review.confirm')} onPress={() => isRisk && setSheet(true)} />}
     >
-      <ReviewPanel values={values} onEditRecipient={() => router.dismissTo('/send')} onEditAmount={() => goBack()} />
+      <ReviewPanel values={values} onEditRecipient={() => router.dismissTo('/send')} onEditAmount={() => goBack({ pathname: '/send/amount', params: { to: values.recipient } })} />
       <BottomSheet
         visible={sheet}
         onClose={() => setSheet(false)}
