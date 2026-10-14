@@ -28,10 +28,12 @@ vi.mock('react-native-keychain', () => ({
   getSupportedBiometryType: vi.fn(async () => null),
 }))
 
+let mmkvFail = false
 const mmkvOpts: Record<string, unknown>[] = []
 const mmkvMaps: Map<string, string | number | boolean>[] = []
 vi.mock('react-native-mmkv', () => ({
   createMMKV: (o: Record<string, unknown>) => {
+    if (mmkvFail) throw new Error('mmkv init')
     mmkvOpts.push(o)
     const m = new Map<string, string | number | boolean>()
     mmkvMaps.push(m)
@@ -54,6 +56,7 @@ beforeEach(() => {
   mmkvOpts.length = 0
   mmkvMaps.length = 0
   failGet = false
+  mmkvFail = false
   vi.resetModules()
 })
 
@@ -75,6 +78,17 @@ describe('keychain phrase', () => {
     await k.deletePhrase()
     expect(await k.hasPhrase()).toBe(false)
     expect(await k.loadPhrase('unlock')).toBeNull()
+  })
+
+  it('deletePhrase throws only when the item survives a failed reset', async () => {
+    const k = await import('../src/shared/storage/keychain')
+    const kc = await import('react-native-keychain')
+    items.set('app.vaultme.phrase', { username: 'vaultme', password: VECTOR })
+    vi.mocked(kc.resetGenericPassword).mockResolvedValueOnce(false)
+    await expect(k.deletePhrase()).rejects.toThrow('delete failed')
+    vi.mocked(kc.resetGenericPassword).mockResolvedValueOnce(false)
+    items.clear()
+    await expect(k.deletePhrase()).resolves.toBeUndefined()
   })
 
   it('returns null when the user cancels auth', async () => {
@@ -112,6 +126,15 @@ describe('kv key + store', () => {
     expect(mmkvOpts).toHaveLength(1)
     expect(mmkvOpts[0]).toMatchObject({ encryptionType: 'AES-256' })
     expect(typeof mmkvOpts[0]!.encryptionKey).toBe('string')
+  })
+
+  it('openKv retries after createMMKV throws', async () => {
+    const kv = await import('../src/shared/storage/kv')
+    mmkvFail = true
+    await expect(kv.openKv()).rejects.toThrow()
+    mmkvFail = false
+    await kv.openKv()
+    expect(kv.getBackupDone()).toBe(false)
   })
 
   it('round-trips backup flag, lock settings/state', async () => {

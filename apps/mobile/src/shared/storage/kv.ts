@@ -7,15 +7,15 @@ let kv: MMKV | null = null
 let opening: Promise<void> | null = null
 
 export function openKv(): Promise<void> {
-  opening ??= getOrCreateKvKey().then(
-    (encryptionKey) => {
+  opening ??= (async () => {
+    try {
+      const encryptionKey = await getOrCreateKvKey()
       kv = createMMKV({ id: 'vaultme', encryptionKey, encryptionType: 'AES-256' })
-    },
-    (e: unknown) => {
-      opening = null // allow retry
+    } catch (e) {
+      opening = null // allow retry after any init failure
       throw e
-    },
-  )
+    }
+  })()
   return opening
 }
 

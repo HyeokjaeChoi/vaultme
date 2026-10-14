@@ -51,7 +51,9 @@ export async function loadPhrase(prompt: string): Promise<Mnemonic | null> {
 export const hasPhrase = (): Promise<boolean> => Keychain.hasGenericPassword({ service: PHRASE_SERVICE })
 
 export async function deletePhrase(): Promise<void> {
-  await Keychain.resetGenericPassword({ service: PHRASE_SERVICE })
+  const ok = await Keychain.resetGenericPassword({ service: PHRASE_SERVICE })
+  // false can also mean "nothing to delete"; only fail if the item is still there.
+  if (!ok && (await hasPhrase())) throw new Error('keychain: delete failed')
 }
 
 export const biometryType = () => Keychain.getSupportedBiometryType()
