@@ -29,7 +29,6 @@ export function SummaryRow({ label, value, format = 'text', highlight, mono, edi
   return (
     <View
       accessible={!onEdit}
-      focusable={false} // Android: no grey keyboard-focus highlight on a read-only row
       accessibilityLabel={onEdit ? undefined : `${label}, ${value}`}
       style={{ flexDirection: stacked ? 'column' : 'row', alignItems: stacked ? 'stretch' : format === 'address' ? 'flex-start' : 'center', gap: t.semantic.layout.rowGap, minHeight: t.primitive.size.touch_min, paddingVertical: t.primitive.space[3] }}
     >

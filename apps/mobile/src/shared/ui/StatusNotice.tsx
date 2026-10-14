@@ -19,7 +19,6 @@ export function StatusNotice({ tone, title, body }: Props) {
     <View
       accessibilityRole={tone === 'danger' ? 'alert' : undefined}
       accessible
-      focusable={false} // Android: no grey keyboard-focus highlight on a read-only row
       accessibilityLabel={typeof body === 'string' ? `${title}. ${body}` : title}
       style={{ gap: c.gap, padding: t.semantic.layout.rowGap, borderRadius: t.semantic.shape.group, backgroundColor: s.bg, borderWidth: s.borderWidth, borderColor: s.border }}
     >

@@ -53,13 +53,24 @@ describe('createWallet', () => {
     expect(items.get('app.vaultme.phrase')?.password).toBe(VECTOR)
   })
 
-  it('never replaces an existing phrase or its address', async () => {
+  it('never replaces an existing phrase; recovers a missing address from it after auth', async () => {
     const { createWallet } = await import('../src/features/backup/model/createWallet')
     const kv = await import('../src/shared/storage/kv')
     await kv.openKv()
-    items.set('app.vaultme.phrase', { username: 'vaultme', password: 'kept' })
+    items.set('app.vaultme.phrase', { username: 'vaultme', password: VECTOR })
     await createWallet(PROMPT)
-    expect(items.get('app.vaultme.phrase')?.password).toBe('kept')
-    expect(kv.getAccountAddress()).toBeNull()
+    expect(items.get('app.vaultme.phrase')?.password).toBe(VECTOR)
+    expect(kv.getAccountAddress()).toBe(VECTOR_ADDRESS)
+  })
+
+  it('keeps an existing address and fails when the stored phrase cannot be loaded', async () => {
+    const { createWallet } = await import('../src/features/backup/model/createWallet')
+    const kv = await import('../src/shared/storage/kv')
+    await kv.openKv()
+    items.set('app.vaultme.phrase', { username: 'vaultme', password: 'not a phrase' })
+    await expect(createWallet(PROMPT)).rejects.toThrow('phrase error')
+    kv.setAccountAddress('0xkept')
+    await createWallet(PROMPT)
+    expect(kv.getAccountAddress()).toBe('0xkept')
   })
 })

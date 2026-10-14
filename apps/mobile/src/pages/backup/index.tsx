@@ -68,7 +68,7 @@ export function BackupPage({ demo = false }: { demo?: boolean }) {
   const done = () => {
     if (!words) return
     startCheck(words)
-    router.push('/backup/check')
+    router.push(demo ? '/backup/check?demo=1' : '/backup/check')
   }
 
   return (

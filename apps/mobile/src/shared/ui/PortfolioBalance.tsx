@@ -12,7 +12,6 @@ export function PortfolioBalance({ label, value, note }: Props) {
   return (
     <View
       accessible
-      focusable={false} // Android: no grey keyboard-focus highlight on a read-only row
       accessibilityLabel={`${label}, ${value}. ${note}`}
       style={{ gap: c.gap, padding: c.padding, borderRadius: c.radius, borderWidth: c.borderWidth, backgroundColor: c.bg }}
     >
