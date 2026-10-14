@@ -24,7 +24,7 @@ export type HistoryItem = {
 /**
  * `POST /v1/history` response (lld.md §4.2): `{ items: HistoryItem[], nextCursor, incomplete }`. Each item is checked against the
  * contract and dropped when it does not fit (a newer server may send what this app does not know). Items are always on-chain
- * (`ok` | `failed`); pending sends come from the local record. Paging with `nextCursor` is not used yet.
+ * (`ok` | `failed`); pending sends come from the local record. Incoming zero-value rows are hidden (Q71). Paging with `nextCursor` is not used yet.
  */
 export function parseItems(data: unknown): HistoryItem[] {
   const items = (data as { items?: unknown } | null)?.items
@@ -34,6 +34,7 @@ export function parseItems(data: unknown): HistoryItem[] {
     const p = ApiHistoryItem.safeParse(x)
     if (!p.success) continue
     const i = p.data
+    if (i.zeroValue && i.direction === 'in') continue // Q71: incoming 0-value rows are the address-poisoning vector. Own calls stay.
     out.push({
       hash: i.hash,
       kind: i.direction === 'out' ? 'send' : 'receive',

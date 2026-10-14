@@ -23,6 +23,10 @@ describe('history view (Q58)', () => {
     expect(parseItems({ items: 'no' })).toEqual([])
     expect(parseItems({ items: [item(H2, 100)] })[0]).toMatchObject({ at: 100_000, status: 'confirmed', label: 'activity.confirmed', local: false })
   })
+  it('hides incoming zero-value rows (Q71), keeps own zero-value calls', () => {
+    const rows = parseItems({ items: [item(H2, 1, 'ok', { value: '0', zeroValue: true }), item(H2, 2, 'ok', { direction: 'out', from: A, to: B, value: '0', zeroValue: true })] })
+    expect(rows.map((r) => r.kind)).toEqual(['send'])
+  })
   it('maps direction, raw value and status', () => {
     const [recv, sent, usdc, bad] = parseItems({
       items: [
