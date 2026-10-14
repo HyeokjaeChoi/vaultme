@@ -189,5 +189,9 @@ describe('installs', () => {
       if (r.status === 429) expect(r.headers.get('Retry-After')).toBe('60')
     }
     expect(statuses).toEqual([201, 201, 201, 429])
+    // The IP limiter covers registration only, not the other /v1/installs/* routes.
+    const d = await newDevice()
+    const r = await call('/v1/installs/token', { method: 'POST', headers: await d.sign('POST', '/v1/installs/token') }, real)
+    expect(r.status).toBe(200)
   })
 })
