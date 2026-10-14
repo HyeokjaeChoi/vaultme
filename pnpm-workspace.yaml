@@ -7,4 +7,6 @@ minimumReleaseAge: 10080
 # Fail install when a dependency has an unreviewed build script.
 strictDepBuilds: true
 # Explicit allow / deny list for dependency build scripts. Empty = deny all.
-allowBuilds: {}
+allowBuilds:
+  esbuild: true # wrangler and vitest-plugin platform binary
+  workerd: true # Workers runtime binary for wrangler dev and tests

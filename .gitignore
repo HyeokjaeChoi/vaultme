@@ -28,3 +28,7 @@ work/c2a/screens/
 .impeccable/review/
 .impeccable/payload-*.json
 .impeccable/questions/
+
+.dev.vars*
+!.dev.vars.example
+.wrangler/
