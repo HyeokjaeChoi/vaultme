@@ -58,6 +58,12 @@ describe('runSend', () => {
     expect(saved[0]).toMatchObject({ state: 'Pending', nonce: 0, asset: 'ETH', to: TO, amount: '0.05', fee: '0.000042', createdAt: 1000, lastCheckedAt: 1000 })
     expect(saved[0]!.hash).toMatch(/^0x[0-9a-f]{64}$/)
   })
+  it('a savePending failure after submit is reported as Unknown, not thrown', async () => {
+    const { review, snap } = await base()
+    const { d } = deps({ snap, savePending: () => { throw new Error('kv') } })
+    const out = await runSend(review, '0.05', FROM, d)
+    expect(out.status).toBe('Unknown')
+  })
   it('a submit that reports another hash is saved as Unknown', async () => {
     const { review, snap } = await base()
     const { d, saved } = deps({ snap, chain: { broadcasts: false, getSnapshot: async () => snap, submit: async () => `0x${'11'.repeat(32)}` } })

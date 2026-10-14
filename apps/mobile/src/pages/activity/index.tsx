@@ -25,7 +25,11 @@ export function ActivityPage() {
           <Text variant="label" color={th.semantic.text.secondary} accessibilityRole="header">{t(`activity.${day}`)}</Text>
           <Group>
             {day === 'today' && tx ? (
-              <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: tx.hash } })}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${t('activity.send')}, ${shortAddress(tx.to)}, −${tx.amount} ${tx.asset}, ${t(tx.state === 'Unknown' ? 'activity.unknown' : 'activity.pending')}`}
+                onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: tx.hash } })}>
+                <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
                 <ActivityRow
                   title={t('activity.send')}
                   detail={shortAddress(tx.to)}
@@ -35,6 +39,7 @@ export function ActivityPage() {
                   status={tx.state === 'Unknown' ? 'unknown' : 'pending'}
                   statusLabel={t(tx.state === 'Unknown' ? 'activity.unknown' : 'activity.pending')}
                 />
+                </View>
               </Pressable>
             ) : null}
             {transactions

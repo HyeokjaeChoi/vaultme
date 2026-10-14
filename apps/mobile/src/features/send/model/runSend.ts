@@ -51,6 +51,11 @@ export async function runSend(approved: ApprovedSend, amount: string, from: Addr
     fee: fromUnits(approved.estimatedFee, 'ETH'),
     state: result.status,
   }
-  d.savePending(tx)
+  try {
+    d.savePending(tx)
+  } catch {
+    // Submitted but not recorded: report Unknown, never a clean failure (Q47).
+    return { status: 'Unknown', tx: { ...tx, state: 'Unknown' } }
+  }
   return { status: result.status, tx }
 }
