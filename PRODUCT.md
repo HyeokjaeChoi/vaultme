@@ -24,9 +24,9 @@ Sepolia testnet에서 쓰는 self-custody wallet입니다. 사용자가 서명 �
 
 Figma source와 token은 [릴리스 기록](outputs/vaultme-release.json)을 따릅니다. 현재 상태:
 
-- wallet-core(C1)와 mobile UI(C2a)는 main에 있습니다.
+- wallet-core(C1)와 mobile UI(C2a), C2b(저장소, 백업, 복구, 앱 잠금, 보내기)는 main에 있습니다. 체인은 fake adapter이고 잔액과 내역은 예시입니다.
 - Redesign A(PR #10)가 `main`에 merge되었습니다.
-- 앱은 아직 네트워크를 호출하지 않습니다. C2b와 C3는 시작 전입니다.
+- 앱은 아직 네트워크를 호출하지 않습니다. 실제 broadcast와 API는 C3이며 시작 전입니다.
 
 ## Capabilities and Constraints
 

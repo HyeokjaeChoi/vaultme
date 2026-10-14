@@ -8,7 +8,7 @@ Ethereum Sepolia 테스트넷용 self-custody 지갑입니다. 학습과 포트�
 실서비스 지갑이 아닙니다. 테스트 자금만 사용하세요.
 
 > **상태: 2026-10-14**
-> C1(`packages/wallet-core`), C2a(정적 화면이 있는 모바일 UI), Redesign A("한 화면, 한 질문", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10))가 `main`에 merge되었습니다. C2b와 C3는 시작하지 않았습니다. 설계 문서는 목표를 설명하며, 동작하는 시스템이 아닙니다. 앱은 실제 네트워크 호출을 하지 않고, API와 web 앱은 아직 없습니다.
+> C1(`packages/wallet-core`), C2a(정적 화면이 있는 모바일 UI), Redesign A("한 화면, 한 질문", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)), C2b(보안 저장소, 백업, 복구, 앱 잠금, 보내기)가 `main`에 merge되었습니다. C2b는 가짜 체인 어댑터를 씁니다. 잔액과 내역은 예시이고, 어떤 거래도 기기 밖으로 나가지 않습니다. 다음 단계는 C3(API와 실제 체인 접근)입니다. 설계 문서는 목표를 설명하며, 동작하는 시스템이 아닙니다. 앱은 네트워크 호출을 하지 않고, API와 web 앱은 아직 없습니다.
 
 ## 여기서 시작
 
@@ -32,7 +32,7 @@ VaultMe는 seed phrase 기반 지갑입니다. Ethereum Sepolia에서 EVM 계정
 
 | 경로 | 역할 |
 | --- | --- |
-| `apps/mobile` | Expo 앱(`@vaultme/mobile`). Figma 디자인으로 만든 정적 화면 |
+| `apps/mobile` | Expo 앱(`@vaultme/mobile`). Figma 디자인으로 만든 화면. `wallet-core`와 기기 저장소에 연결됨 (C3 전까지 가짜 체인) |
 | `packages/wallet-core` | viem을 쓰는 순수 TypeScript: 키 파생, 금액, 위험 검사, 송신 상태. IO 없음 |
 | `packages/tokens` | Style Dictionary로 token 원본에서 생성하는 디자인 토큰 |
 | `packages/i18n` | i18next 기반의 타입 있는 한국어 문구 |

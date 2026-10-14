@@ -8,7 +8,7 @@ This monorepo holds the wallet logic, a React Native (Expo) app, the design toke
 It does not hold a production wallet. Use test funds only.
 
 > **Status: 2026-10-14**
-> C1 (`packages/wallet-core`), C2a (the mobile UI with static screens), and Redesign A ("one screen, one question", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)) are merged into `main`. C2b and C3 have not started. The design documents describe a target, not a running system: the app has no live network calls and the API and web apps do not exist yet.
+> C1 (`packages/wallet-core`), C2a (the mobile UI with static screens), Redesign A ("one screen, one question", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)), and C2b (secure storage, backup, restore, app lock, and send) are merged into `main`. C2b uses a fake chain adapter: balances and history are examples and no transaction leaves the device. The next step is C3 (API and real chain access). The design documents describe a target, not a running system: the app makes no network calls and the API and web apps do not exist yet.
 
 ## Start here
 
@@ -32,7 +32,7 @@ The product keeps wallet actions readable: it shows the account, network, asset,
 
 | Path | Role |
 | --- | --- |
-| `apps/mobile` | Expo app (`@vaultme/mobile`). Static screens built from the Figma design |
+| `apps/mobile` | Expo app (`@vaultme/mobile`). Screens built from the Figma design, wired to `wallet-core` and device storage (fake chain until C3) |
 | `packages/wallet-core` | Pure TypeScript with viem: key derivation, amounts, risk checks, send state. No IO |
 | `packages/tokens` | Design tokens generated from the token source with Style Dictionary |
 | `packages/i18n` | Typed Korean strings with i18next |
