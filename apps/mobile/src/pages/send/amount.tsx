@@ -18,7 +18,7 @@ export function SendAmountPage() {
   const th = useTheme()
   const router = useRouter()
   const { to, amount: initial } = useLocalSearchParams<{ to?: string; amount?: string }>()
-  const [amount, setAmount] = useState(cleanAmount(initial) ?? '0.05')
+  const [amount, setAmount] = useState(initial === undefined ? '0.05' : (cleanAmount(initial) ?? '0'))
   const fold = useFoldIn(th.primitive.space[2])
   const available = assets[0].balance
   const tooMuch = exceedsBalance(amount, available)
