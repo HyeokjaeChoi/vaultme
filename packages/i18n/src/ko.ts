@@ -52,6 +52,33 @@ export const ko = {
       wrong: '입력한 단어가 맞지 않아요. 적어 둔 복구 구문을 다시 확인하세요.',
     },
   },
+  // S05/S06: title, label, button, passphrase and path copy are approved (ux-copy.md); helper, unknownWord and the Redesign A S05 layout come from issue #18.
+  // wrongCount, badChecksum, authPrompt, exists, saveError and done.copied are new (listed in the PR for approval).
+  restore: {
+    title: '지갑 복구',
+    label: '복구 구문',
+    helper: '12단어나 24단어를 띄어쓰기로 구분해 입력하세요.',
+    paste: '붙여넣기',
+    unknownWord: "'{{word}}'는 복구 구문 단어가 아니에요.",
+    wrongCount: '{{count}}단어를 입력했어요. 12단어나 24단어여야 해요.',
+    badChecksum: '단어나 순서가 맞지 않아요. 복구 구문을 다시 확인하세요.',
+    passphrase: {
+      title: '패스프레이즈(passphrase)는 지원하지 않아요',
+      body: '다른 주소가 보이면 기존 지갑에서 패스프레이즈나 다른 경로를 썼는지 확인하세요.',
+    },
+    submit: '복구',
+    authPrompt: '지갑을 복구하려면 인증하세요',
+    exists: { title: '이 기기에 이미 지갑이 있어요', body: '한 기기에는 지갑 하나만 둘 수 있어요.' },
+    saveError: { title: '지갑을 복구하지 못했어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도하세요.' },
+    done: {
+      title: '복구 완료',
+      addressLabel: '첫 계정 주소',
+      copied: '복사했어요',
+      noteTitle: '첫 계정만 불러왔어요',
+      noteBody: "경로 m/44'/60'/0'/0/0을 썼어요. 기존 지갑의 주소와 같은지 확인하세요.",
+    },
+    open: '지갑 열기',
+  },
   receive: {
     title: '받기',
     qrPlaceholder: '임시 QR',

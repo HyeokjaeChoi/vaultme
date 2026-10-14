@@ -34,3 +34,12 @@ it('has the S03/S04 backup copy', () => {
   expect(i18n.t('backup.check.position', { n: 7 })).toBe('7번째 단어')
   expect(i18n.t('backup.check.confirm')).toBe('확인')
 })
+
+it('has the S05/S06 restore copy', () => {
+  expect(i18n.t('restore.title')).toBe('지갑 복구')
+  expect(i18n.t('restore.helper')).toBe('12단어나 24단어를 띄어쓰기로 구분해 입력하세요.')
+  expect(i18n.t('restore.unknownWord', { word: 'abcd' })).toBe("'abcd'는 복구 구문 단어가 아니에요.")
+  expect(i18n.t('restore.wrongCount', { count: 13 })).toBe('13단어를 입력했어요. 12단어나 24단어여야 해요.')
+  expect(i18n.t('restore.done.title')).toBe('복구 완료')
+  expect(i18n.t('restore.open')).toBe('지갑 열기')
+})

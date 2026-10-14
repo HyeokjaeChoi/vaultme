@@ -1,5 +1,5 @@
 import { deriveAddress, generateMnemonic } from '@vaultme/wallet-core'
-import { getAccountAddress, hasPhrase, loadPhrase, savePhrase, setAccountAddress, setBackupDone, type AuthPrompt } from '@/shared/storage'
+import { getAccountAddress, hasPhrase, loadPhrase, savePhrase, setAccountAddress, setBackupDone, setRestored, type AuthPrompt } from '@/shared/storage'
 
 /**
  * S02 -> Home: generate 12 words, store them behind OS auth, and keep the first-account public address in kv
@@ -19,4 +19,5 @@ export async function createWallet(prompt: AuthPrompt): Promise<void> {
   await savePhrase(m, prompt)
   setAccountAddress(deriveAddress(m))
   setBackupDone(false)
+  setRestored(false)
 }

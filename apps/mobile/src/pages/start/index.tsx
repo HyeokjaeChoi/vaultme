@@ -15,7 +15,7 @@ export function StartPage() {
       footer={
         <View style={{ gap: th.semantic.layout.fieldGap }}>
           <Button label={t('start.create')} onPress={() => router.push('/precheck')} />
-          <Button label={t('start.restore')} variant="secondary" onPress={() => router.replace({ pathname: '/home', params: { variant: 'restored' } })} />
+          <Button label={t('start.restore')} variant="secondary" onPress={() => router.push('/restore')} />
         </View>
       }
     >
