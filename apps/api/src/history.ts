@@ -108,6 +108,11 @@ export async function addressHash(addr: string): Promise<string> {
 type Cursor = { block: number; txIndex: number; seq: number }
 const CURSOR = /^([0-9a-f]{8}):(\d{1,12}):(-1|\d{1,9}):(\d{1,9})$/
 
+/** Throws InvalidCursorError. Run before any cache read or upstream call. */
+export async function checkCursor(address: string, cursor: string | undefined): Promise<void> {
+  if (cursor !== undefined) parseCursor(cursor, (await addressHash(address)).slice(0, 8))
+}
+
 function parseCursor(s: string, h8: string): Cursor {
   const m = CURSOR.exec(s)
   if (!m || m[1] !== h8) throw new InvalidCursorError()

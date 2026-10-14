@@ -1,7 +1,7 @@
 import { USDC_SEPOLIA, type HistoryResponse } from '@vaultme/contracts'
 import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
-import { addressHash, loadHistory, type FetchList } from './history.ts'
+import { addressHash, checkCursor, loadHistory, type FetchList } from './history.ts'
 
 const BASE = 'https://api.etherscan.io/v2/api'
 const SEPOLIA = '11155111'
@@ -44,7 +44,9 @@ function etherscanList(env: Bindings, address: string): FetchList {
       try {
         const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) })
         if (!res.ok) throw new Error(`http ${res.status}`)
-        body = (await res.json()) as typeof body
+        const json: unknown = await res.json()
+        if (typeof json !== 'object' || json === null || Array.isArray(json)) throw new Error('not an object')
+        body = json
       } catch (e) {
         console.error('etherscan request failed', list, e instanceof Error ? e.name : 'error')
         throw new UpstreamError('request failed')
@@ -69,9 +71,9 @@ function etherscanList(env: Bindings, address: string): FetchList {
 /** Cache API, 30 s per (address hash, cursor). The raw address is never part of the key. */
 export async function getHistory(env: Bindings, address: string, cursor: string | undefined): Promise<HistoryResponse> {
   const fetchList = etherscanList(env, address)
+  await checkCursor(address, cursor) // before the cache: a bad cursor must never get a cached 200
   const cache = caches.default
-  const cacheKey = new Request(`https://history.vaultme.invalid/${await addressHash(address)}/${cursor ?? '-'}`)
-  // Only successful answers are cached, and the key holds the address hash, so a hit needs no cursor check.
+  const cacheKey = new Request(`https://history.vaultme.invalid/${await addressHash(address)}/${cursor === undefined ? 'first' : `c/${cursor}`}`)
   const hit = await cache.match(cacheKey)
   if (hit) return (await hit.json()) as HistoryResponse
   const out = await loadHistory(fetchList, address, cursor)

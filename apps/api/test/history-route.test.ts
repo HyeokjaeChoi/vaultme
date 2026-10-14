@@ -106,6 +106,17 @@ describe('POST /v1/history', () => {
     expect(f).not.toHaveBeenCalled()
   })
 
+  it("a bad cursor never gets a cached page: cursor '-' after the first page was cached", async () => {
+    const a = newAddress()
+    const f = mock({ txlist: () => ok([row(a, 5)]) })
+    expect((await post({ address: a })).status).toBe(200)
+    f.mockClear()
+    const r = await post({ address: a, cursor: '-' })
+    expect(r.status).toBe(400)
+    expect(await r.json()).toMatchObject({ code: 'invalid_cursor' })
+    expect(f).not.toHaveBeenCalled()
+  })
+
   it('a valid cursor gives the next page (endblock = cursor block)', async () => {
     const a = newAddress()
     const all = Array.from({ length: 60 }, (_, i) => row(a, 1000 - i))
@@ -154,6 +165,8 @@ describe('Etherscan failures -> 503 retryable, nothing leaks', () => {
     ['invalid key', () => notok('Invalid API Key (#err2)')],
     ['window too large', () => notok(null, 'Result window is too large, PageNo x Offset size must be less than or equal to 10000')],
     ['http 500', () => new Response('boom ' + KEY, { status: 500 })],
+    ['json null', () => Response.json(null)],
+    ['json array', () => Response.json([])],
     ['not json', () => new Response('<html>' + KEY + '</html>')],
     ['network error', () => { throw new TypeError('fetch failed ' + KEY) }],
   ])('%s', async (_n, res) => {
