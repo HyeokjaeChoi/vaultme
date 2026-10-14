@@ -90,7 +90,7 @@ export function ReviewPage() {
       router.push('/send/result')
     } else if (out.status === 'Cancelled') return
     else {
-      if (out.status === 'NeedsReview') await core.refresh() // the new fee and total replace the old ones on screen
+      if (out.status === 'NeedsReview' && !(await core.refresh())) return // the new fee and total replace the old ones; if the re-read failed, its own error shows instead
       if (out.status === 'ChainError') setCause(out.error)
       setNotice(out.status === 'AuthError' ? 'authError' : out.status === 'ChainError' ? 'chainError' : out.status === 'NeedsReview' ? 'needsReview' : out.status === 'Blocked' ? 'blocked' : 'pending')
     }

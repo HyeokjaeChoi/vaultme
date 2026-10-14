@@ -224,7 +224,7 @@ export const ko = {
     confirmed: '확정',
     failed: '실패',
     unknown: '확인 못 함',
-    replaced: '실행되지 않음',
+    replaced: '대체됨',
     send: '보내기',
     receive: '받기',
     today: '오늘',
