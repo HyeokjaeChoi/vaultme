@@ -23,6 +23,12 @@ describe('api', () => {
     expect(await r.json()).toEqual({ code: 'update_required', message: 'Update the app to continue', retryable: false })
   })
 
+  it('500 when MIN_APP_VERSION is malformed', async () => {
+    const r = await get('/v1/anything', V, { ...env, MIN_APP_VERSION: '1.x' })
+    expect(r.status).toBe(500)
+    expect(await r.json()).toMatchObject({ code: 'internal' })
+  })
+
   it('400 when version header is missing', async () => {
     const r = await get('/v1/anything')
     expect(r.status).toBe(400)

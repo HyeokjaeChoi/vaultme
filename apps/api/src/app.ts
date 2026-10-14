@@ -23,6 +23,8 @@ app.use('/v1/*', async (c, next) => {
   if (c.req.path === '/v1/health') return next()
   const v = AppVersion.safeParse(c.req.header(APP_VERSION_HEADER))
   if (!v.success) return fail(c, 400, 'invalid_request', `${APP_VERSION_HEADER} header is required`)
+  // A bad MIN_APP_VERSION would make every comparison wrong. Fail closed.
+  if (!AppVersion.safeParse(c.env.MIN_APP_VERSION).success) throw new Error('invalid MIN_APP_VERSION')
   if (isBelow(v.data, c.env.MIN_APP_VERSION)) return fail(c, 426, 'update_required', 'Update the app to continue')
   await next()
 })

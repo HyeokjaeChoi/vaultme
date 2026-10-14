@@ -96,7 +96,7 @@ fi
 
 # R8. Worker config holds vars only: no account IDs or secret-like keys in wrangler.jsonc, and no
 # tracked .dev.vars (only .dev.vars.example). Secrets go in .dev.vars (local) or `wrangler secret`.
-if scan '"(account_id|[A-Za-z_]*(secret|token|api_?key|password|private_?key)[A-Za-z_]*)" *:' 'apps/api/wrangler.jsonc'; then
+if [ -f apps/api/wrangler.jsonc ] && grep -niE '"(account_id|[A-Za-z_]*(secret|token|api_?key|password|private_?key)[A-Za-z_]*)" *:' apps/api/wrangler.jsonc; then
   err "R8: wrangler.jsonc must hold vars only; no account_id or secrets"
 fi
 if files | grep -E '(^|/)\.dev\.vars($|\.)' | grep -v '\.dev\.vars\.example$'; then
