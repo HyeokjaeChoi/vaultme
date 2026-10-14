@@ -50,3 +50,9 @@ Light mode unless noted. App captures are from the Android emulator signaldock-a
 | S41 test mode (테스트 거래 지우기 replaces Etherscan) | C2b-S41 Test mode 371:1344 (audit 0) | `s41-testmode-app.png` | `s41-testmode-figma.png` | None seen. Android: clear -> sheet -> Home 보내기 starts a send again. |
 
 The grey box behind the S23 status pill on Android is the keyboard-focus highlight from adb key events (same as PR #28), not an app bug.
+
+Review (changed: fee, cap and total now come from `prepare()` on the fake snapshot; nonce checked at send):
+
+| Screen | Figma node | App | Figma | Remaining differences |
+|---|---|---|---|---|
+| S22 Review | R-S22 336:390 | `s22-app.png` | `s22-figma.png` | Android capture: address is EIP-55 checksum case; check time is the real time. Layout and values match. |

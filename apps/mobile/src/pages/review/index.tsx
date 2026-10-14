@@ -9,9 +9,9 @@ import { textStyle } from '@/shared/theme/fonts'
 import { BottomSheet, Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 import { ReviewPanel } from '@/widgets/review-panel/ReviewPanel'
 import { goBack } from '@/shared/lib/nav'
-import { runSend, sendFrom, useReviewCore, readPendingTx, type SendOutcome } from '@/features/send'
+import { runSend, sendFrom, useReviewCore, readPendingTx, writePendingTx, type SendOutcome } from '@/features/send'
 import { chain } from '@/shared/chain'
-import { loadPhrase, setPendingTx } from '@/shared/storage'
+import { loadPhrase } from '@/shared/storage'
 
 const SHOWN_GROUPS = 4 // sheet compares only the leading chunks, then "…"
 
@@ -74,7 +74,7 @@ export function ReviewPage() {
         chain,
         loadPhrase,
         readPending: readPendingTx,
-        savePending: setPendingTx,
+        savePending: writePendingTx,
         now: Date.now,
         prompt: { title: t('send.authPrompt'), cancel: t('common.cancel') },
       })

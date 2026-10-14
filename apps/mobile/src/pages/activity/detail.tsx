@@ -2,12 +2,11 @@ import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Linking, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { clearTestTx, readPendingTx } from '@/features/send'
+import { clearTestTx, readPendingTx, writePendingTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { explorerUrl } from '@/shared/chain/port'
 import { goBack } from '@/shared/lib/nav'
 import { shortAddress } from '@/shared/lib/address'
-import { setPendingTx } from '@/shared/storage'
 import { useTheme } from '@/shared/theme'
 import { BottomSheet, Button, Group, Screen, ScreenHeader, StatusLabel, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 
@@ -27,7 +26,7 @@ export function TxDetailPage() {
   const unknown = tx.state === 'Unknown'
   const recheck = () => {
     const next = { ...tx, lastCheckedAt: Date.now() }
-    setPendingTx(next)
+    writePendingTx(next)
     setStored(next)
   }
   return (
@@ -68,7 +67,7 @@ export function TxDetailPage() {
               label={t('detail.clearConfirm')}
               onPress={() => {
                 setConfirmClear(false)
-                if (clearTestTx(chain, setPendingTx)) router.replace('/activity')
+                if (clearTestTx(chain, writePendingTx)) router.replace('/activity')
               }}
             />
             <Button label={t('common.cancel')} variant="ghost" onPress={() => setConfirmClear(false)} />
