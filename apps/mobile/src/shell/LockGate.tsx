@@ -1,8 +1,7 @@
-import { type ReactNode, useEffect, useReducer, useState } from 'react'
-import { AppState, Platform, View } from 'react-native'
+import { type ReactNode, useEffect, useReducer } from 'react'
+import { AppState } from 'react-native'
 import { isAuthInProgress } from '@/shared/auth'
 import { getAccountAddress, getLockSettings, hasPhrase, setLockState } from '@/shared/storage'
-import { useTheme } from '@/shared/theme'
 import { LockPage } from '@/pages/lock'
 import { reduceLock } from './lockTimer'
 
@@ -21,9 +20,7 @@ function hasWallet(): boolean {
  * Requires the kv to be open (root layout awaits it), so the first render already knows.
  */
 export function LockGate({ children }: { children: ReactNode }) {
-  const th = useTheme()
   const [lock, dispatch] = useReducer(reduceLock, undefined, () => ({ locked: hasWallet(), backgroundedAt: null }))
-  const [covered, setCovered] = useState(false)
 
   useEffect(() => {
     try {
@@ -38,18 +35,11 @@ export function LockGate({ children }: { children: ReactNode }) {
     const sub = AppState.addEventListener('change', (next) => {
       const wallet = hasWallet()
       const authInProgress = isAuthInProgress()
-      // iOS app switcher: hide the app as soon as it leaves the foreground. Our own auth dialog does not count.
-      if (Platform.OS === 'ios') setCovered(next !== 'active' && wallet && !authInProgress)
       dispatch({ type: 'appState', next: next === 'active' || next === 'background' ? next : 'inactive', now: Date.now(), wallet, authInProgress, graceSeconds: getLockSettings().graceSeconds })
     })
     return () => sub.remove()
   }, [])
 
-  if (lock.locked) return <LockPage onUnlock={() => dispatch({ type: 'unlock' })} />
-  return (
-    <>
-      {children}
-      {covered ? <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: th.semantic.surface.canvas }} /> : null}
-    </>
-  )
+  // App-switcher preview hiding is only for the phrase screens S03/S61 (ux-flow.md §9, Q43), not here.
+  return lock.locked ? <LockPage onUnlock={() => dispatch({ type: 'unlock' })} /> : <>{children}</>
 }
