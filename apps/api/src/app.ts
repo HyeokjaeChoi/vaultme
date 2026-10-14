@@ -7,6 +7,8 @@ import {
   InstallMeResponse,
   RegisterRequest,
   RegisterResponse,
+  RpcRequest,
+  RpcResponse,
   TokenResponse,
   errorEnvelope,
   isBelow,
@@ -16,6 +18,7 @@ import pkg from '../package.json' with { type: 'json' }
 import { importPublicKey, issueToken, limitInstall, nowSeconds, rateLimited, requireSigned, requireToken } from './auth.ts'
 import type { Env } from './env.ts'
 import { fail } from './errors.ts'
+import { proxyRpc, rpcAllowed } from './rpc.ts'
 
 // No CORS headers on purpose: the only client is the native app (LLD §4).
 export const app = new OpenAPIHono<Env>({
@@ -69,6 +72,12 @@ app.use('/v1/installs', async (c, next) => {
 })
 app.use('/v1/installs/token', requireSigned, limitInstall)
 app.use('/v1/installs/me', requireToken)
+app.use('/v1/rpc', async (c, next) => {
+  const key = c.req.header('CF-Connecting-IP') ?? 'unknown'
+  if (!(await c.env.RPC_IP_LIMITER.limit({ key })).success) return rateLimited(c)
+  await next()
+})
+app.use('/v1/rpc', requireToken)
 
 app.openapi(
   createRoute({
@@ -124,6 +133,28 @@ app.openapi(
     },
   }),
   (c) => c.json({ installId: c.get('installId') }, 200),
+)
+
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/v1/rpc',
+    request: { body: { content: { 'application/json': { schema: RpcRequest } }, required: true } },
+    responses: {
+      200: { description: 'Upstream JSON-RPC response, errors included', content: { 'application/json': { schema: RpcResponse } } },
+      400: errorResponse('Not a single JSON-RPC 2.0 request (batches are not supported)'),
+      403: errorResponse('Method or eth_call target not allowed'),
+      503: errorResponse('Both upstreams failed (retryable)'),
+      ...bearer,
+    },
+  }),
+  async (c) => {
+    const req = c.req.valid('json')
+    if (!rpcAllowed(req)) return c.json(errorEnvelope('method_not_allowed', 'Method not allowed'), 403)
+    const text = await proxyRpc(c.env, req)
+    if (text === null) return c.json(errorEnvelope('unavailable', 'RPC upstream unavailable'), 503)
+    return c.body(text, 200, { 'content-type': 'application/json' }) as never
+  },
 )
 
 app.notFound((c) => fail(c, 404, 'not_found', 'Not found'))

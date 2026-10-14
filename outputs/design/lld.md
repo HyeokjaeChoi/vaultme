@@ -165,6 +165,8 @@ export function reduce(state: SendState, event: SendEvent): SendState
 - **Rate limit**: `POST /v1/installs`는 IP key 60초당 3회(`INSTALL_IP_LIMITER`). token이 필요한 경로와 `/v1/installs/token`은 설치 ID key 60초당 60회(`INSTALL_LIMITER`). 설정은 `wrangler.jsonc`의 `ratelimits`.
 
 - RPC 허용 method (기본값): `eth_chainId`, `eth_blockNumber`, `eth_getBalance`, `eth_getTransactionCount`, `eth_estimateGas`, `eth_maxPriorityFeePerGas`, `eth_feeHistory`, `eth_getBlockByNumber`, `eth_call`(USDC `balanceOf`만), `eth_sendRawTransaction`, `eth_getTransactionReceipt`.
+  - 허용 목록 밖 method, 목록 밖 `eth_call`은 `403` `method_not_allowed`. batch(배열)는 `400`이다. `eth_call`은 `to`가 USDC Sepolia(`0x1c7D…7238`)이고 `data`가 `balanceOf` selector(`0x70a08231`) + 32바이트 인자 1개일 때만, `input` 별칭·state override(3번째 param) 없이 허용한다. `eth_getBlockByNumber`는 2번째 param이 `false`일 때만 허용한다(응답 크기 제한).
+  - Upstream은 Infura(1순위), Alchemy(2순위)다. key는 wrangler secret `INFURA_KEY`, `ALCHEMY_KEY`. 네트워크 오류, timeout(5초), HTTP 2xx 아님(5xx·429·key 오류)이면 다음 upstream으로 넘긴다. 200 안의 JSON-RPC error는 정상 응답이라 재시도 없이 그대로 돌려준다. `eth_sendRawTransaction` 재전송은 같은 hash라 안전하다. 둘 다 실패하면 `503` `unavailable`(`retryable: true`). key가 없으면 `500`. URL·upstream 오류 본문은 log·응답에 남기지 않고, key가 든 응답 본문은 버린다.
 - 오류 응답 형식: `{ code, message, retryable }`. `code`는 `contracts`의 enum이다. 앱은 모르는 `code`를 `Unknown`으로 처리한다 (Q61).
 
 ## 5. Rate limit

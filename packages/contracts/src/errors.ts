@@ -5,6 +5,7 @@ import { z } from 'zod'
 export const ERROR_CODES = [
   'invalid_request', // 400
   'origin_forbidden', // 403
+  'method_not_allowed', // 403, JSON-RPC method or eth_call target outside the allow-list
   'unauthorized', // 401 missing, bad or expired token; unknown install
   'signature_invalid', // 401
   'nonce_reused', // 401
@@ -31,6 +32,7 @@ export type ErrorEnvelope = z.infer<typeof ErrorEnvelope>
 const RETRYABLE: Record<ErrorCode, boolean> = {
   invalid_request: false,
   origin_forbidden: false,
+  method_not_allowed: false,
   unauthorized: false,
   signature_invalid: false,
   nonce_reused: false,
