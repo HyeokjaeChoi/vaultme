@@ -1,0 +1,122 @@
+# Redesign B — Foundation 초안과 핵심 화면 3개 (#54)
+
+상태: Figma 초안 단계. 오너 승인 전이다. 승인 전에는 기존 master, 기존 Variable 값, Library publish를 바꾸지 않는다.
+
+## 1. 결정 (오너, 2026-10-15)
+
+| 항목 | 값 |
+|---|---|
+| 글꼴 | Pretendard 400/500/600 (700 없음). 금액은 tabular numerals. 주소·hash는 IBM Plex Mono |
+| 면 | Coinbase식 평평한 흰 면. list row, section 제목, 간격으로 묶는다. card는 묶음이 꼭 필요할 때만 |
+| 안내 | tinted 박스를 줄인다. 아이콘 + 글자 색으로 표시한다 |
+| 버튼 | pill. 높이 56 / 48 / 40. 파랑은 화면당 Primary 1개. Secondary는 neutral |
+| 수치 | row 64, sheet 위 모서리 32, press scale 0.97–0.98 @100ms, row는 배경색만 바뀜, sheet 250ms ease-out |
+
+근거: `~/Projects/vaultme-design-research/foundation-research.md` (§4), Mobbin 리서치 `mobbin-2026-10-15/SUMMARY.md` (저장소 밖. 이미지 없음, 링크만).
+
+## 2. Figma 글꼴 대체 (임시)
+
+- Figma 원격 MCP(`use_figma`)는 로컬 글꼴을 읽지 못한다. Pretendard 로드가 실패한다 (2026-10-16 확인).
+- 학생(Education) 플랜은 Professional 기능이라 shared fonts 업로드가 없다 ([Figma Help](https://help.figma.com/hc/en-us/articles/360039956774)).
+- 그래서 Figma 초안은 **Gothic A1** (Regular / Medium / SemiBold)로 만든다. Noto Sans KR은 Figma에 SemiBold(600)가 없어서 제외했다. Latin·숫자 폭은 Pretendard(Inter 계열)와 다르다.
+- 오너 승인 뒤 오너가 Figma 앱에서 `Product B / *` 텍스트 스타일의 family를 Pretendard로 바꾼다. 그 뒤 MCP는 해당 텍스트를 수정할 수 없으므로 마지막 단계에서 한다.
+- 앱 코드는 처음부터 Pretendard를 쓴다. app-vs-Figma 비교에서 글자 폭 차이는 이 대체 때문이다.
+
+## 3. Foundation 추가 (초안, 기존 값 변경 없음)
+
+### 3.1 Primitive (새 raw 값만)
+
+| 이름 | 값 | 이유 |
+|---|---|---|
+| `size/pill_lg` | 56 | 버튼 lg |
+| `size/pill_md` | 48 | 버튼 md |
+| `size/pill_sm` | 40 | 버튼 sm (hit target은 기존 `button/hitTarget` 44) |
+
+나머지는 기존 Primitive에 alias한다: `radius/pill` 999, `radius/3xl` 32, `size/asset_row` 64, `space/*`.
+
+### 3.2 Component (alias만)
+
+| 이름 | alias |
+|---|---|
+| `buttonB/height/lg·md·sm` | `size/pill_lg·md·sm` |
+| `buttonB/radius` | `radius/pill` |
+| `buttonB/paddingX/lg·md·sm` | `space/6` · `space/5` · `space/4` |
+| `buttonB/primary/bg·fg` | 기존 `button/primary/bg/default` · `fg/default` |
+| `buttonB/secondary/bg·fg` | `surface/subtle`(neutral 50) · `text/primary` |
+| `rowB/height` | `size/asset_row` (64) |
+| `rowB/paddingX` | `layout/screen/padding` |
+| `sheetB/radius` | `radius/3xl` (32) |
+| `screenB/bg` | `surface/default` (흰색) |
+
+`surface/canvas`(neutral 50)은 기존 화면이 쓰므로 그대로 둔다. Redesign B 화면 배경만 `screenB/bg`(흰색)을 쓴다.
+
+### 3.3 Text style `Product B / *` (Figma는 Gothic A1 대체)
+
+| 스타일 | size/lineHeight | 자간(px) | weight | 용도 |
+|---|---|---|---|---|
+| Display L | 40/48 | -1.1 | 600 | 잔액 hero |
+| Display M | 32/40 | -0.8 | 600 | 금액 입력, 검토 금액 |
+| Title 1 | 26/34 | -0.6 | 600 | 화면 제목 |
+| Title 2 | 22/30 | -0.4 | 600 | 섹션 제목 |
+| Title 3 | 19/27 | -0.2 | 600 | sheet 제목 |
+| Headline | 17/25 | 0 | 600 | row 주 텍스트, 버튼 |
+| Body | 16/24 | 0 | 400 | 본문 |
+| Body Small | 15/22 | 0.1 | 400 | 보조 설명 |
+| Label | 14/20 | 0.2 | 500 | 필드 label, 칩 |
+| Caption | 12/17 | 0.3 | 400 | 날짜, 부가 정보 |
+| Address | 14/20 | 0 | 400 | IBM Plex Mono, 전체 주소 |
+
+### 3.4 컴포넌트 (페이지 `14 Redesign B`, 새 master. 기존 C01–C33 ID 유지)
+
+| 컴포넌트 | 구성 |
+|---|---|
+| B/Button | Variant: Type(Primary, Secondary, Ghost) × Size(lg, md, sm) × State(Default, Pressed, Disabled). pill. 아이콘 slot |
+| B/Row | 64 높이. leading 40 원형 아이콘(자산 SVG 또는 Phosphor) · title(Headline) + subtitle(Caption, text/tertiary) · trailing value(Headline, tnum) + sub value(Caption). 배경 없음, divider 없음 |
+| B/Section header | Title 2 + 선택 trailing 링크(Label, text/link) |
+| B/Notice inline | 아이콘 20 + Body Small. Tone(Info, Warning, Danger, Success)은 아이콘·글자 색만. 박스 없음 |
+| B/Detail row | label(Body Small, text/tertiary) 왼쪽 · value(Body, text/primary) 오른쪽. 주소 값은 Address 스타일로 전체 표시, 4글자 묶음, 줄바꿈 허용 |
+| B/Balance hero | label(Label) · amount(Display L) · sub(Body Small) |
+| B/Action row | B/Button md 2개 가로 (보내기 Primary, 받기 Secondary) |
+| B/Bottom sheet | 위 모서리 32, grabber, Title 3, 본문, 버튼 stack (Primary 아래) |
+
+기존 Product header(68:167), Product navigation(67:342), Status label(67:241)은 재사용한다.
+
+## 4. 핵심 화면 3개 (390×844, 배경 `screenB/bg`)
+
+### Home (S10R 기반)
+1. Product header: 계정 1 / Sepolia
+2. B/Balance hero: "총 평가금액" · "표시할 수 없어요" · "테스트넷 자산은 시장 가격이 없어요. 수량은 아래에서 보세요."
+3. B/Action row: 보내기(Primary) · 받기(Secondary)
+4. B/Section header "자산"
+5. B/Row × 2: Sepolia ETH / USD Coin (수량 tnum, "시장 가격 없음")
+6. Product navigation (자산 / 내역 / 설정)
+
+### Send review (S22)
+1. Product header (뒤로, "보내기 검토")
+2. 금액 hero: Display M "0.05 ETH" + Body Small 보조
+3. B/Detail row: 계정 · 네트워크 · 자산 · 받는 주소(전체, Address) · 예상 네트워크 수수료 · 최대 수수료 · 예상 총 차감액(값만 600)
+4. B/Notice inline (Info): "잔액, 수수료, 주소 형식을 09:41에 확인했어요. 받는 사람의 안전을 보증하지는 않아요."
+5. Caption: "금액과 수수료는 ETH로 나가요. 최종 수수료는 달라질 수 있어요."
+6. 하단 고정: B/Button lg Primary "확인하고 보내기" · Ghost "수정"
+
+### Activity (S40)
+1. Product header "내역"
+2. 날짜 그룹 B/Section header (Label, 요일 포함 "10월 16일 (목)")
+3. B/Row: 보냄 / 받음 / 보내는 중 / 실패 (상태는 subtitle 글자, 금액 부호 tnum. 실패 금액은 text/tertiary + 취소선 검토)
+4. Product navigation
+
+Dark 확인: Home 1장.
+
+## 5. 완료 조건
+
+- `vaultme-figma-screen` audit 결과 모든 count 0 (`ROOT_IDS`에 새 frame).
+- 화면 스크린샷을 메인 에이전트가 직접 검토. impeccable / emil-design-eng / taste 검토 기록.
+- 오너 승인 전: Library publish 없음, 기존 master·Variable 값 변경 없음.
+
+## 6. 열린 결정 (오너)
+
+1. 단계 제목 질문형 해요체 전면 적용 (현재는 승인된 ux-copy 유지)
+2. 금액 입력 커스텀 키패드 + "00"/전액 칩
+3. Pending 거래를 홈 상단에 계속 표시
+4. 가격 등락 색 (지금은 가격 표시 없음 → 보류)
+5. 본인이 보낸 0원 거래 표시 방식 (#53 후속)
