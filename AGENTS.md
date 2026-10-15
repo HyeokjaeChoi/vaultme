@@ -6,6 +6,23 @@ Please explain all answers in Korean, and for specialized terms or proper nouns 
 
 Use short Korean sentences and concrete steps. Keep proper nouns and technical identifiers in their original language. Put the main result first. Explain one point at a time.
 
+# Source of truth for agent instructions
+
+`AGENTS.md` is the single source of truth (SSOT) for agent instructions in this repository.
+`CLAUDE.md` only imports this file (`@AGENTS.md`), because Claude Code loads `CLAUDE.md`, not `AGENTS.md`.
+Do not write rules into `CLAUDE.md`. Add or change repository-wide rules here. Skills under `.claude/skills/` keep their scoped lessons and procedures (for example `vaultme-review-lessons`); they must not contradict this file. `scripts/check-repo-rules.sh` (R9) enforces this.
+
+# Decisions without owner direction
+
+When the owner did not specify a choice and you must decide (library, version, API, config option, platform behavior, tool, or workaround), do these steps before you act:
+
+1. Read the current official documentation. For a library, framework, SDK, CLI, or cloud service, use ctx7 first (`npx ctx7@latest library <name> "<question>"`, then `npx ctx7@latest docs <id> "<question>"`). If ctx7 has no match, use the vendor's official docs or release notes.
+2. Check the release state: the installed version, the latest stable release and its date (`npm view <pkg> time`), deprecation notices, and whether an official option replaces a custom workaround. Obey pnpm `minimumReleaseAge` (7 days).
+3. Prefer the official, released solution to a custom workaround. If you must use a workaround, write the reason and the condition to remove it in a code comment.
+4. In the report and the PR, name each source (URL or ctx7 library ID) and the version you checked. If you could not check, say so. Do not present an unchecked decision as verified.
+
+These steps also apply to delegated work. Put them in the delegation instructions.
+
 # Work workflow
 
 Follow `docs/agents/workflow.md` for every task: GitHub issue → branch → PR → CodeRabbit review.
