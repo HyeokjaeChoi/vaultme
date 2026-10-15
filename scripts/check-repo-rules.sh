@@ -105,7 +105,8 @@ fi
 
 # R9. AGENTS.md is the SSOT. A CLAUDE.md file would stop Claude Code from reading AGENTS.md.
 for f in CLAUDE.md .claude/CLAUDE.md CLAUDE.local.md; do
-  if [ -e "$f" ]; then err "R9: remove $f; put rules in AGENTS.md (Claude Code reads it directly)"; fi
+  if [ "$f" = CLAUDE.local.md ] && [ -e "$f" ]; then err "R9: remove $f; put personal notes in ~/.claude/CLAUDE.md"
+  elif [ -e "$f" ]; then err "R9: remove $f; put shared rules in AGENTS.md (Claude Code reads it directly)"; fi
 done
 
 exit "$fail"
