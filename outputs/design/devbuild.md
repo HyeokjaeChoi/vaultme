@@ -47,8 +47,9 @@ adb shell am start -a android.intent.action.VIEW -d vaultme://kit app.vaultme.mo
 ## 알려진 문제
 
 - **iOS 27 UIScene**: Expo SDK 57 템플릿은 아직 scene 방식이 아니라서 앱이 바로 죽어요
-  (`UIScene life cycle is required`). `plugins/withSceneLifecycle.js`가 `Info.plist`와 `AppDelegate.swift`를 고쳐요.
-  Expo 템플릿이 바뀌면 지워요.
+  (`UIScene life cycle is required`). `app.json`의 `["expo-build-properties", { "ios": { "enableSceneSupport": true } }]`가
+  `Info.plist`와 `AppDelegate.swift`를 고쳐요 (공식 옵션, `expo` 57.0.23 이상 필요).
+  Expo SDK 58부터는 기본 포함이라 이 옵션을 지워요.
 - **pnpm `minimumReleaseAge` (7일)**: `expo install`이 방금 나온 패치(`expo-crypto`, `expo-dev-client`)를 못 받아요.
   한 단계 앞선 버전(`~57.0.3`, `~57.0.19`)으로 고정했어요. `expo install --check`가 경고해도 정책 때문이에요.
 - **Android NDK**: 첫 빌드가 NDK 27.1을 자동으로 받아요 (큰 다운로드).
