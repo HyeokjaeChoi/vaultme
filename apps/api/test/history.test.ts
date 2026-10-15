@@ -75,6 +75,32 @@ describe('loadHistory merge', () => {
     expect(r.items.map((i) => [i.direction, i.to])).toEqual([['out', ME], ['out', null]])
   })
 
+  it('zero-value token row with log from == me but tx sender != me (transferFrom spoof) is not outgoing (#53)', async () => {
+    const h = hash(7001)
+    const { f } = sim({
+      txlist: [tx(10, 0, { hash: h, from: OTHER, to: USDC_SEPOLIA.toLowerCase(), value: '0' })], // attacker is the tx sender
+      tokentx: [token(10, 0, { hash: h, from: ME, to: '0x' + 'c'.repeat(40), value: '0' })],
+    })
+    const r = await loadHistory(f, ME)
+    const t = r.items.find((i) => i.kind === 'erc20')!
+    expect(t).toMatchObject({ zeroValue: true, direction: 'in' })
+  })
+
+  it('zero-value token row from me with no txlist row of mine in the data is classified conservatively (not outgoing)', async () => {
+    const { f } = sim({ tokentx: [token(10, 0, { from: ME, to: OTHER, value: '0' })] })
+    expect((await loadHistory(f, ME)).items[0]).toMatchObject({ zeroValue: true, direction: 'in' })
+  })
+
+  it('genuine user-sent zero-value token call (tx sender == me) stays outgoing; non-zero transferFrom keeps log direction', async () => {
+    const h = hash(7002)
+    const { f } = sim({
+      txlist: [tx(10, 0, { hash: h, from: ME, to: USDC_SEPOLIA.toLowerCase(), value: '0' })],
+      tokentx: [token(10, 0, { hash: h, from: ME, to: OTHER, value: '0' }), token(9, 0, { from: ME, to: OTHER, value: '5' })],
+    })
+    const r = await loadHistory(f, ME)
+    expect(r.items.filter((i) => i.kind === 'erc20').map((i) => [i.value, i.direction])).toEqual([['0', 'out'], ['5', 'out']])
+  })
+
   it('malformed upstream row is an UpstreamError', async () => {
     await expect(loadHistory(sim({ txlist: [{ hash: 'x' }] }).f, ME)).rejects.toBeInstanceOf(UpstreamError)
   })
