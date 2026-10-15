@@ -104,9 +104,12 @@ if files | grep -E '(^|/)\.dev\.vars($|\.)' | grep -v '\.dev\.vars\.example$'; t
 fi
 
 # R9. AGENTS.md is the SSOT. A CLAUDE.md file would stop Claude Code from reading AGENTS.md.
-for f in CLAUDE.md .claude/CLAUDE.md CLAUDE.local.md; do
-  if [ "$f" = CLAUDE.local.md ] && [ -e "$f" ]; then err "R9: remove $f; put personal notes in ~/.claude/CLAUDE.md"
-  elif [ -e "$f" ]; then err "R9: remove $f; put shared rules in AGENTS.md (Claude Code reads it directly)"; fi
-done
+# Any directory counts: a nested CLAUDE.md stops AGENTS.md loading when Claude Code starts there.
+while IFS= read -r f; do
+  case "$f" in
+    */CLAUDE.local.md|CLAUDE.local.md) err "R9: remove $f; put personal notes in ~/.claude/CLAUDE.md" ;;
+    *) err "R9: remove $f; put shared rules in AGENTS.md (Claude Code reads it directly)" ;;
+  esac
+done < <(git ls-files --cached --others --exclude-standard | grep -E '(^|/)(CLAUDE\.md|CLAUDE\.local\.md)$' || true)
 
 exit "$fail"
