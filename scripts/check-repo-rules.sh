@@ -103,9 +103,9 @@ if files | grep -E '(^|/)\.dev\.vars($|\.)' | grep -v '\.dev\.vars\.example$'; t
   err "R8: .dev.vars is tracked"
 fi
 
-# R9. AGENTS.md is the SSOT for agent instructions. CLAUDE.md, if present, only imports it.
-if [ -f CLAUDE.md ] && [ "$(tr -d '\r' < CLAUDE.md | grep -v '^[[:space:]]*$')" != "@AGENTS.md" ]; then
-  err "R9: CLAUDE.md must contain only '@AGENTS.md'; put rules in AGENTS.md"
-fi
+# R9. AGENTS.md is the SSOT. A CLAUDE.md file would stop Claude Code from reading AGENTS.md.
+for f in CLAUDE.md .claude/CLAUDE.md CLAUDE.local.md; do
+  if [ -e "$f" ]; then err "R9: remove $f; put rules in AGENTS.md (Claude Code reads it directly)"; fi
+done
 
 exit "$fail"
