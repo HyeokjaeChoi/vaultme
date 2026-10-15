@@ -104,7 +104,7 @@ if files | grep -E '(^|/)\.dev\.vars($|\.)' | grep -v '\.dev\.vars\.example$'; t
 fi
 
 # R9. AGENTS.md is the SSOT for agent instructions. CLAUDE.md, if present, only imports it.
-if [ -f CLAUDE.md ] && [ "$(grep -v '^[[:space:]]*$' CLAUDE.md)" != "@AGENTS.md" ]; then
+if [ -f CLAUDE.md ] && [ "$(tr -d '\r' < CLAUDE.md | grep -v '^[[:space:]]*$')" != "@AGENTS.md" ]; then
   err "R9: CLAUDE.md must contain only '@AGENTS.md'; put rules in AGENTS.md"
 fi
 
