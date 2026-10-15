@@ -21,7 +21,7 @@ export const HistoryItem = z
     blockNumber: z.number().int().nonnegative(),
     txIndex: z.number().int().nonnegative(),
     timestamp: z.number().int().nonnegative().describe('Unix seconds.'),
-    direction: z.enum(['in', 'out']).describe('Relative to the address. A transfer to itself is `out`. A zero-value erc20 row is `out` only if the tx sender is the address (#53).'),
+    direction: z.enum(['in', 'out']).describe('Relative to the address. A transfer to itself is `out`, except that a zero-value erc20 row is `out` only if the tx sender is the address (#53).'),
     asset: z.enum(['ETH', 'USDC']),
     value: z.string().regex(/^\d+$/).describe('Raw units (wei, or USDC with 6 decimals), decimal string.'),
     from: Address,
