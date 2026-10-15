@@ -74,7 +74,6 @@ apps/mobile/
 │  ├─ backup/{index,check}.tsx, restore/{index,done}.tsx
 │  ├─ send/{index,amount,result}.tsx, review.tsx, activity/[hash].tsx
 │  └─ (C2a route 그대로)
-├─ plugins/withSceneLifecycle.js   iOS 27 UIScene 요구 대응 (템플릿이 따라잡으면 삭제)
 └─ src/
    ├─ shell/        LockGate, lockTimer (순수 reducer), providers
    ├─ pages/        backup, restore, lock, send, activity/detail 외
