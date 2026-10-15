@@ -9,8 +9,8 @@ Use short Korean sentences and concrete steps. Keep proper nouns and technical i
 # Source of truth for agent instructions
 
 `AGENTS.md` is the single source of truth (SSOT) for agent instructions in this repository.
-`CLAUDE.md` only imports this file (`@AGENTS.md`), because Claude Code loads `CLAUDE.md`, not `AGENTS.md`.
-Do not write rules into `CLAUDE.md`. Add or change repository-wide rules here. Skills under `.claude/skills/` keep their scoped lessons and procedures (for example `vaultme-review-lessons`); they must not contradict this file. `scripts/check-repo-rules.sh` (R9) enforces this.
+With the default **Project instructions** setting (`claude-md-or-agents-md`), Claude Code v2.1.277 and later reads `AGENTS.md` directly when there is no `CLAUDE.md`, `.claude/CLAUDE.md`, or `CLAUDE.local.md` in the working directory or any directory above it ([docs](https://code.claude.com/docs/en/memory#agents-md)). In that default mode any of those files stops Claude Code from reading `AGENTS.md`, so do not add them anywhere in the repository (any directory), not even a local one. Put personal notes in `~/.claude/CLAUDE.md`, which does not block `AGENTS.md`.
+Add or change repository-wide rules here. Skills under `.claude/skills/` keep their scoped lessons and procedures (for example `vaultme-review-lessons`); they must not contradict this file. `scripts/check-repo-rules.sh` (R9) enforces the file rule.
 
 # Decisions without owner direction
 

@@ -103,9 +103,13 @@ if files | grep -E '(^|/)\.dev\.vars($|\.)' | grep -v '\.dev\.vars\.example$'; t
   err "R8: .dev.vars is tracked"
 fi
 
-# R9. AGENTS.md is the SSOT for agent instructions. CLAUDE.md, if present, only imports it.
-if [ -f CLAUDE.md ] && [ "$(tr -d '\r' < CLAUDE.md | grep -v '^[[:space:]]*$')" != "@AGENTS.md" ]; then
-  err "R9: CLAUDE.md must contain only '@AGENTS.md'; put rules in AGENTS.md"
-fi
+# R9. AGENTS.md is the SSOT. A CLAUDE.md file would stop Claude Code from reading AGENTS.md.
+# Any directory counts: a nested CLAUDE.md stops AGENTS.md loading when Claude Code starts there.
+while IFS= read -r f; do
+  case "$f" in
+    */CLAUDE.local.md|CLAUDE.local.md) err "R9: remove $f; put personal notes in ~/.claude/CLAUDE.md" ;;
+    *) err "R9: remove $f; put shared rules in AGENTS.md (Claude Code reads it directly)" ;;
+  esac
+done < <(git ls-files --cached --others --exclude-standard | grep -E '(^|/)(CLAUDE\.md|CLAUDE\.local\.md)$' || true)
 
 exit "$fail"
