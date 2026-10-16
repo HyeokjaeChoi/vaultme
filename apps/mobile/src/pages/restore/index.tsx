@@ -6,16 +6,18 @@ import { useTranslation } from 'react-i18next'
 import { inspectPhrase, type PhraseIssue } from '@/features/restore/model/phrase'
 import { restoreWallet } from '@/features/restore/model/restoreWallet'
 import { goBack } from '@/shared/lib/nav'
+import { useTheme } from '@/shared/theme'
 import { Button, Input, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 
 /**
- * R-S05 지갑 복구. One phrase field (12 or 24 words, counted from the text), 붙여넣기, no passphrase field (Q40: a notice only).
+ * B-S05 지갑 복구 (Figma 423:15293): title + helper sentence, one bordered field with 붙여넣기 inside (QR 코드 스캔 is not wired, not offered). One phrase field (12 or 24 words, counted from the text), 붙여넣기, no passphrase field (Q40: a notice only).
  * The typed phrase lives only in this component's state: it is cleared on success, on leaving the screen and when the app goes to the background.
  * Nothing about it is logged, and the field turns off every keyboard helper (autocorrect, suggestions, autofill).
  */
 export function RestorePage({ initial = '' }: { initial?: string }) {
   const { t } = useTranslation()
   const router = useRouter()
+  const th = useTheme()
   const [text, setText] = useState(initial)
   const [left, setLeft] = useState(false) // blurred once: judge the final shape (count, checksum) too
   const [busy, setBusy] = useState(false)
@@ -81,13 +83,17 @@ export function RestorePage({ initial = '' }: { initial?: string }) {
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/')} />}
       footer={<Button label={t('restore.submit')} disabled={!state.ready || !!issue} busy={busy} onPress={() => void submit()} />}
     >
-      <Text variant="title1" accessibilityRole="header">{t('restore.title')}</Text>
+      <View style={{ gap: th.semantic.layout.fieldGap }}>
+        <Text variant="title1" accessibilityRole="header">{t('restore.title')}</Text>
+        <Text variant="body" color={th.semantic.text.secondary}>{t('restore.helper')}</Text>
+      </View>
       <Input
         label={t('restore.label')}
         value={text}
         onChangeText={change}
         onBlur={() => setLeft(true)}
-        helper={t('restore.helper')}
+        placeholder={t('restore.placeholder')}
+        actions={[{ label: t('restore.paste'), onPress: () => void paste() }]}
         {...(error ? { error } : {})}
         multiline
         autoCapitalize="none"
@@ -98,9 +104,6 @@ export function RestorePage({ initial = '' }: { initial?: string }) {
         importantForAutofill="no"
         {...(Platform.OS === 'android' ? { keyboardType: 'visible-password' as const } : {})}
       />
-      <View style={{ flexDirection: 'row' }}>
-        <Button label={t('restore.paste')} variant="secondary" size="sm" style={{ flex: 1 }} onPress={() => void paste()} />
-      </View>
       <StatusNotice tone="warning" title={t('restore.passphrase.title')} body={t('restore.passphrase.body')} />
       {outcome === 'exists' ? <StatusNotice tone="danger" title={t('restore.exists.title')} body={t('restore.exists.body')} /> : null}
       {outcome === 'error' ? <StatusNotice tone="danger" title={t('restore.saveError.title')} body={t('restore.saveError.body')} /> : null}

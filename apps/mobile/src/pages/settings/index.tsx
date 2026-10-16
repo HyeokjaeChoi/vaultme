@@ -1,29 +1,31 @@
+// Figma: B-S60 Settings 423:13797 (B/Settings row 426:2045)
 import Constants from 'expo-constants'
-import { useState } from 'react'
+import { useRouter } from 'expo-router'
+import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
-import { Group, ListItem, Screen, Switch, Text } from '@/shared/ui'
+import { usePushSetting, useZeroSetting } from '@/features/settings'
+import { useTheme } from '@/shared/theme'
+import { ListItem, Screen, Text } from '@/shared/ui'
 
-/** R-S60 설정. Preferences are local state only (no persistence in C2a); the recovery phrase row opens nothing yet. */
+/** B-S60 설정: flat rows, each opens its own screen (value + chevron); 버전 is a plain value. */
 export function SettingsPage() {
   const { t } = useTranslation()
-  const [push, setPush] = useState(true)
-  const [zero, setZero] = useState(false)
-  const [device, setDevice] = useState(true)
-  const toggle = (title: string, value: boolean, set: (v: boolean) => void) => (
-    <ListItem title={title} trailing={{ kind: 'custom', node: <Switch label={title} value={value} onValueChange={set} /> }} />
-  )
+  const th = useTheme()
+  const router = useRouter()
+  const [push] = usePushSetting()
+  const [zero] = useZeroSetting()
   return (
-    <Screen edges={['top']}>
-      <Text variant="title1" accessibilityRole="header">{t('settings.title')}</Text>
-      <Group inset={false}>
-        <ListItem title={t('settings.phrase')} trailing={{ kind: 'disclosure' }} />
-        {toggle(t('settings.push'), push, setPush)}
-        {toggle(t('settings.zero'), zero, setZero)}
-        {toggle(t('settings.device'), device, setDevice)}
-        <ListItem title={t('settings.network')} trailing={{ kind: 'value', text: account.network }} />
+    <Screen edges={['top']} gap="section">
+      <Text variant="title1" accessibilityRole="header" style={{ paddingTop: th.primitive.space[4] }}>{t('settings.title')}</Text>
+      <View>
+        <ListItem title={t('settings.phrase')} trailing={{ kind: 'disclosure' }} onPress={() => router.push('/settings/phrase')} />
+        <ListItem title={t('settings.push')} trailing={{ kind: 'disclosure', text: push ? t('settings.on') : t('settings.off') }} onPress={() => router.push('/settings/push')} />
+        <ListItem title={t('settings.zero')} trailing={{ kind: 'disclosure', text: zero ? t('settings.shown') : t('settings.hidden') }} onPress={() => router.push('/settings/zero')} />
+        <ListItem title={t('settings.device')} trailing={{ kind: 'disclosure' }} onPress={() => router.push('/settings/device')} />
+        <ListItem title={t('settings.network')} trailing={{ kind: 'disclosure', text: account.network }} />
         <ListItem title={t('settings.version')} trailing={{ kind: 'value', text: Constants.expoConfig?.version ?? '' }} />
-      </Group>
+      </View>
     </Screen>
   )
 }

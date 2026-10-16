@@ -4,12 +4,12 @@ import { useTranslation } from 'react-i18next'
 import { authenticate, type AuthResult } from '@/shared/auth'
 import { biometryType } from '@/shared/storage'
 import { useTheme } from '@/shared/theme'
-import { Button, Icon, Screen, StatusNotice, Text } from '@/shared/ui'
+import { Button, Screen, StatusNotice, Text } from '@/shared/ui'
 
 const BODY = { FaceID: 'faceId', Face: 'face', TouchID: 'fingerprint', Fingerprint: 'fingerprint' } as const
 
-/** R-S90 잠금. Rendered by the lock gate instead of the app. Prompts once on show; the button prompts again. */
-export function LockPage({ onUnlock }: { onUnlock: () => void }) {
+/** B-S90 잠금 (Figma 423:15412). Rendered by the lock gate instead of the app. Prompts once on show; the button prompts again. */
+export function LockPage({ onUnlock, autoPrompt = true }: { onUnlock: () => void; autoPrompt?: boolean }) {
   const { t } = useTranslation()
   const th = useTheme()
   const [method, setMethod] = useState<keyof typeof BODY | 'passcode' | null>(null)
@@ -17,7 +17,6 @@ export function LockPage({ onUnlock }: { onUnlock: () => void }) {
   const [busy, setBusy] = useState(false)
   const alive = useRef(true)
   const prompted = useRef(false)
-  const mark = th.primitive.space[10] + th.primitive.space[8] // 72
 
   const prompt = useCallback(async () => {
     setBusy(true)
@@ -36,14 +35,14 @@ export function LockPage({ onUnlock }: { onUnlock: () => void }) {
       (b) => alive.current && setMethod(b !== null && b in BODY ? (b as keyof typeof BODY) : 'passcode'),
       () => alive.current && setMethod('passcode'),
     )
-    if (!prompted.current) {
+    if (autoPrompt && !prompted.current) {
       prompted.current = true
       void prompt()
     }
     return () => {
       alive.current = false
     }
-  }, [prompt])
+  }, [prompt, autoPrompt])
 
   return (
     <Screen
@@ -54,13 +53,9 @@ export function LockPage({ onUnlock }: { onUnlock: () => void }) {
         </View>
       }
     >
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: th.semantic.layout.sectionGap.product }}>
-        {/* ponytail: Figma mark icon is 30 px; nearest token is icon_xl (32). */}
-        <View style={{ width: mark, height: mark, borderRadius: th.primitive.radius.xl, backgroundColor: th.semantic.brand.primary, alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name="backup" size={th.primitive.size.icon_xl} color={th.semantic.text.onBrand} />
-        </View>
-        <Text variant="displayL" accessibilityRole="header">{t('lock.title')}</Text>
-        {method ? <Text variant="body" color={th.semantic.text.secondary} style={{ textAlign: 'center' }}>{t(`lock.body.${BODY[method as keyof typeof BODY] ?? 'passcode'}`)}</Text> : null}
+      <View style={{ flex: 1, justifyContent: 'center', gap: th.semantic.layout.fieldGap }}>
+        <Text variant="title1" accessibilityRole="header">{t('lock.title')}</Text>
+        {method ? <Text variant="body" color={th.semantic.text.secondary}>{t(`lock.body.${BODY[method as keyof typeof BODY] ?? 'passcode'}`)}</Text> : null}
       </View>
     </Screen>
   )

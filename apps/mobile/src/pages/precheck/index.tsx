@@ -5,7 +5,7 @@ import { Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 import { goBack } from '@/shared/lib/nav'
 import { createWallet } from '@/features/backup/model/createWallet'
 
-/** S02 시작 전에 확인 */
+/** B-S02 시작 전에 확인 (Figma 423:13478): two warning notices and one info notice. */
 export function PrecheckPage() {
   const { t } = useTranslation()
   const router = useRouter()
@@ -31,7 +31,7 @@ export function PrecheckPage() {
     >
       <Text variant="title1" accessibilityRole="header">{t('precheck.title')}</Text>
       <StatusNotice tone="warning" title={t('precheck.lose.title')} body={t('precheck.lose.body')} />
-      <StatusNotice tone="info" title={t('precheck.scam.title')} body={t('precheck.scam.body')} />
+      <StatusNotice tone="warning" title={t('precheck.scam.title')} body={t('precheck.scam.body')} />
       <StatusNotice tone="info" title={t('precheck.testnet.title')} body={t('precheck.testnet.body')} />
       {failed ? <StatusNotice tone="danger" title={t('precheck.createError.title')} body={t('precheck.createError.body')} /> : null}
     </Screen>
