@@ -14,7 +14,7 @@ export function ReceivePanel({ account, network, address, note }: Props) {
   return (
     <Group>
       <View style={{ gap: t.semantic.layout.fieldGap, paddingVertical: t.primitive.space[3] }}>
-        <Text variant="row">{account}</Text>
+        <Text variant="headline">{account}</Text>
         <Text variant="body" color={c.helper}>{network}</Text>
         <AddressText address={address} color={c.address} />
         <Text variant="body" color={c.helper}>{note}</Text>

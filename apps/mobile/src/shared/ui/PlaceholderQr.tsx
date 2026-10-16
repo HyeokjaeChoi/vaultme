@@ -29,7 +29,7 @@ export function PlaceholderQr({ note }: { note: string }) {
           backgroundColor: w.bg,
         }}
       >
-        <Text variant="meta" color={w.fg}>{note}</Text>
+        <Text variant="caption" color={w.fg}>{note}</Text>
       </View>
     </View>
   )

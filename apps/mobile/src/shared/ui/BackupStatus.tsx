@@ -14,7 +14,7 @@ export function BackupStatus({ title, body, cta, onPress }: Props) {
   return (
     <View style={{ gap: t.semantic.layout.fieldGap, padding: t.semantic.layout.screen.padding, borderRadius: t.semantic.shape.group, backgroundColor: c.bg, borderWidth: c.borderWidth }}>
       <Icon name="warning" size={t.component.icon.size.control} color={t.component.icon.status.warning} />
-      <Text variant="section" color={c.title}>{title}</Text>
+      <Text variant="title2" color={c.title}>{title}</Text>
       <Text variant="body" color={c.body}>{body}</Text>
       <Button label={cta} variant="secondary" {...(onPress ? { onPress } : {})} />
     </View>

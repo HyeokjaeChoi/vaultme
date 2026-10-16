@@ -18,7 +18,7 @@ export function ProductHeader({ title, subtitle, networkSymbol = 'ETH', detailsL
       <View accessible accessibilityRole="header" accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap }}>
           <Icon name="account" size={ic.account.size} color={ic.account.fg} />
-          <Text variant="section" style={{ flex: 1 }}>{title}</Text>
+          <Text variant="title2" style={{ flex: 1 }}>{title}</Text>
         </View>
         {subtitle ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap }}>

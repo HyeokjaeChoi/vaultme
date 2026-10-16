@@ -17,7 +17,7 @@ export function CollectionState(p: Props) {
   return (
     <View style={{ gap: t.semantic.layout.fieldGap, paddingVertical: t.semantic.layout.screen.padding }}>
       {p.state === 'empty' ? <Icon name="wallet" size={t.component.icon.size.control} color={es.title} /> : null}
-      <Text variant="section" color={es.title} accessibilityRole="header" accessibilityLiveRegion={p.state === 'loading' ? 'polite' : undefined}>{p.title}</Text>
+      <Text variant="title2" color={es.title} accessibilityRole="header" accessibilityLiveRegion={p.state === 'loading' ? 'polite' : undefined}>{p.title}</Text>
       {p.state === 'loading' ? (
         <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ gap: t.semantic.layout.fieldGap }}>
           {Array.from({ length: SKELETON_ROWS }, (_, i) => (

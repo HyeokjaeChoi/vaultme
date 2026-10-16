@@ -23,7 +23,7 @@ export function FeeSummary({ title, fee, fiat, note, state = 'fresh', message, a
   return (
     <View style={{ gap: t.semantic.layout.fieldGap, borderRadius: c.radius }}>
       <Text variant="label" color={c.title}>{title}</Text>
-      {fee ? <Text variant="row" color={c.amount}>{fee}</Text> : null}
+      {fee ? <Text variant="headline" color={c.amount}>{fee}</Text> : null}
       {message ? <Text variant="body" color={msgColor}>{message}</Text> : null}
       {action ? (
         <Text variant="body" accessibilityRole="link" onPress={onAction} color={state === 'insufficient' ? c.insufficient : t.semantic.text.link}>{action}</Text>
