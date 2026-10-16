@@ -8,11 +8,16 @@ const EXEMPT = /^(Status bar|Home indicator|Placeholder QR|Modules|Bracket|Tab h
 const page = figma.root.children.find((p) => p.name === PAGE)
 await figma.setCurrentPageAsync(page)
 const roots = ROOT_IDS.length ? await Promise.all(ROOT_IDS.map((id) => figma.getNodeByIdAsync(id))) : [page]
-const r = { gap: 0, pad: 0, radius: 0, fill: 0, stroke: 0, textNoStyle: 0, detached: 0, samples: [] }
+const r = { gap: 0, pad: 0, radius: 0, fill: 0, stroke: 0, textNoStyle: 0, detached: 0, noticeClip: 0, samples: [] }
 const hit = (k, n) => { r[k]++; if (r.samples.length < 15) r.samples.push(`${k}: ${n.name} (${n.id})`) }
 for (const root of roots) for (const n of (root.type === 'PAGE' ? [] : [root]).concat(root.findAll(() => true))) {
   let p = n.parent, inInstance = false, exempt = EXEMPT.test(n.name)
   while (p && p.type !== 'PAGE') { if (p.type === 'INSTANCE') inInstance = true; if (EXEMPT.test(p.name)) exempt = true; p = p.parent }
+  // Notice text must never be cut off (pd-review batch 1, P0-1): the Message must fit its Text frame and the instance.
+  if (n.type === 'INSTANCE' && !exempt && /Notice|Banner|Inline/.test(n.name)) {
+    const m = n.findOne((x) => x.type === 'TEXT' && x.name === 'Message')
+    if (m && m.visible && (m.parent.height < m.height - 1 || n.height < m.height)) hit('noticeClip', n)
+  }
   if (inInstance || exempt || n.type === 'INSTANCE' || n.type === 'SECTION') continue
   const bv = n.boundVariables || {}
   if (n.type === 'TEXT') { if (!n.textStyleId || n.textStyleId === figma.mixed) hit('textNoStyle', n); continue }

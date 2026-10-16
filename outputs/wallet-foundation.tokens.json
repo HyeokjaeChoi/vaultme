@@ -1541,6 +1541,11 @@
         "value": "{color.neutral.100}",
         "type": "color",
         "description": "surface.disabled: Disabled control fill (Redesign B Primary). Pair with text.disabled."
+      },
+      "pressedOnRaised": {
+        "value": "{color.neutral.100}",
+        "type": "color",
+        "description": "surface.pressedOnRaised: Secondary control fill on a raised surface (bottom sheet). Light matches surface.pressed."
       }
     },
     "text": {
@@ -4903,6 +4908,11 @@
           "value": "{text.primary}",
           "type": "color",
           "description": "buttonB.secondary.fg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "bgOnRaised": {
+          "value": "{surface.pressedOnRaised}",
+          "type": "color",
+          "description": "buttonB.secondary.bgOnRaised: Redesign B Secondary button inside a bottom sheet (raised surface)."
         }
       }
     },
@@ -5040,9 +5050,9 @@
       },
       "pending": {
         "fg": {
-          "value": "{status.warning.fg}",
+          "value": "{color.amber.600}",
           "type": "color",
-          "description": "rowBadge.pending: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+          "description": "rowBadge.pending: amber.600 in both modes so the white Solar Bold glyph keeps 4.57:1 (was status.warning.fg: amber.700 Light looked brown, amber.300 Dark had low glyph contrast). pd-review batch 1, P2-12."
         }
       },
       "failed": {
@@ -5120,6 +5130,11 @@
         "value": "{color.neutral.800}",
         "type": "color",
         "description": "surface.disabled: Dark mode override. Aliases an existing Primitive."
+      },
+      "pressedOnRaised": {
+        "value": "{color.neutral.600}",
+        "type": "color",
+        "description": "surface.pressedOnRaised (Dark): one step lighter than surface.raised (neutral.800) so a sheet Secondary button keeps a visible pill. Boundary 1.93:1, label 7:1 (pd-review batch 1, P1-9)."
       }
     },
     "text": {
