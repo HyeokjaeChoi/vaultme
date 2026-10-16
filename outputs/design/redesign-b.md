@@ -177,6 +177,6 @@ Figma `14 Redesign B`. audit 모든 count 0. Library publish 없음, 기존 mast
 ### 5·6단계 결과 (2026-10-16)
 
 - 기존 master 12개 in-place restyle, ID·property·variant ID 유지 (`work/v7/verification/`).
-- Product B 텍스트 스타일 10개 Pretendard로 교체. tnum은 Figma에서 설정 불가 (설치된 Pretendard에 Numbers spacing 옵션 없음) → 앱 코드에서 `tabular-nums`.
+- Product B 텍스트 스타일 10개 Pretendard로 교체. tnum 켬 (Type details → Numbers → Style "Monospace uppercase/lining"), 2차 publish 50개. 앱 코드도 `tabular-nums`.
 - Library publish 완료: 57개 변경 (`work/v7/verification/publication-proof.json`).
 - 남은 것: 구독 파일 업데이트·override 유지 확인 (C23 포함), 페이지 14 section 겹침 정리, 페이지 12 200% 기존 override 겹침 (기록만).
