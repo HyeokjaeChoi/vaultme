@@ -610,6 +610,10 @@
         "product26": {
           "value": "26px",
           "type": "fontSizes"
+        },
+        "product44": {
+          "value": "44px",
+          "type": "fontSizes"
         }
       },
       "lineHeight": {
@@ -684,6 +688,10 @@
         "px34": {
           "value": "34px",
           "type": "lineHeights"
+        },
+        "px52": {
+          "value": "52px",
+          "type": "lineHeights"
         }
       },
       "tracking": {
@@ -704,7 +712,7 @@
           "type": "letterSpacing"
         },
         "displayL": {
-          "value": "-2.75%",
+          "value": "-3%",
           "type": "letterSpacing"
         },
         "displayM": {
@@ -716,23 +724,35 @@
           "type": "letterSpacing"
         },
         "title2": {
-          "value": "-1.8182%",
+          "value": "-2.2727%",
           "type": "letterSpacing"
         },
         "title3": {
-          "value": "-1.0526%",
+          "value": "-2.1053%",
           "type": "letterSpacing"
         },
         "bodySmall": {
-          "value": "0.6667%",
+          "value": "-1.3333%",
           "type": "letterSpacing"
         },
         "label": {
-          "value": "1.4286%",
+          "value": "-1.4286%",
           "type": "letterSpacing"
         },
         "caption": {
-          "value": "2.5%",
+          "value": "-0.8333%",
+          "type": "letterSpacing"
+        },
+        "headline": {
+          "value": "-1.7647%",
+          "type": "letterSpacing"
+        },
+        "body": {
+          "value": "-1.875%",
+          "type": "letterSpacing"
+        },
+        "figure": {
+          "value": "-2.7273%",
           "type": "letterSpacing"
         }
       }
@@ -1163,7 +1183,7 @@
             "fontWeight": "{font.weight.semibold}",
             "fontSize": "{font.size.product17}",
             "lineHeight": "{font.lineHeight.px25}",
-            "letterSpacing": "{font.tracking.normal}",
+            "letterSpacing": "{font.tracking.headline}",
             "paragraphSpacing": "0px",
             "paragraphIndent": "0px",
             "textCase": "none",
@@ -1177,7 +1197,7 @@
             "fontWeight": "{font.weight.regular}",
             "fontSize": "{font.size.base}",
             "lineHeight": "{font.lineHeight.px24}",
-            "letterSpacing": "{font.tracking.normal}",
+            "letterSpacing": "{font.tracking.body}",
             "paragraphSpacing": "0px",
             "paragraphIndent": "0px",
             "textCase": "none",
@@ -1240,6 +1260,36 @@
             "textDecoration": "none"
           },
           "type": "typography"
+        },
+        "figure": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.bold}",
+            "fontSize": "{font.size.product44}",
+            "lineHeight": "{font.lineHeight.px52}",
+            "letterSpacing": "{font.tracking.figure}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography",
+          "description": "type.productB.figure: Balance and amount figures. Pretendard 700 44/52. Pair with figureUnit; use only for figures (owner decision 2026-10-17)."
+        },
+        "figureUnit": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.2xl}",
+            "lineHeight": "{font.lineHeight.px32}",
+            "letterSpacing": "{font.tracking.normal}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography",
+          "description": "type.productB.figureUnit: Unit next to a figure. Pretendard 600 24/32. Color text.secondary (applied by the consumer, typography tokens carry no color)."
         }
       }
     },
@@ -1478,6 +1528,11 @@
         "value": "{surface.brandTint}",
         "type": "color",
         "description": "surface.portfolioSummary: Surface grouping in the Light theme. Default informational content is Borderless."
+      },
+      "disabled": {
+        "value": "{color.neutral.100}",
+        "type": "color",
+        "description": "surface.disabled: Disabled control fill (Redesign B Primary). Pair with text.disabled."
       }
     },
     "text": {
@@ -4815,9 +4870,14 @@
           "description": "buttonB.primary.fg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
         },
         "bgDisabled": {
-          "value": "{surface.brandTint}",
+          "value": "{surface.disabled}",
           "type": "color",
           "description": "buttonB.primary.bgDisabled: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "fgDisabled": {
+          "value": "{text.disabled}",
+          "type": "color",
+          "description": "buttonB.primary.fgDisabled: Redesign B disabled Primary label and icon."
         }
       },
       "secondary": {
@@ -4862,6 +4922,82 @@
         "value": "{surface.default}",
         "type": "color",
         "description": "screenB.bg: Redesign B flat white screen background."
+      }
+    },
+    "sectionBand": {
+      "height": {
+        "value": "{space.3}",
+        "type": "spacing",
+        "description": "sectionBand.height: 12 px full-bleed grey band on detail screens (review, result, transaction detail, settings). No border, no shadow."
+      },
+      "bg": {
+        "value": "{surface.canvas}",
+        "type": "color",
+        "description": "sectionBand.bg: grey band fill. Home and Activity stay flat white."
+      },
+      "blockPaddingY": {
+        "value": "{space.5}",
+        "type": "spacing",
+        "description": "sectionBand.blockPaddingY: block top/bottom padding, 20 px (owner-approved exception to the 24/16/12/8 product scale for banded blocks)."
+      }
+    },
+    "noticeBanner": {
+      "radius": {
+        "value": "{radius.lg}",
+        "type": "borderRadius",
+        "description": "noticeBanner.radius: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+      },
+      "padding": {
+        "value": "{space.4}",
+        "type": "spacing",
+        "description": "noticeBanner.padding: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+      },
+      "iconSize": {
+        "value": "{iconSize.control}",
+        "type": "sizing",
+        "description": "noticeBanner.iconSize: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+      },
+      "info": {
+        "bg": {
+          "value": "{status.info.bg}",
+          "type": "color",
+          "description": "noticeBanner.info: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      },
+      "warning": {
+        "bg": {
+          "value": "{status.warning.bg}",
+          "type": "color",
+          "description": "noticeBanner.warning: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      },
+      "danger": {
+        "bg": {
+          "value": "{status.danger.bg}",
+          "type": "color",
+          "description": "noticeBanner.danger: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      },
+      "unknown": {
+        "bg": {
+          "value": "{status.unknown.bg}",
+          "type": "color",
+          "description": "noticeBanner.unknown: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      },
+      "confirmed": {
+        "bg": {
+          "value": "{status.success.bg}",
+          "type": "color",
+          "description": "noticeBanner.confirmed: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      },
+      "clear": {
+        "bg": {
+          "value": "{check.clear.bg}",
+          "type": "color",
+          "description": "noticeBanner.clear: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
       }
     }
   },
@@ -4926,6 +5062,11 @@
         "value": "{color.neutral.800}",
         "type": "color",
         "description": "surface.pressed: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+      },
+      "disabled": {
+        "value": "{color.neutral.800}",
+        "type": "color",
+        "description": "surface.disabled: Dark mode override. Aliases an existing Primitive."
       }
     },
     "text": {

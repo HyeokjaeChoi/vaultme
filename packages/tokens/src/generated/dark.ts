@@ -332,7 +332,7 @@ export const dark = {
           "fontWeight": "600",
           "fontSize": 40,
           "lineHeight": 48,
-          "letterSpacing": -1.1
+          "letterSpacing": -1.2
         },
         "displayM": {
           "fontFamily": "Pretendard",
@@ -353,55 +353,69 @@ export const dark = {
           "fontWeight": "600",
           "fontSize": 22,
           "lineHeight": 30,
-          "letterSpacing": -0.4
+          "letterSpacing": -0.5
         },
         "title3": {
           "fontFamily": "Pretendard",
           "fontWeight": "600",
           "fontSize": 19,
           "lineHeight": 27,
-          "letterSpacing": -0.2
+          "letterSpacing": -0.4
         },
         "headline": {
           "fontFamily": "Pretendard",
           "fontWeight": "600",
           "fontSize": 17,
           "lineHeight": 25,
-          "letterSpacing": 0
+          "letterSpacing": -0.3
         },
         "body": {
           "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 16,
           "lineHeight": 24,
-          "letterSpacing": 0
+          "letterSpacing": -0.3
         },
         "bodySmall": {
           "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 15,
           "lineHeight": 22,
-          "letterSpacing": 0.1
+          "letterSpacing": -0.2
         },
         "label": {
           "fontFamily": "Pretendard",
           "fontWeight": "500",
           "fontSize": 14,
           "lineHeight": 20,
-          "letterSpacing": 0.2
+          "letterSpacing": -0.2
         },
         "caption": {
           "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 12,
           "lineHeight": 17,
-          "letterSpacing": 0.3
+          "letterSpacing": -0.1
         },
         "address": {
           "fontFamily": "IBM Plex Mono",
           "fontWeight": "400",
           "fontSize": 14,
           "lineHeight": 20,
+          "letterSpacing": 0
+        },
+        "figure": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "700",
+          "fontSize": 44,
+          "lineHeight": 52,
+          "letterSpacing": -1.2
+        },
+        "figureUnit": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 24,
+          "lineHeight": 32,
           "letterSpacing": 0
         }
       }
@@ -511,7 +525,8 @@ export const dark = {
       "selected": "#273966",
       "hover": "#11161D",
       "pressed": "#28313C",
-      "portfolioSummary": "#273966"
+      "portfolioSummary": "#273966",
+      "disabled": "#28313C"
     },
     "text": {
       "primary": "#F6F8FB",
@@ -1885,7 +1900,8 @@ export const dark = {
       "primary": {
         "bg": "#3152FF",
         "fg": "#FFFFFF",
-        "bgDisabled": "#273966"
+        "bgDisabled": "#28313C",
+        "fgDisabled": "#6B7788"
       },
       "secondary": {
         "bg": "#28313C",
@@ -1902,6 +1918,34 @@ export const dark = {
     },
     "screenB": {
       "bg": "#11161D"
+    },
+    "sectionBand": {
+      "height": 12,
+      "bg": "#0B0F15",
+      "blockPaddingY": 20
+    },
+    "noticeBanner": {
+      "radius": 16,
+      "padding": 16,
+      "iconSize": 20,
+      "info": {
+        "bg": "#273966"
+      },
+      "warning": {
+        "bg": "#53340F"
+      },
+      "danger": {
+        "bg": "#612229"
+      },
+      "unknown": {
+        "bg": "#11161D"
+      },
+      "confirmed": {
+        "bg": "#104833"
+      },
+      "clear": {
+        "bg": "#11161D"
+      }
     }
   }
 } as const
