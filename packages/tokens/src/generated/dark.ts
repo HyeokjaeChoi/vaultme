@@ -116,7 +116,8 @@ export const dark = {
       "review_panel": 480,
       "pill_lg": 56,
       "pill_md": 48,
-      "pill_sm": 40
+      "pill_sm": 40,
+      "badge": 18
     },
     "radius": {
       "none": 0,
@@ -416,7 +417,7 @@ export const dark = {
           "fontWeight": "600",
           "fontSize": 24,
           "lineHeight": 32,
-          "letterSpacing": 0
+          "letterSpacing": -0.5
         }
       }
     },
@@ -1945,6 +1946,23 @@ export const dark = {
       },
       "clear": {
         "bg": "#11161D"
+      }
+    },
+    "rowBadge": {
+      "size": 18,
+      "ring": 2,
+      "ringColor": "#11161D",
+      "sent": {
+        "fg": "#98A4B3"
+      },
+      "received": {
+        "fg": "#74D9A9"
+      },
+      "pending": {
+        "fg": "#FFC65D"
+      },
+      "failed": {
+        "fg": "#E98B95"
       }
     }
   }

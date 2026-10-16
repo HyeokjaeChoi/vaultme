@@ -409,6 +409,10 @@
       "pill_sm": {
         "value": "40px",
         "type": "sizing"
+      },
+      "badge": {
+        "value": "18px",
+        "type": "sizing"
       }
     },
     "radius": {
@@ -753,6 +757,10 @@
         },
         "figure": {
           "value": "-2.7273%",
+          "type": "letterSpacing"
+        },
+        "figureUnit": {
+          "value": "-2.0833%",
           "type": "letterSpacing"
         }
       }
@@ -1274,7 +1282,7 @@
             "textDecoration": "none"
           },
           "type": "typography",
-          "description": "type.productB.figure: Balance and amount figures. Pretendard 700 44/52. Pair with figureUnit; use only for figures (owner decision 2026-10-17)."
+          "description": "type.productB.figure: Balance and amount figures. Pretendard 700 44/52. Pair with figureUnit; use only for figures (owner decision 2026-10-17). Matches Figma style \"Product B/Figure\" (tabular numbers on)."
         },
         "figureUnit": {
           "value": {
@@ -1282,14 +1290,14 @@
             "fontWeight": "{font.weight.semibold}",
             "fontSize": "{font.size.2xl}",
             "lineHeight": "{font.lineHeight.px32}",
-            "letterSpacing": "{font.tracking.normal}",
+            "letterSpacing": "{font.tracking.figureUnit}",
             "paragraphSpacing": "0px",
             "paragraphIndent": "0px",
             "textCase": "none",
             "textDecoration": "none"
           },
           "type": "typography",
-          "description": "type.productB.figureUnit: Unit next to a figure. Pretendard 600 24/32. Color text.secondary (applied by the consumer, typography tokens carry no color)."
+          "description": "type.productB.figureUnit: Unit next to a figure. Pretendard 600 24/32. Color text.secondary (applied by the consumer, typography tokens carry no color). Tracking -0.5 per desktop text style S:057625bf."
         }
       }
     },
@@ -4997,6 +5005,51 @@
           "value": "{check.clear.bg}",
           "type": "color",
           "description": "noticeBanner.clear: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      }
+    },
+    "rowBadge": {
+      "size": {
+        "value": "{size.badge}",
+        "type": "sizing",
+        "description": "rowBadge.size: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+      },
+      "ring": {
+        "value": "{space.0_5}",
+        "type": "spacing",
+        "description": "rowBadge.ring: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+      },
+      "ringColor": {
+        "value": "{surface.default}",
+        "type": "color",
+        "description": "rowBadge.ringColor: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+      },
+      "sent": {
+        "fg": {
+          "value": "{icon.secondary}",
+          "type": "color",
+          "description": "rowBadge.sent: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+        }
+      },
+      "received": {
+        "fg": {
+          "value": "{status.success.fg}",
+          "type": "color",
+          "description": "rowBadge.received: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+        }
+      },
+      "pending": {
+        "fg": {
+          "value": "{status.warning.fg}",
+          "type": "color",
+          "description": "rowBadge.pending: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+        }
+      },
+      "failed": {
+        "fg": {
+          "value": "{status.danger.fg}",
+          "type": "color",
+          "description": "rowBadge.failed: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
         }
       }
     }

@@ -83,13 +83,17 @@ Phosphor regular의 기능·상태·Navigation icon을 유지한다. 자산 iden
 
 ## 제품 type와 layout
 
-Redesign B부터 UI는 Pretendard 400/500/600, 주소·hash는 IBM Plex Mono다(Figma는 임시 Gothic A1). 새 척도는 [Foundation guide](wallet-foundation-guide.md) `type.productB.*`를 따른다. 아래 수치는 기존 `Product /` 역할 기록이다. `typography.balance`는 40/48 px, `typography.amountHero`는 40/48 px Bold(보낼 금액, 화면당 하나), amount 32/40 px, reviewAmount 28/36 px, title 24/32 px, row 16/24 px, body·label·address 14/20 px다. 12/18 px meta는 보조 시간과 문서 caption에만 쓴다. 기본 제품 TEXT를 역할 Style에 연결한다. T02의 22개 TEXT는 200% font-size override로 Style 연결이 해제된 stress 예외다.
+Redesign B부터 UI는 Pretendard 400/500/600(큰 숫자 `figure`만 700, 2026-10-17), 주소·hash는 IBM Plex Mono다(Figma는 임시 Gothic A1). 새 척도는 [Foundation guide](wallet-foundation-guide.md) `type.productB.*`를 따른다. 아래 수치는 기존 `Product /` 역할 기록이다. `typography.balance`는 40/48 px, `typography.amountHero`는 40/48 px Bold(보낼 금액, 화면당 하나), amount 32/40 px, reviewAmount 28/36 px, title 24/32 px, row 16/24 px, body·label·address 14/20 px다. 12/18 px meta는 보조 시간과 문서 caption에만 쓴다. 기본 제품 TEXT를 역할 Style에 연결한다. T02의 22개 TEXT는 200% font-size override로 Style 연결이 해제된 stress 예외다.
 
 웹 숫자는 tabular numerals, 우측 정렬, 단위 표시를 사용한다. Native TNUM 적용은 미확인이다. 아주 작은 수량은 전체 정밀도를 Review에서 읽을 수 있게 한다. 금액에 ellipsis를 쓰지 않는다. 긴 이름·값이 충돌하면 값 영역을 다음 줄로 옮긴다.
 
 Mobile padding 16 px, section gap 24 px. Asset min-height 64 px, Activity min-height 80 px. Body는 fill, value는 hug, accessory 공간은 유지한다. 높이는 내용에 따라 늘어난다. 모든 target은 최소 44 × 44 px다.
 
 320–767 px 한 열, 768–1199 px content max704, 1200 px 이상 max1200와 2열. Desktop review는 480 px drawer다. Table은 Mobile에서 label이 있는 stacked item이 된다. Footer와 scroll body를 분리한다. 주소·warning 위로 footer를 덮지 않는다.
+
+## Foundation 변경 · 2026-10-17
+
+오너 승인("싹다"). 한글 자간은 모든 크기에 음수다. 큰 숫자(잔액·금액)만 700이고 단위는 24/32 600 `text.secondary`로 분리한다. 검토·결과·거래 상세·설정에는 12 px `surface/canvas` 회색 띠(`sectionBand`)를 쓴다. 홈·내역은 흰색이다. Notice는 Banner(tint, radius 16, padding 16)와 Inline 두 단계다. 꺼진 Primary는 `neutral.100` + `text/disabled`다. 상세는 [Foundation guide](wallet-foundation-guide.md) §4.
 
 ## Review anatomy
 

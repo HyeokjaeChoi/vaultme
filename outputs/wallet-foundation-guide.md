@@ -114,23 +114,27 @@ Canvas·summary·navigation·row·review·notice·drawer에는 gradient가 없�
 
 ## 4. Typography
 
-제품 UI 글꼴은 Pretendard 400/500/600(700 없음), 주소·hash는 IBM Plex Mono다. Figma는 오너가 글꼴을 바꾸기 전까지 임시로 Gothic A1을 쓴다. 금액은 tabular numerals다. 기존 `Product /` 역할(Inter 기준)과 marketing type scale은 값을 바꾸지 않았다. Redesign B의 `Product B` 척도는 새 Primitive `type.productB.*`(font family `pretendard`)로 추가했다. Semantic `typography.*` alias는 아직 연결하지 않았다.
+제품 UI 글꼴은 Pretendard 400/500/600, 주소·hash는 IBM Plex Mono다. 700은 큰 숫자(`type.productB.figure`)에만 쓴다(오너 결정 2026-10-17). Figma는 오너가 글꼴을 바꾸기 전까지 임시로 Gothic A1을 쓴다. 금액은 tabular numerals다. 기존 `Product /` 역할(Inter 기준)과 marketing type scale은 값을 바꾸지 않았다. Redesign B의 `Product B` 척도는 새 Primitive `type.productB.*`(font family `pretendard`)로 추가했다. Semantic `typography.*` alias는 아직 연결하지 않았다.
 
 | `type.productB.*` | Size / line | 자간(px) | Weight |
 | --- | --- | --- | --- |
-| `displayL` | 40 / 48 | -1.1 | 600 |
+| `figure` | 44 / 52 | -1.2 | 700 (잔액·금액 숫자만, tabular) |
+| `figureUnit` | 24 / 32 | -0.5 | 600, 색 `text.secondary` |
+| `displayL` | 40 / 48 | -1.2 | 600 |
 | `displayM` | 32 / 40 | -0.8 | 600 |
 | `title1` | 26 / 34 | -0.6 | 600 |
-| `title2` | 22 / 30 | -0.4 | 600 |
-| `title3` | 19 / 27 | -0.2 | 600 |
-| `headline` | 17 / 25 | 0 | 600 |
-| `body` | 16 / 24 | 0 | 400 |
-| `bodySmall` | 15 / 22 | 0.1 | 400 |
-| `label` | 14 / 20 | 0.2 | 500 |
-| `caption` | 12 / 17 | 0.3 | 400 |
+| `title2` | 22 / 30 | -0.5 | 600 |
+| `title3` | 19 / 27 | -0.4 | 600 |
+| `headline` | 17 / 25 | -0.3 | 600 |
+| `body` | 16 / 24 | -0.3 | 400 |
+| `bodySmall` | 15 / 22 | -0.2 | 400 |
+| `label` | 14 / 20 | -0.2 | 500 |
+| `caption` | 12 / 17 | -0.1 | 400 |
 | `address` | 14 / 20 | 0 | 400 Plex Mono |
 
-JSON 자간은 build가 퍼센트만 px로 바꾸므로 `font.tracking.*`에 퍼센트로 저장했다(예: displayL -2.75% × 40 = -1.1 px).
+한글에 맞춰 모든 크기에 음수 자간을 쓴다(양수 없음). 2026-10-17 오너 승인. `font.tracking.headline|body|figure|figureUnit`은 새 Primitive다. Figma 텍스트 스타일은 오너가 데스크톱 앱에서 바꾼다(`Product B/Figure`, `Product B/Figure unit` 신규).
+
+JSON 자간은 build가 퍼센트만 px로 바꾸므로 `font.tracking.*`에 퍼센트로 저장했다(예: displayL -3% × 40 = -1.2 px).
 
 기존 `Product /` 역할 표(v2 확정값): 제품 화면에는 아래 역할을 사용한다. 이는 v2 확정값이며 peer product의 실측 폰트값이 아니다.
 
@@ -152,7 +156,7 @@ Figma 제품 Style 이름은 `Product / Title` 등이다. 기본 제품 TEXT는 
 
 ### Button · pill (Redesign B)
 
-Button은 pill이다. 높이 lg 56 / md 48 / sm 40(`size.pill_lg/md/sm`, 새 Primitive), 실제 target은 기존 `button.hitTarget` 44 px 이상을 유지한다. Component `buttonB.*`는 alias만 둔다: `height.lg|md|sm` → `size.pill_*`, `radius` → `radius.pill`, `paddingX.lg|md|sm` → `space.6|5|4`, `primary.bg|fg` → `button.primary.bg.default|fg.default`, `primary.bgDisabled` → `surface.brandTint`, `secondary.bg|bgPressed` → `surface.pressed`, `secondary.fg` → `text.primary`. 파랑 Primary는 화면당 1개이고 Secondary는 neutral이다. Bottom sheet는 위 모서리 32(`sheetB.radius` → `radius.3xl`)이며 Secondary를 Primary 위에 둔다. Row는 `rowB.height` → `size.asset_row`(64), `rowB.paddingX` → `layout.screen.padding`이다. 기존 `button.size.*` 값(44/52 기준)은 JSON에서 바꾸지 않았다. Figma master는 40/48/56으로 restyle했다.
+Button은 pill이다. 높이 lg 56 / md 48 / sm 40(`size.pill_lg/md/sm`, 새 Primitive), 실제 target은 기존 `button.hitTarget` 44 px 이상을 유지한다. Component `buttonB.*`는 alias만 둔다: `height.lg|md|sm` → `size.pill_*`, `radius` → `radius.pill`, `paddingX.lg|md|sm` → `space.6|5|4`, `primary.bg|fg` → `button.primary.bg.default|fg.default`, `primary.bgDisabled` → `surface.disabled`(neutral.100), `primary.fgDisabled` → `text.disabled`, `secondary.bg|bgPressed` → `surface.pressed`, `secondary.fg` → `text.primary`. 파랑 Primary는 화면당 1개이고 Secondary는 neutral이다. Bottom sheet는 위 모서리 32(`sheetB.radius` → `radius.3xl`)이며 Secondary를 Primary 위에 둔다. Row는 `rowB.height` → `size.asset_row`(64), `rowB.paddingX` → `layout.screen.padding`이다. 기존 `button.size.*` 값(44/52 기준)은 JSON에서 바꾸지 않았다. Figma master는 40/48/56으로 restyle했다.
 
 ### 불투명도 단위 (Figma만)
 
@@ -268,3 +272,11 @@ Canvas 구현 확인: 기존 Figma source의 Semantic alias를 수정하고 Libr
 - Native product와 stress screen의 Section role을 연결했습니다. Permissions는 Connections / Allowances / comparison rows로 묶었습니다. 기존 node/master/property IDs를 보존합니다. 새 wrapper는 documentation/screen assembly입니다. Library Component owner가 아닙니다.
 - Primitive·Semantic·Component Token 값과 Component master를 바꾸지 않은 screen assembly 수정입니다. 기존 published Library는 유지합니다. Library 발행 여부는 source UI에서 별도로 확인합니다.
 - 점검과 실제 구현 근거: `work/v6/spacing-audit/`. 모든 variant와 실제 wallet runtime의 완전 검증을 뜻하지 않습니다.
+
+### Notice 2단계, 회색 구획 띠, Row 배지 (2026-10-17, 오너 승인)
+
+- `noticeBanner.*`: Banner(막는 상황, 페이지 단위)는 tint 배경(`info|warning|danger|unknown|confirmed|clear.bg`는 `statusNotice.*.bg`와 같은 `status.*.bg` 역할), `radius` → `radius.lg`(16), `padding` → `space.4`(16), `iconSize` → `iconSize.control`(20). Inline(도움말 1줄)은 기존 모양이다. Figma `B/Notice inline`은 `Tier=Inline|Banner` × `Tone`이다.
+- `sectionBand.*`: `height` → `space.3`(12), `bg` → `surface.canvas`, `blockPaddingY` → `space.5`(20, 띠로 나뉜 블록 안 위아래). 20은 제품 척도(24/16/12/8)에 없지만 기존 Primitive이며 오너 승인 예외다. 검토·결과·거래 상세·설정에만 쓰고 홈·내역은 흰색이다. border·shadow 없음.
+- `rowBadge.*`: B/Row `Leading=Asset badge`. 자산 아이콘 40 + 18 px 배지(`size.badge`), 2 px `surface.default` ring. 색은 sent `icon.secondary`, received `status.success.fg`, pending `status.warning.fg`, failed `status.danger.fg`. 배지 글리프는 Phosphor fill 원형(arrow-circle-up-right / down-left, clock, x-circle)이다. 단색 regular 아이콘은 18 px 배지에서 원형 윤곽이 겹쳐 fill을 골랐다.
+- 꺼진 Primary: `surface.disabled`(Light neutral.100, Dark neutral.800) 배경 + `text.disabled`.
+- `Brand/Mark`: 로고 마크 draft(72/40/24, OnLight/OnBrand). 오너 검토 전이다. 토큰 없이 `brand.primary`와 `color.neutral.0`을 직접 binding한다.

@@ -296,3 +296,13 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - 글꼴: Figma는 임시 Gothic A1, 오너가 Pretendard로 교체한다. 기존 `Product /` Style(Inter)은 값을 바꾸지 않았다.
 - Icons: `Icon / action / qr`, `Icon / action / more` 추가.
 - 미연결: `button.size.*` 높이(44/52)와 `portfolioBalance.bg` JSON alias는 그대로다 (Figma master는 40/48/56, flat). 후속 결정이 필요하다.
+
+## 2026-10-17 Foundation (Redesign B quality review, 오너 "싹다" 승인)
+
+- JSON: `font.tracking.displayL|title2|title3|bodySmall|label|caption` 값 변경(모두 음수), 새 `font.tracking.headline|body|figure|figureUnit`, `font.size.product44`, `font.lineHeight.px52`, `size.badge`(18). `type.productB.headline|body` 자간 alias를 새 tracking으로 변경. 새 `type.productB.figure`(700 44/52 -1.2)와 `figureUnit`(600 24/32 -0.5).
+- 새 Semantic `surface.disabled`(Light neutral.100, Dark neutral.800). `component.buttonB.primary.bgDisabled` `{surface.brandTint}` → `{surface.disabled}`(Figma 418:467의 기존 변수를 re-alias). 새 `buttonB.primary.fgDisabled` → `text.disabled`.
+- 새 Component: `sectionBand.{height,bg,blockPaddingY}`, `noticeBanner.{radius,padding,iconSize,*.bg}`, `rowBadge.*`. 모두 기존 Primitive/Semantic alias.
+- Figma Variable 추가: Primitive `font/tracking/{displayL..caption,figure,figureUnit}`, `font/size/product44`, `font/lineHeight/px52`, `size/badge`. Semantic `surface/disabled`. Component `sectionBand/*`, `noticeBanner/*`, `rowBadge/*`, `buttonB/primary/fgDisabled`. 텍스트 스타일은 오너가 앱에서 편집.
+- Master 변경(추가만): `B/Notice inline` 399:122에 `Tier` property 추가(기존 variant는 `Tier=Inline, Tone=*`, 새 `Tier=Banner, Tone=*` 4개). `B/Row` 418:12824에 `Leading` property 추가(기존 `Leading=Icon`, 새 `Leading=Asset badge` ×4 State). 새 `B/Row badge` 495:358, `Brand/Mark` 495:17569 draft. Button Primary Disabled label을 `buttonB/primary/fgDisabled`로 re-bind(9:283, 398:247). Library는 게시하지 않았다.
+- 증거: `work/v9/foundation/`.
+- 호환: Notice·Row의 variant 이름이 `Tier=Inline, ` / `Leading=Icon, ` 접두를 가진다. 소비 프레임은 default variant로 유지된다. `font.tracking.*` 값 변경은 `packages/tokens` 생성값(`letterSpacing`)에 반영되며 앱 코드 소비는 별도 단계다.
