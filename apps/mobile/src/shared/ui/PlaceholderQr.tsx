@@ -5,7 +5,7 @@ import { useTheme } from '../theme'
 import { qrModulesSvg } from './artwork'
 import { Text } from './Text'
 
-/** Labelled placeholder (Figma B-S30 423:13930 + caption). The modules are a static, non-scannable picture, 200 pt on the white screen; the caption under it says so. No real QR is ever rendered (AGENTS rule 4). */
+/** Labelled placeholder (Figma B-S30 423:13930 + caption). The modules are a static, non-scannable picture, 200 pt, on a fixed white square (Figma 423:15532 keeps it white in dark too); the caption under it says so. No real QR is ever rendered (AGENTS rule 4). */
 export function PlaceholderQr({ note }: { note: string }) {
   const t = useTheme()
   const modules = t.primitive.size.wallet_status_card - t.primitive.space[6] - t.primitive.space[2] * 2 // 200

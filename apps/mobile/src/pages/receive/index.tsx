@@ -22,7 +22,7 @@ export function ReceivePage() {
   const [open, setOpen] = useState(sheet === '1')
   const backupDone = useBackupDone()
   const restored = useRestored()
-  const done = (backupDone || restored) && !(__DEV__ && backedUp === '0') // a restored wallet receives right away (Q16); that is not backup proof
+  const done = __DEV__ && backedUp ? backedUp === '1' : backupDone || restored // a restored wallet receives right away (Q16); that is not backup proof
   const stored = useAccountAddress()
   const demo = __DEV__ && (backedUp === '1' || backedUp === '0') // dev/design-capture override: shows the fixture address (`0` = backup not done: S31)
   const router = useRouter()

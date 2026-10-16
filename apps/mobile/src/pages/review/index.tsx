@@ -14,28 +14,25 @@ import { apiErrorKey } from '@/shared/api'
 import { chain } from '@/shared/chain'
 import { loadPhrase } from '@/shared/storage'
 
-const SHOWN_GROUPS = 4 // sheet compares only the leading chunks, then "…"
-
-/** Info notice body of the address-check sheet: previous vs current address, only differing chunks marked. */
+/** Info notice body of the address-check sheet (Figma 423:15047): label line, then the full address, for the previous and the current address. Only the differing chunks are marked. */
 function Compare({ current, previous }: { current: string; previous: string }) {
   const { t } = useTranslation()
   const th = useTheme()
   const fg = th.semantic.text.secondary
   const diff = diffGroups(current, previous)
   const mark = { ...textStyle(th.primitive.type.productB.label), color: th.semantic.status.danger.fg, textDecorationLine: 'underline' as const }
-  const cut = (a: string) => displayGroups(a).slice(0, SHOWN_GROUPS)
   return (
     <View>
-      <Text variant="bodySmall" color={fg}>{`${t('review.lookalike.previous')}   ${cut(previous).join(' ')} …`}</Text>
+      <Text variant="bodySmall" color={fg}>{t('review.lookalike.previous')}</Text>
+      <Text variant="bodySmall" color={fg}>{displayGroups(previous).join(' ')}</Text>
+      <Text variant="bodySmall" color={fg}>{t('review.lookalike.current')}</Text>
       <Text variant="bodySmall" color={fg}>
-        {`${t('review.lookalike.current')}   `}
-        {cut(current).map((g, i) => (
+        {displayGroups(current).map((g, i) => (
           <Text key={i} color={fg}>
             {i > 0 ? ' ' : ''}
             <Text style={diff.includes(i) ? mark : undefined}>{g}</Text>
           </Text>
         ))}
-        {' …'}
       </Text>
     </View>
   )

@@ -45,7 +45,7 @@ it('showAmount: floor in lists, exact elsewhere, unknown asset untouched', async
   const { showAmount } = await import('../src/shared/lib/amount')
   expect(showAmount('1.2847329', 'ETH', 'floor')).toBe('1.284732 ETH')
   expect(showAmount('1.2847329', 'ETH', 'exact')).toBe('1.2847329 ETH')
-  expect(showAmount('1.5', 'USDC', 'exact')).toBe('1.50 USDC')
+  expect(showAmount('1.5', 'USDC', 'exact')).toBe('1.5 USDC')
   expect(showAmount('0.001', 'USDC', 'floor')).toBe('<0.01 USDC')
   expect(showAmount('3', 'DAI', 'floor')).toBe('3 DAI')
 })

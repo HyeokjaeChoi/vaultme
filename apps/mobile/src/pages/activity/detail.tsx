@@ -41,7 +41,9 @@ export function TxDetailPage() {
       gap="none"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/activity')} title={t('detail.title')} />}
       footer={
-        final ? undefined : (
+        final ? (
+          <Button label={t('result.home')} variant="ghost" onPress={() => { router.dismissAll(); router.replace('/home') }} />
+        ) : (
           <View style={{ gap: th.semantic.layout.fieldGap }}>
             <Button label={t('detail.recheck')} busy={checking} onPress={() => void recheck()} />
             <Button label={t('result.history')} variant="ghost" onPress={() => goBack('/activity')} />

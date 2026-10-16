@@ -139,7 +139,7 @@ export function reduce(state: SendState, event: SendEvent): SendState
 - `ASSETS[x].display = { minFraction, maxFraction }`가 표시 자릿수를 정한다. ETH는 0~6자리(끝의 0은 지움), USDC는 2~2자리이다.
 - `formatAmount(raw, asset, mode)` (`wallet-core/src/format.ts`):
   - `floor`: 잔액과 목록 행(S10, S40). 내림한다. 가진 것보다 많이 보이지 않는다. 0이 아닌데 표시 단위보다 작으면 `<0.000001 ETH`, `<0.01 USDC`로 보인다.
-  - `exact`: Review(S22), 결과(S23), 상세(S41). 반올림 없이 전체 자릿수를 보인다. USDC는 최소 2자리까지 0을 채운다 (`1.50 USDC`).
+  - `exact`: Review(S22), 결과(S23), 상세(S41). 반올림 없이 전체 자릿수를 보인다. USDC도 끝의 0을 지운다 (`1.5 USDC`, Figma 기준).
 - 입력과 parse(`toUnits`, `fromUnits`)는 바꾸지 않는다. 표시 정밀도는 표현일 뿐이고 앱 상수로 둔다.
 - 자산이 많아지거나 동적으로 늘면 그때 서버 필드를 앱 기본값과 함께 쓰는 방식(Kraken `display_decimals` 방식)을 다시 본다.
 

@@ -5,7 +5,7 @@ import { fromUnits, toUnits } from './amount'
  * How an amount is shown (lld.md §3, `ASSETS[x].display`). Presentation only: nothing parsed, stored or sent goes through here.
  * - `floor`: balances and list rows. Cut to `maxFraction` digits, never rounded up, so the app never shows more than the user owns.
  *   A non-zero value below the smallest shown step is "<0.000001" / "<0.01".
- * - `exact`: Review, result and detail. Every digit, trailing zeros trimmed, padded to `minFraction` (1.5 USDC -> "1.50").
+ * - `exact`: Review, result and detail. Every digit, trailing zeros trimmed (padded to `minFraction`, 0 for both assets, matching Figma "12.5 USDC") (trailing zeros trimmed: 1.50 USDC -> "1.5").
  * Returns the number only (no symbol).
  */
 export function formatAmount(raw: bigint, asset: AssetId, mode: 'floor' | 'exact'): string {

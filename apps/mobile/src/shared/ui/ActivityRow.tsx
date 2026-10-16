@@ -11,14 +11,14 @@ const SIGN = /^[+\-−]/
 
 /**
  * C10 Activity row (Redesign B row). Flat, min-height rowB.height 64, 40 circle icon, title (Headline) + subtitle (Caption tertiary), amount (Headline, tabular).
- * Pending: clock icon. Unknown: question icon. Failed: amount has no sign and is struck through in text/tertiary.
+ * Pending: clock icon. Unknown: question icon. Failed: red X icon (Figma 404:387), amount has no sign and is struck through in text/tertiary.
  * Title carries the status words ("보내는 중", "보내기 실패"); subtitle is "{자산} · {시각}" (`detail`, else `time`) only. Status is never color alone.
  */
 export function ActivityRow({ title, detail, time, amount, kind, status, statusLabel, onPress }: Props) {
   const t = useTheme()
   const c = t.component.activityRow
   const failed = status === 'failed'
-  const icon: IconName = status === 'pending' ? 'pending' : status === 'unknown' ? 'unknown' : kind
+  const icon: IconName = status === 'pending' ? 'pending' : status === 'unknown' ? 'unknown' : failed ? 'failed' : kind
   const subtitle = detail ?? time
   const row = (
     <View
@@ -27,7 +27,7 @@ export function ActivityRow({ title, detail, time, amount, kind, status, statusL
       style={{ minHeight: t.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}
     >
       <View style={{ width: t.primitive.size.avatar_md, height: t.primitive.size.avatar_md, borderRadius: t.primitive.radius.pill, backgroundColor: t.semantic.surface.subtle, alignItems: 'center', justifyContent: 'center' }}>
-        <Icon name={icon} size={t.component.icon.size.control} color={t.component.icon.action.fg} />
+        <Icon name={icon} size={t.component.icon.size.control} color={failed ? t.component.icon.status.failed : t.component.icon.action.fg} />
       </View>
       <View style={{ flex: 1 }}>
         <Text variant="headline" color={c.title}>{title}</Text>
