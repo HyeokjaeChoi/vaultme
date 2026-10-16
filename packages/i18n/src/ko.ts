@@ -135,10 +135,10 @@ export const ko = {
     keypad: { dot: '소수점', delete: '지우기' },
     // Pre-send notice by device auth name (ux-copy.md decision 8): Face ID / Touch ID / 지문 / 기기 인증.
     preSend: {
-      faceId: '보내면 취소할 수 없어요. 다음 단계에서 Face ID로 확인해요.',
-      touchId: '보내면 취소할 수 없어요. 다음 단계에서 Touch ID로 확인해요.',
-      fingerprint: '보내면 취소할 수 없어요. 다음 단계에서 지문으로 확인해요.',
-      device: '보내면 취소할 수 없어요. 다음 단계에서 기기 인증으로 확인해요.',
+      faceId: '보내면 취소할 수 없어요.\n다음 단계에서 Face ID로 확인해요.',
+      touchId: '보내면 취소할 수 없어요.\n다음 단계에서 Touch ID로 확인해요.',
+      fingerprint: '보내면 취소할 수 없어요.\n다음 단계에서 지문으로 확인해요.',
+      device: '보내면 취소할 수 없어요.\n다음 단계에서 기기 인증으로 확인해요.',
     },
     // C2b #23. pendingBlock is approved copy (ux-copy.md S10P+S24); the rest is new (listed in the PR for approval).
     authPrompt: '보내려면 인증하세요',

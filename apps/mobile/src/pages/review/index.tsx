@@ -3,10 +3,9 @@ import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { resolveReview } from '@/entities/transaction/review'
-import { diffGroups, displayGroups } from '@/shared/lib/address'
+import { diffGroups } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
-import { textStyle } from '@/shared/theme/fonts'
-import { BottomSheet, Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
+import { BottomSheet, Button, Screen, ScreenHeader, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 import { ReviewPanel } from '@/widgets/review-panel/ReviewPanel'
 import { goBack } from '@/shared/lib/nav'
 import { runSend, sendFrom, useAuthName, useReviewCore, readPendingTx, writePendingTx, type SendOutcome } from '@/features/send'
@@ -14,26 +13,15 @@ import { apiErrorKey } from '@/shared/api'
 import { chain } from '@/shared/chain'
 import { loadPhrase } from '@/shared/storage'
 
-/** Info notice body of the address-check sheet (Figma 423:15047): label line, then the full address, for the previous and the current address. Only the differing chunks are marked. */
+/** B/Address compare (Figma 477:5145, inside the S22L sheet 423:15047): Info title only, then the previous and the current address as Detail rows (Kind=Address); differing chunks marked. */
 function Compare({ current, previous }: { current: string; previous: string }) {
   const { t } = useTranslation()
   const th = useTheme()
-  const fg = th.semantic.text.secondary
-  const diff = diffGroups(current, previous)
-  const mark = { ...textStyle(th.primitive.type.productB.label), color: th.semantic.status.danger.fg, textDecorationLine: 'underline' as const }
   return (
-    <View>
-      <Text variant="bodySmall" color={fg}>{t('review.lookalike.previous')}</Text>
-      <Text variant="bodySmall" color={fg}>{displayGroups(previous).join(' ')}</Text>
-      <Text variant="bodySmall" color={fg}>{t('review.lookalike.current')}</Text>
-      <Text variant="bodySmall" color={fg}>
-        {displayGroups(current).map((g, i) => (
-          <Text key={i} color={fg}>
-            {i > 0 ? ' ' : ''}
-            <Text style={diff.includes(i) ? mark : undefined}>{g}</Text>
-          </Text>
-        ))}
-      </Text>
+    <View style={{ gap: th.semantic.layout.fieldGap }}>
+      <StatusNotice tone="info" heading title={t('review.lookalike.compareTitle')} />
+      <SummaryRow format="address" label={t('review.lookalike.previous')} value={previous} />
+      <SummaryRow format="address" label={t('review.lookalike.current')} value={current} highlight={diffGroups(current, previous)} />
     </View>
   )
 }
@@ -56,12 +44,12 @@ export function ReviewPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { risk, sheet: sheetParam, to, amount, notice: noticeParam } = useLocalSearchParams<{ risk?: string; sheet?: string; to?: string; amount?: string; notice?: string }>()
+  const { risk, sheet: sheetParam, to, amount, notice: noticeParam, recheck } = useLocalSearchParams<{ risk?: string; sheet?: string; to?: string; amount?: string; notice?: string; recheck?: string }>()
   const base = resolveReview(to, amount, risk === '1')
   const core = useReviewCore(base.recipient, base.amount.replace(' ETH', ''))
   const values = core.review ? resolveReview(to, amount, risk === '1', core.review) : base
   const [busy, setBusy] = useState(false)
-  const [rechecking, setRechecking] = useState(false)
+  const [rechecking, setRechecking] = useState(__DEV__ && recheck === '1') // `?recheck=1` is a __DEV__ capture override of Figma 461:5074
   const authName = useAuthName()
   // `?notice=` is a __DEV__ capture override (Figma C3-S22 notice states).
   const [notice, setNotice] = useState<Notice | null>(__DEV__ && noticeParam && noticeParam in NOTICE ? (noticeParam as Notice) : null)
@@ -140,7 +128,7 @@ export function ReviewPage() {
         }
       >
         <Text color={th.semantic.text.secondary}>{t(`review.${values.risk === 'burn' || values.risk === 'tokenContract' ? values.risk : 'lookalike'}.sheetBody`)}</Text>
-        {values.risk === 'lookalike' ? <StatusNotice tone="info" title={t('review.lookalike.compareTitle')} body={<Compare current={values.recipient} previous={values.previous ?? values.recipient} />} /> : null}
+        {values.risk === 'lookalike' ? <Compare current={values.recipient} previous={values.previous ?? values.recipient} /> : null}
       </BottomSheet>
     </Screen>
   )

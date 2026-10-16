@@ -11,14 +11,14 @@ const SIGN = /^[+\-−]/
 
 /**
  * C10 Activity row (Redesign B row). Flat, min-height rowB.height 64, 40 circle icon, title (Headline) + subtitle (Caption tertiary), amount (Headline, tabular).
- * Pending: clock icon. Unknown: question icon. Failed: red X icon (Figma 404:387), amount has no sign and is struck through in text/tertiary.
+ * Pending: clock icon. Unknown keeps the send arrow (Figma 460:5024). Failed: red X icon (Figma 404:387), amount has no sign and is struck through in text/tertiary.
  * Title carries the status words ("보내는 중", "보내기 실패"); subtitle is "{자산} · {시각}" (`detail`, else `time`) only. Status is never color alone.
  */
 export function ActivityRow({ title, detail, time, amount, kind, status, statusLabel, onPress }: Props) {
   const t = useTheme()
   const c = t.component.activityRow
   const failed = status === 'failed'
-  const icon: IconName = status === 'pending' ? 'pending' : status === 'unknown' ? 'unknown' : failed ? 'failed' : kind
+  const icon: IconName = status === 'pending' ? 'pending' : failed ? 'failed' : kind
   const subtitle = detail ?? time
   const row = (
     <View

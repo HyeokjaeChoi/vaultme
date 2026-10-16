@@ -57,12 +57,17 @@ function FakeHistory() {
   )
 }
 
-/** `?state=loading|empty|error` is a __DEV__ capture override of the S40 states. */
-function DevState({ state }: { state: string }) {
+/** `?state=loading|empty|error|rows` (`error` + `cache=0` = no cache, `rows` = Figma 460:5024 unknown/replaced rows) is a __DEV__ capture override of the S40 states. */
+function DevState({ state, cache }: { state: string; cache?: string }) {
   const { t } = useTranslation()
   const router = useRouter()
   if (state === 'loading') return <Loading />
   if (state === 'empty') return <EmptyState title={t('activity.empty.title')} body={t('activity.empty.body')} action={{ label: t('activity.empty.cta'), onPress: () => router.push('/receive') }} />
+  if (state === 'rows') {
+    const extra: HistoryItem[] = (['Unknown', 'Replaced'] as const).map((st, i) => ({ hash: `x${i}`, kind: 'send', asset: 'ETH', amount: i ? '0.01' : '0.05', at: new Date(2026, 9, 11, 7, 30 - i * 20).getTime(), counterparty: '', ...txView(st), local: false }))
+    return <List items={[...fakeHistoryItems(null), ...extra].sort((a, b) => b.at - a.at)} />
+  }
+  if (state === 'error' && cache === '0') return <Content view={{ items: [], updatedAt: null, failed: true }} reload={() => undefined} />
   const cached = transactions.filter((x) => x.id === '2' || x.id === '3')
   const items = cached.map((x): HistoryItem => ({ hash: x.id, kind: x.kind, asset: x.asset, amount: x.amount, counterparty: '', at: x.at, ...txView(x.state), local: false }))
   return <Content view={{ items, updatedAt: new Date(2026, 9, 13, 9, 12).getTime(), failed: true }} reload={() => undefined} />
@@ -77,11 +82,11 @@ function RealHistory() {
 export function ActivityPage() {
   const { t } = useTranslation()
   const th = useTheme()
-  const { state } = useLocalSearchParams<{ state?: string }>()
+  const { state, cache } = useLocalSearchParams<{ state?: string; cache?: string }>()
   return (
     <Screen edges={['top']} gap="none">
       <Text variant="title1" accessibilityRole="header" style={{ paddingTop: th.primitive.space[4], paddingBottom: th.primitive.space[2] }}>{t('activity.title')}</Text>
-      {__DEV__ && state ? <DevState state={state} /> : chain.broadcasts ? <RealHistory /> : <FakeHistory />}
+      {__DEV__ && state ? <DevState state={state} {...(cache ? { cache } : {})} /> : chain.broadcasts ? <RealHistory /> : <FakeHistory />}
     </Screen>
   )
 }

@@ -19,7 +19,7 @@ it('has the Redesign A send and review copy', () => {
   expect(i18n.t('review.scope', { network: 'Sepolia', account: '계정 1' })).toBe('Sepolia 테스트넷 · 계정 1에서')
   expect(i18n.t('review.lookalike.title')).toBe('비슷한 주소예요')
   expect(i18n.t('review.ack')).toBe('확인했어요, 보내기')
-  expect(i18n.t('send.preSend.faceId')).toBe('보내면 취소할 수 없어요. 다음 단계에서 Face ID로 확인해요.')
+  expect(i18n.t('send.preSend.faceId')).toBe('보내면 취소할 수 없어요.\n다음 단계에서 Face ID로 확인해요.')
   expect(i18n.t('result.sending')).toBe('보내는 중이에요')
   expect(i18n.t('send.recipientLabel')).toBe('받는 주소')
   expect(i18n.t('review.recipient')).toBe('받는 주소')
