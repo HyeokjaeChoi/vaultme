@@ -113,7 +113,10 @@ export const dark = {
       "wallet_status_card": 240,
       "product_header": 56,
       "product_nav": 64,
-      "review_panel": 480
+      "review_panel": 480,
+      "pill_lg": 56,
+      "pill_md": 48,
+      "pill_sm": 40
     },
     "radius": {
       "none": 0,
@@ -314,6 +317,85 @@ export const dark = {
           "fontSize": 12,
           "lineHeight": 18,
           "letterSpacing": 0
+        },
+        "address": {
+          "fontFamily": "IBM Plex Mono",
+          "fontWeight": "400",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": 0
+        }
+      },
+      "productB": {
+        "displayL": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 40,
+          "lineHeight": 48,
+          "letterSpacing": -1.1
+        },
+        "displayM": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 32,
+          "lineHeight": 40,
+          "letterSpacing": -0.8
+        },
+        "title1": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 26,
+          "lineHeight": 34,
+          "letterSpacing": -0.6
+        },
+        "title2": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 22,
+          "lineHeight": 30,
+          "letterSpacing": -0.4
+        },
+        "title3": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 19,
+          "lineHeight": 27,
+          "letterSpacing": -0.2
+        },
+        "headline": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 17,
+          "lineHeight": 25,
+          "letterSpacing": 0
+        },
+        "body": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
+          "fontSize": 16,
+          "lineHeight": 24,
+          "letterSpacing": 0
+        },
+        "bodySmall": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
+          "fontSize": 15,
+          "lineHeight": 22,
+          "letterSpacing": 0.1
+        },
+        "label": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "500",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": 0.2
+        },
+        "caption": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
+          "fontSize": 12,
+          "lineHeight": 17,
+          "letterSpacing": 0.3
         },
         "address": {
           "fontFamily": "IBM Plex Mono",
@@ -1545,7 +1627,7 @@ export const dark = {
         "shadowRadius": 12,
         "shadowOpacity": 1
       },
-      "scrimBg": "#F6F8FB",
+      "scrimBg": "#0B0F15",
       "scrimOpacity": 0.4
     },
     "productHeader": {
@@ -1787,6 +1869,39 @@ export const dark = {
       "hint": "#C7D1DD",
       "wordBg": "#11161D",
       "radius": 16
+    },
+    "buttonB": {
+      "height": {
+        "lg": 56,
+        "md": 48,
+        "sm": 40
+      },
+      "radius": 999,
+      "paddingX": {
+        "lg": 24,
+        "md": 20,
+        "sm": 16
+      },
+      "primary": {
+        "bg": "#3152FF",
+        "fg": "#FFFFFF",
+        "bgDisabled": "#273966"
+      },
+      "secondary": {
+        "bg": "#28313C",
+        "bgPressed": "#28313C",
+        "fg": "#F6F8FB"
+      }
+    },
+    "rowB": {
+      "height": 64,
+      "paddingX": 16
+    },
+    "sheetB": {
+      "radius": 32
+    },
+    "screenB": {
+      "bg": "#11161D"
     }
   }
 } as const

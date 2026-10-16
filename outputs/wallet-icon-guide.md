@@ -20,6 +20,8 @@
 | 상태 | Pending, Confirmed, Failed, Warning, Info, Unknown | 정확한 label과 이유. 검사 결과와 완료 사실을 구분 |
 | Navigation | Assets, Activity, Settings | visible label과 선택 상태 |
 
+Redesign B(2026-10-16)에서 기능 icon 2개를 추가했다: `Icon / action / qr`(Phosphor `qr-code`, regular, 24, alias `icon.action.fg`, 접근 이름 "QR 코드 스캔")와 `Icon / action / more`(Phosphor `dots-three`, regular, 24, alias `icon.action.fg`, 접근 이름 "더 보기"). icon-only control이므로 44 px target이 필요하다. Local 기능 25개 + identity 2개 = 27개. QR icon은 QR 기능 구현이나 인증을 뜻하지 않는다.
+
 Account, network, asset, recipient/spender, amount/allowance, estimated fee, action status는 Review에서 생략하지 않는다. Full address와 warning도 유지한다. Icon·색만으로 안전성이나 성공을 전달하지 않는다. 같은 network의 Asset row는 상단 context의 반복 label만 생략한다. 다른 network의 행에는 label을 남긴다.
 
 ## 2. 크기와 색 alias
@@ -56,7 +58,7 @@ Semantic `iconSize.asset={size.avatar_sm}`와 Component `icon.*` 20개를 추가
 
 | Source | License / 사용 |
 | --- | --- |
-| [Phosphor core](https://github.com/phosphor-icons/core) | [MIT 원문](https://github.com/phosphor-icons/core/blob/main/LICENSE). 기존 regular 기능 23개. License notice 유지 |
+| [Phosphor core](https://github.com/phosphor-icons/core) | [MIT 원문](https://github.com/phosphor-icons/core/blob/main/LICENSE). 기존 regular 기능 23개와 Redesign B 추가 2개(`qr-code`, `dots-three`): 25개. License notice 유지 |
 | [Cryptocurrency Icons](https://github.com/spothq/cryptocurrency-icons) | [CC0-1.0 원문](https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/LICENSE.md). Community ETH·USDC identity 2개. Issuer 인증이나 최신 공식 brand palette로 주장하지 않음 |
 
 ETH `#627EEA`, USDC `#3E73C4`는 원본 artwork 색이다. VaultMe canonical palette 변경이 아니다. 서로 다른 기능 icon library를 섞지 않는다. [Source 연구](../work/research-v2/icons/research.md), [계획](../work/research-v2/icons/icon-plan.md), [Native manifest](../work/research-v2/icons/figma-assets.json).

@@ -36,7 +36,7 @@ Connection, message signing, token approval, on-chain transaction을 구분합�
 
 ## Brand Commitments
 
-Inter UI와 IBM Plex Mono 주소·hash를 사용합니다. Owner가 승인한 Blue A Primary, Secondary surface의 Ink, neutral secondary action을 유지합니다. Blue는 success·gain·safety 의미로 쓰지 않습니다. Light를 기본으로 하고 앱은 OS 설정에 따라 Dark로 전환합니다.
+Pretendard 400/500/600 UI와 IBM Plex Mono 주소·hash를 사용합니다. 금액은 tabular numerals입니다. Owner가 승인한 Blue A Primary, Secondary surface의 Ink, neutral secondary action을 유지합니다. Blue는 success·gain·safety 의미로 쓰지 않습니다. Light를 기본으로 하고 앱은 OS 설정에 따라 Dark로 전환합니다.
 
 Borderless는 정보 container와 flat row의 기본입니다. Input 인지, focus·invalid·selected, 필요한 table 비교, fixed footer·drawer 경계는 목적을 설명한 예외입니다. 값과 provenance는 [디자인 언어](outputs/VaultMe-DESIGN.md)를 따릅니다.
 

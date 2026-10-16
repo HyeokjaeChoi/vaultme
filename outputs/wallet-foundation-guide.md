@@ -72,9 +72,11 @@ Blue A는 action 역할이다. Success, 가격 gain, 안전성 의미로 사용�
 
 Status, financial.change, check.clear의 기존 색은 유지했다. Secondary action은 neutral. Default/hover/pressed는 기존 neutral 200/300/400에 연결한다 (2026-10-13 변경: canvas가 neutral 50이 된 뒤 default가 canvas와 같아져 버튼이 보이지 않았다). 이는 Secondary 브랜드 surface와 다른 역할이다.
 
-### Surface 위계: Light + C23 Secondary tint
+### Surface 위계: 평평한 흰색 (Redesign B, 2026-10-16)
 
-Wallet Home은 Light canvas → C23 요약 → 흰색 데이터 목록 순서로 구성한다. C23의 넓고 낮은 Secondary tint는 한 곳에 둔다. Assets·Activity·Settings·Review에 tint hero를 반복하지 않는다. Navigation은 기존 neutral 면과 active marker를 사용한다. Blue A는 Primary action·active·focus 역할이다.
+Redesign B는 `screenB/bg`(`{surface.default}`, 흰색) 한 면 위에 list row, section 제목, 간격으로 정보를 묶는다. Card는 묶음이 꼭 필요할 때만 쓴다. 아래 C23 Secondary tint 설명은 Redesign B 이전(2026-10-04) 기록이며, restyle한 master에서는 C23에 tint fill이 없다(flat). `surface.canvas`는 기존 화면이 쓰므로 값을 바꾸지 않았다.
+
+(이전 기록) Wallet Home은 Light canvas → C23 요약 → 흰색 데이터 목록 순서로 구성했다. C23의 넓고 낮은 Secondary tint는 한 곳에 뒀다. Assets·Activity·Settings·Review에 tint hero를 반복하지 않는다. Navigation은 기존 neutral 면과 active marker를 사용한다. Blue A는 Primary action·active·focus 역할이다.
 
 C23의 Complete/Partial/Unavailable은 같은 tint를 쓴다. 수치·통화·estimate·coverage는 모두 Ink다. Quote 상태는 문구와 누락 범위로 구분한다. Passive balance는 클릭 가능한 card가 아니다. C23에는 shadow와 장식 border를 넣지 않는다. C04 안에 C23를 다시 넣지 않는다.
 
@@ -90,7 +92,7 @@ C23의 Complete/Partial/Unavailable은 같은 tint를 쓴다. 수치·통화·es
 | Component `portfolioBalance.note` | `{text.primary}` | 기존 `text.secondary` 연결을 Ink로 변경 |
 | Component `overlay.bg` / `overlay.fg` | `{surface.raised}` / `{text.primary}` | 기존 floating host의 읽기 면·기본 글자 |
 | Component `overlay.radius` / `overlay.shadow` | `{shape.overlay}` / `{effect.overlayShadow}` | 기존 floating host 모서리·shadow |
-| Component `overlay.scrimBg` / `overlay.scrimOpacity` | `{surface.inverse}` / `{effect.modalScrimOpacity}` | Modal의 뒤 화면 차단 층 |
+| Component `overlay.scrimBg` / `overlay.scrimOpacity` | `{color.neutral.950}` (2026-10-16 변경: mode 불변, 이전 `{surface.inverse}`) / `{effect.modalScrimOpacity}` | Modal의 뒤 화면 차단 층 |
 
 `overlay.*`는 기존 host의 내부 역할이다. 새 C29나 public API가 아니다. Scrim opacity는 scrim에만 적용한다. Nonmodal popover에는 scrim이 없다. 고정 drawer는 기존 기능 경계선을 사용한다. Floating shadow를 C23·row·Input·review group·notice에 확대하지 않는다. 자식 Component의 상태 foreground가 기본 overlay 글자보다 우선한다.
 
@@ -112,7 +114,25 @@ Canvas·summary·navigation·row·review·notice·drawer에는 gradient가 없�
 
 ## 4. Typography
 
-Inter는 UI, IBM Plex Mono는 주소·hash에 쓴다. 기존 marketing type scale은 유지한다. 제품 화면에는 아래 역할을 사용한다. 이는 v2 확정값이며 peer product의 실측 폰트값이 아니다.
+제품 UI 글꼴은 Pretendard 400/500/600(700 없음), 주소·hash는 IBM Plex Mono다. Figma는 오너가 글꼴을 바꾸기 전까지 임시로 Gothic A1을 쓴다. 금액은 tabular numerals다. 기존 `Product /` 역할(Inter 기준)과 marketing type scale은 값을 바꾸지 않았다. Redesign B의 `Product B` 척도는 새 Primitive `type.productB.*`(font family `pretendard`)로 추가했다. Semantic `typography.*` alias는 아직 연결하지 않았다.
+
+| `type.productB.*` | Size / line | 자간(px) | Weight |
+| --- | --- | --- | --- |
+| `displayL` | 40 / 48 | -1.1 | 600 |
+| `displayM` | 32 / 40 | -0.8 | 600 |
+| `title1` | 26 / 34 | -0.6 | 600 |
+| `title2` | 22 / 30 | -0.4 | 600 |
+| `title3` | 19 / 27 | -0.2 | 600 |
+| `headline` | 17 / 25 | 0 | 600 |
+| `body` | 16 / 24 | 0 | 400 |
+| `bodySmall` | 15 / 22 | 0.1 | 400 |
+| `label` | 14 / 20 | 0.2 | 500 |
+| `caption` | 12 / 17 | 0.3 | 400 |
+| `address` | 14 / 20 | 0 | 400 Plex Mono |
+
+JSON 자간은 build가 퍼센트만 px로 바꾸므로 `font.tracking.*`에 퍼센트로 저장했다(예: displayL -2.75% × 40 = -1.1 px).
+
+기존 `Product /` 역할 표(v2 확정값): 제품 화면에는 아래 역할을 사용한다. 이는 v2 확정값이며 peer product의 실측 폰트값이 아니다.
 
 | Semantic role | Size / line | Weight | 사용 |
 | --- | --- | --- | --- |
@@ -129,6 +149,14 @@ Inter는 UI, IBM Plex Mono는 주소·hash에 쓴다. 기존 marketing type scal
 | `typography.address` | 14 / 20 px | Regular Mono | 전체 주소·hash |
 
 Figma 제품 Style 이름은 `Product / Title` 등이다. 기본 제품 TEXT는 역할 Style에 연결한다. T02의 직접 font-size override는 아래 검증 예외를 따른다. 웹 숫자는 tabular numerals와 우측 정렬을 사용한다. Native Figma의 TNUM 적용은 미확인이다. 금액과 단위를 함께 둔다. 중요한 주소·fee·오류는 14 px 이상이다. 금액은 ellipsis로 자르지 않는다. 아주 작은 수량은 전체 정밀도 문자열을 Review에도 표시한다.
+
+### Button · pill (Redesign B)
+
+Button은 pill이다. 높이 lg 56 / md 48 / sm 40(`size.pill_lg/md/sm`, 새 Primitive), 실제 target은 기존 `button.hitTarget` 44 px 이상을 유지한다. Component `buttonB.*`는 alias만 둔다: `height.lg|md|sm` → `size.pill_*`, `radius` → `radius.pill`, `paddingX.lg|md|sm` → `space.6|5|4`, `primary.bg|fg` → `button.primary.bg.default|fg.default`, `primary.bgDisabled` → `surface.brandTint`, `secondary.bg|bgPressed` → `surface.pressed`, `secondary.fg` → `text.primary`. 파랑 Primary는 화면당 1개이고 Secondary는 neutral이다. Bottom sheet는 위 모서리 32(`sheetB.radius` → `radius.3xl`)이며 Secondary를 Primary 위에 둔다. Row는 `rowB.height` → `size.asset_row`(64), `rowB.paddingX` → `layout.screen.padding`이다. 기존 `button.size.*` 값(44/52 기준)은 JSON에서 바꾸지 않았다. Figma master는 40/48/56으로 restyle했다.
+
+### 불투명도 단위 (Figma만)
+
+Figma `opacity/*` Primitive는 OPACITY scope가 퍼센트(0–100)라서 0, 8, 16, 24, 40, 56, 72, 100으로 바꿨다. portable JSON `primitive.opacity.*`는 fraction(0.4 등)을 유지한다. 이 단위 차이는 의도한 것이고, JSON 값은 바꾸지 않았다.
 
 ## 5. Layout과 밀도
 

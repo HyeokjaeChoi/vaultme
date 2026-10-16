@@ -143,6 +143,22 @@ Origin은 요청의 출처다. 검증 시스템이 없는 Prototype에서 `Verif
 
 P04의 결과는 Submitting/Pending/Confirmed/Failed/Unknown 다섯 화면이다. Prototype는 바깥 scenario control로 합성 결과를 선택한다. Confirm 버튼 클릭만으로 Confirmed가 되지 않는다. 모든 frame 밖에 `Design prototype · Synthetic data` caption을 둔다.
 
+## Redesign B 시각 계약 (2026-10-16)
+
+Master·variant·property ID와 property 이름은 바꾸지 않고 시각만 restyle했다(증거: `work/v7/verification/`). 면은 평평한 흰색(`screenB/bg`)이다. Library 게시는 오너 publish 전까지 하지 않는다.
+
+| Master | 시각 계약 |
+| --- | --- |
+| C01 Button ×3 | pill(`buttonB.radius`), 높이 40/48/56(Small/Medium/Large). 기존 State와 Label·Icon·ShowIcon 유지. 44 px target 유지 |
+| C03 Input | Redesign B Input 스타일. State 이름 유지 |
+| C29–C33 Bottom sheet | 위 모서리 32(`sheetB.radius`), Secondary가 Primary 위 |
+| Keypad | Redesign B 스타일. property 없음 |
+| C23 Portfolio balance | flat, tint 없음. Quote 이름 유지 |
+| C25 Status notice | 박스 없이 인라인 icon + 글자. Tone 이름 유지 |
+| Summary row, List item | Redesign B 스타일. Format·Trailing 유지 |
+| C09 Asset row | 64(`rowB.height`), flat |
+| C10 Activity row | 최소 64, flat, 40 원형 icon |
+
 ## 합성 fixture와 Stress
 
 Address: account `0x1111111111111111111111111111111111111111`, second `0x2222222222222222222222222222222222222222`, recipient `0x3333333333333333333333333333333333333333`, spender `0x4444444444444444444444444444444444444444`. EVM fixture는 0x + 40 hex, hash는 0x + 64 hex다. Origin은 `swap.example`이다.
@@ -199,7 +215,7 @@ Static color contrast, Figma geometry, Prototype keyboard 검사를 구분한다
 | C09 Asset row | 원본 identity, 이름·symbol·balance. 같은 상단 network만 반복 생략 |
 | C06 Navigation | Assets/Activity/Settings visible label과 active state |
 
-기능은 Phosphor regular, identity는 별도 원본 color SVG다. Label 옆 SVG/img는 aria-hidden이다. 미확인 identity에는 neutral fallback을 사용한다. Local icon 25개 연결은 정적 확인 완료이며 Native와 Library 통합도 완료했다. 최종 증거는 아래 적용 기록을 따른다. [Icons 안내](wallet-icon-guide.md), [로컬 검증](../work/v2/verification/icons-local.json).
+기능은 Phosphor regular, identity는 별도 원본 color SVG다. Label 옆 SVG/img는 aria-hidden이다. 미확인 identity에는 neutral fallback을 사용한다. Local icon 25개 연결(Redesign B의 `qr`, `more` 추가 전 기록. 현재 기능 25 + identity 2)은 정적 확인 완료이며 Native와 Library 통합도 완료했다. 최종 증거는 아래 적용 기록을 따른다. [Icons 안내](wallet-icon-guide.md), [로컬 검증](../work/v2/verification/icons-local.json).
 
 Icons의 390 px Assets/Send Review는 실제 browser에서 logo load, wallet Review 데이터, 44 px target, overflow 0을 확인했다. Catalog 25행과 status 검색 7개도 확인했다. [Browser 증거](../work/v2/verification/icons-runtime.json). 확인한 합성 화면에 한정한 결과이며 screen reader·실제 wallet 검증은 아니다.
 

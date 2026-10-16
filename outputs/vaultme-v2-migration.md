@@ -282,3 +282,17 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - Settings(R-S60): 거래 알림, 0원 거래 표시, 기기 보안 경고는 List item `Trailing=Switch` + C29 Switch(켜짐/꺼짐/켜짐). 복구 구문 보기는 값 없는 disclosure.
 - Library 게시는 이 변경 이후 별도로 기록한다.
 - Library 게시 완료 (2026-10-14). 변경 목록 13개: `02 Semantic` 3 변수(dark secondary), `03 Component` 4 변수(`button/secondary/bg/*`, `segmented/bg`), Component 11개(Product navigation, 그리고 Button / Secondary를 쓰거나 binding하는 Button / Secondary, Card / Group, Segmented control, Collection state, Receive address, Review footer, Transaction result, Backup status, Connected app row, Token allowance row). 그 외 항목은 없었다. 설명: "2026-10-14: dark Secondary fill neutral 800/700/600, full-width tab bar with top padding, settings switches."
+
+## 2026-10-16 Redesign B in-place restyle
+
+- 오너 승인 (2026-10-16). 기존 master를 제자리에서 restyle했다: Button ×3, Input, Bottom sheet, Keypad, Portfolio balance, Status notice, Summary row, List item, Asset row, Activity row. Master·set·variant·property ID는 유지했다.
+- ID 보존 증거: `work/v7/verification/` (`id-baseline.json`, `post-migration-ids.json`, `pre-migration-inventory.json`).
+- 복원 지점: Figma named version "pre-B-migration 2026-10-16" (오너가 앱에서 저장, API id 없음).
+- Library는 오너가 publish하기 전까지 미게시다. 게시 증거는 아직 없다.
+- 새 Primitive: `size.pill_lg/md/sm` (56/48/40), `font.family.pretendard`, `font.size.product15/17/19/22/26`, `font.lineHeight.px17/22/25/27/30/34`, `font.tracking.displayL/displayM/title1/title2/title3/bodySmall/label/caption`(퍼센트), Primitive 타이포 `type.productB.*` 11개.
+- 새 Component alias: `buttonB.height/radius/paddingX/primary/secondary`, `rowB.height/paddingX`, `sheetB.radius`, `screenB.bg`. `buttonB.secondary.bgPressed`는 Figma 이름 목록이 없어 `surface.pressed`로 연결했다.
+- 변경 값: `component.overlay.scrimBg` `{surface.inverse}` → `{color.neutral.950}` (mode 불변).
+- Figma 전용: `opacity/*` Primitive는 퍼센트(0–100). JSON은 fraction 유지.
+- 글꼴: Figma는 임시 Gothic A1, 오너가 Pretendard로 교체한다. 기존 `Product /` Style(Inter)은 값을 바꾸지 않았다.
+- Icons: `Icon / action / qr`, `Icon / action / more` 추가.
+- 미연결: `button.size.*` 높이(44/52)와 `portfolioBalance.bg` JSON alias는 그대로다 (Figma master는 40/48/56, flat). 후속 결정이 필요하다.

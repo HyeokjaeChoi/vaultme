@@ -397,6 +397,18 @@
       "review_panel": {
         "value": "480px",
         "type": "sizing"
+      },
+      "pill_lg": {
+        "value": "56px",
+        "type": "sizing"
+      },
+      "pill_md": {
+        "value": "48px",
+        "type": "sizing"
+      },
+      "pill_sm": {
+        "value": "40px",
+        "type": "sizing"
       }
     },
     "radius": {
@@ -498,6 +510,10 @@
         "mono": {
           "value": "IBM Plex Mono",
           "type": "fontFamilies"
+        },
+        "pretendard": {
+          "value": "Pretendard",
+          "type": "fontFamilies"
         }
       },
       "weight": {
@@ -574,6 +590,26 @@
         "product40": {
           "value": "40px",
           "type": "fontSizes"
+        },
+        "product15": {
+          "value": "15px",
+          "type": "fontSizes"
+        },
+        "product17": {
+          "value": "17px",
+          "type": "fontSizes"
+        },
+        "product19": {
+          "value": "19px",
+          "type": "fontSizes"
+        },
+        "product22": {
+          "value": "22px",
+          "type": "fontSizes"
+        },
+        "product26": {
+          "value": "26px",
+          "type": "fontSizes"
         }
       },
       "lineHeight": {
@@ -624,6 +660,30 @@
         "px48": {
           "value": "48px",
           "type": "lineHeights"
+        },
+        "px17": {
+          "value": "17px",
+          "type": "lineHeights"
+        },
+        "px22": {
+          "value": "22px",
+          "type": "lineHeights"
+        },
+        "px25": {
+          "value": "25px",
+          "type": "lineHeights"
+        },
+        "px27": {
+          "value": "27px",
+          "type": "lineHeights"
+        },
+        "px30": {
+          "value": "30px",
+          "type": "lineHeights"
+        },
+        "px34": {
+          "value": "34px",
+          "type": "lineHeights"
         }
       },
       "tracking": {
@@ -641,6 +701,38 @@
         },
         "wide": {
           "value": "2%",
+          "type": "letterSpacing"
+        },
+        "displayL": {
+          "value": "-2.75%",
+          "type": "letterSpacing"
+        },
+        "displayM": {
+          "value": "-2.5%",
+          "type": "letterSpacing"
+        },
+        "title1": {
+          "value": "-2.3077%",
+          "type": "letterSpacing"
+        },
+        "title2": {
+          "value": "-1.8182%",
+          "type": "letterSpacing"
+        },
+        "title3": {
+          "value": "-1.0526%",
+          "type": "letterSpacing"
+        },
+        "bodySmall": {
+          "value": "0.6667%",
+          "type": "letterSpacing"
+        },
+        "label": {
+          "value": "1.4286%",
+          "type": "letterSpacing"
+        },
+        "caption": {
+          "value": "2.5%",
           "type": "letterSpacing"
         }
       }
@@ -972,6 +1064,162 @@
             "fontSize": "{font.size.xs}",
             "lineHeight": "{font.lineHeight.px18}",
             "letterSpacing": "{font.tracking.normal}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "address": {
+          "value": {
+            "fontFamily": "{font.family.mono}",
+            "fontWeight": "{font.weight.regular}",
+            "fontSize": "{font.size.sm}",
+            "lineHeight": "{font.lineHeight.px20}",
+            "letterSpacing": "{font.tracking.normal}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        }
+      },
+      "productB": {
+        "displayL": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product40}",
+            "lineHeight": "{font.lineHeight.px48}",
+            "letterSpacing": "{font.tracking.displayL}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "displayM": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product32}",
+            "lineHeight": "{font.lineHeight.px40}",
+            "letterSpacing": "{font.tracking.displayM}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "title1": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product26}",
+            "lineHeight": "{font.lineHeight.px34}",
+            "letterSpacing": "{font.tracking.title1}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "title2": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product22}",
+            "lineHeight": "{font.lineHeight.px30}",
+            "letterSpacing": "{font.tracking.title2}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "title3": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product19}",
+            "lineHeight": "{font.lineHeight.px27}",
+            "letterSpacing": "{font.tracking.title3}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "headline": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product17}",
+            "lineHeight": "{font.lineHeight.px25}",
+            "letterSpacing": "{font.tracking.normal}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "body": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.regular}",
+            "fontSize": "{font.size.base}",
+            "lineHeight": "{font.lineHeight.px24}",
+            "letterSpacing": "{font.tracking.normal}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "bodySmall": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.regular}",
+            "fontSize": "{font.size.product15}",
+            "lineHeight": "{font.lineHeight.px22}",
+            "letterSpacing": "{font.tracking.bodySmall}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "label": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.medium}",
+            "fontSize": "{font.size.sm}",
+            "lineHeight": "{font.lineHeight.px20}",
+            "letterSpacing": "{font.tracking.label}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "caption": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.regular}",
+            "fontSize": "{font.size.xs}",
+            "lineHeight": "{font.lineHeight.px17}",
+            "letterSpacing": "{font.tracking.caption}",
             "paragraphSpacing": "0px",
             "paragraphIndent": "0px",
             "textCase": "none",
@@ -3845,7 +4093,7 @@
         "description": "overlay.shadow: Internal floating dialog/popover host. Child Component foreground roles take precedence. Apply scrim and its opacity only to modal backdrops; nonmodal popovers have no scrim."
       },
       "scrimBg": {
-        "value": "{surface.inverse}",
+        "value": "{color.neutral.950}",
         "type": "color",
         "description": "overlay.scrimBg: Internal floating dialog/popover host. Child Component foreground roles take precedence. Apply scrim and its opacity only to modal backdrops; nonmodal popovers have no scrim."
       },
@@ -4513,6 +4761,107 @@
         "value": "{shape.group}",
         "type": "borderRadius",
         "description": "sensitiveReveal.radius: C33 Sensitive reveal. Hidden by default; show on tap; hide again when the app leaves the foreground. Never log or copy the revealed words."
+      }
+    },
+    "buttonB": {
+      "height": {
+        "lg": {
+          "value": "{size.pill_lg}",
+          "type": "sizing",
+          "description": "buttonB.height.lg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "md": {
+          "value": "{size.pill_md}",
+          "type": "sizing",
+          "description": "buttonB.height.md: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "sm": {
+          "value": "{size.pill_sm}",
+          "type": "sizing",
+          "description": "buttonB.height.sm: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        }
+      },
+      "radius": {
+        "value": "{radius.pill}",
+        "type": "borderRadius",
+        "description": "buttonB.radius: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+      },
+      "paddingX": {
+        "lg": {
+          "value": "{space.6}",
+          "type": "spacing",
+          "description": "buttonB.paddingX.lg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "md": {
+          "value": "{space.5}",
+          "type": "spacing",
+          "description": "buttonB.paddingX.md: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "sm": {
+          "value": "{space.4}",
+          "type": "spacing",
+          "description": "buttonB.paddingX.sm: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        }
+      },
+      "primary": {
+        "bg": {
+          "value": "{button.primary.bg.default}",
+          "type": "color",
+          "description": "buttonB.primary.bg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "fg": {
+          "value": "{button.primary.fg.default}",
+          "type": "color",
+          "description": "buttonB.primary.fg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "bgDisabled": {
+          "value": "{surface.brandTint}",
+          "type": "color",
+          "description": "buttonB.primary.bgDisabled: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        }
+      },
+      "secondary": {
+        "bg": {
+          "value": "{surface.pressed}",
+          "type": "color",
+          "description": "buttonB.secondary.bg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "bgPressed": {
+          "value": "{surface.pressed}",
+          "type": "color",
+          "description": "buttonB.secondary.bgPressed: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "fg": {
+          "value": "{text.primary}",
+          "type": "color",
+          "description": "buttonB.secondary.fg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        }
+      }
+    },
+    "rowB": {
+      "height": {
+        "value": "{size.asset_row}",
+        "type": "sizing",
+        "description": "rowB.height: Redesign B flat row, 64 px, no divider or background."
+      },
+      "paddingX": {
+        "value": "{layout.screen.padding}",
+        "type": "spacing",
+        "description": "rowB.paddingX: Redesign B flat row, 64 px, no divider or background."
+      }
+    },
+    "sheetB": {
+      "radius": {
+        "value": "{radius.3xl}",
+        "type": "borderRadius",
+        "description": "sheetB.radius: Redesign B bottom sheet top corners."
+      }
+    },
+    "screenB": {
+      "bg": {
+        "value": "{surface.default}",
+        "type": "color",
+        "description": "screenB.bg: Redesign B flat white screen background."
       }
     }
   },

@@ -43,6 +43,8 @@ Blue A는 공식 업계 UI 조사와 제품 행동 위계에 따른 승인된 br
 
 ## Surface 위계
 
+**Redesign B(2026-10-16)는 평평한 흰색 한 면(`screenB/bg` = `surface.default`)이다.** Tint 요약과 canvas 구분을 쓰지 않고 row, section 제목, 간격으로 묶는다. 아래는 Redesign B 이전 기록이다.
+
 Light canvas 위에 **C23 대표 요약 한 곳만 Secondary tint**로 구분한다. 큰 balance는 한 곳이다. Assets·Activity·권한 목록과 Review는 흰색의 평평한 읽기 면을 사용한다. Navigation은 neutral 면과 기존 active marker를 유지한다. 페이지마다 tint hero를 반복하지 않는다.
 
 C23의 Complete/Partial/Unavailable은 같은 배경을 사용한다. `portfolioBalance.bg={surface.portfolioSummary}` → `{surface.brandTint}`로 연결한다. 값과 note는 `text.primary`의 Ink를 사용한다. Quote 상태는 valuation 범위·estimate·누락 설명으로 읽게 한다. Tint를 success·gain·safety로 사용하지 않는다.
@@ -81,7 +83,7 @@ Phosphor regular의 기능·상태·Navigation icon을 유지한다. 자산 iden
 
 ## 제품 type와 layout
 
-Inter UI와 IBM Plex Mono 주소·hash를 유지한다. `typography.balance`는 40/48 px, `typography.amountHero`는 40/48 px Bold(보낼 금액, 화면당 하나), amount 32/40 px, reviewAmount 28/36 px, title 24/32 px, row 16/24 px, body·label·address 14/20 px다. 12/18 px meta는 보조 시간과 문서 caption에만 쓴다. 기본 제품 TEXT를 역할 Style에 연결한다. T02의 22개 TEXT는 200% font-size override로 Style 연결이 해제된 stress 예외다.
+Redesign B부터 UI는 Pretendard 400/500/600, 주소·hash는 IBM Plex Mono다(Figma는 임시 Gothic A1). 새 척도는 [Foundation guide](wallet-foundation-guide.md) `type.productB.*`를 따른다. 아래 수치는 기존 `Product /` 역할 기록이다. `typography.balance`는 40/48 px, `typography.amountHero`는 40/48 px Bold(보낼 금액, 화면당 하나), amount 32/40 px, reviewAmount 28/36 px, title 24/32 px, row 16/24 px, body·label·address 14/20 px다. 12/18 px meta는 보조 시간과 문서 caption에만 쓴다. 기본 제품 TEXT를 역할 Style에 연결한다. T02의 22개 TEXT는 200% font-size override로 Style 연결이 해제된 stress 예외다.
 
 웹 숫자는 tabular numerals, 우측 정렬, 단위 표시를 사용한다. Native TNUM 적용은 미확인이다. 아주 작은 수량은 전체 정밀도를 Review에서 읽을 수 있게 한다. 금액에 ellipsis를 쓰지 않는다. 긴 이름·값이 충돌하면 값 영역을 다음 줄로 옮긴다.
 
