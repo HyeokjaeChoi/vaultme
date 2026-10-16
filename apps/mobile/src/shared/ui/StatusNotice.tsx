@@ -1,4 +1,4 @@
-// Figma: Status notice 73:169 (Notice / Danger 85:4277, Clear 85:3520, Info 305:82)
+// Figma: Status notice 73:169 (Notice / Danger 85:4277, Clear 85:3520, Info 305:82); Redesign B: B/Notice inline
 import type { ReactNode } from 'react'
 import { View } from 'react-native'
 import { useTheme } from '../theme'
@@ -10,23 +10,23 @@ const ICON: Record<Tone, IconName> = { info: 'info', warning: 'warning', danger:
 
 type Props = { tone: Tone; title: string; body?: ReactNode }
 
-/** C25 Status notice. Tint surface, padding layout.rowGap (12), group radius, icon + Label title + Body text in the tone foreground. Never color alone. */
+/** C25 Status notice (Redesign B inline). No box, no tint, no border: 20 pt icon + Label title in the tone color, Body Small text/secondary below. Never color alone (icon + words). */
 export function StatusNotice({ tone, title, body }: Props) {
   const t = useTheme()
   const c = t.component.statusNotice
-  const s = c[tone]
+  const fg = c[tone].fg
   return (
     <View
       accessibilityRole={tone === 'danger' ? 'alert' : undefined}
       accessible
       accessibilityLabel={typeof body === 'string' ? `${title}. ${body}` : title}
-      style={{ gap: c.gap, padding: t.semantic.layout.rowGap, borderRadius: t.semantic.shape.group, backgroundColor: s.bg, borderWidth: s.borderWidth, borderColor: s.border }}
+      style={{ gap: c.gap, paddingVertical: t.primitive.space[2] }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: c.gap }}>
-        <Icon name={ICON[tone]} size={t.component.icon.size.control} color={s.fg} />
-        <Text variant="label" color={s.fg} style={{ flex: 1 }}>{title}</Text>
+        <Icon name={ICON[tone]} size={t.component.icon.size.control} color={fg} />
+        <Text variant="label" color={fg} style={{ flex: 1 }}>{title}</Text>
       </View>
-      {typeof body === 'string' ? <Text variant="body" color={s.fg}>{body}</Text> : body}
+      {typeof body === 'string' ? <Text variant="bodySmall" color={t.semantic.text.secondary}>{body}</Text> : body}
     </View>
   )
 }

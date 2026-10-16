@@ -1,40 +1,46 @@
-// Figma: Activity row 36:48 (inside Date list 342:833; Icon / action / send 137:6, receive 137:24; status icons 137:58 / 137:75 / 137:110 / 137:127)
+// Figma: Activity row 36:48 (inside Date list 342:833; Icon / action / send 137:6, receive 137:24; status icons 137:58 / 137:75 / 137:110 / 137:127); Redesign B: B/Row
 import { View } from 'react-native'
 import { useTheme } from '../theme'
-import { Icon } from './Icon'
+import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
 
 export type ActivityStatus = 'pending' | 'confirmed' | 'failed' | 'unknown'
 type Props = { title: string; detail?: string; time: string; amount: string; kind: 'send' | 'receive'; status: ActivityStatus; statusLabel: string }
 
-/** C10 Activity row. Flat (no fill, paddingX 0; rows sit in one white <Group> per date). Identity + values on top, result line below. Status is always an icon plus words, never color alone. */
+const SIGN = /^[+\-−]/
+
+/**
+ * C10 Activity row (Redesign B row). Flat, min-height rowB.height 64, 40 circle icon, title (Headline) + subtitle (Caption tertiary), amount (Headline, tabular).
+ * Pending: clock icon. Unknown: question icon. Failed: amount has no sign and is struck through in text/tertiary.
+ * Status is words in the subtitle ("{statusLabel} · {detail or time}"), never color alone; confirmed rows show the detail/time only.
+ */
 export function ActivityRow({ title, detail, time, amount, kind, status, statusLabel }: Props) {
   const t = useTheme()
   const c = t.component.activityRow
-  const gap = t.semantic.layout.fieldGap
+  const failed = status === 'failed'
+  const icon: IconName = status === 'pending' ? 'pending' : status === 'unknown' ? 'unknown' : kind
+  const subtitle = [status === 'confirmed' ? null : statusLabel, detail ?? time].filter(Boolean).join(' · ')
   return (
     <View
       accessible
       accessibilityLabel={`${title}, ${time}, ${amount}, ${statusLabel}`}
-      style={{ minHeight: c.minHeight, gap, paddingVertical: c.list.paddingY }}
+      style={{ minHeight: t.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}>
-        <View style={{ width: t.primitive.space[6], height: t.primitive.space[6], borderRadius: t.semantic.shape.control, backgroundColor: t.semantic.surface.subtle, alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name={kind} size={t.component.icon.size.control} color={t.component.icon.action.fg} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text variant="row" color={c.title}>{title}</Text>
-          {detail ? <Text variant="address" color={t.semantic.text.secondary}>{detail}</Text> : null}
-        </View>
-        <View style={{ alignItems: 'flex-end', flexShrink: 1 }}>
-          <Text variant="row" color={c.amount} style={{ textAlign: 'right' }}>{amount}</Text>
-          <Text variant="body" color={t.semantic.text.secondary} style={{ textAlign: 'right' }}>{time}</Text>
-        </View>
+      <View style={{ width: t.primitive.size.avatar_md, height: t.primitive.size.avatar_md, borderRadius: t.primitive.radius.pill, backgroundColor: t.semantic.surface.subtle, alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name={icon} size={t.component.icon.size.control} color={t.component.icon.action.fg} />
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap }}>
-        <Icon name={status} size={t.component.icon.size.control} color={c[status]} />
-        <Text variant="body" color={c[status]} style={{ flex: 1 }}>{statusLabel}</Text>
+      <View style={{ flex: 1 }}>
+        <Text variant="headline" color={c.title}>{title}</Text>
+        <Text variant="caption" color={t.semantic.text.tertiary}>{subtitle}</Text>
       </View>
+      <Text
+        variant="headline"
+        tabular
+        color={failed ? t.semantic.text.tertiary : c.amount}
+        style={{ textAlign: 'right', flexShrink: 1, ...(failed ? { textDecorationLine: 'line-through' as const } : {}) }}
+      >
+        {failed ? amount.replace(SIGN, '') : amount}
+      </Text>
     </View>
   )
 }

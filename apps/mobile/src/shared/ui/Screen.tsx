@@ -1,4 +1,4 @@
-// Figma: product screen frame (R-S10R 333:113 / R-S22 336:390): canvas, optional Nav row, body px screen.padding, content pt space-2, section gap 24, Actions pinned below
+// Figma: product screen frame (R-S10R 333:113 / R-S22 336:390): screenB.bg (flat white), optional Nav row, body px screen.padding, content pt space-2, section gap 24, Actions pinned below
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -16,7 +16,7 @@ type Props = {
   topGap?: 'field' | 'group'
 }
 
-/** Safe-area screen with canvas background, scroll body and optional pinned footer. */
+/** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
 export function Screen({ children, header, footer, edges = ['top', 'bottom'], gap = 'section', topGap = 'field' }: Props) {
   const t = useTheme()
   const l = t.semantic.layout
@@ -30,7 +30,7 @@ export function Screen({ children, header, footer, edges = ['top', 'bottom'], ga
   }, [overflows])
 
   return (
-    <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: t.semantic.surface.canvas }}>
+    <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: t.component.screenB.bg }}>
       {header}
       <ScrollView
         ref={scrollRef}

@@ -4,6 +4,7 @@ import {
   ArrowDownLeft,
   ArrowLeft,
   ArrowUpRight,
+  ArrowsClockwise,
   Backspace,
   CaretRight,
   CheckCircle,
@@ -46,6 +47,7 @@ const ICONS = {
   copy: Copy,
   backup: LockKey,
   loading: CircleNotch,
+  refresh: ArrowsClockwise,
 } satisfies Record<string, PhosphorIcon>
 
 export type IconName = keyof typeof ICONS

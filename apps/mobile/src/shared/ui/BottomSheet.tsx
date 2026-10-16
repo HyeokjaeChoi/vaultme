@@ -1,4 +1,4 @@
-// Figma: Bottom sheet 301:606 (Grabber 301:607)
+// Figma: Bottom sheet 301:606 (Grabber 301:607), Redesign B: top radius sheetB.radius 32, Title 3, Secondary action above Primary
 import { useEffect, useState, type ReactNode } from 'react'
 import { Modal, Pressable, ScrollView, useWindowDimensions, View } from 'react-native'
 import Animated, { Easing, runOnJS, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated'
@@ -13,7 +13,7 @@ const OPEN_EASING = Easing.bezier(0.32, 0.72, 0, 1)
 
 type Props = { visible: boolean; onClose: () => void; title: string; children: ReactNode; actions: ReactNode }
 
-/** C32 Bottom sheet. Max height 90%, only the content scrolls, actions stay pinned. */
+/** C32 Bottom sheet. Max height 90%, only the content scrolls, actions stay pinned. Pass `actions` with the Secondary (Ghost) button first and the Primary last: Primary sits below. */
 export function BottomSheet({ visible, onClose, title, children, actions }: Props) {
   const t = useTheme()
   const insets = useSafeAreaInsets()
@@ -50,12 +50,12 @@ export function BottomSheet({ visible, onClose, title, children, actions }: Prop
             {
               maxHeight: '90%',
               backgroundColor: t.component.overlay.bg,
-              borderTopLeftRadius: t.component.overlay.radius,
-              borderTopRightRadius: t.component.overlay.radius,
+              borderTopLeftRadius: t.component.sheetB.radius,
+              borderTopRightRadius: t.component.sheetB.radius,
               alignItems: 'center',
               paddingTop: t.primitive.space[2],
               paddingHorizontal: pad,
-              paddingBottom: insets.bottom + t.primitive.space[2],
+              paddingBottom: insets.bottom + t.primitive.space[6],
               gap: t.semantic.layout.groupGap,
               ...t.component.overlay.shadow,
             },
@@ -63,9 +63,9 @@ export function BottomSheet({ visible, onClose, title, children, actions }: Prop
           ]}
         >
           {/* ponytail: grabber height 5 has no token; space-1 (4) is the nearest. */}
-          <View style={{ width: t.primitive.size.control_sm, height: t.primitive.space[1], borderRadius: t.primitive.radius.pill, backgroundColor: t.component.bottomSheet.grabber }} />
+          <View style={{ width: t.primitive.size.control_sm, height: t.primitive.space[1], borderRadius: t.component.buttonB.radius, backgroundColor: t.component.bottomSheet.grabber }} />
           <ScrollView style={{ flexShrink: 1, alignSelf: 'stretch' }} contentContainerStyle={{ gap: t.semantic.layout.groupGap }}>
-            <Text variant="title" accessibilityRole="header" color={t.component.overlay.fg}>{title}</Text>
+            <Text variant="title3" accessibilityRole="header" color={t.component.overlay.fg}>{title}</Text>
             {children}
           </ScrollView>
           <View style={{ gap: t.semantic.layout.fieldGap, alignSelf: 'stretch' }}>{actions}</View>
