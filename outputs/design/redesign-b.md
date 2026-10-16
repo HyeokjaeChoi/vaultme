@@ -211,6 +211,10 @@ Figma `14 Redesign B`. audit 모든 count 0. Library publish 없음, 기존 mast
 | 자산 상세 | 고유 정보 추가: 네트워크, 컨트랙트 주소(USDC), 이 자산의 내역만 |
 | 빈 내역 | 받기 아이콘 + Primary "받기 주소 보기" |
 | Icon set | Solar (Linear/Bold/Bold Duotone). Linear = 기본 UI, Bold = 선택 탭·상태 badge·활성, Bold Duotone = 빈 상태·결과 hero. 오너 2026-10-17. 자산 identity SVG 유지. `outputs/wallet-icon-guide.md` |
+| 하단 자산 탭 아이콘 | Solar home (선택 시 Bold). 오너 2026-10-17 |
+| 실패 결과 "다시 보내기" | 둔다. 같은 주소·금액으로 S22 검토를 다시 열고 Face ID까지 처음부터 거친다. 자동 전송 없음. 오너 2026-10-17 |
+| 내역 행 둘째 줄 | 자산 이름 + 시각 유지. 짧은 상대 주소는 목록에 쓰지 않는다(주소 오염 위험). 오너 2026-10-17 |
+| 되돌릴 수 없는 일을 묻는 sheet | 안전한 쪽("취소")이 Primary, 실행 쪽은 danger 글자 Secondary. 모든 sheet 공통. 오너 2026-10-17 |
 
 ### 9.4 순서
 1. Figma 정리(페이지·섹션·Foundation 페이지) 완료 뒤 Foundation 변경.
