@@ -1,8 +1,10 @@
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { View } from 'react-native'
 import { Redirect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
+import { demoTx } from '@/entities/transaction/fixtures'
+import type { TxState } from '@/features/send'
 import { resultCopy, txView, useTrackedTx } from '@/features/send'
 import { showAmount } from '@/shared/lib/amount'
 import { useTheme } from '@/shared/theme'
@@ -17,7 +19,11 @@ export function SendResultPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { tx, checking, recheck } = useTrackedTx()
+  const { demo } = useLocalSearchParams<{ demo?: string }>()
+  const tracked = useTrackedTx()
+  const { checking, recheck } = tracked
+  // `?demo=<state>` is a __DEV__ capture override: a synthetic send in that state.
+  const tx = __DEV__ && demo ? demoTx(demo as TxState) : tracked.tx
   if (!tx) return <Redirect href="/home" />
   const copy = resultCopy(tx.state)
   const unknown = tx.state === 'Unknown'
@@ -25,6 +31,7 @@ export function SendResultPage() {
   return (
     <Screen
       edges={['top', 'bottom']}
+      gap="none"
       footer={
         <View style={{ gap: th.semantic.layout.fieldGap }}>
           {unknown ? <Button label={t('result.recheck')} busy={checking} onPress={() => void recheck()} /> : <Button label={t('result.history')} onPress={toHistory} />}

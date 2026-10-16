@@ -28,3 +28,12 @@ it('keeps burn and tokenContract risk instead of dropping it', async () => {
   expect(r.previous).toBeNull()
   expect(resolveReview(undefined, undefined, true).risk).toBe('lookalike')
 })
+it('total max = amount + fee cap, next to the estimated total (amount + fee)', () => {
+  const r = resolveReview(undefined, '0.05')
+  expect(r.total).toBe('0.050042 ETH')
+  expect(r.totalMax).toBe('0.0500735 ETH')
+})
+it('token contract recipient keeps its risk for the confirm sheet', async () => {
+  const { ASSETS } = await import('@vaultme/wallet-core')
+  expect(resolveReview(ASSETS.USDC.address).risk).toBe('tokenContract')
+})

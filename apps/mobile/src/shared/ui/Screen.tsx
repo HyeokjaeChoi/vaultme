@@ -10,8 +10,8 @@ type Props = {
   header?: ReactNode
   footer?: ReactNode
   edges?: ('top' | 'bottom')[]
-  /** `section` = layout.sectionGap.product (24, default). `group` = layout.groupGap (16), used by frame S10N. `row` = layout.rowGap (12), used by S40. */
-  gap?: 'section' | 'group' | 'row'
+  /** `section` = layout.sectionGap.product (24, default). `group` = layout.groupGap (16), used by frame S10N. `row` = layout.rowGap (12), used by S40. `none` = 0: Redesign B blocks carry their own padding (Section header, Action row, Detail row), so the screen adds no gap. */
+  gap?: 'section' | 'group' | 'row' | 'none'
   /** Space between the header and the first block. `field` = 8 (default), `group` = 16 (frame S20B). */
   topGap?: 'field' | 'group'
 }
@@ -40,7 +40,7 @@ export function Screen({ children, header, footer, edges = ['top', 'bottom'], ga
           paddingHorizontal: l.screen.padding,
           paddingTop: topGap === 'group' ? l.groupGap : t.primitive.space[2],
           paddingBottom: t.primitive.space[2],
-          gap: gap === 'group' ? l.groupGap : gap === 'row' ? l.rowGap : l.sectionGap.product,
+          gap: gap === 'none' ? 0 : gap === 'group' ? l.groupGap : gap === 'row' ? l.rowGap : l.sectionGap.product,
           flexGrow: 1,
         }}
       >

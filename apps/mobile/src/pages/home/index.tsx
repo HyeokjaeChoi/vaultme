@@ -1,8 +1,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
+import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { assets } from '@/entities/asset/fixtures'
+import { demoTx } from '@/entities/transaction/fixtures'
 import { useBackupDone } from '@/features/backup'
 import { useLiveBalances } from '@/features/balances'
 import { useRestored } from '@/features/restore'
@@ -24,26 +26,29 @@ export function HomePage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { variant } = useLocalSearchParams<{ variant?: string }>()
+  const { variant, sheet } = useLocalSearchParams<{ variant?: string; sheet?: string }>()
   const backedUp = useBackupDone()
   const pending = usePendingTx()
   const live = useLiveBalances()
-  const [blockSheet, setBlockSheet] = useState(false)
-  const restored = useRestored() || (__DEV__ && variant === 'restored')
+  const [blockSheet, setBlockSheet] = useState(__DEV__ && sheet === '1')
+  const restored = useRestored() || (__DEV__ && (variant === 'restored' || variant === 'pending'))
   const balanceOf = (symbol: (typeof assets)[number]['symbol'], fixture: string) => (chain.broadcasts ? (live?.[symbol] ?? '—') : restored ? fixture : '0')
-  const inProgress = pending.blocked && pending.tx ? pending.tx : null
+  // `?variant=pending` is a __DEV__ capture override: a synthetic Pending send.
+  const shownTx = __DEV__ && variant === 'pending' ? demoTx('Pending') : pending.tx
+  const blocked = shownTx !== pending.tx || pending.blocked
+  const inProgress = blocked && shownTx ? shownTx : null
   return (
-    <Screen edges={['top']}>
+    <Screen edges={['top']} gap="none">
       <ProductHeader title={account.name} subtitle={account.network} detailsLabel={t('home.details')} />
       <PortfolioBalance label={t('home.testnetLabel')} value={`${balanceOf('ETH', assets[0].balance)} ETH`} note={t('home.priceNote')} />
       <ActionRow
-        primary={{ label: t('home.send'), icon: 'send', onPress: () => (pending.blocked ? setBlockSheet(true) : router.push('/send')) }}
+        primary={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setBlockSheet(true) : router.push('/send')) }}
         secondary={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
       />
       <TestDataNotice />
       {!restored && !backedUp ? <StatusNotice tone="warning" title={t('home.backupTitle')} body={t('home.backupBody')} link={{ label: t('home.backupCta'), onPress: () => router.push('/backup') }} /> : null}
       {inProgress ? (
-        <>
+        <View>
           <SectionHeader title={t('home.inProgress')} />
           <ActivityRow
             title={t('home.sendingTitle')}
@@ -55,12 +60,14 @@ export function HomePage() {
             statusLabel={t('activity.pending')}
             onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: inProgress.hash } })}
           />
-        </>
+        </View>
       ) : null}
-      <SectionHeader title={t('home.assets')} />
-      {assets.map((a) => (
-        <AssetRow key={a.symbol} name={a.name} symbol={a.symbol} balance={balanceOf(a.symbol, a.balance)} note={t('home.noQuote')} />
-      ))}
+      <View>
+        <SectionHeader title={t('home.assets')} />
+        {assets.map((a) => (
+          <AssetRow key={a.symbol} name={a.name} symbol={a.symbol} balance={balanceOf(a.symbol, a.balance)} note={t('home.noQuote')} />
+        ))}
+      </View>
       <BottomSheet
         visible={blockSheet}
         onClose={() => setBlockSheet(false)}
@@ -72,7 +79,7 @@ export function HomePage() {
               label={t('send.pendingBlock.view')}
               onPress={() => {
                 setBlockSheet(false)
-                router.push(pending.tx ? { pathname: '/activity/[hash]', params: { hash: pending.tx.hash } } : '/activity')
+                router.push(shownTx ? { pathname: '/activity/[hash]', params: { hash: shownTx.hash } } : '/activity')
               }}
             />
           </>

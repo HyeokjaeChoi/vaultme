@@ -1,4 +1,5 @@
 import type { ActivityStatus } from '@/shared/ui'
+import type { PendingTx } from '@/shared/storage'
 
 type Tx = { id: string; kind: 'send' | 'receive'; asset: string; amount: string; detail: string; when: 'today' | 'oct12' | 'oct11'; time: string; status: ActivityStatus }
 
@@ -27,3 +28,16 @@ export const recents = [
   { address: review.recipient, label: 'activity.oct12' },
   { address: '0x4E21Ab7c9d03F5e86B1a2c4d7e90F3B5a6D8C90f', label: 'send.account2' },
 ] as const
+
+/** __DEV__ design-capture only (`?variant=pending` on Home, `?demo=<state>` on the result screen): a synthetic send in the given state. Never written to kv. */
+export const demoTx = (state: PendingTx['state']): PendingTx => ({
+  hash: '0xa1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90',
+  nonce: 0,
+  asset: 'ETH',
+  to: review.recipient,
+  amount: '0.05',
+  createdAt: Date.now(),
+  lastCheckedAt: Date.now(),
+  fee: '0.000042',
+  state,
+})
