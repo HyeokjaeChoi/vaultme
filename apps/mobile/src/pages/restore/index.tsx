@@ -81,7 +81,7 @@ export function RestorePage({ initial = '' }: { initial?: string }) {
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/')} />}
       footer={<Button label={t('restore.submit')} disabled={!state.ready || !!issue} busy={busy} onPress={() => void submit()} />}
     >
-      <Text variant="title" accessibilityRole="header">{t('restore.title')}</Text>
+      <Text variant="title1" accessibilityRole="header">{t('restore.title')}</Text>
       <Input
         label={t('restore.label')}
         value={text}

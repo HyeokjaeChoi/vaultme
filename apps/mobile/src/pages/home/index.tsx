@@ -27,7 +27,7 @@ export function HomePage() {
   return (
     <Screen edges={['top']}>
       <ProductHeader title={account.name} subtitle={account.network} detailsLabel={t('home.details')} />
-      <PortfolioBalance label={t('home.totalLabel')} value={t('home.unavailable')} note={t('home.unavailableNote')} />
+      <PortfolioBalance unavailable label={t('home.totalLabel')} value={t('home.unavailable')} note={t('home.unavailableNote')} />
       <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
         <Button label={t('home.send')} style={{ flex: 1 }} onPress={() => (pending.blocked ? setBlockSheet(true) : router.push('/send'))} />
         <Button label={t('home.receive')} variant="secondary" style={{ flex: 1 }} onPress={() => router.push('/receive')} />

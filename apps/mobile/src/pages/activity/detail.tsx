@@ -48,7 +48,7 @@ export function TxDetailPage() {
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>
         <StatusLabel state={view.status} label={t(view.label)} />
-        <Text variant="title" accessibilityRole="header">{t('detail.title')}</Text>
+        <Text variant="title1" accessibilityRole="header">{t('detail.title')}</Text>
       </View>
       <Group>
         <SummaryRow label={t('detail.sender')} value={account.name} />

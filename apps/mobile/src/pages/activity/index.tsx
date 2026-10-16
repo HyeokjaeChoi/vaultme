@@ -128,7 +128,7 @@ export function ActivityPage() {
   const { t } = useTranslation()
   return (
     <Screen edges={['top']}>
-      <Text variant="title" accessibilityRole="header">{t('activity.title')}</Text>
+      <Text variant="title1" accessibilityRole="header">{t('activity.title')}</Text>
       {chain.broadcasts ? <RealHistory /> : <FakeHistory />}
     </Screen>
   )

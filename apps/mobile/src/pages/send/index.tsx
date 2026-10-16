@@ -21,7 +21,7 @@ export function SendPage() {
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
       footer={<Button label={t('send.next')} disabled={!valid} onPress={() => router.push({ pathname: '/send/amount', params: { to } })} />}
     >
-      <Text variant="title" accessibilityRole="header">{t('send.recipientQuestion')}</Text>
+      <Text variant="title1" accessibilityRole="header">{t('send.recipientQuestion')}</Text>
       <View style={{ gap: th.semantic.layout.fieldGap }}>
         <RecipientField label={t('send.recipientLabel')} value={to} onChangeText={setTo} placeholder={t('send.recipientPlaceholder')} helper={valid ? t('send.recipientHint') : t('send.recipientHelper')} />
         <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
@@ -30,7 +30,7 @@ export function SendPage() {
         </View>
       </View>
       <View style={{ gap: th.semantic.layout.rowGap }}>
-        <Text variant="section" accessibilityRole="header">{t('send.recent')}</Text>
+        <Text variant="title2" accessibilityRole="header">{t('send.recent')}</Text>
         <Group inset={false}>
           {recents.map((r) => (
             <ListItem key={r.address} mono title={shortAddress(r.address)} trailing={{ kind: 'value', text: t(r.label) }} onPress={() => setTo(r.address)} />

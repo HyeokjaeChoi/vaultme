@@ -45,7 +45,7 @@ export function BackupCheckPage({ demo = false }: { demo?: boolean }) {
       footer={<Button label={t('backup.check.confirm')} disabled={!filled} onPress={confirm} />}
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>
-        <Text variant="title" accessibilityRole="header">{t('backup.check.title')}</Text>
+        <Text variant="title1" accessibilityRole="header">{t('backup.check.title')}</Text>
         <Text variant="body" color={th.semantic.text.secondary}>{t('backup.check.body')}</Text>
       </View>
       <View style={{ gap: th.semantic.layout.groupGap }}>

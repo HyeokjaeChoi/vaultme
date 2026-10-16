@@ -77,7 +77,7 @@ export function BackupPage({ demo = false }: { demo?: boolean }) {
       footer={<Button label={t('backup.done')} disabled={!words} onPress={done} />}
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>
-        <Text variant="title" accessibilityRole="header">{t('backup.title')}</Text>
+        <Text variant="title1" accessibilityRole="header">{t('backup.title')}</Text>
         <Text variant="body" color={th.semantic.text.secondary}>{t('backup.body')}</Text>
       </View>
       <SensitiveReveal words={words} onReveal={() => void reveal()} hint={t('backup.revealHint')} busy={load === 'busy'} />

@@ -32,7 +32,7 @@ export function SendResultPage() {
     >
       <View style={{ gap }}>
         <StatusLabel state={view.status} label={t(view.label)} />
-        <Text variant="title" accessibilityRole="header">{t(copy.title)}</Text>
+        <Text variant="title1" accessibilityRole="header">{t(copy.title)}</Text>
         <Text variant="body" color={th.semantic.text.secondary}>{t(copy.body)}</Text>
       </View>
       <Group>

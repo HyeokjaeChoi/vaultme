@@ -14,7 +14,7 @@ function Navigator() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: th.semantic.surface.canvas },
+        contentStyle: { backgroundColor: th.component.screenB.bg },
       }}
     >
       <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />

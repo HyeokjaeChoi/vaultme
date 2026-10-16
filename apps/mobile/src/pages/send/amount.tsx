@@ -37,12 +37,12 @@ export function SendAmountPage() {
               <SummaryRow label={t('send.recipientLabel')} value={shortAddress(to)} mono editLabel={t('common.edit')} onEdit={() => router.dismissTo({ pathname: '/send', params: { to } })} />
             </Group>
           </Animated.View>
-          <Text variant="title" accessibilityRole="header">{t('send.amountQuestion')}</Text>
+          <Text variant="title1" accessibilityRole="header">{t('send.amountQuestion')}</Text>
         </View>
         <View style={{ alignItems: 'center', gap }}>
           <View accessible accessibilityLabel={`${amount} ETH`} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'center', gap }}>
-            <Text variant="amountHero">{amount}</Text>
-            <Text variant="title" color={th.semantic.text.secondary}>ETH</Text>
+            <Text variant="displayL">{amount}</Text>
+            <Text variant="title1" color={th.semantic.text.secondary}>ETH</Text>
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap }}>
             <Text variant="body" style={{ textAlign: 'center' }} color={th.semantic.text.secondary}>{`${t('send.maxSendable')} ${available} ETH`}</Text>

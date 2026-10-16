@@ -27,7 +27,7 @@ export function UpdateRequiredPage() {
         <View style={{ width: mark, height: mark, borderRadius: th.primitive.radius.xl, backgroundColor: th.semantic.brand.primary, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="backup" size={th.primitive.size.icon_xl} color={th.semantic.text.onBrand} />
         </View>
-        <Text variant="display" accessibilityRole="header" style={{ textAlign: 'center' }}>{t('updateRequired.title')}</Text>
+        <Text variant="displayL" accessibilityRole="header" style={{ textAlign: 'center' }}>{t('updateRequired.title')}</Text>
         <Text variant="body" color={th.semantic.text.secondary} style={{ textAlign: 'center' }}>{t('updateRequired.body')}</Text>
       </View>
     </Screen>

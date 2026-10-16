@@ -1,22 +1,30 @@
-// Per-weight subpath imports: the package root would bundle all 18 weights.
-import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular'
-import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium'
-import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold'
-import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold'
-import { IBMPlexMono_400Regular } from '@expo-google-fonts/ibm-plex-mono/400Regular'
+import { IBMPlexMono_400Regular } from '@expo-google-fonts/ibm-plex-mono/400Regular' // per-weight subpath: the package root would bundle all weights
 import { IBMPlexMono_500Medium } from '@expo-google-fonts/ibm-plex-mono/500Medium'
 
-/** Passed to expo-font `useFonts`. Foundation: Inter 400/500/600/700, IBM Plex Mono 400/500. */
-export const fontAssets = { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, IBMPlexMono_400Regular, IBMPlexMono_500Medium }
+import PretendardRegular from 'pretendard/dist/public/static/Pretendard-Regular.otf'
+import PretendardMedium from 'pretendard/dist/public/static/Pretendard-Medium.otf'
+import PretendardSemiBold from 'pretendard/dist/public/static/Pretendard-SemiBold.otf'
 
-const INTER = { '400': 'Inter_400Regular', '500': 'Inter_500Medium', '600': 'Inter_600SemiBold', '700': 'Inter_700Bold' } as const
+/** Passed to expo-font `useFonts`. Redesign B: Pretendard 400/500/600 (OFL-1.1, no 700), IBM Plex Mono 400/500. */
+export const fontAssets = {
+  Pretendard_400Regular: PretendardRegular,
+  Pretendard_500Medium: PretendardMedium,
+  Pretendard_600SemiBold: PretendardSemiBold,
+  IBMPlexMono_400Regular,
+  IBMPlexMono_500Medium,
+}
+
+const PRETENDARD = { '400': 'Pretendard_400Regular', '500': 'Pretendard_500Medium', '600': 'Pretendard_600SemiBold' } as const
 const MONO = { '400': 'IBMPlexMono_400Regular', '500': 'IBMPlexMono_500Medium' } as const
 
 type Typo = { fontFamily: string; fontWeight: string; fontSize: number; lineHeight: number; letterSpacing: number }
 
-/** Custom fonts have one file per weight, so the weight is part of fontFamily (no fontWeight). */
+/** Custom fonts have one file per weight, so the weight is part of fontFamily (no fontWeight). Weights outside 400-600 clamp (Pretendard 700 is not shipped). Digits are tabular for amounts. */
 export function textStyle({ fontFamily, fontWeight, fontSize, lineHeight, letterSpacing }: Typo) {
   const w = Number(fontWeight)
-  const family = fontFamily === 'IBM Plex Mono' ? MONO[w >= 500 ? '500' : '400'] : INTER[String(Math.min(Math.max(Math.round(w / 100) * 100, 400), 700)) as keyof typeof INTER]
+  const mono = fontFamily === 'IBM Plex Mono'
+  const family = mono ? MONO[w >= 500 ? '500' : '400'] : PRETENDARD[String(Math.min(Math.max(Math.round(w / 100) * 100, 400), 600)) as keyof typeof PRETENDARD]
   return { fontFamily: family, fontSize, lineHeight, letterSpacing }
 }
+
+export const TABULAR = { fontVariant: ['tabular-nums' as const] }

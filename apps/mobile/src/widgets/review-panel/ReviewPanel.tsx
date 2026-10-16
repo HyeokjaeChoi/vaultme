@@ -23,9 +23,9 @@ export function ReviewPanel({ values, checkedAt, onRecalc, onEditRecipient, onEd
   return (
     <>
       <View style={{ gap: th.semantic.layout.sectionGap.product }}>
-        <Text variant="title" accessibilityRole="header">{t('review.title')}</Text>
+        <Text variant="title1" accessibilityRole="header">{t('review.title')}</Text>
         <View style={{ gap: th.semantic.layout.fieldGap }}>
-          <Text variant="amountHero">{values.amount}</Text>
+          <Text variant="displayL">{values.amount}</Text>
           <Text variant="body" color={th.semantic.text.secondary}>{t('review.scope', { network: account.network, account: account.name })}</Text>
         </View>
       </View>

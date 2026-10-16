@@ -4,10 +4,10 @@ import { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming 
 // DESIGN motion (emil-design-eng): strong ease-out for UI. No tokens exist for these values yet.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
 const PRESS_SCALE = 0.97
-const PRESS_MS = 160
+const PRESS_MS = 100
 const FOLD_MS = 200
 
-/** Press feedback: scale 0.97 over 160 ms ease-out. Off under Reduce Motion (the pressed color still shows). Spread `handlers` on the Pressable, `style` on its Animated.View wrapper. */
+/** Press feedback: scale 0.97 over 100 ms ease-out. Off under Reduce Motion (the pressed color still shows). Spread `handlers` on the Pressable, `style` on its Animated.View wrapper. */
 export function usePressScale() {
   const reduce = useReducedMotion()
   const scale = useSharedValue(1)

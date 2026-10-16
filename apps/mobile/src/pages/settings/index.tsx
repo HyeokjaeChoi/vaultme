@@ -15,7 +15,7 @@ export function SettingsPage() {
   )
   return (
     <Screen edges={['top']}>
-      <Text variant="title" accessibilityRole="header">{t('settings.title')}</Text>
+      <Text variant="title1" accessibilityRole="header">{t('settings.title')}</Text>
       <Group inset={false}>
         <ListItem title={t('settings.phrase')} trailing={{ kind: 'disclosure' }} />
         {toggle(t('settings.push'), push, setPush)}

@@ -29,7 +29,7 @@ export function PrecheckPage() {
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/')} />}
       footer={<Button label={t('precheck.cta')} busy={busy} onPress={() => void create()} />}
     >
-      <Text variant="title" accessibilityRole="header">{t('precheck.title')}</Text>
+      <Text variant="title1" accessibilityRole="header">{t('precheck.title')}</Text>
       <StatusNotice tone="warning" title={t('precheck.lose.title')} body={t('precheck.lose.body')} />
       <StatusNotice tone="info" title={t('precheck.scam.title')} body={t('precheck.scam.body')} />
       <StatusNotice tone="info" title={t('precheck.testnet.title')} body={t('precheck.testnet.body')} />

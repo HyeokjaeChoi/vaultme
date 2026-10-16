@@ -31,7 +31,7 @@ export function ReceivePage() {
   if (!done && !demo) {
     return (
       <Screen header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}>
-        <Text variant="title" accessibilityRole="header">{t('receive.title')}</Text>
+        <Text variant="title1" accessibilityRole="header">{t('receive.title')}</Text>
         <BackupStatus title={t('home.backupTitle')} body={t('home.backupBody')} cta={t('home.backupCta')} onPress={() => router.push('/backup')} />
       </Screen>
     )
@@ -46,7 +46,7 @@ export function ReceivePage() {
         </View>
       }
     >
-      <Text variant="title" accessibilityRole="header">{t('receive.title')}</Text>
+      <Text variant="title1" accessibilityRole="header">{t('receive.title')}</Text>
       <View style={{ alignItems: 'center' }}>
         <PlaceholderQr note={t('receive.qrNote')} />
       </View>

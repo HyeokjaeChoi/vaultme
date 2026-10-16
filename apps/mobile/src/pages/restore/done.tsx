@@ -21,7 +21,7 @@ export function RestoreDonePage({ demo = false }: { demo?: boolean }) {
   if (!address) return <Redirect href="/" />
   return (
     <Screen footer={<Button label={t('restore.open')} onPress={() => router.replace('/home')} />}>
-      <Text variant="title" accessibilityRole="header">{t('restore.done.title')}</Text>
+      <Text variant="title1" accessibilityRole="header">{t('restore.done.title')}</Text>
       <AddressBlock
         address={address}
         label={t('restore.done.addressLabel')}

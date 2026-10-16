@@ -59,7 +59,7 @@ export function LockPage({ onUnlock }: { onUnlock: () => void }) {
         <View style={{ width: mark, height: mark, borderRadius: th.primitive.radius.xl, backgroundColor: th.semantic.brand.primary, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="backup" size={th.primitive.size.icon_xl} color={th.semantic.text.onBrand} />
         </View>
-        <Text variant="display" accessibilityRole="header">{t('lock.title')}</Text>
+        <Text variant="displayL" accessibilityRole="header">{t('lock.title')}</Text>
         {method ? <Text variant="body" color={th.semantic.text.secondary} style={{ textAlign: 'center' }}>{t(`lock.body.${BODY[method as keyof typeof BODY] ?? 'passcode'}`)}</Text> : null}
       </View>
     </Screen>
