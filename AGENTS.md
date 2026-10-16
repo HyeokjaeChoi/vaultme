@@ -39,6 +39,8 @@ These rules exist because of `docs/retro/2026-10-13-design-system-not-applied.md
 3. App code uses `@vaultme/tokens` for every color, spacing, radius and type value. Screens use the product scale (24/16/12/8, screen padding 16). `sectionGap.mobile` and `sectionGap.desktop` are landing-page values and are banned in app code. `scripts/check-repo-rules.sh` enforces this.
 4. A UI change is not done without an app-vs-Figma comparison image pair for each changed screen (light, plus one dark). The main agent reviews the pairs itself. Passing typecheck, lint and tests does not prove a UI change.
 5. When delegating UI work, the instructions must name the Figma node IDs, require these skills, and require the comparison pairs. "Figma screenshot optional" is not allowed.
+6. Figma is the single source of truth (SSOT) for app screens. The app implements only the screens, states, components and copy that exist in Figma. If the app and Figma differ, change the app to match Figma. If the app needs a change, update the Figma frame first (owner-approved), then the app.
+7. Do not build a screen, state or feature that has no Figma frame. When such a request arrives, start with a design and feature grilling session with the owner: question the goal, scope, states, edge cases, copy and safety. Then draw the Figma frames, get owner approval, and only then write code.
 
 # VaultMe Foundation contract
 
