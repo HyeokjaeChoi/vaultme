@@ -180,3 +180,38 @@ Figma `14 Redesign B`. audit 모든 count 0. Library publish 없음, 기존 mast
 - Product B 텍스트 스타일 10개 Pretendard로 교체. tnum 켬 (Type details → Numbers → Style "Monospace uppercase/lining"), 2차 publish 50개. 앱 코드도 `tabular-nums`.
 - Library publish 완료: 57개 변경 (`work/v7/verification/publication-proof.json`).
 - 남은 것: 구독 파일 업데이트·override 유지 확인 (C23 포함), 페이지 14 section 겹침 정리, 페이지 12 200% 기존 override 겹침 (기록만).
+
+## 9. 품질 재검수와 그릴링 (2026-10-17)
+
+### 9.1 검수
+- 리뷰: Staff Product Designer + YC founder 관점. 보고서 `work/review/pd-review-2026-10-17.md`.
+- 결론: 앱은 Figma와 같다. 원인은 Figma 디자인과 Foundation이다. 화면 그룹 점수 3–6/10, native audit 13/20.
+- 앞선 비교 쌍 검수는 Figma와 같은지만 봤다. 제품 품질은 보지 않았다. 이번부터 품질 검수를 따로 한다.
+
+### 9.2 Foundation 결정 (오너 "싹다" 승인)
+1. 한글 타이포 재조정: 모든 크기 음수 자간. 큰 숫자(잔액·금액)만 700. 단위는 숫자와 분리.
+2. 회색 구획 띠: 검토·결과·거래 상세·설정에만 12px `surface/canvas` 띠. 홈·내역은 흰색 유지. border·shadow 없음.
+3. 알림 2단계: Banner(막는 상황, tint `status/*/subtle`, radius 16, padding 16)와 Inline(도움말 1줄). 꺼진 Primary는 `neutral.100` 배경 + `text/disabled`.
+4. 로고 마크와 브랜드 화면: 시작·잠금·업데이트는 가운데 정렬 브랜드 화면.
+
+### 9.3 기능 결정 (그릴링, 오너)
+| 항목 | 결정 |
+|---|---|
+| 받기 QR | 실제 QR 생성 + CI에서 해독해 주소와 비교. "임시 QR" 문구 삭제 |
+| 홈 최근 내역 | 자산 아래 3개 + "전체 보기". 내역 없으면 숨김. 진행 중 거래가 맨 위 |
+| 테스트넷·테스트 데이터 | 상단 칩으로 항상 표시. 누르면 설명 sheet. 첫 실행 때 sheet 1회 |
+| 확인 체크박스 | S02 3개, 복구 구문 화면 1개. 모두 체크해야 버튼이 켜짐 |
+| 결과 진행 표시 | 보냄 → 블록 포함 → 확정 (Pending, Included, Confirmed). Unknown·Replaced·Failed는 따로 |
+| 검토 위험 버튼 | 위험이 있으면 회색 "위험 확인하기" → 위험 sheet. 확인 뒤에만 파란 "확인하고 보내기" |
+| 최근 보낸 주소 | 받는 주소 아래 최대 3개. 이 기기 내역에서만. 전체 주소 4글자 묶음. 비슷한 주소 검사 유지 |
+| 잠금 | 화면이 뜨면 Face ID 바로 시작. 취소하면 "잠금 해제" 버튼 |
+| Haptics·모션 | 자판·칩, 복사, 위험 sheet, 확정, 실패. 움직임 줄이기 설정에서는 모션 빼고 haptics만 |
+| 설정 | 맨 위 계정 블록(이름·짧은 주소·복사). 보안 / 알림 / 정보 그룹, 행마다 아이콘 |
+| 복구 구문 보기 | 탭해서 보기 유지. 가려진 상태는 흐림 처리. 앱을 벗어나면 다시 가림 |
+| 자산 상세 | 고유 정보 추가: 네트워크, 컨트랙트 주소(USDC), 이 자산의 내역만 |
+| 빈 내역 | 받기 아이콘 + Primary "받기 주소 보기" |
+
+### 9.4 순서
+1. Figma 정리(페이지·섹션·Foundation 페이지) 완료 뒤 Foundation 변경.
+2. Figma 화면: 검토, 결과, 내역 행, 받기, 홈, 시작·잠금·업데이트, 설정, 온보딩.
+3. 코드는 Figma를 따른다. 비교 쌍 + 품질 검수(별도 리뷰어)를 둘 다 통과해야 끝.
