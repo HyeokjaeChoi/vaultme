@@ -234,3 +234,24 @@ Icons의 390 px Assets/Send Review는 실제 browser에서 logo load, wallet Rev
 | 주소·hash | 번역하지 않음. 전체 문자열과 순서 보존 |
 
 Localized product를 만들 때 입력 허용 문자, locale fallback, 통화 위치, 화면 copy, 오류 copy, `lang`/`dir`, font glyph를 함께 확정하고 검사한다. 현재 Prototype의 mixed-language stress는 그 검사의 대체물이 아니다.
+
+## Redesign B 1차 추가 component (2026-10-17)
+
+Figma `Components · Redesign B` (398:77). 모두 새 component다. 기존 master ID와 property는 그대로다.
+
+| Component | Node | 계약 |
+| --- | --- | --- |
+| B/Section band | 494:341 | 12 px 회색 띠 (`sectionBand/height`, `sectionBand/bg`). 검토·결과·거래 상세·설정에서만. 홈·내역은 쓰지 않음 |
+| B/Block header | 494:342 | 띠로 나뉜 블록의 Label 제목 (`text/tertiary`) + 선택 링크 ("수정", "자세히", "거래 상세"). 코드에서 링크 hit area 44 px |
+| B/Status chip | 494:1067 | Tone=Testnet / Test data / Network. 정직 표시 칩. 버튼이 아님. 테스트넷 칩은 지갑 화면마다 보임 |
+| B/Address | 494:1090 | Size=M (16/24) / L (18/28). 전체 주소 10묶음. 첫 묶음(0x+4)과 끝 묶음은 strong + `text/primary`, 가운데는 `text/secondary`. 비슷한 주소의 다른 묶음은 `Product B/Address M diff` + `status/danger/fg` (밑줄, 색만으로 구분하지 않음) |
+| B/Amount hero | 494:1142 | Kind=Review (자산 로고 48, Figure + Figure unit, 문장) / Result (로고 56 + B/Row badge, Title 2, Figure, 문장, 가운데 정렬). Asset은 INSTANCE_SWAP |
+| B/Progress steps | 494:1176 | Step=Sent / Included / Confirmed. 끝난 단계 `status/success`, 지금 단계 `status/warning`, 남은 단계 `border/default`. Unknown·Replaced·Failed에는 쓰지 않음 |
+| B/Row badge (추가 Kind) | 494:326, 494:331, 494:336 | Kind=Confirmed / Unknown / Replaced. 기존 Sent/Received/Pending/Failed와 같은 구조 |
+
+같이 바꾼 것 (추가만):
+- B/Row `Leading=Asset badge` 변형의 Title·Subtitle·Value·Sub value 글자를 기존 text property에 연결했다. 전에는 연결이 없었다.
+- B/Notice inline `Tier=Banner` 변형의 Message·Link를 기존 property에 연결했다.
+- B/Amount display: Amount는 `Product B/Figure`, Ticker는 `Product B/Figure unit`, 기준선 정렬.
+- 새 text style: `Product B/Address M`, `Address M strong`, `Address M diff`, `Address L`, `Address L strong` (IBM Plex Mono 400/600). Token JSON에는 아직 없다.
+- 받기 QR은 component가 아니다. S30 프레임 안 `QR code`(29×29 모듈, 4 모듈 여백, `color/neutral/0` 판 + `color/neutral/950` 모듈, 두 모드 모두 밝은 판)이다. 내보낸 PNG를 jsQR 1.4.0으로 해독해 주소와 같음을 확인했다 (`work/v9/qr-decode-proof.json`).
