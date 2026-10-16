@@ -210,6 +210,7 @@ Figma `14 Redesign B`. audit 모든 count 0. Library publish 없음, 기존 mast
 | 복구 구문 보기 | 탭해서 보기 유지. 가려진 상태는 흐림 처리. 앱을 벗어나면 다시 가림 |
 | 자산 상세 | 고유 정보 추가: 네트워크, 컨트랙트 주소(USDC), 이 자산의 내역만 |
 | 빈 내역 | 받기 아이콘 + Primary "받기 주소 보기" |
+| Icon set | Solar (Linear/Bold/Bold Duotone). Linear = 기본 UI, Bold = 선택 탭·상태 badge·활성, Bold Duotone = 빈 상태·결과 hero. 오너 2026-10-17. 자산 identity SVG 유지. `outputs/wallet-icon-guide.md` |
 
 ### 9.4 순서
 1. Figma 정리(페이지·섹션·Foundation 페이지) 완료 뒤 Foundation 변경.

@@ -1,13 +1,83 @@
 # VaultMe Icons 사용 안내
 
-상태: 현행 Icon 계약 · 문서 갱신: 2026-10-04
+상태: 현행 Icon 계약 · 문서 갱신: 2026-10-17
 
-범위: Phosphor regular·identity·foreground·접근성·license
+범위: Solar(Linear·Bold·Bold Duotone)·identity·foreground·접근성·license
 
 [문서 홈](README.md) · [현재 release](vaultme-release.json) · [변경 이력](vaultme-v2-change-log.md)
 
 
-**Icon은 목록을 빠르게 읽게 한다. 결정에 필요한 글자는 유지한다.** 기능 icon은 Phosphor regular다. 자산 identity는 별도 원본 color SVG다. [Catalog](wallet-icon-catalog.html)에서 실제 모양과 출처를 확인한다.
+**Icon은 목록을 빠르게 읽게 한다. 결정에 필요한 글자는 유지한다.** 기능 icon은 Solar다(오너 결정 2026-10-17, Phosphor 대체). 자산 identity는 별도 원본 color SVG다. [Catalog](wallet-icon-catalog.html)에서 실제 모양과 출처를 확인한다.
+
+## 0. Solar 스타일 (오너 결정 2026-10-17)
+
+| 스타일 | 용도 | Figma 이름 규칙 | 크기 |
+| --- | --- | --- | --- |
+| Linear | 기본 UI. 행동·내비게이션 기본·상태 기본 | `Icon / <role> / <name>` (기존 master ID·이름 유지) | 기존 크기 유지(대부분 20, `qr`·`more` 24) |
+| Bold | 선택된 탭, 상태 badge, 활성 상태 | `Icon / <role> / <name> / bold`, B/Row badge | 20 (badge 글리프 18 안 15) |
+| Bold Duotone | 빈 상태·결과 hero | `Icon / hero / <name>` | 48 |
+
+- Duotone 보조 층은 같은 역할 색 변수를 50% 투명도로 쓴다. raw hex는 없다.
+- Bold는 Linear를 대신하지 않는다. 같은 화면에서 선택 표시(탭 active)나 상태 badge에만 쓴다.
+- Linear와 Bold는 같은 `icon.*` alias를 쓴다. Linear 원본 stroke는 Figma에서 윤곽선(fill)으로 변환했다. 그래서 master 색은 fill 하나에 연결된다(INSTANCE_SWAP 규칙 13 유지).
+- 자산 identity SVG(ETH, USDC)는 그대로다. Solar가 아니다.
+
+### 0.1 매핑 (Phosphor → Solar Linear)
+
+| Figma master (ID) | Solar 이름 | 비고 |
+| --- | --- | --- |
+| `Icon / action / send` 137:6 | `arrow-right-up` | |
+| `Icon / action / receive` 137:24 | `arrow-left-down` | |
+| `Icon / account` 137:41 | `wallet` | |
+| `Icon / status / pending` 137:58 | `clock-circle` | Bold 추가 |
+| `Icon / status / confirmed` 137:75 | `check-circle` | Bold 추가 |
+| `Icon / status / warning` 137:92 | `danger-triangle` | Bold 추가 |
+| `Icon / status / failed` 137:110 | `close-circle` | Bold 추가 |
+| `Icon / status / unknown` 137:127 | `question-circle` | Bold 추가 |
+| `Icon / action / copy` 137:144 | `copy` | |
+| `Icon / navigation / back` 137:161 | `arrow-left` | |
+| `Icon / status / loading` 137:178 | `restart` | |
+| `Icon / navigation / forward` 137:196 | `arrow-right` | |
+| `Icon / status / info` 137:213 | `info-circle` | Bold 추가 |
+| `Icon / selection / checked` 137:230 | `check` | |
+| `Icon / navigation / disclosure` 137:247 | `alt-arrow-right` | chevron |
+| `Icon / action / close` 137:264 | `close` | |
+| `Icon / navigation / settings` 137:282 | `settings` | Bold 추가 |
+| `Icon / navigation / activity` 137:299 | `list` | Bold 추가 |
+| `Icon / action / connection` 137:316 | `link-round` | |
+| `Icon / asset / fallback` 137:333 | `dollar-minimalistic` | 자산 identity 없음 fallback |
+| `Icon / action / refresh` 137:350 | `refresh` | |
+| `Icon / action / request` 137:368 | `hand-money` | |
+| `Icon / account / backup` 137:385 | `shield-check` | |
+| `Icon / action / backspace` 330:2747 | `backspace` | |
+| `Icon / action / qr` 434:230 | `qr-code` | 24 |
+| `Icon / action / more` 434:235 | `menu-dots` | 24 |
+| 새 `Icon / navigation / assets` 506:24468 | `home-2` | 기존 Assets 탭은 wallet(`Icon / account`)을 썼다. 오너 매핑(home/assets)에 따라 home으로 바꿨다 |
+
+아직 Figma master가 없는 후보(코드에서 필요하면 같은 규칙으로 추가): `share`(share), `external`(`square-arrow-right-up`), `eye`/`eye-closed`, `bell`, `lock-keyhole`, `key`, `face`(`face-scan-circle`), `network`(`global`), `trash`(`trash-bin-minimalistic`). 모두 Solar에 Linear·Bold·Bold Duotone이 있다.
+
+### 0.2 새 component (추가만, 게시 안 함)
+
+| 종류 | 이름 | ID |
+| --- | --- | --- |
+| Linear | `Icon / navigation / assets` | 506:24468 |
+| Bold | `Icon / navigation / assets / bold` | 506:24479 |
+| Bold | `Icon / navigation / activity / bold` | 506:24486 |
+| Bold | `Icon / navigation / settings / bold` | 506:24493 |
+| Bold | `Icon / status / pending / bold` | 506:24500 |
+| Bold | `Icon / status / confirmed / bold` | 506:24507 |
+| Bold | `Icon / status / failed / bold` | 506:24514 |
+| Bold | `Icon / status / warning / bold` | 506:24521 |
+| Bold | `Icon / status / info / bold` | 506:24528 |
+| Bold | `Icon / status / unknown / bold` | 506:24535 |
+| Duotone 48 | `Icon / hero / receive` (`inbox-in`, 빈 내역) | 506:26134 |
+| Duotone 48 | `Icon / hero / success` (`check-circle`) | 506:26142 |
+| Duotone 48 | `Icon / hero / failed` (`close-circle`) | 506:26149 |
+| Duotone 48 | `Icon / hero / pending` (`clock-circle`) | 506:26156 |
+| Duotone 48 | `Icon / hero / unknown` (`question-circle`) | 506:26163 |
+| Duotone 48 | `Icon / hero / shield` (`shield-check`, 백업) | 506:26171 |
+
+Navigation `Product navigation` 67:342는 선택된 항목에 Bold, 나머지에 Linear를 쓴다(`icon.navigation.activeFg` 계열 색은 기존 Component 변수 그대로). `B/Row badge` 495:358의 글리프는 Solar Bold 원형(`round-arrow-right-up`, `round-arrow-left-down`, `clock-circle`, `close-circle`, `check-circle`, `question-circle`, `refresh-circle`)이다.
 
 ## 1. 용도
 
@@ -20,13 +90,13 @@
 | 상태 | Pending, Confirmed, Failed, Warning, Info, Unknown | 정확한 label과 이유. 검사 결과와 완료 사실을 구분 |
 | Navigation | Assets, Activity, Settings | visible label과 선택 상태 |
 
-Redesign B(2026-10-16)에서 기능 icon 2개를 추가했다: `Icon / action / qr`(Phosphor `qr-code`, regular, 24, alias `icon.action.fg`, 접근 이름 "QR 코드 스캔")와 `Icon / action / more`(Phosphor `dots-three`, regular, 24, alias `icon.action.fg`, 접근 이름 "더 보기"). icon-only control이므로 44 px target이 필요하다. Local 기능 25개 + identity 2개 = 27개. QR icon은 QR 기능 구현이나 인증을 뜻하지 않는다.
+Redesign B(2026-10-16)에서 기능 icon 2개를 추가했다: `Icon / action / qr`(Solar `qr-code`, Linear, 24, alias `icon.action.fg`, 접근 이름 "QR 코드 스캔")와 `Icon / action / more`(Solar `menu-dots`, Linear, 24, alias `icon.action.fg`, 접근 이름 "더 보기"). icon-only control이므로 44 px target이 필요하다. Local 기능 25개 + identity 2개 = 27개. QR icon은 QR 기능 구현이나 인증을 뜻하지 않는다.
 
 Account, network, asset, recipient/spender, amount/allowance, estimated fee, action status는 Review에서 생략하지 않는다. Full address와 warning도 유지한다. Icon·색만으로 안전성이나 성공을 전달하지 않는다. 같은 network의 Asset row는 상단 context의 반복 label만 생략한다. 다른 network의 행에는 label을 남긴다.
 
 ## 2. 크기와 색 alias
 
-16 / 20 / 24 / 32 px의 기존 scale을 사용한다. Icon 크기와 클릭 target은 다르다. Target은 최소 44 × 44 px다. Raw 값 추가 없이 기존 Primitive → Semantic → Component를 연결한다.
+16 / 20 / 24 / 32 px의 기존 scale을 사용한다. Hero(Bold Duotone)는 48 px다. Solar 원본 격자는 24이고 stroke는 1.5다. 20 px master는 stroke 1.25로 줄여서 윤곽선으로 변환했다. Icon 크기와 클릭 target은 다르다. Target은 최소 44 × 44 px다. Raw 값 추가 없이 기존 Primitive → Semantic → Component를 연결한다.
 
 | Component 경로 | Alias / 용도 |
 | --- | --- |
@@ -54,12 +124,16 @@ Semantic `iconSize.asset={size.avatar_sm}`와 Component `icon.*` 20개를 추가
 
 ## 4. 관측과 선택의 근거
 
-기존 browser 조사에서 [21st.dev Phosphor](https://21st.dev/community/icons/phosphor)의 Wallet Details를 확인했다. Author `Phosphor Icons`, MIT 링크와 React/SVG/Vue/React Native 형식 선택을 관측했다. `wallet` 검색은 관련 항목도 반환했다. Ethereum 검색의 `currency-eth`는 기능 glyph이며 원본 자산 identity와 다르다. 이 화면 확인을 전체 product flow 조사로 확대하지 않는다. [Browser 기록](../work/research-v2/icons/21st-browser-observations.json).
+이전(Phosphor 시기) browser 조사에서 [21st.dev Phosphor](https://21st.dev/community/icons/phosphor)의 Wallet Details를 확인했다. Author `Phosphor Icons`, MIT 링크와 React/SVG/Vue/React Native 형식 선택을 관측했다. `wallet` 검색은 관련 항목도 반환했다. Ethereum 검색의 `currency-eth`는 기능 glyph이며 원본 자산 identity와 다르다. 이 화면 확인을 전체 product flow 조사로 확대하지 않는다. [Browser 기록](../work/research-v2/icons/21st-browser-observations.json).
 
 | Source | License / 사용 |
 | --- | --- |
-| [Phosphor core](https://github.com/phosphor-icons/core) | [MIT 원문](https://github.com/phosphor-icons/core/blob/main/LICENSE). 기존 regular 기능 23개와 Redesign B 추가 2개(`qr-code`, `dots-three`): 25개. License notice 유지 |
+| [Solar Icon Set](https://github.com/480-Design/Solar-Icon-Set) (480 Design) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 원문. 출처 표시가 필요하다. Linear·Bold·Bold Duotone 사용. 표시 문구는 아래 "출처 표시"를 따른다. 변경 사항: 크기 조정, Linear stroke를 윤곽선으로 변환, 색을 `icon.*` 변수에 연결 |
+| [`@solar-icons/react-native` 2.3.2](https://www.npmjs.com/package/@solar-icons/react-native) | MIT. RN 패키지(코드). 아이콘 그림 자체의 license는 위 CC BY 4.0이다 |
+| Phosphor core (이전) | MIT. 2026-10-17에 Solar로 대체했다. 코드(`apps/mobile`)가 Phosphor를 쓰는 동안은 MIT notice를 유지한다 |
 | [Cryptocurrency Icons](https://github.com/spothq/cryptocurrency-icons) | [CC0-1.0 원문](https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/LICENSE.md). Community ETH·USDC identity 2개. Issuer 인증이나 최신 공식 brand palette로 주장하지 않음 |
+
+**출처 표시(필수, 앱 정보·라이선스 화면과 이 문서):** "Icons by 480 Design — Solar Icon Set, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Changes were made: resized and recolored."
 
 ETH `#627EEA`, USDC `#3E73C4`는 원본 artwork 색이다. VaultMe canonical palette 변경이 아니다. 서로 다른 기능 icon library를 섞지 않는다. [Source 연구](../work/research-v2/icons/research.md), [계획](../work/research-v2/icons/icon-plan.md), [Native manifest](../work/research-v2/icons/figma-assets.json).
 

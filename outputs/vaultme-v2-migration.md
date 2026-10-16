@@ -306,3 +306,13 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - Master 변경(추가만): `B/Notice inline` 399:122에 `Tier` property 추가(기존 variant는 `Tier=Inline, Tone=*`, 새 `Tier=Banner, Tone=*` 4개). `B/Row` 418:12824에 `Leading` property 추가(기존 `Leading=Icon`, 새 `Leading=Asset badge` ×4 State). 새 `B/Row badge` 495:358, `Brand/Mark` 495:17569 draft. Button Primary Disabled label을 `buttonB/primary/fgDisabled`로 re-bind(9:283, 398:247). Library는 게시하지 않았다.
 - 증거: `work/v9/foundation/`.
 - 호환: Notice·Row의 variant 이름이 `Tier=Inline, ` / `Leading=Icon, ` 접두를 가진다. 소비 프레임은 default variant로 유지된다. `font.tracking.*` 값 변경은 `packages/tokens` 생성값(`letterSpacing`)에 반영되며 앱 코드 소비는 별도 단계다.
+
+## 2026-10-17 Icon set: Phosphor → Solar (오너 결정)
+
+- 기능 icon을 Solar로 교체했다. Linear = 기본 UI, Bold = 선택된 탭·상태 badge·활성, Bold Duotone = 빈 상태·결과 hero. 자산 identity SVG(ETH, USDC)는 그대로다.
+- 출처: 480 Design Solar Icon Set(CC BY 4.0, 출처 표시 필수). RN 패키지 `@solar-icons/react-native` 2.3.2(MIT). 문구는 `outputs/wallet-icon-guide.md` §4.
+- Figma: 기존 Icon master 26개의 ID·이름을 유지하고 vector 내용만 Solar Linear로 바꿨다(Phosphor vector 노드를 유지하고 `vectorPaths`만 교체해서 인스턴스의 색 override 28개가 그대로다). Artwork frame 이름은 `ph:` → `solar:`.
+- 추가 component(미게시): Linear `Icon / navigation / assets` 506:24468, Bold 9개(506:24479–506:24535), Hero 6개(506:26134–506:26171). 목록은 guide §0.2.
+- 수정: `B/Row badge` 495:358 글리프를 Solar Bold 원형으로, `Product navigation` 67:342 선택 항목을 Bold로(Assets 탭은 wallet → home).
+- 남은 것: `apps/mobile` 코드는 아직 Phosphor(`apps/mobile/src/shared/ui/Icon.tsx`, package.json). 카탈로그 프레임 137:3의 문구(Phosphor·MIT)는 텍스트 편집 제한으로 그대로다. Library는 게시하지 않았다.
+- 증거: `work/v9/icons/`.

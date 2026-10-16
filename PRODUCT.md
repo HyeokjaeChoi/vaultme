@@ -50,4 +50,4 @@ Borderless는 정보 container와 flat row의 기본입니다. Input 인지, foc
 
 ## Icons
 
-Phosphor regular 기능·상태·Navigation과 별도 identity SVG를 사용합니다. 중요한 금융 행동은 icon + visible label입니다. Review에서 account·network·asset·full recipient/spender·amount/allowance·estimated fee·status를 유지합니다. Logo·Wallet·lock·check는 인증·안전·network 지원의 증거가 아닙니다. [Icons 안내](outputs/wallet-icon-guide.md)를 따릅니다.
+Solar(Linear 기본, Bold 선택·상태, Bold Duotone hero) 기능·상태·Navigation과 별도 identity SVG를 사용합니다. 중요한 금융 행동은 icon + visible label입니다. Review에서 account·network·asset·full recipient/spender·amount/allowance·estimated fee·status를 유지합니다. Logo·Wallet·lock·check는 인증·안전·network 지원의 증거가 아닙니다. [Icons 안내](outputs/wallet-icon-guide.md)를 따릅니다.
