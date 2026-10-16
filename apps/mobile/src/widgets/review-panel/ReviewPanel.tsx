@@ -42,14 +42,12 @@ export function ReviewPanel({ values, checkedAt, rechecking, onRecheck }: Props)
         <SummaryRow label={t('review.feeCap')} value={values.feeCap} />
         <SummaryRow format="total" label={t('review.total')} value={values.total} sub={t('review.totalMax', { amount: values.totalMax })} />
       </View>
-      {risky ? null : (
-        <StatusNotice
-          tone="info"
-          title={t('review.checkedFormat')}
-          body={t('review.checkedTime', { time: checkedAt })}
-          {...(rechecking ? {} : { link: { label: t('review.recheck'), onPress: onRecheck } })}
-        />
-      )}
+      <StatusNotice
+        tone="info"
+        title={t('review.checkedFormat')}
+        body={t('review.checkedTime', { time: checkedAt })}
+        {...(rechecking ? {} : { link: { label: t('review.recheck'), onPress: onRecheck } })}
+      />
       {rechecking ? <Text variant="caption" accessibilityLiveRegion="polite" color={th.semantic.text.tertiary}>{t('review.rechecking')}</Text> : null}
       <Text variant="caption" color={th.semantic.text.tertiary}>{t('review.feeNote')}</Text>
     </>

@@ -26,6 +26,12 @@ function store(): MMKV {
 
 
 // --- backup flag ---
+/** Settings toggles (S62 거래 알림, S63 0원 거래 표시). Local preferences only: push registration and the zero-value filter are not wired to them yet (ponytail: wire when the push server is). */
+export const getPushSetting = (): boolean => store().getBoolean('settings.push') ?? true
+export const setPushSetting = (v: boolean): void => store().set('settings.push', v)
+export const getZeroSetting = (): boolean => store().getBoolean('settings.zero') ?? false
+export const setZeroSetting = (v: boolean): void => store().set('settings.zero', v)
+
 export const getBackupDone = (): boolean => store().getBoolean('backupDone') ?? false
 export const setBackupDone = (v: boolean): void => store().set('backupDone', v)
 

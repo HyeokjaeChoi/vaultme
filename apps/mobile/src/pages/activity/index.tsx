@@ -1,135 +1,87 @@
-import { useRouter } from 'expo-router'
-import { Pressable, View } from 'react-native'
+// Figma: B-S40 Activity 404:387, empty 423:16109, loading 423:16158, error cached 423:16236
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { transactions } from '@/entities/transaction/fixtures'
-import { useHistory, type HistoryItem } from '@/features/history'
+import { useHistory, type HistoryItem, type HistoryView } from '@/features/history'
 import { txView, usePendingTx } from '@/features/send'
 import { chain } from '@/shared/chain'
-import { shortAddress } from '@/shared/lib/address'
-import { showAmount } from '@/shared/lib/amount'
-import { clock, dayGroup, formatUpdated } from '@/shared/lib/time'
+import { formatUpdated } from '@/shared/lib/time'
 import { useTheme } from '@/shared/theme'
+import { EmptyState, Screen, SkeletonRow, StatusNotice, Text } from '@/shared/ui'
+import { ActivityList as List, fakeHistoryItems } from '@/widgets/activity-list/ActivityList'
 import { TestDataNotice } from '@/widgets/test-data-notice/TestDataNotice'
-import { ActivityRow, Button, CollectionState, Group, Screen, StatusNotice, Text } from '@/shared/ui'
 
-const DAYS = ['today', 'oct12', 'oct11'] as const
-
-/** R-S40 내역, fake adapter: example rows plus the pending send from the kv (top row of 오늘, opens S41). */
-function FakeHistory() {
+function Loading() {
   const { t } = useTranslation()
   const th = useTheme()
+  return (
+    <View accessibilityLiveRegion="polite">
+      <Text variant="bodySmall" color={th.semantic.text.secondary} style={{ paddingVertical: th.primitive.space[2] }}>{t('activity.loading')}</Text>
+      {Array.from({ length: 6 }, (_, i) => <SkeletonRow key={i} />)}
+    </View>
+  )
+}
+
+function Content({ view, reload }: { view: HistoryView | null; reload: () => void }) {
+  const { t } = useTranslation()
   const router = useRouter()
+  if (!view) return <Loading />
+  const now = Date.now()
+  return (
+    <>
+      {view.failed ? (
+        <StatusNotice
+          tone="warning"
+          title={t('activity.error.title')}
+          body={view.updatedAt === null ? t('activity.errorNoCache.body') : `${t('activity.updatedAt', { time: formatUpdated(view.updatedAt, now) })}\n${t('activity.error.body')}`}
+          link={{ label: t('common.retry'), onPress: reload }}
+        />
+      ) : null}
+      {view.items.length === 0 && !view.failed ? (
+        <EmptyState title={t('activity.empty.title')} body={t('activity.empty.body')} action={{ label: t('activity.empty.cta'), onPress: () => router.push('/receive') }} />
+      ) : null}
+      <List items={view.items} />
+    </>
+  )
+}
+
+/** Fake adapter: example rows plus the pending send from the kv (opens S41). */
+function FakeHistory() {
   const { tx } = usePendingTx()
   return (
     <>
       <TestDataNotice />
-      {DAYS.map((day) => (
-        <View key={day} style={{ gap: th.semantic.layout.fieldGap }}>
-          <Text variant="label" color={th.semantic.text.secondary} accessibilityRole="header">{t(`activity.${day}`)}</Text>
-          <Group>
-            {day === 'today' && tx ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`${t('activity.send')}, ${shortAddress(tx.to)}, −${showAmount(tx.amount, tx.asset, 'floor')}, ${t(txView(tx.state).label)}`}
-                onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: tx.hash } })}>
-                <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-                  <ActivityRow
-                    title={t('activity.send')}
-                    detail={shortAddress(tx.to)}
-                    time={clock(tx.createdAt)}
-                    amount={`−${showAmount(tx.amount, tx.asset, 'floor')}`}
-                    kind="send"
-                    status={txView(tx.state).status}
-                    statusLabel={t(txView(tx.state).label)}
-                  />
-                </View>
-              </Pressable>
-            ) : null}
-            {transactions // example rows only in fake mode
-              .filter((x) => x.when === day && !(tx && x.id === '1')) // the real pending send replaces the example pending row
-              .map((x) => (
-                <ActivityRow key={x.id} title={t(`activity.${x.kind}`)} detail={x.detail} time={x.time} amount={x.amount} kind={x.kind} status={x.status} statusLabel={t(`activity.${x.status}`)} />
-              ))}
-          </Group>
-        </View>
-      ))}
+      <List items={fakeHistoryItems(tx)} />
     </>
   )
 }
 
-function Row({ item }: { item: HistoryItem }) {
+/** `?state=loading|empty|error` is a __DEV__ capture override of the S40 states. */
+function DevState({ state }: { state: string }) {
   const { t } = useTranslation()
   const router = useRouter()
-  const sign = item.kind === 'send' ? '−' : '+'
-  const row = (
-    <ActivityRow
-      title={t(`activity.${item.kind}`)}
-      detail={shortAddress(item.counterparty)}
-      time={clock(item.at)}
-      amount={`${sign}${showAmount(item.amount, item.asset, 'floor')}`}
-      kind={item.kind}
-      status={item.status}
-      statusLabel={t(item.label)}
-    />
-  )
-  if (!item.local) return row
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${t('activity.send')}, ${shortAddress(item.counterparty)}, ${clock(item.at)}, −${showAmount(item.amount, item.asset, 'floor')}, ${t(item.label)}`}
-      onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: item.hash } })}>
-      <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>{row}</View>
-    </Pressable>
-  )
+  if (state === 'loading') return <Loading />
+  if (state === 'empty') return <EmptyState title={t('activity.empty.title')} body={t('activity.empty.body')} action={{ label: t('activity.empty.cta'), onPress: () => router.push('/receive') }} />
+  const cached = transactions.filter((x) => x.id === '2' || x.id === '3')
+  const items = cached.map((x): HistoryItem => ({ hash: x.id, kind: x.kind, asset: x.asset, amount: x.amount, counterparty: '', at: x.at, ...txView(x.state), local: false }))
+  return <Content view={{ items, updatedAt: new Date(2026, 9, 13, 9, 12).getTime(), failed: true }} reload={() => undefined} />
 }
 
-/** R-S40 내역, real mode (Figma C3-S40 377:2216 loading, 377:2261 empty, 377:2332 error with cache, 377:2388 normal). Q58: the last good list stays with its update time. */
 function RealHistory() {
-  const { t } = useTranslation()
-  const th = useTheme()
-  const router = useRouter()
   const { view, reload } = useHistory()
-  if (!view) return <CollectionState state="loading" title={t('activity.loading')} />
-  const now = Date.now()
-  const groups: { day: string; items: HistoryItem[] }[] = []
-  for (const item of view.items) {
-    const day = dayGroup(item.at, now)
-    const g = groups.find((x) => x.day === day)
-    if (g) g.items.push(item)
-    else groups.push({ day, items: [item] })
-  }
-  const retry = <Button label={t('common.retry')} variant="secondary" onPress={reload} />
-  return (
-    <>
-      {view.updatedAt !== null && (groups.length > 0 || view.failed) ? <Text variant="body" color={th.semantic.text.secondary}>{t('activity.updatedAt', { time: formatUpdated(view.updatedAt, now) })}</Text> : null}
-      {view.failed ? (
-        <>
-          <StatusNotice tone="warning" title={t('activity.error.title')} body={t(view.updatedAt === null ? 'activity.errorNoCache.body' : 'activity.error.body')} />
-          {retry}
-        </>
-      ) : null}
-      {groups.length === 0 && !view.failed ? (
-        <CollectionState state="empty" title={t('activity.empty.title')} body={t('activity.empty.body')} action={<Button label={t('activity.empty.cta')} variant="secondary" onPress={() => router.push('/receive')} />} />
-      ) : null}
-      {groups.map((g) => (
-        <View key={g.day} style={{ gap: th.semantic.layout.fieldGap }}>
-          <Text variant="label" color={th.semantic.text.secondary} accessibilityRole="header">{g.day === 'today' ? t('activity.today') : g.day}</Text>
-          <Group>
-            {g.items.map((item) => <Row key={item.hash} item={item} />)}
-          </Group>
-        </View>
-      ))}
-    </>
-  )
+  return <Content view={view} reload={reload} />
 }
 
-/** R-S40 내역: one white group per date, flat rows inside. */
+/** B-S40 내역: title, then date groups of flat rows. */
 export function ActivityPage() {
   const { t } = useTranslation()
+  const th = useTheme()
+  const { state } = useLocalSearchParams<{ state?: string }>()
   return (
-    <Screen edges={['top']}>
-      <Text variant="title1" accessibilityRole="header">{t('activity.title')}</Text>
-      {chain.broadcasts ? <RealHistory /> : <FakeHistory />}
+    <Screen edges={['top']} gap="none">
+      <Text variant="title1" accessibilityRole="header" style={{ paddingTop: th.primitive.space[4], paddingBottom: th.primitive.space[2] }}>{t('activity.title')}</Text>
+      {__DEV__ && state ? <DevState state={state} /> : chain.broadcasts ? <RealHistory /> : <FakeHistory />}
     </Screen>
   )
 }

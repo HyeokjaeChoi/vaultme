@@ -1,14 +1,13 @@
-import type { ActivityStatus } from '@/shared/ui'
 import type { PendingTx } from '@/shared/storage'
 
-type Tx = { id: string; kind: 'send' | 'receive'; asset: string; amount: string; detail: string; when: 'today' | 'oct12' | 'oct11'; time: string; status: ActivityStatus }
+type Tx = { id: string; kind: 'send' | 'receive'; asset: 'ETH' | 'USDC'; amount: string; at: number; state: 'Pending' | 'Confirmed' | 'Failed' | 'Unknown' }
 
-// Fixture data only. Minus sign is U+2212, as in Figma.
+// Fixture data only (fake adapter). Dates match Figma Activity 404:387 (2026-10-16 is a Friday). `amount` has no sign.
 export const transactions: Tx[] = [
-  { id: '1', kind: 'send', asset: 'ETH', amount: '−0.05 ETH', detail: '0x9F3C…41Ab', when: 'today', time: '09:41', status: 'pending' },
-  { id: '2', kind: 'receive', asset: 'ETH', amount: '+0.20 ETH', detail: '0x4E21…c90f', when: 'oct12', time: '18:20', status: 'confirmed' },
-  { id: '3', kind: 'send', asset: 'USDC', amount: '−1.00 USDC', detail: '0x77Ab…0e3D', when: 'oct12', time: '14:05', status: 'failed' },
-  { id: '4', kind: 'send', asset: 'ETH', amount: '−0.01 ETH', detail: '0x2B5c…9aa1', when: 'oct11', time: '21:12', status: 'unknown' },
+  { id: '1', kind: 'send', asset: 'ETH', amount: '0.05', at: new Date(2026, 9, 16, 9, 41).getTime(), state: 'Pending' },
+  { id: '2', kind: 'receive', asset: 'USDC', amount: '12.5', at: new Date(2026, 9, 12, 9, 12).getTime(), state: 'Confirmed' },
+  { id: '3', kind: 'send', asset: 'ETH', amount: '0.02', at: new Date(2026, 9, 12, 8, 30).getTime(), state: 'Confirmed' },
+  { id: '4', kind: 'send', asset: 'USDC', amount: '1', at: new Date(2026, 9, 11, 7, 55).getTime(), state: 'Failed' },
 ]
 
 export const review = {

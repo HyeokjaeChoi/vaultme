@@ -5,32 +5,14 @@ import { useTheme } from '../theme'
 import { qrModulesSvg } from './artwork'
 import { Text } from './Text'
 
-/** Labelled placeholder. The modules are a static, non-scannable picture; the badge says so. No real QR is ever rendered (AGENTS rule 4). */
+/** Labelled placeholder (Figma B-S30 423:13930 + caption). The modules are a static, non-scannable picture, 200 pt on the white screen; the caption under it says so. No real QR is ever rendered (AGENTS rule 4). */
 export function PlaceholderQr({ note }: { note: string }) {
   const t = useTheme()
-  const card = t.primitive.size.wallet_status_card - t.primitive.space[6] // 216
-  const modules = card - t.primitive.space[2] * 2 // 200
-  const w = t.component.receivePanel.warning
+  const modules = t.primitive.size.wallet_status_card - t.primitive.space[6] - t.primitive.space[2] * 2 // 200
   return (
-    <View
-      accessible
-      accessibilityLabel={note}
-      style={{ width: card, height: card, borderRadius: t.semantic.shape.group, backgroundColor: t.primitive.color.neutral[0], alignItems: 'center', justifyContent: 'center' }}
-    >
+    <View accessible accessibilityLabel={note} style={{ alignItems: 'center', gap: t.semantic.layout.fieldGap }}>
       <SvgXml xml={qrModulesSvg} width={modules} height={modules} />
-      <View
-        style={{
-          position: 'absolute',
-          paddingHorizontal: t.primitive.space[2] + t.primitive.space['0_5'],
-          paddingVertical: t.primitive.space[1] + t.primitive.borderWidth.hairline,
-          borderRadius: t.primitive.radius.pill,
-          borderWidth: t.primitive.borderWidth.hairline,
-          borderColor: w.fg,
-          backgroundColor: w.bg,
-        }}
-      >
-        <Text variant="caption" color={w.fg}>{note}</Text>
-      </View>
+      <Text variant="caption" color={t.semantic.text.tertiary}>{note}</Text>
     </View>
   )
 }

@@ -50,3 +50,20 @@ const RESULT: Record<TxState, ResultCopy> = {
 }
 
 export const resultCopy = (state: TxState): ResultCopy => RESULT[state]
+
+/** S40 row title key (ux-copy.md "Redesign B 수정안"): direction plus progress. Received rows are always Confirmed (no incoming pending row). */
+export function rowTitleKey(kind: 'send' | 'receive', label: ReturnType<typeof txView>['label']) {
+  switch (label) {
+    case 'activity.pending':
+    case 'activity.included':
+      return 'activity.row.sending'
+    case 'activity.confirmed':
+      return kind === 'send' ? 'activity.row.sent' : 'activity.row.received'
+    case 'activity.failed':
+      return 'activity.row.failed'
+    case 'activity.replaced':
+      return 'activity.row.replaced'
+    default:
+      return 'activity.row.unknown'
+  }
+}

@@ -13,3 +13,14 @@ it('warns not to send again while a send may still go through', () => {
   expect(resultCopy('Unknown').warn).toBe('result.unknownBody')
   expect(resultCopy('Confirmed').warn).toBeNull()
 })
+
+import { rowTitleKey } from '../src/features/send/model/txView'
+it('names a row by direction and progress (S40)', () => {
+  expect(rowTitleKey('send', 'activity.pending')).toBe('activity.row.sending')
+  expect(rowTitleKey('send', 'activity.included')).toBe('activity.row.sending')
+  expect(rowTitleKey('send', 'activity.confirmed')).toBe('activity.row.sent')
+  expect(rowTitleKey('receive', 'activity.confirmed')).toBe('activity.row.received')
+  expect(rowTitleKey('send', 'activity.failed')).toBe('activity.row.failed')
+  expect(rowTitleKey('send', 'activity.unknown')).toBe('activity.row.unknown')
+  expect(rowTitleKey('send', 'activity.replaced')).toBe('activity.row.replaced')
+})

@@ -1,19 +1,19 @@
 // Figma: Asset row 36:20 (inside the white Assets group 333:258) (Icon / Asset / ETH 137:402, USDC 137:429); Redesign B: B/Row
-import { View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { useTheme } from '../theme'
 import { AssetIcon, type AssetSymbol } from './AssetIcon'
 import { Text } from './Text'
 
-type Props = { name: string; symbol: AssetSymbol; balance: string; note: string }
+type Props = { name: string; symbol: AssetSymbol; balance: string; note?: string; onPress?: () => void }
 
 /** C09 Asset row (Redesign B row). Flat, min-height rowB.height 64, no fill, no divider, paddingX 0 (the screen pads): 40 circle icon, name (Headline) + symbol (Caption tertiary), balance (Headline, tabular) + note (Caption). A missing quote is not zero. */
-export function AssetRow({ name, symbol, balance, note }: Props) {
+export function AssetRow({ name, symbol, balance, note, onPress }: Props) {
   const t = useTheme()
   const c = t.component.assetRow
-  return (
+  const row = (
     <View
       accessible
-      accessibilityLabel={`${name}, ${balance} ${symbol}, ${note}`}
+      accessibilityLabel={`${name}, ${balance} ${symbol}${note ? `, ${note}` : ''}`}
       style={{ minHeight: t.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}
     >
       <View style={{ width: t.primitive.size.avatar_md, height: t.primitive.size.avatar_md, borderRadius: t.primitive.radius.pill, backgroundColor: t.semantic.surface.subtle, alignItems: 'center', justifyContent: 'center' }}>
@@ -25,8 +25,9 @@ export function AssetRow({ name, symbol, balance, note }: Props) {
       </View>
       <View style={{ alignItems: 'flex-end', flexShrink: 1 }}>
         <Text variant="headline" tabular color={c.balance} style={{ textAlign: 'right' }}>{balance} {symbol}</Text>
-        <Text variant="caption" color={c.missingQuote} style={{ textAlign: 'right' }}>{note}</Text>
+        {note ? <Text variant="caption" color={c.missingQuote} style={{ textAlign: 'right' }}>{note}</Text> : null}
       </View>
     </View>
   )
+  return onPress ? <Pressable accessibilityRole="button" onPress={onPress}>{row}</Pressable> : row
 }

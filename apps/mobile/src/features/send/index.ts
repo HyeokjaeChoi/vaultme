@@ -3,7 +3,7 @@ export { readPendingTx, usePendingTx, writePendingTx } from './model/usePendingT
 export { sendFrom, useReviewCore } from './model/useReviewCore'
 export { clearTestTx } from './model/clearTestTx'
 export { checkTx, deriveState, isFinal, isPolled, startPolling, type TxState } from './model/txState'
-export { resultCopy, txNotice, txView } from './model/txView'
+export { resultCopy, rowTitleKey, txNotice, txView } from './model/txView'
 export { POLL_MS, useTrackedTx } from './model/useTrackedTx'
 export { useSendable, type Sendable } from './model/useSendable'
 export { useAuthName } from './model/useAuthName'

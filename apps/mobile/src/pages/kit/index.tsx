@@ -65,8 +65,8 @@ export function KitPage() {
       <ActionRow primary={{ label: '보내기', icon: 'send' }} secondary={{ label: '받기', icon: 'receive' }} />
       <View>
         <SectionHeader title="자산" link="모두 보기" />
-        <AssetRow name="Sepolia ETH" symbol="ETH" balance="0.05" note="시장 가격 없음" />
-        <AssetRow name="USD Coin" symbol="USDC" balance="12.5" note="시장 가격 없음" />
+        <AssetRow name="Sepolia ETH" symbol="ETH" balance="0.05" />
+        <AssetRow name="USD Coin" symbol="USDC" balance="12.5" />
         <DateHeader date="10월 16일 (금)" />
         <ActivityRow title="보내는 중" detail="Sepolia ETH · 09:41" time="09:41" amount="-0.05 ETH" kind="send" status="pending" statusLabel="처리 중" />
         <ActivityRow title="받음" detail="USDC · 08:10" time="08:10" amount="+12.5 USDC" kind="receive" status="confirmed" statusLabel="확정" />

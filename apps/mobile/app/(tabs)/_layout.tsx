@@ -13,11 +13,11 @@ export default function TabsLayout() {
     <Tabs
       tabBar={({ state, descriptors, navigation }) => (
         <ProductNavigation
-          items={state.routes.map((r, i) => ({
+          items={state.routes.filter((r) => r.name !== 'asset').map((r) => ({
             key: r.key,
             label: String(descriptors[r.key]?.options.title ?? r.name),
             icon: TAB_ICON[r.name] ?? 'assets',
-            active: state.index === i,
+            active: state.routes[state.index]?.name === 'asset' ? r.name === 'home' : state.routes[state.index]?.key === r.key,
             onPress: () => navigation.navigate(r.name),
           }))}
         />
@@ -27,6 +27,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="home" options={{ title: t('tab.assets') }} />
       <Tabs.Screen name="activity" options={{ title: t('tab.activity') }} />
       <Tabs.Screen name="settings" options={{ title: t('tab.settings') }} />
+      <Tabs.Screen name="asset" options={{ href: null }} />
     </Tabs>
   )
 }

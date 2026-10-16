@@ -36,7 +36,7 @@ export function ActivityRow({ title, detail, time, amount, kind, status, statusL
       <Text
         variant="headline"
         tabular
-        color={failed ? t.semantic.text.tertiary : c.amount}
+        color={failed ? t.semantic.text.tertiary : status === 'pending' ? t.semantic.text.secondary : c.amount}
         style={{ textAlign: 'right', flexShrink: 1, ...(failed ? { textDecorationLine: 'line-through' as const } : {}) }}
       >
         {failed ? amount.replace(SIGN, '') : amount}

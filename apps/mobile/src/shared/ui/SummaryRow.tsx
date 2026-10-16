@@ -47,7 +47,7 @@ export function SummaryRow({ label, value, format = 'text', sub, highlight, mono
     >
       <Text variant="bodySmall" color={t.semantic.text.tertiary} style={stacked ? undefined : { width: labelWidth }}>{label}</Text>
       {address ? (
-        <AddressText address={value} highlight={highlight ?? []} markColor={t.semantic.status.warning.fg} />
+        <AddressText address={value} highlight={highlight ?? []} />
       ) : (
         <View style={stacked ? undefined : { flex: 1, alignItems: 'flex-end' }}>
           <Text variant={total ? 'headline' : mono ? 'address' : 'body'} tabular style={{ textAlign: stacked ? 'left' : 'right' }}>{value}</Text>

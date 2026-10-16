@@ -14,4 +14,12 @@ export function dayGroup(ms: number, now: number): 'today' | string {
   return sameDay(d, new Date(now)) ? 'today' : `${d.getMonth() + 1}월 ${d.getDate()}일`
 }
 
+const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토']
+
+/** Date group title of a history row (Figma B/Date header): "10월 16일 (금)". Device local time. */
+export const dateLabel = (ms: number): string => {
+  const d = new Date(ms)
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAY[d.getDay()]})`
+}
+
 export const clock = (ms: number): string => hhmm(new Date(ms))

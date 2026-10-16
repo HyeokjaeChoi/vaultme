@@ -65,7 +65,7 @@ export function HomePage() {
       <View>
         <SectionHeader title={t('home.assets')} />
         {assets.map((a) => (
-          <AssetRow key={a.symbol} name={a.name} symbol={a.symbol} balance={balanceOf(a.symbol, a.balance)} note={t('home.noQuote')} />
+          <AssetRow key={a.symbol} name={a.name} symbol={a.symbol} balance={balanceOf(a.symbol, a.balance)} onPress={() => router.push({ pathname: '/asset', params: { symbol: a.symbol } })} />
         ))}
       </View>
       <BottomSheet
