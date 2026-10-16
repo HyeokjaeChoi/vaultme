@@ -24,7 +24,7 @@ export function AssetRow({ name, symbol, balance, note }: Props) {
         <Text variant="caption" color={t.semantic.text.tertiary}>{symbol}</Text>
       </View>
       <View style={{ alignItems: 'flex-end', flexShrink: 1 }}>
-        <Text variant="headline" tabular color={c.balance} style={{ textAlign: 'right' }}>{balance}</Text>
+        <Text variant="headline" tabular color={c.balance} style={{ textAlign: 'right' }}>{balance} {symbol}</Text>
         <Text variant="caption" color={c.missingQuote} style={{ textAlign: 'right' }}>{note}</Text>
       </View>
     </View>
