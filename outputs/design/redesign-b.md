@@ -140,3 +140,32 @@ Dark 확인: Home 1장.
 
 - 디자인 스킬 검수는 필수다 (오너, 2026-10-16): impeccable critique, emil-design-eng.
 - `design-taste-frontend`는 랜딩·마케팅 페이지용이고 앱 화면은 대상이 아니라고 스킬 설명이 밝힌다. 그래서 앱 화면 검수에는 쓰지 않는다.
+
+## 8. 나머지 화면 (4단계, 2026-10-16)
+
+Figma `14 Redesign B`. audit 모든 count 0. Library publish 없음, 기존 master·Variable 값 변경 없음.
+
+- 추가 컴포넌트 (398:77): B/Input 421:805, B/Chip 421:812, B/Keypad key 421:825, B/Keypad 421:888, B/Amount display 422:636, B/Status hero 422:667, B/Skeleton row 422:668, B/Empty state 422:674, B/Switch row 422:699, B/Secret grid 426:2044, B/Settings row 426:2045 (Show value, Show chevron).
+- `B Screens · Send & Activity` 423:642 (24장): S10N, S10P, S20a ×2, S20b ×3, S22L, S22L+ACK, S22B, S22T, S24, S23 ×6, S40 empty/loading/error, S41 Confirmed/Unknown, S11.
+- `B Screens · Onboarding & Settings` 423:13439 (18장): S01–S06, S30(+Dark), S31, S50, S60–S63, S90–S92.
+- 보내기 단계 제목은 온보딩과 같은 패턴 (뒤로 줄 + Title 1).
+
+### 검수 (impeccable critique + emil, 2026-10-16)
+
+반영: 보내기 직전 안내를 Warning notice로, Unknown의 "다시 보내지 말고…"를 Warning notice로, 금액 초과를 Danger notice로, 보내기 제목 크기, S41 Confirmed CTA 제거, ⚠는 행동 필요·위험에만 (나머지 ⓘ), 내역 부제 "{자산} · {시각}", 한국어 단어 중간 줄바꿈 수동 줄바꿈.
+
+기각: 회색 글자 대비 부족 지적. `text/tertiary` light #505C6C는 흰 배경에서 약 6.8:1 (축소 PNG 추정 오류).
+
+코드 단계로 넘김: hit target 44, press scale·sheet·skeleton 모션, 복사 완료 상태.
+
+### 5단계로 넘긴 것
+
+- `overlay/scrimOpacity` 0.4 → 40 (scope 0–100). S50 scrim은 지금 literal 0.4.
+- 헤더 "…" 24px 아이콘, Status hero Unknown 아이콘 색 (지금 neutral).
+- 09 Icons에 QR 아이콘 추가 (지금 "QR 코드 스캔" 텍스트 링크).
+
+### 오너 결정 대기
+
+1. 소각 주소·토큰 컨트랙트 주소도 확인 sheet를 띄울지 (지금은 비슷한 주소만).
+2. Dark를 받기 화면 외 다른 화면에도 그릴지.
+3. 버전 값 "1.0.0"은 placeholder.
