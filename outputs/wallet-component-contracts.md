@@ -255,3 +255,17 @@ Figma `Components · Redesign B` (398:77). 모두 새 component다. 기존 maste
 - B/Amount display: Amount는 `Product B/Figure`, Ticker는 `Product B/Figure unit`, 기준선 정렬.
 - 새 text style: `Product B/Address M`, `Address M strong`, `Address M diff`, `Address L`, `Address L strong` (IBM Plex Mono 400/600). Token JSON에는 아직 없다.
 - 받기 QR은 component가 아니다. S30 프레임 안 `QR code`(29×29 모듈, 4 모듈 여백, `color/neutral/0` 판 + `color/neutral/950` 모듈, 두 모드 모두 밝은 판)이다. 내보낸 PNG를 jsQR 1.4.0으로 해독해 주소와 같음을 확인했다 (`work/v9/qr-decode-proof.json`).
+
+## Redesign B 2차 추가 component (2026-10-17)
+
+Figma `Components · Redesign B` (398:77). 기존 master ID는 그대로다. 기존 component에는 property를 더하기만 했다.
+
+| Component | Node | 계약 |
+| --- | --- | --- |
+| B/Check row | 515:27570 | State=Off / On. Title(Headline) + Body(Body Small, `Show body`). Off는 `border/strong` 테두리 상자(선택 control이라 기능 테두리), On은 `action/primary/bg` 상자 + 흰 check. 행 전체가 누름 영역(44 px 이상). 모두 On이어야 Primary가 켜진다 (S02 3개, S03 1개) |
+| B/Account block | 515:27571 | 설정 맨 위. 아바타(지갑 아이콘) + 계정 이름 + 짧은 주소(`Product B/Address M`) + "복사" Secondary sm 버튼(보이는 label). 복사 = impactLight haptic + "복사했어요" 토스트(앱) |
+| B/Balance hero `State=Figure` (변형 추가) | 515:27593 | Label + Amount(`Product B/Figure`) + Unit(`Product B/Figure unit`, 새 text property `Unit`) 기준선 정렬 + Sub. 홈 hero |
+| B/Settings row (property 추가) | 426:2045 | `Show icon`(기본 false) + `Icon`(INSTANCE_SWAP, Solar Linear 20). Chevron을 `Icon / navigation / disclosure`로 바꿈 |
+| B/Secret grid (변형 수정) | 426:2044 | 두 변형 모두 `surface/subtle` 판(radius 16) 안 번호 2열. Hidden = layer blur 14 + "탭해서 보기" pill. 단어는 공개 BIP39 test vector(abandon ×11, about)만 |
+
+새 Solar icon (09 Icons, CC BY 4.0, 480 Design): `Icon / account / key` 516:235, `Icon / settings / bell` 516:244, `Icon / settings / eye` 516:253, `Icon / settings / network` 516:264, `Icon / status / device-warning` 516:274 (Linear 20, `icon/action/fg`), `Icon / hero / face` 516:288 (Bold Duotone 48, `icon/brand`, 뒤 층 50%).

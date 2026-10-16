@@ -76,6 +76,12 @@
 | Duotone 48 | `Icon / hero / pending` (`clock-circle`) | 506:26156 |
 | Duotone 48 | `Icon / hero / unknown` (`question-circle`) | 506:26163 |
 | Duotone 48 | `Icon / hero / shield` (`shield-check`, 백업) | 506:26171 |
+| Linear | `Icon / account / key` (`key-minimalistic`, 복구 구문) | 516:235 |
+| Linear | `Icon / settings / bell` (`bell`, 거래 알림) | 516:244 |
+| Linear | `Icon / settings / eye` (`eye`, 0원 거래 표시·탭해서 보기) | 516:253 |
+| Linear | `Icon / settings / network` (`global`, 네트워크) | 516:264 |
+| Linear | `Icon / status / device-warning` (`shield-warning`, 기기 보안 경고·백업 필요) | 516:274 |
+| Duotone 48 | `Icon / hero / face` (`face-scan-circle`, 잠금 Face ID 진행) | 516:288 |
 
 Navigation `Product navigation` 67:342는 선택된 항목에 Bold, 나머지에 Linear를 쓴다(`icon.navigation.activeFg` 계열 색은 기존 Component 변수 그대로). `B/Row badge` 495:358의 글리프는 Solar Bold 원형(`round-arrow-right-up`, `round-arrow-left-down`, `clock-circle`, `close-circle`, `check-circle`, `question-circle`, `refresh-circle`)이다.
 
