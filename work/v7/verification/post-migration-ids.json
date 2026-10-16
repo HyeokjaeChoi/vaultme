@@ -1,0 +1,146 @@
+{
+ "diffVsBaseline": "identical node IDs, property keys/IDs, variant names/IDs; no props added",
+ "post": {
+  "9:283": {
+   "props": [
+    "Label#67:0",
+    "Icon#141:0",
+    "ShowIcon#141:19",
+    "Size",
+    "State"
+   ],
+   "variantCount": 18
+  },
+  "9:284": {
+   "props": [
+    "Label#67:19",
+    "Icon#141:38",
+    "ShowIcon#141:57",
+    "Size",
+    "State"
+   ],
+   "variantCount": 18
+  },
+  "9:285": {
+   "props": [
+    "Label#67:38",
+    "Icon#141:76",
+    "ShowIcon#141:95",
+    "Size",
+    "State"
+   ],
+   "variantCount": 18
+  },
+  "67:231": {
+   "props": [
+    "Label#67:63",
+    "Input value#67:64",
+    "HelperText#158:0",
+    "ErrorText#158:6",
+    "State"
+   ],
+   "variants": [
+    "9:235",
+    "67:210",
+    "67:216",
+    "67:221",
+    "67:226"
+   ]
+  },
+  "301:606": {
+   "props": [
+    "Title#301:0",
+    "Body#301:1",
+    "Show secondary#301:2",
+    "Show notice#305:0"
+   ]
+  },
+  "330:3423": {
+   "props": []
+  },
+  "68:180": {
+   "props": [
+    "Balance#68:24",
+    "Quote"
+   ],
+   "variants": [
+    "68:168",
+    "68:172",
+    "68:176"
+   ]
+  },
+  "73:169": {
+   "props": [
+    "Info title#73:34",
+    "Info reason#73:40",
+    "Warning title#73:46",
+    "Warning reason#73:52",
+    "Danger title#73:58",
+    "Danger reason#73:64",
+    "Unknown title#73:70",
+    "Unknown reason#73:76",
+    "Confirmed title#73:82",
+    "Confirmed reason#73:88",
+    "Tone"
+   ],
+   "variants": [
+    "73:164",
+    "73:165",
+    "73:166",
+    "73:167",
+    "73:168"
+   ]
+  },
+  "330:10480": {
+   "props": [
+    "Label#330:0",
+    "Value#330:4",
+    "Edit label#330:8",
+    "Show edit#330:12",
+    "Format"
+   ],
+   "variants": [
+    "330:10465",
+    "330:10470",
+    "330:10475"
+   ]
+  },
+  "300:642": {
+   "props": [
+    "Label#300:6",
+    "Value#300:10",
+    "Divider#300:14",
+    "Trailing"
+   ],
+   "variants": [
+    "300:623",
+    "300:628",
+    "300:636"
+   ]
+  },
+  "36:20": {
+   "props": [
+    "Detail#36:11",
+    "Value#36:12",
+    "Name#67:86",
+    "Fiat quote#68:0",
+    "AssetIcon#139:0",
+    "Quote"
+   ],
+   "variants": [
+    "36:2",
+    "36:11",
+    "67:384"
+   ]
+  },
+  "36:48": {
+   "props": "20 TEXT props identical + State",
+   "variants": [
+    "36:21",
+    "36:30",
+    "36:39",
+    "67:441"
+   ]
+  }
+ }
+}

@@ -1,0 +1,94 @@
+{
+ "date": "2026-10-16",
+ "instanceCountsPerPage": {
+  "02 Components": {
+   "Status notice": 2,
+   "Button / Secondary": 20,
+   "Button / Primary": 21,
+   "Button / Ghost": 21,
+   "Input": 5,
+   "List item": 6,
+   "Bottom sheet": 2
+  },
+  "03 Transaction pattern": {
+   "Button / Primary": 1,
+   "Button / Secondary": 4
+  },
+  "04 Wallet building blocks": {
+   "Asset row": 3,
+   "Activity row": 4,
+   "Button / Secondary": 10,
+   "Portfolio balance": 3
+  },
+  "05 Transfer & signing": {
+   "Button / Primary": 15,
+   "Button / Secondary": 30,
+   "Status notice": 5
+  },
+  "06 Security & permissions": {
+   "Button / Secondary": 12
+  },
+  "07 Product specimens": {
+   "Portfolio balance": 3,
+   "Button / Primary": 11,
+   "Button / Secondary": 15,
+   "Asset row": 6,
+   "Activity row": 4
+  },
+  "08 States & stress": {
+   "Button / Primary": 18,
+   "Button / Secondary": 28,
+   "Portfolio balance": 10,
+   "Asset row": 32,
+   "Status notice": 2
+  },
+  "10 Wireframes": {
+   "Button / Primary": 24,
+   "Button / Secondary": 21,
+   "Status notice": 23,
+   "Input": 5,
+   "Portfolio balance": 2,
+   "Asset row": 5,
+   "Activity row": 12,
+   "Button / Ghost": 5,
+   "List item": 12
+  },
+  "11 Prototype": {
+   "Status notice": 27,
+   "Button / Primary": 59,
+   "Button / Ghost": 25,
+   "Input": 6,
+   "Portfolio balance": 5,
+   "Button / Secondary": 41,
+   "Asset row": 10,
+   "Bottom sheet": 18,
+   "Activity row": 10,
+   "List item": 14
+  },
+  "12 Text 200%": {
+   "Portfolio balance": 2,
+   "Button / Primary": 12,
+   "Button / Secondary": 9,
+   "Asset row": 4,
+   "Activity row": 5,
+   "Status notice": 3,
+   "Bottom sheet": 4,
+   "Button / Ghost": 5
+  },
+  "13 Redesign A": {
+   "Button / Primary": 29,
+   "Button / Secondary": 16,
+   "Portfolio balance": 5,
+   "Asset row": 10,
+   "List item": 8,
+   "Summary row": 75,
+   "Keypad": 1,
+   "Status notice": 22,
+   "Bottom sheet": 1,
+   "Button / Ghost": 7,
+   "Activity row": 20,
+   "Input": 5
+  },
+  "14 Redesign B": {}
+ }
+}

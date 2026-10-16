@@ -1,0 +1,147 @@
+{
+ "restorePoint": "Figma named version 'pre-B-migration 2026-10-16' saved by owner in app (no API id)",
+ "masters": {
+  "Button / Primary 9:283": {
+   "props": [
+    "Label#67:0",
+    "Icon#141:0",
+    "ShowIcon#141:19",
+    "Size",
+    "State"
+   ]
+  },
+  "Button / Secondary 9:284": {
+   "props": [
+    "Label#67:19",
+    "Icon#141:38",
+    "ShowIcon#141:57",
+    "Size",
+    "State"
+   ]
+  },
+  "Button / Ghost 9:285": {
+   "props": [
+    "Label#67:38",
+    "Icon#141:76",
+    "ShowIcon#141:95",
+    "Size",
+    "State"
+   ]
+  },
+  "Input 67:231": {
+   "props": [
+    "Label#67:63",
+    "Input value#67:64",
+    "HelperText#158:0",
+    "ErrorText#158:6",
+    "State"
+   ],
+   "variants": {
+    "State=Default": "9:235",
+    "Focused": "67:210",
+    "Filled": "67:216",
+    "Invalid": "67:221",
+    "Disabled": "67:226"
+   }
+  },
+  "Bottom sheet 301:606": {
+   "props": [
+    "Title#301:0",
+    "Body#301:1",
+    "Show secondary#301:2",
+    "Show notice#305:0"
+   ]
+  },
+  "Keypad 330:3423": {
+   "props": []
+  },
+  "Portfolio balance 68:180": {
+   "props": [
+    "Balance#68:24",
+    "Quote"
+   ],
+   "variants": {
+    "Complete": "68:168",
+    "Partial": "68:172",
+    "Unavailable": "68:176"
+   }
+  },
+  "Status notice 73:169": {
+   "props": [
+    "Info title#73:34",
+    "Info reason#73:40",
+    "Warning title#73:46",
+    "Warning reason#73:52",
+    "Danger title#73:58",
+    "Danger reason#73:64",
+    "Unknown title#73:70",
+    "Unknown reason#73:76",
+    "Confirmed title#73:82",
+    "Confirmed reason#73:88",
+    "Tone"
+   ],
+   "variants": {
+    "Info": "73:164",
+    "Warning": "73:165",
+    "Danger": "73:166",
+    "Unknown": "73:167",
+    "Confirmed": "73:168"
+   }
+  },
+  "Summary row 330:10480": {
+   "props": [
+    "Label#330:0",
+    "Value#330:4",
+    "Edit label#330:8",
+    "Show edit#330:12",
+    "Format"
+   ],
+   "variants": {
+    "Text": "330:10465",
+    "Address": "330:10470",
+    "Total": "330:10475"
+   }
+  },
+  "List item 300:642": {
+   "props": [
+    "Label#300:6",
+    "Value#300:10",
+    "Divider#300:14",
+    "Trailing"
+   ],
+   "variants": {
+    "Value": "300:623",
+    "Disclosure": "300:628",
+    "Switch": "300:636"
+   }
+  },
+  "Asset row 36:20": {
+   "props": [
+    "Detail#36:11",
+    "Value#36:12",
+    "Name#67:86",
+    "Fiat quote#68:0",
+    "AssetIcon#139:0",
+    "Quote"
+   ],
+   "variants": {
+    "Available": "36:2",
+    "Unavailable": "36:11",
+    "Stale": "67:384"
+   }
+  },
+  "Activity row 36:48": {
+   "props": [
+    "Pending Name#75:0",
+    "...20 TEXT props (see Figma)",
+    "State"
+   ],
+   "variants": {
+    "Pending": "36:21",
+    "Confirmed": "36:30",
+    "Failed": "36:39",
+    "Unknown": "67:441"
+   }
+  }
+ }
+}
