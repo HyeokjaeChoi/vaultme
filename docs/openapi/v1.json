@@ -259,7 +259,7 @@
               "in",
               "out"
             ],
-            "description": "Relative to the address. A transfer to itself is `out`."
+            "description": "Relative to the address. A transfer to itself is `out`, except that a zero-value erc20 row is `out` only if the tx sender is the address (#53)."
           },
           "asset": {
             "type": "string",

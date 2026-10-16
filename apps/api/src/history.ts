@@ -41,7 +41,7 @@ type Placed = Cand & { seq: number }
 const pad = (s: string, n: number) => s.padStart(n, '0')
 
 /** Rows of one list -> candidates. `bottom` = lowest block among ALL rows read (also the ones dropped here). */
-function normalize(list: List, rows: unknown[], addr: string): { cands: Cand[]; bottom: number } {
+function normalize(list: List, rows: unknown[], addr: string, sent: ReadonlySet<string>): { cands: Cand[]; bottom: number } {
   const cands: Cand[] = []
   const repeats = new Map<string, number>()
   let bottom = Infinity
@@ -55,7 +55,11 @@ function normalize(list: List, rows: unknown[], addr: string): { cands: Cand[]; 
     if (list === 'tokentx' && r.contractAddress?.toLowerCase() !== USDC) return
     if (r.from !== addr && r.to !== addr) return
     const base = { hash: r.hash, blockNumber: block, txIndex: Number(r.transactionIndex), timestamp: Number(r.timeStamp), value: r.value, from: r.from, to: r.to || null }
-    const common = { ...base, direction: r.from === addr ? ('out' as const) : ('in' as const), zeroValue: /^0+$/.test(r.value) }
+    const zeroValue = /^0+$/.test(r.value)
+    // #53: a zero-value token row is outgoing only when WE sent the tx (txlist `from` = tx sender). A token log `from` == us is
+    // not enough: anyone can emit it with transferFrom(us, victim, 0). No txlist row of ours for the hash => unknown => hidden.
+    const spoofable = list === 'tokentx' && zeroValue && !sent.has(r.hash)
+    const common = { ...base, direction: r.from === addr && !spoofable ? ('out' as const) : ('in' as const), zeroValue }
     const bad = r.isError === '1' || r.txreceipt_status === '0'
     let key: string, order: string, item: Omit<HistoryItem, 'id'>
     if (list === 'txlist') {
@@ -153,7 +157,10 @@ export async function loadHistory(fetchList: FetchList, address: string, cursor?
   await read([0, 1, 2])
 
   for (;;) {
-    const parts = LISTS.map((l, i) => normalize(l, st[i]!.rows, addr))
+    // txlist is first in LISTS. Its rows are complete above H, the only rows that are returned (see below).
+    const txPart = normalize('txlist', st[0]!.rows, addr, new Set())
+    const sent = new Set(txPart.cands.filter((c) => c.item.from === addr).map((c) => c.item.hash))
+    const parts = LISTS.map((l, i) => (i === 0 ? txPart : normalize(l, st[i]!.rows, addr, sent)))
     const H = Math.max(-1, ...parts.map((p, i) => (st[i]!.full ? p.bottom : -1)))
     const all = place(parts.flatMap((p) => p.cands))
     const placed = cur ? all.filter(isAfter(cur)) : all
