@@ -4,7 +4,7 @@ export const ko = {
   common: { cancel: '취소', close: '닫기', later: '나중에', edit: '수정', back: '뒤로', retry: '다시 시도' },
   start: {
     title: 'VaultMe',
-    body: '내 기기에 열쇠를 두는 Sepolia 테스트넷 지갑이에요.',
+    body: '내 기기에 열쇠를 두는\nSepolia 테스트넷 지갑이에요.',
     create: '새 지갑 만들기',
     restore: '기존 지갑 복구',
   },
@@ -47,12 +47,11 @@ export const ko = {
     backupTitle: '백업을 아직 확인하지 않았어요',
     backupBody: '복구 구문을 백업해야 받기 주소가 보여요.',
     backupCta: '백업 시작',
-    noQuote: '시장 가격 없음',
   },
   // S03/S04: approved copy (ux-copy.md). authPrompt*, loadError, check.wrong and precheck.createError were approved by the owner in PR #28 (not yet in ux-copy.md); the S03 body drops the capture promise (Q43).
   backup: {
     title: '복구 구문',
-    body: '아래 12단어를 순서대로 종이에 적으세요. 화면을 캡처하지 마세요.',
+    body: '아래 12단어를 순서대로 종이에 적으세요.\n화면을 캡처하지 마세요.',
     reveal: '탭해서 보기',
     revealHint: '주변에 아무도 없는지 확인하세요',
     warnTitle: '누구에게도 보여 주지 마세요',
@@ -63,7 +62,7 @@ export const ko = {
     loadError: { title: '복구 구문을 불러오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
     check: {
       title: '단어 확인',
-      body: '적어 둔 복구 구문에서 아래 순서의 단어를 입력하세요.',
+      body: '적어 둔 복구 구문에서\n아래 순서의 단어를 입력하세요.',
       position: '{{n}}번째 단어',
       placeholder: '단어 입력',
       confirm: '확인',
@@ -77,6 +76,7 @@ export const ko = {
     label: '복구 구문',
     helper: '12단어나 24단어를 띄어쓰기로 구분해 입력하세요.',
     paste: '붙여넣기',
+    placeholder: '단어 입력',
     unknownWord: "'{{word}}'는 복구 구문 단어가 아니에요.",
     wrongCount: '{{count}}단어를 입력했어요. 12단어나 24단어여야 해요.',
     badChecksum: '단어나 순서가 맞지 않아요. 복구 구문을 다시 확인하세요.',
@@ -93,7 +93,7 @@ export const ko = {
       addressLabel: '첫 계정 주소',
       copied: '복사했어요',
       noteTitle: '첫 계정만 불러왔어요',
-      noteBody: "경로 m/44'/60'/0'/0/0을 썼어요. 기존 지갑의 주소와 같은지 확인하세요.",
+      noteBody: "경로 m/44'/60'/0'/0/0을 썼어요.\n기존 지갑의 주소와 같은지 확인하세요.",
     },
     open: '지갑 열기',
   },
@@ -106,12 +106,19 @@ export const ko = {
     copy: '주소 복사',
     share: '공유',
     warning: 'Sepolia 네트워크로만 보내세요.',
+    // B-S31 (ux-copy.md S31)
+    backup: {
+      title: '먼저 복구 구문을 백업하세요',
+      body: '기기를 잃어도 이 지갑을 되찾으려면\n복구 구문이 필요해요.\n백업을 마치면 받기 주소가 보여요.',
+      noticeTitle: '복구 구문은 종이에 적어 두세요',
+      noticeBody: '스크린샷이나 클라우드 메모에 저장하지 마세요.',
+    },
   },
   send: {
     title: '보내기',
     recipientQuestion: '누구에게 보낼까요?',
     recipientLabel: '받는 주소',
-    recipientPlaceholder: '0x 주소를 입력하세요',
+    recipientPlaceholder: '0x…',
     recipientHelper: 'Sepolia에서 쓰는 주소를 입력하세요.',
     recipientHint: '주소 형식만 확인했어요.\n받는 사람이 맞는지는 직접 확인해 주세요.',
     paste: '붙여넣기',
@@ -189,9 +196,9 @@ export const ko = {
   // S41: Figma C2b-S41 + ux-copy.md.
   detail: {
     title: '거래 상세',
-    amount: '금액',
     sender: '보낸 계정',
-    lastChecked: '마지막 확인',
+    // Figma B-S41 423:16381: "마지막 확인 09:41. 자동으로 다시 확인해요." The second sentence only while the app polls (Pending, Included).
+    lastChecked: '마지막 확인 {{time}}.',
     auto: '자동으로 다시 확인해요.',
     // Result notice by state (draft; texts from ux-flow.md S23 state table). Pending and Unknown reuse result.*.
     included: { title: '블록에 포함됐어요', body: '확정을 기다리는 중이에요. 다시 보내지 마세요.' },
@@ -215,7 +222,7 @@ export const ko = {
     network: '네트워크',
     recipient: '받는 주소',
     fee: '예상 네트워크 수수료',
-    feeCap: '최대 네트워크 수수료',
+    feeCap: '최대 수수료',
     recalc: '다시 계산',
     recalcLabel: '수수료 다시 계산',
     checkedAt: '확인 시각',
@@ -235,14 +242,14 @@ export const ko = {
     burn: {
       title: '소각 주소예요',
       body: '이 주소로 보낸 자산은 누구도 되찾을 수 없어요.',
-      sheetTitle: '이 주소로 보내면 되찾을 수 없어요',
-      sheetBody: '소각 주소예요. 이 주소로 보낸 자산은 누구도 꺼낼 수 없어요.',
+      sheetTitle: '소각 주소로 보내려고 해요',
+      sheetBody: '이 주소로 보낸 자산은 누구도 되찾을 수 없어요.',
     },
     tokenContract: {
       title: '토큰 컨트랙트 주소예요',
       body: '지갑 주소가 아니에요. 보낸 자산을 되찾기 어려워요.',
-      sheetTitle: '토큰 컨트랙트 주소예요',
-      sheetBody: '받는 주소가 USDC 컨트랙트예요. 여기로 보낸 자산은 대부분 되찾을 수 없어요. 받는 사람의 지갑 주소를 다시 확인하세요.',
+      sheetTitle: '토큰 컨트랙트 주소로 보내려고 해요',
+      sheetBody: '지갑 주소가 아니에요. 보낸 자산을 되찾기 어려워요.',
     },
     lookalike: {
       title: '비슷한 주소예요',
@@ -267,11 +274,13 @@ export const ko = {
     today: '오늘',
     oct12: '10월 12일',
     oct11: '10월 11일',
+    // Row titles (ux-copy.md "Redesign B 수정안" S40 행 제목): direction + progress. Status badge words above stay for S41.
+    row: { sending: '보내는 중', sent: '보냄', received: '받음', failed: '보내기 실패', unknown: '보내기 확인 못 함', unknownSub: '상태를 확인해 주세요', replaced: '실행되지 않음' },
     // C3 (#44): Figma C3-S40 frames 377:2216 (loading), 377:2261 (empty), 377:2332 (error cached), 377:2388 (normal).
     updatedAt: '마지막 업데이트 {{time}}',
     loading: '내역을 불러오는 중이에요',
     empty: { title: '아직 거래가 없어요', body: '받기 주소를 공유하면 여기에 거래가 보여요.', cta: '받기 주소 보기' },
-    error: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요. 아래는 마지막으로 받은 내역이에요.' },
+    error: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요.\n아래는 마지막으로 받은 내역이에요.' },
     errorNoCache: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요.' },
   },
   settings: {
@@ -284,10 +293,20 @@ export const ko = {
     version: '버전',
     on: '켜짐',
     hidden: '숨김',
+    // Not in ux-copy.md: the other state of the two values above (S60 shows 켜짐 / 숨김 only). Needs owner/Figma confirmation.
+    off: '꺼짐',
+    shown: '표시',
+    // S61 (ux-copy.md 복구 구문 다시 보기): body of the settings view of the phrase.
+    phraseBody: 'OS 인증을 마쳤어요. 화면을 캡처하지 마세요.\n앱을 벗어나면 다시 가려져요.',
+    // S62 거래 알림, S63 0원 거래 표시 (ux-copy.md)
+    pushScreen: { title: '거래 알림', row: '거래 알림 받기', body: '켜면 이 주소가 VaultMe 알림 서버에 등록돼요. 끄면 등록을 지워요.', warnTitle: '알림으로 복구 구문을 묻지 않아요', warnBody: '복구 구문을 묻는 알림은 모두 사기예요.' },
+    // S92 (ux-copy.md 기기 보안 경고). The root/jailbreak detection is not wired: the screen opens from the S60 row only.
+    deviceScreen: { title: '기기 보안 경고', body: '이 기기는 루팅되었거나 탈옥된 것 같아요.\n다른 앱이 지갑 키에 접근할 수 있어요.', noticeTitle: 'VaultMe는 계속 쓸 수 있어요.', noticeBody: '이 지갑에는 테스트넷 자산만 두세요.', cta: '이해했어요' },
+    zeroScreen: { title: '0원 거래 표시', row: '0원 거래 보기', body: '0원 거래는 주소 오염 공격에 자주 쓰여요. 기본으로 숨겨요.' },
   },
   pushSheet: {
     title: '거래 알림을 받을까요?',
-    body: '받기나 보내기가 처리되면 알려 드려요. 켜면 이 주소가 VaultMe 알림 서버에 등록돼요.',
+    body: '받기나 보내기가 처리되면 알려 드려요.\n켜면 이 주소가 VaultMe 알림 서버에 등록돼요.',
     enable: '알림 켜기',
     later: '나중에',
   },
