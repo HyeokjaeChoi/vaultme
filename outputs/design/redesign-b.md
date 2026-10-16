@@ -164,8 +164,12 @@ Figma `14 Redesign B`. audit 모든 count 0. Library publish 없음, 기존 mast
 - 헤더 "…" 24px 아이콘, Status hero Unknown 아이콘 색 (지금 neutral).
 - 09 Icons에 QR 아이콘 추가 (지금 "QR 코드 스캔" 텍스트 링크).
 
-### 오너 결정 대기
+### 오너 결정 (2026-10-16)
 
-1. 소각 주소·토큰 컨트랙트 주소도 확인 sheet를 띄울지 (지금은 비슷한 주소만).
-2. Dark를 받기 화면 외 다른 화면에도 그릴지.
-3. 버전 값 "1.0.0"은 placeholder.
+| # | 항목 | 결정 |
+|---|---|---|
+| 12 | 5단계 | 진행. 기존 master 반영, Variable 수정, Library publish |
+| 13 | 소각·토큰 컨트랙트 주소 | 비슷한 주소처럼 확인 sheet (S22B+ACK, S22T+ACK) |
+| 14 | Dark 범위 | 전체 화면 |
+
+남은 것: 버전 값 "1.0.0"은 placeholder.
