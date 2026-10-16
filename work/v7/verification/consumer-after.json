@@ -1,0 +1,409 @@
+{
+ "file": "lI4gGcTr9UVPEvVEODcf6U",
+ "page": "01 — Library adoption",
+ "count": 8,
+ "instances": [
+  {
+   "id": "2:345",
+   "name": "Primary button / remote instance",
+   "mainComponent": {
+    "name": "Size=Medium, State=Default",
+    "key": "058749e5766f8ab44de35d369de8d53ee82495ef",
+    "set": "Button / Primary",
+    "setKey": "b466562428e43a16881337714fbd2b48f270f12d"
+   },
+   "variantProperties": {
+    "Size": "Medium",
+    "State": "Default"
+   },
+   "componentProperties": {
+    "Icon#141:0": {
+     "type": "INSTANCE_SWAP",
+     "value": "29:282"
+    },
+    "ShowIcon#141:19": {
+     "type": "BOOLEAN",
+     "value": false
+    },
+    "Label#67:0": {
+     "type": "TEXT",
+     "value": "Consumer action"
+    }
+   },
+   "texts": [
+    {
+     "id": "I2:345;70:20",
+     "name": "Label",
+     "characters": "Consumer action"
+    }
+   ],
+   "width": 168,
+   "height": 48,
+   "cornerRadius": 999
+  },
+  {
+   "id": "2:350",
+   "name": "Input / remote instance",
+   "mainComponent": {
+    "name": "State=Filled",
+    "key": "5a84ce3489f5a901d14aa841823bb41dd18f6047",
+    "set": "Input",
+    "setKey": "2321fcbc3acca86164f63d2049816b88bd25efa9"
+   },
+   "variantProperties": {
+    "State": "Filled"
+   },
+   "componentProperties": {
+    "ErrorText#158:6": {
+     "type": "TEXT",
+     "value": "Enter a wallet name."
+    },
+    "HelperText#158:0": {
+     "type": "TEXT",
+     "value": "Choose a name you can recognize."
+    },
+    "Input value#67:64": {
+     "type": "TEXT",
+     "value": "Travel"
+    },
+    "Label#67:63": {
+     "type": "TEXT",
+     "value": "Consumer wallet"
+    }
+   },
+   "texts": [
+    {
+     "id": "I2:350;85:558",
+     "name": "Label",
+     "characters": "Consumer wallet"
+    },
+    {
+     "id": "I2:350;85:560",
+     "name": "Input value",
+     "characters": "Travel"
+    },
+    {
+     "id": "I2:350;85:561",
+     "name": "Validation",
+     "characters": "Choose a name you can recognize."
+    }
+   ],
+   "width": 358,
+   "height": 105,
+   "cornerRadius": 0
+  },
+  {
+   "id": "2:356",
+   "name": "Transaction review / remote instance",
+   "mainComponent": {
+    "name": "State=No risk signals",
+    "key": "7fd04c1ce22661d9276888ac243ff15956f305f6",
+    "set": "Transaction panel",
+    "setKey": "4c0427ffabce596b1a7e800aa3a6dbd0e3d53166"
+   },
+   "variantProperties": {
+    "State": "No risk signals"
+   },
+   "componentProperties": {
+    "Estimated total#72:20": {
+     "type": "TEXT",
+     "value": "0.04263 ETH"
+    },
+    "Recipient#72:12": {
+     "type": "TEXT",
+     "value": "0x3333333333333333333333333333333333333333"
+    },
+    "Send amount#72:8": {
+     "type": "TEXT",
+     "value": "0.042 ETH"
+    },
+    "Network#72:4": {
+     "type": "TEXT",
+     "value": "Ethereum"
+    },
+    "Native fee#72:16": {
+     "type": "TEXT",
+     "value": "0.00063 ETH"
+    },
+    "Account#72:0": {
+     "type": "TEXT",
+     "value": "Everyday"
+    },
+    "High risk status#313:7": {
+     "type": "TEXT",
+     "value": "Recipient needs attention"
+    },
+    "Show fiat estimate#304:0": {
+     "type": "BOOLEAN",
+     "value": true
+    }
+   },
+   "texts": [
+    {
+     "id": "I2:356;85:3502",
+     "name": "Label",
+     "characters": "Account"
+    },
+    {
+     "id": "I2:356;85:3503",
+     "name": "Value",
+     "characters": "Everyday"
+    },
+    {
+     "id": "I2:356;85:3505",
+     "name": "Label",
+     "characters": "Network"
+    },
+    {
+     "id": "I2:356;85:3506",
+     "name": "Value",
+     "characters": "Ethereum"
+    },
+    {
+     "id": "I2:356;85:3507",
+     "name": "Action title",
+     "characters": "Review send"
+    },
+    {
+     "id": "I2:356;96:271",
+     "name": "Action status",
+     "characters": "Ready for review"
+    },
+    {
+     "id": "I2:356;85:3508",
+     "name": "Send amount",
+     "characters": "0.042 ETH"
+    },
+    {
+     "id": "I2:356;85:3509",
+     "name": "Recipient label",
+     "characters": "Recipient"
+    },
+    {
+     "id": "I2:356;85:3510",
+     "name": "Recipient",
+     "characters": "0x3333333333333333333333333333333333333333"
+    },
+    {
+     "id": "I2:356;85:3513",
+     "name": "Label",
+     "characters": "Estimated network fee"
+    },
+    {
+     "id": "I2:356;85:3514",
+     "name": "Value",
+     "characters": "0.00063 ETH"
+    },
+    {
+     "id": "I2:356;85:3515",
+     "name": "Fiat fee estimate",
+     "characters": "≈ $1.54 · Snapshot · Oct 3, 12:00 KST"
+    },
+    {
+     "id": "I2:356;85:3517",
+     "name": "Label",
+     "characters": "Estimated total deduction"
+    },
+    {
+     "id": "I2:356;85:3518",
+     "name": "Value",
+     "characters": "0.04263 ETH"
+    },
+    {
+     "id": "I2:356;85:3519",
+     "name": "Estimate explanation",
+     "characters": "Amount and estimated network fee use ETH. The final fee can change."
+    },
+    {
+     "id": "I2:356;85:3524",
+     "name": "Status title",
+     "characters": "No issues found in available checks"
+    },
+    {
+     "id": "I2:356;85:3525",
+     "name": "Reason",
+     "characters": "Balance, fee and address format · 12:00 KST. These checks do not guarantee safety."
+    },
+    {
+     "id": "I2:356;85:3526",
+     "name": "Detail route",
+     "characters": "Transaction details / Raw data"
+    }
+   ],
+   "width": 358,
+   "height": 577,
+   "cornerRadius": 16
+  },
+  {
+   "id": "I2:356;139:298",
+   "name": "Reusable icon / ph:info",
+   "note": "nested in Transaction panel",
+   "mainComponent": {
+    "name": "Icon / status / info",
+    "key": "59c03c2945821979bb0d5b698ba3a5c15bb1fed0"
+   },
+   "variantProperties": null,
+   "componentProperties": {},
+   "texts": [],
+   "width": 20,
+   "height": 20
+  },
+  {
+   "id": "20:44",
+   "name": "C23 / Complete / published default",
+   "mainComponent": {
+    "name": "Quote=Complete",
+    "key": "2a6d68f5f0cdac90a63e24117f06521fd429f4c1",
+    "set": "Portfolio balance",
+    "setKey": "eecf10ebb133df264ccdf766e103c682e49ebc9d"
+   },
+   "variantProperties": {
+    "Quote": "Complete"
+   },
+   "componentProperties": {
+    "Balance#68:24": {
+     "type": "TEXT",
+     "value": "$5,629.76"
+    }
+   },
+   "texts": [
+    {
+     "id": "I20:44;80:353",
+     "name": "Valuation scope",
+     "characters": "Portfolio balance"
+    },
+    {
+     "id": "I20:44;80:354",
+     "name": "Balance",
+     "characters": "$5,629.76"
+    },
+    {
+     "id": "I20:44;80:355",
+     "name": "Fixed quote coverage",
+     "characters": "USD estimate · Snapshot · Oct 3, 12:00 KST"
+    }
+   ],
+   "width": 358,
+   "height": 130,
+   "cornerRadius": 0
+  },
+  {
+   "id": "20:49",
+   "name": "C23 / Partial / published default",
+   "mainComponent": {
+    "name": "Quote=Partial",
+    "key": "900ea446703f8e56ae240f7c43083d938489a73b",
+    "set": "Portfolio balance",
+    "setKey": "eecf10ebb133df264ccdf766e103c682e49ebc9d"
+   },
+   "variantProperties": {
+    "Quote": "Partial"
+   },
+   "componentProperties": {
+    "Balance#68:24": {
+     "type": "TEXT",
+     "value": "$5,629.76"
+    }
+   },
+   "texts": [
+    {
+     "id": "I20:49;80:356",
+     "name": "Valuation scope",
+     "characters": "Priced assets"
+    },
+    {
+     "id": "I20:49;80:357",
+     "name": "Balance",
+     "characters": "$5,629.76"
+    },
+    {
+     "id": "I20:49;80:358",
+     "name": "Fixed quote coverage",
+     "characters": "1 asset has no price"
+    }
+   ],
+   "width": 358,
+   "height": 130,
+   "cornerRadius": 0
+  },
+  {
+   "id": "20:54",
+   "name": "C23 / Unavailable / published default",
+   "mainComponent": {
+    "name": "Quote=Unavailable",
+    "key": "029e1e71b96f0ca77a01b594a3cd8aa434f9a4f7",
+    "set": "Portfolio balance",
+    "setKey": "eecf10ebb133df264ccdf766e103c682e49ebc9d"
+   },
+   "variantProperties": {
+    "Quote": "Unavailable"
+   },
+   "componentProperties": {
+    "Balance#68:24": {
+     "type": "TEXT",
+     "value": "$5,629.76"
+    }
+   },
+   "texts": [
+    {
+     "id": "I20:54;80:359",
+     "name": "Valuation scope",
+     "characters": "Portfolio balance"
+    },
+    {
+     "id": "I20:54;80:360",
+     "name": "Unknown valuation",
+     "characters": "Value unavailable"
+    },
+    {
+     "id": "I20:54;80:361",
+     "name": "Fixed quote coverage",
+     "characters": "Asset balances are shown below."
+    }
+   ],
+   "width": 358,
+   "height": 130,
+   "cornerRadius": 0
+  },
+  {
+   "id": "20:59",
+   "name": "C23 / Complete / long Balance override",
+   "mainComponent": {
+    "name": "Quote=Complete",
+    "key": "2a6d68f5f0cdac90a63e24117f06521fd429f4c1",
+    "set": "Portfolio balance",
+    "setKey": "eecf10ebb133df264ccdf766e103c682e49ebc9d"
+   },
+   "variantProperties": {
+    "Quote": "Complete"
+   },
+   "componentProperties": {
+    "Balance#68:24": {
+     "type": "TEXT",
+     "value": "$12,345,678.12"
+    }
+   },
+   "texts": [
+    {
+     "id": "I20:59;80:353",
+     "name": "Valuation scope",
+     "characters": "Portfolio balance"
+    },
+    {
+     "id": "I20:59;80:354",
+     "name": "Balance",
+     "characters": "$12,345,678.12"
+    },
+    {
+     "id": "I20:59;80:355",
+     "name": "Fixed quote coverage",
+     "characters": "USD estimate · Snapshot · Oct 3, 12:00 KST"
+    }
+   ],
+   "width": 358,
+   "height": 130,
+   "cornerRadius": 0
+  }
+ ],
+ "readback": "after Update all, 2026-10-16"
+}
