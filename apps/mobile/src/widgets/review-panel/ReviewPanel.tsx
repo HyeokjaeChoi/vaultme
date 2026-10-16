@@ -1,52 +1,57 @@
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
+import { assets } from '@/entities/asset/fixtures'
 import type { ReviewValues } from '@/entities/transaction/review'
-import { diffGroups, displayGroups } from '@/shared/lib/address'
+import { diffGroups } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
-import { Group, StatusNotice, SummaryRow, Text } from '@/shared/ui'
+import { StatusNotice, SummaryRow, Text } from '@/shared/ui'
 
-type Props = { values: ReviewValues; checkedAt: string; onRecalc: () => void; onEditRecipient: () => void; onEditAmount: () => void }
+type Props = { values: ReviewValues; checkedAt: string; rechecking: boolean; onRecheck: () => void }
 
 /**
- * R-S22 Review body: question, amount, the answers as flat Summary rows in one white group, fee and total, then one check notice.
- * `values.previous` set = look-alike recipient (R-S22L): the differing 4-char chunks are marked and the notice is a warning.
- * Values come from the entered recipient, amount and the wallet-core prepare() result. The "다시 계산" link on the check-time row asks the page to fetch a fresh snapshot.
+ * R-S22 Review body (Figma 419:12973; risk variants 423:14763 look-alike, 423:14844 burn, 423:14925 token contract).
+ * Order by risk: [status line for a risky recipient], amount, recipient (full, mono groups), then a danger notice for a risky recipient,
+ * asset / network / account, a section gap, fee / max fee / total (with the "최대 …" sub value), the check notice with "다시 확인", the fee caption.
+ * `values.previous` set = look-alike: the differing 4-char groups are marked. Risk comes from wallet-core `recipientRisk` (look-alike, burn, token contract).
  */
-export function ReviewPanel({ values, checkedAt, onRecalc, onEditRecipient, onEditAmount }: Props) {
+export function ReviewPanel({ values, checkedAt, rechecking, onRecheck }: Props) {
   const { t } = useTranslation()
   const th = useTheme()
-  const { recipient, previous } = values
-  const risk = previous !== null
-  const diff = risk ? diffGroups(recipient, previous) : []
-  const chunks = diff.map((i) => displayGroups(recipient)[i]).join(' ')
+  const { recipient, previous, risk } = values
+  const diff = previous !== null ? diffGroups(recipient, previous) : []
+  const risky = risk === 'lookalike' || risk === 'burn' || risk === 'tokenContract'
   return (
     <>
-      <View style={{ gap: th.semantic.layout.sectionGap.product }}>
+      <View style={{ gap: th.semantic.layout.groupGap }}>
         <Text variant="title1" accessibilityRole="header">{t('review.title')}</Text>
         <View style={{ gap: th.semantic.layout.fieldGap }}>
-          <Text variant="displayL">{values.amount}</Text>
-          <Text variant="body" color={th.semantic.text.secondary}>{t('review.scope', { network: account.network, account: account.name })}</Text>
+          {risky ? <Text variant="label" color={th.semantic.status.danger.fg}>{t(`review.status.${risk}`)}</Text> : null}
+          <Text variant="displayM" tabular>{values.amount}</Text>
         </View>
       </View>
-      <Group>
-        <SummaryRow format="address" label={t('review.recipient')} value={recipient} highlight={diff} editLabel={t('common.edit')} onEdit={onEditRecipient} />
-        <SummaryRow label={t('review.amount')} value={values.amount} editLabel={t('common.edit')} onEdit={onEditAmount} />
+      <View>
+        <SummaryRow format="address" label={t('review.recipient')} value={recipient} highlight={diff} />
+        {risky ? <StatusNotice tone="danger" title={t(`review.${risk}.title`)} body={t(`review.${risk}.body`)} /> : null}
+        <SummaryRow label={t('review.asset')} value={assets[0].name} />
         <SummaryRow label={t('review.network')} value={account.network} />
-      </Group>
-      <Group surface={false}>
+        <SummaryRow label={t('review.account')} value={account.name} />
+      </View>
+      <View>
         <SummaryRow label={t('review.fee')} value={values.fee} />
         <SummaryRow label={t('review.feeCap')} value={values.feeCap} />
-        <SummaryRow format="total" label={t('review.total')} value={values.total} />
-        <SummaryRow label={t('review.checkedAt')} value={checkedAt} editLabel={t('review.recalc')} editAccessibilityLabel={t('review.recalcLabel')} onEdit={onRecalc} />
-      </Group>
-      {values.risk === 'burn' || values.risk === 'tokenContract' ? (
-        <StatusNotice tone="warning" title={t(`review.${values.risk}.title`)} body={t(`review.${values.risk}.body`)} />
-      ) : risk ? (
-        <StatusNotice tone="warning" title={t('review.lookalike.title', { count: diff.length })} body={t('review.lookalike.body', { chunks })} />
-      ) : (
-        <StatusNotice tone="info" title={t('review.checkedTitle')} body={t('review.checkedBody', { time: checkedAt })} />
+        <SummaryRow format="total" label={t('review.total')} value={values.total} sub={t('review.totalMax', { amount: values.totalMax })} />
+      </View>
+      {risky ? null : (
+        <StatusNotice
+          tone="info"
+          title={t('review.checkedFormat')}
+          body={t('review.checkedTime', { time: checkedAt })}
+          {...(rechecking ? {} : { link: { label: t('review.recheck'), onPress: onRecheck } })}
+        />
       )}
+      {rechecking ? <Text variant="caption" accessibilityLiveRegion="polite" color={th.semantic.text.tertiary}>{t('review.rechecking')}</Text> : null}
+      <Text variant="caption" color={th.semantic.text.tertiary}>{t('review.feeNote')}</Text>
     </>
   )
 }

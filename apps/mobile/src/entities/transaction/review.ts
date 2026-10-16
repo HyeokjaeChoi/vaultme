@@ -14,6 +14,8 @@ export type ReviewValues = {
   fee: string
   feeCap: string
   total: string
+  /** Worst case: amount + fee cap. Shown under the total as "최대 …". */
+  totalMax: string
 }
 
 /** Amount param from the keypad ("5." allowed) -> clean decimal string, or null when it is not a usable ETH amount. */
@@ -50,5 +52,6 @@ export function resolveReview(to?: string, amount?: string, forceRisk = false, c
   const fee = core ? fromUnits(core.estimatedFee, 'ETH') : FEE
   const feeCap = core ? `${fromUnits(core.feeCap, 'ETH')} ETH` : review.feeCap
   const total = fromUnits(toUnits(shown, 'ETH') + toUnits(fee, 'ETH'), 'ETH')
-  return { recipient, previous, risk, amount: `${formatDecimal(shown, 'ETH', 'exact')} ETH`, fee: `${fee} ETH`, feeCap, total: `${total} ETH` }
+  const totalMax = fromUnits(toUnits(shown, 'ETH') + toUnits(feeCap.replace(' ETH', ''), 'ETH'), 'ETH')
+  return { recipient, previous, risk, amount: `${formatDecimal(shown, 'ETH', 'exact')} ETH`, fee: `${fee} ETH`, feeCap, total: `${total} ETH`, totalMax: `${totalMax} ETH` }
 }

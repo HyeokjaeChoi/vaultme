@@ -75,6 +75,9 @@ function fees(s: ChainSnapshot) {
   }
 }
 
+/** Worst-case fee (gasLimit x maxFeePerGas) for a snapshot: the cap the user approves. */
+export const feeCapOf = (s: ChainSnapshot): bigint => fees(s).feeCap
+
 export function prepare(intent: SendIntent, chain: ChainSnapshot): PrepareResult {
   if (!isAddress(intent.to)) return { ok: false, error: 'invalidAddress' }
   let amount: bigint

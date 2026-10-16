@@ -1,42 +1,33 @@
+import * as Clipboard from 'expo-clipboard'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
-import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { recents } from '@/entities/transaction/fixtures'
-import { isAddressFormat, shortAddress } from '@/shared/lib/address'
-import { useTheme } from '@/shared/theme'
-import { Button, Group, ListItem, RecipientField, Screen, ScreenHeader, Text } from '@/shared/ui'
+import { isAddressFormat } from '@/shared/lib/address'
 import { goBack } from '@/shared/lib/nav'
+import { Button, RecipientField, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 
-/** R-S20A 누구에게 보낼까요? Recipient step. 붙여넣기 and QR 스캔 are inert in C2a (no clipboard or camera wiring). */
+/** R-S20A 누구에게 보낼까요? (Figma 423:848 empty, 423:885 valid). Paste fills the field from the clipboard; QR scan has no camera wiring yet, so it is not offered. A valid format only says the format is right. */
 export function SendPage() {
   const { t } = useTranslation()
-  const th = useTheme()
   const router = useRouter()
   const { to: initial } = useLocalSearchParams<{ to?: string }>()
   const [to, setTo] = useState(initial ?? '')
   const valid = isAddressFormat(to)
+  const paste = async () => {
+    try {
+      setTo((await Clipboard.getStringAsync()).trim().replace(/\s/g, ''))
+    } catch {
+      // clipboard unavailable: the field stays as it is
+    }
+  }
   return (
     <Screen
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
       footer={<Button label={t('send.next')} disabled={!valid} onPress={() => router.push({ pathname: '/send/amount', params: { to } })} />}
     >
       <Text variant="title1" accessibilityRole="header">{t('send.recipientQuestion')}</Text>
-      <View style={{ gap: th.semantic.layout.fieldGap }}>
-        <RecipientField label={t('send.recipientLabel')} value={to} onChangeText={setTo} placeholder={t('send.recipientPlaceholder')} helper={valid ? t('send.recipientHint') : t('send.recipientHelper')} />
-        <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
-          <Button label={t('send.paste')} variant="secondary" size="sm" style={{ flex: 1 }} />
-          <Button label={t('send.scan')} variant="secondary" size="sm" style={{ flex: 1 }} />
-        </View>
-      </View>
-      <View style={{ gap: th.semantic.layout.rowGap }}>
-        <Text variant="title2" accessibilityRole="header">{t('send.recent')}</Text>
-        <Group inset={false}>
-          {recents.map((r) => (
-            <ListItem key={r.address} mono title={shortAddress(r.address)} trailing={{ kind: 'value', text: t(r.label) }} onPress={() => setTo(r.address)} />
-          ))}
-        </Group>
-      </View>
+      <RecipientField label={t('send.recipientLabel')} value={to} onChangeText={setTo} placeholder={t('send.recipientPlaceholder')} actions={[{ label: t('send.paste'), onPress: () => void paste() }]} />
+      {valid ? <StatusNotice tone="info" title={t('send.recipientHint')} /> : null}
     </Screen>
   )
 }

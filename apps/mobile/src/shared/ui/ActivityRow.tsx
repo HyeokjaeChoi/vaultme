@@ -1,11 +1,11 @@
 // Figma: Activity row 36:48 (inside Date list 342:833; Icon / action / send 137:6, receive 137:24; status icons 137:58 / 137:75 / 137:110 / 137:127); Redesign B: B/Row
-import { View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { useTheme } from '../theme'
 import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
 
 export type ActivityStatus = 'pending' | 'confirmed' | 'failed' | 'unknown'
-type Props = { title: string; detail?: string; time: string; amount: string; kind: 'send' | 'receive'; status: ActivityStatus; statusLabel: string }
+type Props = { title: string; detail?: string; time: string; amount: string; kind: 'send' | 'receive'; status: ActivityStatus; statusLabel: string; /** Makes the row a button (opens the detail). */ onPress?: () => void }
 
 const SIGN = /^[+\-−]/
 
@@ -14,13 +14,13 @@ const SIGN = /^[+\-−]/
  * Pending: clock icon. Unknown: question icon. Failed: amount has no sign and is struck through in text/tertiary.
  * Title carries the status words ("보내는 중", "보내기 실패"); subtitle is "{자산} · {시각}" (`detail`, else `time`) only. Status is never color alone.
  */
-export function ActivityRow({ title, detail, time, amount, kind, status, statusLabel }: Props) {
+export function ActivityRow({ title, detail, time, amount, kind, status, statusLabel, onPress }: Props) {
   const t = useTheme()
   const c = t.component.activityRow
   const failed = status === 'failed'
   const icon: IconName = status === 'pending' ? 'pending' : status === 'unknown' ? 'unknown' : kind
   const subtitle = detail ?? time
-  return (
+  const row = (
     <View
       accessible
       accessibilityLabel={`${title}, ${time}, ${amount}, ${statusLabel}`}
@@ -42,5 +42,10 @@ export function ActivityRow({ title, detail, time, amount, kind, status, statusL
         {failed ? amount.replace(SIGN, '') : amount}
       </Text>
     </View>
+  )
+  return onPress ? (
+    <Pressable accessibilityRole="button" onPress={onPress}>{row}</Pressable>
+  ) : (
+    row
   )
 }

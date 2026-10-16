@@ -3,47 +3,46 @@ import { View } from 'react-native'
 import { Redirect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
-import { txNotice, txView, useTrackedTx } from '@/features/send'
-import { shortAddress } from '@/shared/lib/address'
+import { resultCopy, txView, useTrackedTx } from '@/features/send'
 import { showAmount } from '@/shared/lib/amount'
 import { useTheme } from '@/shared/theme'
-import { Button, Group, Screen, StatusLabel, StatusNotice, SummaryRow, Text } from '@/shared/ui'
+import { Button, Screen, StatusHero, StatusNotice, SummaryRow } from '@/shared/ui'
 import { chain } from '@/shared/chain'
 
-/** C2b-S23 보내기 결과: status label, title, body, summary, test notice. Pending or Unknown (Unknown copy: ux-flow.md S23). Reads the kv pending record. */
+/**
+ * C2b-S23 보내기 결과 (Figma 423:15795 Pending, 423:15852 Included, 423:15909 Confirmed, 423:15959 Failed, 423:16009 Unknown, 423:16059 Replaced).
+ * Status hero, a warning while a send may still go through, then flat detail rows. Reads the kv pending record and re-checks it every 15 s while focused.
+ */
 export function SendResultPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { tx } = useTrackedTx() // re-checks a Pending or Included send every 15 s while focused
+  const { tx, checking, recheck } = useTrackedTx()
   if (!tx) return <Redirect href="/home" />
-  const view = txView(tx.state)
-  const copy = txNotice(tx.state)
-  const gap = th.semantic.layout.fieldGap
+  const copy = resultCopy(tx.state)
+  const unknown = tx.state === 'Unknown'
+  const toHistory = () => { router.dismissAll(); router.replace('/activity') }
   return (
     <Screen
       edges={['top', 'bottom']}
       footer={
-        <View style={{ gap }}>
-          <Button label={t('result.history')} onPress={() => { router.dismissAll(); router.replace('/activity') }} />
-          <Button label={t('result.home')} variant="ghost" onPress={() => { router.dismissAll(); router.replace('/home') }} />
+        <View style={{ gap: th.semantic.layout.fieldGap }}>
+          {unknown ? <Button label={t('result.recheck')} busy={checking} onPress={() => void recheck()} /> : <Button label={t('result.history')} onPress={toHistory} />}
+          <Button label={t(unknown ? 'result.history' : 'result.home')} variant="ghost" onPress={unknown ? toHistory : () => { router.dismissAll(); router.replace('/home') }} />
         </View>
       }
     >
-      <View style={{ gap }}>
-        <StatusLabel state={view.status} label={t(view.label)} />
-        <Text variant="title1" accessibilityRole="header">{t(copy.title)}</Text>
-        <Text variant="body" color={th.semantic.text.secondary}>{t(copy.body)}</Text>
-      </View>
-      <Group>
-        <SummaryRow label={t('detail.sender')} value={account.name} />
-        <SummaryRow label={t('review.network')} value={account.network} />
+      <StatusHero tone={copy.tone} title={t(copy.title)} {...(copy.body ? { body: t(copy.body) } : {})} />
+      {copy.warn ? <StatusNotice tone="warning" title={t(copy.warn)} /> : null}
+      {chain.broadcasts ? null : <StatusNotice tone="warning" title={t('notBroadcast.title')} body={t('notBroadcast.body')} />}
+      <View>
+        <SummaryRow label={t('result.statusLabel')} value={t(txView(tx.state).label)} />
         <SummaryRow label={t('result.amount')} value={showAmount(tx.amount, tx.asset, 'exact')} />
         <SummaryRow format="address" label={t('result.recipient')} value={tx.to} />
-        <SummaryRow label={t('result.hash')} value={shortAddress(tx.hash)} />
+        <SummaryRow label={t('result.network')} value={account.network} />
         <SummaryRow label={t('result.fee')} value={`${tx.fee ?? '—'} ETH`} />
-      </Group>
-      {chain.broadcasts ? null : <StatusNotice tone="warning" title={t('notBroadcast.title')} body={t('notBroadcast.body')} />}
+        <SummaryRow format="address" label={t('result.hash')} value={tx.hash} />
+      </View>
     </Screen>
   )
 }
