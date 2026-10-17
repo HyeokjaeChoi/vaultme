@@ -217,6 +217,10 @@ Figma `14 Redesign B`. audit 모든 count 0. Library publish 없음, 기존 mast
 | 되돌릴 수 없는 일을 묻는 sheet | 안전한 쪽("취소")이 Primary, 실행 쪽은 danger 글자 Secondary. 모든 sheet 공통. 오너 2026-10-17 |
 | Brand/Mark | 초안 유지(파란 둥근 타일 + 흰 열쇠 구멍, 72px, 흰 배경). 오너 2026-10-17 |
 | 오픈소스 라이선스 | 설정 "정보" 그룹에 "오픈소스 라이선스" 행 → 패키지·라이선스 목록 화면. Solar CC BY 4.0 출처 포함. 오너 2026-10-17 |
+| 라이선스 전문 | 패키지 행을 누르면 저작권 줄 + 라이선스 전문 화면. 목록은 빌드 때 lockfile에서 간접 의존성까지 자동 생성. 오너 2026-10-17 |
+| 공개 test vector | Figma 예시·테스트·문서에 "abandon … about"과 0x9858…da94 사용 허용(AGENTS.md rule 4 예외). 오너 2026-10-17 |
+| 빈 지갑 Home 버튼 | 자리 고정(보내기 왼쪽, 받기 오른쪽). 빈 지갑이면 받기 Primary, 보내기 Secondary. 오너 2026-10-17 |
+| 실패 이유 | 네트워크에서 확인한 이유 값이 있을 때만 한 줄 표시. 없으면 기본 문구. 추측 금지. 오너 2026-10-17 |
 
 ### 9.4 순서
 1. Figma 정리(페이지·섹션·Foundation 페이지) 완료 뒤 Foundation 변경.
