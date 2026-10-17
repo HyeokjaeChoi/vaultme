@@ -4,13 +4,14 @@
   "version": "0.0.0",
   "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
-    "ios": "expo run:ios",
-    "android": "expo run:android",
-    "export": "expo export --platform ios",
-    "test": "vitest run --passWithNoTests",
-    "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint ."
+    "generate:licenses": "node scripts/generate-licenses.mjs",
+    "start": "node scripts/generate-licenses.mjs && expo start",
+    "ios": "node scripts/generate-licenses.mjs && expo run:ios",
+    "android": "node scripts/generate-licenses.mjs && expo run:android",
+    "export": "node scripts/generate-licenses.mjs && expo export --platform ios",
+    "test": "node scripts/generate-licenses.mjs && vitest run --passWithNoTests",
+    "typecheck": "node scripts/generate-licenses.mjs && tsc -p tsconfig.json",
+    "lint": "node scripts/generate-licenses.mjs && eslint ."
   },
   "dependencies": {
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
