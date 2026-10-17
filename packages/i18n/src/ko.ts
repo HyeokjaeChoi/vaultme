@@ -170,6 +170,23 @@ export const ko = {
     recipientHint: '주소 형식만 확인했어요.\n받는 사람이 맞는지는 직접 확인해 주세요.',
     paste: '붙여넣기',
     scan: 'QR 스캔',
+    // QR scan (issue #64, Figma B-S21 618:102942 .. 618:103288; B-S20a from QR 618:102148). Address only: amount and token params are ignored.
+    qr: {
+      title: 'QR 스캔',
+      hint: 'QR 코드를 네모 안에 맞춰 주세요',
+      invalid: '주소 QR이 아니에요',
+      // {{copula}} = 이에요 / 예요 by the last digit of the chain id (scanQr.ts chainIdCopula).
+      wrongChain: {
+        title: '이 QR은 Sepolia가 아니에요',
+        body: '이 QR의 체인 ID는 {{chainId}}{{copula}}. VaultMe는 Sepolia({{sepolia}})로만 보내요.\n받는 사람에게 Sepolia 주소를 다시 받으세요.',
+        back: '돌아가기',
+      },
+      denied: { title: '카메라를 쓸 수 없어요', body: 'QR을 스캔하려면 카메라 권한이 필요해요.\n설정에서 켜 주세요.', openSettings: '설정 열기' },
+      pasteAddress: '주소 붙여넣기',
+      testQr: '테스트 QR',
+      source: 'QR에서 가져온 주소',
+      amountNote: 'QR에 금액이 들어 있어도 주소만 가져와요.\n금액은 직접 입력해요.',
+    },
     recent: '최근 보낸 주소',
     recentRow: '{{date}} · {{amount}} 보냄',
     clear: '지우기',

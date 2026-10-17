@@ -55,7 +55,7 @@ export function AssetDetailPage() {
             <Button size="sm" variant="secondary" icon="copy" label={copied ? t('asset.copied') : t('asset.copy')} {...(copied ? { copied } : {})} onPress={() => void copy(USDC_SEPOLIA)} />
           </View>
         ) : (
-          <SummaryRow label={t('asset.contractNative')} fact value={t('asset.noContract')} />
+          <SummaryRow label={t('asset.contractNative')} value={t('asset.noContract')} />
         )}
         <SummaryRow label={t('asset.decimals')} fact value={String(asset.decimals)} />
         <StatusNotice tone="info" title={t(usdc ? 'asset.feeUsdc' : 'asset.feeEth')} />

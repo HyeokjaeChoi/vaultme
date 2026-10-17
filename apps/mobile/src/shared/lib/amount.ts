@@ -1,6 +1,6 @@
 import { ASSETS, formatDecimal, toUnits, type AssetId } from '@vaultme/wallet-core'
 
-export type KeypadKey = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '00' | '.' | 'backspace'
+export type KeypadKey = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '.' | 'backspace'
 
 const MAX_LENGTH = 12 // amounts wrap in layout, but the keypad stops before the hero text gets too wide
 
@@ -10,7 +10,6 @@ export function applyKey(amount: string, key: KeypadKey, decimals: number = ASSE
     const next = amount.slice(0, -1)
     return next === '' ? '0' : next
   }
-  if (key === '00') return applyKey(applyKey(amount, '0', decimals), '0', decimals)
   if (key === '.') return amount.includes('.') ? amount : `${amount}.`
   if (amount.length >= MAX_LENGTH) return amount
   const frac = amount.split('.')[1]

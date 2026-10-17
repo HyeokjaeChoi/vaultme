@@ -19,20 +19,12 @@ const ROWS: Cell[][] = [
 /** Returns `false` when the key was rejected (or made the amount too big): the haptic is then the warning cue, not selection. */
 type OnKey = (k: KeypadKey) => boolean | void
 type Labels = { dot: string; delete: string }
-/** `dot` = ETH asset key ".", `doubleZero` = USDC asset key "00" (one "00" key; `applyKey` adds both zeros). */
-type AssetKey = 'dot' | 'doubleZero'
-
-function Key({ cell, assetKey, labels, onKey }: { cell: Cell; assetKey: AssetKey; labels: Labels; onKey: OnKey }) {
+function Key({ cell, labels, onKey }: { cell: Cell; labels: Labels; onKey: OnKey }) {
   const t = useTheme()
   const { style, handlers } = usePressScale()
-  const doubleZero = cell === 'aux' && assetKey === 'doubleZero'
-  const text = cell === 'aux' ? (doubleZero ? '00' : '.') : cell
-  const label = cell === 'backspace' ? labels.delete : cell === 'aux' && !doubleZero ? labels.dot : text
-  const press = () => {
-    if (cell === 'aux') {
-      keyHaptic(onKey(doubleZero ? '00' : '.'))
-    } else keyHaptic(onKey(cell))
-  }
+  const text = cell === 'aux' ? '.' : cell
+  const label = cell === 'backspace' ? labels.delete : cell === 'aux' ? labels.dot : text
+  const press = () => keyHaptic(onKey(cell === 'aux' ? '.' : cell))
   return (
     <Animated.View style={[style, { flex: 1 }]}>
       <Pressable
@@ -48,14 +40,14 @@ function Key({ cell, assetKey, labels, onKey }: { cell: Cell; assetKey: AssetKey
   )
 }
 
-/** C34 Keypad (Redesign B). 3x4 text keys on one 56 pt row height, Title 1 digits 26 (capped at 1.3x), no fills, no gaps. The bottom-left asset key is "." (ETH) or "00" (USDC). Backspace is icon-only ("지우기"). Press feedback: scale 0.97, 100 ms, plus a selection haptic (warning haptic when `onKey` returns false). */
-export function Keypad({ onKey, labels, assetKey = 'dot' }: { onKey: OnKey; labels: Labels; assetKey?: AssetKey }) {
+/** C34 Keypad (Redesign B). 3x4 text keys on one 56 pt row height, Title 1 digits 26 (capped at 1.3x), no fills, no gaps. The bottom-left key is "." for every asset (ETH and USDC; the asset only changes how many decimals `applyKey` accepts). Backspace is icon-only ("지우기"). Press feedback: scale 0.97, 100 ms, plus a selection haptic (warning haptic when `onKey` returns false). */
+export function Keypad({ onKey, labels }: { onKey: OnKey; labels: Labels }) {
   return (
     <View>
       {ROWS.map((row, i) => (
         <View key={i} style={{ flexDirection: 'row' }}>
           {row.map((c) => (
-            <Key key={c} cell={c} assetKey={assetKey} labels={labels} onKey={onKey} />
+            <Key key={c} cell={c} labels={labels} onKey={onKey} />
           ))}
         </View>
       ))}

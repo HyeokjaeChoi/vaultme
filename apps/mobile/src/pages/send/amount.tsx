@@ -24,7 +24,7 @@ const CHIP_LABEL = { 25: 'send.chip.p25', 50: 'send.chip.p50', 100: 'send.chip.a
  * B-S20b 얼마를 보낼까요? (Figma ETH 618:102298, asset sheet 618:102396, USDC 618:102511, USDC ETH short 618:102639; older 423:929 / 423:1000 / 423:1071).
  * Title, asset row (ETH by default, or the asset the entry point chose; tap = asset sheet), then amount, chips and the custom keypad at the bottom.
  * Chips = share of the sendable amount, floored to the display digits (wallet-core chipAmount). ETH sendable = balance - max fee; USDC sendable = the USDC balance, and the fee needs ETH:
- * when ETH cannot cover the fee cap the chips are off with the reason and a faucet row (the keypad still works; Review blocks). USDC keypad has "00" (6 decimals).
+ * when ETH cannot cover the fee cap the chips are off with the reason and a faucet row (the keypad still works; Review blocks). The keypad is the same for ETH and USDC, with "." (USDC stops at 6 decimals).
  * `?asset=USDC` picks the asset by route param; `?ethShort=1` is a __DEV__ capture override of the fake adapter (shared/chain/devOverride).
  */
 export function SendAmountPage() {
@@ -90,7 +90,7 @@ export function SendAmountPage() {
             </View>
           ) : null}
         </View>
-        <Keypad assetKey={asset === 'USDC' ? 'doubleZero' : 'dot'} labels={{ dot: t('send.keypad.dot'), delete: t('send.keypad.delete') }} onKey={onKey} />
+        <Keypad labels={{ dot: t('send.keypad.dot'), delete: t('send.keypad.delete') }} onKey={onKey} />
       </View>
       <AssetPickerSheet visible={picker} onClose={() => setPicker(false)} onPick={pick} balances={balances} selected={asset} />
     </Screen>
