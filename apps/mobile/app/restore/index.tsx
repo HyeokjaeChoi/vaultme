@@ -17,7 +17,7 @@ const DEMO: Record<string, { phrase: string; dev?: RestoreDev }> = {
   saveerror: { phrase: READY, dev: { outcome: 'error' } },
   'passphrase-masked': { phrase: READY, dev: { passOpen: true, passphrase: 'TREZOR' } },
   'passphrase-shown': { phrase: READY, dev: { passOpen: true, passphrase: 'TREZOR', showPass: true } },
-  '24words': { phrase: `${'abandon '.repeat(17)}aban`, dev: { focus: 17 } },
+  '24words': { phrase: `${'abandon '.repeat(12)}ab`, dev: { focus: 12 } },
 }
 
 export default function RestoreRoute() {

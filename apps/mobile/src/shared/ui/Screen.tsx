@@ -19,7 +19,7 @@ type Props = {
   /** Brand screens (Figma 423:13440, 423:15412, 423:15443, 423:15474) draw no line above the actions. */
   footerLine?: boolean
   /** Form screens: the body shrinks above the keyboard, and `revealRef.current(y, height)` scrolls a body-content box into view with `l.screen.padding` (16) clearance. */
-  revealRef?: MutableRefObject<((y: number, height: number) => void) | null>
+  revealRef?: MutableRefObject<((y: number | 'end', height?: number) => void) | null>
 }
 
 /** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
@@ -37,7 +37,8 @@ export function Screen({ children, header, footer, edges = ['top', 'bottom'], ga
   }, [overflows])
 
   if (revealRef) {
-    revealRef.current = (y, h) => {
+    revealRef.current = (y, h = 0) => {
+      if (y === 'end') return scrollRef.current?.scrollToEnd({ animated: true })
       const clear = l.screen.padding
       const top = scrollY.current
       if (y - clear < top) scrollRef.current?.scrollTo({ y: Math.max(0, y - clear), animated: true })

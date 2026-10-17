@@ -35,7 +35,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const [submitChecksum, setSubmitChecksum] = useState(false)
 
   const cells = useRef<(TextInput | null)[]>([])
-  const reveal = useRef<((y: number, height: number) => void) | null>(null)
+  const reveal = useRef<((y: number | 'end', height?: number) => void) | null>(null)
   const phraseY = useRef(0)
   const gridY = useRef(0)
   const [focusReq, setFocusReq] = useState<{ i: number; n: number } | null>(null)
@@ -61,6 +61,10 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const cellH = th.primitive.space[3] * 2 + th.primitive.type.productB.body.lineHeight
   const half = count / 2
   const revealCell = (i: number) => reveal.current?.(phraseY.current + gridY.current + (i % half) * (cellH + th.semantic.layout.fieldGap), cellH)
+  useEffect(() => {
+    // Opened passphrase row: bring the field and its helper above the footer (after the content has grown).
+    if (passOpen) setTimeout(() => reveal.current?.('end'), 300)
+  }, [passOpen])
   useEffect(() => {
     if (!focusReq) return
     cells.current[focusReq.i]?.focus()
