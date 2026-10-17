@@ -30,7 +30,8 @@ export function SummaryRow({ label, value, format = 'text', sub, highlight, fact
   const total = format === 'total'
   const address = format === 'address'
   // At about 150% text and above the label sits above the value, so a long amount keeps the full row width.
-  const stacked = address || useWindowDimensions().fontScale >= 1.5
+  const { fontScale } = useWindowDimensions()
+  const stacked = address || fontScale >= 1.5
   const edit = onEdit ? (
     <Pressable
       accessibilityRole="button"
