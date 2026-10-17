@@ -41,6 +41,7 @@ export function WordCell({ number, label, value, error, focused, last, inputRef,
   const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
   const onKeyPress = (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
     if (e.nativeEvent.key === 'Backspace' && value === '') onBackspaceEmpty()
+    else if (e.nativeEvent.key === ' ') onNext()
   }
   return (
     <View
