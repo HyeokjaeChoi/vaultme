@@ -674,7 +674,7 @@ Figma `Flow 1`–`Flow 5`. 새 문구와 바뀐 문구만 적었다. 모두 오�
 | S21 카메라 거부 | 버튼 (Primary) | 설정 열기 | |
 | S21 카메라 거부 | 버튼 (Secondary) | 주소 붙여넣기 | |
 | S21+QRX 체인 불일치 시트 | 시트 제목 | 이 QR은 Sepolia가 아니에요 | |
-| S21+QRX 체인 불일치 시트 | 시트 본문 | 이 QR의 체인 ID는 {{chainId}}이에요. VaultMe는 Sepolia(11155111)로만 보내요. 받는 사람에게 Sepolia 주소를 다시 받으세요. | 이에요/예요는 체인 ID 끝자리로 고른다 (2, 5, 9 = 예요) |
+| S21+QRX 체인 불일치 시트 | 시트 본문 | 이 QR의 체인 ID는 {{chainId}}이에요. VaultMe는 Sepolia(11155111)로만 보내요. 받는 사람에게 Sepolia 주소를 다시 받으세요. | 이에요/예요는 체인 ID 끝자리로 고른다 (2, 4, 5, 9 = 예요) |
 | S21+QRX 체인 불일치 시트 (알려진 체인) | 시트 본문 | 이 QR은 {name}용이에요. VaultMe는 Sepolia(11155111)로만 보내요.<br>받는 사람에게 Sepolia 주소를 다시 받으세요. | 이름: 1 Ethereum 메인넷, 8453 Base, 137 Polygon, 42161 Arbitrum One, 10 OP Mainnet. 그 밖은 위 문장(체인 ID만) |
 | S21+QRX 체인 불일치 시트 | 시트 버튼 | 돌아가기 | 하나뿐. 무시하고 보내는 길은 없다 |
 | iOS 권한창 | NSCameraUsageDescription | 받는 주소 QR을 스캔할 때 카메라를 사용해요. | app.json expo-camera 플러그인 |

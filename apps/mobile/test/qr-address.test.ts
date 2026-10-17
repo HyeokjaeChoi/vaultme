@@ -60,7 +60,7 @@ describe('chainIdCopula', () => {
     expect(chainIdCopula(11155111)).toBe('이에요')
     expect(chainIdCopula(10)).toBe('이에요')
     expect(chainIdCopula(42161)).toBe('이에요')
-    for (const id of [2, 5, 9, 137 + 2, 8453 + 2]) expect(chainIdCopula(id)).toBe('예요')
+    for (const id of [2, 4, 5, 9, 43114, 137 + 2, 8453 + 2]) expect(chainIdCopula(id)).toBe('예요')
   })
 })
 
