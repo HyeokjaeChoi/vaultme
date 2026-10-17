@@ -5,7 +5,7 @@ import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { cleanAmount } from '@/entities/transaction/review'
 import { useSendable } from '@/features/send'
-import { applyKey, exceedsBalance, isZeroAmount } from '@/shared/lib/amount'
+import { applyKey, type KeypadKey, exceedsBalance, isZeroAmount } from '@/shared/lib/amount'
 import { isAddressFormat } from '@/shared/lib/address'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
@@ -38,6 +38,12 @@ export function SendAmountPage() {
     const raw = snap ? chipAmount('ETH', c.pct, snap.balance, snap.feeCap, snap.nativeBalance) : 0n
     return { ...c, raw, value: fromUnits(raw, 'ETH') }
   })
+  const onKey = (k: KeypadKey) => {
+    const next = applyKey(amount, k)
+    if (next === amount && k !== 'backspace') return false // over max length or decimals, second "."
+    setAmount(next)
+    return !(sendable !== null && !tooMuch && exceedsBalance(next, sendable)) // newly over the balance: warning cue
+  }
   const chosen = chips.find((c) => c.raw > 0n && c.value === amount.replace(/\.$/, ''))
   const sub = chosen?.pct === 100 ? t('send.feeExcluded') : sendable !== null ? `${t('send.maxSendable')} ${formatDecimal(sendable, 'ETH', 'floor')} ETH` : undefined
   return (
@@ -57,7 +63,7 @@ export function SendAmountPage() {
             <Chip key={c.pct} label={t(c.label)} selected={chosen?.pct === c.pct} disabled={c.raw === 0n} onPress={() => setAmount(c.value)} />
           ))}
         </View>
-        <Keypad labels={{ dot: t('send.keypad.dot'), delete: t('send.keypad.delete') }} onKey={(k) => setAmount((a) => applyKey(a, k))} />
+        <Keypad labels={{ dot: t('send.keypad.dot'), delete: t('send.keypad.delete') }} onKey={onKey} />
       </View>
     </Screen>
   )

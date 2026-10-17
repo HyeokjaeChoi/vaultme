@@ -13,3 +13,6 @@ export const haptic = {
   success: () => run(Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)),
   error: () => run(Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)),
 }
+
+/** Keypad cue: a rejected key (or one that made the amount too big) gives the warning cue, never the selection one. `undefined` = accepted. */
+export const keyHaptic = (accepted: boolean | void) => (accepted === false ? haptic.warning() : haptic.select())
