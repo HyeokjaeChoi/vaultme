@@ -15,6 +15,7 @@ export function StartPage({ demo = false }: { demo?: boolean }) {
   return (
     <BrandScreen
       wordmark
+      anchor="bottom"
       title={t('start.title')}
       bodyVariant="title2"
       fact={`v${Constants.expoConfig?.version ?? ''} · ${account.network} · chain id ${account.chainId}`}

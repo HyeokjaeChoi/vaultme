@@ -22,7 +22,7 @@ export function LicensePage() {
         <>
           <View style={{ gap: th.semantic.layout.fieldGap, paddingHorizontal: th.semantic.layout.screen.padding, paddingTop: th.primitive.space[2], paddingBottom: th.semantic.layout.groupGap }}>
             <Text variant="title2" accessibilityRole="header">{licenseTitle(entry)}</Text>
-            <Text variant="bodySmall" color={th.semantic.text.secondary}>{entry.version ? `${t('settings.licensesScreen.version', { v: entry.version })} · ${entry.license}` : entry.license}</Text>
+            <Text variant="fact" color={th.semantic.text.secondary}>{entry.version ? `v${entry.version} · ${entry.license}` : entry.license}</Text>
           </View>
           <SectionBand />
           <Block>

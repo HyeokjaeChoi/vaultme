@@ -152,8 +152,8 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
         {outcome === 'error' ? <StatusNotice tone="danger" tier="banner" title={t('restore.saveError.title')} body={t('restore.saveError.body')} /> : null}
       </View>
       <View style={{ gap: th.semantic.layout.rowGap }} onLayout={(e) => (phraseY.current = e.nativeEvent.layout.y)}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.semantic.layout.groupGap }}>
-          <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: th.semantic.layout.groupGap }}>
+          <View style={{ flex: 1, maxWidth: th.primitive.space[10] * 5.5 }}>
             <Segmented options={[{ value: '12', label: t('restore.count12') }, { value: '24', label: t('restore.count24') }]} value={String(count)} onChange={(v) => setCount(v === '24' ? 24 : 12)} />
           </View>
           <TextLink label={t('restore.paste')} onPress={() => void paste()} />

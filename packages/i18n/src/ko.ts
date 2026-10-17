@@ -67,13 +67,13 @@ export const ko = {
     // First deposit while not backed up (Figma 586:97341): shown once, `useBackupGate.markPromptShown`.
     deposit: { title: '입금이 도착했어요', body: '복구 구문을 아직 백업하지 않았어요.\n기기를 잃으면 이 자산을 되찾을 수 없어요.', cta: '지금 백업' },
     emptyTitle: '아직 자산이 없어요',
-    emptyBody: '받기 주소를 공유하면\nSepolia ETH와 USDC를 받을 수 있어요.',
+    emptyBody: 'ETH나 USDC를 받으려면 주소를 공유하세요.',
     heroLabel: 'Sepolia ETH',
     introTitle: 'Sepolia 테스트넷 지갑이에요',
     introBody: '실제 가치가 없는 테스트 자산만 다뤄요.\n시장 가격이 없어서 수량으로 보여 줘요.',
     introCta: '확인',
     testDataCta: '확인',
-    faucet: { title: '테스트 ETH 받기', value: 'QuickNode', caption: '받기 주소를 복사하고 외부 사이트(faucet)를 열어요.' },
+    faucet: { title: '테스트 ETH 받기', value: 'QuickNode', caption: '받기 주소를 복사하고 외부 사이트(faucet)⁠를 열어요.' },
   },
   // S11 asset detail (ux-copy.md Redesign B 2차).
   asset: {
