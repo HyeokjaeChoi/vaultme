@@ -140,7 +140,7 @@ export function ReviewPage() {
   } else
     footer = (
       <>
-        <Text variant="caption" color={th.semantic.text.secondary} style={{ textAlign: 'center' }}>{caption}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.primary} style={{ textAlign: 'center' }}>{caption}</Text>
         <Button label={t(shownNotice === 'authError' ? 'common.retry' : 'review.confirm')} busy={busy} busyLabel={t('busy.send')} disabled={!core.review} onPress={() => void send()} />
       </>
     )
