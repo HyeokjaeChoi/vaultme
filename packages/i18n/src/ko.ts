@@ -391,7 +391,7 @@ export const ko = {
     // S62 거래 알림, S63 0원 거래 표시 (ux-copy.md)
     pushScreen: { title: '거래 알림', row: '거래 알림 받기', body: '켜면 이 주소가 VaultMe 알림 서버에 등록돼요. 끄면 등록을 지워요.', warnTitle: '알림으로 복구 구문을 묻지 않아요', warnBody: '복구 구문을 묻는 알림은 모두 사기예요.' },
     // S92 (ux-copy.md 기기 보안 경고). The root/jailbreak detection is not wired: the screen opens from the S60 row only.
-    deviceScreen: { title: '안전하지 않은 기기 같아요', body: '루팅되었거나 탈옥된 기기로 보여요.\n다른 앱이 지갑 키를 읽을 수 있어요.\n이 지갑에는 테스트넷 자산만 두세요.', cta: '이해했어요' },
+    deviceScreen: { title: '기기 보안 안내', body: '루팅·탈옥된 기기에서는 다른 앱이 지갑 키를 읽을 수 있어요.\n이 지갑에는 테스트넷 자산만 두세요.', cta: '이해했어요' },
     zeroScreen: { title: '수량 0 거래 표시', row: '수량 0 거래 보기', body: '수량 0 거래는 주소 오염 공격에 자주 쓰여요.\n기본으로 숨겨요.' },
   },
   pushSheet: {

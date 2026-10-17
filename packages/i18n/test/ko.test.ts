@@ -88,7 +88,7 @@ it('has the Redesign B phase 2 copy (home, asset, onboarding, settings, brand)',
   expect(i18n.t('settings.licenses')).toBe('오픈소스 라이선스')
   expect(i18n.t('settings.phraseBody', { auth: i18n.t('settings.phraseAuth.faceId') })).toBe('Face ID로 확인했어요. 화면을 캡처하지 마세요.\n앱을 벗어나면 다시 가려져요.')
   expect(i18n.t('lock.checking.faceId')).toBe('Face ID로 확인하는 중이에요')
-  expect(i18n.t('settings.deviceScreen.title')).toBe('안전하지 않은 기기 같아요')
+  expect(i18n.t('settings.deviceScreen.title')).toBe('기기 보안 안내')
 })
 
 it('has the seamless follow-up copy (2026-10-17)', () => {
