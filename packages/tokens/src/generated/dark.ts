@@ -52,7 +52,8 @@ export const dark = {
         "600": "#A9660A",
         "700": "#865007",
         "800": "#693F0B",
-        "900": "#53340F"
+        "900": "#53340F",
+        "950": "#342617"
       },
       "red": {
         "50": "#FBE8E9",
@@ -64,7 +65,8 @@ export const dark = {
         "600": "#B93340",
         "700": "#982934",
         "800": "#7A252E",
-        "900": "#612229"
+        "900": "#612229",
+        "950": "#3C1F21"
       },
       "identity": {
         "blue": {
@@ -527,7 +529,8 @@ export const dark = {
       "hover": "#11161D",
       "pressed": "#28313C",
       "portfolioSummary": "#273966",
-      "disabled": "#28313C"
+      "disabled": "#28313C",
+      "pressedOnRaised": "#505C6C"
     },
     "text": {
       "primary": "#F6F8FB",
@@ -593,12 +596,12 @@ export const dark = {
       },
       "warning": {
         "fg": "#FFC65D",
-        "bg": "#53340F",
+        "bg": "#342617",
         "border": "#865007"
       },
       "danger": {
         "fg": "#E98B95",
-        "bg": "#612229",
+        "bg": "#3C1F21",
         "border": "#982934"
       },
       "info": {
@@ -964,12 +967,12 @@ export const dark = {
       },
       "warning": {
         "fg": "#FFC65D",
-        "bg": "#53340F",
+        "bg": "#342617",
         "border": "#865007"
       },
       "danger": {
         "fg": "#E98B95",
-        "bg": "#612229",
+        "bg": "#3C1F21",
         "border": "#982934"
       },
       "info": {
@@ -1028,12 +1031,12 @@ export const dark = {
         "border": "#28313C"
       },
       "warning": {
-        "bg": "#53340F",
+        "bg": "#342617",
         "fg": "#FFC65D",
         "border": "#865007"
       },
       "risk": {
-        "bg": "#612229",
+        "bg": "#3C1F21",
         "fg": "#E98B95",
         "border": "#982934"
       },
@@ -1106,12 +1109,12 @@ export const dark = {
       "spender": "#C7D1DD",
       "limit": "#F6F8FB",
       "warning": {
-        "bg": "#53340F",
+        "bg": "#342617",
         "fg": "#FFC65D",
         "border": "#865007"
       },
       "risk": {
-        "bg": "#612229",
+        "bg": "#3C1F21",
         "fg": "#E98B95",
         "border": "#982934"
       },
@@ -1322,7 +1325,7 @@ export const dark = {
       "helper": "#C7D1DD",
       "warning": {
         "fg": "#FFC65D",
-        "bg": "#53340F"
+        "bg": "#342617"
       },
       "radius": 16,
       "padding": 24,
@@ -1499,7 +1502,7 @@ export const dark = {
       },
       "warning": {
         "fg": "#FFC65D",
-        "bg": "#53340F"
+        "bg": "#342617"
       },
       "radius": 20,
       "padding": 24,
@@ -1526,7 +1529,7 @@ export const dark = {
       "body": "#C7D1DD",
       "pending": {
         "fg": "#FFC65D",
-        "bg": "#53340F"
+        "bg": "#342617"
       },
       "complete": {
         "fg": "#74D9A9",
@@ -1728,13 +1731,13 @@ export const dark = {
       },
       "warning": {
         "fg": "#FFC65D",
-        "bg": "#53340F",
+        "bg": "#342617",
         "border": "#865007",
         "borderWidth": 0
       },
       "danger": {
         "fg": "#E98B95",
-        "bg": "#612229",
+        "bg": "#3C1F21",
         "border": "#982934",
         "borderWidth": 0
       },
@@ -1907,7 +1910,8 @@ export const dark = {
       "secondary": {
         "bg": "#28313C",
         "bgPressed": "#28313C",
-        "fg": "#F6F8FB"
+        "fg": "#F6F8FB",
+        "bgOnRaised": "#505C6C"
       }
     },
     "rowB": {
@@ -1933,10 +1937,10 @@ export const dark = {
         "bg": "#273966"
       },
       "warning": {
-        "bg": "#53340F"
+        "bg": "#342617"
       },
       "danger": {
-        "bg": "#612229"
+        "bg": "#3C1F21"
       },
       "unknown": {
         "bg": "#11161D"
@@ -1959,7 +1963,7 @@ export const dark = {
         "fg": "#74D9A9"
       },
       "pending": {
-        "fg": "#FFC65D"
+        "fg": "#A9660A"
       },
       "failed": {
         "fg": "#E98B95"

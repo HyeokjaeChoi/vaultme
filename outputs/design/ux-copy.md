@@ -515,3 +515,23 @@ Figma `Flow 1 · Onboarding`, `Flow 2 · Home & balance`, `Flow 5 · Security & 
 | S60 | 계정 블록 | 계정 1 · 0x9858…da94 · 복사 | 복사 뒤 토스트 "복사했어요" |
 | S90 | 진행 상태 | Face ID로 확인하는 중이에요 | 화면이 뜨면 Face ID 바로 시작. 기기별 이름은 S90 규칙(얼굴·지문·기기 암호) |
 | S90 실패·취소 | 본문 / 버튼 | 잠금을 풀지 못했어요. 다시 시도하세요. / 잠금 해제 | 기존 승인 문구 |
+
+### Redesign B 1차 Phase B · 2차 polish · 오픈소스 라이선스 (2026-10-17)
+
+Figma `Flow 3`, `Flow 4`, `Flow 5 · Security & settings`. 새 문구와 바뀐 문구만 적었다. 오너 확인 필요.
+
+| ID | 위치 | 문구 | 비고 |
+|---|---|---|---|
+| S41 테스트 거래 지우기 sheet | 본문 | 이 기기에서 만든 예시 거래예요. / 지우면 다시 보내기를 시험할 수 있어요. | 두 줄로 나눠 Hangul 글자 단위 줄바꿈("시/험할")을 막음. 버튼: "취소"(Primary), "지우기"(Secondary, danger 글자) |
+| S90 | 진행 상태 | Face ID로 확인하는 중이에요 | 기존 문구. 버튼 자리(56)로 옮겨서 실패 상태와 로고·제목 y가 같음 |
+| S92 | 제목 | 안전하지 않은 기기 같아요 | "기기 보안 경고" 대체. 감지는 추정이라 "같아요" |
+| S92 | 본문 | 루팅되었거나 탈옥된 기기로 보여요. / 다른 앱이 지갑 키를 읽을 수 있어요. / 이 지갑에는 테스트넷 자산만 두세요. | 기존 Inline 안내 2개를 본문 3줄로 합침 |
+| S92 | 버튼 | 이해했어요 | 기존 문구. Primary 하나 |
+| S60 | 정보 그룹 행 | 오픈소스 라이선스 › | 네트워크와 버전 사이. Solar document-text 아이콘 |
+| S64 | 제목 / 본문 | 오픈소스 라이선스 / VaultMe가 쓰는 오픈소스와 라이선스예요. | 새 화면. ux-flow의 S62는 알림 설정이라 S64를 씀 |
+| S64 | 그룹 제목 | 아이콘·글꼴 / 앱 라이브러리 | |
+| S64 | 행 | Solar Icons by 480 Design · CC BY 4.0 | CC BY 4.0 출처 표시 |
+| S64 | 링크 행 | Solar Icons 원본 보기 ↗ | 외부 링크(브라우저). Solar 원본·라이선스 페이지 |
+| S64 | 행 | Pretendard · OFL-1.1 / IBM Plex Mono · OFL-1.1 | |
+| S64 | 행 | React Native, Expo, React, viem, @noble/curves, @noble/hashes, @solar-icons/react-native, react-native-reanimated, react-native-keychain, react-native-mmkv, i18next · MIT | `apps/mobile/package.json` 주요 의존성. `phosphor-react-native`는 Solar로 바꿀 예정이라 뺐다 |
+| S64 | 열린 질문 | (없음) | 패키지마다 라이선스 전문 화면을 둘지 오너 결정 필요. 지금은 목록만 있고 행을 눌러도 아무 일이 없다 |

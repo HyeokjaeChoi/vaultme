@@ -52,7 +52,8 @@ export const light = {
         "600": "#A9660A",
         "700": "#865007",
         "800": "#693F0B",
-        "900": "#53340F"
+        "900": "#53340F",
+        "950": "#342617"
       },
       "red": {
         "50": "#FBE8E9",
@@ -64,7 +65,8 @@ export const light = {
         "600": "#B93340",
         "700": "#982934",
         "800": "#7A252E",
-        "900": "#612229"
+        "900": "#612229",
+        "950": "#3C1F21"
       },
       "identity": {
         "blue": {
@@ -527,7 +529,8 @@ export const light = {
       "hover": "#F6F8FB",
       "pressed": "#EEF2F7",
       "portfolioSummary": "#DCE8FD",
-      "disabled": "#EEF2F7"
+      "disabled": "#EEF2F7",
+      "pressedOnRaised": "#EEF2F7"
     },
     "text": {
       "primary": "#11161D",
@@ -1907,7 +1910,8 @@ export const light = {
       "secondary": {
         "bg": "#EEF2F7",
         "bgPressed": "#EEF2F7",
-        "fg": "#11161D"
+        "fg": "#11161D",
+        "bgOnRaised": "#EEF2F7"
       }
     },
     "rowB": {
@@ -1959,7 +1963,7 @@ export const light = {
         "fg": "#116D48"
       },
       "pending": {
-        "fg": "#865007"
+        "fg": "#A9660A"
       },
       "failed": {
         "fg": "#982934"

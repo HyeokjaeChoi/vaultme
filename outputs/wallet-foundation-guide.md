@@ -280,3 +280,12 @@ Canvas 구현 확인: 기존 Figma source의 Semantic alias를 수정하고 Libr
 - `rowBadge.*`: B/Row `Leading=Asset badge`. 자산 아이콘 40 + 18 px 배지(`size.badge`), 2 px `surface.default` ring. 색은 sent `icon.secondary`, received `status.success.fg`, pending `status.warning.fg`, failed `status.danger.fg`. 배지 글리프는 Phosphor fill 원형(arrow-circle-up-right / down-left, clock, x-circle)이다. 단색 regular 아이콘은 18 px 배지에서 원형 윤곽이 겹쳐 fill을 골랐다.
 - 꺼진 Primary: `surface.disabled`(Light neutral.100, Dark neutral.800) 배경 + `text.disabled`.
 - `Brand/Mark`: 로고 마크 draft(72/40/24, OnLight/OnBrand). 오너 검토 전이다. 토큰 없이 `brand.primary`와 `color.neutral.0`을 직접 binding한다.
+
+### Banner 제목, sheet Secondary, Dark Banner 채움 (2026-10-17, 오너 승인)
+
+- `B/Notice inline` 399:122 `Tier=Banner` 변형에 `Title` 레이어를 더했다. 새 property `Title`(TEXT)과 `Show title`(BOOLEAN, 기본 false)이다. 제목은 `Product B/Headline`(17/600), 본문 `Message`는 `Product B/Body Small` + `text.secondary`, 사이 간격 `space.1`(4). 제목이 있는 Banner만 `Show title`을 켠다. 기존 소비 프레임은 기본값으로 바뀌지 않는다.
+- 새 Semantic `surface.pressedOnRaised`(Light neutral.100, Dark neutral.600)와 Component `buttonB.secondary.bgOnRaised`: bottom sheet(raised 면) 안 Secondary 배경. Dark 경계 1.93:1은 수용했다(`outputs/wallet-component-contracts.md` 근거).
+- `rowBadge.pending.fg`: `status.warning.fg` → `color.amber.600`(두 모드). 흰 Solar Bold 글리프 대비 4.57:1.
+- 새 Primitive `color.red.950` #3C1F21, `color.amber.950` #342617. 900 단계에서 OKLCH로 만들었다(같은 hue, L 0.28, chroma ×0.5). Dark `status.danger.bg` → `red.950`, `status.warning.bg` → `amber.950`(전에는 900). Dark Banner 본문 `text.secondary` 대비 9.64:1 / 9.47:1, 상태 icon(red.300 / amber.300) 6.09:1 / 9.39:1. Light 값은 그대로다.
+- 이 Dark 변경은 `status.*.bg`를 쓰는 모든 곳(Banner, 테스트넷 칩, 상태 라벨)에 같이 적용된다.
+

@@ -316,3 +316,14 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - 수정: `B/Row badge` 495:358 글리프를 Solar Bold 원형으로, `Product navigation` 67:342 선택 항목을 Bold로(Assets 탭은 wallet → home).
 - 남은 것: `apps/mobile` 코드는 아직 Phosphor(`apps/mobile/src/shared/ui/Icon.tsx`, package.json). 카탈로그 프레임 137:3의 문구(Phosphor·MIT)는 텍스트 편집 제한으로 그대로다. Library는 게시하지 않았다.
 - 증거: `work/v9/icons/`.
+
+## 2026-10-17 Batch 1 review fixes (Phase A·B) and batch 2 polish (#54)
+
+- 새 Semantic `surface.pressedOnRaised`(Light `{color.neutral.100}`, Dark `{color.neutral.600}`). 새 Component `buttonB.secondary.bgOnRaised` → `{surface.pressedOnRaised}`. 추가만이라 호환 영향 없음.
+- 값 변경: `rowBadge.pending.fg` `{status.warning.fg}` → `{color.amber.600}`(두 모드). 소비 코드는 생성값을 다시 읽으면 된다.
+- 새 Primitive `color.red.950` #3C1F21, `color.amber.950` #342617. Dark `status.danger.bg` `{color.red.900}` → `{color.red.950}`, Dark `status.warning.bg` `{color.amber.900}` → `{color.amber.950}`. Token path는 그대로다. `packages/tokens` 재생성(`node packages/tokens/build.mjs`), test 19개 통과.
+- Figma Variable: Primitive `color/red/950` VariableID:533:76, `color/amber/950` VariableID:533:77 추가. Semantic `status/danger/bg`, `status/warning/bg` Dark mode alias 변경(Variable ID 유지).
+- Master 변경(추가만): `B/Notice inline` 399:122 Banner 4 변형(493:17437, 493:17444, 493:17451, 493:17458)에 `Title` 레이어와 property `Title`(TEXT), `Show title`(BOOLEAN, 기본 false). Message 스타일은 `Product B/Body Small` + `text/secondary`로 바뀜(모든 Banner에 적용). `Product navigation` 비선택 라벨 `Product B/Label`(500).
+- 새 Icon component(미게시): `Icon / settings / document` 533:21894(Solar document-text Linear), `Icon / hero / shield-warning` 533:21900(Solar Bold Duotone, `icon/status/failed`).
+- 새 화면 S64 오픈소스 라이선스(ux-flow S62는 알림 설정이라 S64). Library는 게시하지 않았다.
+

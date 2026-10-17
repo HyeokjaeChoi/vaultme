@@ -3,7 +3,17 @@
   "id": "vaultme-local-runner",
   "api": "1.0.0",
   "main": "code.js",
-  "editorType": ["figma"],
+  "editorType": [
+    "figma"
+  ],
   "documentAccess": "dynamic-page",
-  "networkAccess": { "allowedDomains": ["none"] }
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ],
+    "devAllowedDomains": [
+      "http://localhost:8765"
+    ],
+    "reasoning": "Dev-only: send exported PNGs to a local receiver."
+  }
 }

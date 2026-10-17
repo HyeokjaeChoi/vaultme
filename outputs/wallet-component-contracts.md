@@ -152,6 +152,7 @@ Master·variant·property ID와 property 이름은 바꾸지 않고 시각만 re
 | C01 Button ×3 | pill(`buttonB.radius`), 높이 40/48/56(Small/Medium/Large). 기존 State와 Label·Icon·ShowIcon 유지. 44 px target 유지 |
 | C03 Input | Redesign B Input 스타일. State 이름 유지 |
 | C29–C33 Bottom sheet | 위 모서리 32(`sheetB.radius`), Secondary가 Primary 위 |
+| Sheet 안 Secondary (2026-10-17) | 배경 `buttonB.secondary.bgOnRaised` → `surface.pressedOnRaised` (Light neutral.100, Dark neutral.600). 되돌릴 수 없는 일을 묻는 sheet는 "취소"가 Primary, 실행 쪽은 danger 글자 Secondary (§9.3). Dark 경계 대비는 1.93:1이다. **수용(pd-review batch 1 P1-9, 2026-10-17):** 버튼 글자(`buttonB.secondary.fg`, 약 7:1)가 컨트롤을 식별한다. WCAG 2.2 SC 1.4.11은 글자가 컨트롤을 식별하면 경계 대비를 요구하지 않는다. 변경 없음. 글자를 지우거나 icon-only Secondary를 sheet에 두면 이 수용은 무효다 |
 | Keypad | Redesign B 스타일. property 없음 |
 | C23 Portfolio balance | flat, tint 없음. Quote 이름 유지 |
 | C25 Status notice | 박스 없이 인라인 icon + 글자. Tone 이름 유지 |

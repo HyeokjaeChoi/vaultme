@@ -183,6 +183,11 @@
         "900": {
           "value": "#53340F",
           "type": "color"
+        },
+        "950": {
+          "value": "#342617",
+          "type": "color",
+          "description": "color.amber.950: Low-chroma Dark Banner fill (pd-review batch 1, P2-10, owner-approved 2026-10-17). Derived from the 900 step in OKLCH: same hue, L 0.28, chroma x0.5. text.secondary (Dark) 9.47:1, amber.300 icon 9.39:1."
         }
       },
       "red": {
@@ -225,6 +230,11 @@
         "900": {
           "value": "#612229",
           "type": "color"
+        },
+        "950": {
+          "value": "#3C1F21",
+          "type": "color",
+          "description": "color.red.950: Low-chroma Dark Banner fill (pd-review batch 1, P2-10, owner-approved 2026-10-17). Derived from the 900 step in OKLCH: same hue, L 0.28, chroma x0.5. text.secondary (Dark) 9.64:1, red.300 icon 6.09:1."
         }
       },
       "identity": {
@@ -5309,9 +5319,9 @@
           "description": "status.warning.fg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
         },
         "bg": {
-          "value": "{color.amber.900}",
+          "value": "{color.amber.950}",
           "type": "color",
-          "description": "status.warning.bg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+          "description": "status.warning.bg: Dark mode override. Low-chroma amber.950 (was amber.900, too heavy behind 2-4 line Banner text; P2-10)."
         },
         "border": {
           "value": "{color.amber.700}",
@@ -5326,9 +5336,9 @@
           "description": "status.danger.fg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
         },
         "bg": {
-          "value": "{color.red.900}",
+          "value": "{color.red.950}",
           "type": "color",
-          "description": "status.danger.bg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+          "description": "status.danger.bg: Dark mode override. Low-chroma red.950 (was red.900, too heavy behind 2-4 line Banner text; P2-10)."
         },
         "border": {
           "value": "{color.red.700}",
