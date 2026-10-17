@@ -14,14 +14,15 @@ import { Button, Input, Screen, ScreenHeader, StatusNotice, Text } from '@/share
  * The typed phrase lives only in this component's state: it is cleared on success, on leaving the screen and when the app goes to the background.
  * Nothing about it is logged, and the field turns off every keyboard helper (autocorrect, suggestions, autofill).
  */
-export function RestorePage({ initial = '' }: { initial?: string }) {
+/** `dev` is a __DEV__ design-capture preset: the field already blurred (`left`), busy, or a finished attempt (`outcome`). */
+export function RestorePage({ initial = '', dev }: { initial?: string; dev?: { blurred?: boolean; busy?: boolean; outcome?: 'exists' | 'error' } }) {
   const { t } = useTranslation()
   const router = useRouter()
   const th = useTheme()
   const [text, setText] = useState(initial)
-  const [left, setLeft] = useState(false) // blurred once: judge the final shape (count, checksum) too
-  const [busy, setBusy] = useState(false)
-  const [outcome, setOutcome] = useState<'exists' | 'error' | null>(null)
+  const [left, setLeft] = useState(dev?.blurred ?? false) // blurred once: judge the final shape (count, checksum) too
+  const [busy, setBusy] = useState(dev?.busy ?? false)
+  const [outcome, setOutcome] = useState<'exists' | 'error' | null>(dev?.outcome ?? null)
   const [submitIssue, setSubmitIssue] = useState<PhraseIssue | null>(null)
 
   const pasteId = useRef(0) // bumped on every leave: a clipboard read still in flight must not refill the field

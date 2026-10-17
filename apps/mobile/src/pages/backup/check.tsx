@@ -10,13 +10,14 @@ import { useTheme } from '@/shared/theme'
 import { Button, Input, Screen, ScreenHeader, Text } from '@/shared/ui'
 
 /** R-S04 단어 확인. Asks the 3 positions picked by S03. Wrong: only the wrong cells turn Invalid with "N번째 단어가 달라요" (right cells stay), focus moves to the first wrong cell, one error haptic. Right: backup flag set, then Receive (S30) with Home beneath. */
-export function BackupCheckPage({ demo = false }: { demo?: boolean }) {
+/** `preset` is a __DEV__ design-capture state: typed answers and which cells are already judged wrong. */
+export function BackupCheckPage({ demo = false, preset }: { demo?: boolean; preset?: { answers: string[]; wrong?: number[] } }) {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
   const [session] = useState(getCheck) // read once: the hand-off is cleared on leave
-  const [answers, setAnswers] = useState<string[]>(['', '', ''])
-  const [wrong, setWrong] = useState<number[]>([]) // indexes of the cells judged wrong on the last confirm
+  const [answers, setAnswers] = useState<string[]>(preset?.answers ?? ['', '', ''])
+  const [wrong, setWrong] = useState<number[]>(preset?.wrong ?? []) // indexes of the cells judged wrong on the last confirm
   const cells = useRef<(TextInput | null)[]>([])
 
   useFocusEffect(useCallback(() => clearCheck, []))

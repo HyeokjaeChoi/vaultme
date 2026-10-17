@@ -1,7 +1,6 @@
 // Figma: B-S10 Home 404:163 (dark 430:14606), testmode 457:4274, pending 423:742, new wallet 423:643, empty 515:29238, testnet sheet (chip), test-data sheet 515:29783, faucet row 486:77, B-S50 423:14215
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { assets } from '@/entities/asset/fixtures'
@@ -72,9 +71,7 @@ export function HomePage() {
         <>
           <EmptyState title={t('home.emptyTitle')} body={t('home.emptyBody')} />
           {(restored || backedUp) && faucetAddress ? (
-            <View style={{ paddingHorizontal: th.semantic.layout.screen.padding }}>
-              <FaucetRow address={faucetAddress} />
-            </View>
+            <FaucetRow address={faucetAddress} />
           ) : null}
         </>
       ) : (

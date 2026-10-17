@@ -25,9 +25,9 @@ export function ReceivePage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { sheet, backedUp } = useLocalSearchParams<{ sheet?: string; backedUp?: string }>()
+  const { sheet, backedUp, copied: copiedParam } = useLocalSearchParams<{ sheet?: string; backedUp?: string; copied?: string }>()
   const [open, setOpen] = useState(sheet === '1')
-  const { copied, copy } = useCopy(t('receive.copied'))
+  const { copied, copy } = useCopy(t('receive.copied'), __DEV__ && copiedParam === '1')
   const backupDone = useBackupDone()
   const restored = useRestored()
   const done = __DEV__ && backedUp ? backedUp === '1' : backupDone || restored // a restored wallet receives right away (Q16); that is not backup proof

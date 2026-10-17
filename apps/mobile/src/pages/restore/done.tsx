@@ -13,12 +13,12 @@ import { Button, Screen, StatusNotice, SummaryRow, Text } from '@/shared/ui'
  * The address is read from kv (derived at restore); with none the screen redirects to Start. `demo` (__DEV__ `?demo=1`) shows the fixture address for design capture.
  * Backup is not claimed anywhere here (Q16).
  */
-export function RestoreDonePage({ demo = false }: { demo?: boolean }) {
+export function RestoreDonePage({ demo = false, copiedDemo = false }: { demo?: boolean; copiedDemo?: boolean }) {
   const { t } = useTranslation()
   const router = useRouter()
   const th = useTheme()
   const stored = useAccountAddress()
-  const { copied, copy } = useCopy(t('restore.done.copied'))
+  const { copied, copy } = useCopy(t('restore.done.copied'), copiedDemo)
   const address = stored ?? (demo ? account.address : null)
   if (!address) return <Redirect href="/" />
   return (

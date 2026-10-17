@@ -45,21 +45,22 @@ export function Button({ label, onPress, variant = 'primary', size = 'lg', disab
   const spin = useSpin(!!busy)
   const height = bb.height[size]
   const slop = Math.max(0, (b.hitTarget - height) / 2)
-  const blocked = disabled || busy
+  const blocked = disabled || busy // no presses
+  const dimmed = disabled // Busy keeps the normal fill (Figma S05 Loading: blue pill, white spinner + progressive label); only Disabled grays out
   const sec = onRaised ? bb.secondary.bgOnRaised : bb.secondary.bg
   // Disabled (Figma): surface/disabled fill + text/disabled label, for every variant.
   const disabledBg = bb.primary.bgDisabled
   const bg =
     variant === 'primary'
-      ? blocked ? disabledBg : { default: bb.primary.bg, pressed: b.primary.bg.pressed }
+      ? dimmed ? disabledBg : { default: bb.primary.bg, pressed: b.primary.bg.pressed }
       : variant === 'secondary'
-        ? blocked ? disabledBg : { default: sec, pressed: onRaised ? t.semantic.surface.pressedOnRaised : bb.secondary.bgPressed }
-        : blocked ? b.ghost.bg.disabled : { default: b.ghost.bg.default, pressed: b.ghost.bg.pressed }
+        ? dimmed ? disabledBg : { default: sec, pressed: onRaised ? t.semantic.surface.pressedOnRaised : bb.secondary.bgPressed }
+        : dimmed ? b.ghost.bg.disabled : { default: b.ghost.bg.default, pressed: b.ghost.bg.pressed }
   const fgDefault = variant === 'primary' ? bb.primary.fg : danger ? t.semantic.status.danger.fg : variant === 'secondary' ? bb.secondary.fg : t.semantic.text.primary
-  const fg = blocked ? bb.primary.fgDisabled : fgDefault
+  const fg = dimmed ? bb.primary.fgDisabled : fgDefault
   const leading: IconName | undefined = busy ? 'loading' : copied ? 'check' : icon
   const shownLabel = busy && reduce && busyLabel ? busyLabel : label
-  const iconColor = blocked ? fg : variant === 'primary' ? t.component.icon.action.onPrimary : t.component.icon.action.fg
+  const iconColor = dimmed ? fg : variant === 'primary' ? t.component.icon.action.onPrimary : t.component.icon.action.fg
   return (
     <Animated.View style={[anim, { minWidth: b.hitTarget, minHeight: b.hitTarget, justifyContent: 'center' }, style]}>
       <Pressable
