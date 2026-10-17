@@ -8,6 +8,7 @@ import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
 import { Button, Input, Screen, ScreenHeader, Text } from '@/shared/ui'
+import { NO_AUTOFILL } from '@/shared/ui/noAutofill'
 
 /** R-S04 단어 확인. Asks the 3 positions picked by S03. Wrong: only the wrong cells turn Invalid with "N번째 단어가 달라요" (right cells stay), focus moves to the first wrong cell, one error haptic. Right: backup flag set, then Receive (S30) with Home beneath. */
 /** `preset` is a __DEV__ design-capture state: typed answers and which cells are already judged wrong. */
@@ -73,7 +74,7 @@ export function BackupCheckPage({ demo = false, preset }: { demo?: boolean; pres
               setWrong((w) => w.filter((j) => j !== i))
               setAnswers((a) => a.map((x, j) => (j === i ? v : x)))
             }}
-            autoCapitalize="none"
+            {...NO_AUTOFILL}
           />
         ))}
       </View>

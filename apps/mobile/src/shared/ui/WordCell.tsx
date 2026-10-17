@@ -3,6 +3,7 @@ import { type Ref } from 'react'
 import { Platform, TextInput, View, type NativeSyntheticEvent, type TextInputKeyPressEventData } from 'react-native'
 import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
+import { NO_AUTOFILL } from './noAutofill'
 import { Text } from './Text'
 
 // A multiline UITextView draws its text this far below the center of its row (measured on iOS 27, S05 capture 2026-10-17: the word sat 2 pt low next to the number).
@@ -71,12 +72,7 @@ export function WordCell({ number, label, value, error, focused, last, inputRef,
         multiline
         submitBehavior="submit"
         returnKeyType={last ? 'done' : 'next'}
-        autoCapitalize="none"
-        autoCorrect={false}
-        spellCheck={false}
-        autoComplete="off"
-        textContentType="none"
-        importantForAutofill="no"
+        {...NO_AUTOFILL}
         keyboardType={Platform.OS === 'android' ? 'visible-password' : 'ascii-capable'}
         cursorColor={c.border.focus}
         selectionColor={c.border.focus}

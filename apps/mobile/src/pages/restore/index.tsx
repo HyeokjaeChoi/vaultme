@@ -9,6 +9,7 @@ import { restoreWallet } from '@/features/restore/model/restoreWallet'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
 import { Button, Chip, Icon, Input, ListItem, Screen, ScreenHeader, StatusNotice, Text, WordCell } from '@/shared/ui'
+import { NO_AUTOFILL } from '@/shared/ui/noAutofill'
 
 /**
  * B-S05 지갑 복구 (Figma 423:15293 + 10 states, ux-flow §3): title + helper, 12/24 chips + 붙여넣기, numbered word cells in 2 columns
@@ -180,12 +181,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
             helper={t('restore.passphrase.helper')}
             secureTextEntry={!showPass}
             action={{ icon: showPass ? 'eyeClosed' : 'eye', label: showPass ? t('restore.passphrase.hide') : t('restore.passphrase.show'), onPress: () => setShowPass(!showPass) }}
-            autoCapitalize="none"
-            autoCorrect={false}
-            spellCheck={false}
-            autoComplete="off"
-            textContentType="none"
-            importantForAutofill="no"
+            {...NO_AUTOFILL}
           />
         ) : null}
         {passOpen ? <Text variant="caption" color={th.semantic.text.tertiary} style={{ paddingTop: th.primitive.space[2] }}>{t('restore.passphrase.clearNote')}</Text> : null}
