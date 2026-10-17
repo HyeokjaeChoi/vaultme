@@ -6,7 +6,7 @@ import Animated from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next'
 import { assets } from '@/entities/asset/fixtures'
 import { cleanAmount } from '@/entities/transaction/review'
-import { getPreselectedAsset, parseSendAsset, sendFrom, sendLimits, useSendBalances, useSendable } from '@/features/send'
+import { getPreselectedAsset, parseSendAsset, sendFrom, sendLimits, setPreselectedAsset, useSendBalances, useSendable } from '@/features/send'
 import { useDevEthShort } from '@/shared/chain/useDevEthShort'
 import { type KeypadKey, exceedsBalance, isZeroAmount, pressKey } from '@/shared/lib/amount'
 import { isAddressFormat } from '@/shared/lib/address'
@@ -53,6 +53,7 @@ export function SendAmountPage() {
     setPicker(false)
     if (a !== asset) {
       setAsset(a)
+      setPreselectedAsset(a) // editing the recipient from Review re-enters /send without a param: keep the chosen asset
       setAmount('0') // an amount of one asset means nothing for the other
     }
   }

@@ -145,7 +145,7 @@ P04의 결과는 Submitting/Pending/Confirmed/Failed/Unknown 다섯 화면이다
 
 ## Redesign B 시각 계약 (2026-10-16)
 
-Master·variant·property ID와 property 이름은 바꾸지 않고 시각만 restyle했다(증거: `work/v7/verification/`). 면은 평평한 흰색(`screenB/bg`)이다. 이 restyle은 2026-10-16에 게시했다(`work/v7/verification/publication-proof.json`). 그 뒤의 Figma 변경(Solar 아이콘 등)은 오너 승인으로 2026-10-18에 게시했다(Variables, styles, components 포함, 150개 변경). 두 번째 publish 뒤에도 component 21개가 "Modified"로 남는데, Figma의 재표시 현상으로 보인다.
+Master·variant·property ID와 property 이름은 바꾸지 않고 시각만 restyle했다(증거: `work/v7/verification/`). 면은 평평한 흰색(`screenB/bg`)이다. 이 restyle은 2026-10-16에 게시했다(`work/v7/verification/publication-proof.json`). 그 뒤의 Figma 변경(Solar 아이콘 등)은 오너 승인으로 2026-10-18에 부분 게시했다(150개 변경, 증거는 Figma 버전 기록 항목뿐이고 proof 파일 없음). 두 번째 publish 뒤에도 component 21개가 "Modified"로 남았고 원인은 미확인이다. 이후 B/Row의 "Show check" property 추가로 미게시 변경이 다시 있다.
 
 | Master | 시각 계약 |
 | --- | --- |

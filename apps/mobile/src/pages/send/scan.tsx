@@ -111,6 +111,7 @@ export function ScanPage() {
     if (done.current) return
     try {
       const text = (await Clipboard.getStringAsync()).trim().replace(/\s/g, '')
+      if (done.current) return // a QR scan finished while the clipboard read was pending
       done.current = true
       setScanResult({ to: text, fromQr: false, hadAmount: false })
       goBack('/send')
