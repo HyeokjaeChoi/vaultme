@@ -221,6 +221,10 @@ Figma `14 Redesign B`. audit 모든 count 0. Library publish 없음, 기존 mast
 | 공개 test vector | Figma 예시·테스트·문서에 "abandon … about"과 0x9858…da94 사용 허용(AGENTS.md rule 4 예외). 오너 2026-10-17 |
 | 빈 지갑 Home 버튼 | 자리 고정(보내기 왼쪽, 받기 오른쪽). 빈 지갑이면 받기 Primary, 보내기 Secondary. 오너 2026-10-17 |
 | 실패 이유 | 네트워크에서 확인한 이유 값이 있을 때만 한 줄 표시. 없으면 기본 문구. 추측 금지. 오너 2026-10-17 |
+| Faucet 안내 | 빈 Home과 받기(S30)에 "테스트 ETH 받기" 행. 누르면 주소 복사 + 공식 faucet 열기. 만들기 전 faucet 조건을 공식 페이지에서 확인. 오너 2026-10-17 |
+| 백업 시점 | 유지: 받기 전 백업(Q14). 오너 2026-10-17 |
+| USDC 보내기·QR 스캔 | 이번 PR 뒤 다음 이슈에서 그릴링 → Figma → 코드. 오너 2026-10-17 |
+| Home 첫 실행 sheet | 없앤다(S02와 칩이 같은 안내). 칩 → 테스트넷 안내 sheet는 유지. 오너 2026-10-17 |
 
 ### 9.4 순서
 1. Figma 정리(페이지·섹션·Foundation 페이지) 완료 뒤 Foundation 변경.
