@@ -1,6 +1,6 @@
 // Figma: B-S23 Send result (Pending 423:15795, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode)
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Redirect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
@@ -32,7 +32,10 @@ export function SendResultPage() {
   const testMode = useTestMode()
   const tx = __DEV__ && demo ? { ...demoTx(demo as TxState), ...(reason === 'gas' ? { failReason: 'outOfGas' as const } : {}) } : tracked.tx
   const state = tx?.state
+  const seen = useRef(state) // the state at mount: reopening an already final result gives no haptic, only a change seen here does
   useEffect(() => {
+    if (state === seen.current) return
+    seen.current = state
     if (state === 'Confirmed') haptic.success()
     else if (state === 'Failed') haptic.error()
   }, [state])
