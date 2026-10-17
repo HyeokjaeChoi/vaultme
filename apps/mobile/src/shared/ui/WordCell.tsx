@@ -5,6 +5,10 @@ import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
 import { Text } from './Text'
 
+// A multiline UITextView draws its text this far below the center of its row (measured on iOS 27, S05 capture 2026-10-17: the word sat 2 pt low next to the number).
+// Remove when the field is single-line again or React Native fixes the inset.
+const IOS_MULTILINE_DROP = 2
+
 type Props = {
   /** Visible number, also the accessible name through `label` ("3번째 단어"). */
   number: number
@@ -76,7 +80,7 @@ export function WordCell({ number, label, value, error, focused, last, inputRef,
         keyboardType={Platform.OS === 'android' ? 'visible-password' : 'ascii-capable'}
         cursorColor={c.border.focus}
         selectionColor={c.border.focus}
-        style={{ flex: 1, padding: 0, color: c.fg, textAlignVertical: 'center', ...textStyle(t.primitive.type.productB.body) }}
+        style={{ flex: 1, padding: 0, transform: [{ translateY: Platform.OS === 'ios' ? -IOS_MULTILINE_DROP : 0 }], color: c.fg, textAlignVertical: 'center', ...textStyle(t.primitive.type.productB.body) }}
       />
     </View>
   )

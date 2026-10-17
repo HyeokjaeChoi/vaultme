@@ -61,10 +61,8 @@ export function RestoreDonePage({ demo = false, copiedDemo = false, passphraseDe
         <Text variant="title1" accessibilityRole="header">{t('restore.done.title')}</Text>
         {withPassphrase ? <Text variant="body" color={th.semantic.text.secondary}>{t('restore.done.withPassphrase')}</Text> : null}
       </View>
-      <View>
-        <SummaryRow format="address" label={t('restore.done.addressLabel')} value={address} />
-        <Button size="sm" variant="ghost" link label={copied ? t('restore.done.copied') : t('receive.copy')} copied={copied} onPress={() => void copy(address)} style={{ alignSelf: 'flex-start' }} />
-      </View>
+      <SummaryRow format="address" plain label={t('restore.done.addressLabel')} value={address} />
+      <Button size="sm" variant="ghost" link label={copied ? t('restore.done.copied') : t('receive.copy')} copied={copied} onPress={() => void copy(address)} style={{ alignSelf: 'flex-start' }} />
       <StatusNotice tone="info" title={t('restore.done.noteTitle')} body={t('restore.done.noteBody')} />
     </Screen>
   )
