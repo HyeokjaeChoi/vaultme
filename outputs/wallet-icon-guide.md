@@ -136,7 +136,7 @@ Semantic `iconSize.asset={size.avatar_sm}`와 Component `icon.*` 20개를 추가
 | --- | --- |
 | [Solar Icon Set](https://github.com/480-Design/Solar-Icon-Set) (480 Design) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 원문. 출처 표시가 필요하다. Linear·Bold·Bold Duotone 사용. 표시 문구는 아래 "출처 표시"를 따른다. 변경 사항: 크기 조정, Linear stroke를 윤곽선으로 변환, 색을 `icon.*` 변수에 연결 |
 | [`@solar-icons/react-native` 2.3.2](https://www.npmjs.com/package/@solar-icons/react-native) | MIT. RN 패키지(코드). 아이콘 그림 자체의 license는 위 CC BY 4.0이다 |
-| Phosphor core (이전) | MIT. 2026-10-17에 Solar로 대체했다. 코드(`apps/mobile`)가 Phosphor를 쓰는 동안은 MIT notice를 유지한다 |
+| Phosphor core (이전) | MIT. 2026-10-17에 Solar로 대체했다. 코드(`apps/mobile`)에서 `phosphor-react-native`를 제거했으므로 Phosphor MIT notice는 더 이상 필요하지 않다 |
 | [Cryptocurrency Icons](https://github.com/spothq/cryptocurrency-icons) | [CC0-1.0 원문](https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/LICENSE.md). Community ETH·USDC identity 2개. Issuer 인증이나 최신 공식 brand palette로 주장하지 않음 |
 
 **출처 표시(필수, 앱 정보·라이선스 화면과 이 문서):** "Icons by 480 Design — Solar Icon Set, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Changes were made: resized and recolored."
