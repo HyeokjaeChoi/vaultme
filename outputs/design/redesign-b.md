@@ -71,7 +71,7 @@
 | 컴포넌트 | 구성 |
 |---|---|
 | B/Button | Variant: Type(Primary, Secondary, Ghost) × Size(lg, md, sm) × State(Default, Pressed, Disabled). pill. 아이콘 slot |
-| B/Row | 64 높이. leading 40 원형 아이콘(자산 SVG 또는 Phosphor) · title(Headline) + subtitle(Caption, text/tertiary) · trailing value(Headline, tnum) + sub value(Caption). 배경 없음, divider 없음 |
+| B/Row | 64 높이. leading 40 원형 아이콘(자산 SVG 또는 Solar) · title(Headline) + subtitle(Caption, text/tertiary) · trailing value(Headline, tnum) + sub value(Caption). 배경 없음, divider 없음 |
 | B/Section header | Title 2 + 선택 trailing 링크(Label, text/link) |
 | B/Notice inline | 아이콘 20 + Body Small. Tone(Info, Warning, Danger, Success)은 아이콘·글자 색만. 박스 없음 |
 | B/Detail row | label(Body Small, text/tertiary) 왼쪽 · value(Body, text/primary) 오른쪽. 주소 값은 Address 스타일로 전체 표시, 4글자 묶음, 줄바꿈 허용 |

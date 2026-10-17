@@ -145,7 +145,7 @@ P04의 결과는 Submitting/Pending/Confirmed/Failed/Unknown 다섯 화면이다
 
 ## Redesign B 시각 계약 (2026-10-16)
 
-Master·variant·property ID와 property 이름은 바꾸지 않고 시각만 restyle했다(증거: `work/v7/verification/`). 면은 평평한 흰색(`screenB/bg`)이다. Library 게시는 오너 publish 전까지 하지 않는다.
+Master·variant·property ID와 property 이름은 바꾸지 않고 시각만 restyle했다(증거: `work/v7/verification/`). 면은 평평한 흰색(`screenB/bg`)이다. 이 restyle은 2026-10-16에 게시했다(`work/v7/verification/publication-proof.json`). 그 뒤의 Figma 변경(Solar 아이콘 등)은 오너 publish 전까지 게시하지 않는다.
 
 | Master | 시각 계약 |
 | --- | --- |
