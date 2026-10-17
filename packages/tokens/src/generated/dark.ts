@@ -548,6 +548,7 @@ export const dark = {
       "default": "#11161D",
       "subtle": "#0B0F15",
       "raised": "#28313C",
+      "segmentSelected": "#394553",
       "inverse": "#F6F8FB",
       "brandTint": "#273966",
       "successTint": "#104833",
@@ -1892,7 +1893,7 @@ export const dark = {
     },
     "segmented": {
       "bg": "#28313C",
-      "selectedBg": "#28313C",
+      "selectedBg": "#394553",
       "border": "#28313C",
       "fg": "#C7D1DD",
       "selectedFg": "#F6F8FB",

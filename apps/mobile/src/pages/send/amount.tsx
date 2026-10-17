@@ -2,13 +2,15 @@ import { chipAmount, formatDecimal, fromUnits, maxSendable, type ChipShare } fro
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { View } from 'react-native'
+import Animated from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next'
 import { cleanAmount } from '@/entities/transaction/review'
 import { useSendable } from '@/features/send'
-import { applyKey, type KeypadKey, exceedsBalance, isZeroAmount } from '@/shared/lib/amount'
+import { type KeypadKey, exceedsBalance, isZeroAmount, pressKey } from '@/shared/lib/amount'
 import { isAddressFormat } from '@/shared/lib/address'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
+import { useShake } from '@/shared/theme/motion'
 import { AmountDisplay, Button, Chip, Keypad, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
@@ -30,6 +32,7 @@ export function SendAmountPage() {
   const { to, amount: initial } = useLocalSearchParams<{ to?: string; amount?: string }>()
   const [amount, setAmount] = useState(initial === undefined ? '0' : (cleanAmount(initial) ?? '0'))
   const snap = useSendable(to ?? '')
+  const { style: shakeStyle, shake } = useShake(th.primitive.space[2])
   if (!to || !isAddressFormat(to)) return <Redirect href="/send" />
   const max = snap ? maxSendable(snap.balance, 'ETH', snap.feeCap, snap.nativeBalance) : null
   const sendable = max?.ok ? fromUnits(max.amount, 'ETH') : null
@@ -39,10 +42,10 @@ export function SendAmountPage() {
     return { ...c, raw, value: fromUnits(raw, 'ETH') }
   })
   const onKey = (k: KeypadKey) => {
-    const next = applyKey(amount, k)
-    if (next === amount && k !== 'backspace') return false // over max length or decimals, second "."
-    setAmount(next)
-    return !(sendable !== null && !tooMuch && exceedsBalance(next, sendable)) // newly over the balance: warning cue
+    const r = pressKey(amount, k, sendable)
+    if (r.overMax) shake() // the key is rejected; the Keypad gives the warning haptic for `false`
+    else setAmount(r.amount)
+    return r.accepted
   }
   const chosen = chips.find((c) => c.raw > 0n && c.value === amount.replace(/\.$/, ''))
   const sub = chosen?.pct === 100 ? t('send.feeExcluded') : sendable !== null ? `${t('send.maxSendable')} ${formatDecimal(sendable, 'ETH', 'floor')} ETH` : undefined
@@ -57,7 +60,9 @@ export function SendAmountPage() {
         {/* Composed column (Figma S20B): amount, sub line and chips sit together at the bottom of the free space, just above the keypad. */}
         <View style={{ flex: 1, justifyContent: 'flex-end', gap: th.semantic.layout.groupGap }}>
           <View>
+            <Animated.View style={shakeStyle}>
             <AmountDisplay amount={amount} ticker="ETH" error={tooMuch} {...(sub && !tooMuch ? { sub } : {})} />
+            </Animated.View>
             {tooMuch ? <StatusNotice tone="danger" title={t('send.insufficient')} {...(sendable !== null ? { body: `${t('send.maxSendable')} ${formatDecimal(sendable, 'ETH', 'floor')} ETH` } : {})} /> : null}
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'center', gap: th.semantic.layout.fieldGap }}>

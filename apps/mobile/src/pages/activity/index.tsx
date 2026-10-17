@@ -69,8 +69,7 @@ function DevState({ state, cache }: { state: string; cache?: string }) {
   return <Content view={{ items, updatedAt: new Date(2026, 9, 13, 9, 12).getTime(), failed: true }} reload={() => undefined} />
 }
 
-function RealHistory({ asset }: { asset?: string | undefined }) {
-  const { view, reload } = useHistory()
+function RealHistory({ view, reload, asset }: { view: HistoryView | null; reload: () => void; asset?: string | undefined }) {
   return <Content view={view} reload={reload} asset={asset} />
 }
 
@@ -78,10 +77,11 @@ function RealHistory({ asset }: { asset?: string | undefined }) {
 export function ActivityPage() {
   const { t } = useTranslation()
   const { state, cache, asset } = useLocalSearchParams<{ state?: string; cache?: string; asset?: string }>() // `asset` = only that asset's rows (S11 "전체 보기")
+  const { view, reload, refresh } = useHistory() // pull-to-refresh and the real list share this one history state
   return (
-    <Screen edges={['top']} gap="none" topGap="none">
+    <Screen edges={['top']} gap="none" topGap="none" onRefresh={refresh}>
       <TabHeader title={t('activity.title')} chips={<NetworkChips />} />
-      {__DEV__ && state ? <DevState state={state} {...(cache ? { cache } : {})} /> : chain.broadcasts ? <RealHistory asset={asset} /> : <FakeHistory asset={asset} />}
+      {__DEV__ && state ? <DevState state={state} {...(cache ? { cache } : {})} /> : chain.broadcasts ? <RealHistory view={view} reload={reload} asset={asset} /> : <FakeHistory asset={asset} />}
     </Screen>
   )
 }

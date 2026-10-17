@@ -1562,6 +1562,11 @@
         "type": "color",
         "description": "surface.raised: Surface grouping in the Light theme. Default informational content is Borderless."
       },
+      "segmentSelected": {
+        "value": "{color.neutral.0}",
+        "type": "color",
+        "description": "surface.segmentSelected: Selected segment fill in Segmented control. Light = neutral.0."
+      },
       "inverse": {
         "value": "{color.neutral.900}",
         "type": "color",
@@ -4806,7 +4811,7 @@
         "description": "segmented.bg: C30 Segmented control. Two exclusive choices; selection is instant. Keep the visible label and 44 px target."
       },
       "selectedBg": {
-        "value": "{surface.raised}",
+        "value": "{surface.segmentSelected}",
         "type": "color",
         "description": "segmented.selectedBg: C30 Segmented control. Two exclusive choices; selection is instant. Keep the visible label and 44 px target."
       },
@@ -5173,6 +5178,11 @@
         "value": "{color.neutral.800}",
         "type": "color",
         "description": "surface.raised: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+      },
+      "segmentSelected": {
+        "value": "{color.neutral.700}",
+        "type": "color",
+        "description": "surface.segmentSelected: Selected segment fill in Segmented control. Dark mode override aliases an existing Primitive."
       },
       "inverse": {
         "value": "{color.neutral.50}",

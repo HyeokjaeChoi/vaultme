@@ -548,6 +548,7 @@ export const light = {
       "default": "#FFFFFF",
       "subtle": "#F6F8FB",
       "raised": "#FFFFFF",
+      "segmentSelected": "#FFFFFF",
       "inverse": "#11161D",
       "brandTint": "#DCE8FD",
       "successTint": "#E9FDF1",

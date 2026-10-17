@@ -5,7 +5,7 @@ import { Text } from './Text'
 
 type Props<T extends string> = { options: readonly { value: T; label: string }[]; value: T; onChange: (v: T) => void }
 
-/** C30 Segmented control. Two exclusive choices; selection is instant. Track subtle, selected segment white with a hairline border. */
+/** C30 Segmented control. Two exclusive choices; selection is instant. Track subtle, selected segment is a filled pill (surface.segmentSelected) inset in the track, no stroke. Segment 36 high inside the 44 track; hitSlop restores the 44 target. */
 export function Segmented<T extends string>({ options, value, onChange }: Props<T>) {
   const t = useTheme()
   const pad = t.primitive.space[1]
@@ -19,14 +19,13 @@ export function Segmented<T extends string>({ options, value, onChange }: Props<
             accessibilityRole="radio"
             accessibilityState={{ checked: on }}
             onPress={() => onChange(o.value)}
+            hitSlop={{ top: pad, bottom: pad }}
             style={{
               flex: 1,
-              minHeight: t.primitive.size.touch_min,
+              paddingVertical: t.primitive.space[2],
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: t.component.segmented.radius,
-              borderWidth: on ? t.primitive.borderWidth.hairline : t.primitive.borderWidth.none,
-              borderColor: t.component.segmented.border,
               backgroundColor: on ? t.component.segmented.selectedBg : t.component.segmented.bg,
             }}
           >

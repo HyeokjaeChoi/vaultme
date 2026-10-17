@@ -66,7 +66,7 @@ export function ReceivePage() {
       <View style={{ gap: th.semantic.layout.fieldGap }}>
         <Text variant="bodySmall" color={th.semantic.text.tertiary}>{t('receive.addressLabel')}</Text>
         <AddressText address={address} size="L" />
-        <Text variant="caption" color={th.semantic.text.tertiary}>{t('receive.warning')}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.primary}>{t('receive.warning')}</Text>
       </View>
       <PushOptInSheet visible={open} onClose={() => setOpen(false)} />
     </Screen>

@@ -19,6 +19,18 @@ export function applyKey(amount: string, key: KeypadKey): string {
   return amount === '0' ? key : amount + key
 }
 
+/**
+ * Keypad press against the sendable max. A key that would make the amount exceed `sendable` is rejected (amount unchanged, `overMax`); backspace is always allowed.
+ * `accepted` is false for any rejected key (over max, max length, max decimals, second "."). `sendable` null = not known yet: no max check.
+ */
+export function pressKey(amount: string, key: KeypadKey, sendable: string | null): { amount: string; accepted: boolean; overMax: boolean } {
+  const next = applyKey(amount, key)
+  if (key === 'backspace') return { amount: next, accepted: true, overMax: false }
+  if (next === amount) return { amount, accepted: false, overMax: false }
+  if (sendable !== null && exceedsBalance(next, sendable)) return { amount, accepted: false, overMax: true }
+  return { amount: next, accepted: true, overMax: false }
+}
+
 export const isZeroAmount = (amount: string) => !/[1-9]/.test(amount)
 
 /** True when `amount` (keypad string, "5." allowed) is more ETH than `available`. Unparseable counts as not exceeding. */

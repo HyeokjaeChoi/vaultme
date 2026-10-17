@@ -94,6 +94,9 @@ export function ReviewPage() {
     } finally {
       setBusy(false)
     }
+    // Once per send: this runs once per confirm press (`busy` blocks a second press), not on render. The network gave a tx hash (Unknown = hash received but not saved locally) = accepted.
+    if (out.status === 'Pending' || out.status === 'Unknown') haptic.success()
+    else if (out.status === 'ChainError') haptic.error()
     if (out.status === 'Pending' || out.status === 'Unknown') {
       rememberRecipient({ address: base.recipient, at: out.tx.createdAt, asset: 'ETH', amount: base.amount.replace(' ETH', '') })
       router.replace('/send/result') // one transition: no Home flash. The result screen has no swipe-back (root layout), so Review/Amount cannot be reached again.
@@ -130,14 +133,14 @@ export function ReviewPage() {
   else if (gate && !shownNotice) {
     footer = (
       <>
-        <Text variant="caption" color={th.semantic.text.secondary} style={{ textAlign: 'center' }}>{t('send.riskCaption')}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.primary} style={{ textAlign: 'center' }}>{t('send.riskCaption')}</Text>
         <Button label={t('send.checkRisk')} variant="secondary" onPress={openSheet} />
       </>
     )
   } else
     footer = (
       <>
-        <Text variant="caption" color={th.semantic.text.secondary} style={{ textAlign: 'center' }}>{caption}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.primary} style={{ textAlign: 'center' }}>{caption}</Text>
         <Button label={t(shownNotice === 'authError' ? 'common.retry' : 'review.confirm')} busy={busy} busyLabel={t('busy.send')} disabled={!core.review} onPress={() => void send()} />
       </>
     )
