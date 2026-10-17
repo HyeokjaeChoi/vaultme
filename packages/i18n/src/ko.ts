@@ -194,7 +194,7 @@ export const ko = {
     chainError: { title: '네트워크 정보를 가져오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
     // C3 (#44): needsReview, blocked and the retry buttons are the owner-approved Figma frames C3-S22 (379:2099, 379:2187, 379:2279).
     needsReview: { title: '내용이 바뀌었어요', body: '보내기 전에 수수료나 거래 정보가 바뀌었어요.\n새 내용을 확인한 뒤 다시 보내세요.' },
-    blocked: { title: '수수료가 너무 높아요', body: '정해 둔 최대 수수료를 넘어서 보내지 않았어요. 나중에 다시 시도하세요.' },
+    blocked: { title: '수수료가 너무 높아요', body: '정해 둔 최대 수수료를 넘어서 보내지 않았어요.\n나중에 다시 시도하세요.' },
     prepareError: { title: '보낼 수 없어요', body: '받는 주소와 금액을 확인하세요.' },
     pendingBlock: {
       title: '진행 중인 보내기가 있어요',
