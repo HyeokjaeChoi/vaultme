@@ -298,3 +298,17 @@ Paint 검사(`.claude/skills/vaultme-figma-screen/audit.js`): 보이는 모든 n
 | B/Button | 398:247 `Type=Secondary, Size=sm, State=Copied` 555:68334 | 같은 Copied 계약(USDC 컨트랙트 "복사", 계정 블록 "복사") |
 | B/Account block | 515:27571 → set 555:68341 (`State=Default` 515:27571, `State=Copied` 555:68342) | component를 variant set으로 묶었다. 기존 instance는 Default로 그대로 연결 |
 | B/Bottom sheet, Bottom sheet | 399:157, 301:606 | 설명에 끌어서 닫기: 아래로 1:1, 놓을 때 높이 30% 또는 500 pt/s 넘으면 닫기(200 ms), 아니면 spring 복귀(300 ms, damping 0.8). 닫기 = 취소 |
+
+## S05 단어 칸 · 선택 패스프레이즈 (2026-10-17, redesign-b.md §9.3)
+
+새 component 1개, 기존 component에 property 추가, Solar icon 3개. 기존 master ID와 property는 그대로다. Library는 게시하지 않았다.
+
+| Component | Node | 계약 |
+| --- | --- | --- |
+| B/Word cell (새) | 565:73619 (`State=Empty` 565:73599, `Focus` 565:73604, `Filled` 565:73609, `Error` 565:73614) | 복구 단어 1개 칸. Text property `Number`(왼쪽 번호, 폭 20, `Product B/Caption`, `text/tertiary`) + `Word`(`Product B/Body`, `input/fg`, Empty에는 연결 안 함). 판 `input/bg/default`, radius `input/radius`, 테두리 `input/borderWidth` + `input/border/default` · Focus `input/border/focus` + caret(`input/border/focus`) · Error `input/border/error`. 높이 48(padding `space/3` + Body 24), 누름 영역 44 이상. 오류 메시지는 칸 안이 아니라 grid 아래. 접근성 이름 "N번째 단어". 키보드: 영문 소문자, 자동 대문자·자동 수정·추천 끔. 스페이스·엔터 = 다음 칸, 빈 칸에서 지우기 = 이전 칸, 어느 칸에든 붙여넣은 구문은 1번 칸부터 나눠 채움(12·24단어면 칸 수도 바꿈). Focus 테두리 150 ms ease-out, 움직임 줄이기: 바로 바뀜. haptic 없음 |
+| B/Input (property 추가) | 421:805 | `Show action`(BOOLEAN, 기본 false) + `Action icon`(INSTANCE_SWAP, 기본 `Icon / settings / eye`). Kind=Text 변형의 Field 오른쪽 끝 아이콘 버튼. S05 패스프레이즈: 가림 = eye(보기), 보임 = eye-closed(숨기기). 누름 영역 44×44, 접근성 이름 "패스프레이즈 보기" / "숨기기" |
+| B/Settings row (사용 방법) | 426:2045 | S05 "고급 · 패스프레이즈 입력" 접힘 행. Chevron을 `Icon / navigation / expand`(접힘) / `collapse`(펼침)로 바꾸고 `icon/tertiary`로 다시 묶음(규칙 13) |
+
+새 Solar icon (09 Icons, CC BY 4.0, 480 Design, Linear 20, `icon/action/fg`): `Icon / settings / eye-closed` 565:73587, `Icon / navigation / expand` 565:73591 (alt-arrow-down), `Icon / navigation / collapse` 565:73595 (alt-arrow-up).
+
+S05 화면 조립: 제목 블록 → (Banner Danger, 이미 지갑·저장 실패만) → 칩 `B/Chip` 12단어/24단어 + "붙여넣기"(`B/Button` Ghost sm, label `text/link`) → `B/Word cell` 2열 grid(gap `layout/fieldGap`) → grid 아래 오류 한 줄(`Product B/Body Small`, `input/errorText`) → 접힘 행 → (펼침) `B/Input` Kind=Text + `Show action`. 화면보다 긴 상태는 스크롤한 전체 길이로 그렸다. "복구" 바는 앱에서 화면 아래(키보드 위)에 붙는다.
