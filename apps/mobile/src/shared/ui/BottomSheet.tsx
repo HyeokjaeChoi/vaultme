@@ -44,7 +44,9 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
   const closeMs = t.primitive.motion.duration.baseMs
   const sheetH = useRef(0)
   const live = useRef({ onClose, reduce })
-  live.current = { onClose, reduce }
+  useEffect(() => {
+    live.current = { onClose, reduce }
+  }, [onClose, reduce])
   // Plain PanResponder on the grabber: it needs no native gesture module, and a sheet drag is one touch on the JS thread.
   const pan = useMemo(
     () =>
