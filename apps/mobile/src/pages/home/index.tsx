@@ -11,7 +11,7 @@ import { useLiveBalancesState } from '@/features/balances'
 import { useHistory } from '@/features/history'
 import { PushOptInSheet } from '@/features/push-optin/ui/PushOptInSheet'
 import { useRestored } from '@/features/restore'
-import { useTrackedTx } from '@/features/send'
+import { setPreselectedAsset, useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { useTheme } from '@/shared/theme'
 import { ActionRow, AssetRow, BottomSheet, Button, ListItem, PortfolioBalance, ProductHeader, Screen, SectionHeader, Text } from '@/shared/ui'
@@ -70,7 +70,7 @@ export function HomePage() {
       <PortfolioBalance label={t('home.heroLabel')} value={eth} unit="ETH" note={t('home.priceNote')} {...(empty ? {} : { onLabelPress: () => router.push({ pathname: '/asset', params: { symbol: 'ETH' } }) })} />
       <ActionRow
         primary={empty ? 'receive' : 'send'}
-        send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet('block') : router.push('/send')) }}
+        send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet('block') : (setPreselectedAsset('ETH'), router.push('/send'))) }}
         receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
       />
       {(!restored || dev('unbacked')) && !backedUp ? (

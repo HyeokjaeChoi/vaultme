@@ -59,7 +59,7 @@ export function SendResultPage() {
   const resend = () => {
     router.dismissAll()
     router.replace('/home')
-    router.push({ pathname: '/review', params: { to: tx.to, amount: tx.amount } })
+    router.push({ pathname: '/review', params: { to: tx.to, amount: tx.amount, asset: tx.asset } })
   }
   const [figure, unit] = showAmount(tx.amount, tx.asset, 'exact').split(' ')
   const lines = (test ? t('result.testBody') : t(copy.body)).split('\n')

@@ -9,7 +9,7 @@ import { assets } from '@/entities/asset/fixtures'
 import { useHistory } from '@/features/history'
 import { useLiveBalances } from '@/features/balances'
 import { useRestored } from '@/features/restore'
-import { useTrackedTx } from '@/features/send'
+import { setPreselectedAsset, useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { goBack } from '@/shared/lib/nav'
 import { useCopy } from '@/shared/lib/useCopy'
@@ -40,7 +40,7 @@ export function AssetDetailPage() {
       <AmountHero asset={asset.symbol} amount={balance} unit={asset.symbol} />
       <View style={{ paddingHorizontal: th.semantic.layout.screen.padding }}>
         <ActionRow
-          send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet(true) : router.push('/send')) }}
+          send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet(true) : (setPreselectedAsset(asset.symbol), router.push('/send'))) }}
           receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
         />
       </View>
