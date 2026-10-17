@@ -16,8 +16,39 @@
     "android": {
       "package": "app.vaultme.mobile",
       "allowBackup": false,
-      "permissions": ["android.permission.USE_BIOMETRIC"]
+      "permissions": [
+        "android.permission.USE_BIOMETRIC"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-foreground.png",
+        "monochromeImage": "./assets/adaptive-foreground.png",
+        "backgroundColor": "#3152FF"
+      }
     },
-    "plugins": ["expo-router", "expo-dev-client", ["expo-build-properties", { "ios": { "enableSceneSupport": true } }]]
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 96,
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#11161D"
+          }
+        }
+      ],
+      "expo-dev-client",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ]
+    ],
+    "icon": "./assets/icon.png"
   }
 }
