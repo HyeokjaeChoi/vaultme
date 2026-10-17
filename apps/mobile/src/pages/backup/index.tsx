@@ -5,9 +5,11 @@ import { AppState, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { startCheck } from '@/features/backup/model/check'
 import { loadPhrase } from '@/shared/storage'
+import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
-import { Button, Screen, ScreenHeader, SecretGrid, StatusNotice, Text } from '@/shared/ui'
+import { Button, CheckRow, Screen, ScreenHeader, SecretGrid, StatusNotice, Text } from '@/shared/ui'
+import { useAuthName } from '@/features/send'
 
 const CAPTURE_KEY = 'backup-phrase'
 
@@ -22,12 +24,14 @@ type Load = 'idle' | 'busy' | 'error'
  * it is loaded after OS auth, and cleared when the screen loses focus or the app leaves the foreground (Q15).
  * Capture is blocked only while this screen is focused (Q43); the UI does not promise the block. No copy button.
  */
-export function BackupPage({ demo = false, view = false, revealed = false }: { demo?: boolean; view?: boolean; revealed?: boolean }) {
+export function BackupPage({ demo = false, view = false, revealed = false, checked = false }: { demo?: boolean; view?: boolean; revealed?: boolean; checked?: boolean }) {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
   const [words, setWords] = useState<string[] | null>(demo && revealed ? DEMO_WORDS : null)
   const [load, setLoad] = useState<Load>('idle')
+  const [ack, setAck] = useState(demo && revealed && checked) // the one check row (S03): "12단어를 순서대로 종이에 적었어요". Only meaningful while revealed.
+  const authName = useAuthName()
   const gen = useRef(0) // bumped on blur and background: an auth result from an older generation is dropped
 
   useFocusEffect(
@@ -37,6 +41,7 @@ export function BackupPage({ demo = false, view = false, revealed = false }: { d
         void allowScreenCaptureAsync(CAPTURE_KEY)
         gen.current++
         setWords(null)
+        setAck(false)
         setLoad('idle')
       }
     }, []),
@@ -44,7 +49,10 @@ export function BackupPage({ demo = false, view = false, revealed = false }: { d
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
       if (s === 'background') gen.current++ // 'inactive' is also the OS auth sheet: it must not cancel the reveal
-      if (s !== 'active') setWords(null)
+      if (s !== 'active') {
+        setWords(null) // re-hide whenever the app leaves the foreground (owner 2026-10-17)
+        setAck(false)
+      }
     })
     return () => sub.remove()
   }, [])
@@ -72,24 +80,22 @@ export function BackupPage({ demo = false, view = false, revealed = false }: { d
     router.push(demo ? '/backup/check?demo=1' : '/backup/check')
   }
 
+  const body = view ? t('settings.phraseBody', { auth: t(`settings.phraseAuth.${authName}`) }) : t('backup.body')
   return (
     <Screen
-      gap="section"
+      gap="group"
+      topGap="none"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
-      {...(view ? {} : { footer: <Button label={t('backup.done')} disabled={!words} onPress={done} /> })}
+      {...(view ? {} : { footer: <Button label={t('backup.done')} disabled={!words || !ack} onPress={done} /> })}
     >
-      <View style={{ gap: th.semantic.layout.fieldGap }}>
+      <View style={{ gap: th.semantic.layout.fieldGap, paddingTop: th.primitive.space[2], paddingBottom: th.semantic.layout.groupGap }}>
         <Text variant="title1" accessibilityRole="header">{t('backup.title')}</Text>
-        <Text variant="body" color={th.semantic.text.secondary}>{t(view ? 'settings.phraseBody' : 'backup.body')}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.secondary}>{body}</Text>
       </View>
-      <SecretGrid words={words} />
-      {words ? null : <Button label={t('backup.reveal')} variant="secondary" size="md" busy={load === 'busy'} onPress={() => void reveal()} style={{ alignSelf: 'flex-start' }} />}
-      {load === 'error' ? <StatusNotice tone="danger" title={t('backup.loadError.title')} body={t('backup.loadError.body')} /> : null}
-      <StatusNotice
-        tone="warning"
-        title={words ? t('backup.warnTitle') : t('backup.revealHint')}
-        body={words ? t('backup.warnBody') : `${t('backup.warnTitle')}\n${t('backup.warnBody')}`}
-      />
+      <SecretGrid words={words} onReveal={() => void reveal()} revealLabel={t('backup.reveal')} busy={load === 'busy'} />
+      {words && !view ? <CheckRow title={t('backup.ack')} checked={ack} onToggle={() => { haptic.select(); setAck((v) => !v) }} /> : null}
+      {load === 'error' ? <StatusNotice tier="banner" tone="danger" title={t('backup.loadError.title')} body={t('backup.loadError.body')} /> : null}
+      <StatusNotice tone="warning" title={`${words || view ? t('backup.warnTitle') : t('backup.revealHint')}\n${t('backup.warnBody')}`} />
     </Screen>
   )
 }
