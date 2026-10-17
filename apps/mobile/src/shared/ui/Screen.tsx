@@ -40,6 +40,8 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
     setRefreshing(true)
     try {
       await onRefresh?.()
+    } catch {
+      // a failed refresh is reported by the screen's own error state; never an unhandled rejection
     } finally {
       setRefreshing(false)
     }

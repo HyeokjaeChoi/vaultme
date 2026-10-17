@@ -11,6 +11,7 @@ import { getAccountAddress } from '@/shared/storage'
 export function useLiveBalancesState(): { balances: Record<AssetId, string> | null; refresh: () => Promise<void> } {
   const [b, setB] = useState<Record<AssetId, string> | null>(null)
   const alive = useRef(true)
+  const seq = useRef(0) // read identity: only the newest read may commit (a focus read and a pull-to-refresh can overlap)
   const read = useCallback(async () => {
     let address: string | null = null
     try {
@@ -19,11 +20,12 @@ export function useLiveBalancesState(): { balances: Record<AssetId, string> | nu
       // kv unreadable: show no balance
     }
     if (!chain.broadcasts || !address) return
+    const mine = ++seq.current
     try {
       const r = await chain.getBalances(address as `0x${string}`)
-      if (alive.current) setB({ ETH: formatAmount(r.ETH, 'ETH', 'floor'), USDC: formatAmount(r.USDC, 'USDC', 'floor') })
+      if (alive.current && mine === seq.current) setB({ ETH: formatAmount(r.ETH, 'ETH', 'floor'), USDC: formatAmount(r.USDC, 'USDC', 'floor') })
     } catch {
-      if (alive.current) setB(null)
+      if (alive.current && mine === seq.current) setB(null)
     }
   }, [])
   useFocusEffect(
