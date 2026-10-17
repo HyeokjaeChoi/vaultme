@@ -3,12 +3,13 @@ import { useState, type Ref } from 'react'
 import { Pressable, TextInput, View, type TextInputProps } from 'react-native'
 import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
+import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
 
 type Props = Pick<
   TextInputProps,
   | 'value' | 'onChangeText' | 'placeholder' | 'autoCapitalize' | 'keyboardType' | 'multiline' | 'autoCorrect' | 'spellCheck'
-  | 'autoComplete' | 'textContentType' | 'importantForAutofill' | 'onBlur' | 'testID'
+  | 'autoComplete' | 'textContentType' | 'importantForAutofill' | 'onBlur' | 'testID' | 'secureTextEntry'
 > & {
   label: string
   helper?: string
@@ -18,10 +19,12 @@ type Props = Pick<
   inputRef?: Ref<TextInput>
   /** Link actions inside the field under the text, right aligned (B/Input Kind=Address 421:773, e.g. 붙여넣기). The text then uses Address mono. */
   actions?: { label: string; onPress: () => void }[]
+  /** Icon button at the right end of the field (B/Input `Show action` 421:805, e.g. the passphrase eye). 44 x 44 touch area, `label` = its accessible name. */
+  action?: { icon: IconName; label: string; onPress: () => void }
 }
 
 /** C03 Input (Redesign B). Label (Label 14/500) over a 56 pt field (Body 16/24), helper and error in Caption. Border is functional (editable recognition, focus, error). */
-export function Input({ label, helper, error, editable = true, onBlur, actions, inputRef, ...field }: Props) {
+export function Input({ label, helper, error, editable = true, onBlur, actions, action, inputRef, ...field }: Props) {
   const t = useTheme()
   const c = t.component.input
   const [focused, setFocused] = useState(false)
@@ -44,7 +47,8 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
           ? { padding: 0, color: c.fg, ...textFont }
           : {
               minHeight: t.component.buttonB.height.lg,
-              paddingHorizontal: c.paddingX,
+              paddingLeft: c.paddingX,
+              paddingRight: action ? t.primitive.size.touch_min : c.paddingX,
               // A multiline field wraps, so its height follows the text; the padding keeps one line centered in the field.
               ...(field.multiline ? { paddingVertical: (t.component.buttonB.height.lg - t.primitive.type.productB.body.lineHeight) / 2, textAlignVertical: 'center' as const } : {}),
               borderRadius: c.radius,
@@ -72,7 +76,21 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
           </View>
         </View>
       ) : (
-        input
+        action ? (
+          <View>
+            {input}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={action.label}
+              onPress={action.onPress}
+              style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: t.primitive.size.touch_min, alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Icon name={action.icon} size={t.component.icon.size.control} color={t.component.icon.action.fg} />
+            </Pressable>
+          </View>
+        ) : (
+          input
+        )
       )}
       {error ? <Text variant="caption" color={c.errorText}>{error}</Text> : helper ? <Text variant="caption" color={c.helper}>{helper}</Text> : null}
     </View>

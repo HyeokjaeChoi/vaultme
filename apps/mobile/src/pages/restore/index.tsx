@@ -1,113 +1,190 @@
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AppState, Platform, View } from 'react-native'
+import { AppState, Keyboard, View, type TextInput } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { inspectPhrase, type PhraseIssue } from '@/features/restore/model/phrase'
+import { applyCellInput, emptyWords, inspectCells, joinWords, togglePassphrase, type WordCount } from '@/features/restore/model/cells'
+import { holdRestore, takeWords } from '@/features/restore/model/handoff'
 import { restoreWallet } from '@/features/restore/model/restoreWallet'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
-import { Button, Input, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
+import { Button, Chip, Icon, Input, ListItem, Screen, ScreenHeader, StatusNotice, Text, WordCell } from '@/shared/ui'
 
 /**
- * B-S05 지갑 복구 (Figma 423:15293): title + helper sentence, one bordered field with 붙여넣기 inside (QR 코드 스캔 is not wired, not offered). One phrase field (12 or 24 words, counted from the text), 붙여넣기, no passphrase field (Q40: a notice only).
- * The typed phrase lives only in this component's state: it is cleared on success, on leaving the screen and when the app goes to the background.
- * Nothing about it is logged, and the field turns off every keyboard helper (autocorrect, suggestions, autofill).
+ * B-S05 지갑 복구 (Figma 423:15293 + 10 states, ux-flow §3): title + helper, 12/24 chips + 붙여넣기, numbered word cells in 2 columns
+ * (column 1 = first half), one error line under the grid, collapsed "고급 · 패스프레이즈 입력" row, 복구 in the footer.
+ * Words and passphrase live only in this component's state (and, for "다른 주소예요", in the in-memory hand-off): both are cleared on success,
+ * on leaving the screen and when the app goes to the background. Collapsing the passphrase row clears the passphrase too.
+ * Nothing is logged. Every cell and the passphrase field turn off auto-capitalize, auto-correct, spell check and autofill.
  */
-/** `dev` is a __DEV__ design-capture preset: the field already blurred (`left`), busy, or a finished attempt (`outcome`). */
-export function RestorePage({ initial = '', dev }: { initial?: string; dev?: { blurred?: boolean; busy?: boolean; outcome?: 'exists' | 'error' } }) {
+/** `dev` is a __DEV__ design-capture preset (focus look without a keyboard, busy, a finished attempt, the passphrase row open). */
+export type RestoreDev = { focus?: number; busy?: boolean; outcome?: 'exists' | 'error'; passOpen?: boolean; showPass?: boolean; passphrase?: string }
+export function RestorePage({ initial, dev }: { initial?: { words: string[]; count: WordCount }; dev?: RestoreDev }) {
   const { t } = useTranslation()
   const router = useRouter()
   const th = useTheme()
-  const [text, setText] = useState(initial)
-  const [left, setLeft] = useState(dev?.blurred ?? false) // blurred once: judge the final shape (count, checksum) too
+  const [start] = useState(() => initial ?? takeWords() ?? { words: emptyWords(), count: 12 as WordCount }) // read once: the hand-off is consumed
+  const [words, setWords] = useState(start.words)
+  const [count, setCount] = useState<WordCount>(start.count)
+  const [focus, setFocus] = useState<number | null>(dev?.focus ?? null)
+  const [passOpen, setPassOpen] = useState(dev?.passOpen ?? false)
+  const [passphrase, setPassphrase] = useState(dev?.passphrase ?? '')
+  const [showPass, setShowPass] = useState(dev?.showPass ?? false)
   const [busy, setBusy] = useState(dev?.busy ?? false)
   const [outcome, setOutcome] = useState<'exists' | 'error' | null>(dev?.outcome ?? null)
-  const [submitIssue, setSubmitIssue] = useState<PhraseIssue | null>(null)
+  const [submitChecksum, setSubmitChecksum] = useState(false)
 
-  const pasteId = useRef(0) // bumped on every leave: a clipboard read still in flight must not refill the field
-  useFocusEffect(
-    useCallback(
-      () => () => {
-        pasteId.current++
-        setText('')
-      },
-      [],
-    ),
-  )
+  const cells = useRef<(TextInput | null)[]>([])
+  const reveal = useRef<((y: number, height: number) => void) | null>(null)
+  const phraseY = useRef(0)
+  const gridY = useRef(0)
+  const [focusReq, setFocusReq] = useState<{ i: number; n: number } | null>(null)
+  const pasteId = useRef(0) // bumped on every leave: a clipboard read still in flight must not refill the cells
+
+  const clearAll = useCallback(() => {
+    pasteId.current++
+    setWords(emptyWords())
+    setPassphrase('')
+    setPassOpen(false)
+    setShowPass(false)
+    setSubmitChecksum(false)
+    setFocus(null)
+  }, [])
+  useFocusEffect(useCallback(() => clearAll, [clearAll]))
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'active') return
-      pasteId.current++
-      setText('')
+      if (s !== 'active') clearAll()
     })
     return () => sub.remove()
-  }, [])
+  }, [clearAll])
 
-  const state = inspectPhrase(text, left)
-  const issue = state.issue ?? submitIssue
-  const error = !issue
-    ? undefined
-    : issue.kind === 'unknownWord'
-      ? t('restore.unknownWord', { word: issue.word })
-      : issue.kind === 'wrongCount'
-        ? t('restore.wrongCount', { count: issue.count })
-        : t('restore.badChecksum')
+  const cellH = th.primitive.space[3] * 2 + th.primitive.type.productB.body.lineHeight
+  const half = count / 2
+  const revealCell = (i: number) => reveal.current?.(phraseY.current + gridY.current + (i % half) * (cellH + th.semantic.layout.fieldGap), cellH)
+  useEffect(() => {
+    if (!focusReq) return
+    cells.current[focusReq.i]?.focus()
+  }, [focusReq])
 
-  const change = (v: string) => {
-    setText(v)
-    setSubmitIssue(null)
+  const state = inspectCells(words, count, focus)
+  const showChecksum = state.badChecksum && (focus === null || submitChecksum)
+  const firstUnknown = state.unknown[0]
+  const message = firstUnknown !== undefined ? t('restore.unknownWord', { n: firstUnknown + 1 }) : showChecksum ? t('restore.badChecksum') : undefined
+
+  const apply = (index: number, value: string) => {
+    const r = applyCellInput(words, count, index, value)
+    setWords(r.words)
+    setCount(r.count)
+    setSubmitChecksum(false)
     setOutcome(null)
-    setLeft(false)
+    if (r.focus === null) Keyboard.dismiss()
+    else if (r.focus !== index || r.count !== count) setFocusReq({ i: r.focus, n: (focusReq?.n ?? 0) + 1 })
   }
   const paste = async () => {
     const id = ++pasteId.current
     const clip = await Clipboard.getStringAsync()
-    if (id === pasteId.current && AppState.currentState === 'active') change(clip)
+    if (id === pasteId.current && AppState.currentState === 'active') apply(focus ?? 0, clip)
+  }
+  const go = (i: number) => setFocusReq({ i, n: (focusReq?.n ?? 0) + 1 })
+  const toggleRow = () => {
+    const r = togglePassphrase(passOpen, passphrase)
+    setPassOpen(r.open)
+    setPassphrase(r.passphrase)
+    if (!r.open) setShowPass(false)
   }
   const submit = async () => {
     setBusy(true)
     setOutcome(null)
-    const r = await restoreWallet(text, { title: t('restore.authPrompt'), cancel: t('common.cancel') })
+    const r = await restoreWallet(joinWords(words, count), { title: t('restore.authPrompt'), cancel: t('common.cancel') }, passOpen ? passphrase : '')
     if (r.status === 'ok') {
-      setText('')
+      holdRestore(words, count, passOpen && passphrase !== '') // memory only, for S06 "다른 주소예요"
+      clearAll()
       router.replace('/restore/done')
       return
     }
     setBusy(false)
-    if (r.status === 'invalid') setSubmitIssue(r.issue)
+    if (r.status === 'invalid') setSubmitChecksum(true)
     else setOutcome(r.status)
   }
 
+  const column = (from: number, to: number) => (
+    <View style={{ flex: 1, gap: th.semantic.layout.fieldGap }}>
+      {Array.from({ length: to - from }, (_, k) => from + k).map((i) => (
+        <WordCell
+          key={i}
+          number={i + 1}
+          label={t('restore.word', { n: i + 1 })}
+          value={words[i]!}
+          focused={focus === i}
+          error={state.unknown.includes(i)}
+          last={i === count - 1}
+          inputRef={(r) => {
+            cells.current[i] = r
+          }}
+          onChangeText={(v) => apply(i, v)}
+          onFocus={() => {
+            setFocus(i)
+            revealCell(i)
+          }}
+          onBlur={() => setFocus((f) => (f === i ? null : f))}
+          onNext={() => (i + 1 < count ? go(i + 1) : Keyboard.dismiss())}
+          onBackspaceEmpty={() => i > 0 && go(i - 1)}
+        />
+      ))}
+    </View>
+  )
+
   return (
     <Screen
+      revealRef={reveal}
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/')} />}
-      footer={<Button label={t('restore.submit')} disabled={!state.ready || !!issue} busy={busy} busyLabel={t('busy.restore')} onPress={() => void submit()} />}
+      footer={<Button label={t('restore.submit')} disabled={!state.ready || showChecksum} busy={busy} busyLabel={t('busy.restore')} onPress={() => void submit()} />}
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>
         <Text variant="title1" accessibilityRole="header">{t('restore.title')}</Text>
         <Text variant="body" color={th.semantic.text.secondary}>{t('restore.helper')}</Text>
+        {outcome === 'exists' ? <StatusNotice tone="danger" tier="banner" title={t('restore.exists.title')} body={t('restore.exists.body')} /> : null}
+        {outcome === 'error' ? <StatusNotice tone="danger" tier="banner" title={t('restore.saveError.title')} body={t('restore.saveError.body')} /> : null}
       </View>
-      <Input
-        label={t('restore.label')}
-        value={text}
-        onChangeText={change}
-        onBlur={() => setLeft(true)}
-        placeholder={t('restore.placeholder')}
-        actions={[{ label: t('restore.paste'), onPress: () => void paste() }]}
-        {...(error ? { error } : {})}
-        multiline
-        autoCapitalize="none"
-        autoCorrect={false}
-        spellCheck={false}
-        autoComplete="off"
-        textContentType="none"
-        importantForAutofill="no"
-        {...(Platform.OS === 'android' ? { keyboardType: 'visible-password' as const } : {})}
-      />
-      {outcome === 'exists' ? <StatusNotice tone="danger" tier="banner" title={t('restore.exists.title')} body={t('restore.exists.body')} /> : null}
-      {outcome === 'error' ? <StatusNotice tone="danger" tier="banner" title={t('restore.saveError.title')} body={t('restore.saveError.body')} /> : null}
-      <StatusNotice tone="warning" title={t('restore.passphrase.title')} body={t('restore.passphrase.body')} />
+      <View style={{ gap: th.semantic.layout.rowGap }} onLayout={(e) => (phraseY.current = e.nativeEvent.layout.y)}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
+            <Chip label={t('restore.count12')} selected={count === 12} onPress={() => setCount(12)} />
+            <Chip label={t('restore.count24')} selected={count === 24} onPress={() => setCount(24)} />
+          </View>
+          <Button label={t('restore.paste')} variant="ghost" size="sm" link onPress={() => void paste()} />
+        </View>
+        <View style={{ gap: th.semantic.layout.rowGap }}>
+          <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }} onLayout={(e) => (gridY.current = e.nativeEvent.layout.y)}>
+            {column(0, half)}
+            {column(half, count)}
+          </View>
+          {message ? <Text variant="bodySmall" color={th.component.input.errorText} accessibilityRole="alert">{message}</Text> : null}
+        </View>
+      </View>
+      <View>
+        <ListItem
+          title={t('restore.passphrase.row')}
+          trailing={{ kind: 'custom', node: <Icon name={passOpen ? 'collapse' : 'expand'} size={th.component.icon.size.control} color={th.component.listItem.icon} /> }}
+          onPress={toggleRow}
+        />
+        {passOpen ? (
+          <Input
+            label={t('restore.passphrase.label')}
+            value={passphrase}
+            onChangeText={setPassphrase}
+            helper={`${t('restore.passphrase.helper')}\n${t('restore.passphrase.clearNote')}`}
+            secureTextEntry={!showPass}
+            action={{ icon: showPass ? 'eyeClosed' : 'eye', label: showPass ? t('restore.passphrase.hide') : t('restore.passphrase.show'), onPress: () => setShowPass(!showPass) }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            spellCheck={false}
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
+          />
+        ) : null}
+      </View>
     </Screen>
   )
 }

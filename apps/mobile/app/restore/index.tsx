@@ -1,24 +1,28 @@
 import { useLocalSearchParams } from 'expo-router'
-import { RestorePage } from '@/pages/restore'
+import { fromPhrase } from '@/features/restore/model/cells'
+import { RestorePage, type RestoreDev } from '@/pages/restore'
 
-// Dev-only fixtures for design comparison (`/restore?demo=<state>`): wordlist words (the public test vector), no real phrase.
+// Dev-only fixtures for design comparison (`/restore?demo=<state>`): the public BIP39 test vector and the public Trezor test passphrase, no real phrase.
 const A11 = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon'
 const READY = `${A11} about`
-const DEMO: Record<string, { initial: string; dev?: { blurred?: boolean; busy?: boolean; outcome?: 'exists' | 'error' } }> = {
-  '1': { initial: 'abandon ability able' }, // typing
-  typing: { initial: 'abandon ability able' },
-  ready: { initial: READY },
-  busy: { initial: READY, dev: { busy: true } },
-  '2': { initial: 'abandon ability abcd ' },
-  unknown: { initial: 'abandon abandon abandn abandon abandon abandon abandon abandon abandon abandon abandon about' },
-  count: { initial: A11, dev: { blurred: true } },
-  checksum: { initial: `${A11} abandon`, dev: { blurred: true } },
-  exists: { initial: READY, dev: { outcome: 'exists' } },
-  error: { initial: READY, dev: { outcome: 'error' } },
+const TYPING = 'abandon abandon abandon abandon aban'
+const DEMO: Record<string, { phrase: string; dev?: RestoreDev }> = {
+  empty: { phrase: '' },
+  typing: { phrase: TYPING, dev: { focus: 4 } },
+  ready: { phrase: READY },
+  busy: { phrase: READY, dev: { busy: true } },
+  unknown: { phrase: READY.replace('abandon abandon abandon', 'abandon abandon abandn') },
+  checksum: { phrase: `${A11} abandon` },
+  exists: { phrase: READY, dev: { outcome: 'exists' } },
+  saveerror: { phrase: READY, dev: { outcome: 'error' } },
+  'passphrase-masked': { phrase: READY, dev: { passOpen: true, passphrase: 'TREZOR' } },
+  'passphrase-shown': { phrase: READY, dev: { passOpen: true, passphrase: 'TREZOR', showPass: true } },
+  '24words': { phrase: `${'abandon '.repeat(17)}aban`, dev: { focus: 17 } },
 }
 
 export default function RestoreRoute() {
   const { demo } = useLocalSearchParams<{ demo?: string }>()
-  const d = __DEV__ && demo ? DEMO[demo] : undefined
-  return <RestorePage key={demo ?? ''} initial={d?.initial ?? ''} {...(d?.dev ? { dev: d.dev } : {})} />
+  const d = __DEV__ && demo ? DEMO[demo === '1' ? 'typing' : demo] : undefined
+  const initial = d ? fromPhrase(d.phrase) : undefined
+  return <RestorePage key={demo ?? ''} {...(initial ? { initial } : {})} {...(d?.dev ? { dev: d.dev } : {})} />
 }

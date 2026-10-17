@@ -3,6 +3,8 @@
 import { View } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
 import { AltArrowRightIcon as AltArrowRightIconL } from '@solar-icons/react-native/linear/alt-arrow-right'
+import { AltArrowDownIcon as AltArrowDownIconL } from '@solar-icons/react-native/linear/alt-arrow-down'
+import { AltArrowUpIcon as AltArrowUpIconL } from '@solar-icons/react-native/linear/alt-arrow-up'
 import { ArrowLeftDownIcon as ArrowLeftDownIconL } from '@solar-icons/react-native/linear/arrow-left-down'
 import { ArrowLeftIcon as ArrowLeftIconL } from '@solar-icons/react-native/linear/arrow-left'
 import { ArrowRightUpIcon as ArrowRightUpIconL } from '@solar-icons/react-native/linear/arrow-right-up'
@@ -25,6 +27,7 @@ import { DangerTriangleIcon as DangerTriangleIconB } from '@solar-icons/react-na
 import { DangerTriangleIcon as DangerTriangleIconL } from '@solar-icons/react-native/linear/danger-triangle'
 import { DocumentTextIcon as DocumentTextIconL } from '@solar-icons/react-native/linear/document-text'
 import { EyeIcon as EyeIconL } from '@solar-icons/react-native/linear/eye'
+import { EyeClosedIcon as EyeClosedIconL } from '@solar-icons/react-native/linear/eye-closed'
 import { FaceScanCircleIcon as FaceScanCircleIconD } from '@solar-icons/react-native/bold-duotone/face-scan-circle'
 import { FaceScanCircleIcon as FaceScanCircleIconL } from '@solar-icons/react-native/linear/face-scan-circle'
 import { GlobalIcon as GlobalIconL } from '@solar-icons/react-native/linear/global'
@@ -100,6 +103,9 @@ const LINEAR = {
   key: KeyMinimalisticIconL,
   bell: BellIconL,
   eye: EyeIconL,
+  eyeClosed: EyeClosedIconL,
+  expand: AltArrowDownIconL,
+  collapse: AltArrowUpIconL,
   network: GlobalIconL,
   deviceWarning: ShieldWarningIconL,
   document: DocumentTextIconL,

@@ -1,6 +1,6 @@
 // Figma: product screen frame (R-S10R 333:113 / R-S22 336:390): screenB.bg (flat white), optional Nav row, body px screen.padding, content pt space-2, section gap 24, Actions pinned below
-import { type ReactNode, useEffect, useRef, useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import { type MutableRefObject, type ReactNode, useEffect, useRef, useState } from 'react'
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
 
@@ -18,26 +18,43 @@ type Props = {
   bleed?: boolean
   /** Brand screens (Figma 423:13440, 423:15412, 423:15443, 423:15474) draw no line above the actions. */
   footerLine?: boolean
+  /** Form screens: the body shrinks above the keyboard, and `revealRef.current(y, height)` scrolls a body-content box into view with `l.screen.padding` (16) clearance. */
+  revealRef?: MutableRefObject<((y: number, height: number) => void) | null>
 }
 
 /** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
-export function Screen({ children, header, footer, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true }: Props) {
+export function Screen({ children, header, footer, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true, revealRef }: Props) {
   const t = useTheme()
   const l = t.semantic.layout
   const scrollRef = useRef<ScrollView>(null)
   const [layoutHeight, setLayoutHeight] = useState(0)
   const [contentHeight, setContentHeight] = useState(0)
+  const scrollY = useRef(0)
   const overflows = contentHeight > layoutHeight + 1
 
   useEffect(() => {
     if (overflows) scrollRef.current?.flashScrollIndicators()
   }, [overflows])
 
-  return (
-    <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: t.component.screenB.bg }}>
+  if (revealRef) {
+    revealRef.current = (y, h) => {
+      const clear = l.screen.padding
+      const top = scrollY.current
+      if (y - clear < top) scrollRef.current?.scrollTo({ y: Math.max(0, y - clear), animated: true })
+      else if (y + h + clear > top + layoutHeight) scrollRef.current?.scrollTo({ y: y + h + clear - layoutHeight, animated: true })
+    }
+  }
+
+  const body = (
+    <>
       {header}
       <ScrollView
         ref={scrollRef}
+        onScroll={(e) => {
+          scrollY.current = e.nativeEvent.contentOffset.y
+        }}
+        scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
         onLayout={(e) => setLayoutHeight(e.nativeEvent.layout.height)}
         onContentSizeChange={(_, h) => setContentHeight(h)}
         contentContainerStyle={{
@@ -65,6 +82,15 @@ export function Screen({ children, header, footer, edges = ['top', 'bottom'], ga
           {footer}
         </View>
       ) : null}
+    </>
+  )
+  return (
+    <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: t.component.screenB.bg }}>
+      {revealRef ? (
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>{body}</KeyboardAvoidingView>
+      ) : (
+        body
+      )}
     </SafeAreaView>
   )
 }

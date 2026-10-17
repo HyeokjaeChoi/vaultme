@@ -18,6 +18,8 @@ type Props = {
   busy?: boolean
   /** Secondary whose action cannot be undone: danger-colored label (risk sheets, clear test data). Never Primary. */
   danger?: boolean
+  /** Ghost whose label uses text/link (S05 붙여넣기, Figma 565:85401). */
+  link?: boolean
   icon?: IconName
   /** Progressive label shown while busy under Reduce Motion (the spinner does not rotate): "보내는 중…". */
   busyLabel?: string
@@ -35,7 +37,7 @@ type Props = {
  * Busy: the icon is the loading glyph (3/4 ring), rotating 800 ms linear. Under Reduce Motion it is static and the label switches to `busyLabel`.
  * Press feedback: scale 0.97, 100 ms ease-out (off under Reduce Motion), plus the pressed color.
  */
-export function Button({ label, onPress, variant = 'primary', size = 'lg', disabled, busy, danger, icon, busyLabel, copied, style }: Props) {
+export function Button({ label, onPress, variant = 'primary', size = 'lg', disabled, busy, danger, link, icon, busyLabel, copied, style }: Props) {
   const t = useTheme()
   const reduce = useReducedMotion()
   const onRaised = useOnRaised()
@@ -56,7 +58,7 @@ export function Button({ label, onPress, variant = 'primary', size = 'lg', disab
       : variant === 'secondary'
         ? dimmed ? disabledBg : { default: sec, pressed: onRaised ? t.semantic.surface.pressedOnRaised : bb.secondary.bgPressed }
         : dimmed ? b.ghost.bg.disabled : { default: b.ghost.bg.default, pressed: b.ghost.bg.pressed }
-  const fgDefault = variant === 'primary' ? bb.primary.fg : danger ? t.semantic.status.danger.fg : variant === 'secondary' ? bb.secondary.fg : t.semantic.text.primary
+  const fgDefault = variant === 'primary' ? bb.primary.fg : danger ? t.semantic.status.danger.fg : link ? t.semantic.text.link : variant === 'secondary' ? bb.secondary.fg : t.semantic.text.primary
   const fg = dimmed ? bb.primary.fgDisabled : fgDefault
   const leading: IconName | undefined = busy ? 'loading' : copied ? 'check' : icon
   const shownLabel = busy && reduce && busyLabel ? busyLabel : label
