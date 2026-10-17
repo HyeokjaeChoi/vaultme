@@ -21,10 +21,10 @@ export function ActivityRow({ title, detail, time, amount, kind, asset, status, 
   const struck = status === 'failed' || status === 'replaced'
   const badge: RowBadgeKind = status === 'confirmed' ? (kind === 'send' ? 'sent' : 'received') : status
   const color = struck ? t.semantic.text.tertiary : status === 'pending' || status === 'unknown' ? t.semantic.text.secondary : c.amount
+  const label = `${title}, ${time}, ${amount}, ${statusLabel}`
   const row = (
     <View
-      accessible
-      accessibilityLabel={`${title}, ${time}, ${amount}, ${statusLabel}`}
+      {...(onPress ? {} : { accessible: true, accessibilityLabel: label })}
       style={{ minHeight: t.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}
     >
       <View style={{ width: t.primitive.size.avatar_md, height: t.primitive.size.avatar_md }}>
@@ -42,5 +42,5 @@ export function ActivityRow({ title, detail, time, amount, kind, asset, status, 
       </Text>
     </View>
   )
-  return onPress ? <Pressable accessibilityRole="button" onPress={onPress}>{row}</Pressable> : row
+  return onPress ? <Pressable accessible accessibilityRole="button" accessibilityLabel={label} onPress={onPress}>{row}</Pressable> : row
 }
