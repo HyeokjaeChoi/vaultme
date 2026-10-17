@@ -99,7 +99,7 @@ vaultme/
 export const CHAIN = { id: 11155111, name: 'Sepolia' } as const
 export const ASSETS = {
   ETH:  { kind: 'native', decimals: 18, display: { minFraction: 0, maxFraction: 6 } },
-  USDC: { kind: 'erc20', decimals: 6, display: { minFraction: 2, maxFraction: 2 }, address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' }, // Circle 문서 + on-chain decimals()=6, symbol()=USDC 확인 (2026-10-12)
+  USDC: { kind: 'erc20', decimals: 6, display: { minFraction: 0, maxFraction: 2 }, address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' }, // Circle 문서 + on-chain decimals()=6, symbol()=USDC 확인 (2026-10-12)
 } as const
 export const DERIVATION_PATH = "m/44'/60'/0'/0/0"     // Q40
 export const ABS_MAX_FEE_WEI = parseEther('0.005')     // 기본값, testnet 전용 (Q73)
