@@ -2,7 +2,7 @@
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
-import { Pressable, View } from 'react-native'
+import { AccessibilityInfo, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { takeScanResult, useRecents } from '@/features/send'
 import { isAddressFormat } from '@/shared/lib/address'
@@ -35,7 +35,8 @@ export function SendPage() {
       if (!r) return
       setTo(r.to)
       setQr(r.fromQr ? { address: r.to, hadAmount: r.hadAmount } : null)
-    }, []),
+      if (r.fromQr) AccessibilityInfo.announceForAccessibility(t('send.qr.announce')) // VoiceOver: the scan screen closes with no other cue
+    }, [t]),
   )
   const recents = useRecents()
   const valid = isAddressFormat(to)

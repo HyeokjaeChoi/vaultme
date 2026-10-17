@@ -174,6 +174,9 @@ export const ko = {
     qr: {
       title: 'QR 스캔',
       hint: 'QR 코드를 네모 안에 맞춰 주세요',
+      // VoiceOver: the frame is decoration, so say what to do and the way out.
+      a11yHint: '카메라로 QR을 스캔해요. 어려우면 주소 붙여넣기를 쓰세요.',
+      announce: '주소를 가져왔어요',
       invalid: '주소 QR이 아니에요',
       // {{copula}} = 이에요 / 예요 by the last digit of the chain id (scanQr.ts chainIdCopula).
       wrongChain: {
@@ -202,6 +205,8 @@ export const ko = {
     // Issue #64: asset row + 2-row sheet on the amount screen; USDC fee shortage (Figma B-S20b / B-S22U).
     assetQuestion: '어떤 자산을 보낼까요?',
     assetLabel: '보낼 자산',
+    assetChange: '자산 바꾸기',
+    chipNoBalance: '보낼 수 있는 금액이 없어요',
     feeShort: '수수료로 쓸 ETH가 부족해요',
     chip: { p25: '25%', p50: '50%', all: '전액' },
     feeExcluded: '최대 수수료를 뺀 금액이에요',

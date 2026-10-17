@@ -5,16 +5,16 @@ import { AssetIcon, type AssetSymbol } from './AssetIcon'
 import { Icon } from './Icon'
 import { Text } from './Text'
 
-type Props = { name: string; symbol: AssetSymbol; /** Accessible hint, e.g. "보낼 자산". */ label: string; onPress: () => void }
+type Props = { name: string; symbol: AssetSymbol; /** Accessible label prefix, e.g. "보낼 자산". */ label: string; /** What a tap does, e.g. "자산 바꾸기" (VoiceOver hint; never the symbol). */ hint: string; onPress: () => void }
 
 /** Asset selector on the amount screen: 64 pt row (40 pt asset icon, name Row title, symbol Caption tertiary) and a 20 pt expand chevron. Tap opens the asset sheet. */
-export function AssetSelector({ name, symbol, label, onPress }: Props) {
+export function AssetSelector({ name, symbol, label, hint, onPress }: Props) {
   const t = useTheme()
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${label}, ${name}`}
-      accessibilityHint={symbol}
+      accessibilityLabel={`${label}, ${name} ${symbol}`}
+      accessibilityHint={hint}
       onPress={onPress}
       style={{ minHeight: t.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}
     >

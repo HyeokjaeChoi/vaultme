@@ -678,3 +678,15 @@ Figma `Flow 1`–`Flow 5`. 새 문구와 바뀐 문구만 적었다. 모두 오�
 | S21+QRX 체인 불일치 시트 (알려진 체인) | 시트 본문 | 이 QR은 {name}({chainId}) 주소예요. VaultMe는 Sepolia(11155111)로만 보내요.<br>받는 사람에게 Sepolia 주소를 다시 받으세요. | 이름: 1 Ethereum 메인넷, 8453 Base, 137 Polygon, 42161 Arbitrum One, 10 OP Mainnet. 그 밖은 위 문장(체인 ID만) |
 | S21+QRX 체인 불일치 시트 | 시트 버튼 | 돌아가기 | 하나뿐. 무시하고 보내는 길은 없다 |
 | iOS 권한창 | NSCameraUsageDescription | 받는 주소 QR을 스캔할 때 카메라를 사용해요. | app.json expo-camera 플러그인 |
+
+### 이슈 #64 VoiceOver 문구 (2026-10-18, 오너 결정)
+
+화면에 보이지 않고 VoiceOver만 읽는다.
+
+| 화면 | 위치 | 문구 | 비고 |
+|---|---|---|---|
+| S20a (QR 스캔 성공 후) | 안내 방송 | 주소를 가져왔어요 | `announceForAccessibility`, 한 번 |
+| S21 QR 스캔 | 안내문 읽기 | 카메라로 QR을 스캔해요. 어려우면 주소 붙여넣기를 쓰세요. | 보이는 문구 "QR 코드를 네모 안에 맞춰 주세요" 대신 읽는다 |
+| S20b 자산 행 | 힌트 | 자산 바꾸기 | 이전에는 심볼. 라벨은 "보낼 자산, 이름 심볼" |
+| S20b 꺼진 칩 | 힌트 | 수수료로 쓸 ETH가 부족해요 (USDC) / 보낼 수 있는 금액이 없어요 | 꺼진 이유 |
+| S20b 자산 시트 | 선택 행 | 눌림 상태 selected + 오른쪽 체크 아이콘 | 체크는 Solar Linear, Ink 색 |

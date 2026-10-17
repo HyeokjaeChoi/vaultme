@@ -68,7 +68,7 @@ export function SendAmountPage() {
       <View style={{ flex: 1, gap: th.semantic.layout.groupGap }}>
         <View style={{ gap: th.primitive.space[2] }}>
           <Text variant="title1" accessibilityRole="header">{t('send.amountQuestion')}</Text>
-          <AssetSelector name={info.name} symbol={asset} label={t('send.assetLabel')} onPress={() => setPicker(true)} />
+          <AssetSelector name={info.name} symbol={asset} label={t('send.assetLabel')} hint={t('send.assetChange')} onPress={() => setPicker(true)} />
         </View>
         {/* Composed column (Figma S20B): amount, sub line and chips sit together at the bottom of the free space, just above the keypad. */}
         <View style={{ flex: 1, justifyContent: 'flex-end', gap: th.semantic.layout.groupGap }}>
@@ -80,7 +80,7 @@ export function SendAmountPage() {
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'center', gap: th.semantic.layout.fieldGap }}>
             {chips.map((c) => (
-              <Chip key={c.pct} label={t(CHIP_LABEL[c.pct])} selected={chosen?.pct === c.pct} disabled={c.raw === 0n} onPress={() => setAmount(c.value)} />
+              <Chip key={c.pct} label={t(CHIP_LABEL[c.pct])} selected={chosen?.pct === c.pct} disabled={c.raw === 0n} disabledReason={feeShort ? t('send.feeShort') : t('send.chipNoBalance')} onPress={() => setAmount(c.value)} />
             ))}
           </View>
           {feeShort ? (

@@ -191,7 +191,7 @@ export function ScanPage() {
             </View>
           ) : null}
           <View style={{ gap: th.semantic.layout.fieldGap, paddingHorizontal: pad }}>
-            <Text variant="body" color={onBrand} style={{ textAlign: 'center' }}>{t('send.qr.hint')}</Text>
+            <Text variant="body" color={onBrand} accessibilityLabel={t('send.qr.a11yHint')} style={{ textAlign: 'center' }}>{t('send.qr.hint')}</Text>
             <Text variant="fact" color={onBrand} style={{ textAlign: 'center' }}>{`${CHAIN.name} · ${CHAIN.id}`}</Text>
           </View>
           {test ? (

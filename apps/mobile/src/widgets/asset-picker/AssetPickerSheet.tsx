@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { assets } from '@/entities/asset/fixtures'
 import { useTheme } from '@/shared/theme'
-import { AssetIcon, BottomSheet, Text } from '@/shared/ui'
+import { AssetIcon, BottomSheet, Icon, Text } from '@/shared/ui'
 
 type Props = {
   visible: boolean
@@ -15,7 +15,7 @@ type Props = {
   selected: AssetId
 }
 
-/** "어떤 자산을 보낼까요?" sheet: ETH and USDC rows (40 pt icon, name, symbol, balance in Headline). The row padding adds to the sheet padding, as in Figma (icon at x=32). No action buttons: a tap picks and closes. */
+/** "어떤 자산을 보낼까요?" sheet: ETH and USDC rows (40 pt icon, name, symbol, balance in Headline). The row padding adds to the sheet padding, as in Figma (icon at x=32). The selected row has a trailing check and `selected` state. No action buttons: a tap picks and closes. */
 export function AssetPickerSheet({ visible, onClose, onPick, balances, selected }: Props) {
   const { t } = useTranslation()
   const th = useTheme()
@@ -37,6 +37,10 @@ export function AssetPickerSheet({ visible, onClose, onPick, balances, selected 
               <Text variant="caption" color={th.semantic.text.tertiary}>{a.symbol}</Text>
             </View>
             <Text variant="headline" tabular style={{ textAlign: 'right' }}>{balances[a.symbol] ?? '—'} {a.symbol}</Text>
+            {/* Current selection: a trailing check (Ink, no accent). The slot is reserved on the other row so the balances stay aligned. */}
+            <View style={{ width: th.component.icon.size.control }}>
+              {a.symbol === selected ? <Icon name="check" size={th.component.icon.size.control} color={th.semantic.text.primary} /> : null}
+            </View>
           </Pressable>
         ))}
       </View>
