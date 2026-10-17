@@ -30,7 +30,7 @@ function Row({ item }: { item: HistoryItem }) {
   return (
     <ActivityRow
       title={title}
-      detail={unknown ? t('activity.row.unknownSub') : `${assetName(item.asset)} · ${clock(item.at)}`}
+      detail={`${assetName(item.asset)} · ${clock(item.at)}${unknown ? ` · ${t('activity.row.unknownSub')}` : ''}`}
       time={clock(item.at)}
       amount={amount}
       kind={item.kind}

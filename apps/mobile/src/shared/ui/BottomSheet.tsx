@@ -56,7 +56,7 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
     <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <View style={{ flex: 1, justifyContent: 'flex-end' }}>
         <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }, scrim]}>
-          <Pressable accessibilityRole="button" accessibilityLabel={ko.common.close} onPress={onClose} style={{ flex: 1, backgroundColor: t.semantic.surface.inverse, opacity: t.semantic.effect.modalScrimOpacity }} />
+          <Pressable accessibilityRole="button" accessibilityLabel={ko.common.close} onPress={onClose} style={{ flex: 1, backgroundColor: t.component.overlay.scrimBg, opacity: t.component.overlay.scrimOpacity }} />
         </Animated.View>
         <Animated.View
           accessibilityViewIsModal

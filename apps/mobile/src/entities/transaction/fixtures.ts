@@ -39,7 +39,7 @@ export const demoTx = (state: PendingTx['state']): PendingTx => ({
   asset: 'ETH',
   to: review.recipient,
   amount: '0.05',
-  createdAt: Date.now(),
+  createdAt: new Date(2026, 9, 16, 9, 41).getTime(),
   lastCheckedAt: Date.now(),
   fee: '0.000042',
   state,

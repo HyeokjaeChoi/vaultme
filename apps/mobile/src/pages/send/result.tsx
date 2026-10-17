@@ -20,13 +20,13 @@ import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
  * then a band and flat detail rows. Fee label: "예상 네트워크 수수료" until the network has it, "네트워크 수수료" once included. Replaced has no fee row.
  * A send the fake adapter never put on the network is a test send: "테스트 거래예요", no progress, no warning line, no fee (the chip says it too).
  * A failure reason line shows only when the record carries a confirmed reason (`failReason`). Success and failure give a haptic once.
- * Reads the kv pending record and re-checks it every 15 s while focused. `?demo=<state>` (+ `&reason=gas`, `&real=1`) is a __DEV__ capture override: a synthetic send in that state.
+ * Reads the kv pending record and re-checks it every 15 s while focused. `?demo=<state>` (+ `&reason=gas`; `&real=1` shows the real-chain variant) is a __DEV__ capture override: a synthetic send in that state.
  */
 export function SendResultPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { demo, reason } = useLocalSearchParams<{ demo?: string; reason?: string }>()
+  const { demo, reason, real } = useLocalSearchParams<{ demo?: string; reason?: string; real?: string }>()
   const tracked = useTrackedTx()
   const { checking, recheck } = tracked
   const testMode = useTestMode()
@@ -38,7 +38,7 @@ export function SendResultPage() {
   }, [state])
   if (!tx) return <Redirect href="/home" />
   const copy = resultCopy(tx.state)
-  const test = testMode && isPolled(tx.state) // the fake adapter keeps a send Pending forever: it was never on the network
+  const test = testMode && !(__DEV__ && real === '1') && isPolled(tx.state) // the fake adapter keeps a send Pending forever: it was never on the network
   const toHome = () => { router.dismissAll(); router.replace('/home') }
   const toDetail = () => router.push({ pathname: '/activity/[hash]', params: { hash: tx.hash } })
   const resend = () => {
