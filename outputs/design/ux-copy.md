@@ -502,7 +502,7 @@ Figma `Flow 1 · Onboarding`, `Flow 2 · Home & balance`, `Flow 5 · Security & 
 | S10 첫 실행 sheet | 버튼 | 확인했어요 | 안내 sheet라 Primary 하나 |
 | S10 테스트 데이터 sheet | 제목 / 본문 / 버튼 | 테스트 데이터예요 / 잔액과 내역은 이 기기에서 만든 예시예요. 실제 네트워크와 연결되지 않았어요. / 확인 | 기존 승인 문구를 sheet로 |
 | S10N 새 지갑 | 행 | 복구 구문을 아직 백업하지 않았어요 › | 3줄 notice 대체. 누르면 S31 |
-| S10E · S10N 빈 지갑 | 빈 상태 | 아직 자산이 없어요 / 받기 주소를 공유하면 Sepolia ETH와 USDC를 받을 수 있어요. | 버튼 자리 고정: 보내기(Secondary) 왼쪽, 받기(Primary) 오른쪽 (오너 2026-10-17, 최종 검수 P1-8) |
+| S10E · S10N 빈 지갑 | 빈 상태 | 아직 자산이 없어요 / ETH나 USDC를 받으려면 주소를 공유하세요. | 버튼 자리 고정: 보내기(Secondary) 왼쪽, 받기(Primary) 오른쪽 (오너 2026-10-17, 최종 검수 P1-8) |
 | S11 | 블록 제목 | 자산 정보 / 이 자산의 내역 · 전체 보기 | |
 | S11 ETH | 안내 | 네트워크 수수료는 ETH로 내요. 수수료로 쓸 ETH를 남겨 두세요. | |
 | S11 USDC | 행 / 안내 | 컨트랙트 주소 (전체, 4글자 묶음) / 보낼 때 네트워크 수수료는 ETH로 내요. | 주소는 `packages/contracts` USDC_SEPOLIA |
