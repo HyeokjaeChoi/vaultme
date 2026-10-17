@@ -12,7 +12,7 @@ import { showAmount } from '@/shared/lib/amount'
 import { useTestMode } from '@/shared/chain/useTestMode'
 import { useTheme } from '@/shared/theme'
 import { AmountHero, Block, Button, ProgressSteps, SectionBand, Screen, ScreenHeader, StatusNotice, SummaryRow } from '@/shared/ui'
-import { View } from 'react-native'
+import { BackHandler, View } from 'react-native'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
 /**
@@ -39,6 +39,15 @@ export function SendResultPage() {
     if (state === 'Confirmed') haptic.success()
     else if (state === 'Failed') haptic.error()
   }, [state])
+  // Android hardware back = the "확인" action (Home). It must never reach the amount screen: that is a re-send path.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      router.dismissAll()
+      router.replace('/home')
+      return true
+    })
+    return () => sub.remove()
+  }, [router])
   if (!tx) return <Redirect href="/home" />
   const copy = resultCopy(tx.state)
   const test = testMode && !(__DEV__ && real === '1') && isPolled(tx.state) // the fake adapter keeps a send Pending forever: it was never on the network
