@@ -16,7 +16,7 @@ export function StatusChip({ label, onPress }: Props) {
       <Text variant="caption" color={t.component.chip.fg}>{label}</Text>
     </View>
   )
-  const slop = Math.max(0, (t.primitive.size.touch_min - t.primitive.space[2] * 2 - t.primitive.type.productB.caption.lineHeight) / 2)
+  const slop = Math.max(0, (t.primitive.size.touch_min - t.primitive.space[1] * 2 - t.primitive.type.productB.caption.lineHeight) / 2)
   return onPress ? (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={{ top: slop, bottom: slop, left: t.primitive.space[1], right: t.primitive.space[1] }}>{body}</Pressable>
   ) : (
