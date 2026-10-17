@@ -96,8 +96,10 @@ export function buildLicenses({ root = appDir } = {}) {
     ...extra,
   })
   const libs = []
+  const emitted = new Set() // pnpm can hold one name@version in several dirs
   for (const [dir, pkg] of seen) {
-    if (pkg.name.startsWith('@vaultme/') || EXCLUDE.has(pkg.name)) continue // this repo's own packages (their dependencies are in the list)
+    if (pkg.name.startsWith('@vaultme/') || EXCLUDE.has(pkg.name) || emitted.has(`${pkg.name}@${pkg.version}`)) continue
+    emitted.add(`${pkg.name}@${pkg.version}`) // this repo's own packages (their dependencies are in the list)
     libs.push(entry(pkg.name, pkg.version, licenseId(pkg), licenseText(dir), null, { direct: direct.has(pkg.name) }))
   }
   const rank = (p) => {
