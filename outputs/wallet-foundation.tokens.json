@@ -706,6 +706,10 @@
         "px52": {
           "value": "52px",
           "type": "lineHeights"
+        },
+        "px16": {
+          "value": "16px",
+          "type": "lineHeights"
         }
       },
       "tracking": {
@@ -1322,6 +1326,48 @@
           },
           "type": "typography",
           "description": "type.productB.figureUnit: Unit next to a figure. Pretendard 600 24/32. Color text.secondary (applied by the consumer, typography tokens carry no color). Tracking -0.5 per desktop text style S:057625bf."
+        },
+        "fact": {
+          "value": {
+            "fontFamily": "{font.family.mono}",
+            "fontWeight": "{font.weight.regular}",
+            "fontSize": "{font.size.xs}",
+            "lineHeight": "{font.lineHeight.px16}",
+            "letterSpacing": "{font.tracking.wide}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "factUpper": {
+          "value": {
+            "fontFamily": "{font.family.mono}",
+            "fontWeight": "{font.weight.medium}",
+            "fontSize": "{font.size.xs}",
+            "lineHeight": "{font.lineHeight.px16}",
+            "letterSpacing": "{font.tracking.wide}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "uppercase",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "link": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.medium}",
+            "fontSize": "{font.size.sm}",
+            "lineHeight": "{font.lineHeight.px20}",
+            "letterSpacing": "{font.tracking.label}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "underline"
+          },
+          "type": "typography"
         }
       }
     },
@@ -1599,9 +1645,9 @@
         "description": "text.inverse: Readable text foreground. Preserve the required contrast on its paired surface."
       },
       "link": {
-        "value": "{color.identity.blue.700}",
+        "value": "{color.neutral.900}",
         "type": "color",
-        "description": "text.link: Readable text foreground. Preserve the required contrast on its paired surface."
+        "description": "text.link: Ink link text. Always underlined or followed by an arrow; blue is only for Primary and the selected tab (owner 2026-10-17). Aliases an existing Primitive."
       },
       "disabled": {
         "value": "{color.neutral.600}",
@@ -2016,8 +2062,9 @@
     "financial": {
       "change": {
         "positive": {
-          "value": "{color.teal.700}",
-          "type": "color"
+          "value": "{color.neutral.900}",
+          "type": "color",
+          "description": "financial.change.positive: Received amount is Ink with a leading +. Green is for status badges only (owner 2026-10-17)."
         },
         "negative": {
           "value": "{color.red.700}",
@@ -5091,6 +5138,18 @@
           "description": "rowBadge.failed: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
         }
       }
+    },
+    "chip": {
+      "bg": {
+        "value": "{surface.pressed}",
+        "type": "color",
+        "description": "chip.bg: One neutral chip style for the network chip. Amber, blue, green and red are not chip colors."
+      },
+      "fg": {
+        "value": "{text.secondary}",
+        "type": "color",
+        "description": "chip.fg: Chip label color."
+      }
     }
   },
   "semanticDark": {
@@ -5193,9 +5252,9 @@
         "description": "text.inverse: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
       },
       "link": {
-        "value": "{color.brand.300}",
+        "value": "{color.neutral.50}",
         "type": "color",
-        "description": "text.link: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+        "description": "text.link: Dark mode override (Figma 02 Semantic, mode Dark). Ink link text. Always underlined or followed by an arrow; blue is only for Primary and the selected tab (owner 2026-10-17). Aliases an existing Primitive."
       },
       "disabled": {
         "value": "{color.neutral.500}",
@@ -5408,9 +5467,9 @@
     "financial": {
       "change": {
         "positive": {
-          "value": "{color.teal.300}",
+          "value": "{color.neutral.50}",
           "type": "color",
-          "description": "financial.change.positive: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+          "description": "financial.change.positive: Dark mode override. Ink with a leading +, not green."
         },
         "negative": {
           "value": "{color.red.300}",

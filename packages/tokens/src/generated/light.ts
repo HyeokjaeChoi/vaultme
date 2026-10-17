@@ -427,6 +427,27 @@ export const light = {
           "fontSize": 24,
           "lineHeight": 32,
           "letterSpacing": -0.5
+        },
+        "fact": {
+          "fontFamily": "IBM Plex Mono",
+          "fontWeight": "400",
+          "fontSize": 12,
+          "lineHeight": 16,
+          "letterSpacing": 0.24
+        },
+        "factUpper": {
+          "fontFamily": "IBM Plex Mono",
+          "fontWeight": "500",
+          "fontSize": 12,
+          "lineHeight": 16,
+          "letterSpacing": 0.24
+        },
+        "link": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "500",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": -0.2
         }
       }
     },
@@ -545,7 +566,7 @@ export const light = {
       "secondary": "#394553",
       "tertiary": "#505C6C",
       "inverse": "#FFFFFF",
-      "link": "#2944DB",
+      "link": "#11161D",
       "disabled": "#505C6C",
       "onBrand": "#FFFFFF",
       "onStatusTint": "#11161D"
@@ -736,7 +757,7 @@ export const light = {
     },
     "financial": {
       "change": {
-        "positive": "#116D48",
+        "positive": "#11161D",
         "negative": "#982934",
         "neutral": "#505C6C"
       }
@@ -999,7 +1020,7 @@ export const light = {
       "border": "#DDE4EC",
       "link": {
         "default": "#394553",
-        "hover": "#2944DB",
+        "hover": "#11161D",
         "active": "#11161D",
         "focus": "#3152FF"
       },
@@ -1567,7 +1588,7 @@ export const light = {
       "border": "#808D9D",
       "origin": "#11161D",
       "scope": "#394553",
-      "action": "#2944DB",
+      "action": "#11161D",
       "radius": 12,
       "padding": 16,
       "height": 120,
@@ -1594,7 +1615,7 @@ export const light = {
       "detail": "#394553",
       "limited": "#2D4E9F",
       "unlimited": "#865007",
-      "action": "#2944DB",
+      "action": "#11161D",
       "radius": 12,
       "padding": 16,
       "height": 120,
@@ -1976,6 +1997,10 @@ export const light = {
       "failed": {
         "fg": "#982934"
       }
+    },
+    "chip": {
+      "bg": "#EEF2F7",
+      "fg": "#394553"
     }
   }
 } as const
