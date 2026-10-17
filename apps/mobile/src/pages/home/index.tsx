@@ -7,7 +7,7 @@ import { account } from '@/entities/account/fixtures'
 import { assets } from '@/entities/asset/fixtures'
 import { demoTx } from '@/entities/transaction/fixtures'
 import { useAccountAddress, useBackupDone, useBackupGate } from '@/features/backup'
-import { useLiveBalances } from '@/features/balances'
+import { useLiveBalancesState } from '@/features/balances'
 import { useHistory } from '@/features/history'
 import { PushOptInSheet } from '@/features/push-optin/ui/PushOptInSheet'
 import { useRestored } from '@/features/restore'
@@ -40,8 +40,8 @@ export function HomePage() {
   const backedUp = useBackupDone() || dev('empty')
   const gate = useBackupGate()
   const pending = useTrackedTx()
-  const live = useLiveBalances()
-  const { view } = useHistory()
+  const { balances: live, refresh: refreshBalances } = useLiveBalancesState()
+  const { view, refresh: refreshHistory } = useHistory()
   const devSheet = (): SheetName => (sheetParam === 'intro' ? 'intro' : sheetParam === 'testdata' ? 'testData' : sheetParam === 'push' ? 'push' : sheetParam === 'deposit' ? 'deposit' : sheetParam === '1' ? 'block' : null)
   const [sheet, setSheet] = useState<SheetName>(() => (__DEV__ && sheetParam ? devSheet() : null))
   useEffect(() => {
@@ -65,7 +65,7 @@ export function HomePage() {
     setSheet('deposit')
   }, [gate.shouldPromptAfterDeposit, sheet])
   return (
-    <Screen edges={['top']} gap="none" topGap="none">
+    <Screen edges={['top']} gap="none" topGap="none" onRefresh={() => Promise.all([refreshBalances(), refreshHistory()])}>
       <ProductHeader title={account.name} chips={<NetworkChips onPress={(test) => setSheet(test ? 'testData' : 'intro')} />} />
       <PortfolioBalance label={t('home.heroLabel')} value={eth} unit="ETH" note={t('home.priceNote')} {...(empty ? {} : { onLabelPress: () => router.push({ pathname: '/asset', params: { symbol: 'ETH' } }) })} />
       <ActionRow

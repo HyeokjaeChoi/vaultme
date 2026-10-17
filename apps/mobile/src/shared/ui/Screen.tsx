@@ -1,6 +1,6 @@
 // Figma: product screen frame (R-S10R 333:113 / R-S22 336:390): screenB.bg (flat white), optional Nav row, body px screen.padding, content pt space-2, section gap 24, Actions pinned below
 import { type MutableRefObject, type ReactNode, useEffect, useRef, useState } from 'react'
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
 
@@ -22,10 +22,12 @@ type Props = {
   footerLine?: boolean
   /** Form screens: the body shrinks above the keyboard, and `revealRef.current(y, height)` scrolls a body-content box into view with `l.screen.padding` (16) clearance. */
   revealRef?: MutableRefObject<((y: number | 'end', height?: number) => void) | null>
+  /** Pull-to-refresh (native RefreshControl). The spinner shows until the returned promise settles. Omit = no pull-to-refresh. */
+  onRefresh?: () => Promise<unknown>
 }
 
 /** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
-export function Screen({ children, header, footer, footerLead, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true, revealRef }: Props) {
+export function Screen({ children, header, footer, footerLead, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true, revealRef, onRefresh }: Props) {
   const t = useTheme()
   const l = t.semantic.layout
   const scrollRef = useRef<ScrollView>(null)
@@ -33,6 +35,15 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
   const [contentHeight, setContentHeight] = useState(0)
   const scrollY = useRef(0)
   const overflows = contentHeight > layoutHeight + 1
+  const [refreshing, setRefreshing] = useState(false)
+  const pull = async () => {
+    setRefreshing(true)
+    try {
+      await onRefresh?.()
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   useEffect(() => {
     if (overflows) scrollRef.current?.flashScrollIndicators()
@@ -53,6 +64,7 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
       {header}
       <ScrollView
         ref={scrollRef}
+        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={() => void pull()} tintColor={t.semantic.text.secondary} colors={[t.semantic.text.secondary]} /> : undefined}
         onScroll={(e) => {
           scrollY.current = e.nativeEvent.contentOffset.y
         }}
