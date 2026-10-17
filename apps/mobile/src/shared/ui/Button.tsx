@@ -2,7 +2,7 @@
 import { Pressable, type StyleProp, type ViewStyle } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useTheme } from '../theme'
-import { usePressScale } from '../theme/motion'
+import { usePressScale, useSpin } from '../theme/motion'
 import { useOnRaised } from '../theme/sheet'
 import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
@@ -26,6 +26,7 @@ type Props = {
  * Small (40) = the Copy pill: Label 14/500 and a 16 pt icon (Figma 515:27579).
  * With an icon: icon at the leading edge, label centered in the remaining space (Figma "Optional action icon").
  * The control is at least hitTarget (44) tall: a small visual control sits inside it and extends its touch area with hitSlop.
+ * Busy: the icon is the loading glyph, rotating 800 ms linear (static under Reduce Motion).
  * Press feedback: scale 0.97, 100 ms ease-out (off under Reduce Motion), plus the pressed color.
  */
 export function Button({ label, onPress, variant = 'primary', size = 'lg', disabled, busy, danger, icon, style }: Props) {
@@ -34,6 +35,7 @@ export function Button({ label, onPress, variant = 'primary', size = 'lg', disab
   const b = t.component.button
   const bb = t.component.buttonB
   const { style: anim, handlers } = usePressScale()
+  const spin = useSpin(!!busy)
   const height = bb.height[size]
   const slop = Math.max(0, (b.hitTarget - height) / 2)
   const blocked = disabled || busy
@@ -71,7 +73,11 @@ export function Button({ label, onPress, variant = 'primary', size = 'lg', disab
           backgroundColor: typeof bg === 'string' ? bg : pressed ? bg.pressed : bg.default,
         })}
       >
-        {leading ? <Icon name={leading} size={busy || size === 'sm' ? t.component.icon.size.inline : t.component.icon.size.control} color={iconColor} /> : null}
+        {leading ? (
+          <Animated.View style={busy ? spin : undefined}>
+            <Icon name={leading} size={busy || size === 'sm' ? t.component.icon.size.inline : t.component.icon.size.control} color={iconColor} />
+          </Animated.View>
+        ) : null}
         <Text variant={size === 'sm' ? 'label' : 'headline'} numberOfLines={2} color={fg} style={{ textAlign: 'center', flexShrink: 1 }}>
           {label}
         </Text>

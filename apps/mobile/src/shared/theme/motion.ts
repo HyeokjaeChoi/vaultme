@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated'
+import { cancelAnimation, Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated'
 
 // DESIGN motion (emil-design-eng): strong ease-out for UI. No tokens exist for these values yet.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
@@ -26,4 +26,20 @@ export function useFoldIn(offset: number) {
     if (!reduce) p.set(withTiming(1, { duration: FOLD_MS, easing: EASE_OUT }))
   }, [])
   return useAnimatedStyle(() => ({ opacity: p.get(), transform: [{ translateY: (1 - p.get()) * offset }] }))
+}
+
+const SPIN_MS = 800
+
+/** Busy spinner: rotate 0 -> 360 deg, 800 ms linear, looping, while `on`. Transform only. No rotation under Reduce Motion. Use on an Animated.View around the icon. */
+export function useSpin(on: boolean) {
+  const reduce = useReducedMotion()
+  const r = useSharedValue(0)
+  useEffect(() => {
+    if (on && !reduce) r.set(withRepeat(withTiming(360, { duration: SPIN_MS, easing: Easing.linear }), -1))
+    else {
+      cancelAnimation(r)
+      r.set(0)
+    }
+  }, [on, reduce])
+  return useAnimatedStyle(() => ({ transform: [{ rotate: `${r.get()}deg` }] }))
 }
