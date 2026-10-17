@@ -20,13 +20,21 @@ export const ko = {
       passcode: '잠겨 있어요. 기기 암호로 잠금을 푸세요.',
     },
     unlock: '잠금 해제',
+    // Face ID status row (Figma 515:45574): the device's own method name, like the body line.
+    checking: {
+      faceId: 'Face ID로 확인하는 중이에요',
+      face: '얼굴로 확인하는 중이에요',
+      fingerprint: '지문으로 확인하는 중이에요',
+      passcode: '기기 암호로 확인하는 중이에요',
+    },
     authPrompt: '잠금을 풀려면 인증하세요',
     error: { title: '잠금을 풀지 못했어요', body: '다시 시도하세요.' },
     unavailable: { title: '기기 인증을 쓸 수 없어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도하세요.' },
   },
   precheck: {
-    title: '시작 전에 확인',
-    lose: { title: '복구 구문을 잃으면 되찾을 수 없어요', body: 'VaultMe는 복구 구문을 보관하지도, 되찾아 주지도 않아요.' },
+    title: '시작하기 전에 확인해 주세요',
+    subtitle: '모두 확인해야 지갑을 만들 수 있어요.',
+    lose: { title: '복구 구문을 잃으면 되찾을 수 없어요', body: 'VaultMe는 복구 구문을 보관하지도,\n되찾아 주지도 않아요.' },
     scam: { title: '알림으로 복구 구문을 묻지 않아요', body: '복구 구문을 묻는 메시지는 모두 사기예요.' },
     testnet: { title: '테스트넷 전용이에요', body: 'Sepolia 자산만 다뤄요. 실제 가치는 없어요.' },
     cta: '지갑 만들기',
@@ -49,6 +57,28 @@ export const ko = {
     backupTitle: '백업을 아직 확인하지 않았어요',
     backupBody: '복구 구문을 백업해야 받기 주소가 보여요.',
     backupCta: '백업 시작',
+    // Redesign B 2차 (ux-copy.md): recent activity, backup row, empty wallet, the two explainer sheets.
+    recent: '최근 내역',
+    viewAll: '전체 보기',
+    backupRow: '복구 구문을 아직 백업하지 않았어요',
+    emptyTitle: '아직 자산이 없어요',
+    emptyBody: '받기 주소를 공유하면\nSepolia ETH와 USDC를 받을 수 있어요.',
+    heroLabel: 'Sepolia ETH',
+    introTitle: 'Sepolia 테스트넷 지갑이에요',
+    introBody: '실제 가치가 없는 테스트 자산만 다뤄요.\n시장 가격이 없어서 수량으로 보여 줘요.\n위의 칩을 누르면 이 안내를 다시 볼 수 있어요.',
+    introCta: '확인했어요',
+    testDataCta: '확인',
+  },
+  // S11 asset detail (ux-copy.md Redesign B 2차).
+  asset: {
+    info: '자산 정보',
+    network: '네트워크',
+    contract: '컨트랙트 주소',
+    copy: '복사',
+    copied: '복사했어요',
+    feeEth: '네트워크 수수료는 ETH로 내요.\n수수료로 쓸 ETH를 남겨 두세요.',
+    feeUsdc: '보낼 때 네트워크 수수료는 ETH로 내요.',
+    history: '이 자산의 내역',
   },
   // S03/S04: approved copy (ux-copy.md). authPrompt*, loadError, check.wrong and precheck.createError were approved by the owner in PR #28 (not yet in ux-copy.md); the S03 body drops the capture promise (Q43).
   backup: {
@@ -59,6 +89,7 @@ export const ko = {
     warnTitle: '누구에게도 보여 주지 마세요',
     warnBody: 'VaultMe도, 고객지원도 복구 구문을 묻지 않아요.',
     done: '다 적었어요',
+    ack: '12단어를 순서대로 종이에 적었어요',
     authPrompt: '복구 구문을 보려면 인증하세요',
     authPromptSave: '지갑을 만들려면 인증하세요',
     loadError: { title: '복구 구문을 불러오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
@@ -173,7 +204,7 @@ export const ko = {
     cta: '스토어에서 업데이트',
   },
   // C2b #23/#24, shown while the fake chain adapter is on. testData and notBroadcast are new (listed in the PR for approval).
-  testData: { title: '테스트 데이터예요', body: '잔액과 내역은 예시예요. 실제 네트워크와 연결되지 않았어요.' },
+  testData: { title: '테스트 데이터예요', body: '잔액과 내역은 이 기기에서 만든 예시예요.\n실제 네트워크와 연결되지 않았어요.' },
   notBroadcast: { title: '네트워크로 보내지 않았어요 (테스트)', body: '테스트 버전이라 거래 해시와 상태는 이 기기에서 만든 예시예요.' },
   // S23: Figma C2b-S23 + ux-copy.md. unknown.* from ux-flow.md S23 state table.
   result: {
@@ -315,7 +346,10 @@ export const ko = {
     phrase: '복구 구문 보기',
     push: '거래 알림',
     zero: '0원 거래 표시',
-    device: '기기 보안 경고',
+    device: '기기 보안 상태',
+    group: { security: '보안', notify: '알림', info: '정보' },
+    licenses: '오픈소스 라이선스',
+    copied: '복사했어요',
     network: '네트워크',
     version: '버전',
     on: '켜짐',
@@ -324,11 +358,24 @@ export const ko = {
     off: '꺼짐',
     shown: '표시',
     // S61 (ux-copy.md 복구 구문 다시 보기): body of the settings view of the phrase.
-    phraseBody: 'OS 인증을 마쳤어요. 화면을 캡처하지 마세요.\n앱을 벗어나면 다시 가려져요.',
+    // {{auth}} is the device's method with its particle (S90 rule): "Face ID로", "지문으로", "기기 암호로".
+    phraseBody: '{{auth}} 확인했어요. 화면을 캡처하지 마세요.\n앱을 벗어나면 다시 가려져요.',
+    phraseAuth: { faceId: 'Face ID로', touchId: 'Touch ID로', fingerprint: '지문으로', device: '기기 암호로' },
+    // S64 / S65 (Figma 526:54261, 526:55042). The list is generated at build time from the lockfile (apps/mobile/scripts/generate-licenses.mjs).
+    licensesScreen: {
+      title: '오픈소스 라이선스',
+      body: '앱에 포함된 오픈소스 목록이에요.\n앱을 만들 때 자동으로 만들어져요.',
+      groupAssets: '아이콘·글꼴',
+      groupLibs: '앱 라이브러리',
+      solarSource: 'Solar Icons 원본 보기',
+      version: '버전 {{v}}',
+      // Not in Figma: some packages ship no license file, so there is no text to show (a text is never made up).
+      noText: '이 패키지는 라이선스 원문 파일을 포함하지 않아요.',
+    },
     // S62 거래 알림, S63 0원 거래 표시 (ux-copy.md)
     pushScreen: { title: '거래 알림', row: '거래 알림 받기', body: '켜면 이 주소가 VaultMe 알림 서버에 등록돼요. 끄면 등록을 지워요.', warnTitle: '알림으로 복구 구문을 묻지 않아요', warnBody: '복구 구문을 묻는 알림은 모두 사기예요.' },
     // S92 (ux-copy.md 기기 보안 경고). The root/jailbreak detection is not wired: the screen opens from the S60 row only.
-    deviceScreen: { title: '기기 보안 경고', body: '이 기기는 루팅되었거나 탈옥된 것 같아요.\n다른 앱이 지갑 키에 접근할 수 있어요.', noticeTitle: 'VaultMe는 계속 쓸 수 있어요.', noticeBody: '이 지갑에는 테스트넷 자산만 두세요.', cta: '이해했어요' },
+    deviceScreen: { title: '안전하지 않은 기기 같아요', body: '루팅되었거나 탈옥된 기기로 보여요.\n다른 앱이 지갑 키를 읽을 수 있어요.\n이 지갑에는 테스트넷 자산만 두세요.', cta: '이해했어요' },
     zeroScreen: { title: '0원 거래 표시', row: '0원 거래 보기', body: '0원 거래는 주소 오염 공격에 자주 쓰여요. 기본으로 숨겨요.' },
   },
   pushSheet: {

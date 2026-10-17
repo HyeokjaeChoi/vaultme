@@ -73,3 +73,17 @@ it('has the C3 real-state copy (#44)', () => {
   expect(i18n.t('detail.failed.body')).toBe('보내려던 금액은 나가지 않았어요.\n네트워크 수수료는 나갔어요.')
   expect(i18n.t('updateRequired.cta')).toBe('스토어에서 업데이트')
 })
+
+it('has the Redesign B phase 2 copy (home, asset, onboarding, settings, brand)', () => {
+  expect(i18n.t('home.recent')).toBe('최근 내역')
+  expect(i18n.t('home.introTitle')).toBe('Sepolia 테스트넷 지갑이에요')
+  expect(i18n.t('home.emptyTitle')).toBe('아직 자산이 없어요')
+  expect(i18n.t('asset.history')).toBe('이 자산의 내역')
+  expect(i18n.t('precheck.title')).toBe('시작하기 전에 확인해 주세요')
+  expect(i18n.t('backup.ack')).toBe('12단어를 순서대로 종이에 적었어요')
+  expect(i18n.t('settings.group.info')).toBe('정보')
+  expect(i18n.t('settings.licenses')).toBe('오픈소스 라이선스')
+  expect(i18n.t('settings.phraseBody', { auth: i18n.t('settings.phraseAuth.faceId') })).toBe('Face ID로 확인했어요. 화면을 캡처하지 마세요.\n앱을 벗어나면 다시 가려져요.')
+  expect(i18n.t('lock.checking.faceId')).toBe('Face ID로 확인하는 중이에요')
+  expect(i18n.t('settings.deviceScreen.title')).toBe('안전하지 않은 기기 같아요')
+})
