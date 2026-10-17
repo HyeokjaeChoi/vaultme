@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAddressQr } from '../src/shared/lib/qrAddress'
+import { chainIdCopula, parseAddressQr } from '../src/shared/lib/qrAddress'
 
 const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94' // public test vector (AGENTS.md Foundation 4)
 const TOKEN = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' // Sepolia USDC
@@ -50,5 +50,15 @@ describe('parseAddressQr', () => {
     for (const s of ['', 'hello', 'https://example.com', 'bitcoin:bc1qxyz', 'ethereum:vitalik.eth', `ethereum:${A}@abc`, `ethereum:${A}@`, 'ethereum:0x1234', '0x1234', `${A}0`, `ethereum:${A}extra`]) {
       expect(parseAddressQr(s), s).toEqual({ ok: false, error: 'notAddress' })
     }
+  })
+})
+
+describe('chainIdCopula', () => {
+  it('picks 예요 after a vowel-final digit name', () => {
+    expect(chainIdCopula(1)).toBe('이에요')
+    expect(chainIdCopula(11155111)).toBe('이에요')
+    expect(chainIdCopula(10)).toBe('이에요')
+    expect(chainIdCopula(42161)).toBe('이에요')
+    for (const id of [2, 5, 9, 137 + 2, 8453 + 2]) expect(chainIdCopula(id)).toBe('예요')
   })
 })

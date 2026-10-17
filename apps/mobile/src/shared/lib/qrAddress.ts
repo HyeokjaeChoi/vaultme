@@ -61,3 +61,6 @@ export function parseAddressQr(data: string): QrParse {
   if (chainId !== null && chainId !== CHAIN.id) return { ok: false, error: 'wrongChain', chainId }
   return { ok: true, address: toChecksumAddress(address), chainId, hadAmount: AMOUNT_PARAMS.some((k) => params.has(k)) }
 }
+
+/** 이에요 / 예요 after a chain id number: a Korean digit name ends in a vowel for 2 (이), 5 (오), 9 (구); every other last digit (and every round number) ends in a consonant. */
+export const chainIdCopula = (chainId: number): '이에요' | '예요' => ('259'.includes(String(chainId).slice(-1)) ? '예요' : '이에요')

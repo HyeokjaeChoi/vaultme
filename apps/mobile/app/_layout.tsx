@@ -19,6 +19,7 @@ function Navigator() {
     >
       <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
       <Stack.Screen name="send/result" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="send/scan" options={{ animation: 'slide_from_bottom' }} />
     </Stack>
   )
 }

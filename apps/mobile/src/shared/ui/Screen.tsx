@@ -24,10 +24,12 @@ type Props = {
   revealRef?: MutableRefObject<((y: number | 'end', height?: number) => void) | null>
   /** Pull-to-refresh (native RefreshControl). The spinner shows until the returned promise settles. Omit = no pull-to-refresh. */
   onRefresh?: () => Promise<unknown>
+  /** Surface color override: the QR scan screen is dark in both themes (Figma 618:102942, overlay.scrimBg). Default = screenB.bg. */
+  bg?: string
 }
 
 /** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
-export function Screen({ children, header, footer, footerLead, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true, revealRef, onRefresh }: Props) {
+export function Screen({ children, header, footer, footerLead, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true, revealRef, onRefresh, bg }: Props) {
   const t = useTheme()
   const l = t.semantic.layout
   const scrollRef = useRef<ScrollView>(null)
@@ -96,7 +98,7 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
     </>
   )
   return (
-    <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: t.component.screenB.bg }}>
+    <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: bg ?? t.component.screenB.bg }}>
       {revealRef ? (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>{body}</KeyboardAvoidingView>
       ) : (

@@ -1,17 +1,18 @@
-// Figma: Recipient field 40:17; Redesign B: B/Input Kind=Address 421:773 (Default), 421:781 (Focus), 421:789 (Invalid)
+// Figma: Recipient field 40:17; Redesign B: B/Input Kind=Address 421:773 (Default), 421:781 (Focus), 421:789 (Invalid); Show scan icon (Icon / action / qr 434:230, S20a 618:102090)
 import { useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
 import { isAddressFormat } from '../lib/address'
 import { textStyle } from '../theme/fonts'
 import { useTheme } from '../theme'
 import { AddressText } from './AddressBlock'
+import { Icon } from './Icon'
 import { Text } from './Text'
 
 type Action = { label: string; onPress: () => void }
-type Props = { label: string; value: string; onChangeText: (v: string) => void; placeholder?: string; error?: string; actions?: Action[] }
+type Props = { label: string; value: string; onChangeText: (v: string) => void; placeholder?: string; error?: string; actions?: Action[]; /** Show scan icon: QR icon button after the link actions. `label` is its accessible name (icon-only control). */ scan?: Action }
 
-/** C13 Recipient field (B/Input, Address kind): Label, bordered field (functional border: editable, focus, error). Typing shows the raw text in Address mono; a shown address uses B/Address (4-char groups, first and last group strong). Link actions (붙여넣기 / 지우기) sit inside the field. The format check is not a safety claim. */
-export function RecipientField({ label, value, onChangeText, placeholder, error, actions }: Props) {
+/** C13 Recipient field (B/Input, Address kind): Label, bordered field (functional border: editable, focus, error). Typing shows the raw text in Address mono; a shown address uses B/Address (4-char groups, first and last group strong). Link actions (붙여넣기 / 지우기) and the optional scan icon sit inside the field. The format check is not a safety claim. */
+export function RecipientField({ label, value, onChangeText, placeholder, error, actions, scan }: Props) {
   const [focused, setFocused] = useState(false)
   const t = useTheme()
   const c = t.component.input
@@ -41,13 +42,18 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
             style={{ padding: 0, color: c.fg, ...textStyle(t.primitive.type.productB.address) }}
           />
         )}
-        {actions?.length ? (
+        {actions?.length || scan ? (
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: t.semantic.layout.groupGap }}>
-            {actions.map((a) => (
+            {(actions ?? []).map((a) => (
               <Pressable key={a.label} accessibilityRole="button" accessibilityLabel={a.label} onPress={a.onPress} style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}>
                 <Text variant="link" color={t.semantic.text.link}>{a.label}</Text>
               </Pressable>
             ))}
+            {scan ? (
+              <Pressable accessibilityRole="button" accessibilityLabel={scan.label} onPress={scan.onPress} style={{ width: t.primitive.size.touch_min, height: t.primitive.size.touch_min, alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="qr" size={t.component.icon.size.feature} color={t.component.icon.action.fg} />
+              </Pressable>
+            ) : null}
           </View>
         ) : null}
       </View>
