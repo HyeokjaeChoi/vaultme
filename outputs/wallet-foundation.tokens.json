@@ -1869,17 +1869,17 @@
       },
       "info": {
         "fg": {
-          "value": "{color.brand.700}",
+          "value": "{text.secondary}",
           "type": "color",
           "description": "status.info.fg: Status meaning. Pair color with a visible icon, label and evidence for the state."
         },
         "bg": {
-          "value": "{color.brand.50}",
+          "value": "{surface.subtle}",
           "type": "color",
           "description": "status.info.bg: Status meaning. Pair color with a visible icon, label and evidence for the state."
         },
         "border": {
-          "value": "{color.brand.300}",
+          "value": "{border.subtle}",
           "type": "color",
           "description": "status.info.border: Status meaning. Pair color with a visible icon, label and evidence for the state."
         }
@@ -2414,7 +2414,7 @@
     "input": {
       "bg": {
         "default": {
-          "value": "{surface.default}",
+          "value": "{surface.pressed}",
           "type": "color",
           "description": "input.bg.default: C03 Input. Keep visible label, editable value and linked helper/error. Invalid and focus can coexist."
         },
@@ -4759,7 +4759,7 @@
           "description": "icon.status.warning: Contextual icon role. Functional vectors use current foreground; asset identity artwork keeps its original fills."
         },
         "info": {
-          "value": "{status.info.fg}",
+          "value": "{icon.secondary}",
           "type": "color",
           "description": "icon.status.info: Contextual icon role. Functional vectors use current foreground; asset identity artwork keeps its original fills."
         },
@@ -5431,17 +5431,17 @@
       },
       "info": {
         "fg": {
-          "value": "{color.brand.300}",
+          "value": "{text.secondary}",
           "type": "color",
           "description": "status.info.fg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
         },
         "bg": {
-          "value": "{color.brand.900}",
+          "value": "{surface.subtle}",
           "type": "color",
           "description": "status.info.bg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
         },
         "border": {
-          "value": "{color.brand.700}",
+          "value": "{border.subtle}",
           "type": "color",
           "description": "status.info.border: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
         }

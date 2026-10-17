@@ -634,9 +634,9 @@ export const dark = {
         "border": "#982934"
       },
       "info": {
-        "fg": "#96B8F8",
-        "bg": "#273966",
-        "border": "#2D4E9F"
+        "fg": "#C7D1DD",
+        "bg": "#0B0F15",
+        "border": "#28313C"
       },
       "unknown": {
         "fg": "#C7D1DD",
@@ -891,7 +891,7 @@ export const dark = {
     },
     "input": {
       "bg": {
-        "default": "#11161D",
+        "default": "#28313C",
         "disabled": "#0B0F15"
       },
       "fg": "#F6F8FB",
@@ -1005,9 +1005,9 @@ export const dark = {
         "border": "#982934"
       },
       "info": {
-        "fg": "#96B8F8",
-        "bg": "#273966",
-        "border": "#2D4E9F"
+        "fg": "#C7D1DD",
+        "bg": "#0B0F15",
+        "border": "#28313C"
       },
       "unknown": {
         "fg": "#C7D1DD",
@@ -1498,8 +1498,8 @@ export const dark = {
       "account": "#F6F8FB",
       "permission": "#C7D1DD",
       "notice": {
-        "fg": "#96B8F8",
-        "bg": "#273966"
+        "fg": "#C7D1DD",
+        "bg": "#0B0F15"
       },
       "radius": 20,
       "padding": 24,
@@ -1613,7 +1613,7 @@ export const dark = {
       "border": "#505C6C",
       "spender": "#F6F8FB",
       "detail": "#C7D1DD",
-      "limited": "#96B8F8",
+      "limited": "#C7D1DD",
       "unlimited": "#FFC65D",
       "action": "#F6F8FB",
       "radius": 12,
@@ -1753,9 +1753,9 @@ export const dark = {
       "padding": 16,
       "gap": 8,
       "info": {
-        "fg": "#96B8F8",
-        "bg": "#273966",
-        "border": "#2D4E9F",
+        "fg": "#C7D1DD",
+        "bg": "#0B0F15",
+        "border": "#28313C",
         "borderWidth": 0
       },
       "warning": {
@@ -1877,7 +1877,7 @@ export const dark = {
         "confirmed": "#74D9A9",
         "failed": "#E98B95",
         "warning": "#FFC65D",
-        "info": "#96B8F8",
+        "info": "#98A4B3",
         "unknown": "#C7D1DD",
         "clear": "#C7D1DD"
       }
@@ -1963,7 +1963,7 @@ export const dark = {
       "padding": 16,
       "iconSize": 20,
       "info": {
-        "bg": "#273966"
+        "bg": "#0B0F15"
       },
       "warning": {
         "bg": "#342617"

@@ -1,6 +1,7 @@
 // Figma: B-S10 Home 404:163 (dark 430:14606), testmode 457:4274, pending 423:742, new wallet 423:643, empty 515:29238, testnet sheet (chip), test-data sheet 515:29783, faucet row 486:77, B-S50 423:14215
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
+import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { assets } from '@/entities/asset/fixtures'
@@ -13,9 +14,9 @@ import { useRestored } from '@/features/restore'
 import { useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { useTheme } from '@/shared/theme'
-import { ActionRow, AssetRow, BottomSheet, Button, EmptyState, ListItem, PortfolioBalance, ProductHeader, Screen, SectionHeader, Text } from '@/shared/ui'
+import { ActionRow, AssetRow, BottomSheet, Button, ListItem, PortfolioBalance, ProductHeader, Screen, SectionHeader, Text } from '@/shared/ui'
 import { RecentRows, fakeHistoryItems } from '@/widgets/activity-list/ActivityList'
-import { FaucetRow } from '@/widgets/faucet-row/FaucetRow'
+import { FaucetAction } from '@/widgets/faucet-row/FaucetRow'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
 type SheetName = 'intro' | 'testData' | 'block' | 'push' | 'deposit' | null
@@ -77,10 +78,11 @@ export function HomePage() {
       ) : null}
       {empty ? (
         <>
-          <EmptyState title={t('home.emptyTitle')} body={t('home.emptyBody')} />
-          {(restored || backedUp) && faucetAddress ? (
-            <FaucetRow address={faucetAddress} />
-          ) : null}
+          <View style={{ gap: th.primitive.space[1], paddingTop: th.semantic.layout.sectionGap.product }}>
+            <Text variant="headline">{t('home.emptyTitle')}</Text>
+            <Text variant="bodySmall" color={th.semantic.text.secondary}>{t('home.emptyBody')}</Text>
+          </View>
+          {(restored || backedUp) && faucetAddress ? <FaucetAction address={faucetAddress} /> : null}
         </>
       ) : (
         <>

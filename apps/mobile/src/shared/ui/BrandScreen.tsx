@@ -19,7 +19,7 @@ type Props = {
   bloom?: SharedValue<number>
   /** Body under the title, centered. Lines break with \n. */
   body?: string
-  /** Mono Fact line at the top left (Product B/Fact upper): version, network, chain id (Start, Figma 586:94637). */
+  /** Mono Fact line under the brand block, centered (Product B/Fact upper): version, network, chain id (Start). */
   fact?: string
   /** Pinned actions (buttons, or the Face ID status row), no line above. */
   actions: ReactNode
@@ -32,13 +32,13 @@ export function BrandScreen({ hero, title, wordmark, bodyVariant = 'body', bloom
     <Screen
       footer={actions}
       footerLine={false}
-      {...(fact ? { header: <View style={{ paddingHorizontal: t.semantic.layout.screen.padding, paddingTop: t.semantic.layout.groupGap, paddingBottom: t.primitive.space[2] }}><Text variant="factUpper" color={t.semantic.text.tertiary}>{fact.toUpperCase()}</Text></View> } : {})}
     >
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: t.primitive.space[8], paddingBottom: t.primitive.space[16] }}>
         {hero ?? <BrandMark {...(bloom ? { bloom } : {})} />}
         <View style={{ alignSelf: 'stretch', alignItems: 'center', gap: t.primitive.space[2] }}>
           <Text variant={wordmark ? 'displayM' : 'title1'} accessibilityRole="header" style={{ textAlign: 'center' }}>{title}</Text>
           {body ? <Text variant={bodyVariant} color={t.semantic.text.secondary} style={{ textAlign: 'center' }}>{body}</Text> : null}
+          {fact ? <Text variant="factUpper" color={t.semantic.text.tertiary} style={{ textAlign: 'center', paddingTop: t.semantic.layout.groupGap }}>{fact.toUpperCase()}</Text> : null}
         </View>
       </View>
     </Screen>

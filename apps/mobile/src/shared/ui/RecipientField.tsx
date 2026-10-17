@@ -15,7 +15,7 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
   const [focused, setFocused] = useState(false)
   const t = useTheme()
   const c = t.component.input
-  const border = error ? c.border.error : focused ? c.border.focus : c.border.default
+  const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
   return (
     <View style={{ gap: c.fieldGap }}>
       <Text variant="label" color={c.label}>{label}</Text>

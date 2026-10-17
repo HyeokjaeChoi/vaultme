@@ -38,7 +38,7 @@ type Props = {
 export function WordCell({ number, label, value, error, focused, last, inputRef, onChangeText, onFocus, onBlur, onNext, onBackspaceEmpty }: Props) {
   const t = useTheme()
   const c = t.component.input
-  const border = error ? c.border.error : focused ? c.border.focus : c.border.default
+  const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
   const onKeyPress = (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
     if (e.nativeEvent.key === 'Backspace' && value === '') onBackspaceEmpty()
   }

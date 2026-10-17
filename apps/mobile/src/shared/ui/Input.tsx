@@ -28,7 +28,7 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
   const t = useTheme()
   const c = t.component.input
   const [focused, setFocused] = useState(false)
-  const border = error ? c.border.error : focused ? c.border.focus : c.border.default
+  const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
   const textFont = textStyle(actions ? t.primitive.type.productB.address : t.primitive.type.productB.body)
   const input = (
     <TextInput
