@@ -63,7 +63,7 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
         contentContainerStyle={{
           paddingHorizontal: bleed ? 0 : l.screen.padding,
           paddingTop: bleed || topGap === 'none' ? 0 : topGap === 'group' ? l.groupGap : t.primitive.space[2],
-          paddingBottom: bleed ? 0 : t.primitive.space[2],
+          paddingBottom: bleed ? l.groupGap : t.primitive.space[2], // bleed: last row keeps 16 clearance above the footer line / tab bar
           gap: gap === 'none' ? 0 : gap === 'group' ? l.groupGap : gap === 'row' ? l.rowGap : l.sectionGap.product,
           flexGrow: 1,
         }}
