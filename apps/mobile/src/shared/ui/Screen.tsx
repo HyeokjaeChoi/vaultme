@@ -13,13 +13,15 @@ type Props = {
   /** `section` = layout.sectionGap.product (24, default). `group` = layout.groupGap (16), used by frame S10N. `row` = layout.rowGap (12), used by S40. `none` = 0: Redesign B blocks carry their own padding (Section header, Action row, Detail row), so the screen adds no gap. */
   gap?: 'section' | 'group' | 'row' | 'none'
   /** Space between the header and the first block. `field` = 8 (default), `group` = 16 (frame S20B). */
-  topGap?: 'field' | 'group'
+  topGap?: 'none' | 'field' | 'group'
   /** Full-bleed body: no side padding. Band screens (review, result, detail) place Section bands edge to edge; their blocks pad themselves. */
   bleed?: boolean
+  /** Brand screens (Figma 423:13440, 423:15412, 423:15443, 423:15474) draw no line above the actions. */
+  footerLine?: boolean
 }
 
 /** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
-export function Screen({ children, header, footer, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed }: Props) {
+export function Screen({ children, header, footer, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true }: Props) {
   const t = useTheme()
   const l = t.semantic.layout
   const scrollRef = useRef<ScrollView>(null)
@@ -40,7 +42,7 @@ export function Screen({ children, header, footer, edges = ['top', 'bottom'], ga
         onContentSizeChange={(_, h) => setContentHeight(h)}
         contentContainerStyle={{
           paddingHorizontal: bleed ? 0 : l.screen.padding,
-          paddingTop: bleed ? 0 : topGap === 'group' ? l.groupGap : t.primitive.space[2],
+          paddingTop: bleed || topGap === 'none' ? 0 : topGap === 'group' ? l.groupGap : t.primitive.space[2],
           paddingBottom: bleed ? 0 : t.primitive.space[2],
           gap: gap === 'none' ? 0 : gap === 'group' ? l.groupGap : gap === 'row' ? l.rowGap : l.sectionGap.product,
           flexGrow: 1,
@@ -56,7 +58,7 @@ export function Screen({ children, header, footer, edges = ['top', 'bottom'], ga
             paddingTop: t.primitive.space[3],
             paddingBottom: t.primitive.space[1],
             gap: l.fieldGap,
-            borderTopWidth: t.component.reviewFooter.borderWidth,
+            borderTopWidth: footerLine ? t.component.reviewFooter.borderWidth : 0,
             borderTopColor: t.semantic.border.subtle,
           }}
         >

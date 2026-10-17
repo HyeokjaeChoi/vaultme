@@ -23,7 +23,7 @@ function Loading() {
   )
 }
 
-function Content({ view, reload }: { view: HistoryView | null; reload: () => void }) {
+function Content({ view, reload, asset }: { view: HistoryView | null; reload: () => void; asset?: string | undefined }) {
   const { t } = useTranslation()
   const router = useRouter()
   if (!view) return <Loading />
@@ -40,16 +40,16 @@ function Content({ view, reload }: { view: HistoryView | null; reload: () => voi
       {view.items.length === 0 && !view.failed ? (
         <EmptyState title={t('activity.empty.title')} body={t('activity.empty.body')} action={{ label: t('activity.empty.cta'), onPress: () => router.push('/receive') }} />
       ) : null}
-      <List items={view.items} />
+      <List items={asset ? view.items.filter((i) => i.asset === asset) : view.items} />
     </>
   )
 }
 
 /** Fake adapter: example rows plus the pending send from the kv (opens S41). */
-function FakeHistory() {
+function FakeHistory({ asset }: { asset?: string | undefined }) {
   const { tx } = usePendingTx()
   return (
-    <List items={fakeHistoryItems(tx)} />
+    <List items={fakeHistoryItems(tx).filter((i) => !asset || i.asset === asset)} />
   )
 }
 
@@ -69,16 +69,16 @@ function DevState({ state, cache }: { state: string; cache?: string }) {
   return <Content view={{ items, updatedAt: new Date(2026, 9, 13, 9, 12).getTime(), failed: true }} reload={() => undefined} />
 }
 
-function RealHistory() {
+function RealHistory({ asset }: { asset?: string | undefined }) {
   const { view, reload } = useHistory()
-  return <Content view={view} reload={reload} />
+  return <Content view={view} reload={reload} asset={asset} />
 }
 
 /** B-S40 내역: title, then date groups of flat rows. */
 export function ActivityPage() {
   const { t } = useTranslation()
   const th = useTheme()
-  const { state, cache } = useLocalSearchParams<{ state?: string; cache?: string }>()
+  const { state, cache, asset } = useLocalSearchParams<{ state?: string; cache?: string; asset?: string }>() // `asset` = only that asset's rows (S11 "전체 보기")
   return (
     <Screen edges={['top']} gap="none">
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: th.primitive.space[2], paddingTop: th.primitive.space[4], paddingBottom: th.primitive.space[2] }}>
@@ -87,7 +87,7 @@ export function ActivityPage() {
           <NetworkChips />
         </View>
       </View>
-      {__DEV__ && state ? <DevState state={state} {...(cache ? { cache } : {})} /> : chain.broadcasts ? <RealHistory /> : <FakeHistory />}
+      {__DEV__ && state ? <DevState state={state} {...(cache ? { cache } : {})} /> : chain.broadcasts ? <RealHistory asset={asset} /> : <FakeHistory asset={asset} />}
     </Screen>
   )
 }

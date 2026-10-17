@@ -23,6 +23,7 @@ type Props = {
 /**
  * C01 Button (Redesign B). Pill, height buttonB.height lg/md/sm (56/48/40), paddingX buttonB.paddingX, label Headline 17/600.
  * Primary = buttonB.primary, Secondary = buttonB.secondary (neutral), Ghost = white with Ink label. Label wraps to 2 lines; height grows, never clips.
+ * Small (40) = the Copy pill: Label 14/500 and a 16 pt icon (Figma 515:27579).
  * With an icon: icon at the leading edge, label centered in the remaining space (Figma "Optional action icon").
  * The control is at least hitTarget (44) tall: a small visual control sits inside it and extends its touch area with hitSlop.
  * Press feedback: scale 0.97, 100 ms ease-out (off under Reduce Motion), plus the pressed color.
@@ -70,8 +71,8 @@ export function Button({ label, onPress, variant = 'primary', size = 'lg', disab
           backgroundColor: typeof bg === 'string' ? bg : pressed ? bg.pressed : bg.default,
         })}
       >
-        {leading ? <Icon name={leading} size={busy ? t.component.icon.size.inline : t.component.icon.size.control} color={iconColor} /> : null}
-        <Text variant="headline" numberOfLines={2} color={fg} style={{ textAlign: 'center', flexShrink: 1 }}>
+        {leading ? <Icon name={leading} size={busy || size === 'sm' ? t.component.icon.size.inline : t.component.icon.size.control} color={iconColor} /> : null}
+        <Text variant={size === 'sm' ? 'label' : 'headline'} numberOfLines={2} color={fg} style={{ textAlign: 'center', flexShrink: 1 }}>
           {label}
         </Text>
       </Pressable>

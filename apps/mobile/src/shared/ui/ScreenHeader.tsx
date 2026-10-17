@@ -5,7 +5,7 @@ import { useTheme } from '../theme'
 import { IconButton } from './IconButton'
 import { Text } from './Text'
 
-type Props = { backLabel?: string; onBack?: () => void; /** Title (Title 3) right of the back button, for screens that keep it (asset detail). */ title?: string; /** The honesty chips (Sepolia 테스트넷, 테스트 데이터) at the right. */ chips?: ReactNode }
+type Props = { backLabel?: string; onBack?: () => void; /** Title (Headline, centered between back and chips) right of the back button, for screens that keep it (asset detail). */ title?: string; /** The honesty chips (Sepolia 테스트넷, 테스트 데이터) at the right. */ chips?: ReactNode }
 
 /** Nav row of a pushed screen: bare 44 pt back button at the left (pl space-1.5), status chips at the right (pr screen padding). Without `onBack` only the chips show (result screens). Used with the native header hidden; edge-swipe back stays native. */
 export function ScreenHeader({ backLabel, onBack, title, chips }: Props) {
@@ -13,7 +13,7 @@ export function ScreenHeader({ backLabel, onBack, title, chips }: Props) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: t.primitive.size.touch_min, gap: t.primitive.space[2], paddingLeft: t.primitive.space['1_5'], paddingRight: t.semantic.layout.screen.padding }}>
       {onBack ? <IconButton icon="back" variant="plain" label={backLabel ?? ''} onPress={onBack} /> : <View />}
-      {title ? <Text variant="title3" accessibilityRole="header" style={{ flex: 1 }}>{title}</Text> : null}
+      {title ? <Text variant="headline" accessibilityRole="header" style={{ flex: 1, textAlign: 'center' }}>{title}</Text> : null}
       {chips ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.primitive.space['1_5'] }}>{chips}</View> : null}
     </View>
   )

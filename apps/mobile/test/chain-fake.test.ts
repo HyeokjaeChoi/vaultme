@@ -19,7 +19,7 @@ describe('fake chain', () => {
   it('snapshot: fixture balances and the Review fixture fee numbers', async () => {
     const s = await createFakeChain(mem()).getSnapshot(TO, 'ETH', TO, '0.05')
     expect(s.nativeBalance).toBe(1_284_732_000_000_000_000n)
-    expect(s.tokenBalance).toBe(250_000_000n)
+    expect(s.tokenBalance).toBe(12_500_000n)
     expect(s.gasLimit * (s.baseFeePerGas + s.maxPriorityFeePerGas)).toBe(42_000_000_000_000n) // 0.000042 ETH
     expect(s.gasLimit * (2n * s.baseFeePerGas + s.maxPriorityFeePerGas)).toBe(73_500_000_000_000n) // 0.0000735 ETH
   })

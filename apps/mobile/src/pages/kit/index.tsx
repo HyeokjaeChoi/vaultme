@@ -62,7 +62,7 @@ export function KitPage() {
       </View>
       <PortfolioBalance label="Sepolia 테스트넷" value="0.05 ETH" note="테스트넷 자산은 시장 가격이 없어요." />
       <PortfolioBalance unavailable label="총 평가금액" value="표시할 수 없어요" note="수량은 아래에서 보세요." />
-      <ActionRow primary={{ label: '보내기', icon: 'send' }} secondary={{ label: '받기', icon: 'receive' }} />
+      <ActionRow send={{ label: '보내기', icon: 'send' }} receive={{ label: '받기', icon: 'receive' }} />
       <View>
         <SectionHeader title="자산" link="모두 보기" />
         <AssetRow name="Sepolia ETH" symbol="ETH" balance="0.05" />

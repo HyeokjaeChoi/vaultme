@@ -15,6 +15,8 @@ type Props = {
   highlight?: number[]
   /** Text value in Product B / Address (mono), e.g. a shortened address. */
   mono?: boolean
+  /** `address` only: one color, no strong ends, 14/20 (B/Detail row Address, emphasis Off: S11 contract address). */
+  plain?: boolean
   editLabel?: string
   /** Overrides the edit link's accessibilityLabel (default: `${editLabel} ${label}`). */
   editAccessibilityLabel?: string
@@ -22,7 +24,7 @@ type Props = {
 }
 
 /** C35 Summary row (Redesign B detail row): label Body Small tertiary, value Body right; address stacks under its label. Flat, no divider: group rows in <Group>. */
-export function SummaryRow({ label, value, format = 'text', sub, highlight, mono, editLabel, editAccessibilityLabel, onEdit }: Props) {
+export function SummaryRow({ label, value, format = 'text', sub, highlight, mono, plain, editLabel, editAccessibilityLabel, onEdit }: Props) {
   const t = useTheme()
   const labelWidth = t.primitive.space[10] * 4 // Figma label column 160
   const total = format === 'total'
@@ -47,7 +49,7 @@ export function SummaryRow({ label, value, format = 'text', sub, highlight, mono
     >
       <Text variant="bodySmall" color={t.semantic.text.tertiary} style={stacked ? undefined : { width: labelWidth }}>{label}</Text>
       {address ? (
-        <AddressText address={value} highlight={highlight ?? []} />
+        <AddressText address={value} highlight={highlight ?? []} {...(plain ? { size: 'S' as const, emphasis: false, color: t.semantic.text.primary } : {})} />
       ) : (
         <View style={stacked ? undefined : { flex: 1, alignItems: 'flex-end' }}>
           <Text variant={total ? 'headline' : mono ? 'address' : 'body'} tabular style={{ textAlign: stacked ? 'left' : 'right' }}>{value}</Text>

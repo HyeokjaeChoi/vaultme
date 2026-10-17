@@ -7,7 +7,7 @@ import { transactions } from '@/entities/transaction/fixtures'
 import type { HistoryItem } from '@/features/history'
 import { rowTitleKey, txView, usePendingTx } from '@/features/send'
 import { showAmount } from '@/shared/lib/amount'
-import { clock, dateLabel } from '@/shared/lib/time'
+import { clock, dateLabel, dayGroup } from '@/shared/lib/time'
 import { ActivityRow, DateHeader } from '@/shared/ui'
 
 const assetName = (symbol: string) => assets.find((a) => a.symbol === symbol)?.name ?? symbol
@@ -21,16 +21,19 @@ export function fakeHistoryItems(tx: ReturnType<typeof usePendingTx>["tx"]): His
   return [...own, ...rest].sort((a, b) => b.at - a.at)
 }
 
-function Row({ item }: { item: HistoryItem }) {
+/** `dated`: Home's list has no date headers, so a finished row says its day ("10월 12일"); a row in progress and any row of today say the time. */
+function Row({ item, dated }: { item: HistoryItem; dated?: boolean }) {
   const { t } = useTranslation()
   const router = useRouter()
   const unknown = item.label === 'activity.unknown'
   const title = t(rowTitleKey(item.kind, item.label))
+  const day = dated && item.status !== 'pending' ? dayGroup(item.at, Date.now()) : 'today'
+  const when = day === 'today' ? clock(item.at) : day
   const amount = `${item.kind === 'send' ? '−' : '+'}${showAmount(item.amount, item.asset, 'floor')}`
   return (
     <ActivityRow
       title={title}
-      detail={`${assetName(item.asset)} · ${clock(item.at)}${unknown ? ` · ${t('activity.row.unknownSub')}` : ''}`}
+      detail={`${assetName(item.asset)} · ${when}${unknown ? ` · ${t('activity.row.unknownSub')}` : ''}`}
       time={clock(item.at)}
       amount={amount}
       kind={item.kind}
@@ -62,3 +65,12 @@ export function ActivityList({ items }: { items: HistoryItem[] }) {
   )
 }
 
+
+/** Home / asset detail: the newest rows (default 3), no date headers (Figma S10 515:42137, S11 515:43319). */
+export function RecentRows({ items, limit = 3 }: { items: HistoryItem[]; limit?: number }) {
+  return (
+    <>
+      {items.slice(0, limit).map((item) => <Row key={item.hash} item={item} dated />)}
+    </>
+  )
+}

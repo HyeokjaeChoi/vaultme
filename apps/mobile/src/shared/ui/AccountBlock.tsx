@@ -20,7 +20,7 @@ export function AccountBlock({ name, address, copyLabel, onCopy }: Props) {
         <Text variant="headline">{name}</Text>
         <Text variant="address" color={t.semantic.text.secondary}>{address}</Text>
       </View>
-      <Button size="sm" variant="secondary" label={copyLabel} onPress={() => { haptic.copy(); onCopy() }} />
+      <Button size="sm" variant="secondary" icon="copy" label={copyLabel} onPress={() => { haptic.copy(); onCopy() }} />
     </View>
   )
 }
