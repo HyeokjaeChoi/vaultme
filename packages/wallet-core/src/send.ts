@@ -7,9 +7,8 @@ import {
   type Hash,
   type Hex,
 } from 'viem'
-import { mnemonicToAccount } from 'viem/accounts'
 import { toUnits, AmountError } from './amount'
-import { ABS_MAX_FEE_WEI, ASSETS, CHAIN, DERIVATION_PATH, type AssetId } from './constants'
+import { ABS_MAX_FEE_WEI, ASSETS, CHAIN, type AssetId } from './constants'
 import type { Mnemonic } from './mnemonic'
 import { recipientRisk, type RecipientRisk } from './risk'
 
@@ -142,7 +141,7 @@ export async function signAndSubmit(
   if (latest.nonce !== approved.nonce) return { status: 'NeedsReview' }
 
   const asset = ASSETS[approved.asset]
-  const account = mnemonicToAccount(deps.mnemonic.reveal(), { path: DERIVATION_PATH })
+  const account = deps.mnemonic.account()
   const raw = await account.signTransaction({
     type: 'eip1559',
     chainId: CHAIN.id,

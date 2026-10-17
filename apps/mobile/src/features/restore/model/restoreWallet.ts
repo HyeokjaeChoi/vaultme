@@ -12,12 +12,13 @@ export type RestoreResult =
  * S05 -> S06. Validates the typed phrase, refuses to overwrite a stored one, stores it behind OS auth and keeps the
  * first-account public address in kv (derived here, Q40 path m/44'/60'/0'/0/0). Backup stays not done (Q16: a restore
  * is no proof of a safe backup); `restored` marks the wallet so Home and Receive can skip the new-wallet backup gate.
- * Nothing here logs or rethrows: errors carry no phrase and the UI only needs the status.
+ * `passphrase` (optional BIP39 25th word, '' = none) is stored in the same keychain item and never shown again; the caller
+ * must clear its own copy wherever it clears `text`. Nothing here logs or rethrows: errors carry no phrase and the UI only needs the status.
  */
-export async function restoreWallet(text: string, prompt: AuthPrompt): Promise<RestoreResult> {
+export async function restoreWallet(text: string, prompt: AuthPrompt, passphrase = ''): Promise<RestoreResult> {
   const state = inspectPhrase(text, true)
   if (state.issue) return { status: 'invalid', issue: state.issue }
-  const m = toMnemonic(text)
+  const m = toMnemonic(text, passphrase)
   if (!m) return { status: 'invalid', issue: { kind: 'badChecksum' } }
   try {
     if (await hasPhrase()) return { status: 'exists' }

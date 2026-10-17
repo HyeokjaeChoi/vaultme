@@ -89,6 +89,24 @@ describe('restoreWallet', () => {
     expect(kv.getBackupDone()).toBe(false)
     expect(items.get('app.vaultme.phrase')?.password).toBe(VECTOR) // normalized
   })
+  it('passphrase: same keychain item, restart-safe account, address differs, never in result or kv', async () => {
+    // Official BIP39 vector passphrase (trezor python-mnemonic vectors.json); address cross-checked in wallet-core tests.
+    const { restoreWallet, kv } = await setup()
+    const r = await restoreWallet(VECTOR, PROMPT, 'TREZOR')
+    expect(r.status === 'ok' && r.address.toLowerCase()).toBe('0x9c32f71d4db8fb9e1a58b0a80df79935e7256fa6')
+    expect(JSON.stringify(r)).not.toContain('TREZOR')
+    expect(kv.getAccountAddress()).not.toBe(VECTOR_ADDRESS)
+    vi.resetModules() // app restart: load again from the keychain
+    const { loadPhrase } = await import('../src/shared/storage/keychain')
+    const loaded = await loadPhrase(PROMPT)
+    expect(loaded.status === 'ok' && loaded.mnemonic.reveal()).toBe(VECTOR) // words only
+    expect(loaded.status === 'ok' && loaded.mnemonic.account().address.toLowerCase()).toBe('0x9c32f71d4db8fb9e1a58b0a80df79935e7256fa6')
+  })
+  it('no passphrase keeps the original storage format', async () => {
+    const { restoreWallet } = await setup()
+    await restoreWallet(VECTOR, PROMPT, '')
+    expect(items.get('app.vaultme.phrase')?.password).toBe(VECTOR)
+  })
   it('rejects bad input without touching storage', async () => {
     const { restoreWallet, kv } = await setup()
     expect(await restoreWallet(BAD_CHECKSUM, PROMPT)).toEqual({ status: 'invalid', issue: { kind: 'badChecksum' } })
