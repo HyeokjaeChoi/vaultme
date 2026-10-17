@@ -372,6 +372,13 @@ export const dark = {
           "lineHeight": 25,
           "letterSpacing": -0.3
         },
+        "rowTitle": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "500",
+          "fontSize": 17,
+          "lineHeight": 25,
+          "letterSpacing": -0.3
+        },
         "body": {
           "fontFamily": "Pretendard",
           "fontWeight": "400",
@@ -530,7 +537,8 @@ export const dark = {
       "pressed": "#28313C",
       "portfolioSummary": "#273966",
       "disabled": "#28313C",
-      "pressedOnRaised": "#505C6C"
+      "pressedOnRaised": "#505C6C",
+      "inset": "#28313C"
     },
     "text": {
       "primary": "#F6F8FB",

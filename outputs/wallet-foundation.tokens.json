@@ -1209,6 +1209,20 @@
           },
           "type": "typography"
         },
+        "rowTitle": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.medium}",
+            "fontSize": "{font.size.product17}",
+            "lineHeight": "{font.lineHeight.px25}",
+            "letterSpacing": "{font.tracking.headline}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
         "body": {
           "value": {
             "fontFamily": "{font.family.pretendard}",
@@ -1556,6 +1570,11 @@
         "value": "{color.neutral.100}",
         "type": "color",
         "description": "surface.pressedOnRaised: Secondary control fill on a raised surface (bottom sheet). Light matches surface.pressed."
+      },
+      "inset": {
+        "value": "{color.neutral.50}",
+        "type": "color",
+        "description": "surface.inset (Light): inset panel on the screen background (B/Secret grid). Same value as surface.subtle."
       }
     },
     "text": {
@@ -5145,6 +5164,11 @@
         "value": "{color.neutral.600}",
         "type": "color",
         "description": "surface.pressedOnRaised (Dark): one step lighter than surface.raised (neutral.800) so a sheet Secondary button keeps a visible pill. Boundary 1.93:1, label 7:1 (pd-review batch 1, P1-9)."
+      },
+      "inset": {
+        "value": "{color.neutral.800}",
+        "type": "color",
+        "description": "surface.inset (Dark): one step lighter than the screen (neutral.900), same value as surface.raised, so the panel is not darker than the canvas (aesthetic review P1-7)."
       }
     },
     "text": {

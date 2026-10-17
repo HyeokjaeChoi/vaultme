@@ -372,6 +372,13 @@ export const light = {
           "lineHeight": 25,
           "letterSpacing": -0.3
         },
+        "rowTitle": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "500",
+          "fontSize": 17,
+          "lineHeight": 25,
+          "letterSpacing": -0.3
+        },
         "body": {
           "fontFamily": "Pretendard",
           "fontWeight": "400",
@@ -530,7 +537,8 @@ export const light = {
       "pressed": "#EEF2F7",
       "portfolioSummary": "#DCE8FD",
       "disabled": "#EEF2F7",
-      "pressedOnRaised": "#EEF2F7"
+      "pressedOnRaised": "#EEF2F7",
+      "inset": "#F6F8FB"
     },
     "text": {
       "primary": "#11161D",

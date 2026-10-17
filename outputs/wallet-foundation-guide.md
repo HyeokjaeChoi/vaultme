@@ -125,7 +125,8 @@ Canvas·summary·navigation·row·review·notice·drawer에는 gradient가 없�
 | `title1` | 26 / 34 | -0.6 | 600 |
 | `title2` | 22 / 30 | -0.5 | 600 |
 | `title3` | 19 / 27 | -0.4 | 600 |
-| `headline` | 17 / 25 | -0.3 | 600 |
+| `headline` | 17 / 25 | -0.3 | 600 (버튼·알림 제목·강조) |
+| `rowTitle` | 17 / 25 | -0.3 | 500 (행 제목: Home 자산·내역 행, 설정·라이선스 행, Action row, Switch row). Figma `Product B/Row title`. 600은 버튼·강조, 700은 숫자(figure)에만. 2026-10-17 미감 리뷰 P1-1 |
 | `body` | 16 / 24 | -0.3 | 400 |
 | `bodySmall` | 15 / 22 | -0.2 | 400 |
 | `label` | 14 / 20 | -0.2 | 500 |
@@ -289,3 +290,13 @@ Canvas 구현 확인: 기존 Figma source의 Semantic alias를 수정하고 Libr
 - 새 Primitive `color.red.950` #3C1F21, `color.amber.950` #342617. 900 단계에서 OKLCH로 만들었다(같은 hue, L 0.28, chroma ×0.5). Dark `status.danger.bg` → `red.950`, `status.warning.bg` → `amber.950`(전에는 900). Dark Banner 본문 `text.secondary` 대비 9.64:1 / 9.47:1, 상태 icon(red.300 / amber.300) 6.09:1 / 9.39:1. Light 값은 그대로다.
 - 이 Dark 변경은 `status.*.bg`를 쓰는 모든 곳(Banner, 테스트넷 칩, 상태 라벨)에 같이 적용된다.
 
+
+
+## 2026-10-17 시각 품질 수정 (미감 리뷰 P0/P1/P2, #54)
+- 새 text style `Product B/Row title`(Pretendard 500, 17/25, -0.3), token `type.productB.rowTitle`. B/Row, B/Settings row, B/Switch row, B/Action row 제목에 쓴다.
+- 새 semantic color `surface.inset` (Light = surface.subtle, Dark = surface.raised). B/Secret grid 판이 Dark canvas보다 어둡던 문제(P1-7)를 고친다. Figma 02 Semantic에 변수 추가.
+- B/Keypad key 숫자 Title 2(22) → Title 1(26). B/Detail row는 center 정렬. B/Progress steps는 3칸 균등(점·라벨 중앙, 선은 점 사이만), 아래 여백 space/6.
+- Tab header 패턴(Home·내역·설정): 높이 58, 왼쪽 제목(또는 계정), 오른쪽 `Sepolia 테스트넷` 칩 1개, 좌우 `layout/screen/padding`. 내역의 "테스트 데이터" 칩은 첫 날짜 헤더 오른쪽(absolute)으로 내림. 자산 상세 Nav 제목은 왼쪽 Title 2.
+- 받기(S30): faucet 행을 Footer stack(faucet → 주소 복사 → 공유) 안으로, QR은 `surface/subtle` 타일(radius/2xl, padding space/3). 금액 입력: 금액을 Title block과 칩 사이 수직 중앙. Failed 결과: 하단 버튼 2개(확인 Primary, 다시 보내기 Secondary), 거래 상세 보기는 hero 아래 인라인 링크.
+- Brand/Mark: 오너가 option A(V 모노그램 + 열쇠 구멍)를 골랐다. 마스터 495:17569의 내용을 바꾸고 `Size=96`(OnLight/OnBrand)을 더했다. 브랜드 화면은 96, 마크 아래 `space/8`, 워드마크 Display M. Face ID 아이콘은 입 없는 Solar face-scan-square(linear, icon/primary).
+- 오너 결정 필요(안 함): 13 px Caption 신규 type(P2-7), Address M 15 px(P1-3b), 칩 색 `Sepolia 테스트넷`은 `status/warning` 계열 유지(P2-6, 경고처럼 읽히는지는 오너 판단), 탭 바 Bold/Linear optical size(P2-2, 아이콘 변경 필요).

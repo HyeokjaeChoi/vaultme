@@ -1,4 +1,3 @@
-const ONLY = ['onboarding-s05-restore','onboarding-s05-typing','onboarding-s05-ready','onboarding-s05-busy','onboarding-s05-unknownword','onboarding-s05-checksum','onboarding-s05-exists','onboarding-s05-saveerror','onboarding-s05-passphrase-masked','onboarding-s05-passphrase-shown','onboarding-s05-24words','onboarding-s06-passphrase']
 // VaultMe Local Runner: TASK export-pngs (#54). Exports 1x PNGs of the mapped frames to a local receiver
 // (scratchpad recv.mjs on localhost:8765, which writes work/v9/screens/<name>.png). Needs manifest devAllowedDomains.
 const TASK = 'export-pngs'

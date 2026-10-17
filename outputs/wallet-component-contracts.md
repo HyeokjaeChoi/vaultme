@@ -312,3 +312,21 @@ Paint 검사(`.claude/skills/vaultme-figma-screen/audit.js`): 보이는 모든 n
 새 Solar icon (09 Icons, CC BY 4.0, 480 Design, Linear 20, `icon/action/fg`): `Icon / settings / eye-closed` 565:73587, `Icon / navigation / expand` 565:73591 (alt-arrow-down), `Icon / navigation / collapse` 565:73595 (alt-arrow-up).
 
 S05 화면 조립: 제목 블록 → (Banner Danger, 이미 지갑·저장 실패만) → 칩 `B/Chip` 12단어/24단어 + "붙여넣기"(`B/Button` Ghost sm, label `text/link`) → `B/Word cell` 2열 grid(gap `layout/fieldGap`) → grid 아래 오류 한 줄(`Product B/Body Small`, `input/errorText`) → 접힘 행 → (펼침) `B/Input` Kind=Text + `Show action`. 화면보다 긴 상태는 스크롤한 전체 길이로 그렸다. "복구" 바는 앱에서 화면 아래(키보드 위)에 붙는다.
+
+## 시각 품질 수정 계약 (2026-10-17, 미감 리뷰, #54)
+
+| 항목 | 노드 | 계약 |
+|---|---|---|
+| Product B/Row title | text style | Pretendard 500 17/25 -0.3. B/Row·B/Settings row·B/Switch row·B/Action row 제목. 600(Headline)은 버튼·강조, 700은 figure만 |
+| surface/inset | 02 Semantic 변수 | Light = surface/subtle, Dark = surface/raised. B/Secret grid `Panel` fill. 번호는 `text/tertiary` |
+| B/Progress steps | 494:1176 | 3칸 균등. 각 칸에 [왼쪽 선][점][오른쪽 선], 맨 끝 선은 투명. 라벨은 칸 중앙. 끝난 선 `status/success/fg`, 나머지 `border/subtle`. 아래 padding `space/6` |
+| B/Keypad key | 421:825 | Label `Product B/Title 1`(26) |
+| B/Detail row | 399:129 | center 정렬 |
+| Footer stack (S30) | B-S30 `Footer` | faucet 행(B/Action row + Caption) → 주소 복사(Primary) → 공유(Ghost). 위 경계선은 Footer에 둠. 항상 보임 |
+| QR tile (S30) | `QR tile` | surface/subtle, radius/2xl, padding space/3. 안의 QR은 흰색, 모듈 Ink |
+| Tab header | Home `Header`, 내역·설정 `Title` | H, 높이 58, 중앙 정렬, 좌우 layout/screen/padding, 칩 1개(Sepolia 테스트넷) 오른쪽 |
+| Detail link (S23 Failed) | `Detail link` | Ghost sm(link 색) 인라인. 하단 버튼 2개 |
+| S06 | Copy row | "주소 복사"는 Ghost sm 인라인, 하단 Secondary는 "다른 주소예요"(지갑 지움 + S05 복귀, 단어 유지) |
+| S05 Collapse notice | Passphrase 안 | 펼친 상태에서 입력 아래 Caption "고급을 접으면 입력한 패스프레이즈가 지워져요." |
+| Brand/Mark | 495:17569 | option A(V 모노그램 + 열쇠 구멍). Size 96/72/40/24 × OnLight/OnBrand. 화면 안에서는 96(브랜드 화면) |
+| Icon / hero / face | 516:288 | Solar face-scan-square-linear에서 입을 뺀 형태, icon/primary |
