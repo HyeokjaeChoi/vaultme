@@ -57,12 +57,13 @@ export function generateMnemonic(): Mnemonic {
 }
 
 /** True when `word` (already lower-case) is in the BIP39 English wordlist. For live checks while the user types. */
-export const isMnemonicWord = (word: string): boolean => wordlist.includes(word)
+const wordSet = new Set<string>(wordlist) // O(1) per check; `includes` scanned 2048 words per cell per render
+export const isMnemonicWord = (word: string): boolean => wordSet.has(word)
 
 export function validateMnemonic(words: string): MnemonicCheck {
   const list = normalize(words)
   if (list.length !== 12 && list.length !== 24) return { kind: 'wrongLength', count: list.length }
-  const index = list.findIndex((w) => !wordlist.includes(w))
+  const index = list.findIndex((w) => !wordSet.has(w))
   if (index >= 0) return { kind: 'unknownWord', index }
   return bip39Validate(list.join(' '), wordlist) ? { kind: 'ok' } : { kind: 'badChecksum' }
 }
