@@ -94,6 +94,9 @@ export function ReviewPage() {
     } finally {
       setBusy(false)
     }
+    // Once per send: this runs once per confirm press (`busy` blocks a second press), not on render. The network gave a tx hash (Unknown = hash received but not saved locally) = accepted.
+    if (out.status === 'Pending' || out.status === 'Unknown') haptic.success()
+    else if (out.status === 'ChainError') haptic.error()
     if (out.status === 'Pending' || out.status === 'Unknown') {
       rememberRecipient({ address: base.recipient, at: out.tx.createdAt, asset: 'ETH', amount: base.amount.replace(' ETH', '') })
       router.replace('/send/result') // one transition: no Home flash. The result screen has no swipe-back (root layout), so Review/Amount cannot be reached again.
