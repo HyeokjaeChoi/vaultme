@@ -96,8 +96,7 @@ export function ReviewPage() {
     }
     if (out.status === 'Pending' || out.status === 'Unknown') {
       rememberRecipient({ address: base.recipient, at: out.tx.createdAt, asset: 'ETH', amount: base.amount.replace(' ETH', '') })
-      router.dismissAll()
-      router.push('/send/result')
+      router.replace('/send/result') // one transition: no Home flash. The result screen has no swipe-back (root layout), so Review/Amount cannot be reached again.
     } else if (out.status === 'Cancelled') return
     else {
       if (out.status === 'NeedsReview' && !(await core.refresh())) return // the new fee and total replace the old ones; if the re-read failed, its own error shows instead
