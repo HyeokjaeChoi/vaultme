@@ -43,7 +43,7 @@
 | `Icon / navigation / disclosure` 137:247 | `alt-arrow-right` | chevron |
 | `Icon / action / close` 137:264 | `close` | |
 | `Icon / navigation / settings` 137:282 | `settings` | Bold 추가 |
-| `Icon / navigation / activity` 137:299 | `list` | Bold 추가 |
+| `Icon / navigation / activity` 137:299 | `history` (2026-10-17, 전에는 `list`) | Bold 추가. 아래 "내역 탭 아이콘" |
 | `Icon / action / connection` 137:316 | `link-round` | |
 | `Icon / asset / fallback` 137:333 | `dollar-minimalistic` | 자산 identity 없음 fallback |
 | `Icon / action / refresh` 137:350 | `refresh` | |
@@ -150,3 +150,23 @@ Figma의 `INSTANCE_SWAP`은 vector foreground를 초기화할 수 있다. Swap �
 `Icon`/`ShowIcon`, `AssetIcon`, `NetworkIcon` property는 additive다. 기존 master ID와 property 계약을 보존한다. Asset logo의 고유 fill은 유지한다. Icon이 있다고 연결·서명·revoke 기능이 구현된 것은 아니다.
 
 Local 파일, native source, Library publication, consumer adoption은 각각 확인한다. 현재 결과는 [release record](vaultme-release.json)를 따른다. 이전 제한된 browser 관측은 [변경 이력](vaultme-v2-change-log.md)에서 찾는다.
+
+## 내역 탭 아이콘 (2026-10-17, 최종 검수 P2-14)
+
+후보 2개를 비교했다. `history`를 골랐다.
+
+| 후보 | 장점 | 단점 |
+| --- | --- | --- |
+| `history` (시계 + 되돌아가는 화살표) | "지난 일, 시간 순서"를 바로 뜻한다. 탭 바의 다른 아이콘(home, settings)과 모양이 겹치지 않는다 | 시계만 보면 "예약"으로 읽을 수도 있다. 라벨 "내역"이 함께 있어 문제가 없다 |
+| `clipboard-list` (클립보드 + 줄) | 목록이라는 뜻은 분명하다 | 설정 "오픈소스 라이선스" 행의 `document-text`와 모양이 비슷하다. 문서·할 일로 읽힌다. 이전 `list`처럼 정렬·메뉴로 읽힐 위험이 남는다 |
+
+- 바꾼 곳: master 2개의 artwork만 바꿨다. ID와 property는 그대로다. `Icon / navigation / activity` 137:299 (Linear, `icon/navigation/fg`, stroke 1.5/24), `Icon / navigation / activity / bold` 506:24486 (Bold, `icon/navigation/activeFg`). Product navigation(67:342)은 이 master를 instance로 쓰므로 모든 탭 바가 함께 바뀌었다.
+- 코드: Solar `HistoryLinear` / `HistoryBold` (Solar icon set, CC BY 4.0, 480 Design).
+
+## 오류 hero 아이콘 (2026-10-17, 최종 검수 P2-5)
+
+- 새 `Icon / hero / cloud-cross` 541:238 (Solar `cloud-cross` Bold Duotone 48, `icon/status/warning`, 뒤 층 50%). 내역을 불러오지 못한 빈 상태(S40 error-noCache)에 쓴다.
+- Unknown 결과의 `Icon / hero / unknown`(`question-circle`)은 결과를 모를 때만 쓴다. 연결 오류와 섞지 않는다.
+- S31 백업 필요 hero는 `Icon / hero / shield-warning` 533:21900을 경고 색(`icon/status/warning`)으로 쓴다. 체크가 있는 `shield-check`은 "백업 안 됨"에 쓰지 않는다.
+- `Icon / hero / shield-warning`의 Light 분홍빛은 마스터 Duotone 규칙(같은 역할 색 + 뒤 층 50%) 그대로다. S92 instance에 override는 없었다 (P2-16 확인).
+

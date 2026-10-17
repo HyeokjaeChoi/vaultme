@@ -45,6 +45,6 @@ Button hierarchy: one Primary per screen for the main forward action. Risky ackn
 1. Read `docs/agents/design-index.md`, `outputs/design/ux-flow.md`, `outputs/design/ux-terminology.md`.
 2. List the sections of the screen and the component for each section from the map. Write this list in your reply before any mutation.
 3. Build with `use_figma`: create the screen frame (390×844, fill `surface/canvas`), then layout frames bound per rule 2, then instances with property overrides.
-4. Run `.claude/skills/vaultme-figma-screen/audit.js` (set `ROOT_IDS` to the new frames). **All counts must be 0.** Fix and re-run until they are.
+4. Run `.claude/skills/vaultme-figma-screen/audit.js` (set `PAGE_ID`, and `ROOT_IDS` to the new frames). **All counts must be 0**, including `unboundPaint` (every visible solid paint, inside instances too, is variable-bound or a style; only asset identity ETH 137:402 / USDC 137:429 and OS chrome/QR are exempt) and `stalePaint` (bound paint whose stored color differs from the resolved value: the desktop export draws the stored color). Fix and re-run until they are.
 5. Take one screenshot of the frames and check hierarchy, copy, and overflow. Check one frame in Dark mode (`setExplicitVariableModeForCollection` on 02 Semantic).
 6. Report: frame IDs, the audit result object, and the screenshot. A screen without an audit result of 0 is not done.

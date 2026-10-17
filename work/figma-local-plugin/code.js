@@ -1,45 +1,18 @@
-// VaultMe Local Runner: runs one task in the desktop app (local fonts load here), logs to sharedPluginData 'vaultme'/'log'.
-// TASK batch2-critique (#54): fixes from the impeccable critique pass after batch2-polish (tasks/batch2-polish.js).
-// S90 Face ID status text: Caption 12 -> Label 14, text/secondary (it is the live state of the lock screen, not a footnote).
-const TASK = 'batch2-critique'
-const L = {}
-async function init() {
-  const vars = await figma.variables.getLocalVariablesAsync()
-  L.v = Object.fromEntries(vars.map(v => [v.name, v]))
-  const ts = await figma.getLocalTextStylesAsync()
-  L.s = Object.fromEntries(ts.map(s => [s.name, s]))
-  const seen = new Set()
-  for (const s of ts) { const k = s.fontName.family + '|' + s.fontName.style; if (!seen.has(k)) { seen.add(k); try { await figma.loadFontAsync(s.fontName) } catch (e) {} } }
-  for (const st of ['Regular', 'Medium', 'SemiBold', 'Bold']) await figma.loadFontAsync({ family: 'Pretendard', style: st })
-  for (const st of ['Regular', 'Medium', 'SemiBold']) await figma.loadFontAsync({ family: 'IBM Plex Mono', style: st })
-  for (const st of ['Regular', 'Medium', 'Semi Bold', 'Bold']) { try { await figma.loadFontAsync({ family: 'Inter', style: st }) } catch (e) {} }
-  const cols = await figma.variables.getLocalVariableCollectionsAsync()
-  L.sem = cols.find(c => c.name === '02 Semantic')
-}
-const DARK = '298:0'
-const V = n => { const v = L.v[n]; if (!v) throw new Error('missing var ' + n); return v }
-const node = async id => { const n = await figma.getNodeByIdAsync(id); if (!n) throw new Error('missing node ' + id); return n }
-function paint(name) { return figma.variables.setBoundVariableForPaint({ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }, 'color', V(name)) }
-function bind(n, f, name) { n.setBoundVariable(f, V(name)) }
-function props(inst, o) { const m = {}; for (const [short, val] of Object.entries(o)) { const k = Object.keys(inst.componentProperties).find(d => d.split('#')[0] === short); if (!k) throw new Error('no prop ' + short + ' on ' + inst.name); m[k] = val } inst.setProperties(m) }
-const kid = (n, name) => n.children.find(c => c.name === name)
-async function setText(t, s) { for (const f of t.getRangeAllFontNames(0, t.characters.length)) await figma.loadFontAsync(f); t.characters = s }
-// Dark twin = frame named "<light name> · Dark" on the same page; same child index path.
-function twin(n) {
-  const path = []; let x = n
-  while (x.parent && x.parent.type !== 'SECTION' && x.parent.type !== 'PAGE') { path.unshift(x.parent.children.indexOf(x)); x = x.parent }
-  const d = figma.currentPage.findOne(f => f.type === 'FRAME' && f.name === x.name + ' · Dark'); if (!d) return null
-  let y = d; for (const i of path) { y = y.children[i]; if (!y) return null } return y
-}
-const ICON_DOC = '533:21894', ICON_SW = '533:21900', ICON_EXT = '520:27859'
-
-
+// VaultMe Local Runner: TASK export-pngs (#54). Exports 1x PNGs of the mapped frames to a local receiver
+// (scratchpad recv.mjs on localhost:8765, which writes work/v9/screens/<name>.png). Needs manifest devAllowedDomains.
+const TASK = 'export-pngs'
+const MAP = {"activity-s40-list": ["404:387", "430:14668"], "activity-s40-empty": ["423:16109", "430:15259"], "activity-s40-loading": ["423:16158", "430:15278"], "activity-s40-error-cached": ["423:16236", "430:15304"], "activity-s40-error-nocache": ["457:17502", "494:17808"], "activity-s40-testmode": ["471:5163", "494:17854"], "activity-s40-unknown-replaced": ["460:5024", "494:17906"], "activity-s41-confirmed": ["423:16327", "430:15326"], "activity-s41-unknown": ["423:16381", "430:15353"], "activity-s41-realchain": ["460:4988", "494:18031"], "activity-s41-testmode": ["457:4412", "494:18069"], "activity-s41-testmode-clear-sheet": ["457:17613", "494:18109"], "activity-s41-api-error": ["457:17668", "494:18177"], "asset-s11-eth": ["423:16447", "430:15384"], "asset-s11-usdc": ["515:30153", "515:30727"], "brand-s01-start": ["423:13440", "430:15497"], "brand-s90-lock-faceid": ["423:15412", "430:16073"], "brand-s90-lock-failed": ["515:33081", "515:33242"], "brand-s91-update": ["423:15443", "430:16093"], "brand-s92-root": ["423:15474", "430:16113"], "home-s10": ["404:163", "430:14606"], "home-s10-empty": ["515:29238", "515:30619"], "home-s10-firstlaunch-sheet": ["515:29519", "515:30883"], "home-s10-newwallet": ["423:643", "430:14732"], "home-s10-pending": ["423:742", "430:14755"], "home-s10-testdata-sheet": ["515:29783", "515:30956"], "home-s10-testmode": ["457:4274", "457:4320"], "home-s50-push-optin": ["423:14215", "430:15953"], "onboarding-s02-ack": ["423:13478", "430:15518"], "onboarding-s02-ack-checked": ["515:31398", "515:32140"], "onboarding-s03-hidden": ["423:13533", "430:15543"], "onboarding-s03-revealed": ["423:13622", "430:15570"], "onboarding-s03-revealed-checked": ["515:31608", "515:32216"], "send-s20a-recipient-empty": ["423:848", "430:14779"], "send-s20a-recipient-valid": ["423:885", "430:14802"], "send-s20b-amount": ["423:929", "430:14826"], "send-s20b-amount-full": ["423:1000", "430:14855"], "send-s20b-amount-error": ["423:1071", "430:14884"], "send-s22-review": ["404:315", "430:14628"], "send-s22-review-full": ["419:12973", "430:14692"], "send-s22-review-rechecking": ["461:5074", "494:6148"], "send-s22-autherror": ["457:16902", "494:6731"], "send-s22-chainerror": ["457:16988", "494:6777"], "send-s22-needsreview": ["457:17074", "494:6823"], "send-s22-prepareerror": ["457:17160", "494:6869"], "send-s22-pendingblock": ["457:17246", "494:6914"], "send-s22-blocked": ["457:17332", "494:6959"], "send-s22l-lookalike": ["423:14763", "430:14914"], "send-s22l-lookalike-sheet": ["423:15006", "430:15037"], "send-s22l-lookalike-acknowledged": ["494:4103", "494:6596"], "send-s22b-burn": ["423:14844", "430:14955"], "send-s22b-burn-sheet": ["430:7672", "430:15411"], "send-s22b-burn-acknowledged": ["494:4242", "494:6641"], "send-s22t-token": ["423:14925", "430:14996"], "send-s22t-token-sheet": ["430:7737", "430:15454"], "send-s22t-token-acknowledged": ["494:4381", "494:6686"], "send-s23-pending": ["423:15795", "430:15106"], "send-s23-included": ["423:15852", "430:15132"], "send-s23-confirmed": ["423:15909", "430:15158"], "send-s23-failed": ["423:15959", "430:15183"], "send-s23-unknown": ["423:16009", "430:15208"], "send-s23-replaced": ["423:16059", "430:15234"], "send-s23-pending-testmode": ["457:4366", "494:7262"], "send-s24-blocked-sheet": ["423:15062", "430:15080"], "send-s30-receive": ["423:14163", "430:15692"], "send-s31-backup-required": ["423:13750", "430:15617"], "settings-s60": ["423:13797", "430:15642"], "settings-s60-full": ["515:45343", "515:45681"], "settings-s61-phrase": ["423:13856", "430:15667"], "settings-s64-licenses": ["526:54261", "526:54545"], "settings-s64-licenses-full": ["526:54503", "526:54587"], "settings-s65-license-text": ["526:55042", "526:55830"], "send-s23-failed-reason": ["526:55172", "526:57104"], "activity-s41-confirmed-full": ["526:55415", "526:57603"], "activity-s41-realchain-full": ["526:55456", "526:57641"], "activity-s41-testmode-full": ["526:55499", "526:57681"], "activity-s41-unknown-full": ["526:55547", "526:57725"]}
 async function run() {
-  await init()
-  const out = []
-  await figma.setCurrentPageAsync(await node('486:17443'))
-  for (const id of ['515:45579', '515:45780']) {
-    const t = await node(id); await t.setTextStyleIdAsync(L.s['Product B/Label'].id); t.fills = [paint('text/secondary')]; t.textAutoResize = 'WIDTH_AND_HEIGHT'; out.push([id, t.width, t.height])
+  const out = { ok: 0, fail: [] }
+  for (const [name, [l, d]] of Object.entries(MAP).filter(([k]) => typeof ONLY === 'undefined' || ONLY.includes(k))) for (const [id, file] of [[l, name + '.png'], [d, name + '-dark.png']]) {
+    try {
+      const n = await figma.getNodeByIdAsync(id); if (!n) throw new Error('missing')
+      let p = n; while (p.type !== 'PAGE') p = p.parent
+      if (figma.currentPage !== p) await figma.setCurrentPageAsync(p)
+      const bytes = await n.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } })
+      const r = await fetch('http://localhost:8765/?name=' + encodeURIComponent(file), { method: 'POST', body: bytes })
+      if (!r.ok) throw new Error('http ' + r.status); out.ok++
+    } catch (e) { out.fail.push(file + ' ' + String(e).slice(0, 120)) }
   }
   return out
 }

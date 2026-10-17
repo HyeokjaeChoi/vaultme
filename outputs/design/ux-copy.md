@@ -502,7 +502,7 @@ Figma `Flow 1 · Onboarding`, `Flow 2 · Home & balance`, `Flow 5 · Security & 
 | S10 첫 실행 sheet | 버튼 | 확인했어요 | 안내 sheet라 Primary 하나 |
 | S10 테스트 데이터 sheet | 제목 / 본문 / 버튼 | 테스트 데이터예요 / 잔액과 내역은 이 기기에서 만든 예시예요. 실제 네트워크와 연결되지 않았어요. / 확인 | 기존 승인 문구를 sheet로 |
 | S10N 새 지갑 | 행 | 복구 구문을 아직 백업하지 않았어요 › | 3줄 notice 대체. 누르면 S31 |
-| S10E · S10N 빈 지갑 | 빈 상태 | 아직 자산이 없어요 / 받기 주소를 공유하면 Sepolia ETH와 USDC를 받을 수 있어요. | 받기 Primary, 보내기 꺼짐 |
+| S10E · S10N 빈 지갑 | 빈 상태 | 아직 자산이 없어요 / 받기 주소를 공유하면 Sepolia ETH와 USDC를 받을 수 있어요. | 버튼 자리 고정: 보내기(Secondary) 왼쪽, 받기(Primary) 오른쪽 (오너 2026-10-17, 최종 검수 P1-8) |
 | S11 | 블록 제목 | 자산 정보 / 이 자산의 내역 · 전체 보기 | |
 | S11 ETH | 안내 | 네트워크 수수료는 ETH로 내요. 수수료로 쓸 ETH를 남겨 두세요. | |
 | S11 USDC | 행 / 안내 | 컨트랙트 주소 (전체, 4글자 묶음) / 보낼 때 네트워크 수수료는 ETH로 내요. | 주소는 `packages/contracts` USDC_SEPOLIA |
@@ -534,4 +534,27 @@ Figma `Flow 3`, `Flow 4`, `Flow 5 · Security & settings`. 새 문구와 바뀐 
 | S64 | 링크 행 | Solar Icons 원본 보기 ↗ | 외부 링크(브라우저). Solar 원본·라이선스 페이지 |
 | S64 | 행 | Pretendard · OFL-1.1 / IBM Plex Mono · OFL-1.1 | |
 | S64 | 행 | React Native, Expo, React, viem, @noble/curves, @noble/hashes, @solar-icons/react-native, react-native-reanimated, react-native-keychain, react-native-mmkv, i18next · MIT | `apps/mobile/package.json` 주요 의존성. `phosphor-react-native`는 Solar로 바꿀 예정이라 뺐다 |
-| S64 | 열린 질문 | (없음) | 패키지마다 라이선스 전문 화면을 둘지 오너 결정 필요. 지금은 목록만 있고 행을 눌러도 아무 일이 없다 |
+| S64 | 열린 질문 | (없음) | 해결됨(오너 2026-10-17): 행을 누르면 S65 라이선스 전문. 목록은 빌드 때 lockfile에서 간접 의존성까지 자동 생성. 아래 "최종 검수 수정" 표 |
+
+### 최종 검수 수정 (2026-10-17, `work/review/pd-review-final-2026-10-17.md`)
+
+Figma `Flow 2`–`Flow 5`. 검수 copy 표와 finding으로 바뀐 문구만 적었다. 오너 확인 필요.
+
+| ID | 위치 | 문구 | 비고 |
+|---|---|---|---|
+| S23 Pending 테스트 모드 | hero 제목 / 본문 | 테스트 거래예요 / 이 기기에서 만든 예시예요. 네트워크로 보내지 않았어요. | P0-2. badge info. 진행 표시·경고 줄·수수료 행 숨김 (S41 테스트 모드와 같은 규칙) |
+| S23 Pending, Included | 경고 | 이미 네트워크에 보냈어요. / 같은 거래를 다시 보내지 마세요. | P1-5. 문구는 같고 두 줄로 나눔 |
+| S23 Failed / Reason (새 상태) | hero 아래 한 줄 | 수수료 한도가 부족했어요. | P2-9. 네트워크에서 확인한 이유 값이 있을 때만(오너). 값이 없으면 기본 Failed 화면 그대로. 추측 금지 |
+| S31 | 본문 | 기기를 잃어도 지갑을 되찾으려면 / 복구 구문이 필요해요. / 백업을 마치면 받기 주소가 보여요. | P1-5. "이" 삭제. hero는 `shield-warning`(경고 색), 칩은 헤더 오른쪽 |
+| S61 | 안내 | Face ID로 확인했어요. 화면을 캡처하지 마세요. | P2-7. 기기별 이름은 S90 규칙 |
+| S22 needsReview | Banner 본문 | 보내기 전에 수수료나 거래 정보가 바뀌었어요. / 새 내용을 확인한 뒤 다시 보내세요. | "거래 순서"(nonce) 삭제 |
+| S22 chainError | hero 둘째 줄 | 수수료를 다시 확인해야 해요 | P2-13. 가져오지 못한 값을 "예상"으로 보이지 않음 |
+| S60 | 행 | 기기 보안 상태 · 확인됨 › | P2-8. 경고가 있으면 값 "주의". 네트워크 행은 chevron 없음 (고를 것이 하나) |
+| S20a | 입력 칸 버튼 (값 있음) | 지우기 | P2-2. 값은 앞 6·뒤 4 글자 강조 |
+| S11 | Nav 제목 | Sepolia ETH / USD Coin | P2-1. hero 안 이름 줄 삭제. USDC 컨트랙트 행에 "복사" pill |
+| S64 | 본문 | 앱에 포함된 오픈소스 목록이에요. / 앱을 만들 때 자동으로 만들어져요. | P1-6. 손으로 만든 "완전한 목록" 주장 삭제. 행은 52, chevron. `@solar-icons/react-native`(설치 안 됨) 행을 `react-native-svg`로 |
+| S65 (새 화면) | 제목 / 보조 / 본문 | react-native-svg / 버전 15.15.4 · MIT / 저작권 줄 + MIT 전문(원문 그대로, 영어) | P1-6. 행을 누르면 열림. 전문은 번역하지 않는다 (법적 원문). 예시 패키지는 실제로 설치된 것으로 골랐다 |
+| S40 error-noCache | hero | (문구 그대로) | P2-5. 아이콘만 `cloud-cross`(경고 색). Unknown 결과의 `question-circle`과 분리 |
+
+금액 표시 규칙(P2-15): 최대 소수 6자리, 끝 0은 지운다. S20b 전액 1.284732 − 최대 수수료 0.000042 = 1.284690 → "1.28469". 규칙대로라서 Figma는 바꾸지 않았다.
+

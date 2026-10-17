@@ -270,3 +270,19 @@ Figma `Components · Redesign B` (398:77). 기존 master ID는 그대로다. 기
 | B/Secret grid (변형 수정) | 426:2044 | 두 변형 모두 `surface/subtle` 판(radius 16) 안 번호 2열. Hidden = layer blur 14 + "탭해서 보기" pill. 단어는 공개 BIP39 test vector(abandon ×11, about)만 |
 
 새 Solar icon (09 Icons, CC BY 4.0, 480 Design): `Icon / account / key` 516:235, `Icon / settings / bell` 516:244, `Icon / settings / eye` 516:253, `Icon / settings / network` 516:264, `Icon / status / device-warning` 516:274 (Linear 20, `icon/action/fg`), `Icon / hero / face` 516:288 (Bold Duotone 48, `icon/brand`, 뒤 층 50%).
+
+## 최종 검수 수정 (2026-10-17, `work/review/pd-review-final-2026-10-17.md`)
+
+Master ID와 property는 그대로다. Library는 게시하지 않았다.
+
+| Component | Node | 바뀐 계약 |
+| --- | --- | --- |
+| B/Bottom sheet, Bottom sheet | 399:157, 301:606 | 아래 padding `space/12`(48 = 16 + home indicator 34 근사). 화면에서는 프레임 바닥에 붙이고 constraint Bottom. 모든 sheet가 같다 (P1-1) |
+| B/Bottom sheet grabber | 399:158 | `border/subtle` → `bottomSheet/grabber`(`border/default`). Dark에서 sheet 판(`surface/raised`)과 같은 색이라 안 보였다 (P1-4) |
+| Sheet 안 Secondary | S50 등 | 모든 sheet Secondary는 `buttonB/secondary/bgOnRaised` (P1-4, S50 "나중에" 수정) |
+| B/Address compare | 477:5145 | 주소 행 좌우 padding 0. sheet 제목·본문과 같은 16 시작선 (P2-18) |
+| B/Settings row (라이선스 목록) | 426:2045 | S64에서는 instance 높이를 `size/control_lg`(52)로 묶는다. 한 줄 정보 행. 버전은 S65에서 보인다 (P1-6) |
+| Icon swap 뒤 색 | 규칙 13 | 빈 지갑 S10의 보내기(Secondary)로 바꾼 뒤 아이콘을 `buttonB/secondary/fg`로 다시 묶었다 (P1-8) |
+
+Paint 검사(`.claude/skills/vaultme-figma-screen/audit.js`): 보이는 모든 node의 solid paint는 variable에 묶여 있거나 style이어야 한다 (`unboundPaint` = 0). 묶여 있어도 저장된 색이 해석 값과 다르면 `stalePaint`다 (= 0). 예외는 자산 identity artwork(ETH 137:402, USDC 137:429)와 OS chrome·QR 뿐이다. 최종 검수의 `#000000` 글자·아이콘은 묶인 paint가 seed 색 {0,0,0}을 그대로 가진 경우였다. Desktop export가 그 저장 색을 그렸다.
+
