@@ -133,7 +133,7 @@ export function ReviewPage() {
   else if (gate && !shownNotice) {
     footer = (
       <>
-        <Text variant="caption" color={th.semantic.text.secondary} style={{ textAlign: 'center' }}>{t('send.riskCaption')}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.primary} style={{ textAlign: 'center' }}>{t('send.riskCaption')}</Text>
         <Button label={t('send.checkRisk')} variant="secondary" onPress={openSheet} />
       </>
     )
