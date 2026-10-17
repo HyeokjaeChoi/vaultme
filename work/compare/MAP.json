@@ -1,0 +1,766 @@
+{
+ "naming": "pair name = short screen/state name; files <name>-app.png, <name>-figma.png, <name>-dark-app.png, <name>-dark-figma.png. Figma PNGs are copies of work/v9/screens/<figma>.png.",
+ "capture": "iPhone 18 Pro simulator, dev client on Metro, vaultme:// route per entry (__DEV__ presets); testMode=true means no ?real=1",
+ "pairs": {
+  "activity": {
+   "route": "vaultme://activity?real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/activity-s40-list.png",
+   "figmaDark": "work/v9/screens/activity-s40-list-dark.png",
+   "app": "work/compare/activity-app.png",
+   "appDark": "work/compare/activity-dark-app.png"
+  },
+  "activity-empty": {
+   "route": "vaultme://activity?state=empty&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/activity-s40-empty.png",
+   "figmaDark": "work/v9/screens/activity-s40-empty-dark.png",
+   "app": "work/compare/activity-empty-app.png",
+   "appDark": "work/compare/activity-empty-dark-app.png"
+  },
+  "activity-loading": {
+   "route": "vaultme://activity?state=loading&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/activity-s40-loading.png",
+   "figmaDark": "work/v9/screens/activity-s40-loading-dark.png",
+   "app": "work/compare/activity-loading-app.png",
+   "appDark": "work/compare/activity-loading-dark-app.png"
+  },
+  "activity-error": {
+   "route": "vaultme://activity?state=error&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/activity-s40-error-cached.png",
+   "figmaDark": "work/v9/screens/activity-s40-error-cached-dark.png",
+   "app": "work/compare/activity-error-app.png",
+   "appDark": "work/compare/activity-error-dark-app.png"
+  },
+  "activity-error-nocache": {
+   "route": "vaultme://activity?state=error&cache=0&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/activity-s40-error-nocache.png",
+   "figmaDark": "work/v9/screens/activity-s40-error-nocache-dark.png",
+   "app": "work/compare/activity-error-nocache-app.png",
+   "appDark": "work/compare/activity-error-nocache-dark-app.png"
+  },
+  "activity-testmode": {
+   "route": "vaultme://activity",
+   "testMode": true,
+   "figma": "work/v9/screens/activity-s40-testmode.png",
+   "figmaDark": "work/v9/screens/activity-s40-testmode-dark.png",
+   "app": "work/compare/activity-testmode-app.png",
+   "appDark": "work/compare/activity-testmode-dark-app.png"
+  },
+  "activity-unknown-replaced": {
+   "route": "vaultme://activity?state=rows&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/activity-s40-unknown-replaced.png",
+   "figmaDark": "work/v9/screens/activity-s40-unknown-replaced-dark.png",
+   "app": "work/compare/activity-unknown-replaced-app.png",
+   "appDark": "work/compare/activity-unknown-replaced-dark-app.png"
+  },
+  "asset-detail": {
+   "route": "vaultme://asset?symbol=ETH&variant=restored&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/asset-s11-eth.png",
+   "figmaDark": "work/v9/screens/asset-s11-eth-dark.png",
+   "app": "work/compare/asset-detail-app.png",
+   "appDark": "work/compare/asset-detail-dark-app.png"
+  },
+  "asset-usdc": {
+   "route": "vaultme://asset?symbol=USDC&variant=restored&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/asset-s11-usdc.png",
+   "figmaDark": "work/v9/screens/asset-s11-usdc-dark.png",
+   "app": "work/compare/asset-usdc-app.png",
+   "appDark": "work/compare/asset-usdc-dark-app.png"
+  },
+  "backup-check": {
+   "route": "vaultme://backup/check?demo=1",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s04-check.png",
+   "figmaDark": "work/v9/screens/onboarding-s04-check-dark.png",
+   "app": "work/compare/backup-check-app.png",
+   "appDark": "work/compare/backup-check-dark-app.png"
+  },
+  "s04-typing": {
+   "route": "vaultme://backup/check?demo=1&state=typing",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s04-typing.png",
+   "figmaDark": "work/v9/screens/onboarding-s04-typing-dark.png",
+   "app": "work/compare/s04-typing-app.png",
+   "appDark": "work/compare/s04-typing-dark-app.png"
+  },
+  "s04-wrong": {
+   "route": "vaultme://backup/check?demo=1&state=wrong",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s04-wrong.png",
+   "figmaDark": "work/v9/screens/onboarding-s04-wrong-dark.png",
+   "app": "work/compare/s04-wrong-app.png",
+   "appDark": "work/compare/s04-wrong-dark-app.png"
+  },
+  "s04-filled": {
+   "route": "vaultme://backup/check?demo=1&state=filled",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s04-filled.png",
+   "figmaDark": "work/v9/screens/onboarding-s04-filled-dark.png",
+   "app": "work/compare/s04-filled-app.png",
+   "appDark": "work/compare/s04-filled-dark-app.png"
+  },
+  "backup-hidden": {
+   "route": "vaultme://backup?demo=1",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s03-hidden.png",
+   "figmaDark": "work/v9/screens/onboarding-s03-hidden-dark.png",
+   "app": "work/compare/backup-hidden-app.png",
+   "appDark": "work/compare/backup-hidden-dark-app.png"
+  },
+  "backup-revealed": {
+   "route": "vaultme://backup?demo=1&revealed=1",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s03-revealed.png",
+   "figmaDark": "work/v9/screens/onboarding-s03-revealed-dark.png",
+   "app": "work/compare/backup-revealed-app.png",
+   "appDark": "work/compare/backup-revealed-dark-app.png"
+  },
+  "backup-revealed-checked": {
+   "route": "vaultme://backup?demo=1&revealed=1&checked=1",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s03-revealed-checked.png",
+   "figmaDark": "work/v9/screens/onboarding-s03-revealed-checked-dark.png",
+   "app": "work/compare/backup-revealed-checked-app.png",
+   "appDark": "work/compare/backup-revealed-checked-dark-app.png"
+  },
+  "device": {
+   "route": "vaultme://settings/device",
+   "testMode": true,
+   "figma": "work/v9/screens/brand-s92-root.png",
+   "figmaDark": "work/v9/screens/brand-s92-root-dark.png",
+   "app": "work/compare/device-app.png",
+   "appDark": "work/compare/device-dark-app.png"
+  },
+  "home": {
+   "route": "vaultme://home?variant=restored&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/home-s10.png",
+   "figmaDark": "work/v9/screens/home-s10-dark.png",
+   "app": "work/compare/home-app.png",
+   "appDark": "work/compare/home-dark-app.png"
+  },
+  "home-backup-pending": {
+   "route": "vaultme://home?variant=unbacked&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/home-s10b-backup-pending.png",
+   "figmaDark": "work/v9/screens/home-s10b-backup-pending-dark.png",
+   "app": "work/compare/home-backup-pending-app.png",
+   "appDark": "work/compare/home-backup-pending-dark-app.png"
+  },
+  "home-deposit-sheet": {
+   "route": "vaultme://home?variant=unbacked&real=1&sheet=deposit",
+   "testMode": false,
+   "figma": "work/v9/screens/home-s10b-first-deposit-sheet.png",
+   "figmaDark": "work/v9/screens/home-s10b-first-deposit-sheet-dark.png",
+   "app": "work/compare/home-deposit-sheet-app.png",
+   "appDark": "work/compare/home-deposit-sheet-dark-app.png"
+  },
+  "home-empty-faucet": {
+   "route": "vaultme://home?variant=empty&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/home-s10-empty-faucet.png",
+   "figmaDark": "work/v9/screens/home-s10-empty-faucet-dark.png",
+   "app": "work/compare/home-empty-faucet-app.png",
+   "appDark": "work/compare/home-empty-faucet-dark-app.png"
+  },
+  "home-new": {
+   "route": "vaultme://home?real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/home-s10-newwallet.png",
+   "figmaDark": "work/v9/screens/home-s10-newwallet-dark.png",
+   "app": "work/compare/home-new-app.png",
+   "appDark": "work/compare/home-new-dark-app.png"
+  },
+  "home-pending": {
+   "route": "vaultme://home?variant=pending&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/home-s10-pending.png",
+   "figmaDark": "work/v9/screens/home-s10-pending-dark.png",
+   "app": "work/compare/home-pending-app.png",
+   "appDark": "work/compare/home-pending-dark-app.png"
+  },
+  "home-testdata-sheet": {
+   "route": "vaultme://home?variant=restored&sheet=testdata",
+   "testMode": true,
+   "figma": "work/v9/screens/home-s10-testdata-sheet.png",
+   "figmaDark": "work/v9/screens/home-s10-testdata-sheet-dark.png",
+   "app": "work/compare/home-testdata-sheet-app.png",
+   "appDark": "work/compare/home-testdata-sheet-dark-app.png"
+  },
+  "home-testmode": {
+   "route": "vaultme://home?variant=restored",
+   "testMode": true,
+   "figma": "work/v9/screens/home-s10-testmode.png",
+   "figmaDark": "work/v9/screens/home-s10-testmode-dark.png",
+   "app": "work/compare/home-testmode-app.png",
+   "appDark": "work/compare/home-testmode-dark-app.png"
+  },
+  "home-testnet-sheet": {
+   "route": "vaultme://home?variant=restored&real=1&sheet=intro",
+   "testMode": false,
+   "figma": "work/v9/screens/home-s10-testnet-sheet.png",
+   "figmaDark": "work/v9/screens/home-s10-testnet-sheet-dark.png",
+   "app": "work/compare/home-testnet-sheet-app.png",
+   "appDark": "work/compare/home-testnet-sheet-dark-app.png"
+  },
+  "home-blocked-sheet": {
+   "route": "vaultme://home?variant=pending&real=1&sheet=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s24-blocked-sheet.png",
+   "figmaDark": "work/v9/screens/send-s24-blocked-sheet-dark.png",
+   "app": "work/compare/home-blocked-sheet-app.png",
+   "appDark": "work/compare/home-blocked-sheet-dark-app.png"
+  },
+  "push-sheet": {
+   "route": "vaultme://home?variant=restored&real=1&sheet=push",
+   "testMode": false,
+   "figma": "work/v9/screens/home-s50-push-optin.png",
+   "figmaDark": "work/v9/screens/home-s50-push-optin-dark.png",
+   "app": "work/compare/push-sheet-app.png",
+   "appDark": "work/compare/push-sheet-dark-app.png"
+  },
+  "licenses": {
+   "route": "vaultme://settings/licenses",
+   "testMode": true,
+   "figma": "work/v9/screens/settings-s64-licenses.png",
+   "figmaDark": "work/v9/screens/settings-s64-licenses-dark.png",
+   "app": "work/compare/licenses-app.png",
+   "appDark": "work/compare/licenses-dark-app.png"
+  },
+  "license-text": {
+   "route": "vaultme://settings/license?name=react-native-svg&version=15.15.4",
+   "testMode": true,
+   "figma": "work/v9/screens/settings-s65-license-text.png",
+   "figmaDark": "work/v9/screens/settings-s65-license-text-dark.png",
+   "app": "work/compare/license-text-app.png",
+   "appDark": "work/compare/license-text-dark-app.png"
+  },
+  "s65-nofile": {
+   "route": "vaultme://settings/license?name=react-native-mmkv&version=4.3.2",
+   "testMode": true,
+   "figma": "work/v9/screens/settings-s65-license-nofile.png",
+   "figmaDark": "work/v9/screens/settings-s65-license-nofile-dark.png",
+   "app": "work/compare/s65-nofile-app.png",
+   "appDark": "work/compare/s65-nofile-dark-app.png"
+  },
+  "lock": {
+   "route": "vaultme://lock-demo?state=checking",
+   "testMode": true,
+   "figma": "work/v9/screens/brand-s90-lock-faceid.png",
+   "figmaDark": "work/v9/screens/brand-s90-lock-faceid-dark.png",
+   "app": "work/compare/lock-app.png",
+   "appDark": "work/compare/lock-dark-app.png"
+  },
+  "lock-failed": {
+   "route": "vaultme://lock-demo?state=failed",
+   "testMode": true,
+   "figma": "work/v9/screens/brand-s90-lock-failed.png",
+   "figmaDark": "work/v9/screens/brand-s90-lock-failed-dark.png",
+   "app": "work/compare/lock-failed-app.png",
+   "appDark": "work/compare/lock-failed-dark-app.png"
+  },
+  "precheck": {
+   "route": "vaultme://precheck",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s02-ack.png",
+   "figmaDark": "work/v9/screens/onboarding-s02-ack-dark.png",
+   "app": "work/compare/precheck-app.png",
+   "appDark": "work/compare/precheck-dark-app.png"
+  },
+  "precheck-checked": {
+   "route": "vaultme://precheck?checked=1",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s02-ack-checked.png",
+   "figmaDark": "work/v9/screens/onboarding-s02-ack-checked-dark.png",
+   "app": "work/compare/precheck-checked-app.png",
+   "appDark": "work/compare/precheck-checked-dark-app.png"
+  },
+  "receive-faucet": {
+   "route": "vaultme://receive?backedUp=1&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s30-receive-faucet.png",
+   "figmaDark": "work/v9/screens/send-s30-receive-faucet-dark.png",
+   "app": "work/compare/receive-faucet-app.png",
+   "appDark": "work/compare/receive-faucet-dark-app.png"
+  },
+  "receive-before-backup": {
+   "route": "vaultme://receive?backedUp=0&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s30b-receive-before-backup.png",
+   "figmaDark": "work/v9/screens/send-s30b-receive-before-backup-dark.png",
+   "app": "work/compare/receive-before-backup-app.png",
+   "appDark": "work/compare/receive-before-backup-dark-app.png"
+  },
+  "receive-copied": {
+   "route": "vaultme://receive?backedUp=1&copied=1&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/copy-feedback.png",
+   "figmaDark": "work/v9/screens/copy-feedback-dark.png",
+   "app": "work/compare/receive-copied-app.png",
+   "appDark": "work/compare/receive-copied-dark-app.png"
+  },
+  "restore": {
+   "route": "vaultme://restore?demo=empty",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-restore.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-restore-dark.png",
+   "app": "work/compare/restore-app.png",
+   "appDark": "work/compare/restore-dark-app.png"
+  },
+  "s05-typing": {
+   "route": "vaultme://restore?demo=typing",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-typing.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-typing-dark.png",
+   "app": "work/compare/s05-typing-app.png",
+   "appDark": "work/compare/s05-typing-dark-app.png"
+  },
+  "s05-ready": {
+   "route": "vaultme://restore?demo=ready",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-ready.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-ready-dark.png",
+   "app": "work/compare/s05-ready-app.png",
+   "appDark": "work/compare/s05-ready-dark-app.png"
+  },
+  "s05-busy": {
+   "route": "vaultme://restore?demo=busy",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-busy.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-busy-dark.png",
+   "app": "work/compare/s05-busy-app.png",
+   "appDark": "work/compare/s05-busy-dark-app.png"
+  },
+  "s05-unknown": {
+   "route": "vaultme://restore?demo=unknown",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-unknownword.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-unknownword-dark.png",
+   "app": "work/compare/s05-unknown-app.png",
+   "appDark": "work/compare/s05-unknown-dark-app.png"
+  },
+  "s05-checksum": {
+   "route": "vaultme://restore?demo=checksum",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-checksum.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-checksum-dark.png",
+   "app": "work/compare/s05-checksum-app.png",
+   "appDark": "work/compare/s05-checksum-dark-app.png"
+  },
+  "s05-exists": {
+   "route": "vaultme://restore?demo=exists",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-exists.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-exists-dark.png",
+   "app": "work/compare/s05-exists-app.png",
+   "appDark": "work/compare/s05-exists-dark-app.png"
+  },
+  "s05-saveerror": {
+   "route": "vaultme://restore?demo=saveerror",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-saveerror.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-saveerror-dark.png",
+   "app": "work/compare/s05-saveerror-app.png",
+   "appDark": "work/compare/s05-saveerror-dark-app.png"
+  },
+  "s05-passphrase-masked": {
+   "route": "vaultme://restore?demo=passphrase-masked",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-passphrase-masked.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-passphrase-masked-dark.png",
+   "app": "work/compare/s05-passphrase-masked-app.png",
+   "appDark": "work/compare/s05-passphrase-masked-dark-app.png"
+  },
+  "s05-passphrase-shown": {
+   "route": "vaultme://restore?demo=passphrase-shown",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-passphrase-shown.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-passphrase-shown-dark.png",
+   "app": "work/compare/s05-passphrase-shown-app.png",
+   "appDark": "work/compare/s05-passphrase-shown-dark-app.png"
+  },
+  "s05-24words": {
+   "route": "vaultme://restore?demo=24words",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s05-24words.png",
+   "figmaDark": "work/v9/screens/onboarding-s05-24words-dark.png",
+   "app": "work/compare/s05-24words-app.png",
+   "appDark": "work/compare/s05-24words-dark-app.png"
+  },
+  "s06-done": {
+   "route": "vaultme://restore/done?demo=1",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s06-done.png",
+   "figmaDark": "work/v9/screens/onboarding-s06-done-dark.png",
+   "app": "work/compare/s06-done-app.png",
+   "appDark": "work/compare/s06-done-dark-app.png"
+  },
+  "s06-copied": {
+   "route": "vaultme://restore/done?demo=1&copied=1",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s06-copied.png",
+   "figmaDark": "work/v9/screens/onboarding-s06-copied-dark.png",
+   "app": "work/compare/s06-copied-app.png",
+   "appDark": "work/compare/s06-copied-dark-app.png"
+  },
+  "s06-passphrase": {
+   "route": "vaultme://restore/done?demo=1&passphrase=1",
+   "testMode": true,
+   "figma": "work/v9/screens/onboarding-s06-passphrase.png",
+   "figmaDark": "work/v9/screens/onboarding-s06-passphrase-dark.png",
+   "app": "work/compare/s06-passphrase-app.png",
+   "appDark": "work/compare/s06-passphrase-dark-app.png"
+  },
+  "result-pending": {
+   "route": "vaultme://send/result?demo=Pending&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s23-pending.png",
+   "figmaDark": "work/v9/screens/send-s23-pending-dark.png",
+   "app": "work/compare/result-pending-app.png",
+   "appDark": "work/compare/result-pending-dark-app.png"
+  },
+  "result-included": {
+   "route": "vaultme://send/result?demo=Included&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s23-included.png",
+   "figmaDark": "work/v9/screens/send-s23-included-dark.png",
+   "app": "work/compare/result-included-app.png",
+   "appDark": "work/compare/result-included-dark-app.png"
+  },
+  "result-confirmed": {
+   "route": "vaultme://send/result?demo=Confirmed&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s23-confirmed.png",
+   "figmaDark": "work/v9/screens/send-s23-confirmed-dark.png",
+   "app": "work/compare/result-confirmed-app.png",
+   "appDark": "work/compare/result-confirmed-dark-app.png"
+  },
+  "result-failed": {
+   "route": "vaultme://send/result?demo=Failed&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s23-failed.png",
+   "figmaDark": "work/v9/screens/send-s23-failed-dark.png",
+   "app": "work/compare/result-failed-app.png",
+   "appDark": "work/compare/result-failed-dark-app.png"
+  },
+  "result-failed-reason": {
+   "route": "vaultme://send/result?demo=Failed&reason=gas&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s23-failed-reason.png",
+   "figmaDark": "work/v9/screens/send-s23-failed-reason-dark.png",
+   "app": "work/compare/result-failed-reason-app.png",
+   "appDark": "work/compare/result-failed-reason-dark-app.png"
+  },
+  "result-unknown": {
+   "route": "vaultme://send/result?demo=Unknown&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s23-unknown.png",
+   "figmaDark": "work/v9/screens/send-s23-unknown-dark.png",
+   "app": "work/compare/result-unknown-app.png",
+   "appDark": "work/compare/result-unknown-dark-app.png"
+  },
+  "result-replaced": {
+   "route": "vaultme://send/result?demo=Replaced&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s23-replaced.png",
+   "figmaDark": "work/v9/screens/send-s23-replaced-dark.png",
+   "app": "work/compare/result-replaced-app.png",
+   "appDark": "work/compare/result-replaced-dark-app.png"
+  },
+  "result-pending-testmode": {
+   "route": "vaultme://send/result?demo=Pending",
+   "testMode": true,
+   "figma": "work/v9/screens/send-s23-pending-testmode.png",
+   "figmaDark": "work/v9/screens/send-s23-pending-testmode-dark.png",
+   "app": "work/compare/result-pending-testmode-app.png",
+   "appDark": "work/compare/result-pending-testmode-dark-app.png"
+  },
+  "review": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678&amount=0.05",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22-review.png",
+   "figmaDark": "work/v9/screens/send-s22-review-dark.png",
+   "app": "work/compare/review-app.png",
+   "appDark": "work/compare/review-dark-app.png"
+  },
+  "review-autherror": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678&amount=0.05&notice=authError",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22-autherror.png",
+   "figmaDark": "work/v9/screens/send-s22-autherror-dark.png",
+   "app": "work/compare/review-autherror-app.png",
+   "appDark": "work/compare/review-autherror-dark-app.png"
+  },
+  "review-chainerror": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678&amount=0.05&notice=chainError",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22-chainerror.png",
+   "figmaDark": "work/v9/screens/send-s22-chainerror-dark.png",
+   "app": "work/compare/review-chainerror-app.png",
+   "appDark": "work/compare/review-chainerror-dark-app.png"
+  },
+  "review-needsreview": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678&amount=0.05&notice=needsReview",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22-needsreview.png",
+   "figmaDark": "work/v9/screens/send-s22-needsreview-dark.png",
+   "app": "work/compare/review-needsreview-app.png",
+   "appDark": "work/compare/review-needsreview-dark-app.png"
+  },
+  "review-prepareerror": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678&amount=0.05&notice=prepareError",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22-prepareerror.png",
+   "figmaDark": "work/v9/screens/send-s22-prepareerror-dark.png",
+   "app": "work/compare/review-prepareerror-app.png",
+   "appDark": "work/compare/review-prepareerror-dark-app.png"
+  },
+  "review-pendingblock": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678&amount=0.05&notice=pending",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22-pendingblock.png",
+   "figmaDark": "work/v9/screens/send-s22-pendingblock-dark.png",
+   "app": "work/compare/review-pendingblock-app.png",
+   "appDark": "work/compare/review-pendingblock-dark-app.png"
+  },
+  "review-blocked": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678&amount=0.05&notice=blocked",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22-blocked.png",
+   "figmaDark": "work/v9/screens/send-s22-blocked-dark.png",
+   "app": "work/compare/review-blocked-app.png",
+   "appDark": "work/compare/review-blocked-dark-app.png"
+  },
+  "review-rechecking": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678&amount=0.05&recheck=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22-review-rechecking.png",
+   "figmaDark": "work/v9/screens/send-s22-review-rechecking-dark.png",
+   "app": "work/compare/review-rechecking-app.png",
+   "appDark": "work/compare/review-rechecking-dark-app.png"
+  },
+  "review-lookalike": {
+   "route": "vaultme://review?real=1&backedUp=1&risk=1&amount=0.05",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22l-lookalike.png",
+   "figmaDark": "work/v9/screens/send-s22l-lookalike-dark.png",
+   "app": "work/compare/review-lookalike-app.png",
+   "appDark": "work/compare/review-lookalike-dark-app.png"
+  },
+  "review-lookalike-sheet": {
+   "route": "vaultme://review?real=1&backedUp=1&risk=1&sheet=1&amount=0.05",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22l-lookalike-sheet.png",
+   "figmaDark": "work/v9/screens/send-s22l-lookalike-sheet-dark.png",
+   "app": "work/compare/review-lookalike-sheet-app.png",
+   "appDark": "work/compare/review-lookalike-sheet-dark-app.png"
+  },
+  "review-lookalike-ack": {
+   "route": "vaultme://review?real=1&backedUp=1&risk=1&ack=1&amount=0.05",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22l-lookalike-acknowledged.png",
+   "figmaDark": "work/v9/screens/send-s22l-lookalike-acknowledged-dark.png",
+   "app": "work/compare/review-lookalike-ack-app.png",
+   "appDark": "work/compare/review-lookalike-ack-dark-app.png"
+  },
+  "review-burn": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x000000000000000000000000000000000000dEaD&amount=0.05",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22b-burn.png",
+   "figmaDark": "work/v9/screens/send-s22b-burn-dark.png",
+   "app": "work/compare/review-burn-app.png",
+   "appDark": "work/compare/review-burn-dark-app.png"
+  },
+  "review-burn-sheet": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x000000000000000000000000000000000000dEaD&amount=0.05&sheet=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22b-burn-sheet.png",
+   "figmaDark": "work/v9/screens/send-s22b-burn-sheet-dark.png",
+   "app": "work/compare/review-burn-sheet-app.png",
+   "appDark": "work/compare/review-burn-sheet-dark-app.png"
+  },
+  "review-burn-ack": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x000000000000000000000000000000000000dEaD&amount=0.05&ack=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22b-burn-acknowledged.png",
+   "figmaDark": "work/v9/screens/send-s22b-burn-acknowledged-dark.png",
+   "app": "work/compare/review-burn-ack-app.png",
+   "appDark": "work/compare/review-burn-ack-dark-app.png"
+  },
+  "review-contract": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238&amount=0.05",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22t-token.png",
+   "figmaDark": "work/v9/screens/send-s22t-token-dark.png",
+   "app": "work/compare/review-contract-app.png",
+   "appDark": "work/compare/review-contract-dark-app.png"
+  },
+  "review-contract-sheet": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238&amount=0.05&sheet=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22t-token-sheet.png",
+   "figmaDark": "work/v9/screens/send-s22t-token-sheet-dark.png",
+   "app": "work/compare/review-contract-sheet-app.png",
+   "appDark": "work/compare/review-contract-sheet-dark-app.png"
+  },
+  "review-contract-ack": {
+   "route": "vaultme://review?real=1&backedUp=1&to=0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238&amount=0.05&ack=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s22t-token-acknowledged.png",
+   "figmaDark": "work/v9/screens/send-s22t-token-acknowledged-dark.png",
+   "app": "work/compare/review-contract-ack-app.png",
+   "appDark": "work/compare/review-contract-ack-dark-app.png"
+  },
+  "send-gate": {
+   "route": "vaultme://send?real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s31-backup-required.png",
+   "figmaDark": "work/v9/screens/send-s31-backup-required-dark.png",
+   "app": "work/compare/send-gate-app.png",
+   "appDark": "work/compare/send-gate-dark-app.png"
+  },
+  "send-s20a-recipient-empty": {
+   "route": "vaultme://send?real=1&backedUp=1",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s20a-recipient-empty.png",
+   "figmaDark": "work/v9/screens/send-s20a-recipient-empty-dark.png",
+   "app": "work/compare/send-s20a-recipient-empty-app.png",
+   "appDark": "work/compare/send-s20a-recipient-empty-dark-app.png"
+  },
+  "send-s20a-recipient-valid": {
+   "route": "vaultme://send?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s20a-recipient-valid.png",
+   "figmaDark": "work/v9/screens/send-s20a-recipient-valid-dark.png",
+   "app": "work/compare/send-s20a-recipient-valid-app.png",
+   "appDark": "work/compare/send-s20a-recipient-valid-dark-app.png"
+  },
+  "send-s20b-amount": {
+   "route": "vaultme://send/amount?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678&amount=0.05",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s20b-amount.png",
+   "figmaDark": "work/v9/screens/send-s20b-amount-dark.png",
+   "app": "work/compare/send-s20b-amount-app.png",
+   "appDark": "work/compare/send-s20b-amount-dark-app.png"
+  },
+  "send-s20b-amount-error": {
+   "route": "vaultme://send/amount?real=1&backedUp=1&to=0x123456789aBCdef0123456789AbCDEF012345678&amount=9",
+   "testMode": false,
+   "figma": "work/v9/screens/send-s20b-amount-error.png",
+   "figmaDark": "work/v9/screens/send-s20b-amount-error-dark.png",
+   "app": "work/compare/send-s20b-amount-error-app.png",
+   "appDark": "work/compare/send-s20b-amount-error-dark-app.png"
+  },
+  "settings": {
+   "route": "vaultme://settings?real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/settings-s60.png",
+   "figmaDark": "work/v9/screens/settings-s60-dark.png",
+   "app": "work/compare/settings-app.png",
+   "appDark": "work/compare/settings-dark-app.png"
+  },
+  "settings-phrase": {
+   "route": "vaultme://settings/phrase?demo=1",
+   "testMode": true,
+   "figma": "work/v9/screens/settings-s61-phrase.png",
+   "figmaDark": "work/v9/screens/settings-s61-phrase-dark.png",
+   "app": "work/compare/settings-phrase-app.png",
+   "appDark": "work/compare/settings-phrase-dark-app.png"
+  },
+  "settings-zero": {
+   "route": "vaultme://settings/zero?real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/settings-s63-zero-value.png",
+   "figmaDark": "work/v9/screens/settings-s63-zero-value-dark.png",
+   "app": "work/compare/settings-zero-app.png",
+   "appDark": "work/compare/settings-zero-dark-app.png"
+  },
+  "start": {
+   "route": "vaultme://?demo=1",
+   "testMode": true,
+   "figma": "work/v9/screens/brand-s01-start.png",
+   "figmaDark": "work/v9/screens/brand-s01-start-dark.png",
+   "app": "work/compare/start-app.png",
+   "appDark": "work/compare/start-dark-app.png"
+  },
+  "tx-detail-realchain": {
+   "route": "vaultme://activity/abc?demo=Confirmed&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/activity-s41-realchain.png",
+   "figmaDark": "work/v9/screens/activity-s41-realchain-dark.png",
+   "app": "work/compare/tx-detail-realchain-app.png",
+   "appDark": "work/compare/tx-detail-realchain-dark-app.png"
+  },
+  "tx-detail-confirmed": {
+   "route": "vaultme://activity/abc?demo=Confirmed&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/activity-s41-confirmed.png",
+   "figmaDark": "work/v9/screens/activity-s41-confirmed-dark.png",
+   "app": "work/compare/tx-detail-confirmed-app.png",
+   "appDark": "work/compare/tx-detail-confirmed-dark-app.png"
+  },
+  "tx-detail-testmode": {
+   "route": "vaultme://activity/abc?demo=Pending",
+   "testMode": true,
+   "figma": "work/v9/screens/activity-s41-testmode.png",
+   "figmaDark": "work/v9/screens/activity-s41-testmode-dark.png",
+   "app": "work/compare/tx-detail-testmode-app.png",
+   "appDark": "work/compare/tx-detail-testmode-dark-app.png"
+  },
+  "tx-detail-clear-sheet": {
+   "route": "vaultme://activity/abc?demo=Pending&sheet=1",
+   "testMode": true,
+   "figma": "work/v9/screens/activity-s41-testmode-clear-sheet.png",
+   "figmaDark": "work/v9/screens/activity-s41-testmode-clear-sheet-dark.png",
+   "app": "work/compare/tx-detail-clear-sheet-app.png",
+   "appDark": "work/compare/tx-detail-clear-sheet-dark-app.png"
+  },
+  "tx-detail-unknown": {
+   "route": "vaultme://activity/abc?demo=Unknown&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/activity-s41-unknown.png",
+   "figmaDark": "work/v9/screens/activity-s41-unknown-dark.png",
+   "app": "work/compare/tx-detail-unknown-app.png",
+   "appDark": "work/compare/tx-detail-unknown-dark-app.png"
+  },
+  "tx-detail-apierror": {
+   "route": "vaultme://activity/abc?demo=Unknown&err=1&real=1",
+   "testMode": false,
+   "figma": "work/v9/screens/activity-s41-api-error.png",
+   "figmaDark": "work/v9/screens/activity-s41-api-error-dark.png",
+   "app": "work/compare/tx-detail-apierror-app.png",
+   "appDark": "work/compare/tx-detail-apierror-dark-app.png"
+  },
+  "update": {
+   "route": "vaultme://update-demo",
+   "testMode": true,
+   "figma": "work/v9/screens/brand-s91-update.png",
+   "figmaDark": "work/v9/screens/brand-s91-update-dark.png",
+   "app": "work/compare/update-app.png",
+   "appDark": "work/compare/update-dark-app.png"
+  }
+ },
+ "removedPairs": {
+  "asset-detail-restored": "no Figma frame",
+  "home-empty": "no Figma frame",
+  "kit": "no Figma frame",
+  "receive": "duplicate of receive-faucet",
+  "receive-backup": "duplicate of receive-before-backup",
+  "receive-sheet": "no Figma frame",
+  "restore-done": "duplicate of s06-done",
+  "result-pending-scrolled": "no Figma frame",
+  "s05-empty": "duplicate of restore",
+  "settings-bottom": "no Figma frame",
+  "settings-device": "duplicate of device",
+  "settings-push": "no Figma frame",
+  "settings-s60": "duplicate of settings",
+  "update-required": "duplicate of update"
+ }
+}
