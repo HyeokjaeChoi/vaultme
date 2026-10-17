@@ -1,75 +1,37 @@
-const TASK='audit'
-async function audit(PAGE_ID){
-// VaultMe Figma token audit. Paste into use_figma (skillNames "figma-use").
-// Set PAGE_ID (or PAGE by name) and optional ROOT_IDS. Returns counts; the screen is done only when every count is 0.
-// Flow pages: Onboarding 485:76, Home 486:76, Send & receive 486:17419, Activity 486:17436, Security & settings 486:17443.
-const PAGE=''
-const ROOT_IDS = [] // e.g. ['309:666']; empty = whole page
-// OS chrome and synthetic art are exempt: they are not product UI.
-const EXEMPT = /^(Status bar|Home indicator|Placeholder QR|QR code|Modules|Bracket|Tab hotspots)/
-// Documented asset identity artwork keeps its original fills (AGENTS.md Foundation 13, outputs/wallet-icon-guide.md):
-// Icon / Asset / ETH 137:402, Icon / Asset / USDC 137:429. Nothing else is whitelisted.
-const ASSET_ART = new Set(['137:402', '137:429'])
-
-const page = PAGE_ID ? await figma.getNodeByIdAsync(PAGE_ID) : figma.root.children.find((p) => p.name === PAGE)
-await figma.setCurrentPageAsync(page)
-const roots = ROOT_IDS.length ? await Promise.all(ROOT_IDS.map((id) => figma.getNodeByIdAsync(id))) : [page]
-const r = { gap: 0, pad: 0, radius: 0, fill: 0, stroke: 0, textNoStyle: 0, detached: 0, noticeClip: 0, unboundPaint: 0, stalePaint: 0, samples: [] }
-const hit = (k, n, extra) => { r[k]++; if (r.samples.length < 25) r.samples.push(`${k}: ${n.name} (${n.id})${extra ? ' ' + extra : ''}`) }
-const vars = new Map()
-const getVar = async (id) => { if (!vars.has(id)) vars.set(id, await figma.variables.getVariableByIdAsync(id)); return vars.get(id) }
-const near = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 0.01
-for (const root of roots) for (const n of (root.type === 'PAGE' ? [] : [root]).concat(root.findAll(() => true))) {
-  let p = n.parent, inInstance = false, exempt = EXEMPT.test(n.name), hidden = n.visible === false, art = false
-  while (p && p.type !== 'PAGE') {
-    if (p.type === 'INSTANCE') { inInstance = true; { const mc = await p.getMainComponentAsync(); if (mc && ASSET_ART.has(mc.id)) art = true } }
-    if (EXEMPT.test(p.name)) exempt = true
-    if (p.visible === false) hidden = true
-    p = p.parent
+const ONLY=["activity-s41-testmode", "activity-s41-testmode-clear-sheet", "brand-s01-start", "home-s10-empty-faucet", "onboarding-s03-hidden", "onboarding-s03-revealed", "onboarding-s03-revealed-checked", "send-s20a-recipient-empty", "send-s20a-recipient-valid", "send-s22l-lookalike-sheet", "send-s23-pending-testmode", "settings-s60", "settings-s60-full", "settings-s61-phrase", "activity-s41-testmode-full", "onboarding-s04-check", "onboarding-s04-typing", "onboarding-s04-wrong", "onboarding-s04-filled", "onboarding-s05-restore", "onboarding-s05-typing", "onboarding-s05-ready", "onboarding-s05-busy", "onboarding-s05-unknownword", "onboarding-s05-checksum", "onboarding-s05-exists", "onboarding-s05-saveerror", "onboarding-s05-passphrase-masked", "onboarding-s05-passphrase-shown", "onboarding-s05-24words"]
+// VaultMe Local Runner: TASK export-pngs (#54). Exports 1x PNGs of the mapped frames to a local receiver
+// (scratchpad recv.mjs on localhost:8765, which writes work/v9/screens/<name>.png). Needs manifest devAllowedDomains.
+const TASK = 'export-pngs'
+const MAP = {"activity-s40-list": ["404:387", "430:14668"], "activity-s40-empty": ["423:16109", "430:15259"], "activity-s40-loading": ["423:16158", "430:15278"], "activity-s40-error-cached": ["423:16236", "430:15304"], "activity-s40-error-nocache": ["457:17502", "494:17808"], "activity-s40-testmode": ["471:5163", "494:17854"], "activity-s40-unknown-replaced": ["460:5024", "494:17906"], "activity-s41-confirmed": ["423:16327", "430:15326"], "activity-s41-unknown": ["423:16381", "430:15353"], "activity-s41-realchain": ["460:4988", "494:18031"], "activity-s41-testmode": ["457:4412", "494:18069"], "activity-s41-testmode-clear-sheet": ["457:17613", "494:18109"], "activity-s41-api-error": ["457:17668", "494:18177"], "asset-s11-eth": ["423:16447", "430:15384"], "asset-s11-usdc": ["515:30153", "515:30727"], "brand-s01-start": ["423:13440", "430:15497"], "brand-s90-lock-faceid": ["423:15412", "430:16073"], "brand-s90-lock-failed": ["515:33081", "515:33242"], "brand-s91-update": ["423:15443", "430:16093"], "brand-s92-root": ["423:15474", "430:16113"], "home-s10": ["404:163", "430:14606"], "home-s10-empty-faucet": ["515:29238", "515:30619"], "home-s10-testnet-sheet": ["555:67287", "555:66213"], "home-s10-newwallet": ["423:643", "430:14732"], "home-s10-pending": ["423:742", "430:14755"], "home-s10-testdata-sheet": ["515:29783", "515:30956"], "home-s10-testmode": ["457:4274", "457:4320"], "home-s50-push-optin": ["423:14215", "430:15953"], "onboarding-s02-ack": ["423:13478", "430:15518"], "onboarding-s02-ack-checked": ["515:31398", "515:32140"], "onboarding-s03-hidden": ["423:13533", "430:15543"], "onboarding-s03-revealed": ["423:13622", "430:15570"], "onboarding-s03-revealed-checked": ["515:31608", "515:32216"], "send-s20a-recipient-empty": ["423:848", "430:14779"], "send-s20a-recipient-valid": ["423:885", "430:14802"], "send-s20b-amount": ["423:929", "430:14826"], "send-s20b-amount-full": ["423:1000", "430:14855"], "send-s20b-amount-error": ["423:1071", "430:14884"], "send-s22-review": ["404:315", "430:14628"], "send-s22-review-full": ["419:12973", "430:14692"], "send-s22-review-rechecking": ["461:5074", "494:6148"], "send-s22-autherror": ["457:16902", "494:6731"], "send-s22-chainerror": ["457:16988", "494:6777"], "send-s22-needsreview": ["457:17074", "494:6823"], "send-s22-prepareerror": ["457:17160", "494:6869"], "send-s22-pendingblock": ["457:17246", "494:6914"], "send-s22-blocked": ["457:17332", "494:6959"], "send-s22l-lookalike": ["423:14763", "430:14914"], "send-s22l-lookalike-sheet": ["423:15006", "430:15037"], "send-s22l-lookalike-acknowledged": ["494:4103", "494:6596"], "send-s22b-burn": ["423:14844", "430:14955"], "send-s22b-burn-sheet": ["430:7672", "430:15411"], "send-s22b-burn-acknowledged": ["494:4242", "494:6641"], "send-s22t-token": ["423:14925", "430:14996"], "send-s22t-token-sheet": ["430:7737", "430:15454"], "send-s22t-token-acknowledged": ["494:4381", "494:6686"], "send-s23-pending": ["423:15795", "430:15106"], "send-s23-included": ["423:15852", "430:15132"], "send-s23-confirmed": ["423:15909", "430:15158"], "send-s23-failed": ["423:15959", "430:15183"], "send-s23-unknown": ["423:16009", "430:15208"], "send-s23-replaced": ["423:16059", "430:15234"], "send-s23-pending-testmode": ["457:4366", "494:7262"], "send-s24-blocked-sheet": ["423:15062", "430:15080"], "send-s30-receive-faucet": ["423:14163", "430:15692"], "send-s31-backup-required": ["423:13750", "430:15617"], "settings-s60": ["423:13797", "430:15642"], "settings-s60-full": ["515:45343", "515:45681"], "settings-s61-phrase": ["423:13856", "430:15667"], "settings-s64-licenses": ["526:54261", "526:54545"], "settings-s64-licenses-full": ["526:54503", "526:54587"], "settings-s65-license-text": ["526:55042", "526:55830"], "send-s23-failed-reason": ["526:55172", "526:57104"], "activity-s41-confirmed-full": ["526:55415", "526:57603"], "activity-s41-realchain-full": ["526:55456", "526:57641"], "activity-s41-testmode-full": ["526:55499", "526:57681"], "activity-s41-unknown-full": ["526:55547", "526:57725"], "copy-feedback": ["555:72581", "555:65910"], "settings-s65-license-nofile": ["555:67249", "555:67925"], "onboarding-s04-check": ["423:15243", "430:15977"], "onboarding-s04-typing": ["555:70468", "555:66287"], "onboarding-s04-wrong": ["555:70515", "555:66313"], "onboarding-s04-filled": ["555:70569", "555:66339"], "onboarding-s06-done": ["423:13703", "430:15595"], "onboarding-s06-copied": ["555:70619", "555:69639"], "onboarding-s05-restore": ["423:15293", "430:16003"], "onboarding-s05-typing": ["565:85343", "565:75157"], "onboarding-s05-ready": ["565:85483", "565:75203"], "onboarding-s05-busy": ["565:85628", "565:75249"], "onboarding-s05-unknownword": ["565:85778", "565:75295"], "onboarding-s05-checksum": ["565:85919", "565:75342"], "onboarding-s05-exists": ["565:86060", "565:75389"], "onboarding-s05-saveerror": ["565:86214", "565:75437"], "onboarding-s05-passphrase-masked": ["565:86368", "565:78059"], "onboarding-s05-passphrase-shown": ["565:86527", "565:78106"], "onboarding-s05-24words": ["565:86684", "565:78153"], "onboarding-s06-passphrase": ["565:86884", "565:78211"], "home-s10b-backup-pending": ["586:97173", "586:97824"], "home-s10b-first-deposit-sheet": ["586:97341", "586:97878"], "send-s30b-receive-before-backup": ["586:97529", "586:97960"], "settings-s63-zero-value": ["423:15384", "430:16051"]}
+// ONLY = names; LOADING = also every mapped frame that shows the loading icon 137:178 (its glyph changed); matched by layer name (sync mainComponent is not allowed in dynamic-page).
+async function selected() {
+  const all = Object.entries(MAP); if (typeof ONLY === 'undefined') return all
+  const out = all.filter(([k]) => ONLY.includes(k))
+  if (typeof LOADING !== 'undefined') for (const [k, [l]] of all) {
+    if (ONLY.includes(k)) continue
+    const n = await figma.getNodeByIdAsync(l); if (!n) continue
+    let p = n; while (p.type !== 'PAGE') p = p.parent; if (figma.currentPage !== p) await figma.setCurrentPageAsync(p)
+    if (n.findOne(x => x.type === 'INSTANCE' && x.visible && /^(Spinner|Icon \/ status \/ loading)/.test(x.name) && (() => { let q = x.parent; while (q && q !== n) { if (q.visible === false) return false; q = q.parent } return true })())) out.push([k, MAP[k]])
   }
-  if (n.type === 'INSTANCE') { const mc = await n.getMainComponentAsync(); if (mc && ASSET_ART.has(mc.id)) art = true }
-  // Notice text must never be cut off (pd-review batch 1, P0-1): the Message must fit its Text frame and the instance.
-  if (n.type === 'INSTANCE' && !exempt && /Notice|Banner|Inline/.test(n.name)) {
-    const m = n.findOne((x) => x.type === 'TEXT' && x.name === 'Message')
-    if (m && m.visible && (m.parent.height < m.height - 1 || n.height < m.height)) hit('noticeClip', n)
-  }
-  // Paint check on EVERY visible node, inside instances too (pd-review final, P0-1/P1-2: #000000 text and icons).
-  // unboundPaint: a visible solid paint that is not variable-bound and not from a style.
-  // stalePaint: bound, but the stored color differs from the resolved value; the desktop export draws the stored color.
-  if (!exempt && !hidden && !art && n.type !== 'SECTION' && n.type !== 'PAGE') {
-    for (const key of ['fills', 'strokes']) {
-      let ps = n[key]
-      if (ps === figma.mixed && n.type === 'TEXT') ps = n.getStyledTextSegments(['fills']).flatMap((s) => s.fills)
-      if (!Array.isArray(ps)) continue
-      if (key === 'fills' && typeof n.fillStyleId === 'string' && n.fillStyleId) continue
-      if (key === 'strokes' && (n.strokeStyleId || !(n.strokeWeight === figma.mixed || n.strokeWeight > 0))) continue
-      for (const pt of ps) {
-        if (pt.type !== 'SOLID' || pt.visible === false || pt.opacity === 0) continue
-        const id = pt.boundVariables?.color?.id
-        if (!id) { hit('unboundPaint', n, key); break }
-        const v = await getVar(id)
-        if (!v) { hit('unboundPaint', n, key + ' missing variable'); break }
-        const res = v.resolveForConsumer(n).value
-        if (res && typeof res === 'object' && !near(res, pt.color)) { hit('stalePaint', n, key + ' ' + v.name); break }
-      }
-    }
-  }
-  if (inInstance || exempt || n.type === 'INSTANCE' || n.type === 'SECTION') continue
-  const bv = n.boundVariables || {}
-  if (n.type === 'TEXT') { if (!n.textStyleId || n.textStyleId === figma.mixed) hit('textNoStyle', n); continue }
-  if (n.layoutMode && n.layoutMode !== 'NONE') {
-    if (n.itemSpacing > 0 && !bv.itemSpacing) hit('gap', n)
-    if (['paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom'].some((k) => n[k] > 0 && !bv[k])) hit('pad', n)
-  }
-  if (['topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'].some((k) => n[k] > 0 && !bv[k])) hit('radius', n)
-  if (Array.isArray(n.fills) && n.fills.some((f) => f.type === 'SOLID' && f.visible !== false && !f.boundVariables?.color)) hit('fill', n)
-  if (Array.isArray(n.strokes) && n.strokes.some((f) => f.type === 'SOLID' && !f.boundVariables?.color)) hit('stroke', n)
-  // A frame that looks like a component copy (has a component-like name but is not an instance).
-  if (n.type === 'FRAME' && /^(Button|Input|Status notice|Asset row|Activity row|Transaction panel|Bottom sheet|List item)/.test(n.name)) hit('detached', n)
+  return out
 }
-return r
-
+async function run() {
+  const out = { ok: 0, fail: [], names: [] }
+  for (const [name, [l, d]] of (await selected())) for (const [id, file] of [[l, name + '.png'], [d, name + '-dark.png']]) {
+    try {
+      const n = await figma.getNodeByIdAsync(id); if (!n) throw new Error('missing')
+      let p = n; while (p.type !== 'PAGE') p = p.parent
+      if (figma.currentPage !== p) await figma.setCurrentPageAsync(p)
+      const bytes = await n.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } })
+      const r = await fetch('http://localhost:8765/?name=' + encodeURIComponent(file), { method: 'POST', body: bytes })
+      if (!r.ok) throw new Error('http ' + r.status); out.ok++; out.names.push(file)
+    } catch (e) { out.fail.push(file + ' ' + String(e).slice(0, 120)) }
+  }
+  return out
 }
-;(async()=>{const log={task:TASK,at:new Date().toISOString(),out:{},error:null}
-try{for(const id of ['485:76','486:76','486:17419','486:17436','486:17443','398:76']){const r=await audit(id);log.out[id]=r}}catch(e){log.error=String(e)+' '+String(e&&e.stack||'')}
-figma.root.setSharedPluginData('vaultme','log',JSON.stringify(log));figma.closePlugin('audit done')})()
+;(async () => {
+  const log = { task: TASK, at: new Date().toISOString(), out: null, error: null }
+  try { log.out = await run() } catch (e) { log.error = String(e && e.stack || e) }
+  figma.root.setSharedPluginData('vaultme', 'log', JSON.stringify(log))
+  figma.closePlugin(log.error ? 'VaultMe runner: error' : 'VaultMe runner: ok')
+})()
