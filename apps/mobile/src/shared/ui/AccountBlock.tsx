@@ -5,7 +5,7 @@ import { Button } from './Button'
 import { Icon } from './Icon'
 import { Text } from './Text'
 
-type Props = { name: string; address: string; copyLabel: string; onCopy: () => void; copied?: boolean }
+type Props = { name: string; address?: string; copyLabel: string; onCopy: () => void; copied?: boolean }
 
 /** Top block of Settings: wallet avatar, account name, short address (Address mono) and a visible "복사" Secondary sm button. The caller owns the copy (`useCopy`: impactLight haptic) and passes `copied` + the "복사했어요" `copyLabel` for 1.5 s (State=Copied 555:68342). */
 export function AccountBlock({ name, address, copyLabel, onCopy, copied }: Props) {
@@ -17,9 +17,9 @@ export function AccountBlock({ name, address, copyLabel, onCopy, copied }: Props
       </View>
       <View style={{ flex: 1 }}>
         <Text variant="headline">{name}</Text>
-        <Text variant="address" color={t.semantic.text.secondary}>{address}</Text>
+        {address ? <Text variant="address" color={t.semantic.text.secondary}>{address}</Text> : null}
       </View>
-      <Button size="sm" variant="secondary" icon="copy" label={copyLabel} {...(copied ? { copied } : {})} onPress={onCopy} />
+      {address ? <Button size="sm" variant="secondary" icon="copy" label={copyLabel} {...(copied ? { copied } : {})} onPress={onCopy} /> : null}
     </View>
   )
 }
