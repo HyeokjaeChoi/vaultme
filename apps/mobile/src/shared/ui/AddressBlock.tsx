@@ -6,7 +6,7 @@ import { useTheme } from '../theme'
 import { Icon } from './Icon'
 import { Text } from './Text'
 
-type TextProps = { address: string; /** Character indexes of the displayed address to mark (look-alike diff, `diffChars`). */ highlight?: number[]; color?: string; markColor?: string; /** S = 14/20 (transaction hash), M = 16/24 (review, result, detail), L = body.lg 18/27 (receive). */ size?: 'S' | 'M' | 'L'; /** First 6 and last 4 characters strong + text/primary, the middle text/secondary (helps spot address poisoning). Default on. */ emphasis?: boolean }
+type TextProps = { address: string; /** Character indexes of the displayed address to mark (look-alike diff, `diffChars`). */ highlight?: number[]; color?: string; markColor?: string; /** F = Fact 12/16 (transaction hash), S = 14/20 (contract address, look-alike compare), M = 16/24 (review, result, detail), L = body.lg 18/27 (receive). */ size?: 'F' | 'S' | 'M' | 'L'; /** First 6 and last 4 characters strong + text/primary, the middle text/secondary (helps spot address poisoning). Default on. */ emphasis?: boolean }
 
 type Kind = 'mid' | 'end' | 'hit'
 
@@ -17,8 +17,8 @@ type Kind = 'mid' | 'end' | 'hit'
 export function AddressText({ address, highlight = [], color, markColor, size = 'M', emphasis = true }: TextProps) {
   const t = useTheme()
   const type = t.primitive.type
-  const scale = size === 'L' ? type.body.lg : size === 'S' ? type.productB.address : type.productB.body
-  const base = { ...type.productB.address, fontSize: scale.fontSize, lineHeight: scale.lineHeight }
+  const scale = size === 'L' ? type.body.lg : size === 'F' ? type.productB.fact : size === 'S' ? type.productB.address : type.productB.body
+  const base = { ...type.productB.address, fontSize: scale.fontSize, lineHeight: scale.lineHeight, ...(size === 'F' ? { letterSpacing: type.productB.fact.letterSpacing } : {}) }
   const strong = textStyle({ ...base, fontWeight: '600' })
   const middle = color ?? (emphasis ? t.semantic.text.secondary : t.component.addressBlock.value)
   const ends = color ?? t.semantic.text.primary

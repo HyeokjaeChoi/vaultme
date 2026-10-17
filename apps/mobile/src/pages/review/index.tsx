@@ -36,7 +36,7 @@ function Compare({ current, previous }: { current: string; previous: string }) {
   )
 }
 
-const AddressTextPlain = ({ address, highlight }: { address: string; highlight?: number[] }) => <AddressText address={address} emphasis={false} {...(highlight ? { highlight } : {})} />
+const AddressTextPlain = ({ address, highlight }: { address: string; highlight?: number[] }) => <AddressText address={address} size="S" emphasis={false} {...(highlight ? { highlight } : {})} />
 
 type Notice = 'authError' | 'chainError' | 'needsReview' | 'blocked' | 'pending' | 'prepareError'
 const NOTICE: Record<Notice, { tone: 'danger' | 'warning'; key: 'send.authError' | 'send.chainError' | 'send.needsReview' | 'send.blocked' | 'send.pendingBlock' | 'send.prepareError' }> = {

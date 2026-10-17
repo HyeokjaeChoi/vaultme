@@ -28,7 +28,7 @@ const isZero = (v: string) => /^0(\.0+)?$/.test(v)
  * The first deposit while not backed up opens the backup sheet once (Q14). Send without a backup goes to the S31 gate (SendGuard).
  * A new or empty wallet shows the empty state instead of assets and activity. The chips open their explainer sheets (no sheet opens by itself).
  * An empty wallet that is backed up or restored also shows the faucet row. A Pending or Included send blocks a new send behind a sheet (Q47).
- * `variant=restored|pending|empty` and `sheet=intro|testdata|push|deposit|1` are __DEV__ capture overrides.
+ * `variant=restored|pending|empty|unbacked` (unbacked = restored data without a backup: backup row, deposit sheet) and `sheet=intro|testdata|push|deposit|1` are __DEV__ capture overrides.
  */
 export function HomePage() {
   const { t } = useTranslation()
@@ -46,7 +46,7 @@ export function HomePage() {
   useEffect(() => {
     if (__DEV__) setSheet(sheetParam ? devSheet() : null) // capture links reuse the mounted Home: follow the param
   }, [sheetParam])
-  const restored = useRestored() || dev('restored') || dev('pending')
+  const restored = useRestored() || dev('restored') || dev('pending') || dev('unbacked')
   const balanceOf = (symbol: (typeof assets)[number]['symbol'], fixture: string) => (chain.broadcasts ? (live?.[symbol] ?? '—') : restored ? fixture : '0')
   // `?variant=pending` is a synthetic Pending send.
   const shownTx = dev('pending') ? demoTx('Pending') : pending.tx
@@ -72,7 +72,7 @@ export function HomePage() {
         send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet('block') : router.push('/send')) }}
         receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
       />
-      {!restored && !backedUp ? (
+      {(!restored || dev('unbacked')) && !backedUp ? (
         <ListItem title={t('home.backupRow')} icon="deviceWarning" iconColor={th.component.icon.status.warning} trailing={{ kind: 'disclosure' }} onPress={() => router.push('/backup')} />
       ) : null}
       {empty ? (

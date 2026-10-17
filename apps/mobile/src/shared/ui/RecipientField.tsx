@@ -23,7 +23,7 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
         {isAddressFormat(value) && !focused ? (
           // Shown address: first and last group strong, grouped in 4 (Figma B/Address). Tapping it edits the raw text.
           <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => setFocused(true)}>
-            <AddressText address={value} />
+            <AddressText address={value} emphasis={false} />
           </Pressable>
         ) : (
           <TextInput

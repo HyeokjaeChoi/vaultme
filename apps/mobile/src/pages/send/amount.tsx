@@ -54,14 +54,17 @@ export function SendAmountPage() {
     >
       <View style={{ flex: 1, gap: th.semantic.layout.groupGap }}>
         <Text variant="title1" accessibilityRole="header">{t('send.amountQuestion')}</Text>
-        <View style={{ flex: 1, justifyContent: 'center' }}>
-          <AmountDisplay amount={amount} ticker="ETH" error={tooMuch} {...(sub && !tooMuch ? { sub } : {})} />
-          {tooMuch ? <StatusNotice tone="danger" title={t('send.insufficient')} {...(sendable !== null ? { body: `${t('send.maxSendable')} ${formatDecimal(sendable, 'ETH', 'floor')} ETH` } : {})} /> : null}
-        </View>
-        <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
-          {chips.map((c) => (
-            <Chip key={c.pct} label={t(c.label)} selected={chosen?.pct === c.pct} disabled={c.raw === 0n} onPress={() => setAmount(c.value)} />
-          ))}
+        {/* Composed column (Figma S20B): amount, sub line and chips sit together at the bottom of the free space, just above the keypad. */}
+        <View style={{ flex: 1, justifyContent: 'flex-end', gap: th.semantic.layout.groupGap }}>
+          <View>
+            <AmountDisplay amount={amount} ticker="ETH" error={tooMuch} {...(sub && !tooMuch ? { sub } : {})} />
+            {tooMuch ? <StatusNotice tone="danger" title={t('send.insufficient')} {...(sendable !== null ? { body: `${t('send.maxSendable')} ${formatDecimal(sendable, 'ETH', 'floor')} ETH` } : {})} /> : null}
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: th.semantic.layout.fieldGap }}>
+            {chips.map((c) => (
+              <Chip key={c.pct} label={t(c.label)} selected={chosen?.pct === c.pct} disabled={c.raw === 0n} onPress={() => setAmount(c.value)} />
+            ))}
+          </View>
         </View>
         <Keypad labels={{ dot: t('send.keypad.dot'), delete: t('send.keypad.delete') }} onKey={onKey} />
       </View>

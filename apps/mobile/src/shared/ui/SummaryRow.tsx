@@ -49,7 +49,7 @@ export function SummaryRow({ label, value, format = 'text', sub, highlight, fact
     >
       <Text variant="bodySmall" color={t.semantic.text.tertiary} style={stacked ? undefined : { width: labelWidth }}>{label}</Text>
       {address ? (
-        <AddressText address={value} highlight={highlight ?? []} {...(plain ? { size: 'S' as const, emphasis: false, color: t.semantic.text.primary } : {})} />
+        <AddressText address={value} highlight={highlight ?? []} {...(plain ? { size: fact ? ('F' as const) : ('S' as const), emphasis: false, color: fact ? t.semantic.text.secondary : t.semantic.text.primary } : {})} />
       ) : (
         <View style={stacked ? undefined : { flex: 1, alignItems: 'flex-end' }}>
           <Text variant={total ? 'headline' : fact ? 'fact' : 'body'} tabular {...(fact ? { color: t.semantic.text.secondary } : {})} style={{ textAlign: stacked ? 'left' : 'right' }}>{value}</Text>

@@ -5,13 +5,13 @@ import { Button } from './Button'
 import { Icon, type HeroIconName } from './Icon'
 import { Text } from './Text'
 
-type Props = { title: string; body: string; icon?: HeroIconName; /** Hero color: `brand` (receive), `warning` (error, backup needed). */ tone?: 'brand' | 'warning'; action?: { label: string; onPress?: () => void } }
+type Props = { title: string; body: string; icon?: HeroIconName; /** Hero color: `brand` = neutral grey (receive; accent rule: blue is only for actions), `warning` (error, backup needed). */ tone?: 'brand' | 'warning'; action?: { label: string; onPress?: () => void } }
 
 /** Empty or error state: 48 pt Bold Duotone hero (same role color, back layer 50%), Title 3, Body, optional Primary md pill. Centered. */
 export function EmptyState({ title, body, icon = 'receive', tone = 'brand', action }: Props) {
   const t = useTheme()
   const c = t.component.emptyState
-  const color = tone === 'warning' ? t.component.icon.status.warning : t.semantic.icon.brand
+  const color = tone === 'warning' ? t.component.icon.status.warning : t.semantic.icon.tertiary
   return (
     <View style={{ alignItems: 'center', gap: t.primitive.space[3], padding: c.padding }}>
       <Icon name={icon} weight="duotone" size={t.primitive.size.avatar_lg} color={color} />

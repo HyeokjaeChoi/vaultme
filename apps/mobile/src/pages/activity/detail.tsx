@@ -77,7 +77,7 @@ export function TxDetailPage() {
       <Block title={t('detail.infoTitle')}>
         <SummaryRow label={t('detail.time')} fact value={factTime(tx.createdAt)} />
         <SummaryRow label={t('result.statusLabel')} value={stateWord} />
-        <SummaryRow format="address" plain label={t('detail.hashTitle')} value={tx.hash} />
+        <SummaryRow format="address" plain fact label={t('detail.hashTitle')} value={tx.hash} />
         <SummaryRow label={t('detail.sender')} value={account.name} />
         <SummaryRow label={t('result.network')} fact value={networkFact} />
         {tx.blockNumber !== undefined && !test ? <SummaryRow label={t('detail.block')} fact value={String(tx.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} /> : null}

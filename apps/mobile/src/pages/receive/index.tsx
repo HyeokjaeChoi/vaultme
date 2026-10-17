@@ -50,7 +50,7 @@ export function ReceivePage() {
     <Screen
       header={header}
       gap="none"
-      footerLead={<FaucetRow address={address} inFooter />}
+      {...(warn ? {} : { footerLead: <FaucetRow address={address} inFooter /> })} // the faucet row is for a backed-up wallet (S30B has none)
       footer={
         <>
           <Button label={copied ? t('receive.copied') : t('receive.copy')} copied={copied} onPress={() => void copy(address)} />
