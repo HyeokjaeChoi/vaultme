@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it, vi } from 'vitest'
 
 // recents.ts pulls in the router and the encrypted kv; only the pure merge is under test.
@@ -48,7 +49,7 @@ describe('recents only hold addresses this wallet signed and sent to (analyst R4
   })
 
   it('the only writers are rememberRecipient (called by Review after a send) and the kv helper', () => {
-    const src = join(process.cwd(), 'src')
+    const src = fileURLToPath(new URL('../src', import.meta.url))
     const hits: string[] = []
     const walk = (d: string) => {
       for (const e of readdirSync(d, { withFileTypes: true })) {
