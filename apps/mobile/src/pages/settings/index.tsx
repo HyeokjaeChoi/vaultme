@@ -19,7 +19,8 @@ export function SettingsPage() {
   const router = useRouter()
   const [push] = usePushSetting()
   const [zero] = useZeroSetting()
-  const address = useAccountAddress() ?? (__DEV__ ? account.address : null) // the fixture address only fills __DEV__ captures; never offer it to copy
+  const stored = useAccountAddress()
+  const address = stored ?? (__DEV__ ? account.address : null) // the fixture address only fills __DEV__ captures; never offer it to copy
   const { copied, copy } = useCopy(t('settings.copied'))
   const pad = th.semantic.layout.screen.padding
   const tight = th.primitive.space[1]
@@ -34,7 +35,7 @@ export function SettingsPage() {
           {...(address ? { address: shortAddress(address) } : {})}
           copyLabel={copied ? t('settings.copied') : t('asset.copy')}
           copied={copied}
-          onCopy={() => address && void copy(address)}
+          onCopy={() => stored && void copy(stored)}
         />
       </View>
       <SectionBand />

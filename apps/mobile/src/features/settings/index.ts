@@ -19,11 +19,11 @@ function useSetting([get, set, fallback]: Setting): [boolean, (v: boolean) => vo
   return [
     value,
     (v) => {
-      setValue(v)
       try {
         set(v)
+        setValue(v) // shown only once stored: a failed write leaves the previous value on screen
       } catch {
-        // kv unavailable: the toggle still shows, the next read returns the default
+        // kv unavailable: nothing was saved, so the switch keeps showing what the next read returns
       }
     },
   ]
