@@ -76,7 +76,7 @@ export function LockPage({ onUnlock, autoPrompt = true, initial }: { onUnlock: (
       actions={
         busy ? (
           <View accessibilityLiveRegion="polite" style={{ height: th.component.buttonB.height.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: th.primitive.space[2] }}>
-            <Icon name="face" size={(th.primitive.size.icon_xl * 2) / 3} color={th.semantic.icon.primary} />
+            {key === 'faceId' || key === 'face' ? <Icon name="face" size={(th.primitive.size.icon_xl * 2) / 3} color={th.semantic.icon.primary} /> : null}
             {key ? <Text variant="label" color={th.semantic.text.secondary}>{t(`lock.checking.${key}`)}</Text> : null}
           </View>
         ) : (
