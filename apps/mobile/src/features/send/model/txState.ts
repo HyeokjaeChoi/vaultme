@@ -34,12 +34,24 @@ export function deriveState(f: Facts): TxState {
   return f.current === 'Included' ? 'Pending' : f.current
 }
 
+/** Test-data mode: how long a fake send stays Pending before the fake adapter settles it as Confirmed (issue #64 decision 14). */
+export const FAKE_SETTLE_MS = 6_000
+/** Block number shown for a fake send once it settles (test data, like the Figma S41 example). */
+const FAKE_BLOCK = 5_812_044
+
+/** The fake adapter sent nothing: a Pending send settles as Confirmed `FAKE_SETTLE_MS` after it was created. Any other state stays as it is. Pure: the clock comes in. */
+export function fakeSettle(tx: PendingTx, now: number): PendingTx {
+  if (tx.state !== 'Pending') return { ...tx, lastCheckedAt: now }
+  return now - tx.createdAt >= FAKE_SETTLE_MS ? { ...tx, state: 'Confirmed', blockNumber: FAKE_BLOCK, lastCheckedAt: now } : { ...tx, lastCheckedAt: now }
+}
+
 /**
  * One status check (S41 "상태 다시 확인", the 15 s poll). Throws when the network could not be asked: the caller keeps the old record.
- * The fake adapter sent nothing, so it only refreshes the checked time.
+ * The fake adapter sent nothing: it settles a Pending send after `FAKE_SETTLE_MS` (`fakeSettle`).
  */
 export async function checkTx(tx: PendingTx, chain: Pick<ChainPort, 'broadcasts' | 'getReceipt' | 'getSafeBlock' | 'getSafeNonce'>, from: Address, now: () => number): Promise<PendingTx> {
-  if (!chain.broadcasts || isFinal(tx.state)) return { ...tx, lastCheckedAt: now() }
+  if (!chain.broadcasts) return fakeSettle(tx, now())
+  if (isFinal(tx.state)) return { ...tx, lastCheckedAt: now() }
   const receipt = await chain.getReceipt(tx.hash as Hash)
   const [safeBlock, safeNonce] = receipt ? [await chain.getSafeBlock(), null] : [null, await chain.getSafeNonce(from)]
   const state = deriveState({ current: tx.state, nonce: tx.nonce, receipt, safeBlock, safeNonce })

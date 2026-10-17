@@ -97,3 +97,9 @@ it('has the seamless follow-up copy (2026-10-17)', () => {
   expect(i18n.t('busy.restore')).toBe('복구하는 중…')
   expect(i18n.t('home.introCta')).toBe('확인')
 })
+
+it('has the USDC send copy (issue #64)', () => {
+  expect(i18n.t('send.assetQuestion')).toBe('어떤 자산을 보낼까요?')
+  expect(i18n.t('send.feeShort')).toBe('수수료로 쓸 ETH가 부족해요')
+  expect(i18n.t('review.feeShort', { amount: '0.000118' })).toBe('수수료로 쓸 ETH가 부족해요.\n0.000118 ETH가 더 필요해요.')
+})

@@ -1,5 +1,6 @@
 import { toUnits, txHash, type AssetId, type ChainSnapshot } from '@vaultme/wallet-core'
 import { assets } from '@/entities/asset/fixtures'
+import { isEthShort } from './devOverride'
 import type { ChainPort } from './port'
 
 export type NonceStore = { get(): number; set(n: number): void }
@@ -10,7 +11,10 @@ const BASE_FEE = 3n * GWEI / 2n
 const TIP = GWEI / 2n
 const GAS_LIMIT: Record<AssetId, bigint> = { ETH: 21_000n, USDC: 65_000n }
 
-const balance = (symbol: AssetId) => toUnits(assets.find((a) => a.symbol === symbol)?.balance ?? '0', symbol)
+// Test data with too little ETH for a USDC fee (dev switch `?ethShort=1`): 0.0001095 ETH against the 0.0002275 ETH USDC fee cap = 0.000118 ETH short (Figma B-S22U ETH short).
+const SHORT_ETH = 109_500_000_000_000n
+
+const balance = (symbol: AssetId) => (symbol === 'ETH' && isEthShort() ? SHORT_ETH : toUnits(assets.find((a) => a.symbol === symbol)?.balance ?? '0', symbol))
 
 /** Fake adapter (dev and tests without an API, `EXPO_PUBLIC_API_URL` unset): fixture snapshot, local hash, no network. */
 export function createFakeChain(nonce: NonceStore): ChainPort {

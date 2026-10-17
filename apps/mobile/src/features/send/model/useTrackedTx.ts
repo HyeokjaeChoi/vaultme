@@ -9,6 +9,8 @@ import { readPendingTx, usePendingTx, writePendingTx } from './usePendingTx'
 
 /** hld.md §4.1: re-check a Pending or Included send every 15 s while its screen is focused. */
 export const POLL_MS = 15_000
+/** Test-data mode polls faster, so a fake send is seen settling (fakeSettle). */
+export const FAKE_POLL_MS = 3_000
 
 /** Re-reads the kv record and checks it against the chain. Returns the new state, or null when there was nothing to check. Throws when the network could not be asked. */
 export async function checkStored(): Promise<TxState | null> {
@@ -63,8 +65,8 @@ export function useTrackedTx(): { tx: PendingTx | null; blocked: boolean; checki
   const polled = tx !== null && isPolled(tx.state)
   useFocusEffect(
     useCallback(() => {
-      if (!active || !polled || !chain.broadcasts) return undefined
-      return startPolling(run, POLL_MS)
+      if (!active || !polled) return undefined
+      return startPolling(run, chain.broadcasts ? POLL_MS : FAKE_POLL_MS)
     }, [active, polled, run]),
   )
   return { tx, blocked, checking, error, recheck }

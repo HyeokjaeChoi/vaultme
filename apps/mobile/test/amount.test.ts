@@ -54,3 +54,20 @@ it('00 adds two zeros at once', () => {
   expect(applyKey('1', '00')).toBe('100')
   expect(applyKey('0', '00')).toBe('0')
 })
+
+import { pressKey } from '../src/shared/lib/amount'
+
+it('USDC input stops at 6 decimals and the 00 key adds two zeros', () => {
+  expect(applyKey('2.123456', '7', 6)).toBe('2.123456')
+  expect(applyKey('2.12345', '7', 6)).toBe('2.123457')
+  expect(applyKey('5', '00', 6)).toBe('500')
+  expect(applyKey('5.', '00', 6)).toBe('5.00')
+  expect(applyKey('0', '00', 6)).toBe('0')
+  expect(applyKey('1.12345', '00', 6)).toBe('1.123450') // the second zero is dropped at 6 digits
+})
+it('pressKey checks the max in the asset units and rejects an over-max key', () => {
+  expect(pressKey('25', '5', '25.5', 'USDC')).toEqual({ amount: '25', accepted: false, overMax: true })
+  expect(pressKey('25', '.', '25.5', 'USDC')).toMatchObject({ amount: '25.', accepted: true })
+  expect(pressKey('2', '00', '25.5', 'USDC')).toEqual({ amount: '2', accepted: false, overMax: true })
+  expect(pressKey('1.1234567', '1', null, 'USDC').accepted).toBe(false)
+})
