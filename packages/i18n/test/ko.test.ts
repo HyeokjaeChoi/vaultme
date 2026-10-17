@@ -105,7 +105,7 @@ it('has the USDC send copy (issue #64)', () => {
 })
 
 it('has the QR scan copy (issue #64)', () => {
-  expect(i18n.t('send.qr.wrongChain.bodyKnown', { name: 'Ethereum 메인넷', chainId: 1, sepolia: 11155111 })).toBe('이 QR은 Ethereum 메인넷(1) 주소예요. VaultMe는 Sepolia(11155111)로만 보내요.\n받는 사람에게 Sepolia 주소를 다시 받으세요.')
+  expect(i18n.t('send.qr.wrongChain.bodyKnown', { name: 'Ethereum 메인넷', chainId: 1, sepolia: 11155111 })).toBe('이 QR은 Ethereum 메인넷용이에요. VaultMe는 Sepolia(11155111)로만 보내요.\n받는 사람에게 Sepolia 주소를 다시 받으세요.')
   expect(i18n.t('send.qr.wrongChain.body', { chainId: 56, copula: '이에요', sepolia: 11155111 })).toContain('체인 ID는 56이에요')
   expect(i18n.t('send.qr.amountNote')).toBe('QR에 금액이나 자산이 들어 있어도 주소만 가져와요.\n금액은 직접 입력해요.')
 })
