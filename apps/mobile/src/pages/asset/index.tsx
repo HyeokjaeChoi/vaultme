@@ -7,6 +7,7 @@ import { account } from '@/entities/account/fixtures'
 import { assets } from '@/entities/asset/fixtures'
 import { useHistory } from '@/features/history'
 import { useLiveBalances } from '@/features/balances'
+import { sendHref, useBackupGate } from '@/features/backup'
 import { useRestored } from '@/features/restore'
 import { useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
@@ -27,6 +28,7 @@ export function AssetDetailPage() {
   const live = useLiveBalances()
   const restored = useRestored() || (__DEV__ && variant === 'restored') // `?variant=restored` is a __DEV__ capture override
   const { tx, blocked } = useTrackedTx()
+  const { canSend } = useBackupGate()
   const { view } = useHistory()
   const { copied, copy } = useCopy(t('asset.copied'))
   if (!asset) return null
@@ -38,7 +40,7 @@ export function AssetDetailPage() {
       <AmountHero asset={asset.symbol} amount={balance} unit={asset.symbol} />
       <View style={{ paddingHorizontal: th.semantic.layout.screen.padding }}>
         <ActionRow
-          send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? router.push('/home') : router.push('/send')) }}
+          send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? router.push('/home') : router.push(sendHref(canSend || restored))) }}
           receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
         />
       </View>

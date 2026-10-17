@@ -32,9 +32,9 @@ export const setPushSetting = (v: boolean): void => store().set('settings.push',
 export const getZeroSetting = (): boolean => store().getBoolean('settings.zero') ?? false
 export const setZeroSetting = (v: boolean): void => store().set('settings.zero', v)
 
-/** S10 first-launch sheet ("Sepolia 테스트넷 지갑이에요") was shown and confirmed once. */
-export const getIntroSeen = (): boolean => store().getBoolean('home.introSeen') ?? false
-export const setIntroSeen = (v: boolean): void => store().set('home.introSeen', v)
+/** Q14: the "back up now" sheet after the first incoming deposit was shown once. Reset when a wallet is created or restored. */
+export const getDepositPromptShown = (): boolean => store().getBoolean('backup.depositPromptShown') ?? false
+export const setDepositPromptShown = (v: boolean): void => store().set('backup.depositPromptShown', v)
 
 export const getBackupDone = (): boolean => store().getBoolean('backupDone') ?? false
 export const setBackupDone = (v: boolean): void => store().set('backupDone', v)

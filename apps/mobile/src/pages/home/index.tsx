@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { assets } from '@/entities/asset/fixtures'
 import { demoTx } from '@/entities/transaction/fixtures'
-import { useAccountAddress, useBackupDone } from '@/features/backup'
+import { sendHref, useAccountAddress, useBackupDone, useBackupGate } from '@/features/backup'
 import { useLiveBalances } from '@/features/balances'
 import { useHistory } from '@/features/history'
 import { PushOptInSheet } from '@/features/push-optin/ui/PushOptInSheet'
@@ -36,6 +36,8 @@ export function HomePage() {
   const { variant, sheet: sheetParam } = useLocalSearchParams<{ variant?: string; sheet?: string }>()
   const dev = (v: string) => __DEV__ && variant === v
   const backedUp = useBackupDone() || dev('empty')
+  const gate = useBackupGate()
+  // TODO(figma): Q14 deposit sheet. Open the new backup sheet when gate.shouldPromptAfterDeposit, call gate.markPromptShown() on open. No UI until the Figma frame exists.
   const pending = useTrackedTx()
   const live = useLiveBalances()
   const { view } = useHistory()
@@ -61,7 +63,7 @@ export function HomePage() {
       <PortfolioBalance label={t('home.heroLabel')} value={eth} unit="ETH" note={t('home.priceNote')} />
       <ActionRow
         primary={empty ? 'receive' : 'send'}
-        send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet('block') : router.push('/send')) }}
+        send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet('block') : router.push(sendHref(gate.canSend || dev('empty')))) }}
         receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
       />
       {!restored && !backedUp ? (

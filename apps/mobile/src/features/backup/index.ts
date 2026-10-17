@@ -1,2 +1,5 @@
 export { useBackupDone } from './model/useBackupDone'
 export { useAccountAddress } from './model/useAccountAddress'
+export { useBackupGate } from './model/useBackupGate'
+export { sendHref, backupGateState, type BackupGateState } from './model/gate'
+export { SendGuard } from './ui/SendGuard'

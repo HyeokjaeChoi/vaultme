@@ -1,5 +1,5 @@
 import { deriveAddress, toMnemonic } from '@vaultme/wallet-core'
-import { clearAccountAddress, deletePhrase, hasPhrase, savePhrase, setAccountAddress, setBackupDone, setRestored, type AuthPrompt } from '@/shared/storage'
+import { clearAccountAddress, deletePhrase, hasPhrase, savePhrase, setAccountAddress, setBackupDone, setDepositPromptShown, setRestored, type AuthPrompt } from '@/shared/storage'
 import { inspectPhrase, type PhraseIssue } from './phrase'
 
 export type RestoreResult =
@@ -26,6 +26,7 @@ export async function restoreWallet(text: string, prompt: AuthPrompt, passphrase
     const address = deriveAddress(m)
     setAccountAddress(address)
     setBackupDone(false)
+    setDepositPromptShown(false)
     setRestored(true)
     return { status: 'ok', address }
   } catch {
@@ -47,5 +48,6 @@ export async function removeRestoredWallet(): Promise<boolean> {
   clearAccountAddress()
   setRestored(false)
   setBackupDone(false)
+  setDepositPromptShown(false)
   return true
 }
