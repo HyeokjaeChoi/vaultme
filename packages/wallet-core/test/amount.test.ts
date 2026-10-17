@@ -1,6 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, test } from 'vitest'
-import { AmountError, fromUnits, maxSendable, toUnits, type AssetId } from '../src'
+import { AmountError, chipAmount, fromUnits, maxSendable, toUnits, type AssetId } from '../src'
 
 const assets: AssetId[] = ['ETH', 'USDC']
 const decimals = { ETH: 18, USDC: 6 } as const
@@ -64,6 +64,39 @@ describe('maxSendable', () => {
         if (!r.ok) return
         expect(r.amount <= bal).toBe(true)
         if (a === 'ETH' && r.amount > 0n) expect(r.amount + fee <= bal).toBe(true)
+      }),
+    )
+  })
+})
+
+describe('chipAmount', () => {
+  const eth = (s: string) => toUnits(s, 'ETH')
+  test('ETH 전액 = balance - fee cap, floored to 6 display digits', () => {
+    // 1.284732 - 0.0000735 = 1.2846585 -> 1.284658 (floor, not round)
+    expect(chipAmount('ETH', 100, eth('1.284732'), eth('0.0000735'), eth('1.284732'))).toBe(eth('1.284658'))
+  })
+  test('ETH 25% and 50% are shares of the sendable amount, floored', () => {
+    expect(chipAmount('ETH', 50, eth('1.284732'), eth('0.0000735'), eth('1.284732'))).toBe(eth('0.642329')) // 0.64232925 -> floor
+    expect(chipAmount('ETH', 25, eth('1.284732'), eth('0.0000735'), eth('1.284732'))).toBe(eth('0.321164')) // 0.3211646.. -> floor
+  })
+  test('ETH balance at or below the fee cap -> 0 (chip disabled)', () => {
+    expect(chipAmount('ETH', 100, eth('0.0000735'), eth('0.0000735'), eth('0.0000735'))).toBe(0n)
+    expect(chipAmount('ETH', 100, eth('0.00001'), eth('0.0000735'), eth('0.00001'))).toBe(0n)
+  })
+  test('USDC: shares of the balance, floored to 2 digits; no native for the fee -> 0', () => {
+    const usdc = (s: string) => toUnits(s, 'USDC')
+    expect(chipAmount('USDC', 100, usdc('250.00'), eth('0.0000735'), eth('1'))).toBe(usdc('250'))
+    expect(chipAmount('USDC', 50, usdc('12.51'), eth('0.0000735'), eth('1'))).toBe(usdc('6.25')) // 6.255 -> 6.25
+    expect(chipAmount('USDC', 100, usdc('250'), eth('0.0000735'), eth('0.00001'))).toBe(0n)
+  })
+  test('floor never exceeds the share and stays on the display grid (property)', () => {
+    fc.assert(
+      fc.property(fc.constantFrom(...assets), fc.constantFrom(25 as const, 50 as const, 100 as const), fc.bigInt({ min: 0n, max: 2n ** 90n }), fc.bigInt({ min: 0n, max: 2n ** 60n }), (a, pct, bal, cap) => {
+        const got = chipAmount(a, pct, bal, cap, bal + cap)
+        const m = maxSendable(bal, a, cap, bal + cap)
+        const max = m.ok ? m.amount : 0n
+        expect(got <= (max * BigInt(pct)) / 100n).toBe(true)
+        expect(got % 10n ** BigInt(decimals[a] - (a === 'ETH' ? 6 : 2))).toBe(0n)
       }),
     )
   })

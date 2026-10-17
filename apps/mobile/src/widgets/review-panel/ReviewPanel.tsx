@@ -1,52 +1,85 @@
+import { useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
+import { assets } from '@/entities/asset/fixtures'
 import type { ReviewValues } from '@/entities/transaction/review'
-import { diffGroups, displayGroups } from '@/shared/lib/address'
+import { diffChars } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
-import { Group, StatusNotice, SummaryRow, Text } from '@/shared/ui'
+import { AmountHero, Block, SectionBand, StatusNotice, SummaryRow, Text } from '@/shared/ui'
+import { AddressText } from '@/shared/ui/AddressBlock'
 
-type Props = { values: ReviewValues; checkedAt: string; onRecalc: () => void; onEditRecipient: () => void; onEditAmount: () => void }
+type Props = {
+  values: ReviewValues
+  checkedAt: string
+  rechecking: boolean
+  onRecheck: () => void
+  /** The risk sheet was confirmed: the risk line replaces the Banner and the safe-looking caption comes back (look-alike only). */
+  acknowledged: boolean
+  /** Fee and cap could not be read: the hero says so instead of showing a total. */
+  feeUnknown: boolean
+  /** Blocking Banner (error states), shown above the hero. */
+  banner?: { tone: 'danger' | 'warning'; title: string; body: string }
+  onEditRecipient: () => void
+  onEditAmount: () => void
+}
 
 /**
- * R-S22 Review body: question, amount, the answers as flat Summary rows in one white group, fee and total, then one check notice.
- * `values.previous` set = look-alike recipient (R-S22L): the differing 4-char chunks are marked and the notice is a warning.
- * Values come from the entered recipient, amount and the wallet-core prepare() result. The "다시 계산" link on the check-time row asks the page to fetch a fresh snapshot.
+ * B-S22 Review body (Figma 419:12973 full, risk 423:14763 look-alike / 423:14844 burn / 423:14925 token). Full bleed, blocks split by Section bands:
+ * [Banner] -> amount hero (asset logo, Figure + unit, sentence + total) -> 받는 사람 (full address, 수정) -> 비용 (fee and total; 자세히 adds the max fee and "최대 …"; caption, check notice with "다시 확인") -> 보내는 것 (asset / network / account, 수정). Fee and total stay in the first viewport.
+ * A risky recipient (look-alike, burn, token contract; wallet-core `recipientRisk`) shows a danger Banner before the address; look-alike marks the differing 4-char groups (`values.previous`).
  */
-export function ReviewPanel({ values, checkedAt, onRecalc, onEditRecipient, onEditAmount }: Props) {
+export function ReviewPanel({ values, checkedAt, rechecking, onRecheck, acknowledged, feeUnknown, banner, onEditRecipient, onEditAmount }: Props) {
   const { t } = useTranslation()
   const th = useTheme()
-  const { recipient, previous } = values
-  const risk = previous !== null
-  const diff = risk ? diffGroups(recipient, previous) : []
-  const chunks = diff.map((i) => displayGroups(recipient)[i]).join(' ')
+  const [open, setOpen] = useState(false) // collapsed: fee and total in the first viewport; "자세히" adds the fee cap
+  const { recipient, previous, risk } = values
+  const diff = previous !== null ? diffChars(recipient, previous) : []
+  const risky = risk === 'lookalike' || risk === 'burn' || risk === 'tokenContract'
+  const [figure, unit] = values.amount.split(' ')
+  // The "format only" caption: not under an unconfirmed risk, and after a burn or token confirmation it stays hidden (only look-alike brings it back).
+  const caption = !risky || (acknowledged && risk === 'lookalike')
+  const pad = th.semantic.layout.screen.padding
   return (
     <>
-      <View style={{ gap: th.semantic.layout.sectionGap.product }}>
-        <Text variant="title" accessibilityRole="header">{t('review.title')}</Text>
-        <View style={{ gap: th.semantic.layout.fieldGap }}>
-          <Text variant="amountHero">{values.amount}</Text>
-          <Text variant="body" color={th.semantic.text.secondary}>{t('review.scope', { network: account.network, account: account.name })}</Text>
+      {banner ? (
+        <View style={{ paddingHorizontal: pad, paddingTop: th.primitive.space[2] }}>
+          <StatusNotice tier="banner" tone={banner.tone} title={banner.title} body={banner.body} />
         </View>
-      </View>
-      <Group>
-        <SummaryRow format="address" label={t('review.recipient')} value={recipient} highlight={diff} editLabel={t('common.edit')} onEdit={onEditRecipient} />
-        <SummaryRow label={t('review.amount')} value={values.amount} editLabel={t('common.edit')} onEdit={onEditAmount} />
+      ) : null}
+      <AmountHero
+        asset="ETH"
+        amount={figure ?? values.amount}
+        unit={unit ?? 'ETH'}
+        lines={[t('review.heroTo', { account: account.name }), feeUnknown ? t('review.heroFeeAgain') : t('review.heroTotal', { total: values.total })]}
+      />
+      <SectionBand />
+      <Block title={t('review.blockRecipient')} link={t('common.edit')} onLink={onEditRecipient}>
+        {risky && !acknowledged ? <StatusNotice tier="banner" tone="danger" title={t(`review.${risk}.title`)} body={t(`review.${risk}.body`)} /> : null}
+        <AddressText address={recipient} highlight={diff} />
+        {risky && acknowledged ? <StatusNotice tone="danger" title={t(`review.acknowledged.${risk}`)} /> : null}
+        {caption ? <Text variant="caption" color={th.semantic.text.tertiary}>{t('review.checkedFormat')}</Text> : null}
+      </Block>
+      <SectionBand />
+      <Block title={t('review.blockCost')} link={open ? t('review.fold') : t('review.unfold')} onLink={() => setOpen((v) => !v)}>
+        <SummaryRow label={t('review.fee')} value={feeUnknown ? '—' : values.fee} />
+        {open && !feeUnknown ? <SummaryRow label={t('review.feeCap')} value={values.feeCap} /> : null}
+        <SummaryRow format="total" label={t('review.total')} value={feeUnknown ? '—' : values.total} {...(open && !feeUnknown ? { sub: t('review.totalMax', { amount: values.totalMax }) } : {})} />
+        <Text variant="caption" color={th.semantic.text.tertiary}>{t('review.feeNote')}</Text>
+        {rechecking ? (
+          <View accessibilityLiveRegion="polite">
+            <StatusNotice tone="info" icon="loading" title={t('review.rechecking')} />
+          </View>
+        ) : (
+          <StatusNotice tone="info" title={t('review.checkedTime', { time: checkedAt })} link={{ label: t('review.recheck'), onPress: onRecheck }} />
+        )}
+      </Block>
+      <SectionBand />
+      <Block title={t('review.blockAsset')} link={t('common.edit')} onLink={onEditAmount}>
+        <SummaryRow label={t('review.asset')} value={assets[0].name} />
         <SummaryRow label={t('review.network')} value={account.network} />
-      </Group>
-      <Group surface={false}>
-        <SummaryRow label={t('review.fee')} value={values.fee} />
-        <SummaryRow label={t('review.feeCap')} value={values.feeCap} />
-        <SummaryRow format="total" label={t('review.total')} value={values.total} />
-        <SummaryRow label={t('review.checkedAt')} value={checkedAt} editLabel={t('review.recalc')} editAccessibilityLabel={t('review.recalcLabel')} onEdit={onRecalc} />
-      </Group>
-      {values.risk === 'burn' || values.risk === 'tokenContract' ? (
-        <StatusNotice tone="warning" title={t(`review.${values.risk}.title`)} body={t(`review.${values.risk}.body`)} />
-      ) : risk ? (
-        <StatusNotice tone="warning" title={t('review.lookalike.title', { count: diff.length })} body={t('review.lookalike.body', { chunks })} />
-      ) : (
-        <StatusNotice tone="info" title={t('review.checkedTitle')} body={t('review.checkedBody', { time: checkedAt })} />
-      )}
+        <SummaryRow label={t('review.account')} value={account.name} />
+      </Block>
     </>
   )
 }

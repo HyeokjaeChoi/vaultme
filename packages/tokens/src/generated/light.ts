@@ -52,7 +52,8 @@ export const light = {
         "600": "#A9660A",
         "700": "#865007",
         "800": "#693F0B",
-        "900": "#53340F"
+        "900": "#53340F",
+        "950": "#342617"
       },
       "red": {
         "50": "#FBE8E9",
@@ -64,7 +65,8 @@ export const light = {
         "600": "#B93340",
         "700": "#982934",
         "800": "#7A252E",
-        "900": "#612229"
+        "900": "#612229",
+        "950": "#3C1F21"
       },
       "identity": {
         "blue": {
@@ -113,7 +115,11 @@ export const light = {
       "wallet_status_card": 240,
       "product_header": 56,
       "product_nav": 64,
-      "review_panel": 480
+      "review_panel": 480,
+      "pill_lg": 56,
+      "pill_md": 48,
+      "pill_sm": 40,
+      "badge": 18
     },
     "radius": {
       "none": 0,
@@ -322,6 +328,127 @@ export const light = {
           "lineHeight": 20,
           "letterSpacing": 0
         }
+      },
+      "productB": {
+        "displayL": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 40,
+          "lineHeight": 48,
+          "letterSpacing": -1.2
+        },
+        "displayM": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 32,
+          "lineHeight": 40,
+          "letterSpacing": -0.8
+        },
+        "title1": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 26,
+          "lineHeight": 34,
+          "letterSpacing": -0.6
+        },
+        "title2": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 22,
+          "lineHeight": 30,
+          "letterSpacing": -0.5
+        },
+        "title3": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 19,
+          "lineHeight": 27,
+          "letterSpacing": -0.4
+        },
+        "headline": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 17,
+          "lineHeight": 25,
+          "letterSpacing": -0.3
+        },
+        "rowTitle": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "500",
+          "fontSize": 17,
+          "lineHeight": 25,
+          "letterSpacing": -0.3
+        },
+        "body": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
+          "fontSize": 16,
+          "lineHeight": 24,
+          "letterSpacing": -0.3
+        },
+        "bodySmall": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
+          "fontSize": 15,
+          "lineHeight": 22,
+          "letterSpacing": -0.2
+        },
+        "label": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "500",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": -0.2
+        },
+        "caption": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
+          "fontSize": 12,
+          "lineHeight": 17,
+          "letterSpacing": -0.1
+        },
+        "address": {
+          "fontFamily": "IBM Plex Mono",
+          "fontWeight": "400",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": 0
+        },
+        "figure": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "700",
+          "fontSize": 44,
+          "lineHeight": 52,
+          "letterSpacing": -1.2
+        },
+        "figureUnit": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 24,
+          "lineHeight": 32,
+          "letterSpacing": -0.5
+        },
+        "fact": {
+          "fontFamily": "IBM Plex Mono",
+          "fontWeight": "400",
+          "fontSize": 12,
+          "lineHeight": 16,
+          "letterSpacing": 0.24
+        },
+        "factUpper": {
+          "fontFamily": "IBM Plex Mono",
+          "fontWeight": "500",
+          "fontSize": 12,
+          "lineHeight": 16,
+          "letterSpacing": 0.24
+        },
+        "link": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "500",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": -0.2
+        }
       }
     },
     "elevation": {
@@ -429,14 +556,17 @@ export const light = {
       "selected": "#F3F7FF",
       "hover": "#F6F8FB",
       "pressed": "#EEF2F7",
-      "portfolioSummary": "#DCE8FD"
+      "portfolioSummary": "#DCE8FD",
+      "disabled": "#EEF2F7",
+      "pressedOnRaised": "#EEF2F7",
+      "inset": "#F6F8FB"
     },
     "text": {
       "primary": "#11161D",
       "secondary": "#394553",
       "tertiary": "#505C6C",
       "inverse": "#FFFFFF",
-      "link": "#2944DB",
+      "link": "#11161D",
       "disabled": "#505C6C",
       "onBrand": "#FFFFFF",
       "onStatusTint": "#11161D"
@@ -504,9 +634,9 @@ export const light = {
         "border": "#E98B95"
       },
       "info": {
-        "fg": "#2D4E9F",
-        "bg": "#F3F7FF",
-        "border": "#96B8F8"
+        "fg": "#394553",
+        "bg": "#F6F8FB",
+        "border": "#DDE4EC"
       },
       "unknown": {
         "fg": "#394553",
@@ -627,7 +757,7 @@ export const light = {
     },
     "financial": {
       "change": {
-        "positive": "#116D48",
+        "positive": "#11161D",
         "negative": "#982934",
         "neutral": "#505C6C"
       }
@@ -761,7 +891,7 @@ export const light = {
     },
     "input": {
       "bg": {
-        "default": "#FFFFFF",
+        "default": "#EEF2F7",
         "disabled": "#F6F8FB"
       },
       "fg": "#11161D",
@@ -875,9 +1005,9 @@ export const light = {
         "border": "#E98B95"
       },
       "info": {
-        "fg": "#2D4E9F",
-        "bg": "#F3F7FF",
-        "border": "#96B8F8"
+        "fg": "#394553",
+        "bg": "#F6F8FB",
+        "border": "#DDE4EC"
       },
       "unknown": {
         "fg": "#394553",
@@ -890,7 +1020,7 @@ export const light = {
       "border": "#DDE4EC",
       "link": {
         "default": "#394553",
-        "hover": "#2944DB",
+        "hover": "#11161D",
         "active": "#11161D",
         "focus": "#3152FF"
       },
@@ -1368,8 +1498,8 @@ export const light = {
       "account": "#11161D",
       "permission": "#394553",
       "notice": {
-        "fg": "#2D4E9F",
-        "bg": "#F3F7FF"
+        "fg": "#394553",
+        "bg": "#F6F8FB"
       },
       "radius": 20,
       "padding": 24,
@@ -1458,7 +1588,7 @@ export const light = {
       "border": "#808D9D",
       "origin": "#11161D",
       "scope": "#394553",
-      "action": "#2944DB",
+      "action": "#11161D",
       "radius": 12,
       "padding": 16,
       "height": 120,
@@ -1483,9 +1613,9 @@ export const light = {
       "border": "#808D9D",
       "spender": "#11161D",
       "detail": "#394553",
-      "limited": "#2D4E9F",
+      "limited": "#394553",
       "unlimited": "#865007",
-      "action": "#2944DB",
+      "action": "#11161D",
       "radius": 12,
       "padding": 16,
       "height": 120,
@@ -1545,7 +1675,7 @@ export const light = {
         "shadowRadius": 12,
         "shadowOpacity": 1
       },
-      "scrimBg": "#11161D",
+      "scrimBg": "#0B0F15",
       "scrimOpacity": 0.4
     },
     "productHeader": {
@@ -1623,9 +1753,9 @@ export const light = {
       "padding": 16,
       "gap": 8,
       "info": {
-        "fg": "#2D4E9F",
-        "bg": "#F3F7FF",
-        "border": "#96B8F8",
+        "fg": "#394553",
+        "bg": "#F6F8FB",
+        "border": "#DDE4EC",
         "borderWidth": 0
       },
       "warning": {
@@ -1747,7 +1877,7 @@ export const light = {
         "confirmed": "#116D48",
         "failed": "#982934",
         "warning": "#865007",
-        "info": "#2D4E9F",
+        "info": "#505C6C",
         "unknown": "#394553",
         "clear": "#394553"
       }
@@ -1787,6 +1917,90 @@ export const light = {
       "hint": "#394553",
       "wordBg": "#FFFFFF",
       "radius": 16
+    },
+    "buttonB": {
+      "height": {
+        "lg": 56,
+        "md": 48,
+        "sm": 40
+      },
+      "radius": 999,
+      "paddingX": {
+        "lg": 24,
+        "md": 20,
+        "sm": 16
+      },
+      "primary": {
+        "bg": "#3152FF",
+        "fg": "#FFFFFF",
+        "bgDisabled": "#EEF2F7",
+        "fgDisabled": "#505C6C"
+      },
+      "secondary": {
+        "bg": "#EEF2F7",
+        "bgPressed": "#EEF2F7",
+        "fg": "#11161D",
+        "bgOnRaised": "#EEF2F7"
+      }
+    },
+    "rowB": {
+      "height": 64,
+      "paddingX": 16
+    },
+    "sheetB": {
+      "radius": 32
+    },
+    "screenB": {
+      "bg": "#FFFFFF"
+    },
+    "sectionBand": {
+      "height": 12,
+      "bg": "#F6F8FB",
+      "blockPaddingY": 20
+    },
+    "noticeBanner": {
+      "radius": 16,
+      "padding": 16,
+      "iconSize": 20,
+      "info": {
+        "bg": "#F6F8FB"
+      },
+      "warning": {
+        "bg": "#FFF8E9"
+      },
+      "danger": {
+        "bg": "#FBE8E9"
+      },
+      "unknown": {
+        "bg": "#F6F8FB"
+      },
+      "confirmed": {
+        "bg": "#E9FDF1"
+      },
+      "clear": {
+        "bg": "#F6F8FB"
+      }
+    },
+    "rowBadge": {
+      "size": 18,
+      "ring": 2,
+      "ringColor": "#FFFFFF",
+      "sent": {
+        "fg": "#505C6C"
+      },
+      "received": {
+        "fg": "#116D48"
+      },
+      "pending": {
+        "fg": "#A9660A"
+      },
+      "failed": {
+        "fg": "#982934"
+      }
+    },
+    "chip": {
+      "bg": "#EEF2F7",
+      "fg": "#394553"
     }
   }
 } as const

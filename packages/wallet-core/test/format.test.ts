@@ -13,11 +13,11 @@ describe('formatAmount floor (balances, list rows)', () => {
     expect(formatAmount(eth('0.0500009999'), 'ETH', 'floor')).toBe('0.05')
     expect(formatAmount(0n, 'ETH', 'floor')).toBe('0')
   })
-  test('USDC: always 2 digits, floored', () => {
-    expect(formatAmount(usdc('250'), 'USDC', 'floor')).toBe('250.00')
+  test('USDC: up to 2 digits, floored, trailing zeros trimmed (Figma "12.5 USDC")', () => {
+    expect(formatAmount(usdc('250'), 'USDC', 'floor')).toBe('250')
     expect(formatAmount(usdc('1.999999'), 'USDC', 'floor')).toBe('1.99')
-    expect(formatAmount(usdc('0.5'), 'USDC', 'floor')).toBe('0.50')
-    expect(formatAmount(0n, 'USDC', 'floor')).toBe('0.00')
+    expect(formatAmount(usdc('0.5'), 'USDC', 'floor')).toBe('0.5')
+    expect(formatAmount(0n, 'USDC', 'floor')).toBe('0')
   })
   test('tiny non-zero values', () => {
     expect(formatAmount(eth('0.0000001'), 'ETH', 'floor')).toBe('<0.000001')
@@ -36,11 +36,11 @@ describe('formatAmount floor (balances, list rows)', () => {
 })
 
 describe('formatAmount exact (Review, result, detail)', () => {
-  test('every digit, USDC padded to 2', () => {
+  test('every digit, trailing zeros trimmed', () => {
     expect(formatAmount(eth('0.05'), 'ETH', 'exact')).toBe('0.05')
     expect(formatAmount(eth('0.000042'), 'ETH', 'exact')).toBe('0.000042')
     expect(formatAmount(eth('1.2847329999'), 'ETH', 'exact')).toBe('1.2847329999')
-    expect(formatAmount(usdc('1.5'), 'USDC', 'exact')).toBe('1.50')
+    expect(formatAmount(usdc('1.5'), 'USDC', 'exact')).toBe('1.5')
     expect(formatAmount(usdc('1.234567'), 'USDC', 'exact')).toBe('1.234567')
     expect(formatAmount(1n, 'ETH', 'exact')).toBe('0.000000000000000001')
     expect(formatAmount(0n, 'ETH', 'exact')).toBe('0')
@@ -49,7 +49,7 @@ describe('formatAmount exact (Review, result, detail)', () => {
 
 describe('formatDecimal', () => {
   test('goes through the same rules; unparseable input is returned as is', () => {
-    expect(formatDecimal('1.5', 'USDC', 'exact')).toBe('1.50')
+    expect(formatDecimal('1.5', 'USDC', 'exact')).toBe('1.5')
     expect(formatDecimal('0.123456789', 'ETH', 'floor')).toBe('0.123456')
     expect(formatDecimal('abc', 'ETH', 'floor')).toBe('abc')
     expect(formatDecimal('1.0000001', 'USDC', 'exact')).toBe('1.0000001') // more digits than USDC has: left alone

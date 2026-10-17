@@ -55,7 +55,7 @@ export function SensitiveReveal({ words, onReveal, hint, busy }: Props) {
         <>
           <Icon name="backup" size={t.component.icon.size.control} color={t.component.icon.action.fg} />
           <Text variant="label" color={t.component.sensitiveReveal.fg}>{ko.a11y.reveal}</Text>
-          {hint ? <Text variant="meta" color={t.component.sensitiveReveal.hint}>{hint}</Text> : null}
+          {hint ? <Text variant="caption" color={t.component.sensitiveReveal.hint}>{hint}</Text> : null}
         </>
       )}
     </Pressable>

@@ -31,7 +31,7 @@
 | Q16 | 복구는 백업 증거가 아니다. `backupDone`은 false로 둔다. kv `wallet.restored`가 Home과 Receive의 백업 gate를 건너뛴다 | `features/restore` |
 | Q33 | Expo dev build. Expo Go 없음 | `app.json`, `devbuild.md` |
 | Q34 | phrase: `BIOMETRY_ANY_OR_DEVICE_PASSCODE` + `WHEN_PASSCODE_SET_THIS_DEVICE_ONLY`, `cloudSync: false`. Android `allowBackup: false`. OS 인증은 기기 암호 fallback 허용 | `shared/storage/keychain.ts`, `shared/auth` |
-| Q40 | 경로 `m/44'/60'/0'/0/0` 하나. 12단어 생성, 12/24단어 복구. passphrase 입력칸 없음, 안내만 둔다. S06에 전체 주소 | `features/restore`, `pages/restore` |
+| Q40 (2026-10-17 변경: 복구에 선택 passphrase 지원, redesign-b.md §9.3) | 경로 `m/44'/60'/0'/0/0` 하나. 12단어 생성, 12/24단어 복구. 복구에서만 '고급' 행 뒤에 선택 passphrase 입력칸을 둔다. 기본은 가림, 행을 접으면 지운다. S06에 전체 주소 | `features/restore`, `pages/restore` |
 | Q43 | S03에서만 `expo-screen-capture`로 차단한다. 복사 버튼 없음. 문구는 차단을 약속하지 않는다 ("화면을 캡처하지 마세요") | `pages/backup` |
 | Q47 | Pending, Unknown, 손상된 기록이면 새 보내기를 막는다. Home 보내기가 차단 시트를 연다. `runSend`도 인증 전에 거절한다 | `blocksNewSend`, `usePendingTx` |
 | Q58 | `ChainPort`는 `/v1/rpc` 모양을 따른다. C3에서 어댑터만 바꾼다 | `shared/chain/port.ts` |

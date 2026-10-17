@@ -282,3 +282,58 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - Settings(R-S60): 거래 알림, 0원 거래 표시, 기기 보안 경고는 List item `Trailing=Switch` + C29 Switch(켜짐/꺼짐/켜짐). 복구 구문 보기는 값 없는 disclosure.
 - Library 게시는 이 변경 이후 별도로 기록한다.
 - Library 게시 완료 (2026-10-14). 변경 목록 13개: `02 Semantic` 3 변수(dark secondary), `03 Component` 4 변수(`button/secondary/bg/*`, `segmented/bg`), Component 11개(Product navigation, 그리고 Button / Secondary를 쓰거나 binding하는 Button / Secondary, Card / Group, Segmented control, Collection state, Receive address, Review footer, Transaction result, Backup status, Connected app row, Token allowance row). 그 외 항목은 없었다. 설명: "2026-10-14: dark Secondary fill neutral 800/700/600, full-width tab bar with top padding, settings switches."
+
+## 2026-10-16 Redesign B in-place restyle
+
+- 오너 승인 (2026-10-16). 기존 master를 제자리에서 restyle했다: Button ×3, Input, Bottom sheet, Keypad, Portfolio balance, Status notice, Summary row, List item, Asset row, Activity row. Master·set·variant·property ID는 유지했다.
+- ID 보존 증거: `work/v7/verification/` (`id-baseline.json`, `post-migration-ids.json`, `pre-migration-inventory.json`).
+- 복원 지점: Figma named version "pre-B-migration 2026-10-16" (오너가 앱에서 저장, API id 없음).
+- Library는 오너가 publish하기 전까지 미게시다. 게시 증거는 아직 없다.
+- 새 Primitive: `size.pill_lg/md/sm` (56/48/40), `font.family.pretendard`, `font.size.product15/17/19/22/26`, `font.lineHeight.px17/22/25/27/30/34`, `font.tracking.displayL/displayM/title1/title2/title3/bodySmall/label/caption`(퍼센트), Primitive 타이포 `type.productB.*` 11개.
+- 새 Component alias: `buttonB.height/radius/paddingX/primary/secondary`, `rowB.height/paddingX`, `sheetB.radius`, `screenB.bg`. `buttonB.secondary.bgPressed`는 Figma 이름 목록이 없어 `surface.pressed`로 연결했다.
+- 변경 값: `component.overlay.scrimBg` `{surface.inverse}` → `{color.neutral.950}` (mode 불변).
+- Figma 전용: `opacity/*` Primitive는 퍼센트(0–100). JSON은 fraction 유지.
+- 글꼴: Figma는 임시 Gothic A1, 오너가 Pretendard로 교체한다. 기존 `Product /` Style(Inter)은 값을 바꾸지 않았다.
+- Icons: `Icon / action / qr`, `Icon / action / more` 추가.
+- 미연결: `button.size.*` 높이(44/52)와 `portfolioBalance.bg` JSON alias는 그대로다 (Figma master는 40/48/56, flat). 후속 결정이 필요하다.
+
+## 2026-10-17 Foundation (Redesign B quality review, 오너 "싹다" 승인)
+
+- JSON: `font.tracking.displayL|title2|title3|bodySmall|label|caption` 값 변경(모두 음수), 새 `font.tracking.headline|body|figure|figureUnit`, `font.size.product44`, `font.lineHeight.px52`, `size.badge`(18). `type.productB.headline|body` 자간 alias를 새 tracking으로 변경. 새 `type.productB.figure`(700 44/52 -1.2)와 `figureUnit`(600 24/32 -0.5).
+- 새 Semantic `surface.disabled`(Light neutral.100, Dark neutral.800). `component.buttonB.primary.bgDisabled` `{surface.brandTint}` → `{surface.disabled}`(Figma 418:467의 기존 변수를 re-alias). 새 `buttonB.primary.fgDisabled` → `text.disabled`.
+- 새 Component: `sectionBand.{height,bg,blockPaddingY}`, `noticeBanner.{radius,padding,iconSize,*.bg}`, `rowBadge.*`. 모두 기존 Primitive/Semantic alias.
+- Figma Variable 추가: Primitive `font/tracking/{displayL..caption,figure,figureUnit}`, `font/size/product44`, `font/lineHeight/px52`, `size/badge`. Semantic `surface/disabled`. Component `sectionBand/*`, `noticeBanner/*`, `rowBadge/*`, `buttonB/primary/fgDisabled`. 텍스트 스타일은 오너가 앱에서 편집.
+- Master 변경(추가만): `B/Notice inline` 399:122에 `Tier` property 추가(기존 variant는 `Tier=Inline, Tone=*`, 새 `Tier=Banner, Tone=*` 4개). `B/Row` 418:12824에 `Leading` property 추가(기존 `Leading=Icon`, 새 `Leading=Asset badge` ×4 State). 새 `B/Row badge` 495:358, `Brand/Mark` 495:17569 draft. Button Primary Disabled label을 `buttonB/primary/fgDisabled`로 re-bind(9:283, 398:247). Library는 게시하지 않았다.
+- 증거: `work/v9/foundation/`.
+- 호환: Notice·Row의 variant 이름이 `Tier=Inline, ` / `Leading=Icon, ` 접두를 가진다. 소비 프레임은 default variant로 유지된다. `font.tracking.*` 값 변경은 `packages/tokens` 생성값(`letterSpacing`)에 반영되며 앱 코드 소비는 별도 단계다.
+
+## 2026-10-17 Icon set: Phosphor → Solar (오너 결정)
+
+- 기능 icon을 Solar로 교체했다. Linear = 기본 UI, Bold = 선택된 탭·상태 badge·활성, Bold Duotone = 빈 상태·결과 hero. 자산 identity SVG(ETH, USDC)는 그대로다.
+- 출처: 480 Design Solar Icon Set(CC BY 4.0, 출처 표시 필수). RN 패키지 `@solar-icons/react-native` 2.3.2(MIT). 문구는 `outputs/wallet-icon-guide.md` §4.
+- Figma: 기존 Icon master 26개의 ID·이름을 유지하고 vector 내용만 Solar Linear로 바꿨다(Phosphor vector 노드를 유지하고 `vectorPaths`만 교체해서 인스턴스의 색 override 28개가 그대로다). Artwork frame 이름은 `ph:` → `solar:`.
+- 추가 component(미게시): Linear `Icon / navigation / assets` 506:24468, Bold 9개(506:24479–506:24535), Hero 6개(506:26134–506:26171). 목록은 guide §0.2.
+- 수정: `B/Row badge` 495:358 글리프를 Solar Bold 원형으로, `Product navigation` 67:342 선택 항목을 Bold로(Assets 탭은 wallet → home).
+- 남은 것: `apps/mobile` 코드는 Solar(`@solar-icons/react-native`, `Icon.tsx`)로 옮겼고 `phosphor-react-native`는 뺐다. 카탈로그 프레임 137:3의 문구(Phosphor·MIT)는 텍스트 편집 제한으로 그대로다. Library는 게시하지 않았다.
+- 증거: `work/v9/icons/`.
+
+## 2026-10-17 Batch 1 review fixes (Phase A·B) and batch 2 polish (#54)
+
+- 새 Semantic `surface.pressedOnRaised`(Light `{color.neutral.100}`, Dark `{color.neutral.600}`). 새 Component `buttonB.secondary.bgOnRaised` → `{surface.pressedOnRaised}`. 추가만이라 호환 영향 없음.
+- 값 변경: `rowBadge.pending.fg` `{status.warning.fg}` → `{color.amber.600}`(두 모드). 소비 코드는 생성값을 다시 읽으면 된다.
+- 새 Primitive `color.red.950` #3C1F21, `color.amber.950` #342617. Dark `status.danger.bg` `{color.red.900}` → `{color.red.950}`, Dark `status.warning.bg` `{color.amber.900}` → `{color.amber.950}`. Token path는 그대로다. `packages/tokens` 재생성(`node packages/tokens/build.mjs`), test 19개 통과.
+- Figma Variable: Primitive `color/red/950` VariableID:533:76, `color/amber/950` VariableID:533:77 추가. Semantic `status/danger/bg`, `status/warning/bg` Dark mode alias 변경(Variable ID 유지).
+- Master 변경(추가만): `B/Notice inline` 399:122 Banner 4 변형(493:17437, 493:17444, 493:17451, 493:17458)에 `Title` 레이어와 property `Title`(TEXT), `Show title`(BOOLEAN, 기본 false). Message 스타일은 `Product B/Body Small` + `text/secondary`로 바뀜(모든 Banner에 적용). `Product navigation` 비선택 라벨 `Product B/Label`(500).
+- 새 Icon component(미게시): `Icon / settings / document` 533:21894(Solar document-text Linear), `Icon / hero / shield-warning` 533:21900(Solar Bold Duotone, `icon/status/failed`).
+- 새 화면 S64 오픈소스 라이선스(ux-flow S62는 알림 설정이라 S64). Library는 게시하지 않았다.
+
+
+## 2026-10-17 재검수 반영: accent 규칙, mono 사실, 칩 1개, 백업 시점 (#54)
+
+- 값 변경(소비 코드는 생성값을 다시 읽으면 된다): Semantic `text.link` Light `{color.identity.blue.700}` → `{color.neutral.900}`, Dark `{color.brand.300}` → `{color.neutral.50}`. Semantic `financial.change.positive` Light `{color.teal.700}` → `{color.neutral.900}`, Dark `{color.teal.300}` → `{color.neutral.50}`. 링크는 이제 Ink이므로 앱 코드는 `text.link` 글자에 밑줄을 붙인다.
+- 새 token(추가만): Component `chip.bg`, `chip.fg`, Primitive `font.lineHeight.px16`, `type.productB.fact`, `type.productB.factUpper`, `type.productB.link`. 테스트 `packages/tokens/test/tokens.test.ts`에 accent와 mono 검사를 더했다.
+- 새 Figma text style: `Product B/Fact`, `Product B/Fact upper`, `Product B/Link`. 새 Variable: `chip/bg`, `chip/fg`.
+- Master 변경: `B/Status chip` 494:1067 모든 tone을 중립 칩 하나로(라벨 "Sepolia" / "Sepolia · 테스트 데이터"). `B/Detail row` 399:129에 `Kind=Fact`(586:90265) 추가. `B/Amount hero` 494:1142에 `Kind=Confirmed`(586:90268, 자산 96 + 확정 badge 32, Title 1). `B/Amount display` 422:636 가운데 정렬. `B/Address` 494:1090 조각 간격 0(4글자 묶음 제거). 링크 글자(`Link`, `Paste link`, `Scan link`)는 `Product B/Link`.
+- 화면 변경: 칩은 모든 화면에서 1개(같은 자리, 탭 → 안내 sheet). Home 큰 숫자와 목록 중복 제거. 자산 상세 사실 블록. 검토 순서(받는 사람 → 비용 → 보내는 것). 실패 결과 버튼 위계. 보내기 금액 한 열. 시작 화면 약속 + mono 한 줄. 설정 "수량 0 거래 표시".
+- 새 frame: B-S10B Home · 백업 전 첫 입금(586:97173), B-S10B 첫 입금 백업 시트(586:97341), B-S30B 받기 · 백업 전(586:97529). S31은 "보내기 게이트"로 용도가 바뀌었다(frame ID 그대로 423:13750).
+- 코드 영향(Figma 먼저, 앱은 뒤따른다): `text.link` 소비처(`SectionHeader`, `BlockHeader`, `StatusNotice`, `Input`, `RecipientField`, `SummaryRow`, `FeeSummary`)는 밑줄을 추가한다. 상단 칩은 `Sepolia` 하나. Home 중복 제거, 받기와 백업 시점(Q14), 설정 문구는 앱 이슈에서 처리한다.

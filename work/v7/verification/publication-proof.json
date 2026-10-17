@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-16",
+  "file": "NMXrn0q75G1SX2Bn1L1jP8",
+  "restorePoint": "owner named version 'pre-B-migration 2026-10-16'",
+  "publishedBy": "Claude via computer use, owner-requested in chat",
+  "description": "Redesign B (#54): restyle masters in place (IDs kept), B components, Product B type (Pretendard), buttonB/rowB/sheetB tokens, scrim fix, qr/more icons",
+  "changes": 57,
+  "variableCollections": {
+    "01 Primitive": 10,
+    "02 Semantic": 1,
+    "03 Component": 19
+  },
+  "styles": "Product B/* 11 added (10 Pretendard, Address IBM Plex Mono)",
+  "components": "existing masters Modified (IDs preserved, see post-migration-ids.json) + B/* Added",
+  "result": "Successfully published library updates",
+  "fontSwap": "Product B 10 styles Gothic A1 -> Pretendard (weights kept) by owner-requested computer use before publish",
+  "tnum": "on: Product B 10 styles, Type details > Numbers > Style = 'Monospace uppercase/lining' (Pretendard 1.309 has tnum); second publish 50 changes, 'Successfully published library updates'",
+  "postPublishVisualCheck": "page 14 Send & Activity frames viewed in Figma desktop at 22%: no overflow",
+  "pending": [
+    "consumer file lI4gGcTr9UVPEvVEODcf6U library update + override retention (incl. C23)"
+  ]
+}

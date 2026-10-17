@@ -1,35 +1,31 @@
+// Figma: B-S01 시작 423:13440 (dark 430:15497): Brand block (mark 72, wordmark, one sentence) centered above two stacked buttons, Secondary above Primary
 import { Redirect, useRouter } from 'expo-router'
-import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { useTheme } from '@/shared/theme'
 import { useAccountAddress } from '@/features/backup/model/useAccountAddress'
-import { Button, Icon, Screen, Text } from '@/shared/ui'
+import Constants from 'expo-constants'
+import { account } from '@/entities/account/fixtures'
+import { BrandScreen, Button } from '@/shared/ui'
 
-/** R-S01 시작 */
-export function StartPage() {
+/** B-S01 시작. `?demo=1` is a __DEV__ capture override: show Start even when a wallet exists. */
+export function StartPage({ demo = false }: { demo?: boolean }) {
   const { t } = useTranslation()
-  const th = useTheme()
   const router = useRouter()
   const address = useAccountAddress()
-  const mark = th.primitive.space[10] + th.primitive.space[8] // 72
-  if (address) return <Redirect href="/home" /> // a wallet exists: cold start (after unlock) opens Home
+  if (address && !demo) return <Redirect href="/home" /> // a wallet exists: cold start (after unlock) opens Home
   return (
-    <Screen
-      footer={
-        <View style={{ gap: th.semantic.layout.fieldGap }}>
-          <Button label={t('start.create')} onPress={() => router.push('/precheck')} />
+    <BrandScreen
+      wordmark
+      anchor="bottom"
+      title={t('start.title')}
+      bodyVariant="title2"
+      fact={`v${Constants.expoConfig?.version ?? ''} · ${account.network} · chain id ${account.chainId}`}
+      body={t('start.body')}
+      actions={
+        <>
           <Button label={t('start.restore')} variant="secondary" onPress={() => router.push('/restore')} />
-        </View>
+          <Button label={t('start.create')} onPress={() => router.push('/precheck')} />
+        </>
       }
-    >
-      <View style={{ flex: 1, justifyContent: 'center', gap: th.semantic.layout.sectionGap.product }}>
-        {/* ponytail: Figma mark icon is 30 px; nearest token is icon_xl (32). */}
-        <View style={{ width: mark, height: mark, borderRadius: th.primitive.radius.xl, backgroundColor: th.semantic.brand.primary, alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name="backup" size={th.primitive.size.icon_xl} color={th.semantic.text.onBrand} />
-        </View>
-        <Text variant="display" accessibilityRole="header">{t('start.title')}</Text>
-        <Text variant="body" color={th.semantic.text.secondary}>{t('start.body')}</Text>
-      </View>
-    </Screen>
+    />
   )
 }

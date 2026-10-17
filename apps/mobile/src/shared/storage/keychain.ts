@@ -31,8 +31,16 @@ const KV_KEY_OPTIONS = {
 /** OS auth sheet text, shown by BiometricPrompt on Android (the OS default is English). */
 export type AuthPrompt = { title: string; cancel: string }
 
+// One item, same tier for words and BIP39 passphrase. No passphrase: the words alone (the original format).
+// With passphrase: words + "\n" + passphrase (words never contain a newline; the passphrase may, so split at the first one).
+export const encodePhrase = (m: Mnemonic): string => (m.passphrase() ? `${m.reveal()}\n${m.passphrase()}` : m.reveal())
+export function decodePhrase(stored: string): Mnemonic {
+  const i = stored.indexOf('\n')
+  return i < 0 ? new Mnemonic(stored) : new Mnemonic(stored.slice(0, i), stored.slice(i + 1))
+}
+
 export async function savePhrase(m: Mnemonic, prompt: AuthPrompt): Promise<void> {
-  const ok = await withAuthInProgress(() => Keychain.setGenericPassword(USER, m.reveal(), { ...PHRASE_OPTIONS, authenticationPrompt: prompt }))
+  const ok = await withAuthInProgress(() => Keychain.setGenericPassword(USER, encodePhrase(m), { ...PHRASE_OPTIONS, authenticationPrompt: prompt }))
   if (!ok) throw new Error('keychain: save failed')
 }
 
@@ -53,7 +61,7 @@ export async function loadPhrase(prompt: AuthPrompt): Promise<LoadPhraseResult> 
       }),
     )
     if (!item) return { status: 'error' }
-    return { status: 'ok', mnemonic: new Mnemonic(item.password) }
+    return { status: 'ok', mnemonic: decodePhrase(item.password) }
   } catch (e) {
     // Do not log or rethrow the error: it must never carry or hint at the phrase. Only its cancel-ness is read.
     return { status: loadFailureStatus(e) }

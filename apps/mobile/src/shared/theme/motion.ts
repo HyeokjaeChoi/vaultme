@@ -1,13 +1,13 @@
 import { useEffect } from 'react'
-import { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated'
+import { cancelAnimation, Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated'
 
 // DESIGN motion (emil-design-eng): strong ease-out for UI. No tokens exist for these values yet.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
 const PRESS_SCALE = 0.97
-const PRESS_MS = 160
+const PRESS_MS = 100
 const FOLD_MS = 200
 
-/** Press feedback: scale 0.97 over 160 ms ease-out. Off under Reduce Motion (the pressed color still shows). Spread `handlers` on the Pressable, `style` on its Animated.View wrapper. */
+/** Press feedback: scale 0.97 over 100 ms ease-out. Off under Reduce Motion (the pressed color still shows). Spread `handlers` on the Pressable, `style` on its Animated.View wrapper. */
 export function usePressScale() {
   const reduce = useReducedMotion()
   const scale = useSharedValue(1)
@@ -26,4 +26,44 @@ export function useFoldIn(offset: number) {
     if (!reduce) p.set(withTiming(1, { duration: FOLD_MS, easing: EASE_OUT }))
   }, [])
   return useAnimatedStyle(() => ({ opacity: p.get(), transform: [{ translateY: (1 - p.get()) * offset }] }))
+}
+
+const SPIN_MS = 800
+
+/** Busy spinner: rotate 0 -> 360 deg, 800 ms linear, looping, while `on`. Transform only. No rotation under Reduce Motion. Use on an Animated.View around the icon. */
+export function useSpin(on: boolean) {
+  const reduce = useReducedMotion()
+  const r = useSharedValue(0)
+  useEffect(() => {
+    if (on && !reduce) r.set(withRepeat(withTiming(360, { duration: SPIN_MS, easing: Easing.linear }), -1))
+    else {
+      cancelAnimation(r)
+      r.set(0)
+    }
+  }, [on, reduce])
+  return useAnimatedStyle(() => ({ transform: [{ rotate: `${r.get()}deg` }] }))
+}
+
+/** Unlock bloom (Figma B-S90 note, owner 2026-10-17): the keyhole spreads the brand color, 400 ms ease-out. Reduce Motion: the screen cross-fades over the same time. */
+export const BLOOM_MS = 400
+
+const POP_MS = 400
+const POP_FROM = 0.6
+
+/**
+ * Confirmed hero (Figma B-S23 Confirmed note, owner 2026-10-17): the check badge scales 0.6 -> 1.0 over 400 ms ease-out when `on` turns true (or the screen opens already Confirmed).
+ * Reduce Motion: no scale, the final state shows at once (the haptic still fires elsewhere). Put the returned style on an Animated.View around the badge.
+ */
+export function useCheckPop(on: boolean) {
+  const reduce = useReducedMotion()
+  const s = useSharedValue(1)
+  useEffect(() => {
+    if (!on || reduce) {
+      s.set(1)
+      return
+    }
+    s.set(POP_FROM)
+    s.set(withTiming(1, { duration: POP_MS, easing: EASE_OUT }))
+  }, [on, reduce])
+  return useAnimatedStyle(() => ({ transform: [{ scale: s.get() }] }))
 }

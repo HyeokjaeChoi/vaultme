@@ -1,0 +1,1107 @@
+{
+ "note": "Rollback: for each entry appendChild/insertChild the node back into fromParentId (in page fromPageId) and set x,y. Parent 7:2 is a vertical auto-layout: restore in ascending y order. Emptied sections 404:162, 423:642, 423:13439, 430:14605 are kept (never deleted).",
+ "pageOrderBefore": [
+  {
+   "id": "0:1",
+   "name": "00 Overview"
+  },
+  {
+   "id": "4:18",
+   "name": "01 Foundations"
+  },
+  {
+   "id": "4:19",
+   "name": "02 Components"
+  },
+  {
+   "id": "4:20",
+   "name": "03 Transaction pattern"
+  },
+  {
+   "id": "31:2",
+   "name": "04 Wallet building blocks"
+  },
+  {
+   "id": "31:3",
+   "name": "05 Transfer & signing"
+  },
+  {
+   "id": "43:34",
+   "name": "06 Security & permissions"
+  },
+  {
+   "id": "69:2",
+   "name": "07 Product specimens"
+  },
+  {
+   "id": "76:1047",
+   "name": "08 States & stress"
+  },
+  {
+   "id": "137:2",
+   "name": "09 Icons"
+  },
+  {
+   "id": "294:76",
+   "name": "10 Wireframes"
+  },
+  {
+   "id": "306:76",
+   "name": "11 Prototype"
+  },
+  {
+   "id": "315:2575",
+   "name": "12 Text 200%"
+  },
+  {
+   "id": "332:76",
+   "name": "13 Redesign A"
+  },
+  {
+   "id": "398:76",
+   "name": "14 Redesign B"
+  }
+ ],
+ "entries": [
+  {
+   "id": "423:13440",
+   "name": "B-S01 시작",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 100,
+   "y": 100
+  },
+  {
+   "id": "423:13478",
+   "name": "B-S02 책임 안내",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 570,
+   "y": 100
+  },
+  {
+   "id": "423:13533",
+   "name": "B-S03 복구 구문 Hidden",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 1040,
+   "y": 100
+  },
+  {
+   "id": "423:13622",
+   "name": "B-S03 복구 구문 Revealed",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 1510,
+   "y": 100
+  },
+  {
+   "id": "423:15243",
+   "name": "B-S04 일부 단어 확인",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 1980,
+   "y": 100
+  },
+  {
+   "id": "430:15497",
+   "name": "B-S01 시작 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 100,
+   "y": 5716
+  },
+  {
+   "id": "430:15518",
+   "name": "B-S02 책임 안내 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 570,
+   "y": 5716
+  },
+  {
+   "id": "430:15543",
+   "name": "B-S03 복구 구문 Hidden · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1040,
+   "y": 5716
+  },
+  {
+   "id": "430:15570",
+   "name": "B-S03 복구 구문 Revealed · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1510,
+   "y": 5716
+  },
+  {
+   "id": "430:15977",
+   "name": "B-S04 일부 단어 확인 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1980,
+   "y": 5716
+  },
+  {
+   "id": "423:15293",
+   "name": "B-S05 복구 입력",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 2450,
+   "y": 100
+  },
+  {
+   "id": "423:13703",
+   "name": "B-S06 복구 결과",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 100,
+   "y": 1064
+  },
+  {
+   "id": "430:16003",
+   "name": "B-S05 복구 입력 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 2450,
+   "y": 5716
+  },
+  {
+   "id": "430:15595",
+   "name": "B-S06 복구 결과 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 100,
+   "y": 6680
+  },
+  {
+   "id": "423:13750",
+   "name": "B-S31 수신 전 백업 요구",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 1510,
+   "y": 1064
+  },
+  {
+   "id": "430:15617",
+   "name": "B-S31 수신 전 백업 요구 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1510,
+   "y": 6680
+  },
+  {
+   "id": "404:163",
+   "name": "B-S10 Home",
+   "fromPageId": "398:76",
+   "fromParentId": "404:162",
+   "x": 80,
+   "y": 120
+  },
+  {
+   "id": "423:643",
+   "name": "B-S10N Home new wallet",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 80,
+   "y": 120
+  },
+  {
+   "id": "423:742",
+   "name": "B-S10P Home pending",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 550,
+   "y": 120
+  },
+  {
+   "id": "457:4274",
+   "name": "B-S10 Home / Test mode",
+   "fromPageId": "398:76",
+   "fromParentId": "404:162",
+   "x": 2430,
+   "y": 120
+  },
+  {
+   "id": "430:14606",
+   "name": "B-S10 Home · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 80,
+   "y": 120
+  },
+  {
+   "id": "430:14732",
+   "name": "B-S10N Home new wallet · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 80,
+   "y": 1436
+  },
+  {
+   "id": "430:14755",
+   "name": "B-S10P Home pending · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 550,
+   "y": 1436
+  },
+  {
+   "id": "457:4320",
+   "name": "B-S10 Home · Dark / Test mode",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 2430,
+   "y": 120
+  },
+  {
+   "id": "404:522",
+   "name": "B-S10 Home Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "404:162",
+   "x": 550,
+   "y": 120
+  },
+  {
+   "id": "423:16447",
+   "name": "B-S11 Asset detail Sepolia ETH",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 2430,
+   "y": 3120
+  },
+  {
+   "id": "430:15384",
+   "name": "B-S11 Asset detail Sepolia ETH · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 2430,
+   "y": 4436
+  },
+  {
+   "id": "423:14215",
+   "name": "B-S50 Push opt-in",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 1980,
+   "y": 1064
+  },
+  {
+   "id": "430:15953",
+   "name": "B-S50 Push opt-in · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1980,
+   "y": 6680
+  },
+  {
+   "id": "423:848",
+   "name": "B-S20a Send recipient empty",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1020,
+   "y": 120
+  },
+  {
+   "id": "423:885",
+   "name": "B-S20a Send recipient valid",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1490,
+   "y": 120
+  },
+  {
+   "id": "423:929",
+   "name": "B-S20b Send amount ETH",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1960,
+   "y": 120
+  },
+  {
+   "id": "423:1000",
+   "name": "B-S20b Send amount ETH full",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 2430,
+   "y": 120
+  },
+  {
+   "id": "423:1071",
+   "name": "B-S20b Send amount error",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 80,
+   "y": 1120
+  },
+  {
+   "id": "430:14779",
+   "name": "B-S20a Send recipient empty · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1020,
+   "y": 1436
+  },
+  {
+   "id": "430:14802",
+   "name": "B-S20a Send recipient valid · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1490,
+   "y": 1436
+  },
+  {
+   "id": "430:14826",
+   "name": "B-S20b Send amount ETH · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1960,
+   "y": 1436
+  },
+  {
+   "id": "430:14855",
+   "name": "B-S20b Send amount ETH full · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 2430,
+   "y": 1436
+  },
+  {
+   "id": "430:14884",
+   "name": "B-S20b Send amount error · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 80,
+   "y": 2436
+  },
+  {
+   "id": "404:315",
+   "name": "B-S22 Send review",
+   "fromPageId": "398:76",
+   "fromParentId": "404:162",
+   "x": 1020,
+   "y": 120
+  },
+  {
+   "id": "419:12973",
+   "name": "B-S22 Send review (scrolled full)",
+   "fromPageId": "398:76",
+   "fromParentId": "404:162",
+   "x": 1960,
+   "y": 120
+  },
+  {
+   "id": "461:5074",
+   "name": "B-S22 Send review (scrolled full) / rechecking",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 2900,
+   "y": 5120
+  },
+  {
+   "id": "430:14628",
+   "name": "B-S22 Send review · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1020,
+   "y": 120
+  },
+  {
+   "id": "430:14692",
+   "name": "B-S22 Send review (scrolled full) · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1960,
+   "y": 120
+  },
+  {
+   "id": "423:14763",
+   "name": "B-S22L Review look-alike",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 550,
+   "y": 1120
+  },
+  {
+   "id": "423:15006",
+   "name": "B-S22L+ACK Review look-alike confirm sheet",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1020,
+   "y": 1120
+  },
+  {
+   "id": "423:14844",
+   "name": "B-S22B Review burn address",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1490,
+   "y": 1120
+  },
+  {
+   "id": "430:7672",
+   "name": "B-S22B+ACK Review burn address confirm sheet",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1960,
+   "y": 1120
+  },
+  {
+   "id": "423:14925",
+   "name": "B-S22T Review token contract",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 2430,
+   "y": 1120
+  },
+  {
+   "id": "430:7737",
+   "name": "B-S22T+ACK Review token contract confirm sheet",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 2900,
+   "y": 1120
+  },
+  {
+   "id": "430:14914",
+   "name": "B-S22L Review look-alike · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 550,
+   "y": 2436
+  },
+  {
+   "id": "430:15037",
+   "name": "B-S22L+ACK Review look-alike confirm sheet · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1020,
+   "y": 2436
+  },
+  {
+   "id": "430:14955",
+   "name": "B-S22B Review burn address · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1490,
+   "y": 2436
+  },
+  {
+   "id": "430:15411",
+   "name": "B-S22B+ACK Review burn address confirm sheet · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1960,
+   "y": 2436
+  },
+  {
+   "id": "430:14996",
+   "name": "B-S22T Review token contract · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 2430,
+   "y": 2436
+  },
+  {
+   "id": "430:15454",
+   "name": "B-S22T+ACK Review token contract confirm sheet · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 2900,
+   "y": 2436
+  },
+  {
+   "id": "457:16902",
+   "name": "B-S22 Send review / authError",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 80,
+   "y": 5120
+  },
+  {
+   "id": "457:16988",
+   "name": "B-S22 Send review / chainError",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 550,
+   "y": 5120
+  },
+  {
+   "id": "457:17074",
+   "name": "B-S22 Send review / needsReview",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1020,
+   "y": 5120
+  },
+  {
+   "id": "457:17160",
+   "name": "B-S22 Send review / prepareError",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1490,
+   "y": 5120
+  },
+  {
+   "id": "457:17246",
+   "name": "B-S22 Send review / pendingBlock",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1960,
+   "y": 5120
+  },
+  {
+   "id": "457:17332",
+   "name": "B-S22 Send review / blocked",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 2430,
+   "y": 5120
+  },
+  {
+   "id": "423:15062",
+   "name": "B-S24 Send blocked pending",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 80,
+   "y": 2120
+  },
+  {
+   "id": "430:15080",
+   "name": "B-S24 Send blocked pending · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 80,
+   "y": 3436
+  },
+  {
+   "id": "423:15795",
+   "name": "B-S23 Send result Pending",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 550,
+   "y": 2120
+  },
+  {
+   "id": "423:15852",
+   "name": "B-S23 Send result Included",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1020,
+   "y": 2120
+  },
+  {
+   "id": "423:15909",
+   "name": "B-S23 Send result Confirmed",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1490,
+   "y": 2120
+  },
+  {
+   "id": "423:15959",
+   "name": "B-S23 Send result Failed",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1960,
+   "y": 2120
+  },
+  {
+   "id": "423:16009",
+   "name": "B-S23 Send result Unknown",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 2430,
+   "y": 2120
+  },
+  {
+   "id": "423:16059",
+   "name": "B-S23 Send result Replaced",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 2900,
+   "y": 2120
+  },
+  {
+   "id": "457:4366",
+   "name": "B-S23 Send result Pending / Test mode",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 80,
+   "y": 4120
+  },
+  {
+   "id": "430:15106",
+   "name": "B-S23 Send result Pending · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 550,
+   "y": 3436
+  },
+  {
+   "id": "430:15132",
+   "name": "B-S23 Send result Included · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1020,
+   "y": 3436
+  },
+  {
+   "id": "430:15158",
+   "name": "B-S23 Send result Confirmed · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1490,
+   "y": 3436
+  },
+  {
+   "id": "430:15183",
+   "name": "B-S23 Send result Failed · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1960,
+   "y": 3436
+  },
+  {
+   "id": "430:15208",
+   "name": "B-S23 Send result Unknown · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 2430,
+   "y": 3436
+  },
+  {
+   "id": "430:15234",
+   "name": "B-S23 Send result Replaced · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 2900,
+   "y": 3436
+  },
+  {
+   "id": "423:14163",
+   "name": "B-S30 받기",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 570,
+   "y": 1064
+  },
+  {
+   "id": "430:15692",
+   "name": "B-S30 받기 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 570,
+   "y": 6680
+  },
+  {
+   "id": "423:15512",
+   "name": "B-S30 받기 Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 1040,
+   "y": 1064
+  },
+  {
+   "id": "404:387",
+   "name": "B-S40 Activity",
+   "fromPageId": "398:76",
+   "fromParentId": "404:162",
+   "x": 1490,
+   "y": 120
+  },
+  {
+   "id": "423:16109",
+   "name": "B-S40 Activity empty",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 80,
+   "y": 3120
+  },
+  {
+   "id": "423:16158",
+   "name": "B-S40 Activity loading",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 550,
+   "y": 3120
+  },
+  {
+   "id": "423:16236",
+   "name": "B-S40 Activity error cached",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1020,
+   "y": 3120
+  },
+  {
+   "id": "457:17502",
+   "name": "B-S40 Activity error no cache",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1960,
+   "y": 4120
+  },
+  {
+   "id": "471:5163",
+   "name": "B-S40 Activity / Test mode",
+   "fromPageId": "398:76",
+   "fromParentId": "404:162",
+   "x": 2900,
+   "y": 120
+  },
+  {
+   "id": "460:5024",
+   "name": "B-S40 Activity / Unknown & replaced rows",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 2430,
+   "y": 4120
+  },
+  {
+   "id": "430:14668",
+   "name": "B-S40 Activity · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1490,
+   "y": 120
+  },
+  {
+   "id": "430:15259",
+   "name": "B-S40 Activity empty · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 80,
+   "y": 4436
+  },
+  {
+   "id": "430:15278",
+   "name": "B-S40 Activity loading · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 550,
+   "y": 4436
+  },
+  {
+   "id": "430:15304",
+   "name": "B-S40 Activity error cached · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1020,
+   "y": 4436
+  },
+  {
+   "id": "423:16327",
+   "name": "B-S41 Transaction detail Confirmed",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1490,
+   "y": 3120
+  },
+  {
+   "id": "423:16381",
+   "name": "B-S41 Transaction detail Unknown",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1960,
+   "y": 3120
+  },
+  {
+   "id": "460:4988",
+   "name": "B-S41 Transaction detail Confirmed / Real chain",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 2900,
+   "y": 4120
+  },
+  {
+   "id": "457:4412",
+   "name": "B-S41 Transaction detail Confirmed / Test mode",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 550,
+   "y": 4120
+  },
+  {
+   "id": "457:17613",
+   "name": "B-S41 Transaction detail Confirmed / Test mode clear confirm sheet",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1020,
+   "y": 4120
+  },
+  {
+   "id": "457:17668",
+   "name": "B-S41 Transaction detail Unknown / API error",
+   "fromPageId": "398:76",
+   "fromParentId": "423:642",
+   "x": 1490,
+   "y": 4120
+  },
+  {
+   "id": "430:15326",
+   "name": "B-S41 Transaction detail Confirmed · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1490,
+   "y": 4436
+  },
+  {
+   "id": "430:15353",
+   "name": "B-S41 Transaction detail Unknown · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1960,
+   "y": 4436
+  },
+  {
+   "id": "423:13797",
+   "name": "B-S60 Settings",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 2450,
+   "y": 1064
+  },
+  {
+   "id": "423:13856",
+   "name": "B-S61 복구 구문 다시 보기",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 100,
+   "y": 2028
+  },
+  {
+   "id": "423:15349",
+   "name": "B-S62 알림 설정",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 570,
+   "y": 2028
+  },
+  {
+   "id": "423:15384",
+   "name": "B-S63 0원 거래 표시 설정",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 1040,
+   "y": 2028
+  },
+  {
+   "id": "430:15642",
+   "name": "B-S60 Settings · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 2450,
+   "y": 6680
+  },
+  {
+   "id": "430:15667",
+   "name": "B-S61 복구 구문 다시 보기 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 100,
+   "y": 7644
+  },
+  {
+   "id": "430:16028",
+   "name": "B-S62 알림 설정 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 570,
+   "y": 7644
+  },
+  {
+   "id": "430:16051",
+   "name": "B-S63 0원 거래 표시 설정 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1040,
+   "y": 7644
+  },
+  {
+   "id": "423:15412",
+   "name": "B-S90 잠금",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 1510,
+   "y": 2028
+  },
+  {
+   "id": "423:15443",
+   "name": "B-S91 앱 업데이트 필요",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 1980,
+   "y": 2028
+  },
+  {
+   "id": "423:15474",
+   "name": "B-S92 루팅·탈옥 경고",
+   "fromPageId": "398:76",
+   "fromParentId": "423:13439",
+   "x": 2450,
+   "y": 2028
+  },
+  {
+   "id": "430:16073",
+   "name": "B-S90 잠금 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1510,
+   "y": 7644
+  },
+  {
+   "id": "430:16093",
+   "name": "B-S91 앱 업데이트 필요 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 1980,
+   "y": 7644
+  },
+  {
+   "id": "430:16113",
+   "name": "B-S92 루팅·탈옥 경고 · Dark",
+   "fromPageId": "398:76",
+   "fromParentId": "430:14605",
+   "x": 2450,
+   "y": 7644
+  },
+  {
+   "id": "83:3092",
+   "name": "Documentation / Palette anchors",
+   "fromPageId": "4:18",
+   "fromParentId": "7:2",
+   "x": 24,
+   "y": 224
+  },
+  {
+   "id": "128:2",
+   "name": "Accepted Blue A / 2026-10-03",
+   "fromPageId": "4:18",
+   "fromParentId": "7:2",
+   "x": 24,
+   "y": 556
+  },
+  {
+   "id": "83:3126",
+   "name": "Documentation / Semantic palette",
+   "fromPageId": "4:18",
+   "fromParentId": "7:2",
+   "x": 24,
+   "y": 768
+  },
+  {
+   "id": "83:3242",
+   "name": "Documentation / Component aliases",
+   "fromPageId": "4:18",
+   "fromParentId": "7:2",
+   "x": 24,
+   "y": 1832
+  },
+  {
+   "id": "83:3270",
+   "name": "Documentation / Product typography / actual native Styles",
+   "fromPageId": "4:18",
+   "fromParentId": "7:2",
+   "x": 24,
+   "y": 2144
+  },
+  {
+   "id": "83:3323",
+   "name": "Documentation / Preserved foundation typography",
+   "fromPageId": "4:18",
+   "fromParentId": "7:2",
+   "x": 24,
+   "y": 3520
+  },
+  {
+   "id": "83:3391",
+   "name": "Documentation / Numbers and addresses",
+   "fromPageId": "4:18",
+   "fromParentId": "7:2",
+   "x": 24,
+   "y": 5105
+  },
+  {
+   "id": "83:3402",
+   "name": "Documentation / Product spacing and density",
+   "fromPageId": "4:18",
+   "fromParentId": "7:2",
+   "x": 24,
+   "y": 5447
+  },
+  {
+   "id": "83:3429",
+   "name": "Documentation / Layout and review width",
+   "fromPageId": "4:18",
+   "fromParentId": "7:2",
+   "x": 24,
+   "y": 6123
+  },
+  {
+   "id": "83:3443",
+   "name": "Documentation / Shape and elevation",
+   "fromPageId": "4:18",
+   "fromParentId": "7:2",
+   "x": 24,
+   "y": 6547
+  }
+ ],
+ "pageOrderAfter": [
+  "0:1 00 Overview",
+  "488:1401 ——— Foundations",
+  "487:76 Foundations · Color",
+  "488:605 Foundations · Typography",
+  "488:1254 Foundations · Spacing & Layout",
+  "488:1294 Foundations · Radius, Elevation & Opacity",
+  "137:2 09 Icons",
+  "488:1402 ——— Components",
+  "4:19 02 Components",
+  "4:20 03 Transaction pattern",
+  "31:2 04 Wallet building blocks",
+  "31:3 05 Transfer & signing",
+  "43:34 06 Security & permissions",
+  "398:76 Components · Redesign B",
+  "488:1403 ——— Flows · Redesign B",
+  "485:76 Flow 1 · Onboarding & wallet setup",
+  "486:76 Flow 2 · Home & balance",
+  "486:17419 Flow 3 · Send & receive",
+  "486:17436 Flow 4 · Activity",
+  "486:17443 Flow 5 · Security & settings",
+  "488:1404 ——— Archive",
+  "4:18 Archive · 01 Foundations",
+  "69:2 Archive · 07 Product specimens",
+  "76:1047 Archive · 08 States & stress",
+  "294:76 Archive · 10 Wireframes",
+  "306:76 Archive · 11 Prototype",
+  "315:2575 Archive · 12 Text 200%",
+  "332:76 Archive · 13 Redesign A"
+ ],
+ "toPage": {
+  "flow screens": {
+   "485:77/485:78": "485:76",
+   "486:77/486:78": "486:76",
+   "486:17420/486:17421": "486:17419",
+   "486:17437/486:17438": "486:17436",
+   "486:17444/486:17445": "486:17443"
+  },
+  "foundation boards": {
+   "83:3092,128:2,83:3126,83:3242": "487:76 (doc 487:77)",
+   "83:3270,83:3323,83:3391": "488:605 (doc 488:606)",
+   "83:3402,83:3429": "488:1254 (doc 488:1255)",
+   "83:3443": "488:1294 (doc 488:1295)"
+  }
+ },
+ "createdNodes": "new pages 485:76,486:76,486:17419,486:17436,486:17443,487:76,488:605,488:1254,488:1294 and separators 488:1401-488:1404; new sections/doc frames/boards/labels are children of those pages; typography samples are clones of screen text nodes (clone IDs inside 488:606). Rollback = move entries back, then delete new pages.",
+ "renamedPages": {
+  "4:18": "01 Foundations",
+  "69:2": "07 Product specimens",
+  "76:1047": "08 States & stress",
+  "294:76": "10 Wireframes",
+  "306:76": "11 Prototype",
+  "315:2575": "12 Text 200%",
+  "332:76": "13 Redesign A",
+  "398:76": "14 Redesign B"
+ }
+}

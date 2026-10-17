@@ -159,7 +159,7 @@ describe('txView / txNotice', () => {
     expect(txView('Confirmed').status).toBe('confirmed')
     expect(txView('Failed').status).toBe('failed')
     expect(txView('Unknown').status).toBe('unknown')
-    expect(txView('Replaced')).toEqual({ status: 'unknown', label: 'activity.replaced' })
+    expect(txView('Replaced')).toEqual({ status: 'replaced', label: 'activity.replaced' })
     expect(txNotice('Unknown').tone).toBe('unknown')
     expect(txNotice('Failed').tone).toBe('danger')
   })

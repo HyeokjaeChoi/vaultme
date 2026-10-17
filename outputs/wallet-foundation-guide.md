@@ -68,13 +68,15 @@ Blue A는 action 역할이다. Success, 가격 gain, 안전성 의미로 사용�
 | `action.primary.bg.default/hover/pressed` | brand.primary / identity blue .700 / .800 |
 | `productNavigation.active` | `{navigation.active}`. Marketing navigation의 기존 경로와 구분 |
 | `border.focus`, `border.selected`, `icon.brand` | `{brand.primary}` |
-| `text.link` | `{color.identity.blue.700}` |
+| `text.link` | `{color.neutral.900}` (Dark `{color.neutral.50}`). 2026-10-17부터 Ink. 밑줄이나 화살표와 같이 쓴다. 파랑이 아니다 |
 
 Status, financial.change, check.clear의 기존 색은 유지했다. Secondary action은 neutral. Default/hover/pressed는 기존 neutral 200/300/400에 연결한다 (2026-10-13 변경: canvas가 neutral 50이 된 뒤 default가 canvas와 같아져 버튼이 보이지 않았다). 이는 Secondary 브랜드 surface와 다른 역할이다.
 
-### Surface 위계: Light + C23 Secondary tint
+### Surface 위계: 평평한 흰색 (Redesign B, 2026-10-16)
 
-Wallet Home은 Light canvas → C23 요약 → 흰색 데이터 목록 순서로 구성한다. C23의 넓고 낮은 Secondary tint는 한 곳에 둔다. Assets·Activity·Settings·Review에 tint hero를 반복하지 않는다. Navigation은 기존 neutral 면과 active marker를 사용한다. Blue A는 Primary action·active·focus 역할이다.
+Redesign B는 `screenB/bg`(`{surface.default}`, 흰색) 한 면 위에 list row, section 제목, 간격으로 정보를 묶는다. Card는 묶음이 꼭 필요할 때만 쓴다. 아래 C23 Secondary tint 설명은 Redesign B 이전(2026-10-04) 기록이며, restyle한 master에서는 C23에 tint fill이 없다(flat). `surface.canvas`는 기존 화면이 쓰므로 값을 바꾸지 않았다.
+
+(이전 기록) Wallet Home은 Light canvas → C23 요약 → 흰색 데이터 목록 순서로 구성했다. C23의 넓고 낮은 Secondary tint는 한 곳에 뒀다. Assets·Activity·Settings·Review에 tint hero를 반복하지 않는다. Navigation은 기존 neutral 면과 active marker를 사용한다. Blue A는 Primary action·active·focus 역할이다.
 
 C23의 Complete/Partial/Unavailable은 같은 tint를 쓴다. 수치·통화·estimate·coverage는 모두 Ink다. Quote 상태는 문구와 누락 범위로 구분한다. Passive balance는 클릭 가능한 card가 아니다. C23에는 shadow와 장식 border를 넣지 않는다. C04 안에 C23를 다시 넣지 않는다.
 
@@ -90,7 +92,7 @@ C23의 Complete/Partial/Unavailable은 같은 tint를 쓴다. 수치·통화·es
 | Component `portfolioBalance.note` | `{text.primary}` | 기존 `text.secondary` 연결을 Ink로 변경 |
 | Component `overlay.bg` / `overlay.fg` | `{surface.raised}` / `{text.primary}` | 기존 floating host의 읽기 면·기본 글자 |
 | Component `overlay.radius` / `overlay.shadow` | `{shape.overlay}` / `{effect.overlayShadow}` | 기존 floating host 모서리·shadow |
-| Component `overlay.scrimBg` / `overlay.scrimOpacity` | `{surface.inverse}` / `{effect.modalScrimOpacity}` | Modal의 뒤 화면 차단 층 |
+| Component `overlay.scrimBg` / `overlay.scrimOpacity` | `{color.neutral.950}` (2026-10-16 변경: mode 불변, 이전 `{surface.inverse}`) / `{effect.modalScrimOpacity}` | Modal의 뒤 화면 차단 층 |
 
 `overlay.*`는 기존 host의 내부 역할이다. 새 C29나 public API가 아니다. Scrim opacity는 scrim에만 적용한다. Nonmodal popover에는 scrim이 없다. 고정 drawer는 기존 기능 경계선을 사용한다. Floating shadow를 C23·row·Input·review group·notice에 확대하지 않는다. 자식 Component의 상태 foreground가 기본 overlay 글자보다 우선한다.
 
@@ -112,7 +114,30 @@ Canvas·summary·navigation·row·review·notice·drawer에는 gradient가 없�
 
 ## 4. Typography
 
-Inter는 UI, IBM Plex Mono는 주소·hash에 쓴다. 기존 marketing type scale은 유지한다. 제품 화면에는 아래 역할을 사용한다. 이는 v2 확정값이며 peer product의 실측 폰트값이 아니다.
+제품 UI 글꼴은 Pretendard 400/500/600, 주소·hash는 IBM Plex Mono다. 700은 큰 숫자(`type.productB.figure`)에만 쓴다(오너 결정 2026-10-17). Figma는 오너가 글꼴을 바꾸기 전까지 임시로 Gothic A1을 쓴다. 금액은 tabular numerals다. 기존 `Product /` 역할(Inter 기준)과 marketing type scale은 값을 바꾸지 않았다. Redesign B의 `Product B` 척도는 새 Primitive `type.productB.*`(font family `pretendard`)로 추가했다. Semantic `typography.*` alias는 아직 연결하지 않았다.
+
+| `type.productB.*` | Size / line | 자간(px) | Weight |
+| --- | --- | --- | --- |
+| `figure` | 44 / 52 | -1.2 | 700 (잔액·금액 숫자만, tabular) |
+| `figureUnit` | 24 / 32 | -0.5 | 600, 색 `text.secondary` |
+| `displayL` | 40 / 48 | -1.2 | 600 |
+| `displayM` | 32 / 40 | -0.8 | 600 |
+| `title1` | 26 / 34 | -0.6 | 600 |
+| `title2` | 22 / 30 | -0.5 | 600 |
+| `title3` | 19 / 27 | -0.4 | 600 |
+| `headline` | 17 / 25 | -0.3 | 600 (버튼·알림 제목·강조) |
+| `rowTitle` | 17 / 25 | -0.3 | 500 (행 제목: Home 자산·내역 행, 설정·라이선스 행, Action row, Switch row). Figma `Product B/Row title`. 600은 버튼·강조, 700은 숫자(figure)에만. 2026-10-17 미감 리뷰 P1-1 |
+| `body` | 16 / 24 | -0.3 | 400 |
+| `bodySmall` | 15 / 22 | -0.2 | 400 |
+| `label` | 14 / 20 | -0.2 | 500 |
+| `caption` | 12 / 17 | -0.1 | 400 |
+| `address` | 14 / 20 | 0 | 400 Plex Mono |
+
+한글에 맞춰 모든 크기에 음수 자간을 쓴다(양수 없음). 2026-10-17 오너 승인. `font.tracking.headline|body|figure|figureUnit`은 새 Primitive다. Figma 텍스트 스타일은 오너가 데스크톱 앱에서 바꾼다(`Product B/Figure`, `Product B/Figure unit` 신규).
+
+JSON 자간은 build가 퍼센트만 px로 바꾸므로 `font.tracking.*`에 퍼센트로 저장했다(예: displayL -3% × 40 = -1.2 px).
+
+기존 `Product /` 역할 표(v2 확정값): 제품 화면에는 아래 역할을 사용한다. 이는 v2 확정값이며 peer product의 실측 폰트값이 아니다.
 
 | Semantic role | Size / line | Weight | 사용 |
 | --- | --- | --- | --- |
@@ -129,6 +154,14 @@ Inter는 UI, IBM Plex Mono는 주소·hash에 쓴다. 기존 marketing type scal
 | `typography.address` | 14 / 20 px | Regular Mono | 전체 주소·hash |
 
 Figma 제품 Style 이름은 `Product / Title` 등이다. 기본 제품 TEXT는 역할 Style에 연결한다. T02의 직접 font-size override는 아래 검증 예외를 따른다. 웹 숫자는 tabular numerals와 우측 정렬을 사용한다. Native Figma의 TNUM 적용은 미확인이다. 금액과 단위를 함께 둔다. 중요한 주소·fee·오류는 14 px 이상이다. 금액은 ellipsis로 자르지 않는다. 아주 작은 수량은 전체 정밀도 문자열을 Review에도 표시한다.
+
+### Button · pill (Redesign B)
+
+Button은 pill이다. 높이 lg 56 / md 48 / sm 40(`size.pill_lg/md/sm`, 새 Primitive), 실제 target은 기존 `button.hitTarget` 44 px 이상을 유지한다. Component `buttonB.*`는 alias만 둔다: `height.lg|md|sm` → `size.pill_*`, `radius` → `radius.pill`, `paddingX.lg|md|sm` → `space.6|5|4`, `primary.bg|fg` → `button.primary.bg.default|fg.default`, `primary.bgDisabled` → `surface.disabled`(neutral.100), `primary.fgDisabled` → `text.disabled`, `secondary.bg|bgPressed` → `surface.pressed`, `secondary.fg` → `text.primary`. 파랑 Primary는 화면당 1개이고 Secondary는 neutral이다. Bottom sheet는 위 모서리 32(`sheetB.radius` → `radius.3xl`)이며 Secondary를 Primary 위에 둔다. Row는 `rowB.height` → `size.asset_row`(64), `rowB.paddingX` → `layout.screen.padding`이다. 기존 `button.size.*` 값(44/52 기준)은 JSON에서 바꾸지 않았다. Figma master는 40/48/56으로 restyle했다.
+
+### 불투명도 단위 (Figma만)
+
+Figma `opacity/*` Primitive는 OPACITY scope가 퍼센트(0–100)라서 0, 8, 16, 24, 40, 56, 72, 100으로 바꿨다. portable JSON `primitive.opacity.*`는 fraction(0.4 등)을 유지한다. 이 단위 차이는 의도한 것이고, JSON 값은 바꾸지 않았다.
 
 ## 5. Layout과 밀도
 
@@ -240,3 +273,66 @@ Canvas 구현 확인: 기존 Figma source의 Semantic alias를 수정하고 Libr
 - Native product와 stress screen의 Section role을 연결했습니다. Permissions는 Connections / Allowances / comparison rows로 묶었습니다. 기존 node/master/property IDs를 보존합니다. 새 wrapper는 documentation/screen assembly입니다. Library Component owner가 아닙니다.
 - Primitive·Semantic·Component Token 값과 Component master를 바꾸지 않은 screen assembly 수정입니다. 기존 published Library는 유지합니다. Library 발행 여부는 source UI에서 별도로 확인합니다.
 - 점검과 실제 구현 근거: `work/v6/spacing-audit/`. 모든 variant와 실제 wallet runtime의 완전 검증을 뜻하지 않습니다.
+
+### Notice 2단계, 회색 구획 띠, Row 배지 (2026-10-17, 오너 승인)
+
+- `noticeBanner.*`: Banner(막는 상황, 페이지 단위)는 tint 배경(`info|warning|danger|unknown|confirmed|clear.bg`는 `statusNotice.*.bg`와 같은 `status.*.bg` 역할), `radius` → `radius.lg`(16), `padding` → `space.4`(16), `iconSize` → `iconSize.control`(20). Inline(도움말 1줄)은 기존 모양이다. Figma `B/Notice inline`은 `Tier=Inline|Banner` × `Tone`이다.
+- `sectionBand.*`: `height` → `space.3`(12), `bg` → `surface.canvas`, `blockPaddingY` → `space.5`(20, 띠로 나뉜 블록 안 위아래). 20은 제품 척도(24/16/12/8)에 없지만 기존 Primitive이며 오너 승인 예외다. 검토·결과·거래 상세·설정에만 쓰고 홈·내역은 흰색이다. border·shadow 없음.
+- `rowBadge.*`: B/Row `Leading=Asset badge`. 자산 아이콘 40 + 18 px 배지(`size.badge`), 2 px `surface.default` ring. 색은 sent `icon.secondary`, received `status.success.fg`, pending `color.amber.600`, failed `status.danger.fg`. 배지 글리프는 Solar Bold 원형(`round-arrow-right-up` / `round-arrow-left-down`, `clock-circle`, `close-circle`)이다(`wallet-icon-guide.md` §0). Linear 아이콘은 18 px 배지에서 원형 윤곽이 겹쳐 Bold를 골랐다.
+- 꺼진 Primary: `surface.disabled`(Light neutral.100, Dark neutral.800) 배경 + `text.disabled`.
+- `Brand/Mark`: 로고 마크 draft(72/40/24, OnLight/OnBrand). 오너 검토 전이다. 토큰 없이 `brand.primary`와 `color.neutral.0`을 직접 binding한다.
+
+### Banner 제목, sheet Secondary, Dark Banner 채움 (2026-10-17, 오너 승인)
+
+- `B/Notice inline` 399:122 `Tier=Banner` 변형에 `Title` 레이어를 더했다. 새 property `Title`(TEXT)과 `Show title`(BOOLEAN, 기본 false)이다. 제목은 `Product B/Headline`(17/600), 본문 `Message`는 `Product B/Body Small` + `text.secondary`, 사이 간격 `space.1`(4). 제목이 있는 Banner만 `Show title`을 켠다. 기존 소비 프레임은 기본값으로 바뀌지 않는다.
+- 새 Semantic `surface.pressedOnRaised`(Light neutral.100, Dark neutral.600)와 Component `buttonB.secondary.bgOnRaised`: bottom sheet(raised 면) 안 Secondary 배경. Dark 경계 1.93:1은 수용했다(`outputs/wallet-component-contracts.md` 근거).
+- `rowBadge.pending.fg`: `status.warning.fg` → `color.amber.600`(두 모드). 흰 Solar Bold 글리프 대비 4.57:1.
+- 새 Primitive `color.red.950` #3C1F21, `color.amber.950` #342617. 900 단계에서 OKLCH로 만들었다(같은 hue, L 0.28, chroma ×0.5). Dark `status.danger.bg` → `red.950`, `status.warning.bg` → `amber.950`(전에는 900). Dark Banner 본문 `text.secondary` 대비 9.64:1 / 9.47:1, 상태 icon(red.300 / amber.300) 6.09:1 / 9.39:1. Light 값은 그대로다.
+- 이 Dark 변경은 `status.*.bg`를 쓰는 모든 곳(Banner, 테스트넷 칩, 상태 라벨)에 같이 적용된다.
+
+
+
+## 2026-10-17 시각 품질 수정 (미감 리뷰 P0/P1/P2, #54)
+- 새 text style `Product B/Row title`(Pretendard 500, 17/25, -0.3), token `type.productB.rowTitle`. B/Row, B/Settings row, B/Switch row, B/Action row 제목에 쓴다.
+- 새 semantic color `surface.inset` (Light = surface.subtle, Dark = surface.raised). B/Secret grid 판이 Dark canvas보다 어둡던 문제(P1-7)를 고친다. Figma 02 Semantic에 변수 추가.
+- B/Keypad key 숫자 Title 2(22) → Title 1(26). B/Detail row는 center 정렬. B/Progress steps는 3칸 균등(점·라벨 중앙, 선은 점 사이만), 아래 여백 space/6.
+- Tab header 패턴(Home·내역·설정): 높이 58, 왼쪽 제목(또는 계정), 오른쪽 `Sepolia 테스트넷` 칩 1개, 좌우 `layout/screen/padding`. 내역의 "테스트 데이터" 칩은 첫 날짜 헤더 오른쪽(absolute)으로 내림. 자산 상세 Nav 제목은 왼쪽 Title 2.
+- 받기(S30): faucet 행을 Footer stack(faucet → 주소 복사 → 공유) 안으로, QR은 `surface/subtle` 타일(radius/2xl, padding space/3). 금액 입력: 금액을 Title block과 칩 사이 수직 중앙. Failed 결과: 하단 버튼 2개(확인 Primary, 다시 보내기 Secondary), 거래 상세 보기는 hero 아래 인라인 링크.
+- Brand/Mark: 오너가 option A(V 모노그램 + 열쇠 구멍)를 골랐다. 마스터 495:17569의 내용을 바꾸고 `Size=96`(OnLight/OnBrand)을 더했다. 브랜드 화면은 96, 마크 아래 `space/8`, 워드마크 Display M. Face ID 아이콘은 입 없는 Solar face-scan-square(linear, icon/primary).
+- 오너 결정 필요(안 함): 13 px Caption 신규 type(P2-7), Address M 15 px(P1-3b), 칩 색 `Sepolia 테스트넷`은 `status/warning` 계열 유지(P2-6, 경고처럼 읽히는지는 오너 판단), 탭 바 Bold/Linear optical size(P2-2, 아이콘 변경 필요).
+
+## 2026-10-17 Accent 규칙, mono 사실 라벨, 칩 1개 (재검수 반영, 오너 지침, #54)
+
+근거: `work/review/rr-staff-pd-2026-10-17.md` §6, `rr-yc-founder`, `rr-yc-analyst`. 기준은 stack-line.dev(절제, accent 하나, mono 사실, 정직한 문구, 엄격한 정렬). 픽셀 숫자가 아니라 구조를 고쳤다.
+
+### Accent 규칙 (한 화면에 파랑은 두 곳까지)
+
+| 역할 | 색 | 쓰는 곳 |
+| --- | --- | --- |
+| 행동 | 파랑 `brand.primary` | Primary 버튼, 선택 탭(`navigation.active`), focus. 이 둘뿐 |
+| 링크 | Ink + 밑줄 | `text.link`(= `text.primary`) + text style `Product B/Link`. 구획 "전체 보기", Block header "수정", Notice 링크, 주소 입력의 붙여넣기 |
+| 칩 | 중립 하나 | `chip.bg`(`{surface.pressed}`) + `chip.fg`(`{text.secondary}`). amber, 파랑, 초록, 빨강은 칩 색이 아니다 |
+| 상태 | 초록, 빨강, amber | 상태 badge와 경고(Banner, Inline)에만 |
+| 받은 금액 | Ink + "+" | `financial.change.positive` = `{text.primary}`. 초록을 쓰지 않는다 |
+
+### 새 token과 style
+
+| 이름 | 값 | 메모 |
+| --- | --- | --- |
+| Semantic `text.link` | Light `{color.neutral.900}`, Dark `{color.neutral.50}` | 값 변경. 소비 코드는 생성값을 다시 읽으면 된다 |
+| Semantic `financial.change.positive` | Light `{color.neutral.900}`, Dark `{color.neutral.50}` | 값 변경 |
+| Component `chip.bg`, `chip.fg` | `{surface.pressed}`, `{text.secondary}` | 새로 추가 |
+| Primitive `font.lineHeight.px16` | 16px | 새로 추가 |
+| `type.productB.fact` = Figma `Product B/Fact` | IBM Plex Mono 400, 12/16, 자간 +2% (`font.tracking.wide`) | 사실 정보. 색은 `text.tertiary`(또는 `text.secondary`) |
+| `type.productB.factUpper` = Figma `Product B/Fact upper` | IBM Plex Mono 500, 12/16, +2%, 대문자 | 영어 사실 줄(`SEPOLIA · CHAIN ID 11155111`) |
+| `type.productB.link` = Figma `Product B/Link` | `Product B/Label`(Pretendard 500, 14/20) + 밑줄 | 링크 글자 |
+
+Figma Variable: Component `chip/bg` VariableID:594:188, `chip/fg` VariableID:594:189. 새 Variable은 Primitive에 없고 기존 alias만 쓴다.
+
+### Mono 사실 라벨 쓰는 곳
+
+네트워크·chainId, 블록, 해시, 버전, 사실로서의 시각. 감정이나 설명은 sans다. Tx 상세(시각, 네트워크, 해시, 블록), 결과(네트워크 행), 받기(제목 줄 오른쪽 `Sepolia · 11155111`), 설정(네트워크, 버전), 라이선스(라이선스 ID, 버전), 자산 상세(네트워크, 컨트랙트, 소수 자릿수), 시작(버전 줄). 전체 주소는 `B/Address`를 그대로 쓴다.
+
+### 주소 표시: 4글자 묶음 없음 (오너 2026-10-17)
+
+`B/Address`는 10개 조각을 gap 0으로 붙여 하나의 문자열처럼 감싼다(Figma 구현 방식. 앱은 Text 하나에 span을 쓴다). 앞 6자(`0x` + 4)와 끝 4자는 strong 그대로다. 비슷한 주소의 다른 글자는 글자 단위로 `Product B/Address M diff` + `status/danger/fg`다. 390 폭에서 최대 2줄이다. `B/Detail row`의 Address 값과 `B/Address compare`도 띄어쓰기 없이 붙여 쓴다.

@@ -183,6 +183,11 @@
         "900": {
           "value": "#53340F",
           "type": "color"
+        },
+        "950": {
+          "value": "#342617",
+          "type": "color",
+          "description": "color.amber.950: Low-chroma Dark Banner fill (pd-review batch 1, P2-10, owner-approved 2026-10-17). Derived from the 900 step in OKLCH: same hue, L 0.28, chroma x0.5. text.secondary (Dark) 9.47:1, amber.300 icon 9.39:1."
         }
       },
       "red": {
@@ -225,6 +230,11 @@
         "900": {
           "value": "#612229",
           "type": "color"
+        },
+        "950": {
+          "value": "#3C1F21",
+          "type": "color",
+          "description": "color.red.950: Low-chroma Dark Banner fill (pd-review batch 1, P2-10, owner-approved 2026-10-17). Derived from the 900 step in OKLCH: same hue, L 0.28, chroma x0.5. text.secondary (Dark) 9.64:1, red.300 icon 6.09:1."
         }
       },
       "identity": {
@@ -397,6 +407,22 @@
       "review_panel": {
         "value": "480px",
         "type": "sizing"
+      },
+      "pill_lg": {
+        "value": "56px",
+        "type": "sizing"
+      },
+      "pill_md": {
+        "value": "48px",
+        "type": "sizing"
+      },
+      "pill_sm": {
+        "value": "40px",
+        "type": "sizing"
+      },
+      "badge": {
+        "value": "18px",
+        "type": "sizing"
       }
     },
     "radius": {
@@ -498,6 +524,10 @@
         "mono": {
           "value": "IBM Plex Mono",
           "type": "fontFamilies"
+        },
+        "pretendard": {
+          "value": "Pretendard",
+          "type": "fontFamilies"
         }
       },
       "weight": {
@@ -574,6 +604,30 @@
         "product40": {
           "value": "40px",
           "type": "fontSizes"
+        },
+        "product15": {
+          "value": "15px",
+          "type": "fontSizes"
+        },
+        "product17": {
+          "value": "17px",
+          "type": "fontSizes"
+        },
+        "product19": {
+          "value": "19px",
+          "type": "fontSizes"
+        },
+        "product22": {
+          "value": "22px",
+          "type": "fontSizes"
+        },
+        "product26": {
+          "value": "26px",
+          "type": "fontSizes"
+        },
+        "product44": {
+          "value": "44px",
+          "type": "fontSizes"
         }
       },
       "lineHeight": {
@@ -624,6 +678,38 @@
         "px48": {
           "value": "48px",
           "type": "lineHeights"
+        },
+        "px17": {
+          "value": "17px",
+          "type": "lineHeights"
+        },
+        "px22": {
+          "value": "22px",
+          "type": "lineHeights"
+        },
+        "px25": {
+          "value": "25px",
+          "type": "lineHeights"
+        },
+        "px27": {
+          "value": "27px",
+          "type": "lineHeights"
+        },
+        "px30": {
+          "value": "30px",
+          "type": "lineHeights"
+        },
+        "px34": {
+          "value": "34px",
+          "type": "lineHeights"
+        },
+        "px52": {
+          "value": "52px",
+          "type": "lineHeights"
+        },
+        "px16": {
+          "value": "16px",
+          "type": "lineHeights"
         }
       },
       "tracking": {
@@ -641,6 +727,54 @@
         },
         "wide": {
           "value": "2%",
+          "type": "letterSpacing"
+        },
+        "displayL": {
+          "value": "-3%",
+          "type": "letterSpacing"
+        },
+        "displayM": {
+          "value": "-2.5%",
+          "type": "letterSpacing"
+        },
+        "title1": {
+          "value": "-2.3077%",
+          "type": "letterSpacing"
+        },
+        "title2": {
+          "value": "-2.2727%",
+          "type": "letterSpacing"
+        },
+        "title3": {
+          "value": "-2.1053%",
+          "type": "letterSpacing"
+        },
+        "bodySmall": {
+          "value": "-1.3333%",
+          "type": "letterSpacing"
+        },
+        "label": {
+          "value": "-1.4286%",
+          "type": "letterSpacing"
+        },
+        "caption": {
+          "value": "-0.8333%",
+          "type": "letterSpacing"
+        },
+        "headline": {
+          "value": "-1.7647%",
+          "type": "letterSpacing"
+        },
+        "body": {
+          "value": "-1.875%",
+          "type": "letterSpacing"
+        },
+        "figure": {
+          "value": "-2.7273%",
+          "type": "letterSpacing"
+        },
+        "figureUnit": {
+          "value": "-2.0833%",
           "type": "letterSpacing"
         }
       }
@@ -993,6 +1127,248 @@
           },
           "type": "typography"
         }
+      },
+      "productB": {
+        "displayL": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product40}",
+            "lineHeight": "{font.lineHeight.px48}",
+            "letterSpacing": "{font.tracking.displayL}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "displayM": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product32}",
+            "lineHeight": "{font.lineHeight.px40}",
+            "letterSpacing": "{font.tracking.displayM}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "title1": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product26}",
+            "lineHeight": "{font.lineHeight.px34}",
+            "letterSpacing": "{font.tracking.title1}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "title2": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product22}",
+            "lineHeight": "{font.lineHeight.px30}",
+            "letterSpacing": "{font.tracking.title2}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "title3": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product19}",
+            "lineHeight": "{font.lineHeight.px27}",
+            "letterSpacing": "{font.tracking.title3}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "headline": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.product17}",
+            "lineHeight": "{font.lineHeight.px25}",
+            "letterSpacing": "{font.tracking.headline}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "rowTitle": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.medium}",
+            "fontSize": "{font.size.product17}",
+            "lineHeight": "{font.lineHeight.px25}",
+            "letterSpacing": "{font.tracking.headline}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "body": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.regular}",
+            "fontSize": "{font.size.base}",
+            "lineHeight": "{font.lineHeight.px24}",
+            "letterSpacing": "{font.tracking.body}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "bodySmall": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.regular}",
+            "fontSize": "{font.size.product15}",
+            "lineHeight": "{font.lineHeight.px22}",
+            "letterSpacing": "{font.tracking.bodySmall}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "label": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.medium}",
+            "fontSize": "{font.size.sm}",
+            "lineHeight": "{font.lineHeight.px20}",
+            "letterSpacing": "{font.tracking.label}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "caption": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.regular}",
+            "fontSize": "{font.size.xs}",
+            "lineHeight": "{font.lineHeight.px17}",
+            "letterSpacing": "{font.tracking.caption}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "address": {
+          "value": {
+            "fontFamily": "{font.family.mono}",
+            "fontWeight": "{font.weight.regular}",
+            "fontSize": "{font.size.sm}",
+            "lineHeight": "{font.lineHeight.px20}",
+            "letterSpacing": "{font.tracking.normal}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "figure": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.bold}",
+            "fontSize": "{font.size.product44}",
+            "lineHeight": "{font.lineHeight.px52}",
+            "letterSpacing": "{font.tracking.figure}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography",
+          "description": "type.productB.figure: Balance and amount figures. Pretendard 700 44/52. Pair with figureUnit; use only for figures (owner decision 2026-10-17). Matches Figma style \"Product B/Figure\" (tabular numbers on)."
+        },
+        "figureUnit": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.semibold}",
+            "fontSize": "{font.size.2xl}",
+            "lineHeight": "{font.lineHeight.px32}",
+            "letterSpacing": "{font.tracking.figureUnit}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography",
+          "description": "type.productB.figureUnit: Unit next to a figure. Pretendard 600 24/32. Color text.secondary (applied by the consumer, typography tokens carry no color). Tracking -0.5 per desktop text style S:057625bf."
+        },
+        "fact": {
+          "value": {
+            "fontFamily": "{font.family.mono}",
+            "fontWeight": "{font.weight.regular}",
+            "fontSize": "{font.size.xs}",
+            "lineHeight": "{font.lineHeight.px16}",
+            "letterSpacing": "{font.tracking.wide}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "factUpper": {
+          "value": {
+            "fontFamily": "{font.family.mono}",
+            "fontWeight": "{font.weight.medium}",
+            "fontSize": "{font.size.xs}",
+            "lineHeight": "{font.lineHeight.px16}",
+            "letterSpacing": "{font.tracking.wide}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "uppercase",
+            "textDecoration": "none"
+          },
+          "type": "typography"
+        },
+        "link": {
+          "value": {
+            "fontFamily": "{font.family.pretendard}",
+            "fontWeight": "{font.weight.medium}",
+            "fontSize": "{font.size.sm}",
+            "lineHeight": "{font.lineHeight.px20}",
+            "letterSpacing": "{font.tracking.label}",
+            "paragraphSpacing": "0px",
+            "paragraphIndent": "0px",
+            "textCase": "none",
+            "textDecoration": "underline"
+          },
+          "type": "typography"
+        }
       }
     },
     "elevation": {
@@ -1230,6 +1606,21 @@
         "value": "{surface.brandTint}",
         "type": "color",
         "description": "surface.portfolioSummary: Surface grouping in the Light theme. Default informational content is Borderless."
+      },
+      "disabled": {
+        "value": "{color.neutral.100}",
+        "type": "color",
+        "description": "surface.disabled: Disabled control fill (Redesign B Primary). Pair with text.disabled."
+      },
+      "pressedOnRaised": {
+        "value": "{color.neutral.100}",
+        "type": "color",
+        "description": "surface.pressedOnRaised: Secondary control fill on a raised surface (bottom sheet). Light matches surface.pressed."
+      },
+      "inset": {
+        "value": "{color.neutral.50}",
+        "type": "color",
+        "description": "surface.inset (Light): inset panel on the screen background (B/Secret grid). Same value as surface.subtle."
       }
     },
     "text": {
@@ -1254,9 +1645,9 @@
         "description": "text.inverse: Readable text foreground. Preserve the required contrast on its paired surface."
       },
       "link": {
-        "value": "{color.identity.blue.700}",
+        "value": "{color.neutral.900}",
         "type": "color",
-        "description": "text.link: Readable text foreground. Preserve the required contrast on its paired surface."
+        "description": "text.link: Ink link text. Always underlined or followed by an arrow; blue is only for Primary and the selected tab (owner 2026-10-17). Aliases an existing Primitive."
       },
       "disabled": {
         "value": "{color.neutral.600}",
@@ -1478,17 +1869,17 @@
       },
       "info": {
         "fg": {
-          "value": "{color.brand.700}",
+          "value": "{text.secondary}",
           "type": "color",
           "description": "status.info.fg: Status meaning. Pair color with a visible icon, label and evidence for the state."
         },
         "bg": {
-          "value": "{color.brand.50}",
+          "value": "{surface.subtle}",
           "type": "color",
           "description": "status.info.bg: Status meaning. Pair color with a visible icon, label and evidence for the state."
         },
         "border": {
-          "value": "{color.brand.300}",
+          "value": "{border.subtle}",
           "type": "color",
           "description": "status.info.border: Status meaning. Pair color with a visible icon, label and evidence for the state."
         }
@@ -1671,8 +2062,9 @@
     "financial": {
       "change": {
         "positive": {
-          "value": "{color.teal.700}",
-          "type": "color"
+          "value": "{color.neutral.900}",
+          "type": "color",
+          "description": "financial.change.positive: Received amount is Ink with a leading +. Green is for status badges only (owner 2026-10-17)."
         },
         "negative": {
           "value": "{color.red.700}",
@@ -2022,7 +2414,7 @@
     "input": {
       "bg": {
         "default": {
-          "value": "{surface.default}",
+          "value": "{surface.pressed}",
           "type": "color",
           "description": "input.bg.default: C03 Input. Keep visible label, editable value and linked helper/error. Invalid and focus can coexist."
         },
@@ -3845,7 +4237,7 @@
         "description": "overlay.shadow: Internal floating dialog/popover host. Child Component foreground roles take precedence. Apply scrim and its opacity only to modal backdrops; nonmodal popovers have no scrim."
       },
       "scrimBg": {
-        "value": "{surface.inverse}",
+        "value": "{color.neutral.950}",
         "type": "color",
         "description": "overlay.scrimBg: Internal floating dialog/popover host. Child Component foreground roles take precedence. Apply scrim and its opacity only to modal backdrops; nonmodal popovers have no scrim."
       },
@@ -4367,7 +4759,7 @@
           "description": "icon.status.warning: Contextual icon role. Functional vectors use current foreground; asset identity artwork keeps its original fills."
         },
         "info": {
-          "value": "{status.info.fg}",
+          "value": "{icon.secondary}",
           "type": "color",
           "description": "icon.status.info: Contextual icon role. Functional vectors use current foreground; asset identity artwork keeps its original fills."
         },
@@ -4514,6 +4906,250 @@
         "type": "borderRadius",
         "description": "sensitiveReveal.radius: C33 Sensitive reveal. Hidden by default; show on tap; hide again when the app leaves the foreground. Never log or copy the revealed words."
       }
+    },
+    "buttonB": {
+      "height": {
+        "lg": {
+          "value": "{size.pill_lg}",
+          "type": "sizing",
+          "description": "buttonB.height.lg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "md": {
+          "value": "{size.pill_md}",
+          "type": "sizing",
+          "description": "buttonB.height.md: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "sm": {
+          "value": "{size.pill_sm}",
+          "type": "sizing",
+          "description": "buttonB.height.sm: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        }
+      },
+      "radius": {
+        "value": "{radius.pill}",
+        "type": "borderRadius",
+        "description": "buttonB.radius: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+      },
+      "paddingX": {
+        "lg": {
+          "value": "{space.6}",
+          "type": "spacing",
+          "description": "buttonB.paddingX.lg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "md": {
+          "value": "{space.5}",
+          "type": "spacing",
+          "description": "buttonB.paddingX.md: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "sm": {
+          "value": "{space.4}",
+          "type": "spacing",
+          "description": "buttonB.paddingX.sm: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        }
+      },
+      "primary": {
+        "bg": {
+          "value": "{button.primary.bg.default}",
+          "type": "color",
+          "description": "buttonB.primary.bg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "fg": {
+          "value": "{button.primary.fg.default}",
+          "type": "color",
+          "description": "buttonB.primary.fg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "bgDisabled": {
+          "value": "{surface.disabled}",
+          "type": "color",
+          "description": "buttonB.primary.bgDisabled: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "fgDisabled": {
+          "value": "{text.disabled}",
+          "type": "color",
+          "description": "buttonB.primary.fgDisabled: Redesign B disabled Primary label and icon."
+        }
+      },
+      "secondary": {
+        "bg": {
+          "value": "{surface.pressed}",
+          "type": "color",
+          "description": "buttonB.secondary.bg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "bgPressed": {
+          "value": "{surface.pressed}",
+          "type": "color",
+          "description": "buttonB.secondary.bgPressed: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "fg": {
+          "value": "{text.primary}",
+          "type": "color",
+          "description": "buttonB.secondary.fg: Redesign B Button. Keep the visible action label, 44 px target and focus. Busy prevents duplicate submission."
+        },
+        "bgOnRaised": {
+          "value": "{surface.pressedOnRaised}",
+          "type": "color",
+          "description": "buttonB.secondary.bgOnRaised: Redesign B Secondary button inside a bottom sheet (raised surface)."
+        }
+      }
+    },
+    "rowB": {
+      "height": {
+        "value": "{size.asset_row}",
+        "type": "sizing",
+        "description": "rowB.height: Redesign B flat row, 64 px, no divider or background."
+      },
+      "paddingX": {
+        "value": "{layout.screen.padding}",
+        "type": "spacing",
+        "description": "rowB.paddingX: Redesign B flat row, 64 px, no divider or background."
+      }
+    },
+    "sheetB": {
+      "radius": {
+        "value": "{radius.3xl}",
+        "type": "borderRadius",
+        "description": "sheetB.radius: Redesign B bottom sheet top corners."
+      }
+    },
+    "screenB": {
+      "bg": {
+        "value": "{surface.default}",
+        "type": "color",
+        "description": "screenB.bg: Redesign B flat white screen background."
+      }
+    },
+    "sectionBand": {
+      "height": {
+        "value": "{space.3}",
+        "type": "spacing",
+        "description": "sectionBand.height: 12 px full-bleed grey band on detail screens (review, result, transaction detail, settings). No border, no shadow."
+      },
+      "bg": {
+        "value": "{surface.canvas}",
+        "type": "color",
+        "description": "sectionBand.bg: grey band fill. Home and Activity stay flat white."
+      },
+      "blockPaddingY": {
+        "value": "{space.5}",
+        "type": "spacing",
+        "description": "sectionBand.blockPaddingY: block top/bottom padding, 20 px (owner-approved exception to the 24/16/12/8 product scale for banded blocks)."
+      }
+    },
+    "noticeBanner": {
+      "radius": {
+        "value": "{radius.lg}",
+        "type": "borderRadius",
+        "description": "noticeBanner.radius: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+      },
+      "padding": {
+        "value": "{space.4}",
+        "type": "spacing",
+        "description": "noticeBanner.padding: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+      },
+      "iconSize": {
+        "value": "{iconSize.control}",
+        "type": "sizing",
+        "description": "noticeBanner.iconSize: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+      },
+      "info": {
+        "bg": {
+          "value": "{status.info.bg}",
+          "type": "color",
+          "description": "noticeBanner.info: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      },
+      "warning": {
+        "bg": {
+          "value": "{status.warning.bg}",
+          "type": "color",
+          "description": "noticeBanner.warning: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      },
+      "danger": {
+        "bg": {
+          "value": "{status.danger.bg}",
+          "type": "color",
+          "description": "noticeBanner.danger: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      },
+      "unknown": {
+        "bg": {
+          "value": "{status.unknown.bg}",
+          "type": "color",
+          "description": "noticeBanner.unknown: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      },
+      "confirmed": {
+        "bg": {
+          "value": "{status.success.bg}",
+          "type": "color",
+          "description": "noticeBanner.confirmed: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      },
+      "clear": {
+        "bg": {
+          "value": "{check.clear.bg}",
+          "type": "color",
+          "description": "noticeBanner.clear: Tier=Banner notice (page-level or blocking). Tint container, radius 16, padding 16, icon 20."
+        }
+      }
+    },
+    "rowBadge": {
+      "size": {
+        "value": "{size.badge}",
+        "type": "sizing",
+        "description": "rowBadge.size: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+      },
+      "ring": {
+        "value": "{space.0_5}",
+        "type": "spacing",
+        "description": "rowBadge.ring: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+      },
+      "ringColor": {
+        "value": "{surface.default}",
+        "type": "color",
+        "description": "rowBadge.ringColor: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+      },
+      "sent": {
+        "fg": {
+          "value": "{icon.secondary}",
+          "type": "color",
+          "description": "rowBadge.sent: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+        }
+      },
+      "received": {
+        "fg": {
+          "value": "{status.success.fg}",
+          "type": "color",
+          "description": "rowBadge.received: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+        }
+      },
+      "pending": {
+        "fg": {
+          "value": "{color.amber.600}",
+          "type": "color",
+          "description": "rowBadge.pending: amber.600 in both modes so the white Solar Bold glyph keeps 4.57:1 (was status.warning.fg: amber.700 Light looked brown, amber.300 Dark had low glyph contrast). pd-review batch 1, P2-12."
+        }
+      },
+      "failed": {
+        "fg": {
+          "value": "{status.danger.fg}",
+          "type": "color",
+          "description": "rowBadge.failed: B/Row Leading=Asset badge. 18 px direction/status badge on a 2 px surface/default ring, bottom-right of the 40 px asset identity."
+        }
+      }
+    },
+    "chip": {
+      "bg": {
+        "value": "{surface.pressed}",
+        "type": "color",
+        "description": "chip.bg: One neutral chip style for the network chip. Amber, blue, green and red are not chip colors."
+      },
+      "fg": {
+        "value": "{text.secondary}",
+        "type": "color",
+        "description": "chip.fg: Chip label color."
+      }
     }
   },
   "semanticDark": {
@@ -4577,6 +5213,21 @@
         "value": "{color.neutral.800}",
         "type": "color",
         "description": "surface.pressed: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+      },
+      "disabled": {
+        "value": "{color.neutral.800}",
+        "type": "color",
+        "description": "surface.disabled: Dark mode override. Aliases an existing Primitive."
+      },
+      "pressedOnRaised": {
+        "value": "{color.neutral.600}",
+        "type": "color",
+        "description": "surface.pressedOnRaised (Dark): one step lighter than surface.raised (neutral.800) so a sheet Secondary button keeps a visible pill. Boundary 1.93:1, label 7:1 (pd-review batch 1, P1-9)."
+      },
+      "inset": {
+        "value": "{color.neutral.800}",
+        "type": "color",
+        "description": "surface.inset (Dark): one step lighter than the screen (neutral.900), same value as surface.raised, so the panel is not darker than the canvas (aesthetic review P1-7)."
       }
     },
     "text": {
@@ -4601,9 +5252,9 @@
         "description": "text.inverse: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
       },
       "link": {
-        "value": "{color.brand.300}",
+        "value": "{color.neutral.50}",
         "type": "color",
-        "description": "text.link: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+        "description": "text.link: Dark mode override (Figma 02 Semantic, mode Dark). Ink link text. Always underlined or followed by an arrow; blue is only for Primary and the selected tab (owner 2026-10-17). Aliases an existing Primitive."
       },
       "disabled": {
         "value": "{color.neutral.500}",
@@ -4751,9 +5402,9 @@
           "description": "status.warning.fg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
         },
         "bg": {
-          "value": "{color.amber.900}",
+          "value": "{color.amber.950}",
           "type": "color",
-          "description": "status.warning.bg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+          "description": "status.warning.bg: Dark mode override. Low-chroma amber.950 (was amber.900, too heavy behind 2-4 line Banner text; P2-10)."
         },
         "border": {
           "value": "{color.amber.700}",
@@ -4768,9 +5419,9 @@
           "description": "status.danger.fg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
         },
         "bg": {
-          "value": "{color.red.900}",
+          "value": "{color.red.950}",
           "type": "color",
-          "description": "status.danger.bg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+          "description": "status.danger.bg: Dark mode override. Low-chroma red.950 (was red.900, too heavy behind 2-4 line Banner text; P2-10)."
         },
         "border": {
           "value": "{color.red.700}",
@@ -4780,17 +5431,17 @@
       },
       "info": {
         "fg": {
-          "value": "{color.brand.300}",
+          "value": "{text.secondary}",
           "type": "color",
           "description": "status.info.fg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
         },
         "bg": {
-          "value": "{color.brand.900}",
+          "value": "{surface.subtle}",
           "type": "color",
           "description": "status.info.bg: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
         },
         "border": {
-          "value": "{color.brand.700}",
+          "value": "{border.subtle}",
           "type": "color",
           "description": "status.info.border: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
         }
@@ -4816,9 +5467,9 @@
     "financial": {
       "change": {
         "positive": {
-          "value": "{color.teal.300}",
+          "value": "{color.neutral.50}",
           "type": "color",
-          "description": "financial.change.positive: Dark mode override (Figma 02 Semantic, mode Dark). Aliases an existing Primitive."
+          "description": "financial.change.positive: Dark mode override. Ink with a leading +, not green."
         },
         "negative": {
           "value": "{color.red.300}",

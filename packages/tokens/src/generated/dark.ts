@@ -52,7 +52,8 @@ export const dark = {
         "600": "#A9660A",
         "700": "#865007",
         "800": "#693F0B",
-        "900": "#53340F"
+        "900": "#53340F",
+        "950": "#342617"
       },
       "red": {
         "50": "#FBE8E9",
@@ -64,7 +65,8 @@ export const dark = {
         "600": "#B93340",
         "700": "#982934",
         "800": "#7A252E",
-        "900": "#612229"
+        "900": "#612229",
+        "950": "#3C1F21"
       },
       "identity": {
         "blue": {
@@ -113,7 +115,11 @@ export const dark = {
       "wallet_status_card": 240,
       "product_header": 56,
       "product_nav": 64,
-      "review_panel": 480
+      "review_panel": 480,
+      "pill_lg": 56,
+      "pill_md": 48,
+      "pill_sm": 40,
+      "badge": 18
     },
     "radius": {
       "none": 0,
@@ -322,6 +328,127 @@ export const dark = {
           "lineHeight": 20,
           "letterSpacing": 0
         }
+      },
+      "productB": {
+        "displayL": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 40,
+          "lineHeight": 48,
+          "letterSpacing": -1.2
+        },
+        "displayM": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 32,
+          "lineHeight": 40,
+          "letterSpacing": -0.8
+        },
+        "title1": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 26,
+          "lineHeight": 34,
+          "letterSpacing": -0.6
+        },
+        "title2": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 22,
+          "lineHeight": 30,
+          "letterSpacing": -0.5
+        },
+        "title3": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 19,
+          "lineHeight": 27,
+          "letterSpacing": -0.4
+        },
+        "headline": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 17,
+          "lineHeight": 25,
+          "letterSpacing": -0.3
+        },
+        "rowTitle": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "500",
+          "fontSize": 17,
+          "lineHeight": 25,
+          "letterSpacing": -0.3
+        },
+        "body": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
+          "fontSize": 16,
+          "lineHeight": 24,
+          "letterSpacing": -0.3
+        },
+        "bodySmall": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
+          "fontSize": 15,
+          "lineHeight": 22,
+          "letterSpacing": -0.2
+        },
+        "label": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "500",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": -0.2
+        },
+        "caption": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
+          "fontSize": 12,
+          "lineHeight": 17,
+          "letterSpacing": -0.1
+        },
+        "address": {
+          "fontFamily": "IBM Plex Mono",
+          "fontWeight": "400",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": 0
+        },
+        "figure": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "700",
+          "fontSize": 44,
+          "lineHeight": 52,
+          "letterSpacing": -1.2
+        },
+        "figureUnit": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "600",
+          "fontSize": 24,
+          "lineHeight": 32,
+          "letterSpacing": -0.5
+        },
+        "fact": {
+          "fontFamily": "IBM Plex Mono",
+          "fontWeight": "400",
+          "fontSize": 12,
+          "lineHeight": 16,
+          "letterSpacing": 0.24
+        },
+        "factUpper": {
+          "fontFamily": "IBM Plex Mono",
+          "fontWeight": "500",
+          "fontSize": 12,
+          "lineHeight": 16,
+          "letterSpacing": 0.24
+        },
+        "link": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "500",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": -0.2
+        }
       }
     },
     "elevation": {
@@ -429,14 +556,17 @@ export const dark = {
       "selected": "#273966",
       "hover": "#11161D",
       "pressed": "#28313C",
-      "portfolioSummary": "#273966"
+      "portfolioSummary": "#273966",
+      "disabled": "#28313C",
+      "pressedOnRaised": "#505C6C",
+      "inset": "#28313C"
     },
     "text": {
       "primary": "#F6F8FB",
       "secondary": "#C7D1DD",
       "tertiary": "#98A4B3",
       "inverse": "#11161D",
-      "link": "#96B8F8",
+      "link": "#F6F8FB",
       "disabled": "#6B7788",
       "onBrand": "#FFFFFF",
       "onStatusTint": "#F6F8FB"
@@ -495,18 +625,18 @@ export const dark = {
       },
       "warning": {
         "fg": "#FFC65D",
-        "bg": "#53340F",
+        "bg": "#342617",
         "border": "#865007"
       },
       "danger": {
         "fg": "#E98B95",
-        "bg": "#612229",
+        "bg": "#3C1F21",
         "border": "#982934"
       },
       "info": {
-        "fg": "#96B8F8",
-        "bg": "#273966",
-        "border": "#2D4E9F"
+        "fg": "#C7D1DD",
+        "bg": "#0B0F15",
+        "border": "#28313C"
       },
       "unknown": {
         "fg": "#C7D1DD",
@@ -627,7 +757,7 @@ export const dark = {
     },
     "financial": {
       "change": {
-        "positive": "#74D9A9",
+        "positive": "#F6F8FB",
         "negative": "#E98B95",
         "neutral": "#98A4B3"
       }
@@ -761,7 +891,7 @@ export const dark = {
     },
     "input": {
       "bg": {
-        "default": "#11161D",
+        "default": "#28313C",
         "disabled": "#0B0F15"
       },
       "fg": "#F6F8FB",
@@ -866,18 +996,18 @@ export const dark = {
       },
       "warning": {
         "fg": "#FFC65D",
-        "bg": "#53340F",
+        "bg": "#342617",
         "border": "#865007"
       },
       "danger": {
         "fg": "#E98B95",
-        "bg": "#612229",
+        "bg": "#3C1F21",
         "border": "#982934"
       },
       "info": {
-        "fg": "#96B8F8",
-        "bg": "#273966",
-        "border": "#2D4E9F"
+        "fg": "#C7D1DD",
+        "bg": "#0B0F15",
+        "border": "#28313C"
       },
       "unknown": {
         "fg": "#C7D1DD",
@@ -890,7 +1020,7 @@ export const dark = {
       "border": "#28313C",
       "link": {
         "default": "#C7D1DD",
-        "hover": "#96B8F8",
+        "hover": "#F6F8FB",
         "active": "#F6F8FB",
         "focus": "#3152FF"
       },
@@ -930,12 +1060,12 @@ export const dark = {
         "border": "#28313C"
       },
       "warning": {
-        "bg": "#53340F",
+        "bg": "#342617",
         "fg": "#FFC65D",
         "border": "#865007"
       },
       "risk": {
-        "bg": "#612229",
+        "bg": "#3C1F21",
         "fg": "#E98B95",
         "border": "#982934"
       },
@@ -1008,12 +1138,12 @@ export const dark = {
       "spender": "#C7D1DD",
       "limit": "#F6F8FB",
       "warning": {
-        "bg": "#53340F",
+        "bg": "#342617",
         "fg": "#FFC65D",
         "border": "#865007"
       },
       "risk": {
-        "bg": "#612229",
+        "bg": "#3C1F21",
         "fg": "#E98B95",
         "border": "#982934"
       },
@@ -1224,7 +1354,7 @@ export const dark = {
       "helper": "#C7D1DD",
       "warning": {
         "fg": "#FFC65D",
-        "bg": "#53340F"
+        "bg": "#342617"
       },
       "radius": 16,
       "padding": 24,
@@ -1368,8 +1498,8 @@ export const dark = {
       "account": "#F6F8FB",
       "permission": "#C7D1DD",
       "notice": {
-        "fg": "#96B8F8",
-        "bg": "#273966"
+        "fg": "#C7D1DD",
+        "bg": "#0B0F15"
       },
       "radius": 20,
       "padding": 24,
@@ -1401,7 +1531,7 @@ export const dark = {
       },
       "warning": {
         "fg": "#FFC65D",
-        "bg": "#53340F"
+        "bg": "#342617"
       },
       "radius": 20,
       "padding": 24,
@@ -1428,7 +1558,7 @@ export const dark = {
       "body": "#C7D1DD",
       "pending": {
         "fg": "#FFC65D",
-        "bg": "#53340F"
+        "bg": "#342617"
       },
       "complete": {
         "fg": "#74D9A9",
@@ -1458,7 +1588,7 @@ export const dark = {
       "border": "#505C6C",
       "origin": "#F6F8FB",
       "scope": "#C7D1DD",
-      "action": "#96B8F8",
+      "action": "#F6F8FB",
       "radius": 12,
       "padding": 16,
       "height": 120,
@@ -1483,9 +1613,9 @@ export const dark = {
       "border": "#505C6C",
       "spender": "#F6F8FB",
       "detail": "#C7D1DD",
-      "limited": "#96B8F8",
+      "limited": "#C7D1DD",
       "unlimited": "#FFC65D",
-      "action": "#96B8F8",
+      "action": "#F6F8FB",
       "radius": 12,
       "padding": 16,
       "height": 120,
@@ -1545,7 +1675,7 @@ export const dark = {
         "shadowRadius": 12,
         "shadowOpacity": 1
       },
-      "scrimBg": "#F6F8FB",
+      "scrimBg": "#0B0F15",
       "scrimOpacity": 0.4
     },
     "productHeader": {
@@ -1623,20 +1753,20 @@ export const dark = {
       "padding": 16,
       "gap": 8,
       "info": {
-        "fg": "#96B8F8",
-        "bg": "#273966",
-        "border": "#2D4E9F",
+        "fg": "#C7D1DD",
+        "bg": "#0B0F15",
+        "border": "#28313C",
         "borderWidth": 0
       },
       "warning": {
         "fg": "#FFC65D",
-        "bg": "#53340F",
+        "bg": "#342617",
         "border": "#865007",
         "borderWidth": 0
       },
       "danger": {
         "fg": "#E98B95",
-        "bg": "#612229",
+        "bg": "#3C1F21",
         "border": "#982934",
         "borderWidth": 0
       },
@@ -1747,7 +1877,7 @@ export const dark = {
         "confirmed": "#74D9A9",
         "failed": "#E98B95",
         "warning": "#FFC65D",
-        "info": "#96B8F8",
+        "info": "#98A4B3",
         "unknown": "#C7D1DD",
         "clear": "#C7D1DD"
       }
@@ -1787,6 +1917,90 @@ export const dark = {
       "hint": "#C7D1DD",
       "wordBg": "#11161D",
       "radius": 16
+    },
+    "buttonB": {
+      "height": {
+        "lg": 56,
+        "md": 48,
+        "sm": 40
+      },
+      "radius": 999,
+      "paddingX": {
+        "lg": 24,
+        "md": 20,
+        "sm": 16
+      },
+      "primary": {
+        "bg": "#3152FF",
+        "fg": "#FFFFFF",
+        "bgDisabled": "#28313C",
+        "fgDisabled": "#6B7788"
+      },
+      "secondary": {
+        "bg": "#28313C",
+        "bgPressed": "#28313C",
+        "fg": "#F6F8FB",
+        "bgOnRaised": "#505C6C"
+      }
+    },
+    "rowB": {
+      "height": 64,
+      "paddingX": 16
+    },
+    "sheetB": {
+      "radius": 32
+    },
+    "screenB": {
+      "bg": "#11161D"
+    },
+    "sectionBand": {
+      "height": 12,
+      "bg": "#0B0F15",
+      "blockPaddingY": 20
+    },
+    "noticeBanner": {
+      "radius": 16,
+      "padding": 16,
+      "iconSize": 20,
+      "info": {
+        "bg": "#0B0F15"
+      },
+      "warning": {
+        "bg": "#342617"
+      },
+      "danger": {
+        "bg": "#3C1F21"
+      },
+      "unknown": {
+        "bg": "#11161D"
+      },
+      "confirmed": {
+        "bg": "#104833"
+      },
+      "clear": {
+        "bg": "#11161D"
+      }
+    },
+    "rowBadge": {
+      "size": 18,
+      "ring": 2,
+      "ringColor": "#11161D",
+      "sent": {
+        "fg": "#98A4B3"
+      },
+      "received": {
+        "fg": "#74D9A9"
+      },
+      "pending": {
+        "fg": "#A9660A"
+      },
+      "failed": {
+        "fg": "#E98B95"
+      }
+    },
+    "chip": {
+      "bg": "#28313C",
+      "fg": "#C7D1DD"
     }
   }
 } as const

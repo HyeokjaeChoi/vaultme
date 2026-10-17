@@ -51,7 +51,10 @@ vi.mock('react-native-keychain', () => ({
   }),
   getGenericPassword: vi.fn(async (o: { service: string }) => items.get(o.service) ?? false),
   hasGenericPassword: vi.fn(async (o: { service: string }) => items.has(o.service)),
-  resetGenericPassword: vi.fn(async () => true),
+  resetGenericPassword: vi.fn(async (o?: { service: string }) => {
+    if (o) items.delete(o.service)
+    return true
+  }),
   getSupportedBiometryType: vi.fn(async () => null),
 }))
 vi.mock('react-native-mmkv', () => ({
@@ -89,6 +92,24 @@ describe('restoreWallet', () => {
     expect(kv.getBackupDone()).toBe(false)
     expect(items.get('app.vaultme.phrase')?.password).toBe(VECTOR) // normalized
   })
+  it('passphrase: same keychain item, restart-safe account, address differs, never in result or kv', async () => {
+    // Official BIP39 vector passphrase (trezor python-mnemonic vectors.json); address cross-checked in wallet-core tests.
+    const { restoreWallet, kv } = await setup()
+    const r = await restoreWallet(VECTOR, PROMPT, 'TREZOR')
+    expect(r.status === 'ok' && r.address.toLowerCase()).toBe('0x9c32f71d4db8fb9e1a58b0a80df79935e7256fa6')
+    expect(JSON.stringify(r)).not.toContain('TREZOR')
+    expect(kv.getAccountAddress()).not.toBe(VECTOR_ADDRESS)
+    vi.resetModules() // app restart: load again from the keychain
+    const { loadPhrase } = await import('../src/shared/storage/keychain')
+    const loaded = await loadPhrase(PROMPT)
+    expect(loaded.status === 'ok' && loaded.mnemonic.reveal()).toBe(VECTOR) // words only
+    expect(loaded.status === 'ok' && loaded.mnemonic.account().address.toLowerCase()).toBe('0x9c32f71d4db8fb9e1a58b0a80df79935e7256fa6')
+  })
+  it('no passphrase keeps the original storage format', async () => {
+    const { restoreWallet } = await setup()
+    await restoreWallet(VECTOR, PROMPT, '')
+    expect(items.get('app.vaultme.phrase')?.password).toBe(VECTOR)
+  })
   it('rejects bad input without touching storage', async () => {
     const { restoreWallet, kv } = await setup()
     expect(await restoreWallet(BAD_CHECKSUM, PROMPT)).toEqual({ status: 'invalid', issue: { kind: 'badChecksum' } })
@@ -110,5 +131,26 @@ describe('restoreWallet', () => {
     expect(await restoreWallet(VECTOR, PROMPT)).toEqual({ status: 'error' })
     expect(kv.getAccountAddress()).toBeNull()
     expect(kv.getRestored()).toBe(false)
+  })
+  it('"다른 주소예요": removes the restored wallet (phrase, address, flags) so S05 can start again', async () => {
+    const { restoreWallet, kv } = await setup()
+    const { removeRestoredWallet } = await import('../src/features/restore/model/restoreWallet')
+    await restoreWallet(VECTOR, PROMPT) // no passphrase: wrong address for the user
+    expect(items.has('app.vaultme.phrase')).toBe(true)
+    expect(await removeRestoredWallet()).toBe(true)
+    expect(items.has('app.vaultme.phrase')).toBe(false)
+    expect(kv.getAccountAddress()).toBeNull()
+    expect(kv.getRestored()).toBe(false)
+    expect(kv.getBackupDone()).toBe(false)
+    const again = await restoreWallet(VECTOR, PROMPT, 'TREZOR') // words kept, passphrase now given
+    expect(again.status === 'ok' && again.address.toLowerCase()).toBe('0x9c32f71d4db8fb9e1a58b0a80df79935e7256fa6')
+  })
+  it('removal reports false and keeps going on S06 when the keychain refuses', async () => {
+    const { restoreWallet } = await setup()
+    const { removeRestoredWallet } = await import('../src/features/restore/model/restoreWallet')
+    await restoreWallet(VECTOR, PROMPT)
+    const Keychain = await import('react-native-keychain')
+    vi.mocked(Keychain.resetGenericPassword).mockResolvedValueOnce(false)
+    expect(await removeRestoredWallet()).toBe(false)
   })
 })

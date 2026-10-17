@@ -43,6 +43,8 @@ Blue A는 공식 업계 UI 조사와 제품 행동 위계에 따른 승인된 br
 
 ## Surface 위계
 
+**Redesign B(2026-10-16)는 평평한 흰색 한 면(`screenB/bg` = `surface.default`)이다.** Tint 요약과 canvas 구분을 쓰지 않고 row, section 제목, 간격으로 묶는다. 아래는 Redesign B 이전 기록이다.
+
 Light canvas 위에 **C23 대표 요약 한 곳만 Secondary tint**로 구분한다. 큰 balance는 한 곳이다. Assets·Activity·권한 목록과 Review는 흰색의 평평한 읽기 면을 사용한다. Navigation은 neutral 면과 기존 active marker를 유지한다. 페이지마다 tint hero를 반복하지 않는다.
 
 C23의 Complete/Partial/Unavailable은 같은 배경을 사용한다. `portfolioBalance.bg={surface.portfolioSummary}` → `{surface.brandTint}`로 연결한다. 값과 note는 `text.primary`의 Ink를 사용한다. Quote 상태는 valuation 범위·estimate·누락 설명으로 읽게 한다. Tint를 success·gain·safety로 사용하지 않는다.
@@ -81,13 +83,32 @@ Phosphor regular의 기능·상태·Navigation icon을 유지한다. 자산 iden
 
 ## 제품 type와 layout
 
-Inter UI와 IBM Plex Mono 주소·hash를 유지한다. `typography.balance`는 40/48 px, `typography.amountHero`는 40/48 px Bold(보낼 금액, 화면당 하나), amount 32/40 px, reviewAmount 28/36 px, title 24/32 px, row 16/24 px, body·label·address 14/20 px다. 12/18 px meta는 보조 시간과 문서 caption에만 쓴다. 기본 제품 TEXT를 역할 Style에 연결한다. T02의 22개 TEXT는 200% font-size override로 Style 연결이 해제된 stress 예외다.
+Redesign B부터 UI는 Pretendard 400/500/600(큰 숫자 `figure`만 700, 2026-10-17), 주소·hash는 IBM Plex Mono다(Figma는 임시 Gothic A1). 새 척도는 [Foundation guide](wallet-foundation-guide.md) `type.productB.*`를 따른다. 아래 수치는 기존 `Product /` 역할 기록이다. `typography.balance`는 40/48 px, `typography.amountHero`는 40/48 px Bold(보낼 금액, 화면당 하나), amount 32/40 px, reviewAmount 28/36 px, title 24/32 px, row 16/24 px, body·label·address 14/20 px다. 12/18 px meta는 보조 시간과 문서 caption에만 쓴다. 기본 제품 TEXT를 역할 Style에 연결한다. T02의 22개 TEXT는 200% font-size override로 Style 연결이 해제된 stress 예외다.
 
 웹 숫자는 tabular numerals, 우측 정렬, 단위 표시를 사용한다. Native TNUM 적용은 미확인이다. 아주 작은 수량은 전체 정밀도를 Review에서 읽을 수 있게 한다. 금액에 ellipsis를 쓰지 않는다. 긴 이름·값이 충돌하면 값 영역을 다음 줄로 옮긴다.
 
 Mobile padding 16 px, section gap 24 px. Asset min-height 64 px, Activity min-height 80 px. Body는 fill, value는 hug, accessory 공간은 유지한다. 높이는 내용에 따라 늘어난다. 모든 target은 최소 44 × 44 px다.
 
 320–767 px 한 열, 768–1199 px content max704, 1200 px 이상 max1200와 2열. Desktop review는 480 px drawer다. Table은 Mobile에서 label이 있는 stacked item이 된다. Footer와 scroll body를 분리한다. 주소·warning 위로 footer를 덮지 않는다.
+
+## Foundation 변경 · 2026-10-17
+
+오너 승인("싹다"). 한글 자간은 모든 크기에 음수다. 큰 숫자(잔액·금액)만 700이고 단위는 24/32 600 `text.secondary`로 분리한다. 검토·결과·거래 상세·설정에는 12 px `surface/canvas` 회색 띠(`sectionBand`)를 쓴다. 홈·내역은 흰색이다. Notice는 Banner(tint, radius 16, padding 16)와 Inline 두 단계다. 꺼진 Primary는 `neutral.100` + `text/disabled`다. 상세는 [Foundation guide](wallet-foundation-guide.md) §4.
+
+## Design principles (2026-10-17)
+
+근거: `work/review/rr-staff-pd-2026-10-17.md` §6 (Mobbin iOS 비교). 기준 사이트: [stack-line.dev](https://stack-line.dev). 절제, accent 하나, mono 사실 라벨, 정직한 문구, 엄격한 정렬. 오너 지침: 픽셀 숫자를 쫓지 않고 위계, accent 규율, 레이아웃 구조, 정보 구조, type system, component 논리, 일관성을 먼저 본다.
+
+1. accent는 화면당 하나다. 파랑은 Primary 버튼과 선택 탭뿐이다. 링크는 Ink + 밑줄, 칩은 중립 하나, 상태(초록·빨강·amber)는 badge와 경고에만, 받은 금액은 Ink + "+"다.
+2. 큰 숫자는 크고 촘촘하게(700, 음수 자간). 나머지는 조용한 400/500이다.
+3. 사실은 mono 마이크로 라벨로 쓴다(`Product B/Fact`): 네트워크, chainId, 블록, 해시, 버전, 사실로서의 시각. 감정과 설명은 sans다. 전체 주소는 `B/Address`다.
+4. 선은 기능이 있을 때만 쓴다: 입력 인지, focus, 고정 footer. 구분은 간격과 12 px 띠로 한다.
+5. 빈 공간은 설계한다. 화면당 쉼은 한 곳이다. 금액, 칩, 키패드, CTA는 엄지 영역에 한 열로 붙인다.
+6. 카피는 약속이 아니라 사실이다. 돈이 나가는 문장은 가장 크게, 가장 진하게 쓴다(Body Small + Ink).
+7. 가장 가치 있는 행동에 accent를 준다(실패 뒤 "다시 보내기"). 되돌릴 수 없는 일을 묻는 sheet는 안전한 쪽이 Primary다.
+8. 같은 정보는 한 번만 보인다(큰 숫자와 첫 행 중복 금지, 칩은 화면당 1개).
+9. 자주 쓰는 것은 움직이지 않는다(키패드). 드문 순간만 움직인다(확정, 잠금 해제). 곡선은 ease-out, 250 ms 이하. 움직임 줄이기에서는 최종 상태만 보인다.
+10. 모든 시각 변경은 Figma 먼저, 그다음 앱이다(AGENTS rule 6). Figma와 같다는 말은 품질의 증명이 아니다. 새 구조를 만들기 전에 Mobbin 화면 1–2장을 보고 frame annotation에 링크를 남긴다.
 
 ## Review anatomy
 

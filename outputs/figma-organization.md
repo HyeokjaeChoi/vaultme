@@ -19,20 +19,26 @@ Overview의 읽는 순서는 **범위 → 처음 시작하기 → 대표 Compone
 
 ## 파일 지도
 
-아래 링크는 같은 source의 page 또는 대표 frame으로 이동합니다. ID는 기존 source 경로를 유지합니다. 개별 안내 보드·master의 적용 결과는 새 readback과 [현재 release](vaultme-release.json)의 연결 증거로 확인합니다.
+2026-10-17 재정리 기준입니다. 모든 node ID는 유지했고 master·Variable·Style은 건드리지 않았습니다. 이동 기록은 `work/v8/figma-reorg-map.json`에 있습니다. 링크 형식은 `https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=<id>`입니다.
 
-| 영역 | 한 가지 목적 | 이동 대상 |
+| 영역 | page (ID) | 내용 |
 | --- | --- | --- |
-| Overview | 시작 순서와 역할별 길찾기 | [대표 frame `5:2`](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=5-2) · page `0:1` |
-| Foundations | 값·type·layout 규칙 확인 | [page `4:18`](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=4-18) |
-| Components | 기본 control과 family 찾기 | [Catalog `83:3936`](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=83-3936) · page `4:19` |
-| Transaction pattern | On-chain review 조합 읽기 | [page `4:20`](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=4-20) |
-| Wallet building blocks | Account·network·asset·내역 조립 | [대표 frame `32:2`](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=32-2) · page `31:2` |
-| Transfer and signing | Send·connection·approval·signing 구분 | [대표 frame `32:15`](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=32-15) · page `31:3` |
-| Security and permissions | Backup·connection·allowance 구분 | [page `43:34`](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=43-34) |
-| Product specimens | 합성 화면 조합 예제 읽기 | [page `69:2`](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=69-2) |
-| States and stress | 긴 값·좁은 폭·상태 예제 읽기 | [page `76:1047`](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=76-1047) |
-| Icons | Functional icon과 asset identity 구분 | [page `137:2`](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8?node-id=137-2) |
+| Overview | 00 Overview (`0:1`) | 시작 안내. 지도 갱신은 데스크톱에서 별도 |
+| Foundations | Foundations · Color (`487:76`) | Primitive ramp, Palette anchors, Blue A, Semantic roles Light/Dark, Semantic palette, Component aliases · Redesign B, 기존 Component aliases |
+| | Foundations · Typography (`488:605`) | Product B type scale(tnum 안내), Product typography, Preserved typography, Numbers and addresses |
+| | Foundations · Spacing & Layout (`488:1254`) | Product B spacing scale, size/pill_*, Product spacing, Layout and review width |
+| | Foundations · Radius, Elevation & Opacity (`488:1294`) | Radius, Elevation, Opacity, Shape and elevation |
+| | 09 Icons (`137:2`) | Functional icon과 asset identity |
+| Components | 02 Components (`4:19`), 03 Transaction pattern (`4:20`), 04 Wallet building blocks (`31:2`), 05 Transfer & signing (`31:3`), 06 Security & permissions (`43:34`) | 기존 master 위치 유지 |
+| | Components · Redesign B (`398:76`) | B Foundation section `398:77`(master)와 Dark check `399:176`. 화면은 Flow page로 이동 |
+| Flows · Redesign B | Flow 1 · Onboarding & wallet setup (`485:76`) | S01–S06, S31. Light `485:77` · Dark `485:78` |
+| | Flow 2 · Home & balance (`486:76`) | S10(+test mode), S11, S50. `486:77` · `486:78` |
+| | Flow 3 · Send & receive (`486:17419`) | S20–S24 위험·오류 상태, S30. `486:17420` · `486:17421` |
+| | Flow 4 · Activity (`486:17436`) | S40, S41. `486:17437` · `486:17438` |
+| | Flow 5 · Security & settings (`486:17443`) | S60–S63, S90–S92. `486:17444` · `486:17445` |
+| Archive | Archive · 01 Foundations (`4:18`), 07 Product specimens (`69:2`), 08 States & stress (`76:1047`), 10 Wireframes (`294:76`), 11 Prototype (`306:76`), 12 Text 200% (`315:2575`), 13 Redesign A (`332:76`) | 내용은 이동하지 않고 이름만 변경 |
+
+page 순서는 `———` 구분 page(`488:1401`–`488:1404`)로 나눕니다. Flow page는 행마다 S-id와 이름 label을 두고 Light/Dark를 같은 행 순서로 둡니다. Dark 짝이 없는 상태(S22 오류, S40 일부, S41 일부, S23 test mode)는 빈 칸입니다. 비어 있는 옛 section `404:162`, `423:642`, `423:13439`, `430:14605`는 ID 보존을 위해 Components · Redesign B에 남깁니다.
 
 ## Figma 링크와 Workspace 경로
 

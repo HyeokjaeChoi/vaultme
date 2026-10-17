@@ -2,12 +2,12 @@
 import { Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
-import { Icon, type IconName } from './Icon'
+import { Icon, type BoldIconName } from './Icon'
 import { Text } from './Text'
 
-export type NavItem = { key: string; label: string; icon: IconName; active: boolean; onPress: () => void }
+export type NavItem = { key: string; label: string; icon: BoldIconName; active: boolean; onPress: () => void }
 
-/** C21 Product navigation (tab bar). Full screen width, bar fill extends into the bottom safe area, 1 px top border, space-2 top padding, icon over Label text; active = brand color. */
+/** C21 Product navigation (tab bar). Full screen width, bar fill extends into the bottom safe area, 1 px top border, space-2 top padding, icon over Label text; active = Solar Bold icon (icon.navigation.activeFg) + brand-colored label, inactive = Linear icon. */
 export function ProductNavigation({ items }: { items: NavItem[] }) {
   const t = useTheme()
   const nav = t.component.productNavigation
@@ -36,7 +36,11 @@ export function ProductNavigation({ items }: { items: NavItem[] }) {
               onPress={i.onPress}
               style={{ flex: 1, minHeight: t.primitive.size.touch_min, alignItems: 'center', gap: t.semantic.layout.fieldGap, borderWidth: nav.itemBorderWidth }}
             >
-              <Icon name={i.icon} size={t.component.icon.size.control} color={color} />
+              {i.active ? (
+                <Icon name={i.icon} weight="bold" size={t.component.icon.size.control} color={nav.active} />
+              ) : (
+                <Icon name={i.icon as 'assets'} size={t.component.icon.size.control} color={t.component.icon.navigation.fg} />
+              )}
               <Text variant="label" color={color} maxFontSizeMultiplier={1.3} style={{ textAlign: 'center' }}>{i.label}</Text>
             </Pressable>
           )

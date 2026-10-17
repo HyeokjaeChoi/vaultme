@@ -143,6 +143,23 @@ Origin은 요청의 출처다. 검증 시스템이 없는 Prototype에서 `Verif
 
 P04의 결과는 Submitting/Pending/Confirmed/Failed/Unknown 다섯 화면이다. Prototype는 바깥 scenario control로 합성 결과를 선택한다. Confirm 버튼 클릭만으로 Confirmed가 되지 않는다. 모든 frame 밖에 `Design prototype · Synthetic data` caption을 둔다.
 
+## Redesign B 시각 계약 (2026-10-16)
+
+Master·variant·property ID와 property 이름은 바꾸지 않고 시각만 restyle했다(증거: `work/v7/verification/`). 면은 평평한 흰색(`screenB/bg`)이다. 이 restyle은 2026-10-16에 게시했다(`work/v7/verification/publication-proof.json`). 그 뒤의 Figma 변경(Solar 아이콘 등)은 오너 publish 전까지 게시하지 않는다.
+
+| Master | 시각 계약 |
+| --- | --- |
+| C01 Button ×3 | pill(`buttonB.radius`), 높이 40/48/56(Small/Medium/Large). 기존 State와 Label·Icon·ShowIcon 유지. 44 px target 유지 |
+| C03 Input | Redesign B Input 스타일. State 이름 유지 |
+| C29–C33 Bottom sheet | 위 모서리 32(`sheetB.radius`), Secondary가 Primary 위 |
+| Sheet 안 Secondary (2026-10-17) | 배경 `buttonB.secondary.bgOnRaised` → `surface.pressedOnRaised` (Light neutral.100, Dark neutral.600). 되돌릴 수 없는 일을 묻는 sheet는 "취소"가 Primary, 실행 쪽은 danger 글자 Secondary (§9.3). Dark 경계 대비는 1.93:1이다. **수용(pd-review batch 1 P1-9, 2026-10-17):** 버튼 글자(`buttonB.secondary.fg`, 약 7:1)가 컨트롤을 식별한다. WCAG 2.2 SC 1.4.11은 글자가 컨트롤을 식별하면 경계 대비를 요구하지 않는다. 변경 없음. 글자를 지우거나 icon-only Secondary를 sheet에 두면 이 수용은 무효다 |
+| Keypad | Redesign B 스타일. property 없음 |
+| C23 Portfolio balance | flat, tint 없음. Quote 이름 유지 |
+| C25 Status notice | 박스 없이 인라인 icon + 글자. Tone 이름 유지 |
+| Summary row, List item | Redesign B 스타일. Format·Trailing 유지 |
+| C09 Asset row | 64(`rowB.height`), flat |
+| C10 Activity row | 최소 64, flat, 40 원형 icon |
+
 ## 합성 fixture와 Stress
 
 Address: account `0x1111111111111111111111111111111111111111`, second `0x2222222222222222222222222222222222222222`, recipient `0x3333333333333333333333333333333333333333`, spender `0x4444444444444444444444444444444444444444`. EVM fixture는 0x + 40 hex, hash는 0x + 64 hex다. Origin은 `swap.example`이다.
@@ -199,7 +216,7 @@ Static color contrast, Figma geometry, Prototype keyboard 검사를 구분한다
 | C09 Asset row | 원본 identity, 이름·symbol·balance. 같은 상단 network만 반복 생략 |
 | C06 Navigation | Assets/Activity/Settings visible label과 active state |
 
-기능은 Phosphor regular, identity는 별도 원본 color SVG다. Label 옆 SVG/img는 aria-hidden이다. 미확인 identity에는 neutral fallback을 사용한다. Local icon 25개 연결은 정적 확인 완료이며 Native와 Library 통합도 완료했다. 최종 증거는 아래 적용 기록을 따른다. [Icons 안내](wallet-icon-guide.md), [로컬 검증](../work/v2/verification/icons-local.json).
+기능은 Solar(Linear 기본, 선택·상태·활성은 Bold, 빈 상태·결과 hero는 Bold Duotone; CC BY 4.0 표기 필요), identity는 별도 원본 color SVG다. Label 옆 SVG/img는 aria-hidden이다. 미확인 identity에는 neutral fallback을 사용한다. Local icon 25개 연결(Redesign B의 `qr`, `more` 추가 전 기록. 현재 기능 25 + identity 2)은 정적 확인 완료이며 Native와 Library 통합도 완료했다. 최종 증거는 아래 적용 기록을 따른다. [Icons 안내](wallet-icon-guide.md), [로컬 검증](../work/v2/verification/icons-local.json).
 
 Icons의 390 px Assets/Send Review는 실제 browser에서 logo load, wallet Review 데이터, 44 px target, overflow 0을 확인했다. Catalog 25행과 status 검색 7개도 확인했다. [Browser 증거](../work/v2/verification/icons-runtime.json). 확인한 합성 화면에 한정한 결과이며 screen reader·실제 wallet 검증은 아니다.
 
@@ -218,3 +235,110 @@ Icons의 390 px Assets/Send Review는 실제 browser에서 logo load, wallet Rev
 | 주소·hash | 번역하지 않음. 전체 문자열과 순서 보존 |
 
 Localized product를 만들 때 입력 허용 문자, locale fallback, 통화 위치, 화면 copy, 오류 copy, `lang`/`dir`, font glyph를 함께 확정하고 검사한다. 현재 Prototype의 mixed-language stress는 그 검사의 대체물이 아니다.
+
+## Redesign B 1차 추가 component (2026-10-17)
+
+Figma `Components · Redesign B` (398:77). 모두 새 component다. 기존 master ID와 property는 그대로다.
+
+| Component | Node | 계약 |
+| --- | --- | --- |
+| B/Section band | 494:341 | 12 px 회색 띠 (`sectionBand/height`, `sectionBand/bg`). 검토·결과·거래 상세·설정에서만. 홈·내역은 쓰지 않음 |
+| B/Block header | 494:342 | 띠로 나뉜 블록의 Label 제목 (`text/tertiary`) + 선택 링크 ("수정", "자세히", "거래 상세"). 코드에서 링크 hit area 44 px |
+| B/Status chip | 494:1067 | 중립 칩 하나(2026-10-17): fill `chip/bg`, label `chip/fg`. 라벨 "Sepolia"(Tone=Testnet) 또는 "Sepolia · 테스트 데이터"(Tone=Test data). 화면당 1개, 같은 자리(오른쪽 위), 탭하면 안내 sheet. amber·파랑 아님 |
+| B/Address | 494:1090 | Size=M (16/24) / L (18/28). 전체 주소(10조각, gap 0으로 붙여 쓴 한 문자열, 오너 2026-10-17). 앞 6자(0x+4)와 끝 4자는 strong + `text/primary`, 가운데는 `text/secondary`. 비슷한 주소의 다른 글자(글자 단위)는 `Product B/Address M diff` + `status/danger/fg` (밑줄, 색만으로 구분하지 않음) |
+| B/Amount hero | 494:1142 | Kind=Review (자산 로고 48, Figure + Figure unit, 문장) / Result (로고 56 + B/Row badge, Title 2, Figure, 문장, 가운데 정렬). Asset은 INSTANCE_SWAP |
+| B/Progress steps | 494:1176 | Step=Sent / Included / Confirmed. 끝난 단계 `status/success`, 지금 단계 `status/warning`, 남은 단계 `border/default`. Unknown·Replaced·Failed에는 쓰지 않음 |
+| B/Row badge (추가 Kind) | 494:326, 494:331, 494:336 | Kind=Confirmed / Unknown / Replaced. 기존 Sent/Received/Pending/Failed와 같은 구조 |
+
+같이 바꾼 것 (추가만):
+- B/Row `Leading=Asset badge` 변형의 Title·Subtitle·Value·Sub value 글자를 기존 text property에 연결했다. 전에는 연결이 없었다.
+- B/Notice inline `Tier=Banner` 변형의 Message·Link를 기존 property에 연결했다.
+- B/Amount display: Amount는 `Product B/Figure`, Ticker는 `Product B/Figure unit`, 기준선 정렬.
+- 새 text style: `Product B/Address M`, `Address M strong`, `Address M diff`, `Address L`, `Address L strong` (IBM Plex Mono 400/600). Token JSON에는 아직 없다.
+- 받기 QR은 component가 아니다. S30 프레임 안 `QR code`(29×29 모듈, 4 모듈 여백, `color/neutral/0` 판 + `color/neutral/950` 모듈, 두 모드 모두 밝은 판)이다. 내보낸 PNG를 jsQR 1.4.0으로 해독해 주소와 같음을 확인했다 (`work/v9/qr-decode-proof.json`).
+
+## Redesign B 2차 추가 component (2026-10-17)
+
+Figma `Components · Redesign B` (398:77). 기존 master ID는 그대로다. 기존 component에는 property를 더하기만 했다.
+
+| Component | Node | 계약 |
+| --- | --- | --- |
+| B/Check row | 515:27570 | State=Off / On. Title(Headline) + Body(Body Small, `Show body`). Off는 `border/strong` 테두리 상자(선택 control이라 기능 테두리), On은 `action/primary/bg` 상자 + 흰 check. 행 전체가 누름 영역(44 px 이상). 모두 On이어야 Primary가 켜진다 (S02 3개, S03 1개) |
+| B/Account block | 515:27571 | 설정 맨 위. 아바타(지갑 아이콘) + 계정 이름 + 짧은 주소(`Product B/Address M`) + "복사" Secondary sm 버튼(보이는 label). 복사 = impactLight haptic + "복사했어요" 토스트(앱) |
+| B/Balance hero `State=Figure` (변형 추가) | 515:27593 | Label + Amount(`Product B/Figure`) + Unit(`Product B/Figure unit`, 새 text property `Unit`) 기준선 정렬 + Sub. 홈 hero |
+| B/Settings row (property 추가) | 426:2045 | `Show icon`(기본 false) + `Icon`(INSTANCE_SWAP, Solar Linear 20). Chevron을 `Icon / navigation / disclosure`로 바꿈 |
+| B/Secret grid (변형 수정) | 426:2044 | 두 변형 모두 `surface/subtle` 판(radius 16) 안 번호 2열. Hidden = layer blur 14 + "탭해서 보기" pill. 단어는 공개 BIP39 test vector(abandon ×11, about)만 |
+
+새 Solar icon (09 Icons, CC BY 4.0, 480 Design): `Icon / account / key` 516:235, `Icon / settings / bell` 516:244, `Icon / settings / eye` 516:253, `Icon / settings / network` 516:264, `Icon / status / device-warning` 516:274 (Linear 20, `icon/action/fg`), `Icon / hero / face` 516:288 (Bold Duotone 48, `icon/brand`, 뒤 층 50%).
+
+## 최종 검수 수정 (2026-10-17, `work/review/pd-review-final-2026-10-17.md`)
+
+Master ID와 property는 그대로다. Library는 게시하지 않았다.
+
+| Component | Node | 바뀐 계약 |
+| --- | --- | --- |
+| B/Bottom sheet, Bottom sheet | 399:157, 301:606 | 아래 padding `space/12`(48 = 16 + home indicator 34 근사). 화면에서는 프레임 바닥에 붙이고 constraint Bottom. 모든 sheet가 같다 (P1-1) |
+| B/Bottom sheet grabber | 399:158 | `border/subtle` → `bottomSheet/grabber`(`border/default`). Dark에서 sheet 판(`surface/raised`)과 같은 색이라 안 보였다 (P1-4) |
+| Sheet 안 Secondary | S50 등 | 모든 sheet Secondary는 `buttonB/secondary/bgOnRaised` (P1-4, S50 "나중에" 수정) |
+| B/Address compare | 477:5145 | 주소 행 좌우 padding 0. sheet 제목·본문과 같은 16 시작선 (P2-18) |
+| B/Settings row (라이선스 목록) | 426:2045 | S64에서는 instance 높이를 `size/control_lg`(52)로 묶는다. 한 줄 정보 행. 버전은 S65에서 보인다 (P1-6) |
+| Icon swap 뒤 색 | 규칙 13 | 빈 지갑 S10의 보내기(Secondary)로 바꾼 뒤 아이콘을 `buttonB/secondary/fg`로 다시 묶었다 (P1-8) |
+
+Paint 검사(`.claude/skills/vaultme-figma-screen/audit.js`): 보이는 모든 node의 solid paint는 variable에 묶여 있거나 style이어야 한다 (`unboundPaint` = 0). 묶여 있어도 저장된 색이 해석 값과 다르면 `stalePaint`다 (= 0). 예외는 자산 identity artwork(ETH 137:402, USDC 137:429)와 OS chrome·QR 뿐이다. 최종 검수의 `#000000` 글자·아이콘은 묶인 paint가 seed 색 {0,0,0}을 그대로 가진 경우였다. Desktop export가 그 저장 색을 그렸다.
+
+
+## Seamless 검수 후속 (2026-10-17, `work/review/seamless-*-2026-10-17.md`)
+
+기존 master ID와 property는 그대로다. 새 variant만 더했다. Library는 게시하지 않았다.
+
+| Component | Node | 바뀐 계약 |
+| --- | --- | --- |
+| Icon / status / loading | 137:178 | glyph를 정지한 새로고침 화살표(Solar restart)에서 3/4 고리 spinner로 바꿨다. Busy: 회전 0→360°, 800 ms, linear, 반복. 움직임 줄이기: 회전 없음 + 진행형 label("보내는 중…", "복구하는 중…") |
+| Button / Primary, Button / Secondary | 9:283 `Size=Large, State=Copied` 555:64682, 9:284 `Size=Large, State=Copied` 555:68322 | 새 variant. "복사했어요" + check icon(label·icon 고정). 복사 성공 뒤 1.5 s, 150 ms crossfade, haptic impactLight, screen reader "복사했어요" |
+| B/Button | 398:247 `Type=Secondary, Size=sm, State=Copied` 555:68334 | 같은 Copied 계약(USDC 컨트랙트 "복사", 계정 블록 "복사") |
+| B/Account block | 515:27571 → set 555:68341 (`State=Default` 515:27571, `State=Copied` 555:68342) | component를 variant set으로 묶었다. 기존 instance는 Default로 그대로 연결 |
+| B/Bottom sheet, Bottom sheet | 399:157, 301:606 | 설명에 끌어서 닫기: 아래로 1:1, 놓을 때 높이 30% 또는 500 pt/s 넘으면 닫기(200 ms), 아니면 spring 복귀(300 ms, damping 0.8). 닫기 = 취소 |
+
+## S05 단어 칸 · 선택 패스프레이즈 (2026-10-17, redesign-b.md §9.3)
+
+새 component 1개, 기존 component에 property 추가, Solar icon 3개. 기존 master ID와 property는 그대로다. Library는 게시하지 않았다.
+
+| Component | Node | 계약 |
+| --- | --- | --- |
+| B/Word cell (새) | 565:73619 (`State=Empty` 565:73599, `Focus` 565:73604, `Filled` 565:73609, `Error` 565:73614) | 복구 단어 1개 칸. Text property `Number`(왼쪽 번호, 폭 20, `Product B/Caption`, `text/tertiary`) + `Word`(`Product B/Body`, `input/fg`, Empty에는 연결 안 함). 판 `input/bg/default`, radius `input/radius`, 테두리 `input/borderWidth` + `input/border/default` · Focus `input/border/focus` + caret(`input/border/focus`) · Error `input/border/error`. 높이 48(padding `space/3` + Body 24), 누름 영역 44 이상. 오류 메시지는 칸 안이 아니라 grid 아래. 접근성 이름 "N번째 단어". 키보드: 영문 소문자, 자동 대문자·자동 수정·추천 끔. 스페이스·엔터 = 다음 칸, 빈 칸에서 지우기 = 이전 칸, 어느 칸에든 붙여넣은 구문은 1번 칸부터 나눠 채움(12·24단어면 칸 수도 바꿈). Focus 테두리 150 ms ease-out, 움직임 줄이기: 바로 바뀜. haptic 없음 |
+| B/Input (property 추가) | 421:805 | `Show action`(BOOLEAN, 기본 false) + `Action icon`(INSTANCE_SWAP, 기본 `Icon / settings / eye`). Kind=Text 변형의 Field 오른쪽 끝 아이콘 버튼. S05 패스프레이즈: 가림 = eye(보기), 보임 = eye-closed(숨기기). 누름 영역 44×44, 접근성 이름 "패스프레이즈 보기" / "숨기기" |
+| B/Settings row (사용 방법) | 426:2045 | S05 "고급 · 패스프레이즈 입력" 접힘 행. Chevron을 `Icon / navigation / expand`(접힘) / `collapse`(펼침)로 바꾸고 `icon/tertiary`로 다시 묶음(규칙 13) |
+
+새 Solar icon (09 Icons, CC BY 4.0, 480 Design, Linear 20, `icon/action/fg`): `Icon / settings / eye-closed` 565:73587, `Icon / navigation / expand` 565:73591 (alt-arrow-down), `Icon / navigation / collapse` 565:73595 (alt-arrow-up).
+
+S05 화면 조립: 제목 블록 → (Banner Danger, 이미 지갑·저장 실패만) → 칩 `B/Chip` 12단어/24단어 + "붙여넣기"(`B/Button` Ghost sm, label `text/link`) → `B/Word cell` 2열 grid(gap `layout/fieldGap`) → grid 아래 오류 한 줄(`Product B/Body Small`, `input/errorText`) → 접힘 행 → (펼침) `B/Input` Kind=Text + `Show action`. 화면보다 긴 상태는 스크롤한 전체 길이로 그렸다. "복구" 바는 앱에서 화면 아래(키보드 위)에 붙는다.
+
+## 시각 품질 수정 계약 (2026-10-17, 미감 리뷰, #54)
+
+| 항목 | 노드 | 계약 |
+|---|---|---|
+| Product B/Row title | text style | Pretendard 500 17/25 -0.3. B/Row·B/Settings row·B/Switch row·B/Action row 제목. 600(Headline)은 버튼·강조, 700은 figure만 |
+| surface/inset | 02 Semantic 변수 | Light = surface/subtle, Dark = surface/raised. B/Secret grid `Panel` fill. 번호는 `text/tertiary` |
+| B/Progress steps | 494:1176 | 3칸 균등. 각 칸에 [왼쪽 선][점][오른쪽 선], 맨 끝 선은 투명. 라벨은 칸 중앙. 끝난 선 `status/success/fg`, 나머지 `border/subtle`. 아래 padding `space/6` |
+| B/Keypad key | 421:825 | Label `Product B/Title 1`(26) |
+| B/Detail row | 399:129 | center 정렬 |
+| Footer stack (S30) | B-S30 `Footer` | faucet 행(B/Action row + Caption) → 주소 복사(Primary) → 공유(Ghost). 위 경계선은 Footer에 둠. 항상 보임 |
+| QR tile (S30) | `QR tile` | surface/subtle, radius/2xl, padding space/3. 안의 QR은 흰색, 모듈 Ink |
+| Tab header | Home `Header`, 내역·설정 `Title` | H, 높이 58, 중앙 정렬, 좌우 layout/screen/padding, 칩 1개(Sepolia 테스트넷) 오른쪽 |
+| Detail link (S23 Failed) | `Detail link` | Ghost sm(link 색) 인라인. 하단 버튼 2개 |
+| S06 | Copy row | "주소 복사"는 Ghost sm 인라인, 하단 Secondary는 "다른 주소예요"(지갑 지움 + S05 복귀, 단어 유지) |
+| S05 Collapse notice | Passphrase 안 | 펼친 상태에서 입력 아래 Caption "고급을 접으면 입력한 패스프레이즈가 지워져요." |
+| Brand/Mark | 495:17569 | option A(V 모노그램 + 열쇠 구멍). Size 96/72/40/24 × OnLight/OnBrand. 화면 안에서는 96(브랜드 화면) |
+| Icon / hero / face | 516:288 | Solar face-scan-square-linear에서 입을 뺀 형태, icon/primary |
+
+## 2026-10-17 재검수 반영 component 변경 (#54)
+
+| Component | Node | 계약 |
+| --- | --- | --- |
+| B/Detail row (추가 Kind) | 586:90265 | `Kind=Fact, Emphasis=Off`. 값이 `Product B/Fact`(mono 12/16) + `text/secondary`. 시각, 네트워크, 블록, 컨트랙트 같은 사실 행. 해시는 `Kind=Address` 값에 Fact style |
+| B/Amount hero (추가 Kind) | 586:90268 | `Kind=Confirmed`. 자산 96 + 확정 badge 32, Title 1, Figure, 한 문장. 확정(Confirmed) 결과에만. 진행 중·포함됨은 `Kind=Result`(작은 badge). 확정 motion 1회: badge scale 0.6 → 1.0 + 링 채움, 400 ms ease-out, haptic success, 움직임 줄이기는 최종 상태만 |
+| B/Amount display | 422:626 | 가운데 정렬(금액 줄과 Sub). 보내기 금액 화면은 금액·빠른 칩·키패드를 한 열로 아래에 붙인다 |
+| 링크 글자 | `Link`, `Paste link`, `Scan link` | `Product B/Link`(밑줄) + `text/link`(Ink). B/Section header, B/Block header, B/Notice inline, B/Input |
+| 버튼 위계 | Button / Primary · Secondary | 실패 결과: Primary "다시 보내기", Secondary "확인", 링크 "거래 상세 보기". 가장 가치 있는 행동이 Primary |
+
+새 style: `Product B/Fact`, `Product B/Fact upper`, `Product B/Link`. 새 Variable: `chip/bg`, `chip/fg`. 값 변경: `text/link`, `financial/change/positive` → Ink.

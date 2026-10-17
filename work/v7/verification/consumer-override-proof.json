@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-16",
+  "method": "owner-requested Update all in Figma app, then Plugin API readback (read-only)",
+  "files": [
+    "consumer-before.json",
+    "consumer-after.json"
+  ],
+  "summary": {
+    "instances": 8,
+    "mainComponentKeysUnchanged": true,
+    "variantPropsUnchanged": true,
+    "textOverridesUnchanged": true,
+    "textComponentPropertyValuesUnchanged": true,
+    "overridesPreserved": {
+      "c23LongBalance": "$12,345,678.12",
+      "buttonLabel": "Consumer action",
+      "inputValue": "Travel"
+    }
+  },
+  "changes": {
+    "Button 2:345": "44->48 height, radius 12->999 (pill); Icon swap id 3:223->29:282 (re-resolved, ShowIcon false)",
+    "Input 2:350": "height 108->105",
+    "Transaction panel 2:356": "height 525->577; new props High risk status#313:7='Recipient needs attention', Show fiat estimate#304:0=true (library defaults)",
+    "C23 x4": "height 136->130 (Unavailable 120->130), cornerRadius 16->0"
+  },
+  "followUp": "C23 Unavailable text (80:360 in 68:176) -> Product B/Title 2 + text/secondary, owner-approved; owner published (1 change); consumer Update all accepted 2026-10-16; visual check: smaller gray 'Value unavailable', other overrides unchanged"
+}

@@ -14,10 +14,11 @@ function Navigator() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: th.semantic.surface.canvas },
+        contentStyle: { backgroundColor: th.component.screenB.bg },
       }}
     >
       <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="send/result" options={{ gestureEnabled: false }} />
     </Stack>
   )
 }

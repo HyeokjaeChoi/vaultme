@@ -1,7 +1,8 @@
 import { inspect } from 'node:util'
 import { describe, expect, test } from 'vitest'
 import { deriveAddress, generateMnemonic, isMnemonicWord, toMnemonic, validateMnemonic, Mnemonic } from '../src'
-import { BIP39_12, BIP39_24, PUBLIC_JUNK_ADDRESS, PUBLIC_JUNK_PHRASE } from './fixtures'
+import { mnemonicToSeedSync } from '@scure/bip39'
+import { BIP39_12, BIP39_12_ADDRESS, BIP39_12_TREZOR_ADDRESS, BIP39_12_TREZOR_SEED, BIP39_24, TREZOR_PASSPHRASE, PUBLIC_JUNK_ADDRESS, PUBLIC_JUNK_PHRASE } from './fixtures'
 
 describe('Mnemonic masking', () => {
   const m = new Mnemonic(PUBLIC_JUNK_PHRASE)
@@ -68,7 +69,33 @@ describe('generate / derive', () => {
   test('BIP39 "abandon..about" derivation is stable (expected value NOT verified against a source)', () => {
     const a = deriveAddress(new Mnemonic(BIP39_12))
     expect(a).toMatch(/^0x[0-9a-fA-F]{40}$/)
-    expect(a).toMatchInlineSnapshot(`"0x9858EfFD232B4033E47d90003D41EC34EcaEda94"`)
+    expect(a).toBe(BIP39_12_ADDRESS)
+  })
+})
+
+describe('BIP39 passphrase', () => {
+  const hex = (b: Uint8Array) => Buffer.from(b).toString('hex')
+  test('official seed vector with "TREZOR"', () => {
+    expect(hex(mnemonicToSeedSync(BIP39_12, TREZOR_PASSPHRASE))).toBe(BIP39_12_TREZOR_SEED)
+  })
+  test('empty passphrase = no passphrase', () => {
+    expect(deriveAddress(new Mnemonic(BIP39_12, ''))).toBe(deriveAddress(new Mnemonic(BIP39_12)))
+    expect(deriveAddress(new Mnemonic(BIP39_12, ''))).toBe(BIP39_12_ADDRESS)
+  })
+  test('passphrase changes the address, same path', () => {
+    const a = deriveAddress(new Mnemonic(BIP39_12, TREZOR_PASSPHRASE))
+    expect(a).not.toBe(BIP39_12_ADDRESS)
+    expect(a.toLowerCase()).toBe(BIP39_12_TREZOR_ADDRESS)
+    expect(deriveAddress(toMnemonic(BIP39_12, TREZOR_PASSPHRASE)!)).toBe(a)
+  })
+  test('passphrase is case sensitive', () => {
+    expect(deriveAddress(new Mnemonic(BIP39_12, 'trezor'))).not.toBe(deriveAddress(new Mnemonic(BIP39_12, 'TREZOR')))
+  })
+  test('passphrase is masked and reveal() returns words only', () => {
+    const m = new Mnemonic(BIP39_12, TREZOR_PASSPHRASE)
+    expect(m.reveal()).toBe(BIP39_12)
+    expect(m.passphrase()).toBe(TREZOR_PASSPHRASE)
+    expect([String(m), JSON.stringify(m), inspect(m), Object.getOwnPropertyNames(m).join()].join(' ')).not.toContain(TREZOR_PASSPHRASE)
   })
 })
 
