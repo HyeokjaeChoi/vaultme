@@ -288,7 +288,7 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - 오너 승인 (2026-10-16). 기존 master를 제자리에서 restyle했다: Button ×3, Input, Bottom sheet, Keypad, Portfolio balance, Status notice, Summary row, List item, Asset row, Activity row. Master·set·variant·property ID는 유지했다.
 - ID 보존 증거: `work/v7/verification/` (`id-baseline.json`, `post-migration-ids.json`, `pre-migration-inventory.json`).
 - 복원 지점: Figma named version "pre-B-migration 2026-10-16" (오너가 앱에서 저장, API id 없음).
-- Library는 오너가 publish하기 전까지 미게시다. 게시 증거는 아직 없다.
+- Library 게시 완료 (2026-10-18, 오너 승인). Variables, styles, components 포함, 150개 변경. 두 번째 publish 뒤에도 component 21개가 "Modified"로 남는데, Figma의 재표시 현상으로 보인다. 게시 증거 파일은 아직 없다.
 - 새 Primitive: `size.pill_lg/md/sm` (56/48/40), `font.family.pretendard`, `font.size.product15/17/19/22/26`, `font.lineHeight.px17/22/25/27/30/34`, `font.tracking.displayL/displayM/title1/title2/title3/bodySmall/label/caption`(퍼센트), Primitive 타이포 `type.productB.*` 11개.
 - 새 Component alias: `buttonB.height/radius/paddingX/primary/secondary`, `rowB.height/paddingX`, `sheetB.radius`, `screenB.bg`. `buttonB.secondary.bgPressed`는 Figma 이름 목록이 없어 `surface.pressed`로 연결했다.
 - 변경 값: `component.overlay.scrimBg` `{surface.inverse}` → `{color.neutral.950}` (mode 불변).
