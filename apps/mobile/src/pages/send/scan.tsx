@@ -184,7 +184,7 @@ export function ScanPage() {
           </View>
           {invalid ? (
             <View style={{ paddingBottom: th.semantic.layout.groupGap }}>
-              <StatusNotice tier="banner" tone="danger" title={t('send.qr.invalid')} />
+              <StatusNotice tier="banner" tone="danger" title="" body={t('send.qr.invalid')} />
             </View>
           ) : null}
           <View style={{ gap: th.semantic.layout.fieldGap, paddingHorizontal: pad }}>
