@@ -21,7 +21,7 @@ type Props = {
   body?: string
   /** Mono Fact line under the brand block, centered (Product B/Fact upper): version, network, chain id (Start). */
   fact?: string
-  /** `start` centers the block in the area above the actions with a 48 optical lift (Start, Figma B-S01 Content 515:44549). Default `center` lifts it 64 above the middle. */
+  /** `start` centers the block in the area above the actions with 48 of bottom padding (a 24 lift) (Start, Figma B-S01 Content 515:44549). Default `center` uses 64 of bottom padding. */
   anchor?: 'center' | 'start'
   /** Pinned actions (buttons, or the Face ID status row), no line above. */
   actions: ReactNode
