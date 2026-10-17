@@ -12,7 +12,9 @@ export function StartPage({ demo = false }: { demo?: boolean }) {
   if (address && !demo) return <Redirect href="/home" /> // a wallet exists: cold start (after unlock) opens Home
   return (
     <BrandScreen
+      wordmark
       title={t('start.title')}
+      bodyVariant="title2"
       body={t('start.body')}
       actions={
         <>
