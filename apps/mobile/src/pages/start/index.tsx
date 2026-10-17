@@ -1,4 +1,4 @@
-// Figma: B-S01 시작 423:13440 (dark 430:15497): Brand block (mark 72, wordmark, one sentence) centered above two stacked buttons, Secondary above Primary
+// Figma: B-S01 시작 423:13440 (dark 430:15497): Brand block (mark 72, wordmark, one sentence) centered in the area above two stacked buttons (optical lift 48), Secondary above Primary
 import { Redirect, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { useAccountAddress } from '@/features/backup/model/useAccountAddress'
@@ -15,7 +15,7 @@ export function StartPage({ demo = false }: { demo?: boolean }) {
   return (
     <BrandScreen
       wordmark
-      anchor="bottom"
+      anchor="start"
       title={t('start.title')}
       bodyVariant="title2"
       fact={`v${Constants.expoConfig?.version ?? ''} · ${account.network} · chain id ${account.chainId}`}

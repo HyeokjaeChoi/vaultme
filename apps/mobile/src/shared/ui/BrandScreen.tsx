@@ -21,8 +21,8 @@ type Props = {
   body?: string
   /** Mono Fact line under the brand block, centered (Product B/Fact upper): version, network, chain id (Start). */
   fact?: string
-  /** `bottom` groups the block low above the actions (Start, one empty area on top). Default `center` lifts it above the middle. */
-  anchor?: 'center' | 'bottom'
+  /** `start` centers the block in the area above the actions with a 48 optical lift (Start, Figma B-S01 Content 515:44549). Default `center` lifts it 64 above the middle. */
+  anchor?: 'center' | 'start'
   /** Pinned actions (buttons, or the Face ID status row), no line above. */
   actions: ReactNode
 }
@@ -35,7 +35,7 @@ export function BrandScreen({ hero, title, wordmark, bodyVariant = 'body', bloom
       footer={actions}
       footerLine={false}
     >
-      <View style={{ flex: 1, justifyContent: anchor === 'bottom' ? 'flex-end' : 'center', alignItems: 'center', gap: t.primitive.space[8], paddingBottom: anchor === 'bottom' ? t.semantic.layout.sectionGap.product : t.primitive.space[16] }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: t.primitive.space[8], paddingBottom: anchor === 'start' ? t.primitive.space[12] : t.primitive.space[16] }}>
         {hero ?? <BrandMark {...(bloom ? { bloom } : {})} />}
         <View style={{ alignSelf: 'stretch', alignItems: 'center', gap: t.primitive.space[2] }}>
           <Text variant={wordmark ? 'displayM' : 'title1'} accessibilityRole="header" style={{ textAlign: 'center' }}>{title}</Text>
