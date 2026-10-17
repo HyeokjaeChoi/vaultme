@@ -17,16 +17,18 @@ type Props = {
   mono?: boolean
   /** 52 pt row (S64 license list, Figma 526:54525) instead of 64. */
   compact?: boolean
+  /** The trailing value is a Fact (Product B/Fact mono): network + chainId, version. */
+  factValue?: boolean
   /** `value` = text only, `disclosure` = optional value + chevron, `external` = optional value + the open-in-browser icon (link row), `custom` = any node, e.g. a Switch (Switch row). */
   trailing?: { kind: 'value'; text: string } | { kind: 'disclosure'; text?: string } | { kind: 'external'; text?: string } | { kind: 'custom'; node: ReactNode }
   onPress?: () => void
 }
 
 /** C31 List item (Redesign B Settings row / Switch row). Flat, no fill and no divider, min-height rowB.height 64, title Row title 500, trailing value Body Small tertiary (Caption on a compact license row), 20 pt chevron. A pressable row scales to 0.97 over 100 ms. */
-export function ListItem({ title, icon, iconColor, mono, compact, trailing, onPress }: Props) {
+export function ListItem({ title, icon, iconColor, mono, compact, factValue, trailing, onPress }: Props) {
   const t = useTheme()
   const { style, handlers } = usePressScale()
-  const value = (text: string) => <Text variant={compact ? 'caption' : 'bodySmall'} color={t.semantic.text.tertiary} tabular>{text}</Text>
+  const value = (text: string) => <Text variant={factValue ? 'fact' : compact ? 'caption' : 'bodySmall'} color={factValue ? t.semantic.text.secondary : t.semantic.text.tertiary} tabular>{text}</Text>
   const row = (
     <View style={{ minHeight: compact ? t.primitive.size.control_lg : t.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}>
       {icon ? <Icon name={icon} size={t.component.icon.size.control} color={iconColor ?? t.component.icon.action.fg} /> : null}

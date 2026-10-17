@@ -13,5 +13,3 @@ export function backupGateState(i: { done: boolean; restored: boolean; hasIncomi
   return { backedUp, canReceive: true, canSend: backedUp, shouldPromptAfterDeposit: !backedUp && i.hasIncoming && !i.promptShown }
 }
 
-/** Where a Send entry point goes: the send flow, or the backup gate. */
-export const sendHref = (canSend: boolean): '/send' | '/backup' => (canSend ? '/send' : '/backup') // TODO(figma): backup gate screen replaces the plain /backup route

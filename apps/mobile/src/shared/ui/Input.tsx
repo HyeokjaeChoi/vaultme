@@ -70,7 +70,7 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: t.semantic.layout.groupGap }}>
             {actions.map((a) => (
               <Pressable key={a.label} accessibilityRole="button" accessibilityLabel={a.label} onPress={a.onPress} style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}>
-                <Text variant="label" color={t.semantic.text.link}>{a.label}</Text>
+                <Text variant="link" color={t.semantic.text.link}>{a.label}</Text>
               </Pressable>
             ))}
           </View>

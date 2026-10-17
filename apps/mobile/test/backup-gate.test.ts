@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { backupGateState, sendHref } from '../src/features/backup/model/gate'
+import { backupGateState } from '../src/features/backup/model/gate'
 
 const base = { done: false, restored: false, hasIncoming: false, promptShown: false }
 
@@ -19,12 +19,5 @@ describe('backupGateState (Q14)', () => {
     expect(backupGateState(base).shouldPromptAfterDeposit).toBe(false)
     expect(backupGateState({ ...base, hasIncoming: true, done: true }).shouldPromptAfterDeposit).toBe(false)
     expect(backupGateState({ ...base, hasIncoming: true, restored: true }).shouldPromptAfterDeposit).toBe(false)
-  })
-})
-
-describe('sendHref', () => {
-  it('routes to the send flow or the backup gate', () => {
-    expect(sendHref(true)).toBe('/send')
-    expect(sendHref(false)).toBe('/backup')
   })
 })

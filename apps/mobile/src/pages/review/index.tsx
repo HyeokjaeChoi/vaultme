@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { resolveReview } from '@/entities/transaction/review'
-import { diffGroups } from '@/shared/lib/address'
+import { diffChars } from '@/shared/lib/address'
 import { haptic } from '@/shared/lib/haptics'
 import { useTheme } from '@/shared/theme'
 import { BottomSheet, Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
@@ -30,7 +30,7 @@ function Compare({ current, previous }: { current: string; previous: string }) {
       </View>
       <View style={{ gap: th.primitive.space[1] }}>
         <Text variant="bodySmall" color={th.semantic.text.tertiary}>{t('review.lookalike.current')}</Text>
-        <AddressTextPlain address={current} highlight={diffGroups(current, previous)} />
+        <AddressTextPlain address={current} highlight={diffChars(current, previous)} />
       </View>
     </View>
   )

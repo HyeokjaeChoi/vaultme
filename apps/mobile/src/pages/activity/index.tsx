@@ -80,7 +80,7 @@ export function ActivityPage() {
   const { state, cache, asset } = useLocalSearchParams<{ state?: string; cache?: string; asset?: string }>() // `asset` = only that asset's rows (S11 "전체 보기")
   return (
     <Screen edges={['top']} gap="none" topGap="none">
-      <TabHeader title={t('activity.title')} chips={<NetworkChips testData={false} />} />
+      <TabHeader title={t('activity.title')} chips={<NetworkChips />} />
       {__DEV__ && state ? <DevState state={state} {...(cache ? { cache } : {})} /> : chain.broadcasts ? <RealHistory asset={asset} /> : <FakeHistory asset={asset} />}
     </Screen>
   )

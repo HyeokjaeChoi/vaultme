@@ -13,7 +13,7 @@ export function SectionHeader({ title, link, onLinkPress }: Props) {
       <Text variant="title2" accessibilityRole="header" style={{ flex: 1 }}>{title}</Text>
       {link ? (
         <Pressable accessibilityRole="link" accessibilityLabel={link} onPress={onLinkPress} style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}>
-          <Text variant="label" color={t.semantic.text.link}>{link}</Text>
+          <Text variant="link" color={t.semantic.text.link}>{link}</Text>
         </Pressable>
       ) : null}
     </View>

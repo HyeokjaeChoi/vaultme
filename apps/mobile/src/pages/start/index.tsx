@@ -2,6 +2,8 @@
 import { Redirect, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { useAccountAddress } from '@/features/backup/model/useAccountAddress'
+import Constants from 'expo-constants'
+import { account } from '@/entities/account/fixtures'
 import { BrandScreen, Button } from '@/shared/ui'
 
 /** B-S01 시작. `?demo=1` is a __DEV__ capture override: show Start even when a wallet exists. */
@@ -15,6 +17,7 @@ export function StartPage({ demo = false }: { demo?: boolean }) {
       wordmark
       title={t('start.title')}
       bodyVariant="title2"
+      fact={`v${Constants.expoConfig?.version ?? ''} · ${account.network} · chain id ${account.chainId}`}
       body={t('start.body')}
       actions={
         <>

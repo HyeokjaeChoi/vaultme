@@ -88,6 +88,8 @@ export type PendingTx = {
   fee?: string
   /** Why the network says the tx failed, only when it said so with a value this app knows. Never guessed: S23 shows the reason line only when this is set (owner 2026-10-17). */
   failReason?: 'outOfGas'
+  /** Block of the receipt, once the network has one (S41 "블록" Fact row). */
+  blockNumber?: number
   state: 'Pending' | 'Unknown' | 'Included' | 'Confirmed' | 'Failed' | 'Replaced'
 }
 
@@ -112,6 +114,7 @@ export function parsePendingTx(raw: string): PendingTx | null {
     hash: o.hash, nonce: o.nonce, asset: o.asset, to: o.to, amount: o.amount,
     createdAt: o.createdAt, lastCheckedAt: o.lastCheckedAt, state: o.state as PendingTx['state'],
     ...(isStr(o.fee) ? { fee: o.fee } : {}),
+    ...(isNum(o.blockNumber) ? { blockNumber: o.blockNumber } : {}),
     ...(o.failReason === 'outOfGas' ? { failReason: 'outOfGas' as const } : {}),
   }
 }

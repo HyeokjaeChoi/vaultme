@@ -23,3 +23,15 @@ export const dateLabel = (ms: number): string => {
 }
 
 export const clock = (ms: number): string => hhmm(new Date(ms))
+
+/** Zone label of the device clock for a Fact time: KST at +9, otherwise "UTC+N" (no zone database needed). */
+const zoneLabel = (d: Date): string => {
+  const off = -d.getTimezoneOffset() / 60
+  return off === 9 ? 'KST' : `UTC${off < 0 ? '-' : '+'}${Math.abs(off)}`
+}
+
+/** Time as a Fact (Product B/Fact): "2026-10-16 09:41 KST". Device local time. */
+export const factTime = (ms: number): string => {
+  const d = new Date(ms)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${hhmm(d)} ${zoneLabel(d)}`
+}

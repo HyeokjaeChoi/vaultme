@@ -3,11 +3,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { USDC_SEPOLIA } from '@vaultme/contracts'
-import { account } from '@/entities/account/fixtures'
+import { networkFact } from '@/entities/account/fixtures'
 import { assets } from '@/entities/asset/fixtures'
 import { useHistory } from '@/features/history'
 import { useLiveBalances } from '@/features/balances'
-import { sendHref, useBackupGate } from '@/features/backup'
 import { useRestored } from '@/features/restore'
 import { useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
@@ -28,7 +27,6 @@ export function AssetDetailPage() {
   const live = useLiveBalances()
   const restored = useRestored() || (__DEV__ && variant === 'restored') // `?variant=restored` is a __DEV__ capture override
   const { tx, blocked } = useTrackedTx()
-  const { canSend } = useBackupGate()
   const { view } = useHistory()
   const { copied, copy } = useCopy(t('asset.copied'))
   if (!asset) return null
@@ -40,13 +38,13 @@ export function AssetDetailPage() {
       <AmountHero asset={asset.symbol} amount={balance} unit={asset.symbol} />
       <View style={{ paddingHorizontal: th.semantic.layout.screen.padding }}>
         <ActionRow
-          send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? router.push('/home') : router.push(sendHref(canSend || restored))) }}
+          send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? router.push('/home') : router.push('/send')) }}
           receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
         />
       </View>
       <SectionBand />
       <Block title={t('asset.info')}>
-        <SummaryRow label={t('asset.network')} value={account.network} />
+        <SummaryRow label={t('asset.network')} fact value={networkFact} />
         {usdc ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.semantic.layout.groupGap }}>
             <View style={{ flex: 1 }}>
@@ -54,7 +52,10 @@ export function AssetDetailPage() {
             </View>
             <Button size="sm" variant="secondary" icon="copy" label={copied ? t('asset.copied') : t('asset.copy')} {...(copied ? { copied } : {})} onPress={() => void copy(USDC_SEPOLIA)} />
           </View>
-        ) : null}
+        ) : (
+          <SummaryRow label={t('asset.contractNative')} fact value={t('asset.noContract')} />
+        )}
+        <SummaryRow label={t('asset.decimals')} fact value={String(asset.decimals)} />
         <StatusNotice tone="info" title={t(usdc ? 'asset.feeUsdc' : 'asset.feeEth')} />
       </Block>
       {items.length > 0 ? (

@@ -8,8 +8,7 @@ import type { HistoryItem } from '@/features/history'
 import { rowTitleKey, txView, usePendingTx } from '@/features/send'
 import { showAmount } from '@/shared/lib/amount'
 import { clock, dateLabel, dayGroup } from '@/shared/lib/time'
-import { useTestMode } from '@/shared/chain/useTestMode'
-import { ActivityRow, DateHeader, StatusChip } from '@/shared/ui'
+import { ActivityRow, DateHeader } from '@/shared/ui'
 
 const assetName = (symbol: string) => assets.find((a) => a.symbol === symbol)?.name ?? symbol
 
@@ -47,8 +46,6 @@ function Row({ item, dated }: { item: HistoryItem; dated?: boolean }) {
 }
 
 export function ActivityList({ items }: { items: HistoryItem[] }) {
-  const { t } = useTranslation()
-  const test = useTestMode()
   const groups: { day: string; items: HistoryItem[] }[] = []
   for (const item of items) {
     const day = dateLabel(item.at)
@@ -58,9 +55,9 @@ export function ActivityList({ items }: { items: HistoryItem[] }) {
   }
   return (
     <>
-      {groups.map((g, i) => (
+      {groups.map((g) => (
         <View key={g.day}>
-          <DateHeader date={g.day} {...(test && i === 0 ? { trailing: <StatusChip tone="testData" label={t('chip.testData')} /> } : {})} />
+          <DateHeader date={g.day} />
           {g.items.map((item) => <Row key={item.hash} item={item} />)}
         </View>
       ))}

@@ -13,8 +13,8 @@ type Props = {
   sub?: string
   /** Marks the 4-char groups of an `address` value that differ (look-alike check). */
   highlight?: number[]
-  /** Text value in Product B / Address (mono), e.g. a shortened address. */
-  mono?: boolean
+  /** Value as a Fact (Product B/Fact, IBM Plex Mono 12, text/secondary): network + chainId, block, time. Facts are mono, feelings and explanations are sans. */
+  fact?: boolean
   /** `address` only: one color, no strong ends, 14/20 (B/Detail row Address, emphasis Off: S11 contract address). */
   plain?: boolean
   editLabel?: string
@@ -24,7 +24,7 @@ type Props = {
 }
 
 /** C35 Summary row (Redesign B detail row, center aligned): label Body Small tertiary, value Body right; address stacks under its label. Flat, no divider: group rows in <Group>. */
-export function SummaryRow({ label, value, format = 'text', sub, highlight, mono, plain, editLabel, editAccessibilityLabel, onEdit }: Props) {
+export function SummaryRow({ label, value, format = 'text', sub, highlight, fact, plain, editLabel, editAccessibilityLabel, onEdit }: Props) {
   const t = useTheme()
   const labelWidth = t.primitive.space[10] * 4 // Figma label column 160
   const total = format === 'total'
@@ -38,7 +38,7 @@ export function SummaryRow({ label, value, format = 'text', sub, highlight, mono
       onPress={onEdit}
       style={{ minWidth: t.primitive.size.touch_min, minHeight: t.primitive.size.touch_min, alignSelf: address || stacked ? 'flex-start' : 'stretch', alignItems: 'center', justifyContent: 'center', paddingHorizontal: t.primitive.space[2] }}
     >
-      <Text variant="label" color={t.semantic.text.link}>{editLabel}</Text>
+      <Text variant="link" color={t.semantic.text.link}>{editLabel}</Text>
     </Pressable>
   ) : null
   return (
@@ -52,7 +52,7 @@ export function SummaryRow({ label, value, format = 'text', sub, highlight, mono
         <AddressText address={value} highlight={highlight ?? []} {...(plain ? { size: 'S' as const, emphasis: false, color: t.semantic.text.primary } : {})} />
       ) : (
         <View style={stacked ? undefined : { flex: 1, alignItems: 'flex-end' }}>
-          <Text variant={total ? 'headline' : mono ? 'address' : 'body'} tabular style={{ textAlign: stacked ? 'left' : 'right' }}>{value}</Text>
+          <Text variant={total ? 'headline' : fact ? 'fact' : 'body'} tabular {...(fact ? { color: t.semantic.text.secondary } : {})} style={{ textAlign: stacked ? 'left' : 'right' }}>{value}</Text>
           {sub ? <Text variant="caption" tabular color={t.semantic.text.tertiary} style={{ textAlign: stacked ? 'left' : 'right' }}>{sub}</Text> : null}
         </View>
       )}

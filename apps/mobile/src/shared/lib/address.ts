@@ -30,3 +30,16 @@ export const displayGroups = (address: string): string[] => groupAddress(toCheck
 
 /** Format check only (0x + 40 hex). It does not establish ownership or safety. */
 export const isAddressFormat = (address: string) => /^0x[0-9a-fA-F]{40}$/.test(address)
+
+/** The address as shown: EIP-55 form, one contiguous run (no group spaces; the wrap is natural). A hash stays as it is. */
+export const displayAddress = (address: string): string => toChecksumAddress(address)
+
+/** Indexes of the characters of the displayed form that differ from `other` (look-alike marks, per character, case-insensitive). */
+export function diffChars(address: string, other: string): number[] {
+  const [a, b] = [displayAddress(address), displayAddress(other).toLowerCase()]
+  return [...a].flatMap((c, i) => (c.toLowerCase() === b[i] ? [] : [i]))
+}
+
+/** Emphasis: the first 6 characters (0x + 4) and the last 4 are strong, so the head and tail can be compared at a glance. */
+export const ADDRESS_HEAD = 6
+export const ADDRESS_TAIL = 4

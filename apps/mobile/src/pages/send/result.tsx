@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useRef } from 'react'
 import { Redirect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { account } from '@/entities/account/fixtures'
+import { networkFact } from '@/entities/account/fixtures'
 import { demoTx } from '@/entities/transaction/fixtures'
 import type { TxState } from '@/features/send'
 import { isPolled, resultCopy, useTrackedTx } from '@/features/send'
@@ -64,6 +64,7 @@ export function SendResultPage() {
   const feeLabel = tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal'
   const showFee = !test && tx.state !== 'Replaced'
   const unknown = tx.state === 'Unknown'
+  const failed = tx.state === 'Failed'
   return (
     <Screen
       bleed
@@ -71,8 +72,14 @@ export function SendResultPage() {
       header={<ScreenHeader chips={<NetworkChips />} />}
       footer={
         <>
-          {unknown ? <Button label={t('result.recheck')} busy={checking} busyLabel={t('busy.recheck')} onPress={() => void recheck()} /> : <Button label={t('result.ok')} onPress={toHome} />}
-          {tx.state === 'Failed' ? <Button label={t('result.resend')} variant="secondary" onPress={resend} /> : <Button label={t('result.details')} variant="ghost" onPress={toDetail} />}
+          {unknown ? (
+            <Button label={t('result.recheck')} busy={checking} busyLabel={t('busy.recheck')} onPress={() => void recheck()} />
+          ) : failed ? (
+            <Button label={t('result.resend')} onPress={resend} />
+          ) : (
+            <Button label={t('result.ok')} onPress={toHome} />
+          )}
+          {failed ? <Button label={t('result.ok')} variant="secondary" onPress={toHome} /> : <Button label={t('result.details')} variant="ghost" size="sm" link onPress={toDetail} />}
         </>
       }
     >
@@ -82,7 +89,8 @@ export function SendResultPage() {
         amount={figure ?? tx.amount}
         unit={unit ?? tx.asset}
         lines={lines}
-        {...(tx.state === 'Failed' ? { link: { label: t('result.details'), onPress: toDetail } } : {})}
+        celebrate={tx.state === 'Confirmed' && !test}
+        {...(failed ? { link: { label: t('result.details'), onPress: toDetail } } : {})}
         {...(tx.state === 'Failed' && tx.failReason ? { note: t(`result.failReason.${tx.failReason}`) } : {})}
       />
       {progress ? (
@@ -94,7 +102,7 @@ export function SendResultPage() {
       <Block>
         {!test && copy.warn ? <StatusNotice tone="warning" title={t(copy.warn)} /> : null}
         <SummaryRow format="address" label={t('result.recipient')} value={tx.to} />
-        <SummaryRow label={t('result.network')} value={account.network} />
+        <SummaryRow label={t('result.network')} fact value={networkFact} />
         {showFee ? <SummaryRow label={t(feeLabel)} value={`${tx.fee ?? '—'} ETH`} /> : null}
       </Block>
     </Screen>

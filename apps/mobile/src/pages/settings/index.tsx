@@ -3,7 +3,7 @@ import Constants from 'expo-constants'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { View } from 'react-native'
-import { account } from '@/entities/account/fixtures'
+import { account, networkFact } from '@/entities/account/fixtures'
 import { useAccountAddress } from '@/features/backup'
 import { usePushSetting, useZeroSetting } from '@/features/settings'
 import { shortAddress } from '@/shared/lib/address'
@@ -26,7 +26,7 @@ export function SettingsPage() {
   return (
     <Screen edges={['top']} bleed gap="none" topGap="none">
       <View style={{ paddingHorizontal: pad }}>
-        <TabHeader title={t('settings.title')} chips={<NetworkChips testData={false} />} />
+        <TabHeader title={t('settings.title')} chips={<NetworkChips />} />
       </View>
       <View style={{ paddingHorizontal: pad, paddingVertical: th.semantic.layout.groupGap }}>
         <AccountBlock
@@ -50,9 +50,9 @@ export function SettingsPage() {
       </Block>
       <SectionBand />
       <Block title={t('settings.group.info')} gap={tight}>
-        <ListItem icon="network" title={t('settings.network')} trailing={{ kind: 'value', text: account.network }} />
+        <ListItem icon="network" title={t('settings.network')} factValue trailing={{ kind: 'value', text: networkFact }} />
         <ListItem icon="document" title={t('settings.licenses')} trailing={{ kind: 'disclosure' }} onPress={() => router.push('/settings/licenses')} />
-        <ListItem icon="info" iconColor={th.component.icon.status.info} title={t('settings.version')} trailing={{ kind: 'value', text: Constants.expoConfig?.version ?? '' }} />
+        <ListItem icon="info" iconColor={th.component.icon.status.info} title={t('settings.version')} factValue trailing={{ kind: 'value', text: `v${Constants.expoConfig?.version ?? ''}` }} />
       </Block>
     </Screen>
   )

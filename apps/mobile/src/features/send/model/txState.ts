@@ -43,7 +43,7 @@ export async function checkTx(tx: PendingTx, chain: Pick<ChainPort, 'broadcasts'
   const receipt = await chain.getReceipt(tx.hash as Hash)
   const [safeBlock, safeNonce] = receipt ? [await chain.getSafeBlock(), null] : [null, await chain.getSafeNonce(from)]
   const state = deriveState({ current: tx.state, nonce: tx.nonce, receipt, safeBlock, safeNonce })
-  return { ...tx, state, lastCheckedAt: now() }
+  return { ...tx, state, lastCheckedAt: now(), ...(receipt ? { blockNumber: Number(receipt.blockNumber) } : {}) }
 }
 
 export type PollTimers = { set: (fn: () => void, ms: number) => unknown; clear: (h: unknown) => void }

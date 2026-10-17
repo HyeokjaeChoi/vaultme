@@ -1,10 +1,12 @@
 // Figma: B/Amount hero 494:1142 (Kind=Review | Result; Figure 44/700 + Figure unit 24/600, baseline)
+import Animated from 'react-native-reanimated'
 import { View } from 'react-native'
 import { useTheme } from '../theme'
-import { Button } from './Button'
+import { useCheckPop } from '../theme/motion'
 import { AssetIcon, type AssetSymbol } from './AssetIcon'
 import { RowBadge, type RowBadgeKind } from './RowBadge'
 import { Text } from './Text'
+import { TextLink } from './TextLink'
 
 type Props = {
   asset: AssetSymbol
@@ -17,14 +19,18 @@ type Props = {
   result?: { badge: RowBadgeKind; title: string }
   /** Small extra line under the sentence (Caption), e.g. the confirmed failure reason of a failed send. */
   note?: string
-  /** Failed result: "거래 상세 보기" as an inline link (Ghost sm, link color) under the text (Figma Detail link). */
+  /** Failed result: "거래 상세 보기" as an inline Ink + underline link under the text (Figma Detail link). */
   link?: { label: string; onPress: () => void }
+  /** Kind=Confirmed (S23 only): logo 96, a 32 pt check badge that scales 0.6 -> 1.0 in 400 ms (Reduce Motion: no scale), Title 1. */
+  celebrate?: boolean
 }
 
 /** Amount hero. Review (S22): logo 48, Figure + unit, sentence. Result (S23, S41): logo 56 + row badge, Title 2, Figure + unit, sentence, all centered. The figure is the only 700 weight. */
-export function AmountHero({ asset, amount, unit, lines, result, note, link }: Props) {
+export function AmountHero({ asset, amount, unit, lines, result, note, link, celebrate }: Props) {
   const t = useTheme()
-  const logo = result ? t.primitive.size.avatar_lg + t.primitive.space[2] : t.primitive.size.avatar_lg // 56 | 48
+  const pop = useCheckPop(!!celebrate && !!result)
+  const big = !!celebrate && !!result
+  const logo = big ? t.primitive.size.avatar_lg * 2 : result ? t.primitive.size.avatar_lg + t.primitive.space[2] : t.primitive.size.avatar_lg // 96 | 56 | 48
   const align = result ? 'center' : 'flex-start'
   const text = [...(lines ?? []), ...(note ? [note] : [])].join('. ')
   return (
@@ -37,11 +43,13 @@ export function AmountHero({ asset, amount, unit, lines, result, note, link }: P
         <AssetIcon symbol={asset} size={logo} />
         {result ? (
           <View style={{ position: 'absolute', right: 0, bottom: 0, transform: [{ translateX: t.component.rowBadge.ring }, { translateY: t.component.rowBadge.ring }] }}>
-            <RowBadge kind={result.badge} />
+            <Animated.View style={big ? pop : undefined}>
+              <RowBadge kind={result.badge} {...(big ? { size: t.primitive.size.icon_xl - t.component.rowBadge.ring * 2 } : {})} />
+            </Animated.View>
           </View>
         ) : null}
       </View>
-      {result ? <Text variant="title2" accessibilityRole="header" style={{ textAlign: 'center' }}>{result.title}</Text> : null}
+      {result ? <Text variant={big ? 'title1' : 'title2'} accessibilityRole="header" style={{ textAlign: 'center' }}>{result.title}</Text> : null}
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: t.primitive.space['1_5'], flexWrap: 'wrap', justifyContent: align }}>
         <Text variant="figure" tabular>{amount}</Text>
         <Text variant="figureUnit" color={t.semantic.text.secondary}>{unit}</Text>
@@ -54,7 +62,7 @@ export function AmountHero({ asset, amount, unit, lines, result, note, link }: P
         </View>
       ) : null}
       {note ? <Text variant="caption" color={t.semantic.text.secondary} style={{ textAlign: 'center' }}>{note}</Text> : null}
-      {link ? <Button size="sm" variant="ghost" link label={link.label} onPress={link.onPress} /> : null}
+      {link ? <TextLink label={link.label} onPress={link.onPress} align="center" /> : null}
     </View>
   )
 }

@@ -51,7 +51,7 @@ export function StatusNotice({ tone, tier = 'inline', title, heading, body, icon
         {typeof body === 'string' ? <Text variant="bodySmall" color={banner || quiet ? t.semantic.text.secondary : t.semantic.text.primary}>{body}</Text> : body}
         {link ? (
           <Pressable accessibilityRole="link" accessibilityLabel={link.label} onPress={link.onPress} style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}>
-            <Text variant="label" color={t.semantic.text.link}>{link.label}</Text>
+            <Text variant="link" color={t.semantic.text.link}>{link.label}</Text>
           </Pressable>
         ) : null}
       </View>

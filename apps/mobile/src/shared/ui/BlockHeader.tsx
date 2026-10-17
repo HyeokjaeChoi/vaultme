@@ -19,7 +19,7 @@ export function Block({ title, link, onLink, gap, children }: Props) {
           <Text variant="label" color={t.semantic.text.tertiary}>{title}</Text>
           {link ? (
             <Pressable accessibilityRole="link" accessibilityLabel={`${link} ${title}`} onPress={onLink} hitSlop={{ top: t.primitive.space[3], bottom: t.primitive.space[3], left: t.primitive.space[3] }}>
-              <Text variant="label" color={t.semantic.text.link}>{link}</Text>
+              <Text variant="link" color={t.semantic.text.link}>{link}</Text>
             </Pressable>
           ) : null}
         </View>

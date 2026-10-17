@@ -20,7 +20,7 @@ type Props = {
   danger?: boolean
   /** Label in Row title 500 (B/Action row on Home, Figma 399:140) instead of Headline 600. */
   rowTitle?: boolean
-  /** Ghost whose label uses text/link (S05 붙여넣기, Figma 565:85401). */
+  /** Ghost whose label is a link: Link style, Ink + underline (S05 붙여넣기, S23 거래 상세 보기). */
   link?: boolean
   icon?: IconName
   /** Progressive label shown while busy under Reduce Motion (the spinner does not rotate): "보내는 중…". */
@@ -96,7 +96,7 @@ export function Button({ label, onPress, variant = 'primary', size = 'lg', disab
               <Icon name={leading} size={busy || size === 'sm' ? t.component.icon.size.inline : t.component.icon.size.control} color={iconColor} />
             </Animated.View>
           ) : null}
-          <Text variant={size === 'sm' ? 'label' : rowTitle ? 'rowTitle' : 'headline'} numberOfLines={2} color={fg} style={{ textAlign: 'center', flexShrink: 1 }}>
+          <Text variant={link ? 'link' : size === 'sm' ? 'label' : rowTitle ? 'rowTitle' : 'headline'} numberOfLines={2} color={fg} style={{ textAlign: 'center', flexShrink: 1 }}>
             {shownLabel}
           </Text>
         </Animated.View>

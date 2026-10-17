@@ -13,8 +13,8 @@ export function Chip({ label, selected, disabled, onPress }: Props) {
   const t = useTheme()
   const { style, handlers } = usePressScale()
   const slop = Math.max(0, (t.primitive.size.touch_min - t.component.buttonB.height.sm) / 2)
-  const bg = disabled ? t.semantic.surface.subtle : selected ? t.semantic.surface.inverse : t.semantic.surface.pressed
-  const fg = disabled ? t.semantic.text.disabled : selected ? t.semantic.text.inverse : t.semantic.text.primary
+  const bg = disabled ? t.semantic.surface.subtle : selected ? t.semantic.surface.inverse : t.component.chip.bg
+  const fg = disabled ? t.semantic.text.disabled : selected ? t.semantic.text.inverse : t.component.chip.fg
   return (
     <Animated.View style={style}>
       <Pressable

@@ -46,3 +46,24 @@ export function useSpin(on: boolean) {
 
 /** Unlock bloom (Figma B-S90 note, owner 2026-10-17): the keyhole spreads the brand color, 400 ms ease-out. Reduce Motion: the screen cross-fades over the same time. */
 export const BLOOM_MS = 400
+
+const POP_MS = 400
+const POP_FROM = 0.6
+
+/**
+ * Confirmed hero (Figma B-S23 Confirmed note, owner 2026-10-17): the check badge scales 0.6 -> 1.0 over 400 ms ease-out when `on` turns true (or the screen opens already Confirmed).
+ * Reduce Motion: no scale, the final state shows at once (the haptic still fires elsewhere). Put the returned style on an Animated.View around the badge.
+ */
+export function useCheckPop(on: boolean) {
+  const reduce = useReducedMotion()
+  const s = useSharedValue(1)
+  useEffect(() => {
+    if (!on || reduce) {
+      s.set(1)
+      return
+    }
+    s.set(POP_FROM)
+    s.set(withTiming(1, { duration: POP_MS, easing: EASE_OUT }))
+  }, [on, reduce])
+  return useAnimatedStyle(() => ({ transform: [{ scale: s.get() }] }))
+}

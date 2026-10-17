@@ -19,15 +19,21 @@ type Props = {
   bloom?: SharedValue<number>
   /** Body under the title, centered. Lines break with \n. */
   body?: string
+  /** Mono Fact line at the top left (Product B/Fact upper): version, network, chain id (Start, Figma 586:94637). */
+  fact?: string
   /** Pinned actions (buttons, or the Face ID status row), no line above. */
   actions: ReactNode
 }
 
 /** Centered brand screen: mark 96, gap space/8, wordmark Display M or Title 1 + body (gap 8), 64 of bottom padding lifts the block above the middle (Figma 515:45580). Start, Lock, Update and Device warning share it, so the mark and title sit at the same y. */
-export function BrandScreen({ hero, title, wordmark, bodyVariant = 'body', bloom, body, actions }: Props) {
+export function BrandScreen({ hero, title, wordmark, bodyVariant = 'body', bloom, body, fact, actions }: Props) {
   const t = useTheme()
   return (
-    <Screen footer={actions} footerLine={false}>
+    <Screen
+      footer={actions}
+      footerLine={false}
+      {...(fact ? { header: <View style={{ paddingHorizontal: t.semantic.layout.screen.padding, paddingTop: t.semantic.layout.groupGap, paddingBottom: t.primitive.space[2] }}><Text variant="factUpper" color={t.semantic.text.tertiary}>{fact.toUpperCase()}</Text></View> } : {})}
+    >
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: t.primitive.space[8], paddingBottom: t.primitive.space[16] }}>
         {hero ?? <BrandMark {...(bloom ? { bloom } : {})} />}
         <View style={{ alignSelf: 'stretch', alignItems: 'center', gap: t.primitive.space[2] }}>

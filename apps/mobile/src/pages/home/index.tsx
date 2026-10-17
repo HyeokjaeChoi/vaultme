@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { assets } from '@/entities/asset/fixtures'
 import { demoTx } from '@/entities/transaction/fixtures'
-import { sendHref, useAccountAddress, useBackupDone, useBackupGate } from '@/features/backup'
+import { useAccountAddress, useBackupDone, useBackupGate } from '@/features/backup'
 import { useLiveBalances } from '@/features/balances'
 import { useHistory } from '@/features/history'
 import { PushOptInSheet } from '@/features/push-optin/ui/PushOptInSheet'
@@ -18,16 +18,17 @@ import { RecentRows, fakeHistoryItems } from '@/widgets/activity-list/ActivityLi
 import { FaucetRow } from '@/widgets/faucet-row/FaucetRow'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
-type SheetName = 'intro' | 'testData' | 'block' | 'push' | null
+type SheetName = 'intro' | 'testData' | 'block' | 'push' | 'deposit' | null
 
 const isZero = (v: string) => /^0(\.0+)?$/.test(v)
 
 /**
  * B-S10 Home. Header (account + honesty chips), balance hero (the ETH holding, no price), Send left / Receive right
- * (Primary = Send; an empty wallet makes Receive Primary), the backup row of a new wallet, assets, and the 3 newest rows with "전체 보기".
+ * (Primary = Send; an empty wallet makes Receive Primary), the backup row while not backed up, "다른 자산" (the hero holds ETH, so only the other asset), and the 3 newest rows with "전체 보기".
+ * The first deposit while not backed up opens the backup sheet once (Q14). Send without a backup goes to the S31 gate (SendGuard).
  * A new or empty wallet shows the empty state instead of assets and activity. The chips open their explainer sheets (no sheet opens by itself).
  * An empty wallet that is backed up or restored also shows the faucet row. A Pending or Included send blocks a new send behind a sheet (Q47).
- * `variant=restored|pending|empty` and `sheet=intro|testdata|push|1` are __DEV__ capture overrides.
+ * `variant=restored|pending|empty` and `sheet=intro|testdata|push|deposit|1` are __DEV__ capture overrides.
  */
 export function HomePage() {
   const { t } = useTranslation()
@@ -37,11 +38,10 @@ export function HomePage() {
   const dev = (v: string) => __DEV__ && variant === v
   const backedUp = useBackupDone() || dev('empty')
   const gate = useBackupGate()
-  // TODO(figma): Q14 deposit sheet. Open the new backup sheet when gate.shouldPromptAfterDeposit, call gate.markPromptShown() on open. No UI until the Figma frame exists.
   const pending = useTrackedTx()
   const live = useLiveBalances()
   const { view } = useHistory()
-  const devSheet = (): SheetName => (sheetParam === 'intro' ? 'intro' : sheetParam === 'testdata' ? 'testData' : sheetParam === 'push' ? 'push' : sheetParam === '1' ? 'block' : null)
+  const devSheet = (): SheetName => (sheetParam === 'intro' ? 'intro' : sheetParam === 'testdata' ? 'testData' : sheetParam === 'push' ? 'push' : sheetParam === 'deposit' ? 'deposit' : sheetParam === '1' ? 'block' : null)
   const [sheet, setSheet] = useState<SheetName>(() => (__DEV__ && sheetParam ? devSheet() : null))
   useEffect(() => {
     if (__DEV__) setSheet(sheetParam ? devSheet() : null) // capture links reuse the mounted Home: follow the param
@@ -57,13 +57,19 @@ export function HomePage() {
   const faucetAddress = useAccountAddress() ?? (dev('empty') ? account.address : null)
   const empty = !shownTx && [eth, balanceOf('USDC', assets[1].balance)].every(isZero) && (!chain.broadcasts || (view !== null && items.length === 0))
   const close = () => setSheet(null)
+  // Q14 (Figma 586:97341): the first deposit while not backed up opens the backup sheet once. `markPromptShown` persists it; no other sheet is cut off.
+  useEffect(() => {
+    if (!gate.shouldPromptAfterDeposit || sheet !== null) return
+    gate.markPromptShown()
+    setSheet('deposit')
+  }, [gate.shouldPromptAfterDeposit, sheet])
   return (
     <Screen edges={['top']} gap="none" topGap="none">
-      <ProductHeader title={account.name} chips={<NetworkChips onTestnetPress={() => setSheet('intro')} onTestDataPress={() => setSheet('testData')} />} />
-      <PortfolioBalance label={t('home.heroLabel')} value={eth} unit="ETH" note={t('home.priceNote')} />
+      <ProductHeader title={account.name} chips={<NetworkChips onPress={(test) => setSheet(test ? 'testData' : 'intro')} />} />
+      <PortfolioBalance label={t('home.heroLabel')} value={eth} unit="ETH" note={t('home.priceNote')} {...(empty ? {} : { onLabelPress: () => router.push({ pathname: '/asset', params: { symbol: 'ETH' } }) })} />
       <ActionRow
         primary={empty ? 'receive' : 'send'}
-        send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet('block') : router.push(sendHref(gate.canSend || dev('empty')))) }}
+        send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet('block') : router.push('/send')) }}
         receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
       />
       {!restored && !backedUp ? (
@@ -79,7 +85,7 @@ export function HomePage() {
       ) : (
         <>
           <SectionHeader title={t('home.assets')} />
-          {assets.map((a) => (
+          {assets.filter((a) => a.symbol !== 'ETH').map((a) => ( // ETH is the hero above
             <AssetRow key={a.symbol} name={a.name} symbol={a.symbol} subtitle={t(`home.assetNote.${a.symbol}`)} balance={balanceOf(a.symbol, a.balance)} onPress={() => router.push({ pathname: '/asset', params: { symbol: a.symbol } })} />
           ))}
           {items.length > 0 ? (
@@ -119,6 +125,15 @@ export function HomePage() {
         }
       >
         <Text color={th.semantic.text.secondary}>{t('send.pendingBlock.body')}</Text>
+      </BottomSheet>
+      <BottomSheet
+        visible={sheet === 'deposit'}
+        onClose={close}
+        title={t('home.deposit.title')}
+        secondary={{ label: t('common.later'), onPress: close }}
+        primary={{ label: t('home.deposit.cta'), onPress: () => { close(); router.push('/backup') } }}
+      >
+        <Text color={th.semantic.text.secondary}>{t('home.deposit.body')}</Text>
       </BottomSheet>
       <PushOptInSheet visible={sheet === 'push'} onClose={close} />
     </Screen>

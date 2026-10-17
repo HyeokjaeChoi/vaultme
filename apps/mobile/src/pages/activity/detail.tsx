@@ -3,7 +3,7 @@ import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Linking, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { account } from '@/entities/account/fixtures'
+import { account, networkFact } from '@/entities/account/fixtures'
 import { demoTx } from '@/entities/transaction/fixtures'
 import type { TxState } from '@/features/send'
 import { clearTestTx, isFinal, isPolled, resultCopy, txView, useTrackedTx, writePendingTx } from '@/features/send'
@@ -14,7 +14,7 @@ import { useTestMode } from '@/shared/chain/useTestMode'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { showAmount } from '@/shared/lib/amount'
-import { clock, dateLabel } from '@/shared/lib/time'
+import { factTime } from '@/shared/lib/time'
 import { useTheme } from '@/shared/theme'
 import { AmountHero, BottomSheet, Block, Button, Icon, Screen, ScreenHeader, SectionBand, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 import { AddressText } from '@/shared/ui/AddressBlock'
@@ -75,10 +75,12 @@ export function TxDetailPage() {
       </Block>
       <SectionBand />
       <Block title={t('detail.infoTitle')}>
-        <SummaryRow label={t('detail.time')} value={t('detail.timeValue', { date: dateLabel(tx.createdAt), time: clock(tx.createdAt) })} />
+        <SummaryRow label={t('detail.time')} fact value={factTime(tx.createdAt)} />
         <SummaryRow label={t('result.statusLabel')} value={stateWord} />
+        <SummaryRow format="address" plain label={t('detail.hashTitle')} value={tx.hash} />
         <SummaryRow label={t('detail.sender')} value={account.name} />
-        <SummaryRow label={t('result.network')} value={account.network} />
+        <SummaryRow label={t('result.network')} fact value={networkFact} />
+        {tx.blockNumber !== undefined && !test ? <SummaryRow label={t('detail.block')} fact value={String(tx.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} /> : null}
         {showFee ? <SummaryRow label={t(tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal')} value={`${tx.fee ?? '—'} ETH`} /> : null}
         {final || test ? null : <StatusNotice tone="info" title={lastChecked} />}
       </Block>
@@ -91,25 +93,22 @@ export function TxDetailPage() {
             </Pressable>
           </Block>
         </>
-      ) : (
+      ) : explorer ? (
         <>
           <SectionBand />
-          <Block title={t('detail.hashTitle')}>
-            <AddressText address={tx.hash} size="S" emphasis={false} color={th.semantic.text.secondary} />
-            {explorer ? (
-              <Pressable
-                accessibilityRole="link"
-                accessibilityLabel={t('detail.etherscan')}
-                onPress={() => void Linking.openURL(explorer)}
-                style={{ minHeight: th.primitive.size.touch_min, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: th.primitive.space[2] }}
-              >
-                <Text variant="headline">{t('detail.etherscan')}</Text>
-                <Icon name="external" size={th.component.icon.size.control} color={th.component.icon.action.fg} />
-              </Pressable>
-            ) : null}
+          <Block>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel={t('detail.etherscan')}
+              onPress={() => void Linking.openURL(explorer)}
+              style={{ minHeight: th.primitive.size.touch_min, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+            >
+              <Text variant="headline">{t('detail.etherscan')}</Text>
+              <Icon name="external" size={th.component.icon.size.control} color={th.component.icon.action.fg} />
+            </Pressable>
           </Block>
         </>
-      )}
+      ) : null}
       <BottomSheet
         visible={confirmClear}
         onClose={() => setConfirmClear(false)}

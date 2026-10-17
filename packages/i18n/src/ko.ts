@@ -4,11 +4,11 @@ export const ko = {
   common: { cancel: '취소', close: '닫기', later: '나중에', edit: '수정', back: '뒤로', retry: '다시 시도', confirm: '확인' },
   // Busy button label under Reduce Motion (no spinner rotation): the progressive form (ux-copy.md 2026-10-17).
   busy: { send: '보내는 중…', create: '만드는 중…', restore: '복구하는 중…', recheck: '확인하는 중…' },
-  // B/Status chip (Figma 494:1067): on every wallet screen; "테스트 데이터" only while the fake chain adapter is on.
-  chip: { testnet: 'Sepolia 테스트넷', testData: '테스트 데이터' },
+  // B/Status chip (Figma 494:1067): one neutral chip on every wallet screen; the label says "· 테스트 데이터" while the fake chain adapter is on.
+  chip: { network: 'Sepolia', testData: 'Sepolia · 테스트 데이터' },
   start: {
     title: 'VaultMe',
-    body: '내 기기에 열쇠를 두는\nSepolia 테스트넷 지갑이에요.',
+    body: '계정 없이, 열쇠는 이 기기에만 둬요.\n보내기 전에 받는 주소와 수수료를\n전부 보여 줘요.',
     create: '새 지갑 만들기',
     restore: '기존 지갑 복구',
   },
@@ -50,7 +50,7 @@ export const ko = {
     // Redesign B (ux-copy.md "Redesign B 수정안", decision 7): network first, main holding as the hero value.
     testnetLabel: 'Sepolia 테스트넷',
     priceNote: '테스트넷 자산은 시장 가격이 없어요.',
-    assets: '자산',
+    assets: '다른 자산',
     assetNote: { ETH: '테스트넷', USDC: '테스트 토큰' },
     inProgress: '진행 중',
     sendingTitle: '보내는 중',
@@ -64,6 +64,8 @@ export const ko = {
     recent: '최근 내역',
     viewAll: '전체 보기',
     backupRow: '복구 구문을 아직 백업하지 않았어요',
+    // First deposit while not backed up (Figma 586:97341): shown once, `useBackupGate.markPromptShown`.
+    deposit: { title: '입금이 도착했어요', body: '복구 구문을 아직 백업하지 않았어요.\n기기를 잃으면 이 자산을 되찾을 수 없어요.', cta: '지금 백업' },
     emptyTitle: '아직 자산이 없어요',
     emptyBody: '받기 주소를 공유하면\nSepolia ETH와 USDC를 받을 수 있어요.',
     heroLabel: 'Sepolia ETH',
@@ -78,6 +80,9 @@ export const ko = {
     info: '자산 정보',
     network: '네트워크',
     contract: '컨트랙트 주소',
+    contractNative: '컨트랙트',
+    noContract: '없음 · 네이티브 ETH',
+    decimals: '소수 자릿수',
     copy: '복사',
     copied: '복사했어요',
     feeEth: '네트워크 수수료는 ETH로 내요.\n수수료로 쓸 ETH를 남겨 두세요.',
@@ -151,14 +156,13 @@ export const ko = {
     copied: '복사했어요',
     share: '공유',
     warning: 'Sepolia 네트워크로만 보내세요.',
-    // B-S31 (Figma 423:13750, ux-copy.md "최종 검수 수정")
-    backup: {
-      title: '먼저 복구 구문을 백업하세요',
-      body: '기기를 잃어도 지갑을 되찾으려면\n복구 구문이 필요해요.\n백업을 마치면 받기 주소가 보여요.',
-    },
+    // S30B: receive is open before the backup; the warning stays on the screen (Figma 586:97529).
+    backupWarn: { title: '복구 구문을 아직 백업하지 않았어요', body: '기기를 잃으면 자산을 되찾을 수 없어요.', link: '백업하기' },
   },
   send: {
     title: '보내기',
+    // B-S31 send gate (Figma 423:13750): the first send needs the backup.
+    backupGate: { title: '먼저 복구 구문을 백업하세요', body: '기기를 잃어도 지갑을 되찾으려면\n복구 구문이 필요해요.\n백업을 마치면 보낼 수 있어요.' },
     recipientQuestion: '누구에게 보낼까요?',
     recipientLabel: '받는 주소',
     recipientPlaceholder: '0x…',
@@ -226,7 +230,7 @@ export const ko = {
     includedBody: '블록에 포함됐어요. 확정을 기다리는 중이에요.',
     // Two lines on purpose: the break keeps "마세요." from wrapping alone (final review P1-5).
     sendAgainWarn: '이미 네트워크에 보냈어요.\n같은 거래를 다시 보내지 마세요.',
-    failedTitle: '실행에 실패했어요',
+    failedTitle: '보내지 못했어요',
     replacedTitle: '실행되지 않았어요',
     testTitle: '테스트 거래예요',
     testBody: '이 기기에서 만든 예시예요.\n네트워크로 보내지 않았어요.',
@@ -256,7 +260,7 @@ export const ko = {
     recipientTitle: '받는 주소',
     infoTitle: '거래 정보',
     time: '시각',
-    timeValue: '{{date}} {{time}}',
+    block: '블록',
     state: { confirmed: '확정', unknown: '확인 못 함', test: '예시' },
     hashTitle: '거래 해시',
     // Figma B-S41 423:16381: "마지막 확인 09:41." The second sentence only while the app polls (Pending, Included).
@@ -356,7 +360,7 @@ export const ko = {
     title: '설정',
     phrase: '복구 구문 보기',
     push: '거래 알림',
-    zero: '0원 거래 표시',
+    zero: '수량 0 거래 표시',
     device: '기기 보안 상태',
     group: { security: '보안', notify: '알림', info: '정보' },
     licenses: '오픈소스 라이선스',
@@ -388,7 +392,7 @@ export const ko = {
     pushScreen: { title: '거래 알림', row: '거래 알림 받기', body: '켜면 이 주소가 VaultMe 알림 서버에 등록돼요. 끄면 등록을 지워요.', warnTitle: '알림으로 복구 구문을 묻지 않아요', warnBody: '복구 구문을 묻는 알림은 모두 사기예요.' },
     // S92 (ux-copy.md 기기 보안 경고). The root/jailbreak detection is not wired: the screen opens from the S60 row only.
     deviceScreen: { title: '안전하지 않은 기기 같아요', body: '루팅되었거나 탈옥된 기기로 보여요.\n다른 앱이 지갑 키를 읽을 수 있어요.\n이 지갑에는 테스트넷 자산만 두세요.', cta: '이해했어요' },
-    zeroScreen: { title: '0원 거래 표시', row: '0원 거래 보기', body: '0원 거래는 주소 오염 공격에 자주 쓰여요. 기본으로 숨겨요.' },
+    zeroScreen: { title: '수량 0 거래 표시', row: '수량 0 거래 보기', body: '수량 0 거래는 주소 오염 공격에 자주 쓰여요.\n기본으로 숨겨요.' },
   },
   pushSheet: {
     title: '거래 알림을 받을까요?',

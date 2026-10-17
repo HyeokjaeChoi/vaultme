@@ -12,7 +12,7 @@ const SIGN = /^[+\-−]/
 
 /**
  * C10 Row with asset badge. Flat, min-height rowB.height 64, 40 pt asset logo with a status badge, title (Row title 500) + subtitle (Caption tertiary), amount (Headline, tabular).
- * Badge = sent / received (confirmed), pending, failed, unknown, replaced. Amount: received in success color, pending and unknown in text/secondary, failed (no sign) and replaced (sign kept) struck through in text/tertiary.
+ * Badge = sent / received (confirmed), pending, failed, unknown, replaced. Amount: received in Ink with "+" (accent rule), pending and unknown in text/secondary, failed (no sign) and replaced (sign kept) struck through in text/tertiary.
  * Title carries the status words; subtitle is "{자산 이름} · {시각}". Status is never color alone.
  */
 export function ActivityRow({ title, detail, time, amount, kind, asset, status, statusLabel, onPress }: Props) {
@@ -20,7 +20,7 @@ export function ActivityRow({ title, detail, time, amount, kind, asset, status, 
   const c = t.component.activityRow
   const struck = status === 'failed' || status === 'replaced'
   const badge: RowBadgeKind = status === 'confirmed' ? (kind === 'send' ? 'sent' : 'received') : status
-  const color = struck ? t.semantic.text.tertiary : status === 'pending' || status === 'unknown' ? t.semantic.text.secondary : status === 'confirmed' && kind === 'receive' ? t.semantic.status.success.fg : c.amount
+  const color = struck ? t.semantic.text.tertiary : status === 'pending' || status === 'unknown' ? t.semantic.text.secondary : c.amount
   const row = (
     <View
       accessible
