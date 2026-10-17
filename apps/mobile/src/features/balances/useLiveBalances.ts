@@ -20,7 +20,12 @@ export function useLiveBalancesState(): { balances: Record<AssetId, string> | nu
       // kv unreadable: show no balance
     }
     const mine = ++seq.current // a no-op read also supersedes any in-flight one
-    if (!chain.broadcasts || !address) return
+    if (!address) {
+      // no account (e.g. wallet removed): drop the previous wallet's balance
+      if (alive.current && mine === seq.current) setB(null)
+      return
+    }
+    if (!chain.broadcasts) return
     try {
       const r = await chain.getBalances(address as `0x${string}`)
       if (alive.current && mine === seq.current) setB({ ETH: formatAmount(r.ETH, 'ETH', 'floor'), USDC: formatAmount(r.USDC, 'USDC', 'floor') })
