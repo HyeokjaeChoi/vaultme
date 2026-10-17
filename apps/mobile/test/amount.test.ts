@@ -49,3 +49,8 @@ it('showAmount: floor in lists, exact elsewhere, unknown asset untouched', async
   expect(showAmount('0.001', 'USDC', 'floor')).toBe('<0.01 USDC')
   expect(showAmount('3', 'DAI', 'floor')).toBe('3 DAI')
 })
+
+it('00 adds two zeros at once', () => {
+  expect(applyKey('1', '00')).toBe('100')
+  expect(applyKey('0', '00')).toBe('0')
+})

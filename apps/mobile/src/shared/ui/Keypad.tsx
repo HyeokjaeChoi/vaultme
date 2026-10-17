@@ -19,7 +19,7 @@ const ROWS: Cell[][] = [
 /** Returns `false` when the key was rejected (or made the amount too big): the haptic is then the warning cue, not selection. */
 type OnKey = (k: KeypadKey) => boolean | void
 type Labels = { dot: string; delete: string }
-/** `dot` = ETH asset key ".", `doubleZero` = USDC asset key "00" (sends "0" twice). */
+/** `dot` = ETH asset key ".", `doubleZero` = USDC asset key "00" (one "00" key; `applyKey` adds both zeros). */
 type AssetKey = 'dot' | 'doubleZero'
 
 function Key({ cell, assetKey, labels, onKey }: { cell: Cell; assetKey: AssetKey; labels: Labels; onKey: OnKey }) {
@@ -30,11 +30,7 @@ function Key({ cell, assetKey, labels, onKey }: { cell: Cell; assetKey: AssetKey
   const label = cell === 'backspace' ? labels.delete : cell === 'aux' && !doubleZero ? labels.dot : text
   const press = () => {
     if (cell === 'aux') {
-      if (doubleZero) {
-        const a = onKey('0')
-        const b = onKey('0')
-        keyHaptic(a === false && b === false ? false : undefined)
-      } else keyHaptic(onKey('.'))
+      keyHaptic(onKey(doubleZero ? '00' : '.'))
     } else keyHaptic(onKey(cell))
   }
   return (
