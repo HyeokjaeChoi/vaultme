@@ -11,7 +11,7 @@ import { readPendingTx, usePendingTx, writePendingTx } from './usePendingTx'
 export const POLL_MS = 15_000
 
 /** Re-reads the kv record and checks it against the chain. Returns the new state, or null when there was nothing to check. Throws when the network could not be asked. */
-async function checkStored(): Promise<TxState | null> {
+export async function checkStored(): Promise<TxState | null> {
   const cur = readPendingTx()
   if (cur === 'corrupt' || cur === null) return null
   const next = await checkTx(cur, chain, sendFrom(), Date.now)
@@ -23,11 +23,11 @@ async function checkStored(): Promise<TxState | null> {
 }
 
 /**
- * The pending send for S23/S41 with its re-check: `recheck` is the manual button; while the screen is focused and the app is
+ * The pending send for S23/S41, Home and the send gates, with its re-check: `recheck` is the manual button; while the screen is focused and the app is
  * active, a Pending or Included send is re-checked on its own. `error` = the last check could not reach the network.
  */
-export function useTrackedTx(): { tx: PendingTx | null; checking: boolean; error: unknown; recheck: () => Promise<void> } {
-  const { tx, reload } = usePendingTx()
+export function useTrackedTx(): { tx: PendingTx | null; blocked: boolean; checking: boolean; error: unknown; recheck: () => Promise<void> } {
+  const { tx, blocked, reload } = usePendingTx()
   const [checking, setChecking] = useState(false)
   const [error, setError] = useState<unknown>(null)
   const [active, setActive] = useState(AppState.currentState === 'active')
@@ -67,5 +67,5 @@ export function useTrackedTx(): { tx: PendingTx | null; checking: boolean; error
       return startPolling(run, POLL_MS)
     }, [active, polled, run]),
   )
-  return { tx, checking, error, recheck }
+  return { tx, blocked, checking, error, recheck }
 }

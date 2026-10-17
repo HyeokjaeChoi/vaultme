@@ -10,7 +10,7 @@ import { useLiveBalances } from '@/features/balances'
 import { useHistory } from '@/features/history'
 import { PushOptInSheet } from '@/features/push-optin/ui/PushOptInSheet'
 import { useRestored } from '@/features/restore'
-import { usePendingTx } from '@/features/send'
+import { useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { getIntroSeen, setIntroSeen } from '@/shared/storage'
 import { useTheme } from '@/shared/theme'
@@ -43,7 +43,7 @@ export function HomePage() {
   const { variant, sheet: sheetParam } = useLocalSearchParams<{ variant?: string; sheet?: string }>()
   const dev = (v: string) => __DEV__ && variant === v
   const backedUp = useBackupDone() || dev('empty')
-  const pending = usePendingTx()
+  const pending = useTrackedTx()
   const live = useLiveBalances()
   const { view } = useHistory()
   const devSheet = (): SheetName => (sheetParam === 'first' ? 'intro' : sheetParam === 'testdata' ? 'testData' : sheetParam === 'push' ? 'push' : sheetParam === '1' ? 'block' : null)

@@ -9,7 +9,7 @@ import { assets } from '@/entities/asset/fixtures'
 import { useHistory } from '@/features/history'
 import { useLiveBalances } from '@/features/balances'
 import { useRestored } from '@/features/restore'
-import { usePendingTx } from '@/features/send'
+import { useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
@@ -27,7 +27,7 @@ export function AssetDetailPage() {
   const asset = assets.find((a) => a.symbol === symbol)
   const live = useLiveBalances()
   const restored = useRestored() || (__DEV__ && variant === 'restored') // `?variant=restored` is a __DEV__ capture override
-  const { tx, blocked } = usePendingTx()
+  const { tx, blocked } = useTrackedTx()
   const { view } = useHistory()
   if (!asset) return null
   const balance = chain.broadcasts ? (live?.[asset.symbol] ?? '—') : restored ? asset.balance : '0'
