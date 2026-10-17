@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { cancelAnimation, Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated'
+import { cancelAnimation, Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated'
 
 // DESIGN motion (emil-design-eng): strong ease-out for UI. No tokens exist for these values yet.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
@@ -66,4 +66,23 @@ export function useCheckPop(on: boolean) {
     s.set(withTiming(1, { duration: POP_MS, easing: EASE_OUT }))
   }, [on, reduce])
   return useAnimatedStyle(() => ({ transform: [{ scale: s.get() }] }))
+}
+
+const SHAKE_STEP_MS = 40
+const SHAKE_HALF_STEPS = 6 // 3 cycles (left, right) + the return to 0 = 7 steps x 40 ms = 280 ms
+
+/**
+ * Rejected-input shake: translateX +-`amplitude` for 3 cycles in 280 ms, on the UI thread. Under Reduce Motion `shake` does nothing (the caller still gives the haptic).
+ * Put `style` on an Animated.View around the shaking content.
+ */
+export function useShake(amplitude: number) {
+  const reduce = useReducedMotion()
+  const x = useSharedValue(0)
+  const style = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }))
+  const step = (to: number) => withTiming(to, { duration: SHAKE_STEP_MS, easing: Easing.linear })
+  const shake = () => {
+    if (reduce) return
+    x.set(withSequence(...Array.from({ length: SHAKE_HALF_STEPS }, (_, i) => step(i % 2 === 0 ? -amplitude : amplitude)), step(0)))
+  }
+  return { style, shake }
 }
