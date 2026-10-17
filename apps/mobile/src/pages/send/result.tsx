@@ -1,55 +1,90 @@
+// Figma: B-S23 Send result (Pending 423:15795, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode)
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { View } from 'react-native'
+import { useEffect } from 'react'
 import { Redirect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { demoTx } from '@/entities/transaction/fixtures'
 import type { TxState } from '@/features/send'
-import { resultCopy, txView, useTrackedTx } from '@/features/send'
+import { isPolled, resultCopy, useTrackedTx } from '@/features/send'
+import { haptic } from '@/shared/lib/haptics'
 import { showAmount } from '@/shared/lib/amount'
+import { useTestMode } from '@/shared/chain/useTestMode'
 import { useTheme } from '@/shared/theme'
-import { Button, Screen, StatusHero, StatusNotice, SummaryRow } from '@/shared/ui'
-import { chain } from '@/shared/chain'
+import { AmountHero, Block, Button, ProgressSteps, SectionBand, Screen, ScreenHeader, StatusNotice, SummaryRow } from '@/shared/ui'
+import { View } from 'react-native'
+import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
 /**
- * C2b-S23 보내기 결과 (Figma 423:15795 Pending, 423:15852 Included, 423:15909 Confirmed, 423:15959 Failed, 423:16009 Unknown, 423:16059 Replaced).
- * Status hero, a warning while a send may still go through, then flat detail rows. Reads the kv pending record and re-checks it every 15 s while focused.
+ * B-S23 보내기 결과: a centered end moment (asset logo + status badge, headline, Figure amount, sentence), the 보냄 -> 블록 포함 -> 확정 progress for Pending / Included / Confirmed only,
+ * then a band and flat detail rows. Fee label: "예상 네트워크 수수료" until the network has it, "네트워크 수수료" once included. Replaced has no fee row.
+ * A send the fake adapter never put on the network is a test send: "테스트 거래예요", no progress, no warning line, no fee (the chip says it too).
+ * A failure reason line shows only when the record carries a confirmed reason (`failReason`). Success and failure give a haptic once.
+ * Reads the kv pending record and re-checks it every 15 s while focused. `?demo=<state>` (+ `&reason=gas`, `&real=1`) is a __DEV__ capture override: a synthetic send in that state.
  */
 export function SendResultPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { demo } = useLocalSearchParams<{ demo?: string }>()
+  const { demo, reason } = useLocalSearchParams<{ demo?: string; reason?: string }>()
   const tracked = useTrackedTx()
   const { checking, recheck } = tracked
-  // `?demo=<state>` is a __DEV__ capture override: a synthetic send in that state.
-  const tx = __DEV__ && demo ? demoTx(demo as TxState) : tracked.tx
+  const testMode = useTestMode()
+  const tx = __DEV__ && demo ? { ...demoTx(demo as TxState), ...(reason === 'gas' ? { failReason: 'outOfGas' as const } : {}) } : tracked.tx
+  const state = tx?.state
+  useEffect(() => {
+    if (state === 'Confirmed') haptic.success()
+    else if (state === 'Failed') haptic.error()
+  }, [state])
   if (!tx) return <Redirect href="/home" />
   const copy = resultCopy(tx.state)
+  const test = testMode && isPolled(tx.state) // the fake adapter keeps a send Pending forever: it was never on the network
+  const toHome = () => { router.dismissAll(); router.replace('/home') }
+  const toDetail = () => router.push({ pathname: '/activity/[hash]', params: { hash: tx.hash } })
+  const resend = () => {
+    router.dismissAll()
+    router.replace('/home')
+    router.push({ pathname: '/review', params: { to: tx.to, amount: tx.amount } })
+  }
+  const [figure, unit] = showAmount(tx.amount, tx.asset, 'exact').split(' ')
+  const lines = (test ? t('result.testBody') : t(copy.body)).split('\n')
+  const progress = !test && (tx.state === 'Pending' || tx.state === 'Included' || tx.state === 'Confirmed') ? tx.state : null
+  const feeLabel = tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal'
+  const showFee = !test && tx.state !== 'Replaced'
   const unknown = tx.state === 'Unknown'
-  const toHistory = () => { router.dismissAll(); router.replace('/activity') }
   return (
     <Screen
-      edges={['top', 'bottom']}
+      bleed
       gap="none"
+      header={<ScreenHeader chips={<NetworkChips />} />}
       footer={
-        <View style={{ gap: th.semantic.layout.fieldGap }}>
-          {unknown ? <Button label={t('result.recheck')} busy={checking} onPress={() => void recheck()} /> : <Button label={t('result.history')} onPress={toHistory} />}
-          <Button label={t(unknown ? 'result.history' : 'result.home')} variant="ghost" onPress={unknown ? toHistory : () => { router.dismissAll(); router.replace('/home') }} />
-        </View>
+        <>
+          {unknown ? <Button label={t('result.recheck')} busy={checking} onPress={() => void recheck()} /> : <Button label={t('result.ok')} onPress={toHome} />}
+          {tx.state === 'Failed' ? <Button label={t('result.resend')} variant="secondary" onPress={resend} /> : null}
+          <Button label={t('result.details')} variant="ghost" onPress={toDetail} />
+        </>
       }
     >
-      <StatusHero tone={copy.tone} title={t(copy.title)} {...(copy.body ? { body: t(copy.body) } : {})} />
-      {copy.warn ? <StatusNotice tone="warning" title={t(copy.warn)} /> : null}
-      {chain.broadcasts ? null : <StatusNotice tone="warning" title={t('notBroadcast.title')} body={t('notBroadcast.body')} />}
-      <View>
-        <SummaryRow label={t('result.statusLabel')} value={t(txView(tx.state).label)} />
-        <SummaryRow label={t('result.amount')} value={showAmount(tx.amount, tx.asset, 'exact')} />
+      <AmountHero
+        result={{ badge: test ? 'info' : copy.tone, title: test ? t('result.testTitle') : t(copy.title) }}
+        asset={tx.asset === 'USDC' ? 'USDC' : 'ETH'}
+        amount={figure ?? tx.amount}
+        unit={unit ?? tx.asset}
+        lines={lines}
+        {...(tx.state === 'Failed' && tx.failReason ? { note: t(`result.failReason.${tx.failReason}`) } : {})}
+      />
+      {progress ? (
+        <View style={{ paddingHorizontal: th.semantic.layout.screen.padding, paddingBottom: th.primitive.space[6] }}>
+          <ProgressSteps state={progress} labels={[t('result.progress.sent'), t('result.progress.included'), t('result.progress.confirmed')]} />
+        </View>
+      ) : null}
+      <SectionBand />
+      <Block>
+        {!test && copy.warn ? <StatusNotice tone="warning" title={t(copy.warn)} /> : null}
         <SummaryRow format="address" label={t('result.recipient')} value={tx.to} />
         <SummaryRow label={t('result.network')} value={account.network} />
-        <SummaryRow label={t('result.fee')} value={`${tx.fee ?? '—'} ETH`} />
-        <SummaryRow format="address" label={t('result.hash')} value={tx.hash} />
-      </View>
+        {showFee ? <SummaryRow label={t(feeLabel)} value={`${tx.fee ?? '—'} ETH`} /> : null}
+      </Block>
     </Screen>
   )
 }

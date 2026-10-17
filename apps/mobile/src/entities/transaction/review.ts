@@ -1,6 +1,6 @@
 import { formatDecimal, fromUnits, recipientRisk, toUnits, type RecipientRisk, type Review } from '@vaultme/wallet-core'
 import { diffGroups, isAddressFormat } from '../../shared/lib/address'
-import { recents, review } from './fixtures'
+import { review } from './fixtures'
 
 const FEE = review.fee.replace(' ETH', '')
 
@@ -33,16 +33,16 @@ export function cleanAmount(raw: string | undefined): string | null {
  * Values shown on Review. Entered `to` and `amount` win; a missing or malformed param falls back to the fixture, so old deep links still work.
  * Look-alike = wallet-core `recipientRisk` against recent addresses. `forceRisk` (?risk=1) marks the fixture look-alike.
  * Total = amount + estimated fee (not the fee cap).
- * `core` = wallet-core `prepare()` result: fee, cap and total come from it. Without it (fixture preview) they come from the Review fixture.
+ * `recentAddresses` = recipients this device sent to (look-alike check). `core` = wallet-core `prepare()` result: fee, cap and total come from it. Without it (fixture preview) they come from the Review fixture.
  */
-export function resolveReview(to?: string, amount?: string, forceRisk = false, core?: Review): ReviewValues {
+export function resolveReview(to?: string, amount?: string, forceRisk = false, core?: Review, recentAddresses: readonly string[] = [review.recipient]): ReviewValues {
   const entered = to && isAddressFormat(to) ? to : null
   const recipient = entered ?? (forceRisk ? review.lookalike : review.recipient)
-  const risk: RecipientRisk = forceRisk ? 'lookalike' : recipientRisk(recipient as `0x${string}`, recents.map((r) => r.address as `0x${string}`))
+  const risk: RecipientRisk = forceRisk ? 'lookalike' : recipientRisk(recipient as `0x${string}`, recentAddresses.map((a) => a as `0x${string}`))
   const lookalike = risk === 'lookalike'
   // Previous = the recent address that differs from the recipient in the fewest (but not zero) 4-char groups.
   const previous = lookalike
-    ? ([...recents.map((r) => r.address)]
+    ? ([...recentAddresses]
         .map((a) => ({ a, n: diffGroups(recipient, a).length }))
         .filter((c) => c.n > 0)
         .sort((x, y) => x.n - y.n)[0]?.a ?? review.recipient)

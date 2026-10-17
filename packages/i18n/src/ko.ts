@@ -1,7 +1,9 @@
 // Approved Korean copy: outputs/design/ux-copy.md + ux-terminology.md. Screens in C2a only.
 export const ko = {
   tab: { assets: '자산', activity: '내역', settings: '설정' },
-  common: { cancel: '취소', close: '닫기', later: '나중에', edit: '수정', back: '뒤로', retry: '다시 시도' },
+  common: { cancel: '취소', close: '닫기', later: '나중에', edit: '수정', back: '뒤로', retry: '다시 시도', confirm: '확인' },
+  // B/Status chip (Figma 494:1067): on every wallet screen; "테스트 데이터" only while the fake chain adapter is on.
+  chip: { testnet: 'Sepolia 테스트넷', testData: '테스트 데이터' },
   start: {
     title: 'VaultMe',
     body: '내 기기에 열쇠를 두는\nSepolia 테스트넷 지갑이에요.',
@@ -99,19 +101,18 @@ export const ko = {
   },
   receive: {
     title: '받기',
-    qrPlaceholder: '임시 QR',
-    qrNote: '임시 QR, 스캔 안 됨',
+    qrLabel: '받기 주소 QR 코드',
     addressLabel: '받기 주소',
     accountNetwork: '계정 1 · Sepolia',
+    account: '계정 1',
     copy: '주소 복사',
+    copied: '복사했어요',
     share: '공유',
     warning: 'Sepolia 네트워크로만 보내세요.',
-    // B-S31 (ux-copy.md S31)
+    // B-S31 (Figma 423:13750, ux-copy.md "최종 검수 수정")
     backup: {
       title: '먼저 복구 구문을 백업하세요',
-      body: '기기를 잃어도 이 지갑을 되찾으려면\n복구 구문이 필요해요.\n백업을 마치면 받기 주소가 보여요.',
-      noticeTitle: '복구 구문은 종이에 적어 두세요',
-      noticeBody: '스크린샷이나 클라우드 메모에 저장하지 마세요.',
+      body: '기기를 잃어도 지갑을 되찾으려면\n복구 구문이 필요해요.\n백업을 마치면 받기 주소가 보여요.',
     },
   },
   send: {
@@ -124,6 +125,11 @@ export const ko = {
     paste: '붙여넣기',
     scan: 'QR 스캔',
     recent: '최근 보낸 주소',
+    recentRow: '{{date}} · {{amount}} 보냄',
+    clear: '지우기',
+    checkRisk: '위험 확인하기',
+    riskCaption: '위험을 확인해야 보낼 수 있어요',
+    editAmount: '금액 수정',
     account2: '계정 2',
     next: '다음',
     review: '검토',
@@ -135,17 +141,17 @@ export const ko = {
     keypad: { dot: '소수점', delete: '지우기' },
     // Pre-send notice by device auth name (ux-copy.md decision 8): Face ID / Touch ID / 지문 / 기기 인증.
     preSend: {
-      faceId: '보내면 취소할 수 없어요.\n다음 단계에서 Face ID로 확인해요.',
-      touchId: '보내면 취소할 수 없어요.\n다음 단계에서 Touch ID로 확인해요.',
-      fingerprint: '보내면 취소할 수 없어요.\n다음 단계에서 지문으로 확인해요.',
-      device: '보내면 취소할 수 없어요.\n다음 단계에서 기기 인증으로 확인해요.',
+      faceId: '보내면 취소할 수 없어요 · 다음 단계에서 Face ID로 확인해요',
+      touchId: '보내면 취소할 수 없어요 · 다음 단계에서 Touch ID로 확인해요',
+      fingerprint: '보내면 취소할 수 없어요 · 다음 단계에서 지문으로 확인해요',
+      device: '보내면 취소할 수 없어요 · 다음 단계에서 기기 인증으로 확인해요',
     },
     // C2b #23. pendingBlock is approved copy (ux-copy.md S10P+S24); the rest is new (listed in the PR for approval).
     authPrompt: '보내려면 인증하세요',
     authError: { title: '인증하지 못했어요', body: '다시 시도하세요.' },
     chainError: { title: '네트워크 정보를 가져오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
     // C3 (#44): needsReview, blocked and the retry buttons are the owner-approved Figma frames C3-S22 (379:2099, 379:2187, 379:2279).
-    needsReview: { title: '내용이 바뀌었어요', body: '수수료나 거래 순서가 바뀌어서 보내지 않았어요. 새 내용을 확인한 뒤 다시 보내세요.' },
+    needsReview: { title: '내용이 바뀌었어요', body: '보내기 전에 수수료나 거래 정보가 바뀌었어요.\n새 내용을 확인한 뒤 다시 보내세요.' },
     blocked: { title: '수수료가 너무 높아요', body: '정해 둔 최대 수수료를 넘어서 보내지 않았어요. 나중에 다시 시도하세요.' },
     prepareError: { title: '보낼 수 없어요', body: '받는 주소와 금액을 확인하세요.' },
     pendingBlock: {
@@ -171,16 +177,20 @@ export const ko = {
   notBroadcast: { title: '네트워크로 보내지 않았어요 (테스트)', body: '테스트 버전이라 거래 해시와 상태는 이 기기에서 만든 예시예요.' },
   // S23: Figma C2b-S23 + ux-copy.md. unknown.* from ux-flow.md S23 state table.
   result: {
-    title: '네트워크 처리를 기다리는 중이에요',
-    body: '보냈어요. 다시 보내지 마세요.',
     // S23 headline per state (ux-copy.md: "보내는 중이에요" for Pending and Included, "보냈어요" only when Confirmed).
     sending: '보내는 중이에요',
     sent: '보냈어요',
     pendingBody: '네트워크 처리를 기다리는 중이에요.',
     includedBody: '블록에 포함됐어요. 확정을 기다리는 중이에요.',
-    includedWarn: '다시 보내지 마세요.',
+    // Two lines on purpose: the break keeps "마세요." from wrapping alone (final review P1-5).
+    sendAgainWarn: '이미 네트워크에 보냈어요.\n같은 거래를 다시 보내지 마세요.',
     failedTitle: '실행에 실패했어요',
     replacedTitle: '실행되지 않았어요',
+    testTitle: '테스트 거래예요',
+    testBody: '이 기기에서 만든 예시예요.\n네트워크로 보내지 않았어요.',
+    // Shown only when the network gave a confirmed reason (owner 2026-10-17). Never a guess.
+    failReason: { outOfGas: '수수료 한도가 부족했어요.' },
+    progress: { sent: '보냄', included: '블록 포함', confirmed: '확정' },
     statusLabel: '상태',
     network: '네트워크',
     recheck: '상태 다시 확인',
@@ -190,6 +200,10 @@ export const ko = {
     recipient: '받는 주소',
     hash: '거래 해시',
     fee: '예상 네트워크 수수료',
+    feeFinal: '네트워크 수수료',
+    ok: '확인',
+    resend: '다시 보내기',
+    details: '거래 상세 보기',
     history: '내역 보기',
     home: '홈으로',
   },
@@ -197,25 +211,38 @@ export const ko = {
   detail: {
     title: '거래 상세',
     sender: '보낸 계정',
-    // Figma B-S41 423:16381: "마지막 확인 09:41. 자동으로 다시 확인해요." The second sentence only while the app polls (Pending, Included).
-    lastChecked: '마지막 확인 {{time}}.',
+    recipientTitle: '받는 주소',
+    infoTitle: '거래 정보',
+    time: '시각',
+    timeValue: '{{date}} {{time}}',
+    state: { confirmed: '확정', unknown: '확인 못 함', test: '예시' },
+    hashTitle: '거래 해시',
+    // Figma B-S41 423:16381: "마지막 확인 09:41." The second sentence only while the app polls (Pending, Included).
+    lastChecked: '마지막 확인 {{time}}',
     auto: '자동으로 다시 확인해요.',
-    // Result notice by state (draft; texts from ux-flow.md S23 state table). Pending and Unknown reuse result.*.
     included: { title: '블록에 포함됐어요', body: '확정을 기다리는 중이에요. 다시 보내지 마세요.' },
     confirmed: { title: '확정됐어요', body: '이 거래는 네트워크에서 확정됐어요.' },
-    failed: { title: '실행에 실패했어요', body: '네트워크 수수료는 나갔어요. 보내려던 금액은 나가지 않았어요.' },
-    replaced: { title: '실행되지 않았어요', body: '다른 거래가 먼저 처리되어 이 거래는 실행되지 않았어요.' },
+    failed: { title: '실행에 실패했어요', body: '보내려던 금액은 나가지 않았어요.\n네트워크 수수료는 나갔어요.' },
+    replaced: { title: '실행되지 않았어요', body: '다른 거래가 먼저 처리되어\n이 거래는 실행되지 않았어요.' },
     recheck: '상태 다시 확인',
     etherscan: 'Etherscan에서 보기',
-    // Test mode only (fake chain adapter): approved by the coordinator 2026-10-14.
+    // Test mode only (fake chain adapter); owner-approved sheet, safe action Primary.
     clearTest: '테스트 거래 지우기',
     clearTitle: '테스트 거래를 지울까요?',
-    clearBody: '이 기기에서 만든 예시 거래예요. 지우면 새로 보낼 수 있어요.',
+    clearBody: '이 기기에서 만든 예시 거래예요.\n지우면 다시 보내기를 시험할 수 있어요.',
     clearConfirm: '지우기',
   },
   review: {
     title: '이대로 보낼까요?',
-    scope: '{{network}} 테스트넷 · {{account}}에서',
+    // Hero sentence (Figma B-S22): account + total, two lines.
+    heroTo: '{{account}}에서 아래 주소로 보내요',
+    heroTotal: '총 {{total}} 차감 예상',
+    heroFeeAgain: '수수료를 다시 확인해야 해요',
+    blockRecipient: '받는 사람',
+    blockAsset: '보내는 것',
+    blockCost: '비용',
+    fold: '접기',
+    unfold: '자세히',
     amount: '금액',
     asset: '자산',
     account: '계정',
@@ -230,15 +257,15 @@ export const ko = {
     totalMax: '최대 {{amount}}',
     // S22: the check notice is two lines plus a "다시 확인" link (decisions 9, 10). Time is the last check of balance and fee.
     checkedFormat: '주소 형식만 확인했어요. 받는 사람이 맞는지는 직접 확인해 주세요.',
-    checkedTime: '잔액과 수수료는 {{time}}에 확인했어요.',
+    checkedTime: '잔액과 수수료를 {{time}}에 확인했어요',
     recheck: '다시 확인',
-    rechecking: '다시 확인하는 중이에요',
+    rechecking: '잔액과 수수료를 다시 확인하는 중이에요',
     feeNote: '금액과 수수료는 ETH로 나가요. 최종 수수료는 달라질 수 있어요.',
     confirm: '확인하고 보내기',
     reconfirm: '다시 검토',
     ack: '확인했어요, 보내기',
-    // Status line above the amount for a risky recipient (ux-copy.md S22L / S22B / S22T "상태 제목").
-    status: { lookalike: '받는 주소가 의심스러워요', burn: '되찾을 수 없는 주소예요', tokenContract: '지갑 주소가 아니에요' },
+    // After the risk sheet was confirmed: one inline line under the address (Figma S22L/B/T acknowledged).
+    acknowledged: { lookalike: '비슷한 주소예요. 위험을 확인했어요.', burn: '소각 주소예요. 위험을 확인했어요.', tokenContract: '토큰 컨트랙트 주소예요. 위험을 확인했어요.' },
     burn: {
       title: '소각 주소예요',
       body: '이 주소로 보낸 자산은 누구도 되찾을 수 없어요.',
@@ -249,14 +276,14 @@ export const ko = {
       title: '토큰 컨트랙트 주소예요',
       body: '지갑 주소가 아니에요. 보낸 자산을 되찾기 어려워요.',
       sheetTitle: '토큰 컨트랙트 주소로 보내려고 해요',
-      sheetBody: '지갑 주소가 아니에요. 보낸 자산을 되찾기 어려워요.',
+      sheetBody: '지갑 주소가 아니에요.\n보낸 자산을 되찾기 어려워요.',
     },
     lookalike: {
       title: '비슷한 주소예요',
-      body: '전에 보낸 주소와 앞뒤는 같고 가운데가 달라요. 주소 오염 공격일 수 있어요.',
+      body: '전에 보낸 주소와 앞뒤는 같고 가운데가 달라요.\n주소 오염 공격일 수 있어요.',
       sheetTitle: '비슷한 주소로 보내려고 해요',
-      sheetBody: '전에 보낸 주소와 앞뒤 글자는 같지만\n가운데가 달라요.\n주소 오염 공격일 수 있어요.\n전체 주소를 한 글자씩 비교하세요.',
-      compareTitle: '전에 보낸 주소와 비교하세요',
+      sheetBody: '전에 보낸 주소와 앞뒤는 같고 가운데가 달라요.\n주소 오염 공격일 수 있어요.',
+      compareTitle: '아래 빨간 글자가 다른 부분이에요',
       previous: '전에 보낸 주소',
       current: '지금 받는 주소',
     },
@@ -280,7 +307,7 @@ export const ko = {
     updatedAt: '마지막 업데이트 {{time}}',
     loading: '내역을 불러오는 중이에요',
     empty: { title: '아직 거래가 없어요', body: '받기 주소를 공유하면 여기에 거래가 보여요.', cta: '받기 주소 보기' },
-    error: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요.\n아래는 마지막으로 받은 내역이에요.' },
+    error: { title: '내역을 불러오지 못했어요', body: '아래는 {{time}}에 받은 내역이에요.' },
     errorNoCache: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요.' },
   },
   settings: {

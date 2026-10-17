@@ -17,16 +17,20 @@ export const review = {
   feeCap: '0.0000735 ETH',
   total: '0.050042 ETH',
   checkedAt: '09:41',
-  recipient: '0x9F3C7A210Bd4E6c855A13F90C2E78D16AB0441Ab',
-  // Look-alike of `recipient`: two 4-char chunks differ (0bD5 e6C9). Address-poisoning example, not a real address.
-  lookalike: '0x9f3C7a210bD5e6c955a13f90C2e78d16ab0441aB',
+  // Figma example addresses (S20a / S22): 0x1234 5678 9abc def0 1234 5678 9abc def0 1234 5678
+  recipient: '0x123456789aBCdef0123456789AbCDEF012345678',
+  // Look-alike of `recipient`: two 4-char chunks differ (9abd d3f0, de0f). Address-poisoning example, not a real address.
+  lookalike: '0x123456789aBdd3F0123456789aBcdE0f12345678',
 } as const
 
-// Recent recipients for the send flow (fixture, not real addresses). `label` is the i18n key of the row's trailing value.
-export const recents = [
-  { address: review.recipient, label: 'activity.oct12' },
-  { address: '0x4E21Ab7c9d03F5e86B1a2c4d7e90F3B5a6D8C90f', label: 'send.account2' },
-] as const
+export type Recent = { address: string; at: number; asset: string; amount: string }
+
+/** Example recent recipients, shown only while the fake chain adapter is on (the same kind of example rows as the activity fixtures). Real mode lists only what this device sent. */
+export const recentExamples: Recent[] = [
+  { address: review.recipient, at: new Date(2026, 9, 12, 8, 30).getTime(), asset: 'ETH', amount: '0.02' },
+  { address: '0x7c3a91d2e5f04b88a1c603d95e72bb149f206A1D', at: new Date(2026, 9, 3, 10, 5).getTime(), asset: 'ETH', amount: '0.1' },
+  { address: '0x2F9E0C418d73B6A5E91247Cd3a08F5B16c2E91d4', at: new Date(2026, 8, 28, 15, 20).getTime(), asset: 'USDC', amount: '1' },
+]
 
 /** __DEV__ design-capture only (`?variant=pending` on Home, `?demo=<state>` on the result screen): a synthetic send in the given state. Never written to kv. */
 export const demoTx = (state: PendingTx['state']): PendingTx => ({

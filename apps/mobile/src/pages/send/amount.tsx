@@ -10,6 +10,7 @@ import { isAddressFormat } from '@/shared/lib/address'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
 import { AmountDisplay, Button, Chip, Keypad, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
+import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
 const CHIPS = [
   { pct: 25, label: 'send.chip.p25' },
@@ -42,14 +43,14 @@ export function SendAmountPage() {
   return (
     <Screen
       topGap="group"
-      header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
+      header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} chips={<NetworkChips />} />}
       footer={<Button label={t('send.review')} disabled={isZeroAmount(amount) || tooMuch} onPress={() => router.push({ pathname: '/review', params: { to, amount } })} />}
     >
       <View style={{ flex: 1, gap: th.semantic.layout.groupGap }}>
         <Text variant="title1" accessibilityRole="header">{t('send.amountQuestion')}</Text>
         <View style={{ flex: 1 }}>
           <AmountDisplay amount={amount} ticker="ETH" error={tooMuch} {...(sub && !tooMuch ? { sub } : {})} />
-          {tooMuch ? <StatusNotice tone="danger" title={t('send.insufficient')} /> : null}
+          {tooMuch ? <StatusNotice tone="danger" title={t('send.insufficient')} {...(sendable !== null ? { body: `${t('send.maxSendable')} ${formatDecimal(sendable, 'ETH', 'floor')} ETH` } : {})} /> : null}
         </View>
         <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
           {chips.map((c) => (
