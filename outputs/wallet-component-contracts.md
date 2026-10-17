@@ -216,7 +216,7 @@ Static color contrast, Figma geometry, Prototype keyboard 검사를 구분한다
 | C09 Asset row | 원본 identity, 이름·symbol·balance. 같은 상단 network만 반복 생략 |
 | C06 Navigation | Assets/Activity/Settings visible label과 active state |
 
-기능은 Phosphor regular, identity는 별도 원본 color SVG다. Label 옆 SVG/img는 aria-hidden이다. 미확인 identity에는 neutral fallback을 사용한다. Local icon 25개 연결(Redesign B의 `qr`, `more` 추가 전 기록. 현재 기능 25 + identity 2)은 정적 확인 완료이며 Native와 Library 통합도 완료했다. 최종 증거는 아래 적용 기록을 따른다. [Icons 안내](wallet-icon-guide.md), [로컬 검증](../work/v2/verification/icons-local.json).
+기능은 Solar(Linear 기본, 선택·상태·활성은 Bold, 빈 상태·결과 hero는 Bold Duotone; CC BY 4.0 표기 필요), identity는 별도 원본 color SVG다. Label 옆 SVG/img는 aria-hidden이다. 미확인 identity에는 neutral fallback을 사용한다. Local icon 25개 연결(Redesign B의 `qr`, `more` 추가 전 기록. 현재 기능 25 + identity 2)은 정적 확인 완료이며 Native와 Library 통합도 완료했다. 최종 증거는 아래 적용 기록을 따른다. [Icons 안내](wallet-icon-guide.md), [로컬 검증](../work/v2/verification/icons-local.json).
 
 Icons의 390 px Assets/Send Review는 실제 browser에서 logo load, wallet Review 데이터, 44 px target, overflow 0을 확인했다. Catalog 25행과 status 검색 7개도 확인했다. [Browser 증거](../work/v2/verification/icons-runtime.json). 확인한 합성 화면에 한정한 결과이며 screen reader·실제 wallet 검증은 아니다.
 

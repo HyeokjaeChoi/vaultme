@@ -278,7 +278,7 @@ Canvas 구현 확인: 기존 Figma source의 Semantic alias를 수정하고 Libr
 
 - `noticeBanner.*`: Banner(막는 상황, 페이지 단위)는 tint 배경(`info|warning|danger|unknown|confirmed|clear.bg`는 `statusNotice.*.bg`와 같은 `status.*.bg` 역할), `radius` → `radius.lg`(16), `padding` → `space.4`(16), `iconSize` → `iconSize.control`(20). Inline(도움말 1줄)은 기존 모양이다. Figma `B/Notice inline`은 `Tier=Inline|Banner` × `Tone`이다.
 - `sectionBand.*`: `height` → `space.3`(12), `bg` → `surface.canvas`, `blockPaddingY` → `space.5`(20, 띠로 나뉜 블록 안 위아래). 20은 제품 척도(24/16/12/8)에 없지만 기존 Primitive이며 오너 승인 예외다. 검토·결과·거래 상세·설정에만 쓰고 홈·내역은 흰색이다. border·shadow 없음.
-- `rowBadge.*`: B/Row `Leading=Asset badge`. 자산 아이콘 40 + 18 px 배지(`size.badge`), 2 px `surface.default` ring. 색은 sent `icon.secondary`, received `status.success.fg`, pending `status.warning.fg`, failed `status.danger.fg`. 배지 글리프는 Phosphor fill 원형(arrow-circle-up-right / down-left, clock, x-circle)이다. 단색 regular 아이콘은 18 px 배지에서 원형 윤곽이 겹쳐 fill을 골랐다.
+- `rowBadge.*`: B/Row `Leading=Asset badge`. 자산 아이콘 40 + 18 px 배지(`size.badge`), 2 px `surface.default` ring. 색은 sent `icon.secondary`, received `status.success.fg`, pending `color.amber.600`, failed `status.danger.fg`. 배지 글리프는 Solar Bold 원형(`round-arrow-right-up` / `round-arrow-left-down`, `clock-circle`, `close-circle`)이다(`wallet-icon-guide.md` §0). Linear 아이콘은 18 px 배지에서 원형 윤곽이 겹쳐 Bold를 골랐다.
 - 꺼진 Primary: `surface.disabled`(Light neutral.100, Dark neutral.800) 배경 + `text.disabled`.
 - `Brand/Mark`: 로고 마크 draft(72/40/24, OnLight/OnBrand). 오너 검토 전이다. 토큰 없이 `brand.primary`와 `color.neutral.0`을 직접 binding한다.
 
