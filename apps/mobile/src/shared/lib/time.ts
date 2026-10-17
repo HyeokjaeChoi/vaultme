@@ -22,6 +22,12 @@ export const dateLabel = (ms: number): string => {
   return `${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAY[d.getDay()]})`
 }
 
+/** Identity of a local calendar day ("2026-10-16"): the group key of a history list. `dateLabel` has no year, so it is not one. */
+export const dayKey = (ms: number): string => {
+  const d = new Date(ms)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 export const clock = (ms: number): string => hhmm(new Date(ms))
 
 /** Zone label of the device clock for a Fact time: KST at +9, otherwise "UTC+N" (no zone database needed). */

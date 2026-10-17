@@ -7,7 +7,7 @@ import { transactions } from '@/entities/transaction/fixtures'
 import type { HistoryItem } from '@/features/history'
 import { rowTitleKey, txView, usePendingTx } from '@/features/send'
 import { showAmount } from '@/shared/lib/amount'
-import { clock, dateLabel, dayGroup } from '@/shared/lib/time'
+import { clock, dateLabel, dayGroup, dayKey } from '@/shared/lib/time'
 import { ActivityRow, DateHeader } from '@/shared/ui'
 
 const assetName = (symbol: string) => assets.find((a) => a.symbol === symbol)?.name ?? symbol
@@ -46,17 +46,17 @@ function Row({ item, dated }: { item: HistoryItem; dated?: boolean }) {
 }
 
 export function ActivityList({ items }: { items: HistoryItem[] }) {
-  const groups: { day: string; items: HistoryItem[] }[] = []
+  const groups: { key: string; day: string; items: HistoryItem[] }[] = []
   for (const item of items) {
-    const day = dateLabel(item.at)
-    const g = groups.find((x) => x.day === day)
+    const key = dayKey(item.at)
+    const g = groups.find((x) => x.key === key)
     if (g) g.items.push(item)
-    else groups.push({ day, items: [item] })
+    else groups.push({ key, day: dateLabel(item.at), items: [item] })
   }
   return (
     <>
       {groups.map((g) => (
-        <View key={g.day}>
+        <View key={g.key}>
           <DateHeader date={g.day} />
           {g.items.map((item) => <Row key={item.hash} item={item} />)}
         </View>

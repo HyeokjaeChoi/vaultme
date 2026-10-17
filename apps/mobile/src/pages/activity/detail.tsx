@@ -81,7 +81,7 @@ export function TxDetailPage() {
         <SummaryRow label={t('detail.sender')} value={account.name} />
         <SummaryRow label={t('result.network')} fact value={networkFact} />
         {tx.blockNumber !== undefined && !test ? <SummaryRow label={t('detail.block')} fact value={String(tx.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} /> : null}
-        {showFee ? <SummaryRow label={t(tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal')} value={`${tx.fee ?? '—'} ETH`} /> : null}
+        {showFee ? <SummaryRow label={t(tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal')} value={tx.fee ? `${tx.fee} ETH` : '—'} /> : null}
         {final || test ? null : <StatusNotice tone="info" title={lastChecked} />}
       </Block>
       {test ? (
