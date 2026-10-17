@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from 'node:fs'
+import { join, relative } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 
 // recents.ts pulls in the router and the encrypted kv; only the pure merge is under test.
@@ -30,5 +32,32 @@ describe('mergeRecents', () => {
   it('returns only examples when nothing was sent, and nothing when both are empty', () => {
     expect(mergeRecents([], [r(B, 1)]).map((x) => x.address)).toEqual([B])
     expect(mergeRecents([], [])).toEqual([])
+  })
+})
+
+describe('recents only hold addresses this wallet signed and sent to (analyst R4)', () => {
+  it('real chain: examples never appear, only local sends', async () => {
+    const { recentsFor } = await import('../src/features/send/model/recents')
+    expect(recentsFor([r(A, 1)], true).map((x) => x.address)).toEqual([A])
+    expect(recentsFor([], true)).toEqual([])
+  })
+
+  it('fake chain: examples only fill after local sends', async () => {
+    const { recentsFor } = await import('../src/features/send/model/recents')
+    expect(recentsFor([r(A, 1)], false)[0]?.address).toBe(A)
+  })
+
+  it('the only writers are rememberRecipient (called by Review after a send) and the kv helper', () => {
+    const src = join(process.cwd(), 'src')
+    const hits: string[] = []
+    const walk = (d: string) => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = join(d, e.name)
+        if (e.isDirectory()) walk(p)
+        else if (/\.tsx?$/.test(e.name) && /\b(addRecent|rememberRecipient)\(/.test(readFileSync(p, 'utf8'))) hits.push(relative(src, p))
+      }
+    }
+    walk(src)
+    expect(hits.sort()).toEqual(['features/send/model/recents.ts', 'pages/review/index.tsx', 'shared/storage/kv.ts'])
   })
 })

@@ -10,6 +10,14 @@ export function mergeRecents(local: RecentRecipient[], examples: RecentRecipient
   return [...local, ...examples.filter((e) => !seen.has(e.address.toLowerCase()))].slice(0, MAX_RECENTS)
 }
 
+/**
+ * Analyst risk R4 (address poisoning): recents are ONLY addresses this wallet signed and sent to (kv `send.recents`, written by `rememberRecipient` after a submitted send).
+ * Never from incoming txs or fetched history. Examples are test data and exist only while the fake adapter is on (`broadcasts` false).
+ */
+export function recentsFor(local: RecentRecipient[], broadcasts: boolean): RecentRecipient[] {
+  return mergeRecents(local, broadcasts ? [] : recentExamples)
+}
+
 function read(): RecentRecipient[] {
   let local: RecentRecipient[] = []
   try {
@@ -17,7 +25,7 @@ function read(): RecentRecipient[] {
   } catch {
     // kv unreadable: no recents
   }
-  return mergeRecents(local, chain.broadcasts ? [] : recentExamples)
+  return recentsFor(local, chain.broadcasts)
 }
 
 /** Recent recipients for S20a and the look-alike check of S22. Re-read on focus. */
@@ -27,7 +35,7 @@ export function useRecents(): RecentRecipient[] {
   return list
 }
 
-/** After a send was submitted: remember the recipient. A failed write is ignored (the list is a convenience). */
+/** After a send was submitted (signed by this wallet): remember the recipient. A failed write is ignored (the list is a convenience). */
 export function rememberRecipient(r: RecentRecipient): void {
   try {
     addRecent(r)
