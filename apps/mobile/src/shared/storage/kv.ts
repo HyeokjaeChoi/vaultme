@@ -46,6 +46,7 @@ export const setRestored = (v: boolean): void => store().set('wallet.restored', 
 // --- account address: first-account public address, derived at creation (no auth needed to show it) ---
 export const getAccountAddress = (): string | null => store().getString('account.address') ?? null
 export const setAccountAddress = (a: string): void => store().set('account.address', a)
+export const clearAccountAddress = (): void => void store().remove('account.address')
 
 // --- lock (Q13): 30 s grace after a real background; cold start is locked ---
 export type LockSettings = { graceSeconds: number }

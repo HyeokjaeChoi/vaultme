@@ -41,9 +41,12 @@ it('has the S03/S04 backup copy', () => {
 
 it('has the S05/S06 restore copy', () => {
   expect(i18n.t('restore.title')).toBe('지갑 복구')
-  expect(i18n.t('restore.helper')).toBe('12단어나 24단어를 띄어쓰기로 구분해 입력하세요.')
-  expect(i18n.t('restore.unknownWord', { word: 'abcd' })).toBe("'abcd'는 복구 구문 단어가 아니에요.")
-  expect(i18n.t('restore.wrongCount', { count: 13 })).toBe('13단어를 입력했어요. 12단어나 24단어여야 해요.')
+  expect(i18n.t('restore.helper')).toBe('복구 구문 단어를 순서대로 입력하세요.')
+  expect(i18n.t('restore.word', { n: 3 })).toBe('3번째 단어')
+  expect(i18n.t('restore.unknownWord', { n: 3 })).toBe('3번째 단어가 복구 구문 단어 목록에 없어요')
+  expect(i18n.t('restore.passphrase.row')).toBe('고급 · 패스프레이즈 입력')
+  expect(i18n.t('restore.done.withPassphrase')).toBe('패스프레이즈로 복구했어요.')
+  expect(i18n.t('restore.done.different')).toBe('다른 주소예요')
   expect(i18n.t('restore.done.title')).toBe('복구 완료')
   expect(i18n.t('restore.open')).toBe('지갑 열기')
 })

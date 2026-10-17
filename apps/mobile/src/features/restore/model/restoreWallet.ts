@@ -1,5 +1,5 @@
 import { deriveAddress, toMnemonic } from '@vaultme/wallet-core'
-import { hasPhrase, savePhrase, setAccountAddress, setBackupDone, setRestored, type AuthPrompt } from '@/shared/storage'
+import { clearAccountAddress, deletePhrase, hasPhrase, savePhrase, setAccountAddress, setBackupDone, setRestored, type AuthPrompt } from '@/shared/storage'
 import { inspectPhrase, type PhraseIssue } from './phrase'
 
 export type RestoreResult =
@@ -31,4 +31,21 @@ export async function restoreWallet(text: string, prompt: AuthPrompt, passphrase
   } catch {
     return { status: 'error' }
   }
+}
+
+/**
+ * S06 "다른 주소예요": the restored wallet is the wrong one, so remove it (phrase from the keychain, address, restored and backup flags)
+ * and let the user try again from S05. Only safe right after a restore: nothing else exists yet (no history, no pending tx).
+ * Returns false when the keychain still holds the phrase: the caller must stay on S06.
+ */
+export async function removeRestoredWallet(): Promise<boolean> {
+  try {
+    await deletePhrase()
+  } catch {
+    return false
+  }
+  clearAccountAddress()
+  setRestored(false)
+  setBackupDone(false)
+  return true
 }
