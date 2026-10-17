@@ -1,5 +1,6 @@
 // Figma: B-S11 Asset detail Sepolia ETH 423:16447 (dark 430:15384), USD Coin 515:30153 (dark 515:30727): Nav (back, title, chips), Amount hero (logo 48), B/Action row, Section band, Block 자산 정보, Section band, Block 이 자산의 내역
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { USDC_SEPOLIA } from '@vaultme/contracts'
@@ -13,7 +14,7 @@ import { chain } from '@/shared/chain'
 import { goBack } from '@/shared/lib/nav'
 import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
-import { ActionRow, AmountHero, Block, Button, Screen, ScreenHeader, SectionBand, StatusNotice, SummaryRow } from '@/shared/ui'
+import { ActionRow, AmountHero, Block, BottomSheet, Button, Screen, ScreenHeader, SectionBand, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 import { RecentRows, fakeHistoryItems } from '@/widgets/activity-list/ActivityList'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
@@ -29,6 +30,7 @@ export function AssetDetailPage() {
   const { tx, blocked } = useTrackedTx()
   const { view } = useHistory()
   const { copied, copy } = useCopy(t('asset.copied'))
+  const [blockSheet, setSheet] = useState(false)
   if (!asset) return null
   const balance = chain.broadcasts ? (live?.[asset.symbol] ?? '—') : restored ? asset.balance : '0'
   const items = (chain.broadcasts ? (view?.items ?? []) : fakeHistoryItems(tx)).filter((i) => i.asset === asset.symbol)
@@ -38,7 +40,7 @@ export function AssetDetailPage() {
       <AmountHero asset={asset.symbol} amount={balance} unit={asset.symbol} />
       <View style={{ paddingHorizontal: th.semantic.layout.screen.padding }}>
         <ActionRow
-          send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? router.push('/home') : router.push('/send')) }}
+          send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet(true) : router.push('/send')) }}
           receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
         />
       </View>
@@ -66,6 +68,25 @@ export function AssetDetailPage() {
           </Block>
         </>
       ) : null}
+      <BottomSheet
+        visible={blockSheet}
+        onClose={() => setSheet(false)}
+        title={t('send.pendingBlock.title')}
+        actions={
+          <>
+            <Button label={t('common.close')} variant="secondary" onPress={() => setSheet(false)} />
+            <Button
+              label={t('send.pendingBlock.view')}
+              onPress={() => {
+                setSheet(false)
+                router.push(tx ? { pathname: '/activity/[hash]', params: { hash: tx.hash } } : '/activity')
+              }}
+            />
+          </>
+        }
+      >
+        <Text color={th.semantic.text.secondary}>{t('send.pendingBlock.body')}</Text>
+      </BottomSheet>
     </Screen>
   )
 }
