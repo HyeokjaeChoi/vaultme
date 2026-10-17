@@ -81,6 +81,8 @@ export type PendingTx = {
   lastCheckedAt: number
   /** Estimated fee at send time, decimal ETH string (S23/S41 show it). Optional: older records have none. */
   fee?: string
+  /** Why the network says the tx failed, only when it said so with a value this app knows. Never guessed: S23 shows the reason line only when this is set (owner 2026-10-17). */
+  failReason?: 'outOfGas'
   state: 'Pending' | 'Unknown' | 'Included' | 'Confirmed' | 'Failed' | 'Replaced'
 }
 
@@ -105,6 +107,7 @@ export function parsePendingTx(raw: string): PendingTx | null {
     hash: o.hash, nonce: o.nonce, asset: o.asset, to: o.to, amount: o.amount,
     createdAt: o.createdAt, lastCheckedAt: o.lastCheckedAt, state: o.state as PendingTx['state'],
     ...(isStr(o.fee) ? { fee: o.fee } : {}),
+    ...(o.failReason === 'outOfGas' ? { failReason: 'outOfGas' as const } : {}),
   }
 }
 
@@ -145,3 +148,25 @@ export const setHistoryCache = (c: HistoryCache): void => store().set('history.c
 // --- fake chain adapter nonce counter (fake mode only; the real adapter reads the nonce from the network) ---
 export const getFakeNonce = (): number => store().getNumber('fakeChain.nonce') ?? 0
 export const setFakeNonce = (n: number): void => store().set('fakeChain.nonce', n)
+
+// --- recent recipients (S20a): addresses this device sent to, newest first, at most 3. Local only: never uploaded, never read from the network. ---
+export type RecentRecipient = { address: string; at: number; asset: string; amount: string }
+export const MAX_RECENTS = 3
+export function parseRecents(raw: string | undefined): RecentRecipient[] {
+  if (raw === undefined) return []
+  try {
+    const v = JSON.parse(raw) as unknown
+    if (!Array.isArray(v)) return []
+    return v
+      .filter((x): x is RecentRecipient => !!x && typeof x.address === 'string' && /^0x[0-9a-fA-F]{40}$/.test(x.address) && typeof x.at === 'number' && typeof x.asset === 'string' && typeof x.amount === 'string')
+      .slice(0, MAX_RECENTS)
+  } catch {
+    return []
+  }
+}
+export const getRecents = (): RecentRecipient[] => parseRecents(store().getString('send.recents'))
+/** Puts `r` first, drops an older entry of the same address (case-insensitive), keeps 3. */
+export function addRecent(r: RecentRecipient): void {
+  const rest = getRecents().filter((x) => x.address.toLowerCase() !== r.address.toLowerCase())
+  store().set('send.recents', JSON.stringify([r, ...rest].slice(0, MAX_RECENTS)))
+}

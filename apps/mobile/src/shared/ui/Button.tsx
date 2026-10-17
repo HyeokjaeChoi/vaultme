@@ -3,6 +3,7 @@ import { Pressable, type StyleProp, type ViewStyle } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useTheme } from '../theme'
 import { usePressScale } from '../theme/motion'
+import { useOnRaised } from '../theme/sheet'
 import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
 
@@ -13,6 +14,8 @@ type Props = {
   size?: 'sm' | 'md' | 'lg'
   disabled?: boolean
   busy?: boolean
+  /** Secondary whose action cannot be undone: danger-colored label (risk sheets, clear test data). Never Primary. */
+  danger?: boolean
   icon?: IconName
   style?: StyleProp<ViewStyle>
 }
@@ -24,22 +27,26 @@ type Props = {
  * The control is at least hitTarget (44) tall: a small visual control sits inside it and extends its touch area with hitSlop.
  * Press feedback: scale 0.97, 100 ms ease-out (off under Reduce Motion), plus the pressed color.
  */
-export function Button({ label, onPress, variant = 'primary', size = 'lg', disabled, busy, icon, style }: Props) {
+export function Button({ label, onPress, variant = 'primary', size = 'lg', disabled, busy, danger, icon, style }: Props) {
   const t = useTheme()
+  const onRaised = useOnRaised()
   const b = t.component.button
   const bb = t.component.buttonB
   const { style: anim, handlers } = usePressScale()
   const height = bb.height[size]
   const slop = Math.max(0, (b.hitTarget - height) / 2)
   const blocked = disabled || busy
+  const sec = onRaised ? bb.secondary.bgOnRaised : bb.secondary.bg
+  // Disabled (Figma): surface/disabled fill + text/disabled label, for every variant.
+  const disabledBg = bb.primary.bgDisabled
   const bg =
     variant === 'primary'
-      ? blocked ? bb.primary.bgDisabled : { default: bb.primary.bg, pressed: b.primary.bg.pressed }
+      ? blocked ? disabledBg : { default: bb.primary.bg, pressed: b.primary.bg.pressed }
       : variant === 'secondary'
-        ? blocked ? b.secondary.bg.disabled : { default: bb.secondary.bg, pressed: bb.secondary.bgPressed }
+        ? blocked ? disabledBg : { default: sec, pressed: onRaised ? t.semantic.surface.pressedOnRaised : bb.secondary.bgPressed }
         : blocked ? b.ghost.bg.disabled : { default: b.ghost.bg.default, pressed: b.ghost.bg.pressed }
-  const fgDefault = variant === 'primary' ? bb.primary.fg : variant === 'secondary' ? bb.secondary.fg : t.semantic.text.primary
-  const fg = blocked ? b[variant].fg.disabled : fgDefault
+  const fgDefault = variant === 'primary' ? bb.primary.fg : danger ? t.semantic.status.danger.fg : variant === 'secondary' ? bb.secondary.fg : t.semantic.text.primary
+  const fg = blocked ? bb.primary.fgDisabled : fgDefault
   const leading: IconName | undefined = busy ? 'loading' : icon
   const iconColor = blocked ? fg : variant === 'primary' ? t.component.icon.action.onPrimary : t.component.icon.action.fg
   return (

@@ -5,16 +5,30 @@ import Animated, { Easing, runOnJS, useAnimatedStyle, useReducedMotion, useShare
 import { ko } from '@vaultme/i18n'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
+import { OnRaisedContext } from '../theme/sheet'
+import { Button } from './Button'
 import { Text } from './Text'
 
 // DESIGN motion: sheet open 250 ms (0.32,0.72,0,1), close 200 ms. Open has no token; close = motion.duration.baseMs.
 const OPEN_MS = 250
 const OPEN_EASING = Easing.bezier(0.32, 0.72, 0, 1)
 
-type Props = { visible: boolean; onClose: () => void; title: string; children: ReactNode; actions: ReactNode }
+type SheetAction = { label: string; onPress: () => void; /** Secondary only: the action cannot be undone, so it gets a danger-colored label. */ danger?: boolean }
+type Props = {
+  visible: boolean
+  onClose: () => void
+  title: string
+  children?: ReactNode
+  /** Primary (below). For a question about something irreversible this is the SAFE action ("취소"), never the one that executes (owner rule 2026-10-17, all sheets). */
+  primary?: SheetAction
+  /** Secondary (above Primary). The executing action of a risky question sits here with `danger`. */
+  secondary?: SheetAction
+  /** Free-form buttons (Secondary first, Primary last). Prefer `primary` / `secondary`. */
+  actions?: ReactNode
+}
 
-/** C32 Bottom sheet. Max height 90%, only the content scrolls, actions stay pinned. Pass `actions` with the Secondary (Ghost) button first and the Primary last: Primary sits below. */
-export function BottomSheet({ visible, onClose, title, children, actions }: Props) {
+/** C32 Bottom sheet, attached to the bottom edge (home-indicator padding inside). Max height 90%, only the content scrolls, actions stay pinned: Secondary above, Primary below. Buttons inside use the on-raised Secondary fill. */
+export function BottomSheet({ visible, onClose, title, children, primary, secondary, actions }: Props) {
   const t = useTheme()
   const insets = useSafeAreaInsets()
   const { height } = useWindowDimensions()
@@ -55,7 +69,7 @@ export function BottomSheet({ visible, onClose, title, children, actions }: Prop
               alignItems: 'center',
               paddingTop: t.primitive.space[2],
               paddingHorizontal: pad,
-              paddingBottom: insets.bottom + t.primitive.space[6],
+              paddingBottom: insets.bottom + t.primitive.space[4],
               gap: t.semantic.layout.groupGap,
               ...t.component.overlay.shadow,
             },
@@ -68,7 +82,13 @@ export function BottomSheet({ visible, onClose, title, children, actions }: Prop
             <Text variant="title3" accessibilityRole="header" color={t.component.overlay.fg}>{title}</Text>
             {children}
           </ScrollView>
-          <View style={{ gap: t.semantic.layout.fieldGap, alignSelf: 'stretch' }}>{actions}</View>
+          <OnRaisedContext value>
+            <View style={{ gap: t.semantic.layout.fieldGap, alignSelf: 'stretch' }}>
+              {secondary ? <Button variant="secondary" label={secondary.label} onPress={secondary.onPress} {...(secondary.danger ? { danger: true } : {})} /> : null}
+              {primary ? <Button label={primary.label} onPress={primary.onPress} /> : null}
+              {actions}
+            </View>
+          </OnRaisedContext>
         </Animated.View>
       </View>
     </Modal>

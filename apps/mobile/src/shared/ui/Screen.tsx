@@ -14,10 +14,12 @@ type Props = {
   gap?: 'section' | 'group' | 'row' | 'none'
   /** Space between the header and the first block. `field` = 8 (default), `group` = 16 (frame S20B). */
   topGap?: 'field' | 'group'
+  /** Full-bleed body: no side padding. Band screens (review, result, detail) place Section bands edge to edge; their blocks pad themselves. */
+  bleed?: boolean
 }
 
 /** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
-export function Screen({ children, header, footer, edges = ['top', 'bottom'], gap = 'section', topGap = 'field' }: Props) {
+export function Screen({ children, header, footer, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed }: Props) {
   const t = useTheme()
   const l = t.semantic.layout
   const scrollRef = useRef<ScrollView>(null)
@@ -37,9 +39,9 @@ export function Screen({ children, header, footer, edges = ['top', 'bottom'], ga
         onLayout={(e) => setLayoutHeight(e.nativeEvent.layout.height)}
         onContentSizeChange={(_, h) => setContentHeight(h)}
         contentContainerStyle={{
-          paddingHorizontal: l.screen.padding,
-          paddingTop: topGap === 'group' ? l.groupGap : t.primitive.space[2],
-          paddingBottom: t.primitive.space[2],
+          paddingHorizontal: bleed ? 0 : l.screen.padding,
+          paddingTop: bleed ? 0 : topGap === 'group' ? l.groupGap : t.primitive.space[2],
+          paddingBottom: bleed ? 0 : t.primitive.space[2],
           gap: gap === 'none' ? 0 : gap === 'group' ? l.groupGap : gap === 'row' ? l.rowGap : l.sectionGap.product,
           flexGrow: 1,
         }}
@@ -47,13 +49,14 @@ export function Screen({ children, header, footer, edges = ['top', 'bottom'], ga
         {children}
       </ScrollView>
       {footer ? (
-        // Fixed-footer boundary only when content scrolls under it (AGENTS rule 10 functional exception).
+        // Fixed-footer boundary (AGENTS rule 10 functional exception): Figma draws the 1 px line above the actions on every screen with a footer.
         <View
           style={{
             paddingHorizontal: l.screen.padding,
-            paddingTop: l.groupGap,
-            paddingBottom: t.primitive.space[2],
-            borderTopWidth: overflows ? t.component.reviewFooter.borderWidth : t.primitive.borderWidth.none,
+            paddingTop: t.primitive.space[3],
+            paddingBottom: t.primitive.space[1],
+            gap: l.fieldGap,
+            borderTopWidth: t.component.reviewFooter.borderWidth,
             borderTopColor: t.semantic.border.subtle,
           }}
         >

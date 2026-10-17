@@ -1,51 +1,46 @@
-// Figma: Activity row 36:48 (inside Date list 342:833; Icon / action / send 137:6, receive 137:24; status icons 137:58 / 137:75 / 137:110 / 137:127); Redesign B: B/Row
+// Figma: Activity row 36:48 (Date list 342:833); Redesign B: B/Row Leading=Asset badge (Title, Subtitle, Value) with B/Row badge 495:358
 import { Pressable, View } from 'react-native'
 import { useTheme } from '../theme'
-import { Icon, type IconName } from './Icon'
+import { AssetIcon } from './AssetIcon'
+import { RowBadge, type RowBadgeKind } from './RowBadge'
 import { Text } from './Text'
 
-export type ActivityStatus = 'pending' | 'confirmed' | 'failed' | 'unknown'
-type Props = { title: string; detail?: string; time: string; amount: string; kind: 'send' | 'receive'; status: ActivityStatus; statusLabel: string; /** Makes the row a button (opens the detail). */ onPress?: () => void }
+export type ActivityStatus = 'pending' | 'confirmed' | 'failed' | 'unknown' | 'replaced'
+type Props = { title: string; detail?: string; time: string; amount: string; kind: 'send' | 'receive'; asset: string; status: ActivityStatus; statusLabel: string; /** Makes the row a button (opens the detail). */ onPress?: () => void }
 
 const SIGN = /^[+\-−]/
 
 /**
- * C10 Activity row (Redesign B row). Flat, min-height rowB.height 64, 40 circle icon, title (Headline) + subtitle (Caption tertiary), amount (Headline, tabular).
- * Pending: clock icon. Unknown keeps the send arrow (Figma 460:5024). Failed: red X icon (Figma 404:387), amount has no sign and is struck through in text/tertiary.
- * Title carries the status words ("보내는 중", "보내기 실패"); subtitle is "{자산} · {시각}" (`detail`, else `time`) only. Status is never color alone.
+ * C10 Row with asset badge. Flat, min-height rowB.height 64, 40 pt asset logo with a status badge, title (Headline) + subtitle (Caption tertiary), amount (Headline, tabular).
+ * Badge = sent / received (confirmed), pending, failed, unknown, replaced. Amount: received in success color, pending and unknown in text/secondary, failed (no sign) and replaced (sign kept) struck through in text/tertiary.
+ * Title carries the status words; subtitle is "{자산 이름} · {시각}". Status is never color alone.
  */
-export function ActivityRow({ title, detail, time, amount, kind, status, statusLabel, onPress }: Props) {
+export function ActivityRow({ title, detail, time, amount, kind, asset, status, statusLabel, onPress }: Props) {
   const t = useTheme()
   const c = t.component.activityRow
-  const failed = status === 'failed'
-  const icon: IconName = status === 'pending' ? 'pending' : failed ? 'failed' : kind
-  const subtitle = detail ?? time
+  const struck = status === 'failed' || status === 'replaced'
+  const badge: RowBadgeKind = status === 'confirmed' ? (kind === 'send' ? 'sent' : 'received') : status
+  const color = struck ? t.semantic.text.tertiary : status === 'pending' || status === 'unknown' ? t.semantic.text.secondary : status === 'confirmed' && kind === 'receive' ? t.semantic.status.success.fg : c.amount
   const row = (
     <View
       accessible
       accessibilityLabel={`${title}, ${time}, ${amount}, ${statusLabel}`}
       style={{ minHeight: t.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}
     >
-      <View style={{ width: t.primitive.size.avatar_md, height: t.primitive.size.avatar_md, borderRadius: t.primitive.radius.pill, backgroundColor: t.semantic.surface.subtle, alignItems: 'center', justifyContent: 'center' }}>
-        <Icon name={icon} size={t.component.icon.size.control} color={failed ? t.component.icon.status.failed : t.component.icon.action.fg} />
+      <View style={{ width: t.primitive.size.avatar_md, height: t.primitive.size.avatar_md }}>
+        <AssetIcon symbol={asset === 'USDC' ? 'USDC' : 'ETH'} size={t.primitive.size.avatar_md} />
+        <View style={{ position: 'absolute', right: 0, bottom: 0, transform: [{ translateX: t.component.rowBadge.ring }, { translateY: t.component.rowBadge.ring }] }}>
+          <RowBadge kind={badge} />
+        </View>
       </View>
       <View style={{ flex: 1 }}>
         <Text variant="headline" color={c.title}>{title}</Text>
-        <Text variant="caption" color={t.semantic.text.tertiary}>{subtitle}</Text>
+        <Text variant="caption" color={t.semantic.text.tertiary}>{detail ?? time}</Text>
       </View>
-      <Text
-        variant="headline"
-        tabular
-        color={failed ? t.semantic.text.tertiary : status === 'pending' ? t.semantic.text.secondary : c.amount}
-        style={{ textAlign: 'right', flexShrink: 1, ...(failed ? { textDecorationLine: 'line-through' as const } : {}) }}
-      >
-        {failed ? amount.replace(SIGN, '') : amount}
+      <Text variant="headline" tabular color={color} style={{ textAlign: 'right', flexShrink: 1, ...(struck ? { textDecorationLine: 'line-through' as const } : {}) }}>
+        {status === 'failed' ? amount.replace(SIGN, '') : amount}
       </Text>
     </View>
   )
-  return onPress ? (
-    <Pressable accessibilityRole="button" onPress={onPress}>{row}</Pressable>
-  ) : (
-    row
-  )
+  return onPress ? <Pressable accessibilityRole="button" onPress={onPress}>{row}</Pressable> : row
 }

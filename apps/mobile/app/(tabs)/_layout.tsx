@@ -1,9 +1,9 @@
 import { Tabs } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/shared/theme'
-import { ProductNavigation, type IconName } from '@/shared/ui'
+import { ProductNavigation, type BoldIconName } from '@/shared/ui'
 
-const TAB_ICON: Record<string, IconName> = { home: 'assets', activity: 'activity', settings: 'settings' }
+const TAB_ICON: Record<string, BoldIconName> = { home: 'assets', activity: 'activity', settings: 'settings' }
 
 // Tab switch has no animation (prototype rule). The bar is the shared C21 Product navigation.
 export default function TabsLayout() {

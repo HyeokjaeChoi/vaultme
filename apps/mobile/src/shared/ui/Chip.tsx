@@ -1,6 +1,7 @@
 // Figma: B/Chip 421:812 (State Default / Selected / Disabled)
 import { Pressable } from 'react-native'
 import Animated from 'react-native-reanimated'
+import { haptic } from '../lib/haptics'
 import { useTheme } from '../theme'
 import { usePressScale } from '../theme/motion'
 import { Text } from './Text'
@@ -21,7 +22,10 @@ export function Chip({ label, selected, disabled, onPress }: Props) {
         accessibilityLabel={label}
         accessibilityState={{ selected: !!selected, disabled: !!disabled }}
         disabled={disabled}
-        onPress={onPress}
+        onPress={() => {
+          haptic.select()
+          onPress?.()
+        }}
         hitSlop={{ top: slop, bottom: slop }}
         {...handlers}
         style={{ height: t.component.buttonB.height.sm, paddingHorizontal: t.primitive.space[4], borderRadius: t.component.buttonB.radius, alignItems: 'center', justifyContent: 'center', backgroundColor: bg }}
