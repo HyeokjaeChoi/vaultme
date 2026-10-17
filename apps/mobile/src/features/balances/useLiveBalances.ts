@@ -19,8 +19,8 @@ export function useLiveBalancesState(): { balances: Record<AssetId, string> | nu
     } catch {
       // kv unreadable: show no balance
     }
+    const mine = ++seq.current // a no-op read also supersedes any in-flight one
     if (!chain.broadcasts || !address) return
-    const mine = ++seq.current
     try {
       const r = await chain.getBalances(address as `0x${string}`)
       if (alive.current && mine === seq.current) setB({ ETH: formatAmount(r.ETH, 'ETH', 'floor'), USDC: formatAmount(r.USDC, 'USDC', 'floor') })
