@@ -37,9 +37,9 @@ export function ProductNavigation({ items }: { items: NavItem[] }) {
               style={{ flex: 1, minHeight: t.primitive.size.touch_min, alignItems: 'center', gap: t.semantic.layout.fieldGap, borderWidth: nav.itemBorderWidth }}
             >
               {i.active ? (
-                <Icon name={i.icon} weight="bold" size={t.component.icon.size.control} color={nav.active} />
+                <Icon name={i.icon} weight="bold" size={t.component.icon.size.feature} color={nav.active} />
               ) : (
-                <Icon name={i.icon as 'assets'} size={t.component.icon.size.control} color={t.component.icon.navigation.fg} />
+                <Icon name={i.icon as 'assets'} size={t.component.icon.size.feature} color={t.component.icon.navigation.fg} />
               )}
               <Text variant="label" color={color} maxFontSizeMultiplier={1.3} style={{ textAlign: 'center' }}>{i.label}</Text>
             </Pressable>
