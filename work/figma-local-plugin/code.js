@@ -1,3 +1,4 @@
+const ONLY = ['activity-s41-confirmed','activity-s41-unknown','activity-s41-realchain','activity-s41-testmode','activity-s41-api-error']
 // VaultMe Local Runner: TASK export-pngs (#54). Exports 1x PNGs of the mapped frames to a local receiver
 // (scratchpad recv.mjs on localhost:8765, which writes work/v9/screens/<name>.png). Needs manifest devAllowedDomains.
 const TASK = 'export-pngs'
