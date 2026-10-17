@@ -62,9 +62,9 @@ export function ReviewPanel({ values, checkedAt, rechecking, onRecheck, acknowle
       </Block>
       <SectionBand />
       <Block title={t('review.blockCost')} link={open ? t('review.fold') : t('review.unfold')} onLink={() => setOpen((v) => !v)}>
-        <SummaryRow label={t('review.fee')} value={values.fee} />
-        {open ? <SummaryRow label={t('review.feeCap')} value={values.feeCap} /> : null}
-        <SummaryRow format="total" label={t('review.total')} value={values.total} {...(open ? { sub: t('review.totalMax', { amount: values.totalMax }) } : {})} />
+        <SummaryRow label={t('review.fee')} value={feeUnknown ? '—' : values.fee} />
+        {open && !feeUnknown ? <SummaryRow label={t('review.feeCap')} value={values.feeCap} /> : null}
+        <SummaryRow format="total" label={t('review.total')} value={feeUnknown ? '—' : values.total} {...(open && !feeUnknown ? { sub: t('review.totalMax', { amount: values.totalMax }) } : {})} />
         <Text variant="caption" color={th.semantic.text.tertiary}>{t('review.feeNote')}</Text>
         {rechecking ? (
           <View accessibilityLiveRegion="polite">
