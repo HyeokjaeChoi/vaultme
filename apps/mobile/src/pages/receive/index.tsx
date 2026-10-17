@@ -17,7 +17,7 @@ import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
 /**
  * B-S30 받기. A real QR of the wallet's own address (decoded in CI against the address, test/qr-decode.test.ts), the full address (Address L, first and last group strong), a network caption.
- * Copy gives a light haptic and the Copied label (shared `useCopy`); the faucet row (테스트 ETH 받기) copies the address and opens QuickNode; share opens the OS share sheet with the address. `sheet=1` opens S50.
+ * Copy gives a light haptic and the Copied label (shared `useCopy`); the faucet row (테스트 ETH 받기, first block of the footer stack: faucet, copy, share) copies the address and opens QuickNode; share opens the OS share sheet with the address. `sheet=1` opens S50.
  * The address shows only once the backup is done (kv flag; ux-flow §3: no backup -> S31). The address is the wallet's own, derived at creation and kept in kv; without one the screen redirects to Start.
  * `backedUp=1` is a __DEV__-only design-capture override that shows the fixture address (`0` = backup not done: S31).
  */
@@ -37,12 +37,12 @@ export function ReceivePage() {
   if (!address) return <Redirect href="/" /> // no wallet on this install: never show a fixture address as the user's own
   const header = <ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} chips={<NetworkChips />} />
   const title = (
-    <View style={{ gap: th.semantic.layout.fieldGap }}>
+    <View>
       <Text variant="title1" accessibilityRole="header">{t('receive.title')}</Text>
       {done ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.semantic.layout.fieldGap }}>
           <Icon name="account" size={th.component.icon.account.size} color={th.component.icon.account.fg} />
-          <Text variant="body" color={th.semantic.text.secondary}>{t('receive.account')}</Text>
+          <Text variant="bodySmall" color={th.semantic.text.secondary}>{t('receive.account')}</Text>
         </View>
       ) : null}
     </View>
@@ -67,6 +67,8 @@ export function ReceivePage() {
   return (
     <Screen
       header={header}
+      gap="none"
+      footerLead={<FaucetRow address={address} inFooter />}
       footer={
         <>
           <Button label={copied ? t('receive.copied') : t('receive.copy')} copied={copied} onPress={() => void copy(address)} />
@@ -75,13 +77,14 @@ export function ReceivePage() {
       }
     >
       {title}
-      <QrCode value={address} label={t('receive.qrLabel')} />
+      <View style={{ paddingVertical: th.primitive.space[2] }}>
+        <QrCode value={address} label={t('receive.qrLabel')} />
+      </View>
       <View style={{ gap: th.semantic.layout.fieldGap }}>
         <Text variant="bodySmall" color={th.semantic.text.tertiary}>{t('receive.addressLabel')}</Text>
         <AddressText address={address} size="L" />
         <Text variant="caption" color={th.semantic.text.tertiary}>{t('receive.warning')}</Text>
       </View>
-      <FaucetRow address={address} />
       <PushOptInSheet visible={open} onClose={() => setOpen(false)} />
     </Screen>
   )

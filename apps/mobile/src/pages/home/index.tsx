@@ -78,7 +78,7 @@ export function HomePage() {
         <>
           <SectionHeader title={t('home.assets')} />
           {assets.map((a) => (
-            <AssetRow key={a.symbol} name={a.name} symbol={a.symbol} balance={balanceOf(a.symbol, a.balance)} onPress={() => router.push({ pathname: '/asset', params: { symbol: a.symbol } })} />
+            <AssetRow key={a.symbol} name={a.name} symbol={a.symbol} subtitle={t(`home.assetNote.${a.symbol}`)} balance={balanceOf(a.symbol, a.balance)} onPress={() => router.push({ pathname: '/asset', params: { symbol: a.symbol } })} />
           ))}
           {items.length > 0 ? (
             <>

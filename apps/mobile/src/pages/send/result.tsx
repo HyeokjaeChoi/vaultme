@@ -72,8 +72,7 @@ export function SendResultPage() {
       footer={
         <>
           {unknown ? <Button label={t('result.recheck')} busy={checking} busyLabel={t('busy.recheck')} onPress={() => void recheck()} /> : <Button label={t('result.ok')} onPress={toHome} />}
-          {tx.state === 'Failed' ? <Button label={t('result.resend')} variant="secondary" onPress={resend} /> : null}
-          <Button label={t('result.details')} variant="ghost" onPress={toDetail} />
+          {tx.state === 'Failed' ? <Button label={t('result.resend')} variant="secondary" onPress={resend} /> : <Button label={t('result.details')} variant="ghost" onPress={toDetail} />}
         </>
       }
     >
@@ -83,6 +82,7 @@ export function SendResultPage() {
         amount={figure ?? tx.amount}
         unit={unit ?? tx.asset}
         lines={lines}
+        {...(tx.state === 'Failed' ? { link: { label: t('result.details'), onPress: toDetail } } : {})}
         {...(tx.state === 'Failed' && tx.failReason ? { note: t(`result.failReason.${tx.failReason}`) } : {})}
       />
       {progress ? (

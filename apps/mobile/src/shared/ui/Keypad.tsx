@@ -46,13 +46,13 @@ function Key({ cell, assetKey, labels, onKey }: { cell: Cell; assetKey: AssetKey
         {...handlers}
         style={{ height: t.component.buttonB.height.lg, borderRadius: t.component.buttonB.radius, alignItems: 'center', justifyContent: 'center' }}
       >
-        {cell === 'backspace' ? <Icon name="backspace" size={t.component.icon.size.feature} color={t.semantic.text.primary} /> : <Text variant="title2" tabular maxFontSizeMultiplier={1.3}>{text}</Text>}
+        {cell === 'backspace' ? <Icon name="backspace" size={t.component.icon.size.feature} color={t.semantic.text.primary} /> : <Text variant="title1" tabular maxFontSizeMultiplier={1.3}>{text}</Text>}
       </Pressable>
     </Animated.View>
   )
 }
 
-/** C34 Keypad (Redesign B). 3x4 text keys on one 56 pt row height, Title 2 digits (capped at 1.3x), no fills, no gaps. The bottom-left asset key is "." (ETH) or "00" (USDC). Backspace is icon-only ("지우기"). Press feedback: scale 0.97, 100 ms, plus a selection haptic (warning haptic when `onKey` returns false). */
+/** C34 Keypad (Redesign B). 3x4 text keys on one 56 pt row height, Title 1 digits 26 (capped at 1.3x), no fills, no gaps. The bottom-left asset key is "." (ETH) or "00" (USDC). Backspace is icon-only ("지우기"). Press feedback: scale 0.97, 100 ms, plus a selection haptic (warning haptic when `onKey` returns false). */
 export function Keypad({ onKey, labels, assetKey = 'dot' }: { onKey: OnKey; labels: Labels; assetKey?: AssetKey }) {
   return (
     <View>

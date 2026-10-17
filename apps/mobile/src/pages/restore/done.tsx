@@ -12,7 +12,7 @@ import { useTheme } from '@/shared/theme'
 import { Button, Screen, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 
 /**
- * B-S06 복구 완료 (Figma 423:13703): title, first-account address (Detail row, Address kind), info notice; 주소 복사 + 지갑 열기 in the footer. The wallet's own first-account address in full (4-char groups, copy), and the note that only the first account was loaded (Q40).
+ * B-S06 복구 완료 (Figma 423:13703): title, first-account address (Detail row, Address kind), info notice; 주소 복사 is an inline Ghost button under the address (Figma 2026-10-17); the footer has 다른 주소예요 (Secondary) and 지갑 열기 (Primary). The wallet's own first-account address in full (4-char groups, copy), and the note that only the first account was loaded (Q40).
  * The address is read from kv (derived at restore); with none the screen redirects to Start. `demo` (__DEV__ `?demo=1`) shows the fixture address for design capture.
  * Backup is not claimed anywhere here (Q16).
  */
@@ -46,7 +46,6 @@ export function RestoreDonePage({ demo = false, copiedDemo = false, passphraseDe
       gap="section"
       footer={
         <View style={{ gap: th.semantic.layout.fieldGap }}>
-          <Button label={copied ? t('restore.done.copied') : t('receive.copy')} variant="secondary" copied={copied} onPress={() => void copy(address)} />
           <Button label={t('restore.done.different')} variant="secondary" disabled={removing} onPress={() => void different()} />
           <Button
             label={t('restore.open')}
@@ -62,7 +61,10 @@ export function RestoreDonePage({ demo = false, copiedDemo = false, passphraseDe
         <Text variant="title1" accessibilityRole="header">{t('restore.done.title')}</Text>
         {withPassphrase ? <Text variant="body" color={th.semantic.text.secondary}>{t('restore.done.withPassphrase')}</Text> : null}
       </View>
-      <SummaryRow format="address" label={t('restore.done.addressLabel')} value={address} />
+      <View>
+        <SummaryRow format="address" label={t('restore.done.addressLabel')} value={address} />
+        <Button size="sm" variant="ghost" link label={copied ? t('restore.done.copied') : t('receive.copy')} copied={copied} onPress={() => void copy(address)} style={{ alignSelf: 'flex-start' }} />
+      </View>
       <StatusNotice tone="info" title={t('restore.done.noteTitle')} body={t('restore.done.noteBody')} />
     </Screen>
   )

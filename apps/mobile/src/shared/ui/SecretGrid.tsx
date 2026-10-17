@@ -23,7 +23,7 @@ type Props = {
   busy?: boolean
 }
 
-/** Recovery phrase panel (surface/subtle, radius 16, 2 columns of numbered words). Never log or persist the words. */
+/** Recovery phrase panel (surface/inset: Light = subtle, Dark one step above the canvas, radius 16, 2 columns of numbered words). Never log or persist the words. */
 export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: Props) {
   const t = useTheme()
   const per = Math.ceil(count / COLS)
@@ -31,7 +31,7 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
   const gap = t.semantic.layout.rowGap
   const colGap = t.semantic.layout.groupGap
   const height = per * rowH + (per - 1) * gap
-  const panel = { backgroundColor: t.semantic.surface.subtle, borderRadius: t.primitive.radius.lg, paddingHorizontal: t.primitive.space[4], paddingVertical: t.primitive.space[5] }
+  const panel = { backgroundColor: t.semantic.surface.inset, borderRadius: t.primitive.radius.lg, paddingHorizontal: t.primitive.space[4], paddingVertical: t.primitive.space[5] }
   if (words === null) {
     const colW = 155 // (326 - 16) / 2 at a 390 pt screen; the bars stretch with the panel
     const w = colW * 2 + colGap

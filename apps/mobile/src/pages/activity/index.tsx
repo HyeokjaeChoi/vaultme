@@ -8,7 +8,7 @@ import { txView, usePendingTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { formatUpdated } from '@/shared/lib/time'
 import { useTheme } from '@/shared/theme'
-import { EmptyState, Screen, SkeletonRow, StatusNotice, Text } from '@/shared/ui'
+import { EmptyState, Screen, SkeletonRow, StatusNotice, TabHeader, Text } from '@/shared/ui'
 import { ActivityList as List, fakeHistoryItems } from '@/widgets/activity-list/ActivityList'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
@@ -77,16 +77,10 @@ function RealHistory({ asset }: { asset?: string | undefined }) {
 /** B-S40 내역: title, then date groups of flat rows. */
 export function ActivityPage() {
   const { t } = useTranslation()
-  const th = useTheme()
   const { state, cache, asset } = useLocalSearchParams<{ state?: string; cache?: string; asset?: string }>() // `asset` = only that asset's rows (S11 "전체 보기")
   return (
-    <Screen edges={['top']} gap="none">
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: th.primitive.space[2], paddingTop: th.primitive.space[4], paddingBottom: th.primitive.space[2] }}>
-        <Text variant="title1" accessibilityRole="header">{t('activity.title')}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.primitive.space['1_5'] }}>
-          <NetworkChips />
-        </View>
-      </View>
+    <Screen edges={['top']} gap="none" topGap="none">
+      <TabHeader title={t('activity.title')} chips={<NetworkChips testData={false} />} />
       {__DEV__ && state ? <DevState state={state} {...(cache ? { cache } : {})} /> : chain.broadcasts ? <RealHistory asset={asset} /> : <FakeHistory asset={asset} />}
     </Screen>
   )

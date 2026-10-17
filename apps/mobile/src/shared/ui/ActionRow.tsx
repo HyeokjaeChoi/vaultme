@@ -14,8 +14,8 @@ export function ActionRow({ send, receive, primary = 'send' }: { send: Action; r
   const t = useTheme()
   return (
     <View style={{ flexDirection: 'row', gap: t.semantic.layout.rowGap, paddingVertical: t.semantic.layout.groupGap }}>
-      <Button size="md" variant={primary === 'send' ? 'primary' : 'secondary'} style={{ flex: 1 }} {...send} />
-      <Button size="md" variant={primary === 'receive' ? 'primary' : 'secondary'} style={{ flex: 1 }} {...receive} />
+      <Button size="md" rowTitle variant={primary === 'send' ? 'primary' : 'secondary'} style={{ flex: 1 }} {...send} />
+      <Button size="md" rowTitle variant={primary === 'receive' ? 'primary' : 'secondary'} style={{ flex: 1 }} {...receive} />
     </View>
   )
 }

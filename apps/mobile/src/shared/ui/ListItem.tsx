@@ -22,15 +22,15 @@ type Props = {
   onPress?: () => void
 }
 
-/** C31 List item (Redesign B Settings row / Switch row). Flat, no fill and no divider, min-height rowB.height 64, title Headline, trailing value Body Small tertiary, 20 pt chevron. A pressable row scales to 0.97 over 100 ms. */
+/** C31 List item (Redesign B Settings row / Switch row). Flat, no fill and no divider, min-height rowB.height 64, title Row title 500, trailing value Body Small tertiary (Caption on a compact license row), 20 pt chevron. A pressable row scales to 0.97 over 100 ms. */
 export function ListItem({ title, icon, iconColor, mono, compact, trailing, onPress }: Props) {
   const t = useTheme()
   const { style, handlers } = usePressScale()
-  const value = (text: string) => <Text variant="bodySmall" color={t.semantic.text.tertiary} tabular>{text}</Text>
+  const value = (text: string) => <Text variant={compact ? 'caption' : 'bodySmall'} color={t.semantic.text.tertiary} tabular>{text}</Text>
   const row = (
     <View style={{ minHeight: compact ? t.primitive.size.control_lg : t.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}>
       {icon ? <Icon name={icon} size={t.component.icon.size.control} color={iconColor ?? t.component.icon.action.fg} /> : null}
-      <Text variant={mono ? 'address' : 'headline'} color={t.component.listItem.label} style={{ flex: 1 }}>{title}</Text>
+      <Text variant={mono ? 'address' : 'rowTitle'} color={t.component.listItem.label} style={{ flex: 1 }}>{title}</Text>
       {trailing?.kind === 'value' ? value(trailing.text) : null}
       {trailing?.kind === 'disclosure' ? (
         <>
@@ -40,7 +40,7 @@ export function ListItem({ title, icon, iconColor, mono, compact, trailing, onPr
       ) : null}
       {trailing?.kind === 'external' ? (
         <>
-          {trailing.text ? <Text variant="bodySmall" color={t.semantic.text.secondary}>{trailing.text}</Text> : null}
+          {trailing.text ? <Text variant="bodySmall" color={t.semantic.text.tertiary}>{trailing.text}</Text> : null}
           <Icon name="external" size={t.component.icon.size.control} color={t.component.listItem.icon} />
         </>
       ) : null}

@@ -9,13 +9,14 @@ import { ListItem, Text } from '@/shared/ui'
 export const FAUCET_URL = 'https://faucet.quicknode.com/ethereum/sepolia'
 
 /** "테스트 ETH 받기 · QuickNode ↗" with its caption. Tap = copy the receive address (copy feedback), then open the faucet in the browser. Shown only after backup (the address is hidden before, Q14). */
-export function FaucetRow({ address }: { address: string }) {
+export function FaucetRow({ address, inFooter }: { address: string; /** S30: the first block of the footer stack (Figma 555:72569): 8 above, side padding 16, 52 high row. */ inFooter?: boolean }) {
   const { t } = useTranslation()
   const th = useTheme()
   const { copy } = useCopy(t('receive.copied'))
   return (
-    <View style={{ gap: th.primitive.space[1] }}>
+    <View style={{ gap: th.primitive.space[1], ...(inFooter ? { paddingTop: th.primitive.space[2], paddingHorizontal: th.semantic.layout.screen.padding } : {}) }}>
       <ListItem
+        compact={!!inFooter}
         title={t('home.faucet.title')}
         trailing={{ kind: 'external', text: t('home.faucet.value') }}
         onPress={() => {

@@ -9,7 +9,8 @@ import { usePushSetting, useZeroSetting } from '@/features/settings'
 import { shortAddress } from '@/shared/lib/address'
 import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
-import { AccountBlock, Block, ListItem, Screen, SectionBand, Text } from '@/shared/ui'
+import { AccountBlock, Block, ListItem, Screen, SectionBand, TabHeader } from '@/shared/ui'
+import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
 /** B-S60 설정: account block with copy, then grouped rows (보안 / 알림 / 정보) on Section bands, each row with a Solar icon. */
 export function SettingsPage() {
@@ -24,7 +25,9 @@ export function SettingsPage() {
   const tight = th.primitive.space[1]
   return (
     <Screen edges={['top']} bleed gap="none" topGap="none">
-      <Text variant="title1" accessibilityRole="header" style={{ paddingHorizontal: pad, paddingVertical: th.primitive.space[2] }}>{t('settings.title')}</Text>
+      <View style={{ paddingHorizontal: pad }}>
+        <TabHeader title={t('settings.title')} chips={<NetworkChips testData={false} />} />
+      </View>
       <View style={{ paddingHorizontal: pad, paddingVertical: th.semantic.layout.groupGap }}>
         <AccountBlock
           name={account.name}

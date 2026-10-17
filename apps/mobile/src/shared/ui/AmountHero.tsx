@@ -1,6 +1,7 @@
 // Figma: B/Amount hero 494:1142 (Kind=Review | Result; Figure 44/700 + Figure unit 24/600, baseline)
 import { View } from 'react-native'
 import { useTheme } from '../theme'
+import { Button } from './Button'
 import { AssetIcon, type AssetSymbol } from './AssetIcon'
 import { RowBadge, type RowBadgeKind } from './RowBadge'
 import { Text } from './Text'
@@ -16,10 +17,12 @@ type Props = {
   result?: { badge: RowBadgeKind; title: string }
   /** Small extra line under the sentence (Caption), e.g. the confirmed failure reason of a failed send. */
   note?: string
+  /** Failed result: "거래 상세 보기" as an inline link (Ghost sm, link color) under the text (Figma Detail link). */
+  link?: { label: string; onPress: () => void }
 }
 
 /** Amount hero. Review (S22): logo 48, Figure + unit, sentence. Result (S23, S41): logo 56 + row badge, Title 2, Figure + unit, sentence, all centered. The figure is the only 700 weight. */
-export function AmountHero({ asset, amount, unit, lines, result, note }: Props) {
+export function AmountHero({ asset, amount, unit, lines, result, note, link }: Props) {
   const t = useTheme()
   const logo = result ? t.primitive.size.avatar_lg + t.primitive.space[2] : t.primitive.size.avatar_lg // 56 | 48
   const align = result ? 'center' : 'flex-start'
@@ -51,6 +54,7 @@ export function AmountHero({ asset, amount, unit, lines, result, note }: Props) 
         </View>
       ) : null}
       {note ? <Text variant="caption" color={t.semantic.text.secondary} style={{ textAlign: 'center' }}>{note}</Text> : null}
+      {link ? <Button size="sm" variant="ghost" link label={link.label} onPress={link.onPress} /> : null}
     </View>
   )
 }

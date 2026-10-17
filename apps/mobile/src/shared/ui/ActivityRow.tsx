@@ -11,7 +11,7 @@ type Props = { title: string; detail?: string; time: string; amount: string; kin
 const SIGN = /^[+\-−]/
 
 /**
- * C10 Row with asset badge. Flat, min-height rowB.height 64, 40 pt asset logo with a status badge, title (Headline) + subtitle (Caption tertiary), amount (Headline, tabular).
+ * C10 Row with asset badge. Flat, min-height rowB.height 64, 40 pt asset logo with a status badge, title (Row title 500) + subtitle (Caption tertiary), amount (Headline, tabular).
  * Badge = sent / received (confirmed), pending, failed, unknown, replaced. Amount: received in success color, pending and unknown in text/secondary, failed (no sign) and replaced (sign kept) struck through in text/tertiary.
  * Title carries the status words; subtitle is "{자산 이름} · {시각}". Status is never color alone.
  */
@@ -34,7 +34,7 @@ export function ActivityRow({ title, detail, time, amount, kind, asset, status, 
         </View>
       </View>
       <View style={{ flex: 1 }}>
-        <Text variant="headline" color={c.title}>{title}</Text>
+        <Text variant="rowTitle" color={c.title}>{title}</Text>
         <Text variant="caption" color={t.semantic.text.tertiary}>{detail ?? time}</Text>
       </View>
       <Text variant="headline" tabular color={color} style={{ textAlign: 'right', flexShrink: 1, ...(struck ? { textDecorationLine: 'line-through' as const } : {}) }}>

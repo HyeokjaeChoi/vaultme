@@ -9,6 +9,8 @@ type Props = {
   /** Navigation row above the scroll body (bare back button). */
   header?: ReactNode
   footer?: ReactNode
+  /** Full-width block at the top of the footer, above its padded Actions (S30: the faucet row, Figma Footer 565:88603). It brings its own side padding. */
+  footerLead?: ReactNode
   edges?: ('top' | 'bottom')[]
   /** `section` = layout.sectionGap.product (24, default). `group` = layout.groupGap (16), used by frame S10N. `row` = layout.rowGap (12), used by S40. `none` = 0: Redesign B blocks carry their own padding (Section header, Action row, Detail row), so the screen adds no gap. */
   gap?: 'section' | 'group' | 'row' | 'none'
@@ -23,7 +25,7 @@ type Props = {
 }
 
 /** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
-export function Screen({ children, header, footer, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true, revealRef }: Props) {
+export function Screen({ children, header, footer, footerLead, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true, revealRef }: Props) {
   const t = useTheme()
   const l = t.semantic.layout
   const scrollRef = useRef<ScrollView>(null)
@@ -70,17 +72,11 @@ export function Screen({ children, header, footer, edges = ['top', 'bottom'], ga
       </ScrollView>
       {footer ? (
         // Fixed-footer boundary (AGENTS rule 10 functional exception): Figma draws the 1 px line above the actions on every screen with a footer.
-        <View
-          style={{
-            paddingHorizontal: l.screen.padding,
-            paddingTop: t.primitive.space[3],
-            paddingBottom: t.primitive.space[1],
-            gap: l.fieldGap,
-            borderTopWidth: footerLine ? t.component.reviewFooter.borderWidth : 0,
-            borderTopColor: t.semantic.border.subtle,
-          }}
-        >
-          {footer}
+        <View style={{ borderTopWidth: footerLine ? t.component.reviewFooter.borderWidth : 0, borderTopColor: t.semantic.border.subtle }}>
+          {footerLead}
+          <View style={{ paddingHorizontal: l.screen.padding, paddingTop: t.primitive.space[3], paddingBottom: t.primitive.space[1], gap: l.fieldGap }}>
+            {footer}
+          </View>
         </View>
       ) : null}
     </>

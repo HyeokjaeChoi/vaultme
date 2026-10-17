@@ -177,7 +177,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
             label={t('restore.passphrase.label')}
             value={passphrase}
             onChangeText={setPassphrase}
-            helper={`${t('restore.passphrase.helper')}\n${t('restore.passphrase.clearNote')}`}
+            helper={t('restore.passphrase.helper')}
             secureTextEntry={!showPass}
             action={{ icon: showPass ? 'eyeClosed' : 'eye', label: showPass ? t('restore.passphrase.hide') : t('restore.passphrase.show'), onPress: () => setShowPass(!showPass) }}
             autoCapitalize="none"
@@ -188,6 +188,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
             importantForAutofill="no"
           />
         ) : null}
+        {passOpen ? <Text variant="caption" color={th.semantic.text.tertiary} style={{ paddingTop: th.primitive.space[2] }}>{t('restore.passphrase.clearNote')}</Text> : null}
       </View>
     </Screen>
   )

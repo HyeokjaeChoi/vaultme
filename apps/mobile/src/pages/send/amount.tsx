@@ -19,7 +19,7 @@ const CHIPS = [
 ] as const satisfies readonly { pct: ChipShare; label: string }[]
 
 /**
- * R-S20B 얼마를 보낼까요? (Figma 423:929, 423:1000 전액, 423:1071 error). Custom keypad plus chips 25% / 50% / 전액.
+ * R-S20B 얼마를 보낼까요? (Figma 423:929, 423:1000 전액, 423:1071 error). The amount sits at the vertical center between the title and the chips. Custom keypad plus chips 25% / 50% / 전액.
  * Chips = share of the sendable amount (ETH: balance - max fee), floored to the display digits (wallet-core chipAmount).
  * This flow sends ETH only, so the asset key is "." (USDC would use "00" with `assetKey="doubleZero"`).
  */
@@ -54,7 +54,7 @@ export function SendAmountPage() {
     >
       <View style={{ flex: 1, gap: th.semantic.layout.groupGap }}>
         <Text variant="title1" accessibilityRole="header">{t('send.amountQuestion')}</Text>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, justifyContent: 'center' }}>
           <AmountDisplay amount={amount} ticker="ETH" error={tooMuch} {...(sub && !tooMuch ? { sub } : {})} />
           {tooMuch ? <StatusNotice tone="danger" title={t('send.insufficient')} {...(sendable !== null ? { body: `${t('send.maxSendable')} ${formatDecimal(sendable, 'ETH', 'floor')} ETH` } : {})} /> : null}
         </View>

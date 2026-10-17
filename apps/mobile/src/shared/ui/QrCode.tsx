@@ -1,4 +1,4 @@
-// Figma: B-S30 QR code (S30 423:14163): 220 pt symbol with a 4-module quiet zone, white tile + neutral.950 modules in both modes
+// Figma: B-S30 QR code (S30 423:14163): 220 pt symbol with a 4-module quiet zone, QR tile = surface/subtle, radius 2xl, padding space-3 (565:88604) around a white radius-xl field with neutral.950 modules in both modes
 import QRCodeSvg from 'react-native-qrcode-svg'
 import { View } from 'react-native'
 import QRCode from 'qrcode'
@@ -17,8 +17,10 @@ export function QrCode({ value, label }: { value: string; label: string }) {
   const quiet = (QUIET_MODULES * symbol) / modules
   const size = symbol + quiet * 2
   return (
-    <View accessible accessibilityRole="image" accessibilityLabel={label} style={{ alignSelf: 'center', borderRadius: t.primitive.radius.md, overflow: 'hidden' }}>
-      <QRCodeSvg value={value} size={size} quietZone={quiet} ecl="M" backgroundColor={t.primitive.color.neutral[0]} color={t.primitive.color.neutral[950]} />
+    <View accessible accessibilityRole="image" accessibilityLabel={label} style={{ alignSelf: 'center', padding: t.primitive.space[3], borderRadius: t.primitive.radius['2xl'], backgroundColor: t.semantic.surface.subtle }}>
+      <View style={{ borderRadius: t.primitive.radius.xl, overflow: 'hidden' }}>
+        <QRCodeSvg value={value} size={size} quietZone={quiet} ecl="M" backgroundColor={t.primitive.color.neutral[0]} color={t.primitive.color.neutral[950]} />
+      </View>
     </View>
   )
 }

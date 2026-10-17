@@ -18,6 +18,8 @@ type Props = {
   busy?: boolean
   /** Secondary whose action cannot be undone: danger-colored label (risk sheets, clear test data). Never Primary. */
   danger?: boolean
+  /** Label in Row title 500 (B/Action row on Home, Figma 399:140) instead of Headline 600. */
+  rowTitle?: boolean
   /** Ghost whose label uses text/link (S05 붙여넣기, Figma 565:85401). */
   link?: boolean
   icon?: IconName
@@ -37,7 +39,7 @@ type Props = {
  * Busy: the icon is the loading glyph (3/4 ring), rotating 800 ms linear. Under Reduce Motion it is static and the label switches to `busyLabel`.
  * Press feedback: scale 0.97, 100 ms ease-out (off under Reduce Motion), plus the pressed color.
  */
-export function Button({ label, onPress, variant = 'primary', size = 'lg', disabled, busy, danger, link, icon, busyLabel, copied, style }: Props) {
+export function Button({ label, onPress, variant = 'primary', size = 'lg', disabled, busy, danger, link, rowTitle, icon, busyLabel, copied, style }: Props) {
   const t = useTheme()
   const reduce = useReducedMotion()
   const onRaised = useOnRaised()
@@ -94,7 +96,7 @@ export function Button({ label, onPress, variant = 'primary', size = 'lg', disab
               <Icon name={leading} size={busy || size === 'sm' ? t.component.icon.size.inline : t.component.icon.size.control} color={iconColor} />
             </Animated.View>
           ) : null}
-          <Text variant={size === 'sm' ? 'label' : 'headline'} numberOfLines={2} color={fg} style={{ textAlign: 'center', flexShrink: 1 }}>
+          <Text variant={size === 'sm' ? 'label' : rowTitle ? 'rowTitle' : 'headline'} numberOfLines={2} color={fg} style={{ textAlign: 'center', flexShrink: 1 }}>
             {shownLabel}
           </Text>
         </Animated.View>

@@ -23,7 +23,7 @@ type Props = {
   onEdit?: () => void
 }
 
-/** C35 Summary row (Redesign B detail row): label Body Small tertiary, value Body right; address stacks under its label. Flat, no divider: group rows in <Group>. */
+/** C35 Summary row (Redesign B detail row, center aligned): label Body Small tertiary, value Body right; address stacks under its label. Flat, no divider: group rows in <Group>. */
 export function SummaryRow({ label, value, format = 'text', sub, highlight, mono, plain, editLabel, editAccessibilityLabel, onEdit }: Props) {
   const t = useTheme()
   const labelWidth = t.primitive.space[10] * 4 // Figma label column 160
@@ -45,7 +45,7 @@ export function SummaryRow({ label, value, format = 'text', sub, highlight, mono
     <View
       accessible={!onEdit}
       accessibilityLabel={onEdit ? undefined : `${label}, ${value}${sub ? `, ${sub}` : ''}`}
-      style={{ flexDirection: stacked ? 'column' : 'row', alignItems: stacked ? 'stretch' : 'flex-start', gap: address ? t.primitive.space[1] : t.semantic.layout.groupGap, minHeight: t.primitive.size.touch_min, paddingVertical: t.primitive.space[3] }}
+      style={{ flexDirection: stacked ? 'column' : 'row', alignItems: stacked ? 'stretch' : 'center', gap: address ? t.primitive.space[1] : t.semantic.layout.groupGap, minHeight: t.primitive.size.touch_min, paddingVertical: t.primitive.space[3] }}
     >
       <Text variant="bodySmall" color={t.semantic.text.tertiary} style={stacked ? undefined : { width: labelWidth }}>{label}</Text>
       {address ? (
