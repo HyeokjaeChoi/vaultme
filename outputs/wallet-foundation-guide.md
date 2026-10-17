@@ -68,7 +68,7 @@ Blue A는 action 역할이다. Success, 가격 gain, 안전성 의미로 사용�
 | `action.primary.bg.default/hover/pressed` | brand.primary / identity blue .700 / .800 |
 | `productNavigation.active` | `{navigation.active}`. Marketing navigation의 기존 경로와 구분 |
 | `border.focus`, `border.selected`, `icon.brand` | `{brand.primary}` |
-| `text.link` | `{color.identity.blue.700}` |
+| `text.link` | `{color.neutral.900}` (Dark `{color.neutral.50}`). 2026-10-17부터 Ink. 밑줄이나 화살표와 같이 쓴다. 파랑이 아니다 |
 
 Status, financial.change, check.clear의 기존 색은 유지했다. Secondary action은 neutral. Default/hover/pressed는 기존 neutral 200/300/400에 연결한다 (2026-10-13 변경: canvas가 neutral 50이 된 뒤 default가 canvas와 같아져 버튼이 보이지 않았다). 이는 Secondary 브랜드 surface와 다른 역할이다.
 
@@ -300,3 +300,39 @@ Canvas 구현 확인: 기존 Figma source의 Semantic alias를 수정하고 Libr
 - 받기(S30): faucet 행을 Footer stack(faucet → 주소 복사 → 공유) 안으로, QR은 `surface/subtle` 타일(radius/2xl, padding space/3). 금액 입력: 금액을 Title block과 칩 사이 수직 중앙. Failed 결과: 하단 버튼 2개(확인 Primary, 다시 보내기 Secondary), 거래 상세 보기는 hero 아래 인라인 링크.
 - Brand/Mark: 오너가 option A(V 모노그램 + 열쇠 구멍)를 골랐다. 마스터 495:17569의 내용을 바꾸고 `Size=96`(OnLight/OnBrand)을 더했다. 브랜드 화면은 96, 마크 아래 `space/8`, 워드마크 Display M. Face ID 아이콘은 입 없는 Solar face-scan-square(linear, icon/primary).
 - 오너 결정 필요(안 함): 13 px Caption 신규 type(P2-7), Address M 15 px(P1-3b), 칩 색 `Sepolia 테스트넷`은 `status/warning` 계열 유지(P2-6, 경고처럼 읽히는지는 오너 판단), 탭 바 Bold/Linear optical size(P2-2, 아이콘 변경 필요).
+
+## 2026-10-17 Accent 규칙, mono 사실 라벨, 칩 1개 (재검수 반영, 오너 지침, #54)
+
+근거: `work/review/rr-staff-pd-2026-10-17.md` §6, `rr-yc-founder`, `rr-yc-analyst`. 기준은 stack-line.dev(절제, accent 하나, mono 사실, 정직한 문구, 엄격한 정렬). 픽셀 숫자가 아니라 구조를 고쳤다.
+
+### Accent 규칙 (한 화면에 파랑은 두 곳까지)
+
+| 역할 | 색 | 쓰는 곳 |
+| --- | --- | --- |
+| 행동 | 파랑 `brand.primary` | Primary 버튼, 선택 탭(`navigation.active`), focus. 이 둘뿐 |
+| 링크 | Ink + 밑줄 | `text.link`(= `text.primary`) + text style `Product B/Link`. 구획 "전체 보기", Block header "수정", Notice 링크, 주소 입력의 붙여넣기 |
+| 칩 | 중립 하나 | `chip.bg`(`{surface.pressed}`) + `chip.fg`(`{text.secondary}`). amber, 파랑, 초록, 빨강은 칩 색이 아니다 |
+| 상태 | 초록, 빨강, amber | 상태 badge와 경고(Banner, Inline)에만 |
+| 받은 금액 | Ink + "+" | `financial.change.positive` = `{text.primary}`. 초록을 쓰지 않는다 |
+
+### 새 token과 style
+
+| 이름 | 값 | 메모 |
+| --- | --- | --- |
+| Semantic `text.link` | Light `{color.neutral.900}`, Dark `{color.neutral.50}` | 값 변경. 소비 코드는 생성값을 다시 읽으면 된다 |
+| Semantic `financial.change.positive` | Light `{color.neutral.900}`, Dark `{color.neutral.50}` | 값 변경 |
+| Component `chip.bg`, `chip.fg` | `{surface.pressed}`, `{text.secondary}` | 새로 추가 |
+| Primitive `font.lineHeight.px16` | 16px | 새로 추가 |
+| `type.productB.fact` = Figma `Product B/Fact` | IBM Plex Mono 400, 12/16, 자간 +2% (`font.tracking.wide`) | 사실 정보. 색은 `text.tertiary`(또는 `text.secondary`) |
+| `type.productB.factUpper` = Figma `Product B/Fact upper` | IBM Plex Mono 500, 12/16, +2%, 대문자 | 영어 사실 줄(`SEPOLIA · CHAIN ID 11155111`) |
+| `type.productB.link` = Figma `Product B/Link` | `Product B/Label`(Pretendard 500, 14/20) + 밑줄 | 링크 글자 |
+
+Figma Variable: Component `chip/bg` VariableID:594:188, `chip/fg` VariableID:594:189. 새 Variable은 Primitive에 없고 기존 alias만 쓴다.
+
+### Mono 사실 라벨 쓰는 곳
+
+네트워크·chainId, 블록, 해시, 버전, 사실로서의 시각. 감정이나 설명은 sans다. Tx 상세(시각, 네트워크, 해시, 블록), 결과(네트워크 행), 받기(제목 줄 오른쪽 `Sepolia · 11155111`), 설정(네트워크, 버전), 라이선스(라이선스 ID, 버전), 자산 상세(네트워크, 컨트랙트, 소수 자릿수), 시작(버전 줄). 전체 주소는 `B/Address`를 그대로 쓴다.
+
+### 주소 표시: 4글자 묶음 없음 (오너 2026-10-17)
+
+`B/Address`는 10개 조각을 gap 0으로 붙여 하나의 문자열처럼 감싼다(Figma 구현 방식. 앱은 Text 하나에 span을 쓴다). 앞 6자(`0x` + 4)와 끝 4자는 strong 그대로다. 비슷한 주소의 다른 글자는 글자 단위로 `Product B/Address M diff` + `status/danger/fg`다. 390 폭에서 최대 2줄이다. `B/Detail row`의 Address 값과 `B/Address compare`도 띄어쓰기 없이 붙여 쓴다.

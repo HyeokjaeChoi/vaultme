@@ -244,8 +244,8 @@ Figma `Components · Redesign B` (398:77). 모두 새 component다. 기존 maste
 | --- | --- | --- |
 | B/Section band | 494:341 | 12 px 회색 띠 (`sectionBand/height`, `sectionBand/bg`). 검토·결과·거래 상세·설정에서만. 홈·내역은 쓰지 않음 |
 | B/Block header | 494:342 | 띠로 나뉜 블록의 Label 제목 (`text/tertiary`) + 선택 링크 ("수정", "자세히", "거래 상세"). 코드에서 링크 hit area 44 px |
-| B/Status chip | 494:1067 | Tone=Testnet / Test data / Network. 정직 표시 칩. 버튼이 아님. 테스트넷 칩은 지갑 화면마다 보임 |
-| B/Address | 494:1090 | Size=M (16/24) / L (18/28). 전체 주소 10묶음. 첫 묶음(0x+4)과 끝 묶음은 strong + `text/primary`, 가운데는 `text/secondary`. 비슷한 주소의 다른 묶음은 `Product B/Address M diff` + `status/danger/fg` (밑줄, 색만으로 구분하지 않음) |
+| B/Status chip | 494:1067 | 중립 칩 하나(2026-10-17): fill `chip/bg`, label `chip/fg`. 라벨 "Sepolia"(Tone=Testnet) 또는 "Sepolia · 테스트 데이터"(Tone=Test data). 화면당 1개, 같은 자리(오른쪽 위), 탭하면 안내 sheet. amber·파랑 아님 |
+| B/Address | 494:1090 | Size=M (16/24) / L (18/28). 전체 주소(10조각, gap 0으로 붙여 쓴 한 문자열, 오너 2026-10-17). 앞 6자(0x+4)와 끝 4자는 strong + `text/primary`, 가운데는 `text/secondary`. 비슷한 주소의 다른 글자(글자 단위)는 `Product B/Address M diff` + `status/danger/fg` (밑줄, 색만으로 구분하지 않음) |
 | B/Amount hero | 494:1142 | Kind=Review (자산 로고 48, Figure + Figure unit, 문장) / Result (로고 56 + B/Row badge, Title 2, Figure, 문장, 가운데 정렬). Asset은 INSTANCE_SWAP |
 | B/Progress steps | 494:1176 | Step=Sent / Included / Confirmed. 끝난 단계 `status/success`, 지금 단계 `status/warning`, 남은 단계 `border/default`. Unknown·Replaced·Failed에는 쓰지 않음 |
 | B/Row badge (추가 Kind) | 494:326, 494:331, 494:336 | Kind=Confirmed / Unknown / Replaced. 기존 Sent/Received/Pending/Failed와 같은 구조 |
@@ -330,3 +330,15 @@ S05 화면 조립: 제목 블록 → (Banner Danger, 이미 지갑·저장 실�
 | S05 Collapse notice | Passphrase 안 | 펼친 상태에서 입력 아래 Caption "고급을 접으면 입력한 패스프레이즈가 지워져요." |
 | Brand/Mark | 495:17569 | option A(V 모노그램 + 열쇠 구멍). Size 96/72/40/24 × OnLight/OnBrand. 화면 안에서는 96(브랜드 화면) |
 | Icon / hero / face | 516:288 | Solar face-scan-square-linear에서 입을 뺀 형태, icon/primary |
+
+## 2026-10-17 재검수 반영 component 변경 (#54)
+
+| Component | Node | 계약 |
+| --- | --- | --- |
+| B/Detail row (추가 Kind) | 586:90265 | `Kind=Fact, Emphasis=Off`. 값이 `Product B/Fact`(mono 12/16) + `text/secondary`. 시각, 네트워크, 블록, 컨트랙트 같은 사실 행. 해시는 `Kind=Address` 값에 Fact style |
+| B/Amount hero (추가 Kind) | 586:90268 | `Kind=Confirmed`. 자산 96 + 확정 badge 32, Title 1, Figure, 한 문장. 확정(Confirmed) 결과에만. 진행 중·포함됨은 `Kind=Result`(작은 badge). 확정 motion 1회: badge scale 0.6 → 1.0 + 링 채움, 400 ms ease-out, haptic success, 움직임 줄이기는 최종 상태만 |
+| B/Amount display | 422:626 | 가운데 정렬(금액 줄과 Sub). 보내기 금액 화면은 금액·빠른 칩·키패드를 한 열로 아래에 붙인다 |
+| 링크 글자 | `Link`, `Paste link`, `Scan link` | `Product B/Link`(밑줄) + `text/link`(Ink). B/Section header, B/Block header, B/Notice inline, B/Input |
+| 버튼 위계 | Button / Primary · Secondary | 실패 결과: Primary "다시 보내기", Secondary "확인", 링크 "거래 상세 보기". 가장 가치 있는 행동이 Primary |
+
+새 style: `Product B/Fact`, `Product B/Fact upper`, `Product B/Link`. 새 Variable: `chip/bg`, `chip/fg`. 값 변경: `text/link`, `financial/change/positive` → Ink.

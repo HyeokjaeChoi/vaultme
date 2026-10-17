@@ -327,3 +327,13 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - 새 Icon component(미게시): `Icon / settings / document` 533:21894(Solar document-text Linear), `Icon / hero / shield-warning` 533:21900(Solar Bold Duotone, `icon/status/failed`).
 - 새 화면 S64 오픈소스 라이선스(ux-flow S62는 알림 설정이라 S64). Library는 게시하지 않았다.
 
+
+## 2026-10-17 재검수 반영: accent 규칙, mono 사실, 칩 1개, 백업 시점 (#54)
+
+- 값 변경(소비 코드는 생성값을 다시 읽으면 된다): Semantic `text.link` Light `{color.identity.blue.700}` → `{color.neutral.900}`, Dark `{color.brand.300}` → `{color.neutral.50}`. Semantic `financial.change.positive` Light `{color.teal.700}` → `{color.neutral.900}`, Dark `{color.teal.300}` → `{color.neutral.50}`. 링크는 이제 Ink이므로 앱 코드는 `text.link` 글자에 밑줄을 붙인다.
+- 새 token(추가만): Component `chip.bg`, `chip.fg`, Primitive `font.lineHeight.px16`, `type.productB.fact`, `type.productB.factUpper`, `type.productB.link`. 테스트 `packages/tokens/test/tokens.test.ts`에 accent와 mono 검사를 더했다.
+- 새 Figma text style: `Product B/Fact`, `Product B/Fact upper`, `Product B/Link`. 새 Variable: `chip/bg`, `chip/fg`.
+- Master 변경: `B/Status chip` 494:1067 모든 tone을 중립 칩 하나로(라벨 "Sepolia" / "Sepolia · 테스트 데이터"). `B/Detail row` 399:129에 `Kind=Fact`(586:90265) 추가. `B/Amount hero` 494:1142에 `Kind=Confirmed`(586:90268, 자산 96 + 확정 badge 32, Title 1). `B/Amount display` 422:636 가운데 정렬. `B/Address` 494:1090 조각 간격 0(4글자 묶음 제거). 링크 글자(`Link`, `Paste link`, `Scan link`)는 `Product B/Link`.
+- 화면 변경: 칩은 모든 화면에서 1개(같은 자리, 탭 → 안내 sheet). Home 큰 숫자와 목록 중복 제거. 자산 상세 사실 블록. 검토 순서(받는 사람 → 비용 → 보내는 것). 실패 결과 버튼 위계. 보내기 금액 한 열. 시작 화면 약속 + mono 한 줄. 설정 "수량 0 거래 표시".
+- 새 frame: B-S10B Home · 백업 전 첫 입금(586:97173), B-S10B 첫 입금 백업 시트(586:97341), B-S30B 받기 · 백업 전(586:97529). S31은 "보내기 게이트"로 용도가 바뀌었다(frame ID 그대로 423:13750).
+- 코드 영향(Figma 먼저, 앱은 뒤따른다): `text.link` 소비처(`SectionHeader`, `BlockHeader`, `StatusNotice`, `Input`, `RecipientField`, `SummaryRow`, `FeeSummary`)는 밑줄을 추가한다. 상단 칩은 `Sepolia` 하나. Home 중복 제거, 받기와 백업 시점(Q14), 설정 문구는 앱 이슈에서 처리한다.

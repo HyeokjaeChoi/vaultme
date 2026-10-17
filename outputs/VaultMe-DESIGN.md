@@ -95,6 +95,21 @@ Mobile padding 16 px, section gap 24 px. Asset min-height 64 px, Activity min-he
 
 오너 승인("싹다"). 한글 자간은 모든 크기에 음수다. 큰 숫자(잔액·금액)만 700이고 단위는 24/32 600 `text.secondary`로 분리한다. 검토·결과·거래 상세·설정에는 12 px `surface/canvas` 회색 띠(`sectionBand`)를 쓴다. 홈·내역은 흰색이다. Notice는 Banner(tint, radius 16, padding 16)와 Inline 두 단계다. 꺼진 Primary는 `neutral.100` + `text/disabled`다. 상세는 [Foundation guide](wallet-foundation-guide.md) §4.
 
+## Design principles (2026-10-17)
+
+근거: `work/review/rr-staff-pd-2026-10-17.md` §6 (Mobbin iOS 비교). 기준 사이트: [stack-line.dev](https://stack-line.dev). 절제, accent 하나, mono 사실 라벨, 정직한 문구, 엄격한 정렬. 오너 지침: 픽셀 숫자를 쫓지 않고 위계, accent 규율, 레이아웃 구조, 정보 구조, type system, component 논리, 일관성을 먼저 본다.
+
+1. accent는 화면당 하나다. 파랑은 Primary 버튼과 선택 탭뿐이다. 링크는 Ink + 밑줄, 칩은 중립 하나, 상태(초록·빨강·amber)는 badge와 경고에만, 받은 금액은 Ink + "+"다.
+2. 큰 숫자는 크고 촘촘하게(700, 음수 자간). 나머지는 조용한 400/500이다.
+3. 사실은 mono 마이크로 라벨로 쓴다(`Product B/Fact`): 네트워크, chainId, 블록, 해시, 버전, 사실로서의 시각. 감정과 설명은 sans다. 전체 주소는 `B/Address`다.
+4. 선은 기능이 있을 때만 쓴다: 입력 인지, focus, 고정 footer. 구분은 간격과 12 px 띠로 한다.
+5. 빈 공간은 설계한다. 화면당 쉼은 한 곳이다. 금액, 칩, 키패드, CTA는 엄지 영역에 한 열로 붙인다.
+6. 카피는 약속이 아니라 사실이다. 돈이 나가는 문장은 가장 크게, 가장 진하게 쓴다(Body Small + Ink).
+7. 가장 가치 있는 행동에 accent를 준다(실패 뒤 "다시 보내기"). 되돌릴 수 없는 일을 묻는 sheet는 안전한 쪽이 Primary다.
+8. 같은 정보는 한 번만 보인다(큰 숫자와 첫 행 중복 금지, 칩은 화면당 1개).
+9. 자주 쓰는 것은 움직이지 않는다(키패드). 드문 순간만 움직인다(확정, 잠금 해제). 곡선은 ease-out, 250 ms 이하. 움직임 줄이기에서는 최종 상태만 보인다.
+10. 모든 시각 변경은 Figma 먼저, 그다음 앱이다(AGENTS rule 6). Figma와 같다는 말은 품질의 증명이 아니다. 새 구조를 만들기 전에 Mobbin 화면 1–2장을 보고 frame annotation에 링크를 남긴다.
+
 ## Review anatomy
 
 1. 행동과 account/network. dApp 행동에는 origin.
