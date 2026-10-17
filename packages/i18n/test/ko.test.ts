@@ -87,3 +87,10 @@ it('has the Redesign B phase 2 copy (home, asset, onboarding, settings, brand)',
   expect(i18n.t('lock.checking.faceId')).toBe('Face ID로 확인하는 중이에요')
   expect(i18n.t('settings.deviceScreen.title')).toBe('안전하지 않은 기기 같아요')
 })
+
+it('has the seamless follow-up copy (2026-10-17)', () => {
+  expect(i18n.t('backup.check.wrong', { n: 7 })).toBe('7번째 단어가 달라요')
+  expect(i18n.t('home.faucet.title')).toBe('테스트 ETH 받기')
+  expect(i18n.t('busy.restore')).toBe('복구하는 중…')
+  expect(i18n.t('home.introCta')).toBe('확인')
+})

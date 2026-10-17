@@ -1,5 +1,5 @@
 // Figma: Input 67:231 (B/Input 421:805)
-import { useState } from 'react'
+import { useState, type Ref } from 'react'
 import { Pressable, TextInput, View, type TextInputProps } from 'react-native'
 import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
@@ -14,12 +14,14 @@ type Props = Pick<
   helper?: string
   error?: string
   editable?: boolean
+  /** Ref to the TextInput, e.g. to focus the first invalid field. */
+  inputRef?: Ref<TextInput>
   /** Link actions inside the field under the text, right aligned (B/Input Kind=Address 421:773, e.g. 붙여넣기). The text then uses Address mono. */
   actions?: { label: string; onPress: () => void }[]
 }
 
 /** C03 Input (Redesign B). Label (Label 14/500) over a 56 pt field (Body 16/24), helper and error in Caption. Border is functional (editable recognition, focus, error). */
-export function Input({ label, helper, error, editable = true, onBlur, actions, ...field }: Props) {
+export function Input({ label, helper, error, editable = true, onBlur, actions, inputRef, ...field }: Props) {
   const t = useTheme()
   const c = t.component.input
   const [focused, setFocused] = useState(false)
@@ -28,6 +30,7 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
   const input = (
     <TextInput
       {...field}
+      ref={inputRef}
       editable={editable}
       accessibilityLabel={label}
       placeholderTextColor={c.placeholder}

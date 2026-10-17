@@ -71,7 +71,7 @@ export function SendResultPage() {
       header={<ScreenHeader chips={<NetworkChips />} />}
       footer={
         <>
-          {unknown ? <Button label={t('result.recheck')} busy={checking} onPress={() => void recheck()} /> : <Button label={t('result.ok')} onPress={toHome} />}
+          {unknown ? <Button label={t('result.recheck')} busy={checking} busyLabel={t('busy.recheck')} onPress={() => void recheck()} /> : <Button label={t('result.ok')} onPress={toHome} />}
           {tx.state === 'Failed' ? <Button label={t('result.resend')} variant="secondary" onPress={resend} /> : null}
           <Button label={t('result.details')} variant="ghost" onPress={toDetail} />
         </>

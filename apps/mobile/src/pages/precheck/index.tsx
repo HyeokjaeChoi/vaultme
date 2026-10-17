@@ -35,7 +35,7 @@ export function PrecheckPage() {
       gap="group"
       topGap="none"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/')} />}
-      footer={<Button label={t('precheck.cta')} busy={busy} disabled={!ack.every(Boolean)} onPress={() => void create()} />}
+      footer={<Button label={t('precheck.cta')} busy={busy} busyLabel={t('busy.create')} disabled={!ack.every(Boolean)} onPress={() => void create()} />}
     >
       <View style={{ gap: th.semantic.layout.fieldGap, paddingTop: th.primitive.space[2], paddingBottom: th.semantic.layout.groupGap }}>
         <Text variant="title1" accessibilityRole="header">{t('precheck.title')}</Text>

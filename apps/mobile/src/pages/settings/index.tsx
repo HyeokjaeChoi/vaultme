@@ -1,14 +1,13 @@
 // Figma: B-S60 Settings 423:13797 (full 515:45343, dark 515:45681): Title, B/Account block 515:27571, Section bands, Blocks 보안 / 알림 / 정보 with B/Settings row 426:2045 (Solar Linear leading icon)
-import * as Clipboard from 'expo-clipboard'
 import Constants from 'expo-constants'
 import { useRouter } from 'expo-router'
-import { AccessibilityInfo } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { View } from 'react-native'
 import { account } from '@/entities/account/fixtures'
 import { useAccountAddress } from '@/features/backup'
 import { usePushSetting, useZeroSetting } from '@/features/settings'
 import { shortAddress } from '@/shared/lib/address'
+import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
 import { AccountBlock, Block, ListItem, Screen, SectionBand, Text } from '@/shared/ui'
 
@@ -20,6 +19,7 @@ export function SettingsPage() {
   const [push] = usePushSetting()
   const [zero] = useZeroSetting()
   const address = useAccountAddress() ?? account.address
+  const { copied, copy } = useCopy(t('settings.copied'))
   const pad = th.semantic.layout.screen.padding
   const tight = th.primitive.space[1]
   return (
@@ -29,10 +29,9 @@ export function SettingsPage() {
         <AccountBlock
           name={account.name}
           address={shortAddress(address)}
-          copyLabel={t('asset.copy')}
-          onCopy={() => {
-            void Clipboard.setStringAsync(address).then(() => AccessibilityInfo.announceForAccessibility(t('settings.copied')), () => undefined)
-          }}
+          copyLabel={copied ? t('settings.copied') : t('asset.copy')}
+          copied={copied}
+          onCopy={() => void copy(address)}
         />
       </View>
       <SectionBand />

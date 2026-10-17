@@ -1,11 +1,11 @@
-// Figma: B-S65 라이선스 전문 526:55042 (dark 526:55830): Title block (name, version · license), Section band, Block with the copyright line and the full license text
+// Figma: B-S65 라이선스 전문 526:55042 (dark 526:55830; no-file state with the npm link row, Flow 5 2026-10-17): Title block (name, version · license), Section band, Block with the copyright line and the full license text
 import { useLocalSearchParams } from 'expo-router'
-import { View } from 'react-native'
+import { Linking, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { findLicense, licenseText, licenseTitle } from '@/features/licenses'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
-import { Block, Screen, ScreenHeader, SectionBand, Text } from '@/shared/ui'
+import { Block, ListItem, Screen, ScreenHeader, SectionBand, Text } from '@/shared/ui'
 
 /** B-S65 라이선스 전문: the copyright line and the license text exactly as the package ships it (English, never translated: legal original). */
 export function LicensePage() {
@@ -27,7 +27,19 @@ export function LicensePage() {
           <SectionBand />
           <Block>
             {entry.copyright ? <Text variant="label">{entry.copyright}</Text> : null}
-            <Text variant="bodySmall" color={th.semantic.text.secondary} selectable>{text ?? t('settings.licensesScreen.noText')}</Text>
+            {text ? (
+              <Text variant="bodySmall" color={th.semantic.text.secondary} selectable>{text}</Text>
+            ) : (
+              <>
+                <Text variant="bodySmall" color={th.semantic.text.secondary}>{t('settings.licensesScreen.noText')}</Text>
+                {/* No license file in the package: the original is read on npm (external browser), never made up. */}
+                <ListItem
+                  title={t('settings.licensesScreen.npm')}
+                  trailing={{ kind: 'external' }}
+                  onPress={() => void Linking.openURL(`https://www.npmjs.com/package/${entry.name}`).catch(() => undefined)}
+                />
+              </>
+            )}
           </Block>
         </>
       ) : null}

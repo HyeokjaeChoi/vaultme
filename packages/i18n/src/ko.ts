@@ -2,6 +2,8 @@
 export const ko = {
   tab: { assets: '자산', activity: '내역', settings: '설정' },
   common: { cancel: '취소', close: '닫기', later: '나중에', edit: '수정', back: '뒤로', retry: '다시 시도', confirm: '확인' },
+  // Busy button label under Reduce Motion (no spinner rotation): the progressive form (ux-copy.md 2026-10-17).
+  busy: { send: '보내는 중…', create: '만드는 중…', restore: '복구하는 중…', recheck: '확인하는 중…' },
   // B/Status chip (Figma 494:1067): on every wallet screen; "테스트 데이터" only while the fake chain adapter is on.
   chip: { testnet: 'Sepolia 테스트넷', testData: '테스트 데이터' },
   start: {
@@ -65,9 +67,10 @@ export const ko = {
     emptyBody: '받기 주소를 공유하면\nSepolia ETH와 USDC를 받을 수 있어요.',
     heroLabel: 'Sepolia ETH',
     introTitle: 'Sepolia 테스트넷 지갑이에요',
-    introBody: '실제 가치가 없는 테스트 자산만 다뤄요.\n시장 가격이 없어서 수량으로 보여 줘요.\n위의 칩을 누르면 이 안내를 다시 볼 수 있어요.',
-    introCta: '확인했어요',
+    introBody: '실제 가치가 없는 테스트 자산만 다뤄요.\n시장 가격이 없어서 수량으로 보여 줘요.',
+    introCta: '확인',
     testDataCta: '확인',
+    faucet: { title: '테스트 ETH 받기', value: 'QuickNode', caption: '받기 주소를 복사하고 외부 사이트(faucet)를 열어요.' },
   },
   // S11 asset detail (ux-copy.md Redesign B 2차).
   asset: {
@@ -99,7 +102,7 @@ export const ko = {
       position: '{{n}}번째 단어',
       placeholder: '단어 입력',
       confirm: '확인',
-      wrong: '입력한 단어가 맞지 않아요. 적어 둔 복구 구문을 다시 확인하세요.',
+      wrong: '{{n}}번째 단어가 달라요',
     },
   },
   // S05/S06: title, label, button, passphrase and path copy are approved (ux-copy.md); helper, unknownWord and the Redesign A S05 layout come from issue #18.
@@ -371,6 +374,7 @@ export const ko = {
       version: '버전 {{v}}',
       // Not in Figma: some packages ship no license file, so there is no text to show (a text is never made up).
       noText: '이 패키지는 라이선스 원문 파일을 포함하지 않아요.',
+      npm: 'npm에서 패키지 보기',
     },
     // S62 거래 알림, S63 0원 거래 표시 (ux-copy.md)
     pushScreen: { title: '거래 알림', row: '거래 알림 받기', body: '켜면 이 주소가 VaultMe 알림 서버에 등록돼요. 끄면 등록을 지워요.', warnTitle: '알림으로 복구 구문을 묻지 않아요', warnBody: '복구 구문을 묻는 알림은 모두 사기예요.' },

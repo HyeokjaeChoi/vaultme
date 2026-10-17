@@ -1,7 +1,6 @@
 // Figma: B-S11 Asset detail Sepolia ETH 423:16447 (dark 430:15384), USD Coin 515:30153 (dark 515:30727): Nav (back, title, chips), Amount hero (logo 48), B/Action row, Section band, Block 자산 정보, Section band, Block 이 자산의 내역
-import * as Clipboard from 'expo-clipboard'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { AccessibilityInfo, View } from 'react-native'
+import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { USDC_SEPOLIA } from '@vaultme/contracts'
 import { account } from '@/entities/account/fixtures'
@@ -11,8 +10,8 @@ import { useLiveBalances } from '@/features/balances'
 import { useRestored } from '@/features/restore'
 import { useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
-import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
+import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
 import { ActionRow, AmountHero, Block, Button, Screen, ScreenHeader, SectionBand, StatusNotice, SummaryRow } from '@/shared/ui'
 import { RecentRows, fakeHistoryItems } from '@/widgets/activity-list/ActivityList'
@@ -29,19 +28,11 @@ export function AssetDetailPage() {
   const restored = useRestored() || (__DEV__ && variant === 'restored') // `?variant=restored` is a __DEV__ capture override
   const { tx, blocked } = useTrackedTx()
   const { view } = useHistory()
+  const { copied, copy } = useCopy(t('asset.copied'))
   if (!asset) return null
   const balance = chain.broadcasts ? (live?.[asset.symbol] ?? '—') : restored ? asset.balance : '0'
   const items = (chain.broadcasts ? (view?.items ?? []) : fakeHistoryItems(tx)).filter((i) => i.asset === asset.symbol)
   const usdc = asset.symbol === 'USDC'
-  const copy = async () => {
-    try {
-      await Clipboard.setStringAsync(USDC_SEPOLIA)
-      haptic.copy()
-      AccessibilityInfo.announceForAccessibility(t('asset.copied'))
-    } catch {
-      // clipboard unavailable: nothing to confirm
-    }
-  }
   return (
     <Screen gap="none" edges={['top']} bleed topGap="none" header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/home')} title={asset.name} chips={<NetworkChips />} />}>
       <AmountHero asset={asset.symbol} amount={balance} unit={asset.symbol} />
@@ -59,7 +50,7 @@ export function AssetDetailPage() {
             <View style={{ flex: 1 }}>
               <SummaryRow label={t('asset.contract')} value={USDC_SEPOLIA} format="address" plain />
             </View>
-            <Button size="sm" variant="secondary" icon="copy" label={t('asset.copy')} onPress={() => void copy()} />
+            <Button size="sm" variant="secondary" icon="copy" label={copied ? t('asset.copied') : t('asset.copy')} {...(copied ? { copied } : {})} onPress={() => void copy(USDC_SEPOLIA)} />
           </View>
         ) : null}
         <StatusNotice tone="info" title={t(usdc ? 'asset.feeUsdc' : 'asset.feeEth')} />

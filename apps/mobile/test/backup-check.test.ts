@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkAnswers, clearCheck, getCheck, pickPositions, startCheck } from '../src/features/backup/model/check'
+import { checkAnswers, clearCheck, getCheck, pickPositions, startCheck, wrongIndexes } from '../src/features/backup/model/check'
 
 // Placeholder words only. Never a generated or real phrase.
 const PHRASE = Array.from({ length: 12 }, (_, i) => `word${i + 1}`)
@@ -47,5 +47,13 @@ describe('check session', () => {
     startCheck(PHRASE, () => 0.999999)
     expect(getCheck()!.positions).toEqual([10, 11, 12])
     clearCheck()
+  })
+})
+
+describe('wrongIndexes', () => {
+  it('lists only the wrong or empty cells, so the right ones stay unmarked', () => {
+    expect(wrongIndexes(['a', 'b', 'c'], ['a', 'x', 'C'])).toEqual([1])
+    expect(wrongIndexes(['a', 'b', 'c'], ['', 'b', 'x'])).toEqual([0, 2])
+    expect(wrongIndexes(['a', 'b', 'c'], ['a', 'b', 'c'])).toEqual([])
   })
 })

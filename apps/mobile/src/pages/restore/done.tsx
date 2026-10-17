@@ -1,11 +1,10 @@
-import * as Clipboard from 'expo-clipboard'
 import { Redirect } from 'expo-router'
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { useAccountAddress } from '@/features/backup'
 import { View } from 'react-native'
+import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
 import { Button, Screen, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 
@@ -19,7 +18,7 @@ export function RestoreDonePage({ demo = false }: { demo?: boolean }) {
   const router = useRouter()
   const th = useTheme()
   const stored = useAccountAddress()
-  const [copied, setCopied] = useState(false)
+  const { copied, copy } = useCopy(t('restore.done.copied'))
   const address = stored ?? (demo ? account.address : null)
   if (!address) return <Redirect href="/" />
   return (
@@ -27,7 +26,7 @@ export function RestoreDonePage({ demo = false }: { demo?: boolean }) {
       gap="section"
       footer={
         <View style={{ gap: th.semantic.layout.fieldGap }}>
-          <Button label={copied ? t('restore.done.copied') : t('receive.copy')} variant="secondary" onPress={() => void Clipboard.setStringAsync(address).then(() => setCopied(true))} />
+          <Button label={copied ? t('restore.done.copied') : t('receive.copy')} variant="secondary" copied={copied} onPress={() => void copy(address)} />
           <Button label={t('restore.open')} onPress={() => router.replace('/home')} />
         </View>
       }

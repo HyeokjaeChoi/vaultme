@@ -17,8 +17,8 @@ type Props = {
   mono?: boolean
   /** 52 pt row (S64 license list, Figma 526:54525) instead of 64. */
   compact?: boolean
-  /** `value` = text only, `disclosure` = optional value + chevron, `custom` = any node, e.g. a Switch (Switch row). */
-  trailing?: { kind: 'value'; text: string } | { kind: 'disclosure'; text?: string } | { kind: 'custom'; node: ReactNode }
+  /** `value` = text only, `disclosure` = optional value + chevron, `external` = optional value + the open-in-browser icon (link row), `custom` = any node, e.g. a Switch (Switch row). */
+  trailing?: { kind: 'value'; text: string } | { kind: 'disclosure'; text?: string } | { kind: 'external'; text?: string } | { kind: 'custom'; node: ReactNode }
   onPress?: () => void
 }
 
@@ -36,6 +36,12 @@ export function ListItem({ title, icon, iconColor, mono, compact, trailing, onPr
         <>
           {trailing.text ? value(trailing.text) : null}
           <Icon name="disclosure" size={t.component.icon.size.control} color={t.component.listItem.icon} />
+        </>
+      ) : null}
+      {trailing?.kind === 'external' ? (
+        <>
+          {trailing.text ? <Text variant="bodySmall" color={t.semantic.text.secondary}>{trailing.text}</Text> : null}
+          <Icon name="external" size={t.component.icon.size.control} color={t.component.listItem.icon} />
         </>
       ) : null}
       {trailing?.kind === 'custom' ? trailing.node : null}

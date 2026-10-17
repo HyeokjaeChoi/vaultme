@@ -1,40 +1,34 @@
-// Figma: B-S10 Home 404:163 (dark 430:14606), testmode 457:4274, pending 423:742, new wallet 423:643, empty 515:29238, first-launch sheet 515:29519, test-data sheet 515:29783, B-S50 423:14215
+// Figma: B-S10 Home 404:163 (dark 430:14606), testmode 457:4274, pending 423:742, new wallet 423:643, empty 515:29238, testnet sheet (chip), test-data sheet 515:29783, faucet row 486:77, B-S50 423:14215
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
+import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { assets } from '@/entities/asset/fixtures'
 import { demoTx } from '@/entities/transaction/fixtures'
-import { useBackupDone } from '@/features/backup'
+import { useAccountAddress, useBackupDone } from '@/features/backup'
 import { useLiveBalances } from '@/features/balances'
 import { useHistory } from '@/features/history'
 import { PushOptInSheet } from '@/features/push-optin/ui/PushOptInSheet'
 import { useRestored } from '@/features/restore'
 import { useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
-import { getIntroSeen, setIntroSeen } from '@/shared/storage'
 import { useTheme } from '@/shared/theme'
 import { ActionRow, AssetRow, BottomSheet, Button, EmptyState, ListItem, PortfolioBalance, ProductHeader, Screen, SectionHeader, Text } from '@/shared/ui'
 import { RecentRows, fakeHistoryItems } from '@/widgets/activity-list/ActivityList'
+import { FaucetRow } from '@/widgets/faucet-row/FaucetRow'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
 type SheetName = 'intro' | 'testData' | 'block' | 'push' | null
 
-const introSeen = () => {
-  try {
-    return getIntroSeen()
-  } catch {
-    return true // kv not open: never block Home with the sheet
-  }
-}
 const isZero = (v: string) => /^0(\.0+)?$/.test(v)
 
 /**
  * B-S10 Home. Header (account + honesty chips), balance hero (the ETH holding, no price), Send left / Receive right
  * (Primary = Send; an empty wallet makes Receive Primary), the backup row of a new wallet, assets, and the 3 newest rows with "전체 보기".
- * A new or empty wallet shows the empty state instead of assets and activity. The first launch shows the testnet sheet once (kv flag);
- * the chips open their explainer sheets. A Pending or Included send blocks a new send behind a sheet (Q47).
- * `variant=restored|pending|empty` and `sheet=first|testdata|push|1` are __DEV__ capture overrides.
+ * A new or empty wallet shows the empty state instead of assets and activity. The chips open their explainer sheets (no sheet opens by itself).
+ * An empty wallet that is backed up or restored also shows the faucet row. A Pending or Included send blocks a new send behind a sheet (Q47).
+ * `variant=restored|pending|empty` and `sheet=intro|testdata|push|1` are __DEV__ capture overrides.
  */
 export function HomePage() {
   const { t } = useTranslation()
@@ -46,8 +40,8 @@ export function HomePage() {
   const pending = useTrackedTx()
   const live = useLiveBalances()
   const { view } = useHistory()
-  const devSheet = (): SheetName => (sheetParam === 'first' ? 'intro' : sheetParam === 'testdata' ? 'testData' : sheetParam === 'push' ? 'push' : sheetParam === '1' ? 'block' : null)
-  const [sheet, setSheet] = useState<SheetName>(() => (__DEV__ && sheetParam ? devSheet() : introSeen() ? null : 'intro'))
+  const devSheet = (): SheetName => (sheetParam === 'intro' ? 'intro' : sheetParam === 'testdata' ? 'testData' : sheetParam === 'push' ? 'push' : sheetParam === '1' ? 'block' : null)
+  const [sheet, setSheet] = useState<SheetName>(() => (__DEV__ && sheetParam ? devSheet() : null))
   useEffect(() => {
     if (__DEV__) setSheet(sheetParam ? devSheet() : null) // capture links reuse the mounted Home: follow the param
   }, [sheetParam])
@@ -59,16 +53,9 @@ export function HomePage() {
   const eth = balanceOf('ETH', assets[0].balance)
   const items = chain.broadcasts ? (view?.items ?? []) : fakeHistoryItems(shownTx).filter((i) => shownTx !== null || i.hash !== '1') // the example Pending row is for Activity; Home shows it only for a real send
   // Empty = nothing owned and nothing sent. With the real chain the history must have loaded and be empty too (a wallet that sent everything out is not "new").
+  const faucetAddress = useAccountAddress() ?? (dev('empty') ? account.address : null)
   const empty = !shownTx && [eth, balanceOf('USDC', assets[1].balance)].every(isZero) && (!chain.broadcasts || (view !== null && items.length === 0))
   const close = () => setSheet(null)
-  const closeIntro = () => {
-    try {
-      setIntroSeen(true)
-    } catch {
-      // kv closed: the sheet shows again next launch
-    }
-    close()
-  }
   return (
     <Screen edges={['top']} gap="none" topGap="none">
       <ProductHeader title={account.name} chips={<NetworkChips onTestnetPress={() => setSheet('intro')} onTestDataPress={() => setSheet('testData')} />} />
@@ -82,7 +69,14 @@ export function HomePage() {
         <ListItem title={t('home.backupRow')} icon="deviceWarning" iconColor={th.component.icon.status.warning} trailing={{ kind: 'disclosure' }} onPress={() => router.push('/backup')} />
       ) : null}
       {empty ? (
-        <EmptyState title={t('home.emptyTitle')} body={t('home.emptyBody')} />
+        <>
+          <EmptyState title={t('home.emptyTitle')} body={t('home.emptyBody')} />
+          {(restored || backedUp) && faucetAddress ? (
+            <View style={{ paddingHorizontal: th.semantic.layout.screen.padding }}>
+              <FaucetRow address={faucetAddress} />
+            </View>
+          ) : null}
+        </>
       ) : (
         <>
           <SectionHeader title={t('home.assets')} />
@@ -99,9 +93,9 @@ export function HomePage() {
       )}
       <BottomSheet
         visible={sheet === 'intro'}
-        onClose={closeIntro}
+        onClose={close}
         title={t('home.introTitle')}
-        primary={{ label: t('home.introCta'), onPress: closeIntro }}
+        primary={{ label: t('home.introCta'), onPress: close }}
       >
         <Text color={th.semantic.text.secondary}>{t('home.introBody')}</Text>
       </BottomSheet>

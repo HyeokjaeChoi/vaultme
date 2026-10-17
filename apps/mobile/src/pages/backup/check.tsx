@@ -1,21 +1,23 @@
 import { Redirect, useFocusEffect, useRouter } from 'expo-router'
-import { useCallback, useEffect, useState } from 'react'
-import { AppState, View } from 'react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { AppState, View, type TextInput } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { checkAnswers, clearCheck, getCheck } from '@/features/backup/model/check'
+import { clearCheck, getCheck, wrongIndexes } from '@/features/backup/model/check'
 import { setBackupDone } from '@/shared/storage'
+import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
-import { Button, Input, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
+import { Button, Input, Screen, ScreenHeader, Text } from '@/shared/ui'
 
-/** R-S04 단어 확인. Asks the 3 positions picked by S03. Wrong: error text, stay. Right: backup flag set, then Receive (S30) with Home beneath. */
+/** R-S04 단어 확인. Asks the 3 positions picked by S03. Wrong: only the wrong cells turn Invalid with "N번째 단어가 달라요" (right cells stay), focus moves to the first wrong cell, one error haptic. Right: backup flag set, then Receive (S30) with Home beneath. */
 export function BackupCheckPage({ demo = false }: { demo?: boolean }) {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
   const [session] = useState(getCheck) // read once: the hand-off is cleared on leave
   const [answers, setAnswers] = useState<string[]>(['', '', ''])
-  const [wrong, setWrong] = useState(false)
+  const [wrong, setWrong] = useState<number[]>([]) // indexes of the cells judged wrong on the last confirm
+  const cells = useRef<(TextInput | null)[]>([])
 
   useFocusEffect(useCallback(() => clearCheck, []))
   useEffect(() => {
@@ -32,7 +34,13 @@ export function BackupCheckPage({ demo = false }: { demo?: boolean }) {
 
   const filled = answers.every((a) => a.trim() !== '')
   const confirm = () => {
-    if (!checkAnswers(session.words, answers)) return setWrong(true)
+    const bad = wrongIndexes(session.words, answers)
+    if (bad.length > 0) {
+      setWrong(bad)
+      haptic.error()
+      cells.current[bad[0]!]?.focus()
+      return
+    }
     if (!demo) setBackupDone(true) // the dev fixture never records a real backup
     clearCheck()
     router.dismissTo('/home')
@@ -55,16 +63,19 @@ export function BackupCheckPage({ demo = false }: { demo?: boolean }) {
             label={t('backup.check.position', { n: p })}
             placeholder={t('backup.check.placeholder')}
             helper=" " // blank helper line reserves the space Figma draws under each field
+            {...(wrong.includes(i) ? { error: t('backup.check.wrong', { n: p }) } : {})}
+            inputRef={(r) => {
+              cells.current[i] = r
+            }}
             value={answers[i]}
             onChangeText={(v) => {
-              setWrong(false)
+              setWrong((w) => w.filter((j) => j !== i))
               setAnswers((a) => a.map((x, j) => (j === i ? v : x)))
             }}
             autoCapitalize="none"
           />
         ))}
       </View>
-      {wrong ? <StatusNotice tone="danger" title={t('backup.check.wrong')} /> : null}
     </Screen>
   )
 }

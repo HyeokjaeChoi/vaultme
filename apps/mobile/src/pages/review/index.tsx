@@ -124,8 +124,8 @@ export function ReviewPage() {
   if (shownNotice === 'blocked') footer = <Button label={t('result.home')} variant="secondary" onPress={() => { router.dismissAll(); router.replace('/home') }} />
   else if (shownNotice === 'pending') footer = <Button label={t('send.pendingBlock.view')} variant="secondary" onPress={goPending} />
   else if (shownNotice === 'prepareError') footer = <Button label={t('send.editAmount')} variant="secondary" onPress={() => goBack()} />
-  else if (shownNotice === 'chainError') footer = <Button label={t('common.retry')} busy={rechecking} onPress={() => void core.refresh()} />
-  else if (shownNotice === 'needsReview') footer = <Button label={t('review.reconfirm')} busy={busy} onPress={() => void send()} />
+  else if (shownNotice === 'chainError') footer = <Button label={t('common.retry')} busy={rechecking} busyLabel={t('busy.recheck')} onPress={() => void core.refresh()} />
+  else if (shownNotice === 'needsReview') footer = <Button label={t('review.reconfirm')} busy={busy} busyLabel={t('busy.send')} onPress={() => void send()} />
   else if (rechecking) footer = <Button label={t('review.confirm')} disabled />
   else if (gate && !shownNotice) {
     footer = (
@@ -138,7 +138,7 @@ export function ReviewPage() {
     footer = (
       <>
         <Text variant="caption" color={th.semantic.text.secondary} style={{ textAlign: 'center' }}>{caption}</Text>
-        <Button label={t(shownNotice === 'authError' ? 'common.retry' : 'review.confirm')} busy={busy} disabled={!core.review} onPress={() => void send()} />
+        <Button label={t(shownNotice === 'authError' ? 'common.retry' : 'review.confirm')} busy={busy} busyLabel={t('busy.send')} disabled={!core.review} onPress={() => void send()} />
       </>
     )
   return (

@@ -55,7 +55,7 @@ export function TxDetailPage() {
       bleed
       gap="none"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/activity')} chips={<NetworkChips />} />}
-      footer={final || test ? undefined : <Button label={t('detail.recheck')} busy={checking} onPress={() => void recheck()} />}
+      footer={final || test ? undefined : <Button label={t('detail.recheck')} busy={checking} busyLabel={t('busy.recheck')} onPress={() => void recheck()} />}
     >
       {error ? (
         <View style={{ paddingHorizontal: th.semantic.layout.screen.padding, paddingTop: th.primitive.space[2] }}>

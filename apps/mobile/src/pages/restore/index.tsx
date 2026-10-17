@@ -81,7 +81,7 @@ export function RestorePage({ initial = '' }: { initial?: string }) {
   return (
     <Screen
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/')} />}
-      footer={<Button label={t('restore.submit')} disabled={!state.ready || !!issue} busy={busy} onPress={() => void submit()} />}
+      footer={<Button label={t('restore.submit')} disabled={!state.ready || !!issue} busy={busy} busyLabel={t('busy.restore')} onPress={() => void submit()} />}
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>
         <Text variant="title1" accessibilityRole="header">{t('restore.title')}</Text>
@@ -104,9 +104,9 @@ export function RestorePage({ initial = '' }: { initial?: string }) {
         importantForAutofill="no"
         {...(Platform.OS === 'android' ? { keyboardType: 'visible-password' as const } : {})}
       />
+      {outcome === 'exists' ? <StatusNotice tone="danger" tier="banner" title={t('restore.exists.title')} body={t('restore.exists.body')} /> : null}
+      {outcome === 'error' ? <StatusNotice tone="danger" tier="banner" title={t('restore.saveError.title')} body={t('restore.saveError.body')} /> : null}
       <StatusNotice tone="warning" title={t('restore.passphrase.title')} body={t('restore.passphrase.body')} />
-      {outcome === 'exists' ? <StatusNotice tone="danger" title={t('restore.exists.title')} body={t('restore.exists.body')} /> : null}
-      {outcome === 'error' ? <StatusNotice tone="danger" title={t('restore.saveError.title')} body={t('restore.saveError.body')} /> : null}
     </Screen>
   )
 }

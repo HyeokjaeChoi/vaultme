@@ -1,6 +1,7 @@
 // Figma: Icon set 137:3 (Solar Linear/Bold/Bold Duotone; Icon button swap slot 67:205; Icon / action / qr 434:230, more 434:235; navigation / assets 506:24468; hero 506:26134..; wallet-icon-guide.md)
 // Icons by 480 Design, Solar Icon Set, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Changes were made: resized and recolored. Code: @solar-icons/react-native (MIT).
 import { View } from 'react-native'
+import Svg, { Circle } from 'react-native-svg'
 import { AltArrowRightIcon as AltArrowRightIconL } from '@solar-icons/react-native/linear/alt-arrow-right'
 import { ArrowLeftDownIcon as ArrowLeftDownIconL } from '@solar-icons/react-native/linear/arrow-left-down'
 import { ArrowLeftIcon as ArrowLeftIconL } from '@solar-icons/react-native/linear/arrow-left'
@@ -43,7 +44,6 @@ import { QuestionCircleIcon as QuestionCircleIconD } from '@solar-icons/react-na
 import { QuestionCircleIcon as QuestionCircleIconL } from '@solar-icons/react-native/linear/question-circle'
 import { RefreshCircleIcon as RefreshCircleIconB } from '@solar-icons/react-native/bold/refresh-circle'
 import { RefreshIcon as RefreshIconL } from '@solar-icons/react-native/linear/refresh'
-import { RestartIcon as RestartIconL } from '@solar-icons/react-native/linear/restart'
 import { RoundArrowLeftDownIcon as RoundArrowLeftDownIconB } from '@solar-icons/react-native/bold/round-arrow-left-down'
 import { RoundArrowRightUpIcon as RoundArrowRightUpIconB } from '@solar-icons/react-native/bold/round-arrow-right-up'
 import { SettingsIcon as SettingsIconB } from '@solar-icons/react-native/bold/settings'
@@ -55,6 +55,17 @@ import { ShieldWarningIcon as ShieldWarningIconD } from '@solar-icons/react-nati
 import { ShieldWarningIcon as ShieldWarningIconL } from '@solar-icons/react-native/linear/shield-warning'
 import { SquareArrowRightUpIcon as SquareArrowRightUpIconL } from '@solar-icons/react-native/linear/square-arrow-right-up'
 import { WalletIcon as WalletIconL } from '@solar-icons/react-native/linear/wallet'
+
+// Busy spinner (Figma Icon / status / loading 137:178): a 3/4 ring, round caps, 1.5 stroke on the 24 grid like the Solar Linear set. Not in Solar, so drawn here.
+const RING_R = 9
+const RING = 2 * Math.PI * RING_R
+function SpinnerGlyph({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx={12} cy={12} r={RING_R} stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeDasharray={`${RING * 0.75} ${RING}`} transform="rotate(-90 12 12)" />
+    </Svg>
+  )
+}
 
 // Linear = default UI, Bold = selected tab / status badge / active, Duotone = empty-state and result heroes (48 pt).
 const LINEAR = {
@@ -79,7 +90,7 @@ const LINEAR = {
   more: MenuDotsIconL,
   copy: CopyIconL,
   backup: ShieldCheckIconL,
-  loading: RestartIconL,
+  loading: SpinnerGlyph,
   refresh: RefreshIconL,
   close: CloseIconL,
   check: CheckIconL,

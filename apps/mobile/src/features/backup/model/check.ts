@@ -18,6 +18,10 @@ const norm = (w: string) => w.trim().toLowerCase()
 export const checkAnswers = (expected: readonly string[], answers: readonly string[]): boolean =>
   expected.length > 0 && expected.length === answers.length && expected.every((w, i) => norm(w) === norm(answers[i] ?? ''))
 
+/** Indexes of the answers that differ from the expected word (same rule as checkAnswers). An empty answer counts as wrong. */
+export const wrongIndexes = (expected: readonly string[], answers: readonly string[]): number[] =>
+  expected.flatMap((w, i) => (norm(w) === norm(answers[i] ?? '') ? [] : [i]))
+
 export type CheckSession = { positions: number[]; words: string[] }
 let session: CheckSession | null = null
 
