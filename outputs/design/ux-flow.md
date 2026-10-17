@@ -23,9 +23,9 @@
 | S01 | 시작 (생성 / 복구 선택) | C01 Button |
 | S02 | 책임 안내 (자가수탁, 복구 구문 분실 시 복구 불가, 알림으로 복구 구문 요청 안 함) | C25 Status notice |
 | S03 | 복구 구문 표시 (12단어, 캡처 차단, 복사 없음) | C19 Backup status |
-| S04 | 일부 단어 확인 | C03 Input |
-| S05 | 복구 입력 (12·24단어) | C03 Input |
-| S06 | 복구 결과 (전체 주소, 첫 계정 경로 안내) | C26 Address block |
+| S04 | 일부 단어 확인. Figma `Flow 1` B-S04 423:15243 (빈 칸) · 입력 중 · 틀림(틀린 칸만 Invalid + "N번째 단어가 달라요") · 모두 입력, 2026-10-17 | B/Input |
+| S05 | 복구 입력 (12·24단어). Figma B-S05 423:15293 (빈 칸) · 입력 중 · 모든 단어 · 복구 중(Loading) · 모르는 단어 · 단어 수 · 순서 오류 · 이미 지갑 있음 · 저장 실패, 2026-10-17 | B/Input, B/Notice (Banner Danger) |
+| S06 | 복구 결과 (전체 주소, 첫 계정 경로 안내). Figma B-S06 423:13703 · 복사됨 | B/Detail row |
 | S10 | Home | C22, C23 Portfolio balance, C09 Asset row, C25 (백업 안내 1개) |
 | S11 | 자산 상세 | C09, C10 Activity row |
 | S20 | 보내기 입력 | C08, C12 Recipient field, C13 Amount field |
@@ -33,7 +33,7 @@
 | S22 | Review | C15 Transaction panel, C14 Fee summary, C24 Review footer, C25 경고 |
 | S23 | 보내기 결과 / 상태 | C28 Result, C05 Status label |
 | S24 | 보내기 차단 안내 (Pending·Unknown 존재) | C25, C10 |
-| S30 | 수신 (QR, 전체 주소, network, 복사·공유) | C11 Receive address |
+| S30 | 수신 (QR, 전체 주소, network, 복사·공유, "테스트 ETH 받기" faucet 행 2026-10-17) | C11 Receive address |
 | S31 | 수신 전 백업 요구 (신규 지갑) | C19, C01 |
 | S40 | 내역 | C10, C27 Collection state |
 | S41 | 거래 상세 (explorer 링크, 재조회, 마지막 확인 시각) | C26, C05 |
@@ -84,6 +84,7 @@ flowchart TD
 
 - S03을 벗어나면 phrase를 즉시 화면 state에서 지운다 (Q15).
 - 앱 종료 후 다시 열면 백업 단계를 처음부터 다시 시작한다 (기본값).
+- S04 틀림: 틀린 칸만 Invalid + "N번째 단어가 달라요", 맞은 칸은 유지, focus는 첫 틀린 칸, haptic notificationError 1회 (2026-10-17, seamless P1-5).
 
 ## 5. 보내기
 
@@ -130,6 +131,7 @@ flowchart TD
 - 신규 지갑: 백업 완료 후 S30 (§4).
 - 복구 지갑: 바로 S30.
 - S30: 주소 QR (주소만), 전체 주소 (4글자 분할), "Sepolia 네트워크로만 보내세요", 복사, 공유 (Q18, Q42).
+- 테스트 ETH 받기 (2026-10-17, 오너 §9.3): 빈 지갑 Home(S10E)과 S30에 외부 링크 행. 누르면 받기 주소 복사 + QuickNode Sepolia faucet을 브라우저로 연다. 백업 전 S10N에는 없다(Q14). 조건 조사: [ux-copy.md "Faucet 조사"](ux-copy.md).
 - 첫 진입이고 알림이 꺼져 있으면 S50을 한 번 보여준다 (Q27).
 
 ## 7. Push
@@ -156,6 +158,8 @@ flowchart TD
 | S40 | 빈 목록 | C27 empty |
 | S40 | 0원 거래 | 기본 숨김. S63에서 표시 가능 (Q71) |
 | S10 | 백업 미완료 | 백업 안내 1개 (Foundation spacing 규칙) |
+| S10 | 빈 지갑 (백업 완료) | 빈 상태 + "테스트 ETH 받기" 행 (2026-10-17) |
+| S10 | 테스트넷 칩 누름 | 테스트넷 안내 sheet. 첫 실행 자동 sheet는 없앰 (오너 2026-10-17, Figma Archive · 14 Removed frames) |
 
 ## 9. 잠금
 

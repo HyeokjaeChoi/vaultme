@@ -4,8 +4,8 @@
   "decoder": "jsqr 1.4.0 + pngjs 7.0.0 (scratch install)",
   "expected": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
   "results": {
-    "work/v9/screens/send-s30-receive.png": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
-    "work/v9/screens/send-s30-receive-dark.png": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94"
+    "work/v9/screens/send-s30-receive-faucet.png": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
+    "work/v9/screens/send-s30-receive-faucet-dark.png": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94"
   },
   "figmaFrames": {
     "light": "423:14163",
@@ -20,5 +20,6 @@
     "light": "423:14163",
     "dark": "430:15692"
   },
-  "match": true
+  "match": true,
+  "renamed": "2026-10-17 (#54 seamless follow-ups): send-s30-receive*.png renamed to send-s30-receive-faucet*.png (faucet row added, QR row padding 24 -> 16). The QR symbol node is unchanged; these PNGs were not re-decoded after this export."
 }

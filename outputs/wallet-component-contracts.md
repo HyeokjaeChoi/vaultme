@@ -286,3 +286,15 @@ Master ID와 property는 그대로다. Library는 게시하지 않았다.
 
 Paint 검사(`.claude/skills/vaultme-figma-screen/audit.js`): 보이는 모든 node의 solid paint는 variable에 묶여 있거나 style이어야 한다 (`unboundPaint` = 0). 묶여 있어도 저장된 색이 해석 값과 다르면 `stalePaint`다 (= 0). 예외는 자산 identity artwork(ETH 137:402, USDC 137:429)와 OS chrome·QR 뿐이다. 최종 검수의 `#000000` 글자·아이콘은 묶인 paint가 seed 색 {0,0,0}을 그대로 가진 경우였다. Desktop export가 그 저장 색을 그렸다.
 
+
+## Seamless 검수 후속 (2026-10-17, `work/review/seamless-*-2026-10-17.md`)
+
+기존 master ID와 property는 그대로다. 새 variant만 더했다. Library는 게시하지 않았다.
+
+| Component | Node | 바뀐 계약 |
+| --- | --- | --- |
+| Icon / status / loading | 137:178 | glyph를 정지한 새로고침 화살표(Solar restart)에서 3/4 고리 spinner로 바꿨다. Busy: 회전 0→360°, 800 ms, linear, 반복. 움직임 줄이기: 회전 없음 + 진행형 label("보내는 중…", "복구하는 중…") |
+| Button / Primary, Button / Secondary | 9:283 `Size=Large, State=Copied` 555:64682, 9:284 `Size=Large, State=Copied` 555:68322 | 새 variant. "복사했어요" + check icon(label·icon 고정). 복사 성공 뒤 1.5 s, 150 ms crossfade, haptic impactLight, screen reader "복사했어요" |
+| B/Button | 398:247 `Type=Secondary, Size=sm, State=Copied` 555:68334 | 같은 Copied 계약(USDC 컨트랙트 "복사", 계정 블록 "복사") |
+| B/Account block | 515:27571 → set 555:68341 (`State=Default` 515:27571, `State=Copied` 555:68342) | component를 variant set으로 묶었다. 기존 instance는 Default로 그대로 연결 |
+| B/Bottom sheet, Bottom sheet | 399:157, 301:606 | 설명에 끌어서 닫기: 아래로 1:1, 놓을 때 높이 30% 또는 500 pt/s 넘으면 닫기(200 ms), 아니면 spring 복귀(300 ms, damping 0.8). 닫기 = 취소 |

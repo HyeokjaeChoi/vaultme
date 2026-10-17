@@ -558,3 +558,34 @@ Figma `Flow 2`–`Flow 5`. 검수 copy 표와 finding으로 바뀐 문구만 적
 
 금액 표시 규칙(P2-15): 최대 소수 6자리, 끝 0은 지운다. S20b 전액 1.284732 − 최대 수수료 0.000042 = 1.284690 → "1.28469". 규칙대로라서 Figma는 바꾸지 않았다.
 
+
+### Seamless 검수 후속 (2026-10-17, `work/review/seamless-*-2026-10-17.md`)
+
+Figma `Flow 1`, `Flow 2`, `Flow 3`, `Flow 5`. 새 문구와 바뀐 문구만 적었다. 오너 확인 필요.
+
+| ID | 위치 | 문구 | 비고 |
+|---|---|---|---|
+| S10E 빈 지갑 · S30 받기 | 행 / 값 | 테스트 ETH 받기 / QuickNode | 외부 링크 행(↗). 누르면 받기 주소 복사 + QuickNode Sepolia faucet 열기. 백업 전 S10N에는 없음 (Q14) |
+| S10E · S30 | 행 아래 캡션 | 받기 주소를 복사하고 외부 사이트(faucet)를 열어요. | 외부 사이트라는 사실만 말한다. 받는 양·시간은 약속하지 않는다 |
+| S10 테스트넷 sheet | 본문 / 버튼 | 실제 가치가 없는 테스트 자산만 다뤄요. / 시장 가격이 없어서 수량으로 보여 줘요. / 확인 | 첫 실행 sheet 삭제(오너). 칩을 누를 때만 열려서 "위의 칩을 누르면 다시 볼 수 있어요" 문장 삭제, 버튼 "확인했어요" → "확인"(테스트 데이터 sheet와 같음) |
+| 복사 버튼 공통 (S30, S06, S60 계정 블록, S11 USDC 컨트랙트) | 복사 뒤 label | 복사했어요 | 기존 i18n `receive.copied`. check icon과 함께 1.5 s, 그 뒤 원래 label |
+| S04 단어 확인 | 칸 도움말 (틀림) | {{n}}번째 단어가 달라요 | 틀린 칸에만. 기존 전체 notice "입력한 단어가 맞지 않아요…"를 대체 (seamless P1-5) |
+| S05 복구 진행 중 | 버튼 (움직임 줄이기) | 복구하는 중… | Busy 진행형 label. 다른 버튼: 보내는 중…(S22), 만드는 중…(S02), 확인하는 중…(다시 확인) |
+| S05 이미 지갑 · 저장 실패 | Banner | (기존 문구 그대로) | Inline → Banner(Danger), 입력 칸 바로 아래 |
+| S60 | 행 | 기기 보안 상태 › | 값 "확인됨" 삭제. 루팅·탈옥 감지를 아직 만들지 않았다 (AGENTS Foundation 4) |
+| S65 원문 파일 없음 (새 상태) | 본문 | 이 패키지는 라이선스 원문 파일을 포함하지 않아요. | 오너 확인 필요. 저작권 줄·전문 대신. 생성 목록에서 text가 null인 패키지(2026-10-17: 683개 중 68개). 예: react-native-mmkv 4.3.2 |
+| S65 원문 파일 없음 | 링크 행 | npm에서 패키지 보기 ↗ | 오너 확인 필요. `https://www.npmjs.com/package/{이름}` 외부 브라우저 |
+
+#### Faucet 조사 (2026-10-17, 공식 페이지 직접 확인)
+
+| Faucet | 로그인 | Mainnet 잔액 | 기타 조건 | 받는 양 · 주기 | 출처 |
+|---|---|---|---|---|---|
+| **QuickNode** (선택) | 필요 없음 | 필요 없음 | 사람 확인 1회. X 게시·유료 플랜은 선택(양 2배) | 12시간마다 1회, 기본 양은 주소 입력 뒤 표시 | https://faucet.quicknode.com/ethereum/sepolia (FAQ "no Quicknode account, no post on X and no minimum mainnet balance") |
+| Google Cloud Web3 | Google 계정 (계정·주소별 rate limit) | 경우에 따라 0.001 ETH 확인 ("may involve checking") | reCAPTCHA | 0.05 Sepolia ETH | https://cloud.google.com/application/web3/faucet/ethereum/sepolia (FAQ) |
+| Alchemy | 필요 없음 ("No Alchemy account required") | 0.001 ETH 필수 + mainnet 활동 | 테스트넷 잔액이 많으면 불가 | 0.1 ETH / 24시간 | https://www.alchemy.com/faucets/ethereum-sepolia |
+| Infura (MetaMask) | — | — | `infura.io/faucet/sepolia`가 Infura 홈으로 이동. faucet 화면을 찾지 못함 | — | https://www.infura.io/faucet/sepolia |
+| PoW Faucet (pk910) | 필요 없음 | 필요 없음 | captcha + 브라우저에서 채굴(시간·배터리). 휴대폰 백그라운드 탭에서 멈춤 | 채굴한 만큼 | https://sepolia-faucet.pk910.de/ |
+
+- 목록 출처: ethereum.org Networks 페이지의 Sepolia faucet 목록 (https://ethereum.org/developers/docs/networks/, 2026-10-17).
+- 선택: QuickNode. 새 지갑(잔액 0, mainnet 기록 없음)이 계정 없이 받을 수 있는 조건이 가장 적다. PoW는 계정이 필요 없지만 휴대폰에서 채굴을 오래 켜 둬야 해서 뺐다.
+- 조건은 바뀔 수 있다. 앱 출시 전에 다시 확인한다. VaultMe는 faucet을 운영하지 않는다.
