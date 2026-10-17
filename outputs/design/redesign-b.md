@@ -232,6 +232,7 @@ Figma `14 Redesign B`. audit 모든 count 0. Library publish 없음, 기존 mast
 | 고급 행 접기 | 접으면 입력한 패스프레이즈를 지움. 칸 아래에 미리 안내. 오너 2026-10-17 |
 | Passphrase 예시 | 공개 Trezor 벡터 "TREZOR" + 0x9c32…6FA6 사용(AGENTS.md 예외). 오너 2026-10-17 |
 | Brand/Mark | 다시 만든다: 시안 3개(V 모노그램+열쇠 구멍, 금고 다이얼 링, 기기 윤곽+열쇠 구멍)를 시작 화면에 넣어 비교 후 오너 선택. 이전 "초안 유지" 대체. 오너 2026-10-17 |
+| Brand/Mark 선택 | 시안 A (V 모노그램 + 열쇠 구멍, 569:10199). Brand/Mark 495:17569 ID 유지, 내용만 교체. 잠금 해제 모션: 열쇠 구멍에서 브랜드 색이 퍼짐 400 ms ease-out. 오너 2026-10-17 |
 
 ### 9.4 순서
 1. Figma 정리(페이지·섹션·Foundation 페이지) 완료 뒤 Foundation 변경.
