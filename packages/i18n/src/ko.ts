@@ -201,7 +201,6 @@ export const ko = {
     assetQuestion: '어떤 자산을 보낼까요?',
     assetLabel: '보낼 자산',
     feeShort: '수수료로 쓸 ETH가 부족해요',
-    feeShortBlocked: '수수료로 쓸 ETH가 부족해서 보낼 수 없어요',
     chip: { p25: '25%', p50: '50%', all: '전액' },
     feeExcluded: '최대 수수료를 뺀 금액이에요',
     maxSendable: '보낼 수 있는 금액',
@@ -331,7 +330,8 @@ export const ko = {
     feeNote: '금액과 수수료는 ETH로 나가요. 최종 수수료는 달라질 수 있어요.',
     // USDC: the fee is ETH and never added to the USDC amount (issue #64 decision 5).
     feeNoteToken: '수수료는 ETH로 따로 나가요. 최종 수수료는 달라질 수 있어요.',
-    feeShort: '수수료로 쓸 ETH가 부족해요.\n{{amount}} ETH가 더 필요해요.',
+    // ETH short for a token fee: Banner on top, title = send.feeShort, body below; the sentence appears once.
+    feeShortBody: '{{amount}} ETH가 더 필요해요.',
     confirm: '확인하고 보내기',
     reconfirm: '다시 검토',
     ack: '확인했어요, 보내기',

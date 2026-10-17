@@ -135,14 +135,7 @@ export function ReviewPage() {
   else if (shownNotice === 'chainError') footer = <Button label={t('common.retry')} busy={rechecking} busyLabel={t('busy.recheck')} onPress={() => void core.refresh()} />
   else if (shownNotice === 'needsReview') footer = <Button label={t('review.reconfirm')} busy={busy} busyLabel={t('busy.send')} onPress={() => void send()} />
   else if (rechecking) footer = <Button label={t('review.confirm')} disabled />
-  else if (shortBy !== null) {
-    footer = (
-      <>
-        <Text variant="bodySmall" color={th.semantic.text.primary} style={{ textAlign: 'center' }}>{t('send.feeShortBlocked')}</Text>
-        <Button label={t('review.confirm')} disabled />
-      </>
-    )
-  }
+  else if (shortBy !== null) footer = <Button label={t('review.confirm')} disabled /> // the reason is the Banner on top (said once)
   else if (gate && !shownNotice) {
     footer = (
       <>

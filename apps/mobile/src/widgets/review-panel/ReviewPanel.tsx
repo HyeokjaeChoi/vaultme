@@ -21,7 +21,7 @@ type Props = {
   acknowledged: boolean
   /** Fee and cap could not be read: the hero says so instead of showing a total. */
   feeUnknown: boolean
-  /** Token send, ETH missing for the fee (wallet-core `nativeFeeShortfall`): a danger line with the shortfall and a faucet row replace the check notice. null = enough ETH. */
+  /** Token send, ETH missing for the fee (wallet-core `nativeFeeShortfall`): a danger Banner on top (title + shortfall) with the faucet row right below it; the check notice is hidden and the footer keeps only the disabled confirm. null = enough ETH. */
   feeShortBy: bigint | null
   /** Blocking Banner (error states), shown above the hero. */
   banner?: { tone: 'danger' | 'warning'; title: string; body: string }
@@ -52,6 +52,11 @@ export function ReviewPanel({ values, checkedAt, rechecking, onRecheck, acknowle
         <View style={{ paddingHorizontal: pad, paddingTop: th.primitive.space[2] }}>
           <StatusNotice tier="banner" tone={banner.tone} title={banner.title} body={banner.body} />
         </View>
+      ) : feeShortBy !== null ? (
+        <View style={{ paddingHorizontal: pad, paddingTop: th.primitive.space[2] }}>
+          <StatusNotice tier="banner" tone="danger" title={t('send.feeShort')} body={t('review.feeShortBody', { amount: fromUnits(feeShortBy, 'ETH') })} />
+          <FaucetRow address={sendFrom()} bare />
+        </View>
       ) : null}
       <AmountHero
         asset={values.asset}
@@ -72,12 +77,7 @@ export function ReviewPanel({ values, checkedAt, rechecking, onRecheck, acknowle
         {open && !feeUnknown ? <SummaryRow label={t('review.feeCap')} value={values.feeCap} /> : null}
         {values.total ? <SummaryRow format="total" label={t('review.total')} value={feeUnknown ? '—' : values.total} {...(open && !feeUnknown && values.totalMax ? { sub: t('review.totalMax', { amount: values.totalMax }) } : {})} /> : null}
         <Text variant="caption" color={th.semantic.text.tertiary}>{t(token ? 'review.feeNoteToken' : 'review.feeNote')}</Text>
-        {feeShortBy !== null ? (
-          <>
-            <StatusNotice tone="danger" title={t('review.feeShort', { amount: fromUnits(feeShortBy, 'ETH') })} />
-            <FaucetRow address={sendFrom()} bare />
-          </>
-        ) : rechecking ? (
+        {feeShortBy !== null ? null : rechecking ? (
           <View accessibilityLiveRegion="polite">
             <StatusNotice tone="info" icon="loading" title={t('review.rechecking')} />
           </View>
