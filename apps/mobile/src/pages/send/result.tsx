@@ -1,6 +1,6 @@
 // Figma: B-S23 Send result (Pending 423:15795, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode)
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useEffect, useRef } from 'react'
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
+import { useCallback, useEffect, useRef } from 'react'
 import { Redirect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { networkFact } from '@/entities/account/fixtures'
@@ -40,14 +40,17 @@ export function SendResultPage() {
     else if (state === 'Failed') haptic.error()
   }, [state])
   // Android hardware back = the "확인" action (Home). It must never reach the amount screen: that is a re-send path.
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      router.dismissAll()
-      router.replace('/home')
-      return true
-    })
-    return () => sub.remove()
-  }, [router])
+  // Only while focused: the detail screen pushed on top (toDetail) keeps this page mounted, and its back must return here.
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+        router.dismissAll()
+        router.replace('/home')
+        return true
+      })
+      return () => sub.remove()
+    }, [router]),
+  )
   if (!tx) return <Redirect href="/home" />
   const copy = resultCopy(tx.state)
   const test = testMode && !(__DEV__ && real === '1') && isPolled(tx.state) // the fake adapter keeps a send Pending forever: it was never on the network

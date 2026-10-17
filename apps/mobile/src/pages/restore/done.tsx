@@ -49,6 +49,7 @@ export function RestoreDonePage({ demo = false, copiedDemo = false, passphraseDe
           <Button label={t('restore.done.different')} variant="secondary" disabled={removing} onPress={() => void different()} />
           <Button
             label={t('restore.open')}
+            disabled={removing}
             onPress={() => {
               clearHeld()
               router.replace('/home')
