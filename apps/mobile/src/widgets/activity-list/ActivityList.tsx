@@ -34,6 +34,7 @@ function Row({ item }: { item: HistoryItem }) {
       time={clock(item.at)}
       amount={amount}
       kind={item.kind}
+      asset={item.asset}
       status={item.status}
       statusLabel={t(item.label)}
       {...(item.local ? { onPress: () => router.push({ pathname: '/activity/[hash]', params: { hash: item.hash } }) } : {})}

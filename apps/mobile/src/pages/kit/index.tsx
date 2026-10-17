@@ -68,9 +68,9 @@ export function KitPage() {
         <AssetRow name="Sepolia ETH" symbol="ETH" balance="0.05" />
         <AssetRow name="USD Coin" symbol="USDC" balance="12.5" />
         <DateHeader date="10월 16일 (금)" />
-        <ActivityRow title="보내는 중" detail="Sepolia ETH · 09:41" time="09:41" amount="-0.05 ETH" kind="send" status="pending" statusLabel="처리 중" />
-        <ActivityRow title="받음" detail="USDC · 08:10" time="08:10" amount="+12.5 USDC" kind="receive" status="confirmed" statusLabel="확정" />
-        <ActivityRow title="보내기 실패" detail="ETH · 07:00" time="07:00" amount="-0.01 ETH" kind="send" status="failed" statusLabel="실패" />
+        <ActivityRow title="보내는 중" detail="Sepolia ETH · 09:41" time="09:41" amount="-0.05 ETH" kind="send" asset="ETH" status="pending" statusLabel="처리 중" />
+        <ActivityRow title="받음" detail="USDC · 08:10" time="08:10" amount="+12.5 USDC" kind="receive" asset="USDC" status="confirmed" statusLabel="확정" />
+        <ActivityRow title="보내기 실패" detail="ETH · 07:00" time="07:00" amount="-0.01 ETH" kind="send" asset="ETH" status="failed" statusLabel="실패" />
         <ListItem title="복구 구문 보기" trailing={{ kind: 'disclosure', text: '켜짐' }} onPress={() => undefined} />
         <ListItem title="알림" trailing={{ kind: 'custom', node: <Switch label="알림" value={on} onValueChange={setOn} /> }} />
       </View>

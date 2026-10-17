@@ -56,6 +56,7 @@ export function HomePage() {
             time={clock(inProgress.createdAt)}
             amount={`−${showAmount(inProgress.amount, inProgress.asset, 'floor')}`}
             kind="send"
+            asset={inProgress.asset}
             status="pending"
             statusLabel={t('activity.pending')}
             onPress={() => router.push({ pathname: '/activity/[hash]', params: { hash: inProgress.hash } })}
