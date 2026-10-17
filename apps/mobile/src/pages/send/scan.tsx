@@ -12,12 +12,13 @@ import { setScanResult } from '@/features/send'
 import { useTestMode } from '@/shared/chain/useTestMode'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
-import { chainIdCopula, parseAddressQr } from '@/shared/lib/qrAddress'
+import { chainIdCopula, chainName, parseAddressQr } from '@/shared/lib/qrAddress'
+import { createScanGate } from '@/shared/lib/scanGate'
 import { useTheme } from '@/shared/theme'
 import { BottomSheet, Button, EmptyState, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
-/** An invalid or wrong-chain code is ignored for this long after it was seen: the camera reports the same code every frame (issue #64 Q10: 2 s notice). */
+/** The invalid notice stays this long (issue #64 Q10: 2 s). A code in view is handled once (`createScanGate`), not every 2 s. */
 const NOTICE_MS = 2000
 // Figma Viewfinder 280 x 280 (no size token); the four brackets are 40 (size.avatar_md), borderWidth.focus, radius.lg.
 const VIEWFINDER = 280
@@ -55,7 +56,7 @@ export function ScanPage() {
   const [perm, requestPerm, refreshPerm] = useCameraPermissions()
   const [invalid, setInvalid] = useState(dev === 'invalid')
   const [wrongChain, setWrongChain] = useState<number | null>(dev === 'mismatch' ? 1 : null)
-  const last = useRef<{ data: string; at: number } | null>(null)
+  const gate = useRef(createScanGate())
   const done = useRef(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -75,16 +76,12 @@ export function ScanPage() {
     return () => sub.remove()
   }, [refreshPerm])
 
-  const reject = useCallback((data: string) => {
-    last.current = { data, at: Date.now() }
-    haptic.warning()
-  }, [])
+  const reject = useCallback(() => haptic.warning(), [])
 
   const onData = useCallback(
     (data: string) => {
       if (done.current) return
-      const seen = last.current
-      if (seen && seen.data === data && Date.now() - seen.at < NOTICE_MS) return
+      if (!gate.current.accept(data, Date.now())) return // the same code is still in view: no second alert or haptic
       const r = parseAddressQr(data)
       if (r.ok) {
         done.current = true
@@ -93,7 +90,7 @@ export function ScanPage() {
         goBack('/send')
         return
       }
-      reject(data)
+      reject()
       if (r.error === 'wrongChain') {
         setWrongChain(r.chainId)
         return
@@ -104,6 +101,11 @@ export function ScanPage() {
     },
     [reject],
   )
+
+  const closeMismatch = () => {
+    gate.current.touch(Date.now()) // the camera was paused behind the sheet: the same code is still in view, do not reopen it
+    setWrongChain(null)
+  }
 
   const paste = async () => {
     if (done.current) return
@@ -117,6 +119,7 @@ export function ScanPage() {
     }
   }
 
+  const knownName = wrongChain !== null ? chainName(wrongChain) : null
   const denied = dev === 'denied' || (perm !== null && !perm.granted && perm.status !== 'undetermined')
   const header = (
     <ScreenHeader
@@ -200,13 +203,15 @@ export function ScanPage() {
       </Screen>
       <BottomSheet
         visible={wrongChain !== null}
-        onClose={() => setWrongChain(null)}
+        onClose={closeMismatch}
         title={t('send.qr.wrongChain.title')}
-        primary={{ label: t('send.qr.wrongChain.back'), onPress: () => setWrongChain(null) }}
+        primary={{ label: t('send.qr.wrongChain.back'), onPress: closeMismatch }}
       >
         {wrongChain !== null ? (
           <Text variant="body" color={th.semantic.text.secondary}>
-            {t('send.qr.wrongChain.body', { chainId: wrongChain, copula: chainIdCopula(wrongChain), sepolia: CHAIN.id })}
+            {knownName !== null
+              ? t('send.qr.wrongChain.bodyKnown', { name: knownName, chainId: wrongChain, sepolia: CHAIN.id })
+              : t('send.qr.wrongChain.body', { chainId: wrongChain, copula: chainIdCopula(wrongChain), sepolia: CHAIN.id })}
           </Text>
         ) : null}
       </BottomSheet>

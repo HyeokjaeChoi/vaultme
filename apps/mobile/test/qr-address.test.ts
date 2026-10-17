@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chainIdCopula, parseAddressQr } from '../src/shared/lib/qrAddress'
+import { chainIdCopula, chainName, parseAddressQr } from '../src/shared/lib/qrAddress'
 
 const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94' // public test vector (AGENTS.md Foundation 4)
 const TOKEN = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' // Sepolia USDC
@@ -41,6 +41,7 @@ describe('parseAddressQr', () => {
   it('token transfer: the recipient is the address param, never the token contract', () => {
     const r = parseAddressQr(`ethereum:${TOKEN}@11155111/transfer?address=${A}&uint256=1000000`)
     expect(r).toEqual({ ok: true, address: A, chainId: 11155111, hadAmount: true })
+    expect(parseAddressQr(`ethereum:${TOKEN}/transfer?address=${A}`)).toMatchObject({ ok: true, address: A, hadAmount: true }) // the token form alone counts: the asset is ignored
     expect(parseAddressQr(`ethereum:${TOKEN}/transfer`)).toEqual({ ok: false, error: 'notAddress' })
     expect(parseAddressQr(`ethereum:${TOKEN}/transfer?address=0x1234`)).toEqual({ ok: false, error: 'notAddress' })
     expect(parseAddressQr(`ethereum:${TOKEN}/approve?address=${A}&uint256=1`)).toEqual({ ok: false, error: 'notAddress' })
@@ -60,5 +61,16 @@ describe('chainIdCopula', () => {
     expect(chainIdCopula(10)).toBe('이에요')
     expect(chainIdCopula(42161)).toBe('이에요')
     for (const id of [2, 5, 9, 137 + 2, 8453 + 2]) expect(chainIdCopula(id)).toBe('예요')
+  })
+})
+
+describe('chainName', () => {
+  it('names the well-known chains and returns null for others', () => {
+    expect(chainName(1)).toBe('Ethereum 메인넷')
+    expect(chainName(8453)).toBe('Base')
+    expect(chainName(137)).toBe('Polygon')
+    expect(chainName(42161)).toBe('Arbitrum One')
+    expect(chainName(10)).toBe('OP Mainnet')
+    expect(chainName(56)).toBeNull()
   })
 })

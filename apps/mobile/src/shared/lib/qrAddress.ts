@@ -3,7 +3,7 @@ import { isAddressFormat } from './address'
 
 /**
  * Address QR parser (issue #64 Q8, Q9). Address only: accepts a bare 0x address and the EIP-681 form
- * `ethereum:[pay-]0x...[@chainId][/function][?params]`. Amount and token params are never used; `hadAmount` only tells the screen to say so.
+ * `ethereum:[pay-]0x...[@chainId][/function][?params]`. Amount and token params are never used; `hadAmount` (an amount param, or the token `transfer` form) only tells the screen to say so.
  * A chain id other than Sepolia is `wrongChain` (no override). Anything else is `notAddress`.
  *
  * Safety: in `ethereum:<token>/transfer?address=<to>&uint256=<n>` the path address is the token contract, not the recipient.
@@ -59,8 +59,12 @@ export function parseAddressQr(data: string): QrParse {
     address = to
   }
   if (chainId !== null && chainId !== CHAIN.id) return { ok: false, error: 'wrongChain', chainId }
-  return { ok: true, address: toChecksumAddress(address), chainId, hadAmount: AMOUNT_PARAMS.some((k) => params.has(k)) }
+  return { ok: true, address: toChecksumAddress(address), chainId, hadAmount: fn !== undefined || AMOUNT_PARAMS.some((k) => params.has(k)) }
 }
 
 /** 이에요 / 예요 after a chain id number: a Korean digit name ends in a vowel for 2 (이), 5 (오), 9 (구); every other last digit (and every round number) ends in a consonant. */
 export const chainIdCopula = (chainId: number): '이에요' | '예요' => ('259'.includes(String(chainId).slice(-1)) ? '예요' : '이에요')
+
+const CHAIN_NAMES: Record<number, string> = { 1: 'Ethereum 메인넷', 8453: 'Base', 137: 'Polygon', 42161: 'Arbitrum One', 10: 'OP Mainnet' }
+/** Display name of a well-known chain id for the chain-mismatch sheet; null = unknown (the sheet shows the id). */
+export const chainName = (chainId: number): string | null => CHAIN_NAMES[chainId] ?? null
