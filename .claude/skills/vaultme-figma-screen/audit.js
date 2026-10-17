@@ -30,7 +30,10 @@ for (const root of roots) for (const n of (root.type === 'PAGE' ? [] : [root]).c
   // Notice text must never be cut off (pd-review batch 1, P0-1): the Message must fit its Text frame and the instance.
   if (n.type === 'INSTANCE' && !exempt && /Notice|Banner|Inline/.test(n.name)) {
     const m = n.findOne((x) => x.type === 'TEXT' && x.name === 'Message')
-    if (m && m.visible && (m.parent.height < m.height - 1 || n.height < m.height)) hit('noticeClip', n)
+    const mb = m && m.absoluteBoundingBox, nb = n.absoluteBoundingBox, pb = m && m.parent.absoluteBoundingBox
+    // Bottom edges: the Message must end inside its Text frame and inside the instance (height alone misses a Message offset downward).
+    const over = (box) => mb && box && mb.y + mb.height > box.y + box.height + 1
+    if (m && m.visible && (m.parent.height < m.height - 1 || n.height < m.height || over(pb) || over(nb))) hit('noticeClip', n)
   }
   // Paint check on EVERY visible node, inside instances too (pd-review final, P0-1/P1-2: #000000 text and icons).
   // unboundPaint: a visible solid paint that is not variable-bound and not from a style.
