@@ -1,7 +1,8 @@
 // Figma: Bottom sheet 301:606 (Grabber 301:607), Redesign B: top radius sheetB.radius 32, Title 3, Secondary action above Primary
-import { useEffect, useState, type ReactNode } from 'react'
-import { Modal, Pressable, ScrollView, useWindowDimensions, View } from 'react-native'
-import Animated, { Easing, runOnJS, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Modal, PanResponder, Pressable, ScrollView, useWindowDimensions, View } from 'react-native'
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated'
+import { scheduleOnRN } from 'react-native-worklets'
 import { ko } from '@vaultme/i18n'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
@@ -12,6 +13,11 @@ import { Text } from './Text'
 // DESIGN motion: sheet open 250 ms (0.32,0.72,0,1), close 200 ms. Open has no token; close = motion.duration.baseMs.
 const OPEN_MS = 250
 const OPEN_EASING = Easing.bezier(0.32, 0.72, 0, 1)
+// Grabber drag (staff-PD P1-3): close when dragged past 30% of the sheet height or released faster than 500 pt/s; else spring back.
+const DISMISS_FRACTION = 0.3
+const DISMISS_VELOCITY = 500
+const RUBBER = 0.15
+const SPRING = { duration: 300, dampingRatio: 0.8 }
 
 type SheetAction = { label: string; onPress: () => void; /** Secondary only: the action cannot be undone, so it gets a danger-colored label. */ danger?: boolean }
 type Props = {
@@ -36,20 +42,37 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
   const [mounted, setMounted] = useState(visible)
   const y = useSharedValue(height)
   const closeMs = t.primitive.motion.duration.baseMs
+  const sheetH = useRef(0)
+  const live = useRef({ onClose, reduce })
+  live.current = { onClose, reduce }
+  // Plain PanResponder on the grabber: it needs no native gesture module, and a sheet drag is one touch on the JS thread.
+  const pan = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onPanResponderMove: (_, g) => y.set(g.dy > 0 ? g.dy : g.dy * RUBBER),
+        onPanResponderRelease: (_, g) => {
+          if (g.dy > sheetH.current * DISMISS_FRACTION || g.vy * 1000 > DISMISS_VELOCITY) live.current.onClose()
+          else y.set(live.current.reduce ? 0 : withSpring(0, { ...SPRING, velocity: g.vy * 1000 }))
+        },
+        onPanResponderTerminate: () => y.set(live.current.reduce ? 0 : withSpring(0, SPRING)),
+      }),
+    [y],
+  )
 
   useEffect(() => {
     if (visible) {
       setMounted(true)
-      y.value = reduce ? 0 : withTiming(0, { duration: OPEN_MS, easing: OPEN_EASING })
+      y.set(reduce ? 0 : withTiming(0, { duration: OPEN_MS, easing: OPEN_EASING }))
     } else if (mounted) {
-      y.value = withTiming(height, { duration: reduce ? 0 : closeMs, easing: OPEN_EASING }, (done) => {
-        if (done) runOnJS(setMounted)(false)
-      })
+      y.set(withTiming(height, { duration: reduce ? 0 : closeMs, easing: OPEN_EASING }, (done) => {
+        if (done) scheduleOnRN(setMounted, false)
+      }))
     }
   }, [visible])
 
-  const sheet = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }))
-  const scrim = useAnimatedStyle(() => ({ opacity: 1 - Math.min(y.value / height, 1) }))
+  const sheet = useAnimatedStyle(() => ({ transform: [{ translateY: y.get() }] }))
+  const scrim = useAnimatedStyle(() => ({ opacity: 1 - Math.min(Math.max(y.get(), 0) / height, 1) }))
   const pad = t.semantic.layout.screen.padding
 
   return (
@@ -60,6 +83,7 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
         </Animated.View>
         <Animated.View
           accessibilityViewIsModal
+          onLayout={(e) => void (sheetH.current = e.nativeEvent.layout.height)}
           style={[
             {
               maxHeight: '90%',
@@ -77,7 +101,7 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
           ]}
         >
           {/* ponytail: grabber height 5 has no token; space-1 (4) is the nearest. */}
-          <View style={{ width: t.primitive.size.control_sm, height: t.primitive.space[1], borderRadius: t.component.buttonB.radius, backgroundColor: t.component.bottomSheet.grabber }} />
+          <View {...pan.panHandlers} hitSlop={{ top: t.primitive.space[4], bottom: t.primitive.space[4], left: t.primitive.space[8], right: t.primitive.space[8] }} style={{ width: t.primitive.size.control_sm, height: t.primitive.space[1], borderRadius: t.component.buttonB.radius, backgroundColor: t.component.bottomSheet.grabber }} />
           <ScrollView style={{ flexShrink: 1, alignSelf: 'stretch' }} contentContainerStyle={{ gap: t.semantic.layout.groupGap }}>
             <Text variant="title3" accessibilityRole="header" color={t.component.overlay.fg}>{title}</Text>
             {children}
