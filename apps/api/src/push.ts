@@ -15,6 +15,7 @@ const NETWORK = 'ETH_SEPOLIA'
 export const PUSH_INACTIVE_SECONDS = 30 * 24 * 3600
 const SENT_KEEP_SECONDS = 7 * 24 * 3600
 const EXPO_BATCH = 100
+const D1_MAX_PARAMS = 100
 
 const secret = (v: unknown): string => {
   // Fail closed (500) when a secret is missing.
@@ -206,11 +207,18 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   )
   if (addresses.size === 0) return
   const list = [...addresses]
-  const subs = await env.DB.prepare(
-    `SELECT install_id, address, expo_token FROM push_subscriptions WHERE address IN (${list.map(() => '?').join(',')})`,
-  )
-    .bind(...list)
-    .all<{ install_id: string; address: string; expo_token: string }>()
+  // D1 allows 100 bound parameters per statement, and one payload can carry more addresses than that.
+  type Subscription = { install_id: string; address: string; expo_token: string }
+  const subs: { results: Subscription[] } = { results: [] }
+  for (let i = 0; i < list.length; i += D1_MAX_PARAMS) {
+    const chunk = list.slice(i, i + D1_MAX_PARAMS)
+    const rows = await env.DB.prepare(
+      `SELECT install_id, address, expo_token FROM push_subscriptions WHERE address IN (${chunk.map(() => '?').join(',')})`,
+    )
+      .bind(...chunk)
+      .all<Subscription>()
+    subs.results.push(...rows.results)
+  }
   if (subs.results.length === 0) return
   const notes = notificationsFor(payload, new Set(subs.results.map((s) => s.address)))
 

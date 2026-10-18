@@ -254,6 +254,12 @@ describe('POST /webhooks/alchemy', () => {
     expect(sentMessages()).toHaveLength(0)
   })
 
+  it('looks up more than 100 addresses in one payload', async () => {
+    const many = Array.from({ length: 150 }, (_, i) => eth({ toAddress: '0x' + (i + 1).toString(16).padStart(40, '0'), hash: '0x' + (i + 1).toString(16).padStart(64, '0') }))
+    expect((await hook(activity([...many, eth()]))).status).toBe(200)
+    expect(sentMessages()).toHaveLength(1)
+  })
+
   it('refuses a malformed body', async () => {
     const raw = '{"nope":1}'
     const r = await app.request('/webhooks/alchemy', { method: 'POST', headers: { 'X-Alchemy-Signature': await sign(raw) }, body: raw }, E)
