@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { checkTx, deriveState, isFinal, isPolled, startPolling, type PollTimers } from '../src/features/send/model/txState'
+import { FAKE_SETTLE_MS, checkTx, deriveState, fakeSettle, isFinal, isPolled, startPolling, type PollTimers } from '../src/features/send/model/txState'
 import { txNotice, txView } from '../src/features/send/model/txView'
 import type { Receipt } from '../src/shared/chain/port'
 import type { PendingTx } from '../src/shared/storage/kv'
@@ -165,3 +165,19 @@ describe('txView / txNotice', () => {
   })
 })
 
+
+describe('fakeSettle (test-data mode)', () => {
+  it('a Pending send stays Pending until the settle time, then Confirmed with a block', () => {
+    expect(fakeSettle(tx('Pending'), 1 + FAKE_SETTLE_MS - 1)).toMatchObject({ state: 'Pending', lastCheckedAt: FAKE_SETTLE_MS })
+    expect(fakeSettle(tx('Pending'), 1 + FAKE_SETTLE_MS)).toMatchObject({ state: 'Confirmed', blockNumber: 5812044 })
+  })
+  it('other states do not move', () => {
+    for (const s of ['Unknown', 'Failed', 'Replaced', 'Confirmed', 'Included'] as const) expect(fakeSettle(tx(s), 1e9).state).toBe(s)
+  })
+  it('checkTx on the fake adapter settles a Pending send without asking the network', async () => {
+    const c = { broadcasts: false, getReceipt: vi.fn(), getSafeBlock: vi.fn(), getSafeNonce: vi.fn() }
+    const out = await checkTx(tx('Pending'), c, ('0x' + '1'.repeat(40)) as `0x${string}`, () => 1 + FAKE_SETTLE_MS)
+    expect(out.state).toBe('Confirmed')
+    expect(c.getReceipt).not.toHaveBeenCalled()
+  })
+})

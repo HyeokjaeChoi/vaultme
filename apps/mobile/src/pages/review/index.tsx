@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { resolveReview } from '@/entities/transaction/review'
+import { cleanAmount, resolveReview } from '@/entities/transaction/review'
 import { diffChars } from '@/shared/lib/address'
 import { haptic } from '@/shared/lib/haptics'
 import { useTheme } from '@/shared/theme'
@@ -12,9 +12,10 @@ import { AddressText } from '@/shared/ui/AddressBlock'
 import { ReviewPanel } from '@/widgets/review-panel/ReviewPanel'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 import { goBack } from '@/shared/lib/nav'
-import { rememberRecipient, runSend, sendFrom, useAuthName, useRecents, useReviewCore, readPendingTx, writePendingTx, type SendOutcome } from '@/features/send'
+import { feeShortBy, parseSendAsset, rememberRecipient, runSend, sendFrom, useAuthName, useRecents, useReviewCore, readPendingTx, writePendingTx, type SendOutcome } from '@/features/send'
 import { apiErrorKey } from '@/shared/api'
 import { chain } from '@/shared/chain'
+import { useDevEthShort } from '@/shared/chain/useDevEthShort'
 import { loadPhrase } from '@/shared/storage'
 
 /** B/Address compare (Figma 477:5145, inside the S22L sheet): Info line, then the previous and the current address (differing chunks marked red + underline), left edge on the sheet's 16 line. */
@@ -57,12 +58,16 @@ export function ReviewPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { risk, sheet: sheetParam, ack, to, amount, notice: noticeParam, recheck } = useLocalSearchParams<{ risk?: string; sheet?: string; ack?: string; to?: string; amount?: string; notice?: string; recheck?: string }>()
+  const { risk, sheet: sheetParam, ack, to, amount, asset: assetParam, notice: noticeParam, recheck } = useLocalSearchParams<{ risk?: string; sheet?: string; ack?: string; to?: string; amount?: string; asset?: string; notice?: string; recheck?: string }>()
+  useDevEthShort() // `?ethShort=1` is a __DEV__ capture override (fake adapter with too little ETH for the fee)
+  const asset = parseSendAsset(assetParam)
   const recents = useRecents()
   const recentAddresses = recents.map((r) => r.address)
-  const base = resolveReview(to, amount, risk === '1', undefined, recentAddresses)
-  const core = useReviewCore(base.recipient, base.amount.replace(' ETH', ''), recentAddresses)
-  const values = core.review ? resolveReview(to, amount, risk === '1', core.review, recentAddresses) : base
+  const base = resolveReview(to, amount, risk === '1', undefined, recentAddresses, asset)
+  const plainAmount = cleanAmount(amount, asset) ?? base.amount.replace(` ${asset}`, '')
+  const core = useReviewCore(base.recipient, plainAmount, recentAddresses, asset)
+  const values = core.review ? resolveReview(to, amount, risk === '1', core.review, recentAddresses, asset) : base
+  const shortBy = core.review ? feeShortBy(core.review.warnings) : null // a token send needs ETH for the fee: with too little, Confirm stays off
   const [busy, setBusy] = useState(false)
   const [rechecking, setRechecking] = useState(__DEV__ && recheck === '1') // `?recheck=1` is a __DEV__ capture override of Figma 461:5074
   const authName = useAuthName()
@@ -77,13 +82,13 @@ export function ReviewPage() {
     setSheet(true)
   }
   const send = async () => {
-    if (!core.review || busy) return
+    if (!core.review || busy || shortBy !== null) return
     setBusy(true)
     setNotice(null)
     setCause(null)
     let out: SendOutcome
     try {
-      out = await runSend(core.review, base.amount.replace(' ETH', ''), sendFrom(), {
+      out = await runSend(core.review, plainAmount, sendFrom(), {
         chain,
         loadPhrase,
         readPending: readPendingTx,
@@ -98,7 +103,7 @@ export function ReviewPage() {
     if (out.status === 'Pending' || out.status === 'Unknown') haptic.success()
     else if (out.status === 'ChainError') haptic.error()
     if (out.status === 'Pending' || out.status === 'Unknown') {
-      rememberRecipient({ address: base.recipient, at: out.tx.createdAt, asset: 'ETH', amount: base.amount.replace(' ETH', '') })
+      rememberRecipient({ address: base.recipient, at: out.tx.createdAt, asset, amount: plainAmount })
       router.replace('/send/result') // one transition: no Home flash. The result screen has no swipe-back (root layout), so Review/Amount cannot be reached again.
     } else if (out.status === 'Cancelled') return
     else {
@@ -130,6 +135,7 @@ export function ReviewPage() {
   else if (shownNotice === 'chainError') footer = <Button label={t('common.retry')} busy={rechecking} busyLabel={t('busy.recheck')} onPress={() => void core.refresh()} />
   else if (shownNotice === 'needsReview') footer = <Button label={t('review.reconfirm')} busy={busy} busyLabel={t('busy.send')} onPress={() => void send()} />
   else if (rechecking) footer = <Button label={t('review.confirm')} disabled />
+  else if (shortBy !== null) footer = <Button label={t('review.confirm')} disabled /> // the reason is the Banner on top (said once)
   else if (gate && !shownNotice) {
     footer = (
       <>
@@ -157,6 +163,7 @@ export function ReviewPage() {
         rechecking={rechecking}
         acknowledged={acknowledged}
         feeUnknown={shownNotice === 'chainError'}
+        feeShortBy={shortBy}
         {...(shownNotice && noticeKey ? { banner: { tone: NOTICE[shownNotice].tone, title: t(`${noticeKey}.title`), body: t(`${noticeKey}.body`) } } : {})}
         onRecheck={() => { setRechecking(true); void core.refresh().finally(() => setRechecking(false)) }}
         onEditRecipient={() => router.navigate({ pathname: '/send', params: { to: values.recipient } })}

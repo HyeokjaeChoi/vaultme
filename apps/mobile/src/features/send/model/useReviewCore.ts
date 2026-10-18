@@ -1,4 +1,4 @@
-import { prepare, type PrepareError, type Review } from '@vaultme/wallet-core'
+import { prepare, type AssetId, type PrepareError, type Review } from '@vaultme/wallet-core'
 import { useCallback, useEffect, useState } from 'react'
 import { account } from '@/entities/account/fixtures'
 import { chain } from '@/shared/chain'
@@ -18,20 +18,20 @@ export function sendFrom(): `0x${string}` {
 export type ReviewCore = { review: Review | null; error: PrepareError | 'chain' | null; /** What the snapshot call threw, when `error` is 'chain'. */ cause: unknown; checkedAt: string; refresh: () => Promise<Review | null> }
 
 /** Fresh chain snapshot -> wallet-core prepare(). Fee, cap and nonce on Review come from here, never from fixtures. `recentAddresses` = recipients this device sent to (look-alike check). `refresh` re-fetches (다시 계산, and after NeedsReview). */
-export function useReviewCore(to: string, amount: string, recentAddresses: readonly string[]): ReviewCore {
+export function useReviewCore(to: string, amount: string, recentAddresses: readonly string[], asset: AssetId = 'ETH'): ReviewCore {
   const [state, setState] = useState<{ review: Review | null; error: PrepareError | 'chain' | null; cause: unknown; checkedAt: string }>({ review: null, error: null, cause: null, checkedAt: hhmm() })
   const key = recentAddresses.join(',') // compared by value, so a new array of the same addresses does not re-fetch
   const refresh = useCallback(async () => {
     try {
-      const snap = await chain.getSnapshot(sendFrom(), 'ETH', to as `0x${string}`, amount)
-      const r = prepare({ asset: 'ETH', to: to as `0x${string}`, amount, previous: (key ? key.split(',') : []) as `0x${string}`[] }, snap)
+      const snap = await chain.getSnapshot(sendFrom(), asset, to as `0x${string}`, amount)
+      const r = prepare({ asset, to: to as `0x${string}`, amount, previous: (key ? key.split(',') : []) as `0x${string}`[] }, snap)
       setState({ review: r.ok ? r.review : null, error: r.ok ? null : r.error, cause: null, checkedAt: hhmm() })
       return r.ok ? r.review : null
     } catch (cause) {
       setState({ review: null, error: 'chain', cause, checkedAt: hhmm() })
       return null
     }
-  }, [to, amount, key])
+  }, [to, amount, key, asset])
   useEffect(() => {
     void refresh()
   }, [refresh])

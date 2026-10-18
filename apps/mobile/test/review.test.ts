@@ -37,3 +37,14 @@ it('token contract recipient keeps its risk for the confirm sheet', async () => 
   const { ASSETS } = await import('@vaultme/wallet-core')
   expect(resolveReview(ASSETS.USDC.address).risk).toBe('tokenContract')
 })
+
+it('USDC review: exact 6-digit amount, ETH fee, no total (the fee is never added to the token amount)', () => {
+  const r = resolveReview(undefined, '2.123456', false, undefined, undefined, 'USDC')
+  expect(r).toMatchObject({ asset: 'USDC', amount: '2.123456 USDC', fee: '0.000042 ETH', total: null, totalMax: null })
+  expect(resolveReview(undefined, '25.', false, undefined, undefined, 'USDC').amount).toBe('25 USDC')
+})
+it('an ETH amount with 7 digits is not a USDC amount', async () => {
+  const { cleanAmount } = await import('../src/entities/transaction/review')
+  expect(cleanAmount('1.1234567', 'USDC')).toBeNull()
+  expect(cleanAmount('1.1234567', 'ETH')).toBe('1.1234567')
+})

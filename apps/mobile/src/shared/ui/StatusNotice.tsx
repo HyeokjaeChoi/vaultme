@@ -12,7 +12,7 @@ type Props = {
   tone: Tone
   /** `inline` (default) = one helper line, no box. `banner` = a blocking situation: tinted box, radius 16, padding 16. */
   tier?: 'inline' | 'banner'
-  /** Inline: the line of text. Banner: the Headline title (600). */
+  /** Inline: the line of text. Banner: the Headline title (600). Empty banner title = message only (body), as the QR invalid notice (Figma 618:103186). */
   title: string
   /** Sheet heading style (B/Address compare 477:5145): Label in the tone color. */
   heading?: boolean
@@ -37,7 +37,7 @@ export function StatusNotice({ tone, tier = 'inline', title, heading, body, icon
     <View
       accessibilityRole={tone === 'danger' ? 'alert' : undefined}
       accessible={!link}
-      accessibilityLabel={typeof body === 'string' ? `${title}. ${body}` : title}
+      accessibilityLabel={typeof body === 'string' ? [title, body].filter(Boolean).join('. ') : title}
       style={{
         flexDirection: 'row',
         alignItems: 'flex-start',
@@ -47,7 +47,7 @@ export function StatusNotice({ tone, tier = 'inline', title, heading, body, icon
     >
       <Icon name={icon ?? ICON[tone]} size={banner ? b.iconSize : t.component.icon.size.control} color={c[tone].fg} />
       <View style={{ flex: 1, gap: t.primitive.space[1] }}>
-        <Text variant={banner ? 'headline' : heading ? 'label' : 'bodySmall'} color={heading ? c[tone].fg : banner || !quiet ? t.semantic.text.primary : t.semantic.text.secondary}>{title}</Text>
+        {title ? <Text variant={banner ? 'headline' : heading ? 'label' : 'bodySmall'} color={heading ? c[tone].fg : banner || !quiet ? t.semantic.text.primary : t.semantic.text.secondary}>{title}</Text> : null}
         {typeof body === 'string' ? <Text variant="bodySmall" color={banner || quiet ? t.semantic.text.secondary : t.semantic.text.primary}>{body}</Text> : body}
         {link ? (
           <Pressable accessibilityRole="link" accessibilityLabel={link.label} onPress={link.onPress} style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}>

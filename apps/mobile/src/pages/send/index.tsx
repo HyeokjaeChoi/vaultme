@@ -1,10 +1,10 @@
 // Figma: R-S20A 누구에게 보낼까요? (423:848 empty, 423:885 valid)
 import * as Clipboard from 'expo-clipboard'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useState } from 'react'
-import { Pressable, View } from 'react-native'
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
+import { useCallback, useState } from 'react'
+import { AccessibilityInfo, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { useRecents } from '@/features/send'
+import { takeScanResult, useRecents } from '@/features/send'
 import { isAddressFormat } from '@/shared/lib/address'
 import { goBack } from '@/shared/lib/nav'
 import { dateLabel } from '@/shared/lib/time'
@@ -15,7 +15,9 @@ import { AddressText } from '@/shared/ui/AddressBlock'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
 /**
- * R-S20A 누구에게 보낼까요?. Paste fills the field from the clipboard, 지우기 empties it (shown when it has a value); QR scan has no camera wiring yet, so it is not offered. A valid format only says the format is right.
+ * R-S20A 누구에게 보낼까요?. Paste fills the field from the clipboard, 지우기 empties it (shown when it has a value). The scan icon (empty field only) opens B-S21; a valid QR comes back through `takeScanResult`
+ * and fills the field like a paste, with the Fact label "QR에서 가져온 주소" (and the "금액은 직접 입력해요" note when the QR carried an amount) until the text is edited. Scanned addresses are never added to recents. A valid format only says the format is right.
+ * `?qr=1|amount` is a __DEV__ capture override for the from-QR frames (with `to`).
  * 최근 보낸 주소: up to 3 recipients this device sent to (local only, never from the network), full address in 4-char groups; tapping one fills the field.
  */
 export function SendPage() {
@@ -23,12 +25,26 @@ export function SendPage() {
   const th = useTheme()
   const router = useRouter()
   const { to: initial } = useLocalSearchParams<{ to?: string }>()
+  const { qr: devQr } = useLocalSearchParams<{ qr?: string }>()
   const [to, setTo] = useState(initial ?? '')
+  // Address that came from a QR (and whether the QR carried an amount). The label stays only while the field still holds exactly that address.
+  const [qr, setQr] = useState<{ address: string; hadAmount: boolean } | null>(__DEV__ && devQr && initial ? { address: initial, hadAmount: devQr === 'amount' } : null)
+  useFocusEffect(
+    useCallback(() => {
+      const r = takeScanResult()
+      if (!r) return
+      setTo(r.to)
+      setQr(r.fromQr ? { address: r.to, hadAmount: r.hadAmount } : null)
+      if (r.fromQr) AccessibilityInfo.announceForAccessibility(t('send.qr.announce')) // VoiceOver: the scan screen closes with no other cue
+    }, [t]),
+  )
   const recents = useRecents()
   const valid = isAddressFormat(to)
+  const fromQr = qr !== null && to === qr.address
   const paste = async () => {
     try {
       setTo((await Clipboard.getStringAsync()).trim().replace(/\s/g, ''))
+      setQr(null)
     } catch {
       // clipboard unavailable: the field stays as it is
     }
@@ -47,12 +63,19 @@ export function SendPage() {
       <RecipientField
         label={t('send.recipientLabel')}
         value={to}
-        onChangeText={setTo}
+        onChangeText={(v) => { setTo(v); setQr(null) }}
         placeholder={t('send.recipientPlaceholder')}
-        actions={[to ? { label: t('send.clear'), onPress: () => setTo('') } : { label: t('send.paste'), onPress: () => void paste() }]}
+        actions={[to ? { label: t('send.clear'), onPress: () => { setTo(''); setQr(null) } } : { label: t('send.paste'), onPress: () => void paste() }]}
+        {...(to ? {} : { scan: { label: t('send.scan'), onPress: () => router.push('/send/scan') } })}
       />
       </View>
+      {fromQr ? (
+        <View style={{ paddingVertical: th.semantic.layout.fieldGap }}>
+          <Text variant="caption" color={th.semantic.text.tertiary}>{t('send.qr.source')}</Text>
+        </View>
+      ) : null}
       {valid ? <StatusNotice tone="info" title={t('send.recipientHint')} /> : null}
+      {valid && fromQr && qr?.hadAmount ? <StatusNotice tone="info" title={t('send.qr.amountNote')} /> : null}
       {!to && recents.length ? (
         <View style={{ gap: th.semantic.layout.rowGap, paddingTop: th.primitive.space[2] }}>
           <Text variant="label" color={th.semantic.text.tertiary} accessibilityRole="header">{t('send.recent')}</Text>

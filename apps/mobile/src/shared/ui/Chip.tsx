@@ -6,10 +6,10 @@ import { useTheme } from '../theme'
 import { usePressScale } from '../theme/motion'
 import { Text } from './Text'
 
-type Props = { label: string; selected?: boolean; disabled?: boolean; onPress?: () => void }
+type Props = { label: string; selected?: boolean; disabled?: boolean; /** Why the chip is off (VoiceOver hint when disabled). */ disabledReason?: string; onPress?: () => void }
 
 /** Amount chip (25% / 50% / 전액). Pill, height buttonB.height.sm 40 with a 44 pt touch area, Label text. Selected = inverse fill. */
-export function Chip({ label, selected, disabled, onPress }: Props) {
+export function Chip({ label, selected, disabled, disabledReason, onPress }: Props) {
   const t = useTheme()
   const { style, handlers } = usePressScale()
   const slop = Math.max(0, (t.primitive.size.touch_min - t.component.buttonB.height.sm) / 2)
@@ -21,6 +21,7 @@ export function Chip({ label, selected, disabled, onPress }: Props) {
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityState={{ selected: !!selected, disabled: !!disabled }}
+        {...(disabled && disabledReason ? { accessibilityHint: disabledReason } : {})}
         disabled={disabled}
         onPress={() => {
           haptic.select()

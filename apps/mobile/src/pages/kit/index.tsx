@@ -91,7 +91,7 @@ export function KitPage() {
         <Chip label="비활성" disabled />
       </View>
       <Keypad onKey={() => undefined} labels={{ dot: '소수점', delete: '지우기' }} />
-      <Keypad assetKey="doubleZero" onKey={() => undefined} labels={{ dot: '소수점', delete: '지우기' }} />
+      <Keypad onKey={() => undefined} labels={{ dot: '소수점', delete: '지우기' }} />
       <StatusHero tone="pending" title="보내는 중이에요" body="네트워크 처리를 기다리는 중이에요" />
       <StatusHero tone="failed" title="보내지 못했어요" body="수수료가 나갔을 수 있어요." />
       <SkeletonRow />

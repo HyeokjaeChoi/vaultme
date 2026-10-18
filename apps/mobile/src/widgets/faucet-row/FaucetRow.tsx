@@ -36,14 +36,14 @@ export function FaucetAction({ address }: { address: string }) {
 }
 
 /** "테스트 ETH 받기 · QuickNode ↗" with its caption. Tap = copy the receive address (copy feedback), then open the faucet in the browser. Shown only after backup (the address is hidden before, Q14). */
-export function FaucetRow({ address, inFooter }: { address: string; /** S30: the first block of the footer stack (Figma 555:72569): 8 above, side padding 16, 52 high row. */ inFooter?: boolean }) {
+export function FaucetRow({ address, inFooter, bare }: { address: string; /** S30: the first block of the footer stack (Figma 555:72569): 8 above, side padding 16, 52 high row. */ inFooter?: boolean; /** USDC fee shortage (Figma B-S20b / B-S22U "Link 테스트 ETH 받기" 618:106280): the row alone, no caption. */ bare?: boolean }) {
   const { t } = useTranslation()
   const th = useTheme()
   const { copy } = useCopy(t('receive.copied'))
   return (
     <View style={{ gap: th.primitive.space[1], ...(inFooter ? { paddingTop: th.primitive.space[2], paddingHorizontal: th.semantic.layout.screen.padding } : {}) }}>
       <ListItem
-        compact={!!inFooter}
+        compact={!!inFooter || !!bare}
         title={t('home.faucet.title')}
         trailing={{ kind: 'external', text: t('home.faucet.value') }}
         onPress={() => {
@@ -51,7 +51,7 @@ export function FaucetRow({ address, inFooter }: { address: string; /** S30: the
           void Linking.openURL(FAUCET_URL).catch(() => undefined)
         }}
       />
-      <Text variant="caption" color={th.semantic.text.secondary}>{t('home.faucet.caption')}</Text>
+      {bare ? null : <Text variant="caption" color={th.semantic.text.secondary}>{t('home.faucet.caption')}</Text>}
     </View>
   )
 }
