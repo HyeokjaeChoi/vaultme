@@ -233,6 +233,15 @@ describe('POST /webhooks/alchemy', () => {
     expect(await E.DB.prepare('SELECT COUNT(*) AS n FROM push_sent').first<{ n: number }>()).toEqual({ n: 1 })
   })
 
+  it('does not mark an Expo error ticket as sent, so the retry sends it', async () => {
+    expoReply = () => new Response(JSON.stringify({ data: [{ status: 'error', message: 'x', details: { error: 'MessageRateExceeded' } }] }))
+    expect((await hook(activity([eth()]))).status).toBe(503)
+    expect(await E.DB.prepare('SELECT COUNT(*) AS n FROM push_sent').first<{ n: number }>()).toEqual({ n: 0 })
+    expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
+    expect((await hook(activity([eth()]))).status).toBe(200)
+    expect(sentMessages()).toHaveLength(2)
+  })
+
   it('deletes the subscription and the address when Expo says DeviceNotRegistered', async () => {
     expoReply = () => new Response(JSON.stringify({ data: [{ status: 'error', message: 'x', details: { error: 'DeviceNotRegistered' } }] }))
     await hook(activity([eth()]))

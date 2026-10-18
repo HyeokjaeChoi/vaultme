@@ -223,6 +223,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     }
   }
   const dead: string[] = []
+  let ticketFailed = false
   for (let i = 0; i < jobs.length; i += EXPO_BATCH) {
     const batch = jobs.slice(i, i + EXPO_BATCH)
     let res: Response
@@ -251,16 +252,24 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     }
     const tickets = ExpoTickets.safeParse(await res.json().catch(() => null))
     if (!tickets.success || tickets.data.data.length !== batch.length) throw new UpstreamError('expo ticket shape')
+    // Only accepted tickets (and dead tokens, which are deleted below) count as sent. Any other ticket error stays retryable.
+    const settled: typeof batch = []
     tickets.data.data.forEach((t, j) => {
-      if (t.status === 'error' && t.details?.error === 'DeviceNotRegistered') dead.push(batch[j]!.sub.install_id)
+      if (t.status === 'ok') settled.push(batch[j]!)
+      else if (t.details?.error === 'DeviceNotRegistered') {
+        dead.push(batch[j]!.sub.install_id)
+        settled.push(batch[j]!)
+      } else ticketFailed = true
     })
-    await env.DB.batch(
-      batch.map(({ sub, note }) =>
-        env.DB.prepare('INSERT OR IGNORE INTO push_sent (install_id, ref, sent_at) VALUES (?, ?, ?)').bind(sub.install_id, note.ref, nowSeconds()),
-      ),
-    )
+    if (settled.length > 0)
+      await env.DB.batch(
+        settled.map(({ sub, note }) =>
+          env.DB.prepare('INSERT OR IGNORE INTO push_sent (install_id, ref, sent_at) VALUES (?, ?, ?)').bind(sub.install_id, note.ref, nowSeconds()),
+        ),
+      )
   }
   // The token is invalid: delete the subscription and the address at once (#67 decision 7).
   for (const id of new Set(dead)) await unsubscribe(env, id)
+  if (ticketFailed) throw new UpstreamError('expo ticket error') // push_sent keeps the retry from notifying the others twice
 }
 
