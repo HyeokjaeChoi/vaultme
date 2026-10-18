@@ -6,6 +6,7 @@ export { checkTx, deriveState, isFinal, isPolled, startPolling, type TxState } f
 export { resultCopy, rowTitleKey, txNotice, txView } from './model/txView'
 export { POLL_MS, useTrackedTx } from './model/useTrackedTx'
 export { useSendable } from './model/useSendable'
+export { useOnForeground } from './model/foreground'
 export { CHIP_SHARES, feeShortBy, listBalance, parseSendAsset, sendLimits, type SendLimits, type Sendable } from './model/limits'
 export { useSendBalances } from './model/useSendBalances'
 export { getPreselectedAsset, setPreselectedAsset } from './model/draft'

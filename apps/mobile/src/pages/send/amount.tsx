@@ -6,7 +6,7 @@ import Animated from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next'
 import { assets } from '@/entities/asset/fixtures'
 import { cleanAmount } from '@/entities/transaction/review'
-import { getPreselectedAsset, parseSendAsset, sendFrom, sendLimits, setPreselectedAsset, useSendBalances, useSendable } from '@/features/send'
+import { getPreselectedAsset, parseSendAsset, sendFrom, sendLimits, setPreselectedAsset, useOnForeground, useSendBalances, useSendable } from '@/features/send'
 import { useDevEthShort } from '@/shared/chain/useDevEthShort'
 import { type KeypadKey, exceedsBalance, isZeroAmount, pressKey } from '@/shared/lib/amount'
 import { isAddressFormat } from '@/shared/lib/address'
@@ -36,9 +36,11 @@ export function SendAmountPage() {
   const [asset, setAsset] = useState<AssetId>(assetParam ? parseSendAsset(assetParam) : getPreselectedAsset())
   const [amount, setAmount] = useState(initial === undefined ? '0' : (cleanAmount(initial, asset) ?? '0'))
   const [picker, setPicker] = useState(__DEV__ && sheet === '1') // `?sheet=1` opens the asset sheet on arrival (__DEV__ capture override)
-  const snap = useSendable(to ?? '', asset)
+  const { sendable: snap, refresh } = useSendable(to ?? '', asset)
   const balances = useSendBalances()
   const { style: shakeStyle, shake } = useShake(th.primitive.space[2])
+  // After "테스트 ETH 받기" the user comes back from the browser: read the ETH balance again while the fee shortage shows.
+  useOnForeground(refresh, sendLimits(asset, snap).feeShort)
   if (!to || !isAddressFormat(to)) return <Redirect href="/send" />
   const info = assets.find((a) => a.symbol === asset) ?? assets[0]
   const { sendable, feeShort, chips } = sendLimits(asset, snap)
