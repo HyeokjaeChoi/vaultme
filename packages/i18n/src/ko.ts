@@ -421,14 +421,14 @@ export const ko = {
       npm: 'npm에서 패키지 보기',
     },
     // S62 거래 알림, S63 0원 거래 표시 (ux-copy.md)
-    pushScreen: { title: '거래 알림', row: '거래 알림 받기', body: '켜면 이 주소가 VaultMe 알림 서버에 등록돼요. 끄면 등록을 지워요.', warnTitle: '알림으로 복구 구문을 묻지 않아요', warnBody: '복구 구문을 묻는 알림은 모두 사기예요.' },
+    pushScreen: { title: '거래 알림', row: '거래 알림 받기', body: '입금과 보낸 거래 확정을 알려 드려요.\n켜면 이 주소가 VaultMe 알림 서버에 등록돼요.', denied: '기기 설정에서 알림을 켜 주세요', openSettings: '설정 열기', privacy: '끄거나 지갑을 지우면 이 주소와 알림 토큰을\n서버에서 바로 지워요. 30일 동안 쓰지 않아도 지워요.', warnTitle: '알림으로 복구 구문을 묻지 않아요', warnBody: '복구 구문을 묻는 알림은 모두 사기예요.' },
     // S92 (ux-copy.md 기기 보안 경고). The root/jailbreak detection is not wired: the screen opens from the S60 row only.
     deviceScreen: { title: '기기 보안 안내', body: '루팅·탈옥된 기기에서는\n다른 앱이 지갑 키를 읽을 수 있어요.\n이 지갑에는 테스트넷 자산만 두세요.', cta: '이해했어요' },
     zeroScreen: { title: '수량 0 거래 표시', row: '수량 0 거래 보기', body: '수량 0 거래는 주소 오염 공격에 자주 쓰여요.\n기본으로 숨겨요.' },
   },
   pushSheet: {
-    title: '거래 알림을 받을까요?',
-    body: '받기나 보내기가 처리되면 알려 드려요.\n켜면 이 주소가 VaultMe 알림 서버에 등록돼요.',
+    title: '입금이 오면 알려 드릴까요?',
+    body: '켜면 이 주소가 VaultMe 알림 서버에 등록돼요.\n언제든 끄면 바로 지워요.',
     enable: '알림 켜기',
     later: '나중에',
   },

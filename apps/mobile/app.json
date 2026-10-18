@@ -47,6 +47,12 @@
           }
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "enableBackgroundRemoteNotifications": false
+        }
+      ],
       "expo-dev-client",
       [
         "expo-build-properties",

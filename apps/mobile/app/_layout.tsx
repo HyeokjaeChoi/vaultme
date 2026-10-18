@@ -7,9 +7,11 @@ import { useTheme } from '@/shared/theme'
 import { fontAssets } from '@/shared/theme/fonts'
 import { hasPhrase, openKv } from '@/shared/storage'
 import { LockGate } from '@/shell/LockGate'
+import { usePushBoot } from '@/features/push'
 
 function Navigator() {
   const th = useTheme()
+  usePushBoot()
   return (
     <Stack
       screenOptions={{

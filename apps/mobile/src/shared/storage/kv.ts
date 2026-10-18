@@ -26,9 +26,18 @@ function store(): MMKV {
 
 
 // --- backup flag ---
-/** Settings toggles (S62 거래 알림, S63 0원 거래 표시). Local preferences only: push registration and the zero-value filter are not wired to them yet (ponytail: wire when the push server is). */
-export const getPushSetting = (): boolean => store().getBoolean('settings.push') ?? true
+/**
+ * Settings toggles (S62 거래 알림, S63 0원 거래 표시). S62 is on only after the user opted in and the OS allowed notifications (#67):
+ * the default is off, so the switch never claims a registration that does not exist. The S63 zero-value filter is not wired to its switch yet.
+ */
+export const getPushSetting = (): boolean => store().getBoolean('settings.push') ?? false
 export const setPushSetting = (v: boolean): void => store().set('settings.push', v)
+/** #67 decision 5: the S50 sheet is offered once. */
+export const getPushOptinShown = (): boolean => store().getBoolean('push.optinShown') ?? false
+export const setPushOptinShown = (v: boolean): void => store().set('push.optinShown', v)
+/** The server still holds this device's address because DELETE failed. Retried at the next launch (#67 decision 7). */
+export const getPushUnregisterPending = (): boolean => store().getBoolean('push.unregisterPending') ?? false
+export const setPushUnregisterPending = (v: boolean): void => store().set('push.unregisterPending', v)
 export const getZeroSetting = (): boolean => store().getBoolean('settings.zero') ?? false
 export const setZeroSetting = (v: boolean): void => store().set('settings.zero', v)
 

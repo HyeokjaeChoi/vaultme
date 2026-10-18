@@ -4,6 +4,8 @@ import {
   HistoryRequest,
   INSTALL_ID_HEADER,
   NONCE_HEADER,
+  PushOkResponse,
+  PushSubscribeRequest,
   RegisterResponse,
   RpcResponse,
   SIGNATURE_HEADER,
@@ -159,19 +161,20 @@ export function createApiClient(d: ApiDeps) {
     return (await inflight).token
   }
 
-  /** POST with the install token. One retry with a fresh token on 401 `unauthorized` (expired, rotated secret). */
-  async function post<T>(path: string, body: unknown, parse: (v: unknown) => T): Promise<T> {
-    const raw = JSON.stringify(body)
+  /** Request with the install token. One retry with a fresh token on 401 `unauthorized` (expired, rotated secret). */
+  async function send<T>(method: string, path: string, body: unknown, parse: (v: unknown) => T): Promise<T> {
+    const raw = body === undefined ? undefined : JSON.stringify(body)
     for (let attempt = 0; ; attempt++) {
       try {
         const token = await getToken(attempt > 0)
-        return parseWith(parse, await http('POST', path, { Authorization: `Bearer ${token}` }, raw))
+        return parseWith(parse, await http(method, path, { Authorization: `Bearer ${token}` }, raw))
       } catch (e) {
         if (attempt === 0 && e instanceof ApiError && e.code === 'unauthorized') continue
         throw e
       }
     }
   }
+  const post = <T>(path: string, body: unknown, parse: (v: unknown) => T) => send('POST', path, body, parse)
 
   return {
     /** JSON-RPC through POST /v1/rpc. Returns `result`; a JSON-RPC `error` throws `RpcError`. */
@@ -184,6 +187,14 @@ export function createApiClient(d: ApiDeps) {
     /** POST /v1/history (lld.md §4). Returned as is (`HistoryResponse`, lld §4.2): the history model checks each item, so one unknown item does not fail the page. */
     history(address: string, cursor?: string): Promise<unknown> {
       return post('/v1/history', HistoryRequest.parse({ address, ...(cursor === undefined ? {} : { cursor }) }), (v) => v)
+    },
+    /** PUT /v1/push/subscription: registers this install's address and Expo push token (#67). Replaces any earlier one. */
+    async putPushSubscription(address: string, expoToken: string): Promise<void> {
+      await send('PUT', '/v1/push/subscription', PushSubscribeRequest.parse({ address, expoToken }), (v) => PushOkResponse.parse(v))
+    },
+    /** DELETE /v1/push/subscription: deletes the address and token on the server. Also fine when there is none. */
+    async deletePushSubscription(): Promise<void> {
+      await send('DELETE', '/v1/push/subscription', undefined, (v) => PushOkResponse.parse(v))
     },
   }
 }

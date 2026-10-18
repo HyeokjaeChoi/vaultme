@@ -182,7 +182,7 @@ describe('POST /webhooks/alchemy', () => {
   it('pushes a deposit with no amount and no address on the lock screen', async () => {
     expect((await hook(activity([eth()]))).status).toBe(200)
     const [m] = sentMessages()
-    expect(m).toMatchObject({ to: TOKEN, title: 'VaultMe', body: '입금이 들어왔어요. 앱에서 확인해 주세요.', data: { kind: 'deposit', hash: HASH } })
+    expect(m).toMatchObject({ to: TOKEN, title: '입금이 들어왔어요', body: '앱에서 확인해 주세요.', data: { kind: 'deposit', hash: HASH } })
     const text = JSON.stringify([m.title, m.body])
     expect(text).not.toMatch(/0x|ETH|USDC|0\.5/)
     expect((calls.find((c) => c.url === expoSend)!.init.headers as Record<string, string>).authorization).toBe(`Bearer ${E.EXPO_ACCESS_TOKEN}`)

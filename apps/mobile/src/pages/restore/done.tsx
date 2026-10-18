@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account/fixtures'
 import { useAccountAddress } from '@/features/backup'
 import { clearHeld, restoredWithPassphrase } from '@/features/restore/model/handoff'
+import { disableTxPush } from '@/features/push'
 import { removeRestoredWallet } from '@/features/restore/model/restoreWallet'
 import { View } from 'react-native'
 import { useCopy } from '@/shared/lib/useCopy'
@@ -37,8 +38,10 @@ export function RestoreDonePage({ demo = false, copiedDemo = false, passphraseDe
   const different = async () => {
     setRemoving(true)
     // Wrong wallet: remove it, go back to S05. The words stay (in memory, via the hand-off), the passphrase does not.
-    if (await removeRestoredWallet()) router.replace('/restore')
-    else setRemoving(false)
+    if (await removeRestoredWallet()) {
+      void disableTxPush() // the server forgets this address and token too (#67); a failed delete is retried at the next launch
+      router.replace('/restore')
+    } else setRemoving(false)
   }
   if (!address) return <Redirect href="/" />
   return (
