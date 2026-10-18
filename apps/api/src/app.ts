@@ -7,6 +7,8 @@ import {
   HistoryRequest,
   HistoryResponse,
   InstallMeResponse,
+  PushOkResponse,
+  PushSubscribeRequest,
   RegisterRequest,
   RegisterResponse,
   RpcRequest,
@@ -21,6 +23,7 @@ import { importPublicKey, issueToken, limitInstall, nowSeconds, rateLimited, req
 import type { Env } from './env.ts'
 import { getHistory } from './etherscan.ts'
 import { InvalidCursorError, UpstreamError, fail } from './errors.ts'
+import { AlchemyPayload, handleActivity, subscribe, unsubscribe, verifyAlchemySignature } from './push.ts'
 import { proxyRpc, rpcAllowed } from './rpc.ts'
 
 // No CORS headers on purpose: the only client is the native app (LLD §4).
@@ -82,6 +85,7 @@ const ipLimit = (name: 'RPC_IP_LIMITER' | 'HISTORY_IP_LIMITER'): MiddlewareHandl
 }
 app.use('/v1/rpc', ipLimit('RPC_IP_LIMITER'), requireToken)
 app.use('/v1/history', ipLimit('HISTORY_IP_LIMITER'), requireToken)
+app.use('/v1/push/*', requireToken)
 
 app.openapi(
   createRoute({
@@ -184,6 +188,63 @@ app.openapi(
     }
   },
 )
+
+app.openapi(
+  createRoute({
+    method: 'put',
+    path: '/v1/push/subscription',
+    request: { body: { content: { 'application/json': { schema: PushSubscribeRequest } }, required: true } },
+    responses: {
+      200: { description: 'Address and push token registered', content: { 'application/json': { schema: PushOkResponse } } },
+      400: errorResponse('Invalid address or push token'),
+      503: errorResponse('Webhook registration failed, nothing was kept (retryable)'),
+      ...bearer,
+    },
+  }),
+  async (c) => {
+    const { address, expoToken } = c.req.valid('json')
+    if (!(await subscribe(c.env, c.get('installId'), address, expoToken))) return c.json(errorEnvelope('unavailable', 'Push registration unavailable'), 503)
+    return c.json({ ok: true as const }, 200)
+  },
+)
+
+app.openapi(
+  createRoute({
+    method: 'delete',
+    path: '/v1/push/subscription',
+    responses: {
+      200: { description: 'Subscription deleted (also when there was none)', content: { 'application/json': { schema: PushOkResponse } } },
+      ...bearer,
+    },
+  }),
+  async (c) => {
+    // The row is gone before the Alchemy call. A failed removal is queued and retried by cron, so the answer is still 200.
+    await unsubscribe(c.env, c.get('installId'))
+    return c.json({ ok: true as const }, 200)
+  },
+)
+
+// Alchemy Notify address-activity webhook. Not under /v1: Alchemy sends no app version header. Authenticated by HMAC, not by token.
+app.post('/webhooks/alchemy', async (c) => {
+  const raw = await c.req.text()
+  if (!(await verifyAlchemySignature(c.env, raw, c.req.header('X-Alchemy-Signature')))) return fail(c, 401, 'unauthorized', 'Signature is invalid')
+  let json: unknown
+  try {
+    json = JSON.parse(raw)
+  } catch {
+    return fail(c, 400, 'invalid_request', 'Invalid request')
+  }
+  const payload = AlchemyPayload.safeParse(json)
+  if (!payload.success) return fail(c, 400, 'invalid_request', 'Invalid request')
+  try {
+    await handleActivity(c.env, payload.data)
+  } catch (e) {
+    // Non-200 makes Alchemy retry with backoff. push_sent stops a retry from notifying twice.
+    if (e instanceof UpstreamError) return fail(c, 503, 'unavailable', 'Push unavailable')
+    throw e
+  }
+  return c.json({ ok: true }, 200)
+})
 
 app.notFound((c) => fail(c, 404, 'not_found', 'Not found'))
 // Never return the stack or the error text. Log only the error name.

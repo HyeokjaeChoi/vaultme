@@ -12,6 +12,10 @@ declare namespace Cloudflare {
     ETHERSCAN_BUCKET: DurableObjectNamespace<import('../src/bucket.ts').EtherscanBucket>
     INFURA_KEY: string
     ALCHEMY_KEY: string
+    ALCHEMY_WEBHOOK_ID: string
+    ALCHEMY_SIGNING_KEY: string
+    ALCHEMY_NOTIFY_TOKEN: string
+    EXPO_ACCESS_TOKEN: string
     TEST_MIGRATIONS: import('cloudflare:test').D1Migration[]
   }
 }

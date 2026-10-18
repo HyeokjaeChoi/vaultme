@@ -6,3 +6,8 @@ ETHERSCAN_API_KEY=replace-me
 # RPC upstream keys for POST /v1/rpc (Sepolia). Get your own from infura.io and alchemy.com.
 INFURA_KEY=replace-me
 ALCHEMY_KEY=replace-me
+# Transaction push (#67). Alchemy Notify address-activity webhook (Ethereum Sepolia) and Expo access token.
+ALCHEMY_WEBHOOK_ID=replace-me
+ALCHEMY_SIGNING_KEY=replace-me
+ALCHEMY_NOTIFY_TOKEN=replace-me
+EXPO_ACCESS_TOKEN=replace-me
