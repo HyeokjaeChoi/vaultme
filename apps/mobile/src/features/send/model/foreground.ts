@@ -8,7 +8,10 @@ import { createForegroundTrigger } from './foregroundTrigger'
  */
 export function useOnForeground(callback: () => void, enabled: boolean): void {
   const cb = useRef(callback)
-  cb.current = callback
+  // Updated after commit, so the listener never calls a callback from a render React discarded.
+  useEffect(() => {
+    cb.current = callback
+  })
   useEffect(() => {
     if (!enabled) return
     const trigger = createForegroundTrigger(() => cb.current(), AppState.currentState)
