@@ -46,9 +46,11 @@ describe('prepare() fee shortage through feeShortBy', () => {
   } as ChainSnapshot)
   it('USDC send with ETH below the cap reports the exact missing ETH; with enough ETH it reports none', () => {
     const short = prepare({ asset: 'USDC', to: A, amount: '5', previous: [] }, snap(0n))
-    expect(short.ok && feeShortBy(short.review.warnings)).toBe(short.ok ? short.review.feeCap : null)
+    if (!short.ok) throw new Error(short.error)
+    expect(feeShortBy(short.review.warnings)).toBe(short.review.feeCap)
     const enough = prepare({ asset: 'USDC', to: A, amount: '5', previous: [] }, snap(toUnits('1', 'ETH')))
-    expect(enough.ok && feeShortBy(enough.review.warnings)).toBeNull()
+    if (!enough.ok) throw new Error(enough.error)
+    expect(feeShortBy(enough.review.warnings)).toBeNull()
   })
   it('the full USDC balance is allowed: the fee is paid in ETH, not from the token', () => {
     const r = prepare({ asset: 'USDC', to: A, amount: '25.5', previous: [] }, snap(toUnits('1', 'ETH')))
