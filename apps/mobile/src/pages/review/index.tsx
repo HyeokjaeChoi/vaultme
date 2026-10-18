@@ -12,7 +12,7 @@ import { AddressText } from '@/shared/ui/AddressBlock'
 import { ReviewPanel } from '@/widgets/review-panel/ReviewPanel'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 import { goBack } from '@/shared/lib/nav'
-import { feeShortBy, parseSendAsset, rememberRecipient, runSend, sendFrom, useAuthName, useRecents, useReviewCore, readPendingTx, writePendingTx, type SendOutcome } from '@/features/send'
+import { feeShortBy, parseSendAsset, rememberRecipient, runSend, sendFrom, useAuthName, useOnForeground, useRecents, useReviewCore, readPendingTx, writePendingTx, type SendOutcome } from '@/features/send'
 import { apiErrorKey } from '@/shared/api'
 import { chain } from '@/shared/chain'
 import { useDevEthShort } from '@/shared/chain/useDevEthShort'
@@ -69,6 +69,8 @@ export function ReviewPage() {
   const values = core.review ? resolveReview(to, amount, risk === '1', core.review, recentAddresses, asset) : base
   const shortBy = core.review ? feeShortBy(core.review.warnings) : null // a token send needs ETH for the fee: with too little, Confirm stays off
   const [busy, setBusy] = useState(false)
+  // Same as the amount screen: back from the faucet, read the balance again while the ETH shortage shows (not during a send: the auth prompt also leaves and returns).
+  useOnForeground(() => void core.refresh(), shortBy !== null && !busy)
   const [rechecking, setRechecking] = useState(__DEV__ && recheck === '1') // `?recheck=1` is a __DEV__ capture override of Figma 461:5074
   const authName = useAuthName()
   // `?notice=` is a __DEV__ capture override (Figma C3-S22 notice states).
