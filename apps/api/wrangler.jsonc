@@ -7,10 +7,13 @@
   // Vars and bindings are not inherited by named environments, so each env repeats them.
   "vars": { "MIN_APP_VERSION": "0.0.0" },
   // ETHERSCAN_API_KEY (history upstream) is a secret too. The EtherscanBucket Durable Object is one global token bucket (LLD §5.1).
+  // ALCHEMY_WEBHOOK_ID, ALCHEMY_SIGNING_KEY, ALCHEMY_NOTIFY_TOKEN, EXPO_ACCESS_TOKEN (transaction push, #67) are secrets too.
   // INFURA_KEY and ALCHEMY_KEY (RPC upstreams) are secrets too, set the same way.
   // TOKEN_SECRET (>= 32 chars) is a secret: .dev.vars locally, `wrangler secret put TOKEN_SECRET` when deployed.
   // database_id is left out so wrangler provisions the D1 database on first deploy. Local dev needs none.
   "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
+  // Hourly sweep for transaction push (#67): 30-day expiry and Alchemy removal retries.
+  "triggers": { "crons": ["17 * * * *"] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
   "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api", "migrations_dir": "migrations" }],
   // Cloudflare limits count per location and are approximate (LLD §5.0). period is 10 or 60 only.
@@ -24,6 +27,7 @@
   "env": {
     "staging": {
       "name": "vaultme-api-staging",
+      "triggers": { "crons": ["17 * * * *"] },
       "vars": { "MIN_APP_VERSION": "0.0.0" },
       "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
@@ -37,6 +41,7 @@
     },
     "production": {
       "name": "vaultme-api-production",
+      "triggers": { "crons": ["17 * * * *"] },
       "vars": { "MIN_APP_VERSION": "0.0.0" },
       "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
