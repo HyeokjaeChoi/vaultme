@@ -357,7 +357,7 @@ C2b 문구의 PR 및 승인 상태(2026-10-14)는 "결정" 칸에 적었다. 소
 
 ## Redesign B 수정안 (2026-10-16, 오너 승인)
 
-상태: 오너 전체 승인 (2026-10-16). 추가 결정: 칩은 25% / 50% / 전액, ETH 전액 = 잔액 − 최대 수수료, 인증 이름은 기기별(Face ID / Touch ID / 지문 / 기기 인증). 25%·50%는 보낼 수 있는 금액(ETH는 잔액 − 최대 수수료, USDC는 잔액)의 비율이고 자산 표시 자릿수에서 내림한다(lld.md §3.1 floor). 기존 승인 행은 바꾸지 않았다. 이 절은 추가분이다. 근거는 [redesign-b.md](redesign-b.md) §6 결정 1–10, Toss·Kakao Pay·KakaoBank 문구 조사(`vaultme-design-research/mobbin-2026-10-15/fintech-korea.md`, `fintech-korea-2.md`, 저장소 밖), AGENTS.md Foundation 계약 3–4이다.
+상태: 오너 전체 승인 (2026-10-16). 추가 결정: 칩은 25% / 50% / 전액, ETH 전액 = 잔액 − 최대 수수료, 인증 이름은 기기별(Face ID / Touch ID / 지문 / 기기 인증). 25%·50%는 보낼 수 있는 금액(ETH는 잔액 − 최대 수수료, USDC는 잔액)의 비율이고 자산 표시 자릿수에서 내림한다(lld.md §3.1 floor). 기존 승인 행은 바꾸지 않았다. 이 절은 추가분이다. 근거는 [redesign-b.md](redesign-b.md) §6 결정 1–10, Toss·Kakao Pay·KakaoBank 문구 조사(`vaultme-design-research/mobbin-2026-10-15/fintech-korea.md`, `fintech-korea-2.md`, 저장소 밖), docs/agents/foundation.md 계약 3–4이다.
 
 적용 원칙:
 - 사용자에게 결정 하나를 묻는 단계 제목은 질문형 해요체로 쓴다. 결과 화면은 "~했어요 / ~하는 중이에요"로 쓴다. 합니다체는 법적 문구에만 쓴다.

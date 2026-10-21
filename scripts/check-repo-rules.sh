@@ -10,7 +10,7 @@ files() { git ls-files --cached --others --exclude-standard -- "$@" 2>/dev/null;
 # scan <regex> <pathspec...>: grep only when the list is not empty (BSD xargs runs on empty input).
 scan() { local re="$1"; shift; local list; list="$(files "$@" | grep -v -e '/generated/' -e 'pnpm-lock' || true)"; [ -n "$list" ] && printf '%s\n' "$list" | tr '\n' '\0' | xargs -0 grep -nE -- "$re"; }
 
-# R1. No private keys or 32-byte hex secrets in tracked source (AGENTS.md rule 4).
+# R1. No private keys or 32-byte hex secrets in tracked source (docs/agents/foundation.md rule 4).
 if scan '-----BEGIN [A-Z ]*PRIVATE KEY-----|privateKey: *["'\'']0x[0-9a-fA-F]{64}' 'apps/**' 'packages/**'; then
   err "R1: private key material found"
 fi
@@ -108,7 +108,7 @@ fi
 while IFS= read -r f; do
   case "$f" in
     */CLAUDE.local.md|CLAUDE.local.md) err "R9: remove $f; put personal notes in ~/.claude/CLAUDE.md" ;;
-    *) err "R9: remove $f; put shared rules in AGENTS.md (Claude Code reads it directly)" ;;
+    *) err "R9: remove $f; put shared rules in AGENTS.md or docs/agents/ (Claude Code reads AGENTS.md directly)" ;;
   esac
 done < <(git ls-files --cached --others --exclude-standard | grep -E '(^|/)(CLAUDE\.md|CLAUDE\.local\.md)$' || true)
 

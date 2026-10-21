@@ -2,7 +2,7 @@ import jsQR from 'jsqr'
 import QRCode from 'qrcode'
 import { describe, expect, it } from 'vitest'
 
-// Public BIP39 test vector address (AGENTS.md Foundation 4). Same encoder and error correction as the S30 screen (react-native-qrcode-svg uses `qrcode`, level M).
+// Public BIP39 test vector address (docs/agents/foundation.md rule 4). Same encoder and error correction as the S30 screen (react-native-qrcode-svg uses `qrcode`, level M).
 const ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const SCALE = 8
 const QUIET = 4
