@@ -125,7 +125,7 @@ apps/mobile/
 | FSD app layer 이름 | `src/shell/`로 바꿨다 (LLD는 `src/app/`) | `src/app/`이 있으면 Expo Router가 그것을 route root로 쓴다. 그러면 root `app/`이 무시된다. 처음에는 이것을 놓쳐서 route 없이 번들됐다. 지금은 4700 module로 실제 route가 번들된다 |
 | C23 위치 | `shared/ui`에 두었다. `widgets/portfolio-balance`가 아니다 | props만 받는 단순 컴포넌트라 widget을 만들지 않았다 |
 | Switch 크기 | 52×32 (`control_lg` × `avatar_sm`). Figma는 51×31 | Switch token이 없다. raw 숫자를 쓸 수 없다 |
-| C29–C33 token | Component token이 없어 Semantic token을 썼다 | AGENTS 규칙 1 |
+| C29–C33 token | Component token이 없어 Semantic token을 썼다 | docs/agents/foundation.md 규칙 1 |
 | typedRoutes | 끔 | `.expo/types` 생성에 의존하지 않기 위해서 |
 | 새 라이브러리 | `expo-font`, `@expo-google-fonts/inter`, `@expo-google-fonts/ibm-plex-mono`, `phosphor-react-native`, `react-native-svg`(위 참조), `expo-constants`, `expo-linking`, `expo-status-bar`, `react-native-screens`, `react-native-safe-area-context`, `react-native-worklets`, `react-native-reanimated` | 모두 Expo Router와 Reanimated의 필수 의존이다 |
 | Metro | 설정 파일 없음 | SDK 52+는 monorepo를 자동 설정한다. pnpm isolated install로 번들 성공 |
@@ -161,7 +161,7 @@ apps/mobile/
 
 - wallet-core 연결, 실제 주소와 키 (C2b)
 - Keychain, MMKV, 앱 잠금, 생체 인증
-- 카메라와 QR 스캔, 실제 QR 생성 (AGENTS 규칙 4)
+- 카메라와 QR 스캔, 실제 QR 생성 (docs/agents/foundation.md 규칙 4)
 - Push, API, `contracts` package
 - S03–S06, S23, S24, S31, S41, S50 이외 시트, 위험 확인 시트(S22L+ACK)
 - 자산 identity SVG (ETH, USDC 원본)

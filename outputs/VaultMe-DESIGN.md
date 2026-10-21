@@ -108,7 +108,7 @@ Mobile padding 16 px, section gap 24 px. Asset min-height 64 px, Activity min-he
 7. 가장 가치 있는 행동에 accent를 준다(실패 뒤 "다시 보내기"). 되돌릴 수 없는 일을 묻는 sheet는 안전한 쪽이 Primary다.
 8. 같은 정보는 한 번만 보인다(큰 숫자와 첫 행 중복 금지, 칩은 화면당 1개).
 9. 자주 쓰는 것은 움직이지 않는다(키패드). 드문 순간만 움직인다(확정, 잠금 해제). 곡선은 ease-out, 250 ms 이하. 움직임 줄이기에서는 최종 상태만 보인다.
-10. 모든 시각 변경은 Figma 먼저, 그다음 앱이다(AGENTS rule 6). Figma와 같다는 말은 품질의 증명이 아니다. 새 구조를 만들기 전에 Mobbin 화면 1–2장을 보고 frame annotation에 링크를 남긴다.
+10. 모든 시각 변경은 Figma 먼저, 그다음 앱이다(docs/agents/design-system.md rule 6). Figma와 같다는 말은 품질의 증명이 아니다. 새 구조를 만들기 전에 Mobbin 화면 1–2장을 보고 frame annotation에 링크를 남긴다.
 
 ## Review anatomy
 
