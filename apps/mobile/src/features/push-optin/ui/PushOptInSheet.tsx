@@ -8,6 +8,7 @@ import { BottomSheet, Button, StatusNotice, Text } from '@/shared/ui'
  * B-S50 Push opt-in sheet (Figma 423:14215, with Receive 652:107697): Secondary 나중에 above, Primary 알림 켜기 below.
  * 알림 켜기 asks the OS and registers the address. The OS saying no closes the sheet (S62 shows the denied state).
  * A failed registration keeps it open (Figma S50 failed 664:109243): a danger notice in the sheet's notice slot, Primary becomes 다시 시도, 나중에 closes.
+ * While the request runs every dismissal path (나중에, scrim, drag) is ignored; the sheet closes itself when it ends.
  * `failed` seeds the failed state for __DEV__ design captures only.
  */
 export function PushOptInSheet({ visible, onClose, failed: seeded = false }: { visible: boolean; onClose: () => void; failed?: boolean }) {
@@ -15,16 +16,19 @@ export function PushOptInSheet({ visible, onClose, failed: seeded = false }: { v
   const th = useTheme()
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(seeded)
-  const close = () => {
+  const finish = () => {
     setFailed(false)
     onClose()
+  }
+  const close = () => {
+    if (!busy) finish() // no dismissal while the request runs: a late success would turn notifications on after the user said 나중에
   }
   const enable = async () => {
     setBusy(true)
     const result = await enableTxPush()
     setBusy(false)
     if (result === 'error' || result === 'unavailable') setFailed(true)
-    else close()
+    else finish()
   }
   return (
     <BottomSheet
@@ -34,8 +38,8 @@ export function PushOptInSheet({ visible, onClose, failed: seeded = false }: { v
       notice={failed ? <StatusNotice tone="danger" title={t('pushSheet.failed.title')} body={t('pushSheet.failed.body')} /> : undefined}
       actions={
         <>
-          <Button label={t('pushSheet.later')} variant="secondary" onPress={close} />
-          <Button label={failed ? t('pushSheet.retry') : t('pushSheet.enable')} disabled={busy} onPress={() => void enable()} />
+          <Button label={t('pushSheet.later')} variant="secondary" disabled={busy} onPress={close} />
+          <Button label={failed ? t('pushSheet.retry') : t('pushSheet.enable')} busy={busy} onPress={() => void enable()} />
         </>
       }
     >
