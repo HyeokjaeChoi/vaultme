@@ -5,8 +5,8 @@ pnpm + Turborepo monorepo: `apps/mobile` (Expo), `apps/api`, `packages/{wallet-c
 
 ## Communication
 
-Always talk in ASD-STE100 Simplified Technical English. Always talk to me like I have ADHD.
-Explain all answers in Korean, in short sentences and concrete steps. Keep proper nouns and technical identifiers in their original language.
+Always talk to me like I have ADHD.
+Explain all answers in Korean. Write short, simple sentences and concrete steps, following ASD-STE100 Simplified Technical English principles. Keep proper nouns and technical identifiers in their original language.
 Put the main result first. Explain one point at a time.
 
 ## Commands
@@ -29,7 +29,7 @@ Put the main result first. Explain one point at a time.
 
 | When | Read |
 |---|---|
-| Any task | `docs/agents/workflow.md` (issue → branch → PR for repo changes; Figma-only edits need no PR) |
+| Any task | `docs/agents/workflow.md` (issue → branch → PR for repo changes; work that changes no repo file needs no PR) |
 | Before you edit an area | `docs/agents/design-index.md` and `.claude/skills/vaultme-review-lessons/SKILL.md` |
 | Any UI work (Figma or app) | `docs/agents/design-system.md` (completion gates, skills, comparison images) |
 | Tokens, Figma source, components, icons, wallet copy | `docs/agents/foundation.md` (Foundation contract 1–17) |

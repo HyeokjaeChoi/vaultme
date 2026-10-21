@@ -1,7 +1,7 @@
 # Work workflow
 
 A repository change (code, tokens, docs, CI) = one GitHub issue = one branch = one PR.
-Figma-only work and small design edits need no issue or PR. Link the result (frame IDs, audit result) in the related issue or PR.
+Work that changes no repository file (Figma-only edits, including small design fixes) needs no issue or PR. Link the result (frame IDs, audit result) in the related issue or PR.
 Figma screen gates still apply (`docs/agents/design-system.md`).
 
 ## Steps
