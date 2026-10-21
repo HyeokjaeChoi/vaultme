@@ -1,82 +1,40 @@
-# Communication instructions
+# VaultMe agent guide
 
-Always talk in ASD-STE100 Simplified Technical English.
+VaultMe is a self-custody wallet for the Ethereum Sepolia testnet (learning and portfolio project, test funds only).
+pnpm + Turborepo monorepo: `apps/mobile` (Expo), `apps/api`, `packages/{wallet-core,tokens,i18n,contracts,config}`.
+
+## Communication
+
 Always talk to me like I have ADHD.
-Please explain all answers in Korean, and for specialized terms or proper nouns specific to each country, please express them in their original language.
+Explain all answers in Korean. Write short, simple sentences and concrete steps, following ASD-STE100 Simplified Technical English principles. Keep proper nouns and technical identifiers in their original language.
+Put the main result first. Explain one point at a time.
 
-Use short Korean sentences and concrete steps. Keep proper nouns and technical identifiers in their original language. Put the main result first. Explain one point at a time.
+## Commands
 
-# Source of truth for agent instructions
+- Check everything: `pnpm turbo run typecheck lint test` and `scripts/check-repo-rules.sh` (pre-commit runs the script; `git config core.hooksPath .githooks` once per clone).
+- Foundation tokens: `python3 work/build_foundation.py` after any token change.
+- Turborepo: before you change `turbo.json` or turbo commands, read `docs/` inside the installed `turbo` package (`node -p "require.resolve('turbo/package.json')"`).
 
-`AGENTS.md` is the single source of truth (SSOT) for agent instructions in this repository.
-With the default **Project instructions** setting (`claude-md-or-agents-md`), Claude Code v2.1.277 and later reads `AGENTS.md` directly when there is no `CLAUDE.md`, `.claude/CLAUDE.md`, or `CLAUDE.local.md` in the working directory or any directory above it ([docs](https://code.claude.com/docs/en/memory#agents-md)). In that default mode any of those files stops Claude Code from reading `AGENTS.md`, so do not add them anywhere in the repository (any directory), not even a local one. Put personal notes in `~/.claude/CLAUDE.md`, which does not block `AGENTS.md`.
-Add or change repository-wide rules here. Skills under `.claude/skills/` keep their scoped lessons and procedures (for example `vaultme-review-lessons`); they must not contradict this file. `scripts/check-repo-rules.sh` (R9) enforces the file rule.
+## Hard rules
 
-# Decisions without owner direction
+1. Figma (`NMXrn0q75G1SX2Bn1L1jP8`) is the SSOT for app screens. Do not build a screen, state or feature that has no Figma frame. Change Figma first (owner-approved), then the app.
+2. App UI uses `@vaultme/tokens` only, with the product scale 24/16/12/8 and screen padding 16. `scripts/check-repo-rules.sh` enforces it.
+3. Never put a real recovery phrase or private key in Figma, code or docs. Only the public test vectors in `docs/agents/foundation.md` rule 4 are allowed.
+4. Wallet actions show account, network, asset, recipient or spender, amount or allowance, estimated fee and status. Do not invent a security check, network or feature that is not implemented and checked.
+5. When the owner did not choose a library, version, API or workaround, check the official docs first (ctx7) and cite the source and version (`docs/agents/workflow.md` "Decisions without owner direction").
+6. Do not add `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` in any directory. It stops Claude Code from reading this file (`scripts/check-repo-rules.sh` R9). Personal notes go in `~/.claude/CLAUDE.md`.
+7. Report only what you ran and saw. Say what you could not check.
 
-When the owner did not specify a choice and you must decide (library, version, API, config option, platform behavior, tool, or workaround), do these steps before you act:
+## Read before you act
 
-1. Read the current official documentation. For a library, framework, SDK, CLI, or cloud service, use ctx7 first (`npx ctx7@latest library <name> "<question>"`, then `npx ctx7@latest docs <id> "<question>"`). If ctx7 has no match, use the vendor's official docs or release notes.
-2. Check the release state: the installed version, the latest stable release and its date (`npm view <pkg> time`), deprecation notices, and whether an official option replaces a custom workaround. Obey pnpm `minimumReleaseAge` (7 days).
-3. Prefer the official, released solution to a custom workaround. If you must use a workaround, write the reason and the condition to remove it in a code comment.
-4. In the report and the PR, name each source (URL or ctx7 library ID) and the version you checked. If you could not check, say so. Do not present an unchecked decision as verified.
+| When | Read |
+|---|---|
+| Any task | `docs/agents/workflow.md` (issue → branch → PR for repo changes; work that changes no repo file needs no PR) |
+| Before you edit an area | `docs/agents/design-index.md` and `.claude/skills/vaultme-review-lessons/SKILL.md` |
+| Any UI work (Figma or app) | `docs/agents/design-system.md` (completion gates, skills, comparison images) |
+| Tokens, Figma source, components, icons, wallet copy | `docs/agents/foundation.md` (Foundation contract 1–17) |
+| Product decisions | `outputs/vaultme-requirements-session.md` |
 
-These steps also apply to delegated work. Put them in the delegation instructions.
-
-# Work workflow
-
-Follow `docs/agents/workflow.md` for every task: GitHub issue → branch → PR → CodeRabbit review.
-Before you edit an area, read the sources in `docs/agents/design-index.md` and `.claude/skills/vaultme-review-lessons/SKILL.md`.
-When a review finding repeats, add a lesson to that skill and, if a script can detect it, a check to `scripts/check-repo-rules.sh`.
+Skills under `.claude/skills/` hold scoped procedures. They must not contradict this file or `docs/agents/`.
 Prefer a low-cost model for research and implementation. The main agent splits work, tracks it, and reviews results.
-
-# Design system enforcement (hard rules)
-
-These rules exist because of `docs/retro/2026-10-13-design-system-not-applied.md`. They are completion conditions, not advice.
-
-1. Figma screens, wireframes and prototype frames are built only with `.claude/skills/vaultme-figma-screen`. UI parts are design-system instances. Layout numbers, colors and text bind to variables and styles. The skill's `audit.js` must return 0 for every count before the work is reported done.
-2. App UI code is written only with `.claude/skills/vaultme-design-to-code`. Invoke `figma:figma-design-to-code` and read the Figma master or frame with `get_design_context` before writing UI code. Never rebuild a component from documentation alone.
-3. App code uses `@vaultme/tokens` for every color, spacing, radius and type value. Screens use the product scale (24/16/12/8, screen padding 16). `sectionGap.mobile` and `sectionGap.desktop` are landing-page values and are banned in app code. `scripts/check-repo-rules.sh` enforces this.
-4. A UI change is not done without an app-vs-Figma comparison image pair for each changed screen (light, plus one dark). The main agent reviews the pairs itself. Passing typecheck, lint and tests does not prove a UI change. Matching Figma does not prove quality: a changed screen group also needs a separate product-quality review (a reviewer agent in a Staff Product Designer role, with impeccable critique/audit and production references) before it is reported done.
-5. When delegating UI work, the instructions must name the Figma node IDs, require these skills, and require the comparison pairs. "Figma screenshot optional" is not allowed.
-6. Figma is the single source of truth (SSOT) for app screens. The app implements only the screens, states, components and copy that exist in Figma. If the app and Figma differ, change the app to match Figma. If the app needs a change, update the Figma frame first (owner-approved), then the app.
-7. Do not build a screen, state or feature that has no Figma frame. When such a request arrives, start with a design and feature grilling session with the owner: question the goal, scope, states, edge cases, copy and safety. Then draw the Figma frames, get owner approval, and only then write code.
-
-# VaultMe Foundation contract
-
-These rules apply to VaultMe work in this directory, including later app, web, Figma, and documentation changes.
-
-1. Use `outputs/wallet-foundation.tokens.json` as the value source. Keep the Primitive → Semantic → Component hierarchy. Add raw values only to Primitive; Semantic and Component values must alias existing tokens. Use the most specific Component token in UI work, or a Semantic token when no component token exists.
-2. Follow `outputs/wallet-foundation-guide.md` and `outputs/VaultMe-DESIGN.md` for typography, spacing, sizing, layout, motion, interaction states, accessibility, and wallet language. Keep the supplied landing-page image as the visual reference. A different color is allowed when it solves a documented contrast or product-state problem; record its role and provenance.
-3. Wallet actions must show the relevant account, network, asset, recipient or spender, amount or allowance, estimated fee, and action status. Show full addresses in review/detail views. Distinguish estimates, pending, confirmed, failures, warnings, and unknown results. A readable signature or a successful simulation is not a safety guarantee.
-4. Treat dApp connection, message signing, token approval, and on-chain transaction as distinct actions. Disconnecting an app does not revoke a token allowance. Never put a real recovery phrase or private key into Figma, code examples, or documentation. The only exception is the public BIP39 test vector "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about" and its address 0x9858EfFD232B4033E47d90003D41EC34EcaEda94, which may appear in Figma examples, tests and docs (owner decision 2026-10-17). The same vector with the public Trezor test passphrase "TREZOR" and its address 0x9c32F71D4DB8Fb9e1A58B0a80dF79935e7256FA6 is also allowed (owner decision 2026-10-17). It must never hold real funds. Do not invent security verification, a QR code, a supported network, or a product feature that has not been implemented and checked.
-5. For a Foundation change, update the token source/generator, Figma source file, and human-readable guidance together where they apply. Run `python3 work/build_foundation.py` to validate duplicate paths, missing aliases, and alias cycles. Check contrast and inspect affected Figma frames after visual edits.
-6. The Figma source is `https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8`. The owner authorized moving the original file into the `Design Systems` Project (`664722092`) in the existing team (`1682045324479940459`) and publishing its Library. The initial publication is complete: 60 assets (3 collections, 26 styles, 31 component sets), with 611 Variable members at that snapshot. The reviewed Borderless + Blue A + Icons update is now published: 85 assets (3 collections, 26 styles, 56 component entries: 31 existing sets plus 25 standalone Icons). The Production repair snapshot had 10 pages and 682 native Variables (679 managed plus 3 legacy easing STRING). Current Surface source readback has 10 pages and 693 native Variables (690 managed plus 3 legacy easing STRING), with 23 Text Styles and 3 Effect Styles. Portable JSON has 796 tokens (203 Primitive, 105 Semantic, 488 Component). The Surface native update adds 11 scalar Variables; effect.overlayShadow and overlay.shadow have nativeType=null and map to the existing elevation/md Effect Style. Native source and PNG review are complete in work/v4/verification/native/native-review-proof.json. Surface Library publication is complete with 85 assets retained. work/v4/verification/native/publication-proof.json records five sequential asset publications after review, including separately reviewed compatible Product navigation and Status label geometry repairs, with no remaining unpublished indicator in source UI. work/v4/verification/native/consumer-surface-proof.json verifies update and override retention for the three existing remote Button/Input/Transaction panel specimens, plus post-publication adoption of new remote C23 Complete/Partial/Unavailable and longBalance specimens. work/v4/verification/web/consumer-web-proof.json records bounded synthetic browser proof. Full wallet runtime, manual AT and package completion are separate verification scopes. The 2026-10-04 Production repair is published with 85 unchanged assets after review (3 collections, 26 styles, 56 component owners). Owner-level readback counts 30 sets and 26 standalone Components; the prior 31/25 breakdown is retained as a historical snapshot count. Later Library updates require review and publication evidence. The Redesign B in-place restyle is published (2026-10-16; evidence work/v7/verification/publication-proof.json; consumer update and override retention, including C23, verified in work/v7/verification/consumer-override-proof.json). Preserve this same source file and its IDs. Review source changes before publishing Library updates. Independent consumer-file subscription, Library update, and override retention are verified in `https://www.figma.com/design/lI4gGcTr9UVPEvVEODcf6U` for three linked component specimens. Historical separate web consumer proof covers Button/Input only. New bounded Surface web observations in work/v4/verification/web/browser-observation.json cover C23 Complete/Partial/Unavailable, longBalance override, consumer width320 without overflow, existing form feedback, and the synthetic overlay Escape/focus return. Explicit text200 is prototype text stress, not browser zoom; manual screen reader remains unverified. See `work/v2/verification/consumer-figma-proof.json` and `consumer-web-proof.json`; this is bounded verification, not full runtime/AT coverage. Earlier Draft records are history, not current source status.
-7. Foundation rules remain mandatory for all later app, web, Figma, and documentation work. Use `outputs/wallet-component-contracts.md` for the component and action contracts. Use `work/research-v2/planning/redesign-plan.md` for the v2 design scope. Actual completion evidence belongs in `work/v2/verification/` and, for Surface work, `work/v4/verification/`; a planned component or a synthetic prototype is not an implemented wallet feature.
-8. Keep portable Tokens Studio JSON import, native Figma source editing, and published Library subscription distinct. Do not reimport the complete JSON into the source file without checking existing Variables and Styles for duplicates. Preserve stable token paths and source IDs where possible. Record compatibility changes in `outputs/vaultme-v2-migration.md`. Project membership applies to native Figma assets; local research, source code, and package files remain in this workspace. Current color research does not authorize changing canonical token values without an accepted Foundation decision.
-9. When required research is blocked by login, ask the user directly to log in to the specific site. State which content requires login and why. Do not infer access, bypass the gate, or treat limited previews as the complete flow. Login does not prove Pro, MCP, export, or publication rights.
-10. Borderless is mandatory for default informational containers and flat wallet rows. Group content with type, alignment, and existing spacing. Add a border only for a named functional reason: editable Input recognition, keyboard focus, invalid or selected state, necessary table comparison, or the boundary of a fixed footer or independent drawer. Preserve visible labels, check markers, full addresses, wallet data, focus/error behavior, and 44 px targets. Do not use a global `border:0`, `outline:none`, transparent border-color rewrite, repeated shadows, or extra whitespace to replace all boundaries. Width decisions must use Component aliases to existing Primitive border-width roles. Preserve the existing border-color token paths. Consumer adoption and Library publication remain separate steps.
-11. The owner approved the Borderless + Blue A update. Primary default/hover/pressed are `#3152FF` / `#2944DB` / `#2138B8`, with white foreground. Secondary surface remains `#DCE8FD` with Ink foreground; secondary action remains neutral. Add the new raw brand values only to Primitive and preserve Semantic → Component aliases. This is an approved action-brand extension informed by documented industry UI and product intent, not an image sample. Keep the supplied image's overall Light direction. Do not use action blue to mean success, financial gain, or safety. Blue A text on the Secondary surface has 4.4967:1 contrast and does not meet the normal-text 4.5:1 requirement; use Ink there. Record actual integration evidence before reporting the change implemented.
-
-12. Follow `outputs/wallet-icon-guide.md` for icons. Use Solar (Linear default, Bold for selected/status/active, Bold Duotone for empty-state and result heroes; owner decision 2026-10-17, replaces Phosphor) for functional, status, and navigation roles; keep asset identity SVGs and their provenance separate. Important financial actions need an icon and visible label. Preserve account/network/asset/full recipient or spender/amount or allowance/estimated fee/status in review. Decorative icons next to labels use aria-hidden; icon-only controls need an accessible action name and a 44 px target. Do not treat a wallet icon, asset logo, check, or lock as authentication or a safety guarantee. Add icon roles as aliases, retain license notices (Solar: CC BY 4.0 attribution to 480 Design is required), and verify local, native, Library, and consumer adoption separately.
-
-13. In Figma, INSTANCE_SWAP can reset an icon vector foreground. After each swap, rebind the most specific contextual Component token and inspect the result. Primary button icons use `icon.action.onPrimary` (white). Keep web functional icons on context-driven currentColor. New Icon/ShowIcon, AssetIcon, and NetworkIcon properties are additive; preserve existing master IDs and property contracts. Asset identity fills remain original artwork.
-
-14. Start documentation work at `outputs/README.md` and the generated `outputs/foundation/` reader. Use `outputs/components/` for all C01–C28 usage contracts. Markdown remains the authored source; regenerate the reader with `work/v2/build_docs_portal.mjs` after source edits. Current release/package readiness belongs to `outputs/vaultme-release.json`. Keep consumer, audit and optional prototype bundles distinct. Record actual proof before any success flag; package verification must finish before finalization. Do not treat historical reports, planned consumer props, or synthetic specimens as a production wallet or a public SDK.
-
-15. The approved Surface hierarchy (Redesign B, owner-approved 2026-10-16) is flat white: `screenB/bg` aliases `surface/default`; Home, data, review and sheet surfaces are flat white, with no Light canvas and no C23 Secondary tint. Group content with row, section title and spacing; use a card only when grouping is required. C23 keeps its path and Quote IDs, uses portfolioBalance.padding/radius/borderWidth and Ink value/note in every Quote, and has no tint fill in the restyled master. Owner decision 2026-10-17: detail screens (review, result, transaction detail, settings) may use the 12 px `sectionBand` (`surface.canvas`, no border, no shadow); Home and Activity stay flat white. Notices have two tiers (Banner with `status.*.bg` tint, Inline). Preserve Primitive values, existing source/master/property IDs, neutral navigation, and action/state separation. overlay.* is an internal existing-host role, not a new public family; do not invent native dialog/popover/scrim hosts. The audited native pages contain no such floating hosts, so overlay adoption there remains reserved. Publication, consumer update, and package readiness require their own current evidence.
-
-16. Owner approved the 2026-10-05 Canvas enhancement: surface.canvas aliases color.neutral.50 (#F6F8FB). Preserve color.neutral.25 (#FBFCFE) as the original image anchor. This is an approved reuse of an existing Primitive, not a new image extraction. Keep White reading/review surfaces, Blue A, Borderless, and stable IDs. The C23 Secondary tint no longer applies: rule 15 (flat white, no tint) supersedes it. Current execution evidence: work/v5/verification/.
-
-17. Spacing repair (2026-10-05): use existing product Section gap 24 px, Group 16 px, Row 12 px, Field 8 px. White Home reading containers have 16 px inset while row x padding remains 0. Review max-width 480 px must not be overridden by general Desktop content width. Tablet stacked sections and Desktop column gutter use 24 px. Keep one Backup notice. Native screen assembly evidence is work/v6/spacing-audit/. Component owners and published Library assets remain unchanged in this repair.
-
-<!-- BEGIN:turborepo-agent-rules -->
-
-# This is NOT the Turborepo you know
-
-Turborepo configuration, task behavior, and CLI commands can vary between installed versions and may differ from your training data. Resolve the `turbo` package from this file's directory or relevant workspace; in monorepos, it may not be visible from the repository root. For example, run `node -p "require.resolve('turbo/package.json')"` from a workspace that depends on `turbo`.
-
-Read `docs/README.md` inside that installed package first, then read the relevant pages from its `docs/` directory before changing Turborepo configuration or commands. Heed deprecation notices. These bundled docs match the installed package version and are available without network access.
-
-This block is written and re-added by `turbo` before repository-scoped commands when an AI agent is detected. In the Turborepo source repository, its template is defined in `crates/turborepo-cli/src/cli/agent_guidance.rs`. Removing the managed block while updates are enabled means a later qualifying invocation will add it again. Set `"agentGuidance": false` in the root `turbo.json` or `turbo.jsonc` to opt out; this does not remove an existing block. Keep the block committed with your work to avoid an uncommitted change on the next agent invocation.
-<!-- END:turborepo-agent-rules -->
+When a review finding repeats, add a lesson to `vaultme-review-lessons` and, if a script can detect it, a check to `scripts/check-repo-rules.sh`.

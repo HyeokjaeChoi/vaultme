@@ -357,7 +357,7 @@ C2b 문구의 PR 및 승인 상태(2026-10-14)는 "결정" 칸에 적었다. 소
 
 ## Redesign B 수정안 (2026-10-16, 오너 승인)
 
-상태: 오너 전체 승인 (2026-10-16). 추가 결정: 칩은 25% / 50% / 전액, ETH 전액 = 잔액 − 최대 수수료, 인증 이름은 기기별(Face ID / Touch ID / 지문 / 기기 인증). 25%·50%는 보낼 수 있는 금액(ETH는 잔액 − 최대 수수료, USDC는 잔액)의 비율이고 자산 표시 자릿수에서 내림한다(lld.md §3.1 floor). 기존 승인 행은 바꾸지 않았다. 이 절은 추가분이다. 근거는 [redesign-b.md](redesign-b.md) §6 결정 1–10, Toss·Kakao Pay·KakaoBank 문구 조사(`vaultme-design-research/mobbin-2026-10-15/fintech-korea.md`, `fintech-korea-2.md`, 저장소 밖), AGENTS.md Foundation 계약 3–4이다.
+상태: 오너 전체 승인 (2026-10-16). 추가 결정: 칩은 25% / 50% / 전액, ETH 전액 = 잔액 − 최대 수수료, 인증 이름은 기기별(Face ID / Touch ID / 지문 / 기기 인증). 25%·50%는 보낼 수 있는 금액(ETH는 잔액 − 최대 수수료, USDC는 잔액)의 비율이고 자산 표시 자릿수에서 내림한다(lld.md §3.1 floor). 기존 승인 행은 바꾸지 않았다. 이 절은 추가분이다. 근거는 [redesign-b.md](redesign-b.md) §6 결정 1–10, Toss·Kakao Pay·KakaoBank 문구 조사(`vaultme-design-research/mobbin-2026-10-15/fintech-korea.md`, `fintech-korea-2.md`, 저장소 밖), docs/agents/foundation.md 계약 3–4이다.
 
 적용 원칙:
 - 사용자에게 결정 하나를 묻는 단계 제목은 질문형 해요체로 쓴다. 결과 화면은 "~했어요 / ~하는 중이에요"로 쓴다. 합니다체는 법적 문구에만 쓴다.
@@ -564,7 +564,7 @@ Figma `Flow 1`, `Flow 2`, `Flow 3`, `Flow 5`. 새 문구와 바뀐 문구만 적
 | S04 단어 확인 | 칸 도움말 (틀림) | {{n}}번째 단어가 달라요 | 틀린 칸에만. 기존 전체 notice "입력한 단어가 맞지 않아요…"를 대체 (seamless P1-5) |
 | S05 복구 진행 중 | 버튼 (움직임 줄이기) | 복구하는 중… | Busy 진행형 label. 다른 버튼: 보내는 중…(S22), 만드는 중…(S02), 확인하는 중…(다시 확인) |
 | S05 이미 지갑 · 저장 실패 | Banner | (기존 문구 그대로) | Inline → Banner(Danger), 입력 칸 바로 아래 |
-| S60 | 행 | 기기 보안 상태 › | 값 "확인됨" 삭제. 루팅·탈옥 감지를 아직 만들지 않았다 (AGENTS Foundation 4) |
+| S60 | 행 | 기기 보안 상태 › | 값 "확인됨" 삭제. 루팅·탈옥 감지를 아직 만들지 않았다 (docs/agents/foundation.md rule 4) |
 | S65 원문 파일 없음 (새 상태) | 본문 | 이 패키지는 라이선스 원문 파일을 포함하지 않아요. | 오너 확인 필요. 저작권 줄·전문 대신. 생성 목록에서 text가 null인 패키지(2026-10-17: 683개 중 68개). 예: react-native-mmkv 4.3.2 |
 | S65 원문 파일 없음 | 링크 행 | npm에서 패키지 보기 ↗ | 오너 확인 필요. `https://www.npmjs.com/package/{이름}` 외부 브라우저 |
 
@@ -603,7 +603,7 @@ Figma `Flow 1` B-S05 423:15293 외 10개 상태, B-S06 패스프레이즈 565:86
 | S05 이미 지갑 · 저장 실패 | Banner 위치 | (기존 문구 그대로) | 입력 칸 아래 → 제목 아래(스크롤 없이 보임) |
 | S06 패스프레이즈 | 본문 (제목 아래) | 패스프레이즈로 복구했어요. | 새 문구. 패스프레이즈를 썼을 때만 |
 | S05 패스프레이즈 | 접기 사전 안내 (입력 칸 아래) | 고급을 접으면 입력한 패스프레이즈가 지워져요. | 오너 결정(2026-10-17). Caption, text/tertiary. 펼친 상태에서만 보임 |
-| S05 패스프레이즈 | 예시 값 (Figma) | TREZOR | 공개 Trezor test vector(AGENTS rule 4 예외). 가림 상태는 점 6개 |
+| S05 패스프레이즈 | 예시 값 (Figma) | TREZOR | 공개 Trezor test vector(docs/agents/foundation.md rule 4 예외). 가림 상태는 점 6개 |
 | S06 | 보조 버튼 | 다른 주소예요 | 오너 결정(2026-10-17). 방금 복구한 지갑을 지우고 단어는 남긴 채 S05로 돌아감. 기존 "주소 복사"는 주소 아래 Ghost sm(link 색) 인라인 버튼으로 이동 |
 | S06 패스프레이즈 | 예시 주소 (Figma) | 0x9c32 F71D 4DB8 Fb9e 1A58 B0a8 0dF7 9935 e725 6FA6 | 공개 Trezor vector 주소(설명용). 다른 S06 화면은 0x9858…da94 |
 | S23 Failed | 링크 | 거래 상세 보기 | 버튼 → hero 아래 인라인 링크(Ghost sm, link 색). 하단 버튼은 확인(Primary) + 다시 보내기(Secondary) 둘 |

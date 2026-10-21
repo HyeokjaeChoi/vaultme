@@ -180,7 +180,7 @@ Q81 승인 (2026-10-13): Foundation(컴포넌트·기본 문구·description)은
 - `manyfast-vaultme-import/features/`: 요구사항 6개, 수용 기준 33개, 모두 기획 작성중
 - `manyfast-vaultme-import/user-flow/user-flow.json`: 섹션 6개, 화면 등의 라벨 62개, 행동 라벨 11개, Edge 77개. 내부 ID와 화면 라벨의 대응은 미검증
 - `../PRODUCT.md`: 현재 범위는 Foundation과 합성 Prototype. 실제 wallet runtime은 아님
-- `../AGENTS.md`: Primitive → Semantic → Component, Borderless, Blue A, 승인된 Canvas 및 spacing 계약
+- `../docs/agents/foundation.md`: Primitive → Semantic → Component, Borderless, Blue A, 승인된 Canvas 및 spacing 계약
 
 ## 첫 질문
 

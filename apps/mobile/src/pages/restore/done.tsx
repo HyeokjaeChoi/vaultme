@@ -16,7 +16,7 @@ import { Button, Screen, StatusNotice, SummaryRow, Text } from '@/shared/ui'
  * The address is read from kv (derived at restore); with none the screen redirects to Start. `demo` (__DEV__ `?demo=1`) shows the fixture address for design capture.
  * Backup is not claimed anywhere here (Q16).
  */
-// Public Trezor test vector: the demo address of the passphrase state (AGENTS.md rule 4 exception).
+// Public Trezor test vector: the demo address of the passphrase state (docs/agents/foundation.md rule 4 exception).
 const DEMO_PASSPHRASE_ADDRESS = '0x9c32F71D4DB8Fb9e1A58B0a80dF79935e7256FA6'
 
 export function RestoreDonePage({ demo = false, copiedDemo = false, passphraseDemo = false }: { demo?: boolean; copiedDemo?: boolean; passphraseDemo?: boolean }) {

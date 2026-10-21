@@ -94,7 +94,7 @@ vaultme/
 | Mnemonic 마스킹 | `String`, template, `JSON.stringify`, `inspect`, `Object.keys` 모두 단어 없음 |
 | 송신 | match → Pending, 불일치 → Unknown, throw → Unknown, 수수료 상승 → NeedsReview, 절대 상한 → Blocked. 서명자 복구 주소와 USDC `transfer` calldata 확인 |
 
-공개 test vector (AGENTS.md 규칙 4):
+공개 test vector (docs/agents/foundation.md 규칙 4):
 
 - `test test … junk` → `0xf39Fd6e5…2266`. 출처: viem `mnemonicToAccount.test.ts` (GitHub wevm/viem). 직접 읽어 확인했다.
 - `abandon … about` → 주소는 **출처에서 확인하지 못했다**. viem으로 도출해 안정성(inline snapshot)만 검사한다. 이 줄은 출처 확인 전까지 정답 증거가 아니다.

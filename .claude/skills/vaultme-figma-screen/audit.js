@@ -6,7 +6,7 @@ const PAGE = 'Flow 3 · Send & receive'
 const ROOT_IDS = [] // e.g. ['309:666']; empty = whole page
 // OS chrome and synthetic art are exempt: they are not product UI.
 const EXEMPT = /^(Status bar|Home indicator|Placeholder QR|QR code|Modules|Bracket|Tab hotspots)/
-// Documented asset identity artwork keeps its original fills (AGENTS.md Foundation 13, outputs/wallet-icon-guide.md):
+// Documented asset identity artwork keeps its original fills (docs/agents/foundation.md rule 13, outputs/wallet-icon-guide.md):
 // Icon / Asset / ETH 137:402, Icon / Asset / USDC 137:429. Nothing else is whitelisted.
 const ASSET_ART = new Set(['137:402', '137:429'])
 
