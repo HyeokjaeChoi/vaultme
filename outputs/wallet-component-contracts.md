@@ -342,3 +342,13 @@ S05 화면 조립: 제목 블록 → (Banner Danger, 이미 지갑·저장 실�
 | 버튼 위계 | Button / Primary · Secondary | 실패 결과: Primary "다시 보내기", Secondary "확인", 링크 "거래 상세 보기". 가장 가치 있는 행동이 Primary |
 
 새 style: `Product B/Fact`, `Product B/Fact upper`, `Product B/Link`. 새 Variable: `chip/bg`, `chip/fg`. 값 변경: `text/link`, `financial/change/positive` → Ink.
+
+## 알림 켜기 실패 상태 (#81, 2026-10-21)
+
+오너 승인. 기존 master ID와 property는 그대로다. property를 더하기만 했다. Library는 게시하지 않았다.
+
+| Component | Node | 바뀐 계약 |
+| --- | --- | --- |
+| B/Bottom sheet | 399:157 | Body와 Actions 사이에 `Notice` 자리(`B/Notice inline` Inline·Danger instance 664:109194)를 더했다. 새 BOOLEAN `Show notice`(기본 false)로 켠다. Exposed instance라 화면에서 Message를 바꾼다. 좌우 padding 0이라 제목·본문과 같은 16 시작선이다. 기본값이 꺼짐이라 기존 sheet 화면은 그대로다 |
+
+화면: S50 실패 `B-S30+S50 받기 · 알림 시트 / failed`(664:109243), S62 실패 `B-S62 알림 설정 / 켜기 실패`(664:109147). `error`와 `unavailable`은 한 상태로 보인다. 문구는 "알림을 켜지 못했어요." / "잠시 뒤에 다시 시도하세요."(ux-copy.md 실패 문구). S50은 sheet가 열린 채로 Primary가 "다시 시도", Secondary "나중에"는 닫기. S62는 스위치가 꺼진 채로 스위치 아래 Inline 알림, 스위치를 다시 켜면 다시 시도한다.

@@ -337,3 +337,8 @@ Figma `02 Semantic`(`VariableCollectionId:2:151`)의 `Dark` mode(`298:0`)를 읽
 - 화면 변경: 칩은 모든 화면에서 1개(같은 자리, 탭 → 안내 sheet). Home 큰 숫자와 목록 중복 제거. 자산 상세 사실 블록. 검토 순서(받는 사람 → 비용 → 보내는 것). 실패 결과 버튼 위계. 보내기 금액 한 열. 시작 화면 약속 + mono 한 줄. 설정 "수량 0 거래 표시".
 - 새 frame: B-S10B Home · 백업 전 첫 입금(586:97173), B-S10B 첫 입금 백업 시트(586:97341), B-S30B 받기 · 백업 전(586:97529). S31은 "보내기 게이트"로 용도가 바뀌었다(frame ID 그대로 423:13750).
 - 코드 영향(Figma 먼저, 앱은 뒤따른다): `text.link` 소비처(`SectionHeader`, `BlockHeader`, `StatusNotice`, `Input`, `RecipientField`, `SummaryRow`, `FeeSummary`)는 밑줄을 추가한다. 상단 칩은 `Sepolia` 하나. Home 중복 제거, 받기와 백업 시점(Q14), 설정 문구는 앱 이슈에서 처리한다.
+
+## 2026-10-21 B/Bottom sheet notice 자리 (#81)
+
+- Master 변경(추가만): `B/Bottom sheet` 399:157에 숨긴 `Notice`(`B/Notice inline` Danger, 664:109194)와 BOOLEAN `Show notice`(기본 false). 기존 instance는 바뀌지 않는다. 호환 영향 없음.
+- 새 frame: S50 실패 664:109243, S62 실패 664:109147 (audit 0). Library는 게시하지 않았다.
