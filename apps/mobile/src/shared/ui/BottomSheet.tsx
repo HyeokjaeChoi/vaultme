@@ -1,4 +1,4 @@
-// Figma: Bottom sheet 301:606 (Grabber 301:607), Redesign B: top radius sheetB.radius 32, Title 3, Secondary action above Primary
+// Figma: Bottom sheet 301:606 (Grabber 301:607), Redesign B: top radius sheetB.radius 32, Title 3, Secondary action above Primary; B/Bottom sheet 399:157 Show notice slot (Notice 664:109194)
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Modal, PanResponder, Pressable, ScrollView, useWindowDimensions, View } from 'react-native'
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated'
@@ -25,6 +25,8 @@ type Props = {
   onClose: () => void
   title: string
   children?: ReactNode
+  /** The `Show notice` slot: a Status notice (inline, e.g. danger) between the body and the actions. Off when omitted. */
+  notice?: ReactNode
   /** Primary (below). For a question about something irreversible this is the SAFE action ("취소"), never the one that executes (owner rule 2026-10-17, all sheets). */
   primary?: SheetAction
   /** Secondary (above Primary). The executing action of a risky question sits here with `danger`. */
@@ -34,7 +36,7 @@ type Props = {
 }
 
 /** C32 Bottom sheet, attached to the bottom edge (home-indicator padding inside). Max height 90%, only the content scrolls, actions stay pinned: Secondary above, Primary below. Buttons inside use the on-raised Secondary fill. */
-export function BottomSheet({ visible, onClose, title, children, primary, secondary, actions }: Props) {
+export function BottomSheet({ visible, onClose, title, children, notice, primary, secondary, actions }: Props) {
   const t = useTheme()
   const insets = useSafeAreaInsets()
   const { height } = useWindowDimensions()
@@ -108,6 +110,7 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
             <Text variant="title3" accessibilityRole="header" color={t.component.overlay.fg}>{title}</Text>
             {children}
           </ScrollView>
+          {notice ? <View style={{ alignSelf: 'stretch' }}>{notice}</View> : null}
           <OnRaisedContext value>
             <View style={{ gap: t.semantic.layout.fieldGap, alignSelf: 'stretch' }}>
               {secondary ? <Button variant="secondary" label={secondary.label} onPress={secondary.onPress} {...(secondary.danger ? { danger: true } : {})} /> : null}
