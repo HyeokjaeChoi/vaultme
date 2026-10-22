@@ -29,7 +29,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | A PR that changes an app screen shows app-vs-Figma images (light + dark) | `.github/workflows/pr-description.yml` `figma-comparison` |
 | PR body ≤ 3,500 characters and `Closes #N` | `.github/workflows/pr-description.yml` `check` |
 | Typecheck, lint and tests pass | CI `verify`, pre-push hook |
-| New packages are at least 7 days old | `pnpm-workspace.yaml` `minimumReleaseAge` |
+| pnpm installs only package versions published at least 7 days (10080 min) ago | `pnpm-workspace.yaml` `minimumReleaseAge` |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |
 
 When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a test) and list it here. Only if no check can detect it, add a lesson to `vaultme-review-lessons`.
