@@ -11,7 +11,7 @@ Put the main result first. Explain one point at a time.
 
 ## Commands
 
-- `pnpm turbo run typecheck lint test` and `scripts/check-repo-rules.sh`. Run `git config core.hooksPath .githooks` once per clone (pre-commit and pre-push run them).
+- `pnpm turbo run typecheck lint test` and `./scripts/check-repo-rules.sh`. Run `git config core.hooksPath .githooks` once per clone (pre-commit and pre-push run them).
 - Turborepo: before you change `turbo.json` or turbo commands, read `docs/` inside the installed `turbo` package.
 
 ## Enforced rules
