@@ -44,8 +44,7 @@ When a mistake repeats, add a check here, not a sentence.
 ## Where things are
 
 - Work steps (issue → branch → PR; work that changes no repo file needs no PR): `docs/agents/workflow.md`
-- Design sources per area: `docs/agents/design-index.md`
-- Repeated review lessons: `.claude/skills/vaultme-review-lessons/SKILL.md`
+- Before you edit an area, read its sources in `docs/agents/design-index.md` and `.claude/skills/vaultme-review-lessons/SKILL.md`.
 - Product decisions: `outputs/vaultme-requirements-session.md`
 
 Prefer a low-cost model for research and implementation. The main agent splits work, tracks it, and reviews results.
