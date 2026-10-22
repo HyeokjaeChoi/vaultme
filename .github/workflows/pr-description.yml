@@ -37,6 +37,9 @@ jobs:
           echo "App UI files changed:"; echo "$ui"
           section=$(printf '%s' "$BODY" | awk '/^## Figma comparison/{f=1;next} /^## /{f=0} f')
           [ -n "$section" ] || { echo "::error::Add a '## Figma comparison' section with app vs Figma images (light + dark) for each changed screen."; exit 1; }
+          # Light + dark per changed screen file (app routes and pages); shared UI alone needs one pair.
+          screens=$(printf '%s\n' "$ui" | grep -cE '^apps/mobile/(app|src/pages)/' || true)
+          need=$(( 2 * (screens > 0 ? screens : 1) ))
           imgs=$(printf '%s' "$section" | grep -oE '!\[[^]]*\]\([^)]+\)|<img [^>]*src=' | wc -l)
-          [ "$imgs" -ge 2 ] || { echo "::error::'## Figma comparison' needs at least 2 images (light + dark); found $imgs."; exit 1; }
+          [ "$imgs" -ge "$need" ] || { echo "::error::'## Figma comparison' needs $need images (light + dark for $screens changed screen files); found $imgs."; exit 1; }
 

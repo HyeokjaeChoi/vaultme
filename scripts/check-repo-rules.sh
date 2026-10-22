@@ -139,8 +139,11 @@ for f in sys.stdin.read().split("\0"):
                 run.append(w)
                 continue
             if len(run) >= 12:
+                # Cut out each allowed vector; any 12+ word remainder is still a finding.
                 phrase = " ".join(run)
-                if not any(a in phrase for a in allow):
+                for a in sorted(allow, key=len, reverse=True):
+                    phrase = phrase.replace(a, "|")
+                if any(len(seg.split()) >= 12 for seg in phrase.split("|")):
                     print(f"{f}:{n}: {len(run)} BIP39 words in a row", file=sys.stderr)
                     bad = 1
             run = []
