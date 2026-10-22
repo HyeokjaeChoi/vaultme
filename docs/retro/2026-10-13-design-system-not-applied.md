@@ -18,7 +18,7 @@
 | `11 Prototype` 화면 층 | 간격 320, 여백 183, 반경 432 | 61 |
 | `10 Wireframes` 화면 층 | 간격 159, 여백 180, 반경 9 | 0 |
 
-- 앱 규칙에 없는 간격 20을 썼다. 규칙은 24/16/12/8이다 (docs/agents/foundation.md 규칙 17).
+- 앱 규칙에 없는 간격 20을 썼다. 규칙은 24/16/12/8이다 (outputs/VaultMe-DESIGN.md).
 
 ### 앱 (C2a 첫 구현)
 
@@ -56,7 +56,7 @@
 
 | 조치 | 위치 | 종류 |
 |---|---|---|
-| 디자인 시스템 강제 규칙 | `docs/agents/design-system.md` | 규칙 |
+| 디자인 시스템 강제 규칙 | `AGENTS.md` "Enforced rules" | 규칙 |
 | Figma 화면은 DS instance로만 만들고, 토큰 감사 0건이어야 완료 | `.claude/skills/vaultme-figma-screen/` | 스킬 + 감사 스크립트 |
 | 앱 UI는 Figma master에서 design-to-code, Figma 대비 캡처가 있어야 완료 | `.claude/skills/vaultme-design-to-code/` | 스킬 |
 | `apps/mobile`에서 숫자 style 값, `sectionGap.mobile/desktop` 금지 | `scripts/check-repo-rules.sh` R4·R5 | 자동 검사 |

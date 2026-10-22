@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { chainIdCopula, chainName, parseAddressQr } from '../src/shared/lib/qrAddress'
 
-const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94' // public test vector (docs/agents/foundation.md rule 4)
+const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94' // public test vector (scripts/check-repo-rules.sh R10)
 const TOKEN = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' // Sepolia USDC
 
 describe('parseAddressQr', () => {

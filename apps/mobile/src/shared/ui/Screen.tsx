@@ -87,7 +87,7 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
         {children}
       </ScrollView>
       {footer ? (
-        // Fixed-footer boundary (docs/agents/foundation.md rule 10 functional exception): Figma draws the 1 px line above the actions on every screen with a footer.
+        // Fixed-footer boundary (Borderless functional exception, outputs/VaultMe-DESIGN.md): Figma draws the 1 px line above the actions on every screen with a footer.
         <View style={{ borderTopWidth: footerLine ? t.component.reviewFooter.borderWidth : 0, borderTopColor: t.semantic.border.subtle }}>
           {footerLead}
           <View style={{ paddingHorizontal: l.screen.padding, paddingTop: t.primitive.space[3], paddingBottom: t.primitive.space[1], gap: l.fieldGap }}>

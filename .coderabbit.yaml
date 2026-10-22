@@ -16,13 +16,13 @@ reviews:
   path_instructions:
     - path: "packages/wallet-core/**"
       instructions: >-
-        Judge against outputs/design/lld.md §3, §6, §11 and docs/agents/foundation.md rule 4.
+        Judge against outputs/design/lld.md §3, §6, §11 and AGENTS.md "Enforced rules" (scripts/check-repo-rules.sh R10).
         Amounts use decimal strings and bigint only, never Number. No IO, no React/RN.
         Recovery phrases and keys must never reach logs, errors, toString or JSON.
         Flag any state transition that is not in the lld.md §6 table.
     - path: "apps/mobile/**"
       instructions: >-
-        Judge against docs/agents/foundation.md, docs/agents/design-system.md, outputs/design/lld.md §1.1 and §12,
+        Judge against AGENTS.md, outputs/VaultMe-DESIGN.md, outputs/design/lld.md §1.1 and §12,
         outputs/design/ux-flow.md, outputs/design/ux-terminology.md and outputs/components/.
         Use token values only (no raw hex or numeric spacing). Review screens show account,
         network, asset, full recipient, amount, estimated fee and status. Korean copy must
@@ -84,10 +84,6 @@ knowledge_base:
       - files: docs/agents/design-index.md
         applyTo: "**"
       - files: docs/agents/workflow.md
-        applyTo: "**"
-      - files: docs/agents/foundation.md
-        applyTo: "**"
-      - files: docs/agents/design-system.md
         applyTo: "**"
       - files: .claude/skills/vaultme-review-lessons/SKILL.md
         applyTo: "**"

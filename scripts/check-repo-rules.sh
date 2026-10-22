@@ -10,7 +10,7 @@ files() { git ls-files --cached --others --exclude-standard -- "$@" 2>/dev/null;
 # scan <regex> <pathspec...>: grep only when the list is not empty (BSD xargs runs on empty input).
 scan() { local re="$1"; shift; local list; list="$(files "$@" | grep -v -e '/generated/' -e 'pnpm-lock' || true)"; [ -n "$list" ] && printf '%s\n' "$list" | tr '\n' '\0' | xargs -0 grep -nE -- "$re"; }
 
-# R1. No private keys or 32-byte hex secrets in tracked source (docs/agents/foundation.md rule 4).
+# R1. No private keys or 32-byte hex secrets in tracked source.
 if scan '-----BEGIN [A-Z ]*PRIVATE KEY-----|privateKey: *["'\'']0x[0-9a-fA-F]{64}' 'apps/**' 'packages/**'; then
   err "R1: private key material found"
 fi
@@ -111,5 +111,42 @@ while IFS= read -r f; do
     *) err "R9: remove $f; put shared rules in AGENTS.md or docs/agents/ (Claude Code reads AGENTS.md directly)" ;;
   esac
 done < <(git ls-files --cached --others --exclude-standard | grep -E '(^|/)(CLAUDE\.md|CLAUDE\.local\.md)$' || true)
+
+# R10. No recovery phrase in tracked text except public test vectors. Any run of 12+ BIP39 words
+# (scripts/bip39-english.txt, SHA-256 2f5eed53...dbda) must be one of the allowed vectors below.
+if ! git ls-files -z --cached --others --exclude-standard | python3 -c '
+import re, sys
+words = set(open("scripts/bip39-english.txt").read().split())
+allow = {
+    " ".join(["abandon"] * 11 + ["about"]),   # BIP39 test vector, address 0x9858...da94 (also with passphrase TREZOR)
+    " ".join(["abandon"] * 23 + ["art"]),     # BIP39 24-word test vector
+    " ".join(["test"] * 11 + ["junk"]),       # Hardhat/viem dev vector, address 0xf39F...2266, tests only
+}
+skip = re.compile(r"(\.(png|jpe?g|gif|webp|svg|ttf|otf|woff2?|pdf|ico)$)|(^|/)(generated|node_modules)/|pnpm-lock\.yaml$|^scripts/bip39-english\.txt$|^work/")
+token = re.compile(r"[a-z]+")
+bad = 0
+for f in sys.stdin.read().split("\0"):
+    if not f or skip.search(f):
+        continue
+    try:
+        text = open(f, encoding="utf-8").read()
+    except (OSError, UnicodeDecodeError):
+        continue
+    for n, line in enumerate(text.splitlines(), 1):
+        run = []
+        for w in token.findall(line) + [""]:
+            if w in words:
+                run.append(w)
+                continue
+            if len(run) >= 12:
+                phrase = " ".join(run)
+                if not any(a in phrase for a in allow):
+                    print(f"{f}:{n}: {len(run)} BIP39 words in a row", file=sys.stderr)
+                    bad = 1
+            run = []
+sys.exit(bad)
+'; then
+  err "R10: possible recovery phrase; only the public test vectors in R10 are allowed"
+fi
 
 exit "$fail"

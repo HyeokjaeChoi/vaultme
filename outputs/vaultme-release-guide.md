@@ -52,7 +52,7 @@ Figma rollback은 별도 작업입니다. 기존 source file과 master IDs를 �
 ## 최종 실행 순서
 
 1. Code와 docs 변경을 마칩니다. Native 변경 범위를 정합니다.
-2. `python3 work/build_foundation.py`를 실행합니다. Token JSON/CSS/map과 contrast 결과를 확인합니다.
+2. `pnpm turbo run build test --filter=@vaultme/tokens`를 실행합니다. 생성된 token과 contrast 테스트 결과를 확인합니다.
 3. 변경된 digest로 필요한 native source를 수정합니다. 실제 검토와 Library publication을 확인한 뒤 proof를 저장합니다. Primary ledger와 mirror를 같은 byte로 저장합니다.
 4. Browser/keyboard/consumer 검증을 실행합니다. 환경, digest, 한계와 결과를 저장합니다.
 5. `docs-readiness.json` 등 package에 들어갈 최종 증거를 마칩니다. `outputs/foundation/` portal을 생성합니다. 이후 package payload를 수정하지 않습니다.
