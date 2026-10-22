@@ -33,10 +33,10 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           BODY: ${{ github.event.pull_request.body }}
         run: |
-          gh api --paginate "repos/$REPO/pulls/$PR/files" > files.json
+          gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | {filename, status, patch}' -c > files.jsonl
           python3 - <<'PY'
           import json, os, re, sys
-          files = json.load(open("files.json"))
+          files = [json.loads(l) for l in open("files.jsonl") if l.strip()]
           ui = re.compile(r"^apps/mobile/(app|src/(pages|widgets|shared/ui|features/[^/]+/ui))/.*\.tsx$")
           comment = re.compile(r"^\s*(//|/\*|\*|\*/|\{/\*)|^\s*$")
           def code_change(f):
@@ -54,7 +54,12 @@ jobs:
           if not m:
               print("::error::Add a '## Figma comparison' section with light and dark app-vs-Figma images per changed screen."); sys.exit(1)
           alts = [a.lower() for a in re.findall(r"!\[([^\]]*)\]\([^)]+\)", m.group(1)) + re.findall(r"<img [^>]*alt=\"([^\"]*)\"", m.group(1))]
-          screens = sum(1 for c in changed if re.match(r"^apps/mobile/(app|src/pages)/", c)) or 1
+          # One screen per top-level route: app/send/index.tsx and src/pages/send/* are the same screen group.
+          # ponytail: groups sub-routes (send/amount, send/review) into one; split by route if that undercounts.
+          def screen(c):
+              m = re.match(r"^apps/mobile/(?:app|src/pages)/((?:\([^/]+\)/)*)([^/.]+)", c)
+              return m.group(2) if m else None
+          screens = len({screen(c) for c in changed} - {None}) or 1
           light = sum("light" in a for a in alts); dark = sum("dark" in a for a in alts)
           print(f"screens={screens} light={light} dark={dark}")
           if light < screens or dark < screens:
