@@ -29,6 +29,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | A PR that changes an app screen shows app-vs-Figma images (light + dark) | `.github/workflows/pr-description.yml` `figma-comparison` |
 | PR body ≤ 3,500 characters and `Closes #N` | `.github/workflows/pr-description.yml` `check` |
 | Typecheck, lint and tests pass | CI `verify`, pre-push hook |
+| New packages are at least 7 days old | `pnpm-workspace.yaml` `minimumReleaseAge` |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |
 
 When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a test) and list it here. Only if no check can detect it, add a lesson to `vaultme-review-lessons`.
@@ -38,7 +39,7 @@ When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a t
 1. Figma (`NMXrn0q75G1SX2Bn1L1jP8`) is the SSOT for app screens. No screen, state or feature without a Figma frame. Change Figma first (owner-approved), then the app. For a new feature, grill the owner first (`mattpocock-skills:grilling`).
 2. UI work uses the `vaultme-figma-screen` (Figma) and `vaultme-design-to-code` (app) skills. Preserve Figma node, master and property IDs. Do not publish the Library without owner review.
 3. Wallet actions show account, network, asset, recipient or spender, amount or allowance, estimated fee and status. Never claim a security check, network or feature that is not implemented and checked.
-4. When the owner did not choose a library, version, API or workaround, read the official docs first (ctx7) and cite the source and version.
+4. When the owner did not choose a library, version, API, config or workaround: read the official docs first (ctx7), check the installed and latest stable version and deprecations, and prefer the official solution. A workaround gets a code comment with its reason and removal condition. Cite each source and version in the report and PR, and say what you could not check. Put these steps in delegated instructions too.
 5. Report only what you ran and saw. Say what you could not check.
 
 ## Where things are
