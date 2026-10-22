@@ -31,7 +31,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | Typecheck, lint and tests pass | CI `verify`, pre-push hook |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |
 
-When a mistake repeats, add a check here, not a sentence.
+When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a test) and list it here. Only if no check can detect it, add a lesson to `vaultme-review-lessons`.
 
 ## Judgment rules
 
