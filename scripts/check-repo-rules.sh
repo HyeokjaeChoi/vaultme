@@ -123,7 +123,7 @@ allow = {
     " ".join(["test"] * 11 + ["junk"]),       # Hardhat/viem dev vector, address 0xf39F...2266, tests only
 }
 skip = re.compile(r"(\.(png|jpe?g|gif|webp|svg|ttf|otf|woff2?|pdf|ico)$)|(^|/)(generated|node_modules)/|pnpm-lock\.yaml$|^scripts/bip39-english\.txt$|^work/")
-token = re.compile(r"[a-z]+")
+token = re.compile(r"[A-Za-z]+")
 bad = 0
 for f in sys.stdin.read().split("\0"):
     if not f or skip.search(f):
@@ -132,21 +132,25 @@ for f in sys.stdin.read().split("\0"):
         text = open(f, encoding="utf-8").read()
     except (OSError, UnicodeDecodeError):
         continue
-    for n, line in enumerate(text.splitlines(), 1):
+    # A run is consecutive BIP39 words (any case) across punctuation and line breaks; any other word ends it.
+    run, start = [], 0
+    for m in list(token.finditer(text)) + [None]:
+        w = m.group(0).lower() if m else ""
+        if w in words:
+            if not run:
+                start = m.start()
+            run.append(w)
+            continue
+        if len(run) >= 12:
+            # Cut out each allowed vector; any 12+ word remainder is still a finding.
+            # Exact match is not used: identifiers next to a vector (PUBLIC_JUNK_PHRASE) are BIP39 words too.
+            phrase = " ".join(run)
+            for a in sorted(allow, key=len, reverse=True):
+                phrase = phrase.replace(a, "|")
+            if any(len(seg.split()) >= 12 for seg in phrase.split("|")):
+                print(f"{f}:{text.count(chr(10), 0, start) + 1}: {len(run)} BIP39 words in a row", file=sys.stderr)
+                bad = 1
         run = []
-        for w in token.findall(line) + [""]:
-            if w in words:
-                run.append(w)
-                continue
-            if len(run) >= 12:
-                # Cut out each allowed vector; any 12+ word remainder is still a finding.
-                phrase = " ".join(run)
-                for a in sorted(allow, key=len, reverse=True):
-                    phrase = phrase.replace(a, "|")
-                if any(len(seg.split()) >= 12 for seg in phrase.split("|")):
-                    print(f"{f}:{n}: {len(run)} BIP39 words in a row", file=sys.stderr)
-                    bad = 1
-            run = []
 sys.exit(bad)
 '; then
   err "R10: possible recovery phrase; only the public test vectors in R10 are allowed"

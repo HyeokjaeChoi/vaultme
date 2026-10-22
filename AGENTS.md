@@ -26,7 +26,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | No `CLAUDE.md` / `CLAUDE.local.md` anywhere (it stops Claude Code from reading this file) | R9 |
 | README.md and README.ko.md stay in step | R7 |
 | Tokens: raw values only in Primitive; Semantic and Component alias | `packages/tokens/test/hierarchy.test.ts`, `packages/tokens/build.mjs` |
-| A PR that changes an app screen shows app-vs-Figma images (light + dark) | `.github/workflows/pr-description.yml` `figma-comparison` |
+| A PR that changes app screen code shows one light and one dark app-vs-Figma image per changed screen (mode in the alt text) | `.github/workflows/pr-description.yml` `figma-comparison` |
 | PR body ≤ 3,500 characters and `Closes #N` | `.github/workflows/pr-description.yml` `check` |
 | Typecheck, lint and tests pass | CI `verify`, pre-push hook |
 | pnpm installs only package versions published at least 7 days (10080 min) ago | `pnpm-workspace.yaml` `minimumReleaseAge` |
