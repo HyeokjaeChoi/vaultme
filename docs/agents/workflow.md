@@ -24,9 +24,10 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
    then comment `@coderabbitai full review`.
 8. Answer each finding with one of: fix the code; fix the design source in the same PR;
    add a check to `scripts/check-repo-rules.sh`; or reject it and cite the design source section.
-9. Repeated finding (same kind seen in 2 PRs, or twice in one PR): add a lesson to
-   `.claude/skills/vaultme-review-lessons/SKILL.md`. If a script can detect it, also add a check
-   to `scripts/check-repo-rules.sh`. Do this in a separate `chore` PR if it is outside the PR purpose.
+9. Repeated finding (same kind seen in 2 PRs, or twice in one PR): add a check that fails on it
+   (`scripts/check-repo-rules.sh`, a test, or a type) and list it in `AGENTS.md` "Enforced rules".
+   Only if no check can detect it, add a lesson to `.claude/skills/vaultme-review-lessons/SKILL.md`.
+   Do this in a separate `chore` PR if it is outside the PR purpose.
 10. Merge when no Critical or Major finding is open and all checks pass. Record open Minor findings
     as new issues and link them. Squash merge. Project Status moves to `Done` when the issue closes.
 
