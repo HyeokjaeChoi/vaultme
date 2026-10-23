@@ -50,7 +50,7 @@ export function useSpin(on: boolean) {
       r.set(0)
     }
   }, [on, reduce])
-  return useAnimatedStyle(() => ({ transform: [{ rotate: `${r.get()}deg` }] }))
+  return useAnimatedStyle(() => ({ transform: [{ rotate: `${String(r.get())}deg` }] }))
 }
 
 /** Unlock bloom (Figma B-S90 note, owner 2026-10-17): the keyhole spreads the brand color, 400 ms ease-out. Reduce Motion: the screen cross-fades over the same time. */

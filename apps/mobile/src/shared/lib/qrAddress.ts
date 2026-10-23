@@ -1,5 +1,6 @@
 import { CHAIN, toChecksumAddress } from '@vaultme/wallet-core'
 import { isAddressFormat } from './address'
+import { at } from './at'
 
 /**
  * Address QR parser (issue #64 Q8, Q9). Address only: accepts a bare 0x address and the EIP-681 form
@@ -48,11 +49,11 @@ export function parseAddressQr(data: string): QrParse {
   const m = /^ethereum:(?:pay-)?([^?]*)(?:\?(.*))?$/i.exec(raw)
   if (!m) return NOT_ADDRESS
   const path = PATH.exec(m[1] ?? '')
-  if (!path || !validAddress(path[1]!)) return NOT_ADDRESS
+  if (!path || !validAddress(at(path, 1))) return NOT_ADDRESS
   const chainId = path[2] === undefined ? null : Number(path[2])
   const fn = path[3]
   const params = queryParams(m[2] ?? '')
-  let address = path[1]!
+  let address = at(path, 1)
   if (fn !== undefined) {
     const to = params.get('address')
     if (fn !== 'transfer' || to === undefined || !validAddress(to)) return NOT_ADDRESS

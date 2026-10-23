@@ -9,14 +9,14 @@ const items = new Map<string, { username: string; password: string }>()
 vi.mock('react-native-keychain', () => ({
   ACCESS_CONTROL: { BIOMETRY_ANY_OR_DEVICE_PASSCODE: 'x' },
   ACCESSIBLE: { WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: 'x', AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: 'y' },
-  setGenericPassword: vi.fn(async (u: string, p: string, o: { service: string }) => {
+  setGenericPassword: vi.fn((u: string, p: string, o: { service: string }) => {
     items.set(o.service, { username: u, password: p })
-    return { service: o.service, storage: 'x' }
+    return Promise.resolve({ service: o.service, storage: 'x' })
   }),
-  getGenericPassword: vi.fn(async (o: { service: string }) => items.get(o.service) ?? false),
-  hasGenericPassword: vi.fn(async (o: { service: string }) => items.has(o.service)),
-  resetGenericPassword: vi.fn(async () => true),
-  getSupportedBiometryType: vi.fn(async () => null),
+  getGenericPassword: vi.fn((o: { service: string }) => Promise.resolve(items.get(o.service) ?? false)),
+  hasGenericPassword: vi.fn((o: { service: string }) => Promise.resolve(items.has(o.service))),
+  resetGenericPassword: vi.fn(() => Promise.resolve(true)),
+  getSupportedBiometryType: vi.fn(() => Promise.resolve(null)),
 }))
 vi.mock('react-native-mmkv', () => ({
   createMMKV: () => {

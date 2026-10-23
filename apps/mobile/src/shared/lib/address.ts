@@ -37,7 +37,7 @@ export const displayAddress = (address: string): string => toChecksumAddress(add
 /** Indexes of the characters of the displayed form that differ from `other` (look-alike marks, per character, case-insensitive). */
 export function diffChars(address: string, other: string): number[] {
   const [a, b] = [displayAddress(address), displayAddress(other).toLowerCase()]
-  return [...a].flatMap((c, i) => (c.toLowerCase() === b[i] ? [] : [i]))
+  return a.split('').flatMap((c, i) => (c.toLowerCase() === b[i] ? [] : [i]))
 }
 
 /** Emphasis: the first 6 characters (0x + 4) and the last 4 are strong, so the head and tail can be compared at a glance. */

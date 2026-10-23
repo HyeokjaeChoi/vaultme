@@ -12,12 +12,15 @@ function client(reply: Response, onUpdateRequired?: () => void) {
     baseUrl: 'http://x',
     appVersion: '0.0.0',
     store: {
-      loadKey: async () => key,
-      saveKey: async (k) => void (key = k),
+      loadKey: () => Promise.resolve(key),
+      saveKey: (k) => {
+        key = k
+        return Promise.resolve()
+      },
       getInstallId: () => id,
       setInstallId: (v) => void (id = v),
     },
-    fetch: (async () => reply.clone()) as unknown as typeof fetch,
+    fetch: () => Promise.resolve(reply.clone()),
     ...(onUpdateRequired ? { onUpdateRequired } : {}),
   })
 }

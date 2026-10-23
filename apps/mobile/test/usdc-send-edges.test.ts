@@ -37,15 +37,14 @@ describe('sendLimits: ETH-short boundaries (issue #64 decisions 4 and 7)', () =>
 })
 
 describe('prepare() fee shortage through feeShortBy', () => {
-  const snap = (nativeBalance: bigint): ChainSnapshot =>
-    ({
-      nativeBalance,
-      tokenBalance: toUnits('25.5', 'USDC'),
-      nonce: 0,
-      gasLimit: 65_000n,
-      baseFeePerGas: 1_500_000_000n,
-      maxPriorityFeePerGas: 1_000_000_000n,
-    }) as ChainSnapshot
+  const snap = (nativeBalance: bigint): ChainSnapshot => ({
+    nativeBalance,
+    tokenBalance: toUnits('25.5', 'USDC'),
+    nonce: 0,
+    gasLimit: 65_000n,
+    baseFeePerGas: 1_500_000_000n,
+    maxPriorityFeePerGas: 1_000_000_000n,
+  })
   it('USDC send with ETH below the cap reports the exact missing ETH; with enough ETH it reports none', () => {
     const short = prepare({ asset: 'USDC', to: A, amount: '5', previous: [] }, snap(0n))
     if (!short.ok) throw new Error(short.error)

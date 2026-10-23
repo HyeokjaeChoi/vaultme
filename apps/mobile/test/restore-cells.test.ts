@@ -6,7 +6,6 @@ import {
   inspectCells,
   joinWords,
   togglePassphrase,
-  type WordCount,
 } from '../src/features/restore/model/cells'
 import { clearHeld, holdRestore, restoredWithPassphrase, takeWords } from '../src/features/restore/model/handoff'
 
@@ -39,7 +38,7 @@ describe('applyCellInput: paste distribution', () => {
     expect(r.focus).toBe(2)
   })
   it('words past the shown count are cut, 13 to 24 words become 24', () => {
-    const r = applyCellInput(emptyWords(), 12, 0, `${'abandon '.repeat(15)}`)
+    const r = applyCellInput(emptyWords(), 12, 0, 'abandon '.repeat(15))
     expect(r.count).toBe(24)
     expect(r.words.filter(Boolean)).toHaveLength(15)
   })
@@ -79,7 +78,7 @@ describe('inspectCells: word validation', () => {
 describe('12 / 24 switch', () => {
   it('keeps every word: 12 hides cells 13-24, 24 shows them again', () => {
     const w = fromPhrase(VECTOR_24).words
-    expect(joinWords(w, 12 as WordCount)).toBe(VECTOR_24.split(' ').slice(0, 12).join(' '))
+    expect(joinWords(w, 12)).toBe(VECTOR_24.split(' ').slice(0, 12).join(' '))
     expect(joinWords(w, 24)).toBe(VECTOR_24)
     expect(w[23]).toBe('art') // still held while hidden
   })

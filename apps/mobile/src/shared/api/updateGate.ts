@@ -5,13 +5,13 @@ export function createUpdateGate() {
   let required = false
   const listeners = new Set<() => void>()
   return {
-    mark() {
+    mark: () => {
       if (required) return
       required = true
       listeners.forEach((l) => l())
     },
     get: () => required,
-    subscribe(l: () => void) {
+    subscribe: (l: () => void) => {
       listeners.add(l)
       return () => void listeners.delete(l)
     },

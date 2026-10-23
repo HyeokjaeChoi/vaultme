@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('expo-local-authentication', () => ({
   SecurityLevel: { NONE: 0, SECRET: 1 },
-  getEnrolledLevelAsync: vi.fn(async () => 1),
+  getEnrolledLevelAsync: vi.fn(() => Promise.resolve(1)),
   authenticateAsync: vi.fn(),
 }))
 
@@ -76,9 +76,9 @@ describe('authenticate', () => {
   })
   it('asks with passcode fallback and flags the dialog while it is open', async () => {
     let during = false
-    vi.mocked(LA.authenticateAsync).mockImplementationOnce(async () => {
+    vi.mocked(LA.authenticateAsync).mockImplementationOnce(() => {
       during = isAuthInProgress()
-      return { success: true }
+      return Promise.resolve({ success: true })
     })
     expect(await authenticate('이유')).toBe('ok')
     expect(during).toBe(true)

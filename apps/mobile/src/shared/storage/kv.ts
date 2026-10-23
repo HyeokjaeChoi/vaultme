@@ -179,16 +179,18 @@ export function parseRecents(raw: string | undefined): RecentRecipient[] {
   try {
     const v = JSON.parse(raw) as unknown
     if (!Array.isArray(v)) return []
-    return v
-      .filter(
-        (x): x is RecentRecipient =>
-          !!x &&
-          typeof x.address === 'string' &&
-          /^0x[0-9a-fA-F]{40}$/.test(x.address) &&
-          typeof x.at === 'number' &&
-          typeof x.asset === 'string' &&
-          typeof x.amount === 'string',
-      )
+    return (v as unknown[])
+      .filter((x): x is RecentRecipient => {
+        if (typeof x !== 'object' || x === null) return false
+        const r = x as Record<string, unknown>
+        return (
+          typeof r.address === 'string' &&
+          /^0x[0-9a-fA-F]{40}$/.test(r.address) &&
+          typeof r.at === 'number' &&
+          typeof r.asset === 'string' &&
+          typeof r.amount === 'string'
+        )
+      })
       .slice(0, MAX_RECENTS)
   } catch {
     return []

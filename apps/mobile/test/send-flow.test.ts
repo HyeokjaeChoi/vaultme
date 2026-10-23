@@ -1,4 +1,4 @@
-import { Mnemonic, prepare, type ChainSnapshot } from '@vaultme/wallet-core'
+import { Mnemonic, prepare, type ChainSnapshot, type Hex } from '@vaultme/wallet-core'
 import { describe, expect, it, vi } from 'vitest'
 import { clearTestTx } from '../src/features/send/model/clearTestTx'
 import { blocksNewSend, runSend, type SendDeps } from '../src/features/send/model/runSend'
@@ -22,14 +22,15 @@ const base = async () => {
 function deps(over: Partial<SendDeps> & { snap?: ChainSnapshot } = {}) {
   let n = 0
   const saved: PendingTx[] = []
+  const fake = createFakeChain({ get: () => n, set: (v) => void (n = v) })
   const chain = over.chain ?? {
     broadcasts: false,
-    getSnapshot: async () => over.snap!,
-    submit: createFakeChain({ get: () => n, set: (v) => void (n = v) }).submit,
+    getSnapshot: () => Promise.resolve(over.snap!),
+    submit: (raw: Hex) => fake.submit(raw),
   }
   const d: SendDeps = {
     chain,
-    loadPhrase: vi.fn(async () => ({ status: 'ok' as const, mnemonic: new Mnemonic(VECTOR) })),
+    loadPhrase: vi.fn(() => Promise.resolve({ status: 'ok' as const, mnemonic: new Mnemonic(VECTOR) })),
     readPending: () => null,
     savePending: (tx) => void saved.push(tx),
     now: () => 1000,
@@ -42,9 +43,9 @@ function deps(over: Partial<SendDeps> & { snap?: ChainSnapshot } = {}) {
 describe('runSend', () => {
   it('auth cancel signs nothing and stays silent', async () => {
     const { review, snap } = await base()
-    const getSnapshot = vi.fn(async () => snap)
+    const getSnapshot = vi.fn(() => Promise.resolve(snap))
     const { d, saved } = deps({
-      loadPhrase: async () => ({ status: 'cancelled' }),
+      loadPhrase: () => Promise.resolve({ status: 'cancelled' }),
       chain: { broadcasts: false, getSnapshot, submit: vi.fn() },
     })
     expect(await runSend(review, '0.05', FROM, d)).toEqual({ status: 'Cancelled' })
@@ -54,7 +55,7 @@ describe('runSend', () => {
   })
   it('auth error is reported, nothing signed', async () => {
     const { review, snap } = await base()
-    const { d } = deps({ snap, loadPhrase: async () => ({ status: 'error' }) })
+    const { d } = deps({ snap, loadPhrase: () => Promise.resolve({ status: 'error' }) })
     expect(await runSend(review, '0.05', FROM, d)).toEqual({ status: 'AuthError' })
   })
   it('Pending saves the record with the local hash, fee and nonce', async () => {
@@ -90,7 +91,11 @@ describe('runSend', () => {
     const { review, snap } = await base()
     const { d, saved } = deps({
       snap,
-      chain: { broadcasts: false, getSnapshot: async () => snap, submit: async () => `0x${'11'.repeat(32)}` },
+      chain: {
+        broadcasts: false,
+        getSnapshot: () => Promise.resolve(snap),
+        submit: () => Promise.resolve(`0x${'11'.repeat(32)}` as const),
+      },
     })
     expect((await runSend(review, '0.05', FROM, d)).status).toBe('Unknown')
     expect(saved[0]?.state).toBe('Unknown')
@@ -114,13 +119,14 @@ describe('runSend', () => {
     const { d } = deps({
       chain: {
         broadcasts: false,
-        getSnapshot: async () => {
-          throw new Error('x')
-        },
+        getSnapshot: () => Promise.reject(new Error('x')),
         submit: vi.fn(),
       },
     })
-    expect(await runSend(review, '0.05', FROM, d)).toMatchObject({ status: 'ChainError', error: expect.any(Error) })
+    expect(await runSend(review, '0.05', FROM, d)).toMatchObject({
+      status: 'ChainError',
+      error: expect.any(Error) as unknown,
+    })
   })
   it('ADR-0006: a Pending or Unknown or corrupt record blocks before any auth', async () => {
     const { review, snap } = await base()
