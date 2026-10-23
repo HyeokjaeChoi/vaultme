@@ -4,10 +4,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { app } from '../src/app.ts'
 import { b64uEncode, issueToken } from '../src/auth.ts'
 
-const open: RateLimit = { limit: async () => ({ success: true }) }
+const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
 const grant = (wait: number | null) =>
-  ({ getByName: () => ({ acquire: async () => wait }) }) as unknown as typeof env.ETHERSCAN_BUCKET
+  ({ getByName: () => ({ acquire: () => Promise.resolve(wait) }) }) as unknown as typeof env.ETHERSCAN_BUCKET
 // Unique key so a leak is easy to grep for.
 const KEY = 'KEY' + rand()
 const E = {
@@ -54,7 +54,7 @@ const notok = (result: string | null, message = 'NOTOK') => Response.json({ stat
 
 /** fetch mock: answers by `action` in the URL. */
 const mock = (by: Partial<Record<string, () => Response>>) => {
-  const f = vi.fn(async (u: URL) => (by[u.searchParams.get('action')!] ?? empty)())
+  const f = vi.fn((u: URL) => Promise.resolve((by[u.searchParams.get('action')!] ?? empty)()))
   vi.stubGlobal('fetch', f)
   return f
 }
@@ -112,7 +112,7 @@ describe('POST /v1/history', () => {
     const f = mock({})
     const r = await post(
       { address: newAddress() },
-      { ...E, HISTORY_IP_LIMITER: { limit: async () => ({ success: false }) } },
+      { ...E, HISTORY_IP_LIMITER: { limit: () => Promise.resolve({ success: false }) } },
     )
     expect(r.status).toBe(429)
     expect(f).not.toHaveBeenCalled()

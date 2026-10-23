@@ -23,11 +23,11 @@ function node(over: Partial<Record<string, (p: unknown[]) => unknown>> = {}) {
     eth_maxPriorityFeePerGas: () => '0x1dcd6500', // 0.5 gwei
     ...over,
   }
-  const rpc: RpcCall = async (m, p) => {
+  const rpc: RpcCall = (m, p) => {
     calls.push([m, p])
     const a = answers[m]
-    if (!a) throw new Error('no answer for ' + m)
-    return a(p)
+    if (!a) return Promise.reject(new Error('no answer for ' + m))
+    return Promise.resolve(a(p))
   }
   return { rpc, calls }
 }
@@ -132,7 +132,7 @@ describe('send with the real adapter (ADR-0005 hash compare)', () => {
     const saved: unknown[] = []
     const d: SendDeps = {
       chain,
-      loadPhrase: vi.fn(async () => ({ status: 'ok' as const, mnemonic: new Mnemonic(VECTOR) })),
+      loadPhrase: vi.fn(() => Promise.resolve({ status: 'ok' as const, mnemonic: new Mnemonic(VECTOR) })),
       readPending: () => null,
       savePending: (tx) => void saved.push(tx),
       now: () => 1,

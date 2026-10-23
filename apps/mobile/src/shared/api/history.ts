@@ -31,7 +31,7 @@ export function createHistory(d: HistoryDeps) {
         if (isApiError(e, 'not_found')) return { source: 'local', sent: d.local() }
         if (!isApiError(e) || isApiError(e, 'update_required')) throw e
         const c = d.cache.get()
-        if (c && c.address === address)
+        if (c?.address === address)
           return { source: 'cache', data: JSON.parse(c.json) as unknown, updatedAt: c.updatedAt, error: e }
         throw e
       }

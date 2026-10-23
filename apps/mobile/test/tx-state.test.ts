@@ -83,9 +83,9 @@ describe('deriveState (ARCHITECTURE.md#invariants, ADR-0006)', () => {
 describe('checkTx', () => {
   const chain = (receipt: Receipt | null, safe = 100n, safeNonce = 0n, broadcasts = true) => ({
     broadcasts,
-    getReceipt: vi.fn(async () => receipt),
-    getSafeBlock: vi.fn(async () => safe),
-    getSafeNonce: vi.fn(async () => safeNonce),
+    getReceipt: vi.fn(() => Promise.resolve(receipt)),
+    getSafeBlock: vi.fn(() => Promise.resolve(safe)),
+    getSafeNonce: vi.fn(() => Promise.resolve(safeNonce)),
   })
   const FROM = ('0x' + '1'.repeat(40)) as `0x${string}`
   it('asks for the safe block only with a receipt, and the safe nonce only without one', async () => {
@@ -101,9 +101,7 @@ describe('checkTx', () => {
   it('a network failure throws, so the caller keeps the old record', async () => {
     const c = {
       ...chain(null),
-      getReceipt: vi.fn(async () => {
-        throw new Error('offline')
-      }),
+      getReceipt: vi.fn(() => Promise.reject(new Error('offline'))),
     }
     await expect(checkTx(tx('Pending'), c, FROM, () => 9)).rejects.toThrow('offline')
   })
@@ -145,7 +143,7 @@ describe('startPolling (15 s, stop conditions)', () => {
   }
   it('checks at once, then every interval, never overlapping', async () => {
     const m = manual()
-    const check = vi.fn(async () => 'Pending' as const)
+    const check = vi.fn(() => Promise.resolve('Pending' as const))
     startPolling(check, 15_000, m.timers)
     await Promise.resolve()
     expect(check).toHaveBeenCalledTimes(1)
@@ -156,7 +154,7 @@ describe('startPolling (15 s, stop conditions)', () => {
   it('stops by itself at a final state and at Unknown', async () => {
     for (const end of ['Confirmed', 'Failed', 'Replaced', 'Unknown'] as const) {
       const m = manual()
-      const check = vi.fn(async () => end)
+      const check = vi.fn(() => Promise.resolve(end))
       startPolling(check, 15_000, m.timers)
       await Promise.resolve()
       await Promise.resolve()
@@ -191,7 +189,7 @@ describe('startPolling (15 s, stop conditions)', () => {
   })
   it('works with real fake timers', async () => {
     vi.useFakeTimers()
-    const check = vi.fn(async () => 'Pending' as const)
+    const check = vi.fn(() => Promise.resolve('Pending' as const))
     const stop = startPolling(check, 15_000)
     await vi.advanceTimersByTimeAsync(0)
     expect(check).toHaveBeenCalledTimes(1)

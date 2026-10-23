@@ -30,13 +30,13 @@ const token = (block: number, txIndex: number, o: Row = {}) =>
 
 /** In-memory Etherscan: sort=desc, endblock inclusive, page x offset, the 10000 window. `flip` reverses the order inside a block. */
 function sim(data: Partial<Record<List, Row[]>>, flip = false) {
-  const calls: Array<[List, Query]> = []
-  const f: FetchList = async (list, q) => {
+  const calls: [List, Query][] = []
+  const f: FetchList = (list, q) => {
     calls.push([list, q])
-    if (q.page * q.offset > 10000) throw new Error('window too large')
+    if (q.page * q.offset > 10000) return Promise.reject(new Error('window too large'))
     const rows = (data[list] ?? []).filter((r) => q.endblock === undefined || Number(r.blockNumber) <= q.endblock)
     const sorted = (flip ? [...rows].reverse() : rows).sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber))
-    return sorted.slice((q.page - 1) * q.offset, q.page * q.offset)
+    return Promise.resolve(sorted.slice((q.page - 1) * q.offset, q.page * q.offset))
   }
   return { f, calls }
 }
@@ -84,7 +84,7 @@ describe('loadHistory merge', () => {
       [80, 'native', '0'],
       [70, 'internal', '1000'],
     ])
-    expect(r.items.slice(0, 4).map((i) => i.id)).toEqual([0, 1, 2, 3].map((q) => `${h}:${q}`))
+    expect(r.items.slice(0, 4).map((i) => i.id)).toEqual([0, 1, 2, 3].map((q) => `${h}:${String(q)}`))
     expect(r.items[0]).toMatchObject({
       direction: 'out',
       asset: 'ETH',
@@ -191,14 +191,14 @@ describe('loadHistory paging', () => {
   it('more than one page of rows in a single block (internal list), read through deeper windows', async () => {
     const data = {
       txlist: [tx(500, 0), tx(300, 0)],
-      txlistinternal: Array.from({ length: 130 }, (_, i) => internal(400, 7, `0_${i}`)),
+      txlistinternal: Array.from({ length: 130 }, (_, i) => internal(400, 7, `0_${String(i)}`)),
     }
     const { f, calls } = sim(data)
     const pages = await walk(f)
     const all = pages.flatMap((p) => p.items)
     expect(all).toHaveLength(132)
     expect(pages.every((p) => !p.incomplete)).toBe(true)
-    expect(all.map((i) => i.blockNumber)).toEqual([500, ...Array(130).fill(400), 300])
+    expect(all.map((i) => i.blockNumber)).toEqual([500, ...new Array<number>(130).fill(400), 300])
     // within the block rows are numbered by traceId, numerically (0_2 before 0_10)
     expect(all.filter((i) => i.blockNumber === 400).map((i) => i.id.split(':')[1])).toEqual(
       Array.from({ length: 130 }, (_, i) => String(i)),
@@ -229,7 +229,8 @@ describe('loadHistory paging', () => {
       const h = hash(100_000 + i)
       const pick = rnd(3)
       if (pick === 0) data.txlist.push(tx(block, ti, { hash: h }))
-      else if (pick === 1) data.txlistinternal.push(internal(block, ti, `0_${rnd(5)}_${i}`, { hash: h }))
+      else if (pick === 1)
+        data.txlistinternal.push(internal(block, ti, `0_${String(rnd(5))}_${String(i)}`, { hash: h }))
       else data.tokentx.push(token(block, ti, { hash: h, value: String(rnd(3)) }))
       total++
       if (rnd(10) === 0) data.tokentx.push(token(block, ti, { hash: h, contractAddress: FAKE_ETH }))
@@ -249,7 +250,7 @@ describe('loadHistory paging', () => {
   it('a block that cannot be read in full: safe rows + incomplete, cursor skips that block and paging goes on', async () => {
     const data = {
       txlist: [tx(900, 0), tx(100, 0)],
-      txlistinternal: Array.from({ length: 3500 }, (_, i) => internal(500, 1, `0_${i}`)),
+      txlistinternal: Array.from({ length: 3500 }, (_, i) => internal(500, 1, `0_${String(i)}`)),
     }
     const pages = await walk(sim(data).f)
     expect(pages[0]).toMatchObject({ incomplete: true })

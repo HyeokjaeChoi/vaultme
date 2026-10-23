@@ -1,6 +1,7 @@
 import { HISTORY_PAGE_SIZE, USDC_SEPOLIA, type HistoryItem, type HistoryResponse } from '@vaultme/contracts'
 import { z } from 'zod'
 import { InvalidCursorError, UpstreamError } from './errors.ts'
+import { at } from './util.ts'
 
 // Merge and paging of the three Etherscan lists. Pure: the caller injects the fetch (ARCHITECTURE.md#history).
 export type List = 'txlist' | 'txlistinternal' | 'tokentx'
@@ -91,9 +92,10 @@ function normalize(
       order = '0'
       item = { ...common, kind: 'native', asset: 'ETH', status: bad ? 'failed' : 'ok' }
     } else if (list === 'txlistinternal') {
+      if (r.traceId === undefined) throw new UpstreamError('bad row') // Row.txlistinternal requires it
       key = `int:${r.hash}:${r.traceId}`
-      order = `1${r
-        .traceId!.split('_')
+      order = `1${r.traceId
+        .split('_')
         .map((s) => pad(s, 10))
         .join('_')}`
       item = { ...common, kind: 'internal', asset: 'ETH', status: bad ? 'failed' : 'ok' }
@@ -103,7 +105,7 @@ function normalize(
       const same = `${r.hash}:${r.from}:${r.to}:${r.value}`
       const n = repeats.get(same) ?? 0
       repeats.set(same, n + 1)
-      key = `tok:${r.hash}:${USDC}:${r.from}:${r.to}:${r.value}:${n}`
+      key = `tok:${r.hash}:${USDC}:${r.from}:${r.to}:${r.value}:${String(n)}`
       order = `2${r.from}:${r.to}:${pad(r.value, 40)}:${pad(String(n), 6)}`
       item = { ...common, kind: 'erc20', asset: 'USDC', status: 'ok' }
     }
@@ -119,11 +121,11 @@ function place(cands: Cand[]): Placed[] {
   for (const c of cands) {
     if (seen.has(c.key)) continue
     seen.add(c.key)
-    const g = `${c.block}:${c.txIndex}`
+    const g = `${String(c.block)}:${String(c.txIndex)}`
     groups.set(g, [...(groups.get(g) ?? []), c])
   }
   return [...groups.values()]
-    .sort((a, b) => b[0]!.block - a[0]!.block || b[0]!.txIndex - a[0]!.txIndex)
+    .sort((a, b) => at(b, 0).block - at(a, 0).block || at(b, 0).txIndex - at(a, 0).txIndex)
     .flatMap((g) =>
       g.sort((a, b) => (a.order < b.order ? -1 : a.order > b.order ? 1 : 0)).map((c, seq) => ({ ...c, seq })),
     )
@@ -148,10 +150,11 @@ export async function checkCursor(address: string, cursor: string | undefined): 
 
 function parseCursor(s: string, h8: string): Cursor {
   const m = CURSOR.exec(s)
-  if (!m || m[1] !== h8) throw new InvalidCursorError()
+  if (m?.[1] !== h8) throw new InvalidCursorError()
   return { block: Number(m[2]), txIndex: Number(m[3]), seq: Number(m[4]) }
 }
-const fmt = (h8: string, block: number, txIndex: number, seq: number) => `${h8}:${block}:${txIndex}:${seq}`
+const fmt = (h8: string, block: number, txIndex: number, seq: number) =>
+  `${h8}:${String(block)}:${String(txIndex)}:${String(seq)}`
 const isAfter = (c: Cursor) => (p: Placed) =>
   p.block < c.block || (p.block === c.block && (p.txIndex < c.txIndex || (p.txIndex === c.txIndex && p.seq > c.seq)))
 
@@ -175,9 +178,9 @@ export async function loadHistory(fetchList: FetchList, address: string, cursor?
   const read = (idx: number[]) =>
     Promise.all(
       idx.map(async (i) => {
-        const s = st[i]!
-        const a = ATTEMPTS[s.next]!
-        const got = await fetchList(LISTS[i]!, { ...(endblock === undefined ? {} : { endblock }), ...a })
+        const s = at(st, i)
+        const a = at(ATTEMPTS, s.next)
+        const got = await fetchList(at(LISTS, i), { ...(endblock === undefined ? {} : { endblock }), ...a })
         s.rows = s.next <= 1 ? got : [...s.rows, ...got]
         s.next++
         s.full = got.length >= a.offset
@@ -187,10 +190,10 @@ export async function loadHistory(fetchList: FetchList, address: string, cursor?
 
   for (;;) {
     // txlist is first in LISTS. Its rows are complete above H, the only rows that are returned (see below).
-    const txPart = normalize('txlist', st[0]!.rows, addr, new Set())
+    const txPart = normalize('txlist', at(st, 0).rows, addr, new Set())
     const sent = new Set(txPart.cands.filter((c) => c.item.from === addr).map((c) => c.item.hash))
-    const parts = LISTS.map((l, i) => (i === 0 ? txPart : normalize(l, st[i]!.rows, addr, sent)))
-    const H = Math.max(-1, ...parts.map((p, i) => (st[i]!.full ? p.bottom : -1)))
+    const parts = LISTS.map((l, i) => (i === 0 ? txPart : normalize(l, at(st, i).rows, addr, sent)))
+    const H = Math.max(-1, ...parts.map((p, i) => (at(st, i).full ? p.bottom : -1)))
     const all = place(parts.flatMap((p) => p.cands))
     const placed = cur ? all.filter(isAfter(cur)) : all
     const safe = placed.filter((p) => p.block > H)
@@ -205,8 +208,8 @@ export async function loadHistory(fetchList: FetchList, address: string, cursor?
         incomplete: false,
       }
     }
-    const limiting = st.flatMap((s, i) => (s.full && parts[i]!.bottom === H ? [i] : []))
-    if (limiting.every((i) => st[i]!.next < ATTEMPTS.length)) {
+    const limiting = st.flatMap((s, i) => (s.full && at(parts, i).bottom === H ? [i] : []))
+    if (limiting.every((i) => at(st, i).next < ATTEMPTS.length)) {
       await read(limiting)
       continue
     }
@@ -214,4 +217,4 @@ export async function loadHistory(fetchList: FetchList, address: string, cursor?
   }
 }
 
-const toItem = (p: Placed): HistoryItem => ({ id: `${p.item.hash}:${p.seq}`, ...p.item })
+const toItem = (p: Placed): HistoryItem => ({ id: `${p.item.hash}:${String(p.seq)}`, ...p.item })

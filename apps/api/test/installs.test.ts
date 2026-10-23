@@ -12,8 +12,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { app } from '../src/app.ts'
 import { b64uEncode } from '../src/auth.ts'
 
-const open: RateLimit = { limit: async () => ({ success: true }) }
-const closed: RateLimit = { limit: async () => ({ success: false }) }
+const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
+const closed: RateLimit = { limit: () => Promise.resolve({ success: false }) }
 // Fresh secret per run, never a hard-coded one.
 const secret = b64uEncode(crypto.getRandomValues(new Uint8Array(48)))
 const E = { ...env, TOKEN_SECRET: secret, INSTALL_IP_LIMITER: open, INSTALL_LIMITER: open }
@@ -37,7 +37,7 @@ async function newDevice(e: typeof E = E) {
   const pair = await genKey()
   const publicKey = await rawPublic(pair)
   const r = await call('/v1/installs', json({ publicKey }), e)
-  const { installId } = (await r.json()) as { installId: string }
+  const { installId } = await r.json<{ installId: string }>()
   const sign = async (
     method: string,
     path: string,
@@ -61,7 +61,7 @@ async function newDevice(e: typeof E = E) {
   }
   const token = async () => {
     const r = await call('/v1/installs/token', { method: 'POST', headers: await sign('POST', '/v1/installs/token') }, e)
-    return { r, body: (await r.json()) as { token: string; expiresAt: number } }
+    return { r, body: await r.json<{ token: string; expiresAt: number }>() }
   }
   return { installId, publicKey, sign, token }
 }
@@ -70,7 +70,7 @@ const json = (b: unknown): RequestInit => ({
   headers: { 'content-type': 'application/json' },
   body: JSON.stringify(b),
 })
-const code = async (r: Response) => ((await r.json()) as { code: string }).code
+const code = async (r: Response) => (await r.json<{ code: string }>()).code
 
 beforeEach(() => vi.useFakeTimers({ toFake: ['Date'] }))
 afterEach(() => vi.useRealTimers())
@@ -159,8 +159,7 @@ describe('installs', () => {
   it('rejects a tampered or missing token', async () => {
     const d = await newDevice()
     const { body } = await d.token()
-    const [, exp, mac] = body.token.split('.')
-    const forged = `${crypto.randomUUID()}.${exp}.${mac}`
+    const forged = `${crypto.randomUUID()}.${body.token.split('.').slice(1).join('.')}`
     for (const auth of [`Bearer ${forged}`, 'Bearer nope', `Bearer ${d.installId}.1.abcde`, undefined]) {
       const r = await call('/v1/installs/me', auth ? { headers: { Authorization: auth } } : {})
       expect(r.status).toBe(401)

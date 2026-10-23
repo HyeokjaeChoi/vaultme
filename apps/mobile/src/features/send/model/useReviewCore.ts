@@ -11,7 +11,7 @@ export function sendFrom(): `0x${string}` {
   try {
     return (getAccountAddress() ?? account.address) as `0x${string}`
   } catch {
-    return account.address as `0x${string}`
+    return account.address
   }
 }
 

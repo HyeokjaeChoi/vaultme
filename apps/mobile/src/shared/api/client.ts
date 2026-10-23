@@ -116,7 +116,7 @@ export function createApiClient(d: ApiDeps) {
         d.store.setInstallId(installId)
       }
       return { installId, keyHex }
-    })().catch((e) => {
+    })().catch((e: unknown) => {
       identity = null
       throw e
     })

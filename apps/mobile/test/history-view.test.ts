@@ -112,9 +112,9 @@ describe('history view (ADR-0007)', () => {
     let t = 1_000
     let fail = false
     const h = createHistory({
-      fetchPage: async () => {
-        if (fail) throw new ApiError('unavailable', 503, true, 'x')
-        return { items: [item(H2, 50)] }
+      fetchPage: () => {
+        if (fail) return Promise.reject(new ApiError('unavailable', 503, true, 'x'))
+        return Promise.resolve({ items: [item(H2, 50)] })
       },
       cache: { get: () => cache, set: (c) => void (cache = c) },
       local: () => [],

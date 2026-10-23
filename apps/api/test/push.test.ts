@@ -5,7 +5,7 @@ import { app } from '../src/app.ts'
 import { b64uEncode, issueToken, nowSeconds } from '../src/auth.ts'
 import { PUSH_INACTIVE_SECONDS, sweep } from '../src/push.ts'
 
-const open: RateLimit = { limit: async () => ({ success: true }) }
+const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
 const E = {
   ...env,
@@ -51,16 +51,19 @@ type Call = { url: string; init: RequestInit }
 let calls: Call[]
 let alchemyOk = true
 let expoReply: () => Response
-const body = (c: Call) => JSON.parse(c.init.body as string)
+type AddressPatch = { addresses_to_add: string[]; addresses_to_remove: string[] }
+type PushMessage = { title: string; body: string }
+const body = (c: Call) => JSON.parse(c.init.body as string) as AddressPatch
+const messagesOf = (c: Call) => JSON.parse(c.init.body as string) as PushMessage[]
 beforeEach(async () => {
   calls = []
   alchemyOk = true
   expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
-  vi.stubGlobal('fetch', async (url: string, init: RequestInit) => {
+  vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
     calls.push({ url, init })
-    if (url === addrPatch) return alchemyOk ? new Response('{}') : new Response('no', { status: 500 })
-    if (url === expoSend) return expoReply()
-    throw new Error('unexpected fetch')
+    if (url === addrPatch) return Promise.resolve(alchemyOk ? new Response('{}') : new Response('no', { status: 500 }))
+    if (url === expoSend) return Promise.resolve(expoReply())
+    return Promise.reject(new Error('unexpected fetch'))
   })
   for (const t of ['push_sent', 'push_unregister', 'push_subscriptions', 'installs'])
     await E.DB.prepare(`DELETE FROM ${t}`).run()
@@ -204,7 +207,7 @@ const hook = async (payload: unknown, sig?: string) => {
     E,
   )
 }
-const sentMessages = () => calls.filter((c) => c.url === expoSend).flatMap(body)
+const sentMessages = () => calls.filter((c) => c.url === expoSend).flatMap(messagesOf)
 
 describe('POST /webhooks/alchemy', () => {
   let install: string
@@ -230,7 +233,7 @@ describe('POST /webhooks/alchemy', () => {
       body: '입금이 들어왔어요. 앱에서 확인해 주세요.',
       data: { kind: 'deposit', hash: HASH },
     })
-    const text = JSON.stringify([m.title, m.body])
+    const text = JSON.stringify([m?.title, m?.body])
     expect(text).not.toMatch(/0x|ETH|USDC|0\.5/)
     expect((calls.find((c) => c.url === expoSend)!.init.headers as Record<string, string>).authorization).toBe(
       `Bearer ${E.EXPO_ACCESS_TOKEN}`,

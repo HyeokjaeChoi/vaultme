@@ -50,7 +50,7 @@ function etherscanList(env: Bindings, address: string): FetchList {
       let body: { status?: unknown; message?: unknown; result?: unknown }
       try {
         const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) })
-        if (!res.ok) throw new Error(`http ${res.status}`)
+        if (!res.ok) throw new Error(`http ${String(res.status)}`)
         const json: unknown = await res.json()
         if (typeof json !== 'object' || json === null || Array.isArray(json)) throw new Error('not an object')
         body = json
@@ -60,7 +60,8 @@ function etherscanList(env: Bindings, address: string): FetchList {
       }
       if (body.status === '1' && Array.isArray(body.result)) {
         console.log('etherscan ok', list, Date.now() - t0) // latency of successful calls only
-        return body.result
+        const rows: unknown[] = body.result
+        return rows
       }
       if (body.message === 'No transactions found') return []
       if (typeof body.result === 'string' && /rate limit/i.test(body.result)) {
@@ -84,8 +85,8 @@ export async function getHistory(env: Bindings, address: string, cursor: string 
     `https://history.vaultme.invalid/${await addressHash(address)}/${cursor === undefined ? 'first' : `c/${cursor}`}`,
   )
   const hit = await cache.match(cacheKey)
-  if (hit) return (await hit.json()) as HistoryResponse
+  if (hit) return await hit.json<HistoryResponse>()
   const out = await loadHistory(fetchList, address, cursor)
-  await cache.put(cacheKey, Response.json(out, { headers: { 'Cache-Control': `max-age=${CACHE_SECONDS}` } }))
+  await cache.put(cacheKey, Response.json(out, { headers: { 'Cache-Control': `max-age=${String(CACHE_SECONDS)}` } }))
   return out
 }

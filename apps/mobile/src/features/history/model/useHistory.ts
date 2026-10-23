@@ -24,7 +24,10 @@ export function useHistory(): { view: HistoryView | null; reload: () => void; re
     } catch {
       // kv unreadable: no address, no API history
     }
-    if (!history || !address) return setView(toView({ source: 'local', sent: [] }, local, Date.now()))
+    if (!history || !address) {
+      setView(toView({ source: 'local', sent: [] }, local, Date.now()))
+      return
+    }
     try {
       const r = await history.load(address)
       if (id === seq.current) setView(toView(r, local, Date.now()))

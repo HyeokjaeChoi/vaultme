@@ -102,7 +102,7 @@ function setup(over: { appVersion?: string } = {}) {
       if (server.nonces.has(n)) return json(401, { code: 'nonce_reused', message: 'x', retryable: false })
       server.nonces.add(n)
       server.tokens++
-      return json(200, { token: `tok${server.tokens}`, expiresAt: sec + 900 })
+      return json(200, { token: `tok${String(server.tokens)}`, expiresAt: sec + 900 })
     }
     if (path === '/v1/rpc' || path === '/v1/history') {
       server.rpcCalls.push({
@@ -123,8 +123,11 @@ function setup(over: { appVersion?: string } = {}) {
   let key: string | null = null
   let installId: string | null = null
   const store: DeviceStore = {
-    loadKey: async () => key,
-    saveKey: async (hex) => void (key = hex),
+    loadKey: () => Promise.resolve(key),
+    saveKey: (hex) => {
+      key = hex
+      return Promise.resolve()
+    },
     getInstallId: () => installId,
     setInstallId: (id) => void (installId = id),
   }
@@ -239,14 +242,12 @@ describe('api client', () => {
       baseUrl: 'http://x.test',
       appVersion: '1.0.0',
       store: {
-        loadKey: async () => TEST_KEY,
-        saveKey: async () => undefined,
+        loadKey: () => Promise.resolve(TEST_KEY),
+        saveKey: () => Promise.resolve(undefined),
         getInstallId: () => 'i',
         setInstallId: () => undefined,
       },
-      fetch: (async () => {
-        throw new TypeError('offline')
-      }) as typeof fetch,
+      fetch: () => Promise.reject(new TypeError('offline')),
     })
     await expect(c.rpc('x')).rejects.toMatchObject({ code: 'network', retryable: true })
   })

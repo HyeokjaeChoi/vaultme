@@ -10,9 +10,9 @@ vi.mock('@/shared/storage', () => ({ getPendingTx: () => stored, setPendingTx: (
 vi.mock('@/shared/chain', () => ({
   chain: {
     broadcasts: true,
-    getReceipt: async () => ({ blockNumber: 5n, status: 'success' }),
-    getSafeBlock: async () => 10n,
-    getSafeNonce: async () => 0n,
+    getReceipt: () => Promise.resolve({ blockNumber: 5n, status: 'success' }),
+    getSafeBlock: () => Promise.resolve(10n),
+    getSafeNonce: () => Promise.resolve(0n),
   },
 }))
 vi.mock('../src/features/send/model/useReviewCore', () => ({

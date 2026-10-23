@@ -272,7 +272,7 @@ app.post('/webhooks/alchemy', async (c) => {
 
 app.notFound((c) => fail(c, 404, 'not_found', 'Not found'))
 // Never return the stack or the error text. Log only the error name.
-export const handleError: ErrorHandler = (err, c) => {
+export const handleError: ErrorHandler<Env> = (err, c) => {
   console.error('unhandled error', err.name)
   return fail(c, 500, 'internal', 'Internal error')
 }

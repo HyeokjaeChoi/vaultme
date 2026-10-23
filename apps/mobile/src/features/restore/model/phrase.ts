@@ -1,4 +1,5 @@
 import { isMnemonicWord, validateMnemonic } from '@vaultme/wallet-core'
+import { at } from '@/shared/lib/at'
 
 // S05 input checks. Pure: no storage, no logging. The text is the user's typed phrase and must never leave the component.
 
@@ -29,7 +30,7 @@ export function inspectPhrase(text: string, final = false): PhraseState {
     const tooMany = count > 24
     return { count, ready: false, issue: (final && count > 0) || tooMany ? { kind: 'wrongCount', count } : null }
   }
-  if (typing && !isMnemonicWord(words[count - 1]!)) return { count, ready: false, issue: null }
+  if (typing && !isMnemonicWord(at(words, count - 1))) return { count, ready: false, issue: null }
   const check = validateMnemonic(words.join(' '))
   return { count, ready: true, issue: check.kind === 'badChecksum' && final ? { kind: 'badChecksum' } : null }
 }

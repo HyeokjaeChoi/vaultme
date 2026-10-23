@@ -19,7 +19,7 @@ export async function checkStored(): Promise<TxState | null> {
   const next = await checkTx(cur, chain, sendFrom(), Date.now)
   // A new send may have replaced the record while the chain was asked: never write an old tx over it.
   const latest = readPendingTx()
-  if (latest === 'corrupt' || latest === null || latest.hash !== cur.hash) return null
+  if (latest === 'corrupt' || latest?.hash !== cur.hash) return null
   writePendingTx(next)
   return next.state
 }

@@ -23,31 +23,32 @@ const balance = (symbol: AssetId) =>
 export function createFakeChain(nonce: NonceStore): ChainPort {
   return {
     broadcasts: false,
-    async getBalances() {
-      return { ETH: balance('ETH'), USDC: balance('USDC') }
+    // ChainPort is a Promise contract (the real adapter does network IO), so the fake keeps it with Promise.resolve.
+    getBalances() {
+      return Promise.resolve({ ETH: balance('ETH'), USDC: balance('USDC') })
     },
-    async getReceipt() {
-      return null // nothing was sent, so nothing is ever mined
+    getReceipt() {
+      return Promise.resolve(null) // nothing was sent, so nothing is ever mined
     },
-    async getSafeBlock() {
-      return 0n
+    getSafeBlock() {
+      return Promise.resolve(0n)
     },
-    async getSafeNonce() {
-      return 0n
+    getSafeNonce() {
+      return Promise.resolve(0n)
     },
-    async getSnapshot(_address, asset): Promise<ChainSnapshot> {
-      return {
+    getSnapshot(_address, asset): Promise<ChainSnapshot> {
+      return Promise.resolve({
         nonce: nonce.get(),
         nativeBalance: balance('ETH'),
         tokenBalance: balance('USDC'),
         gasLimit: GAS_LIMIT[asset],
         baseFeePerGas: BASE_FEE,
         maxPriorityFeePerGas: TIP,
-      }
+      })
     },
-    async submit(raw) {
+    submit(raw) {
       nonce.set(nonce.get() + 1)
-      return txHash(raw)
+      return Promise.resolve(txHash(raw))
     },
   }
 }

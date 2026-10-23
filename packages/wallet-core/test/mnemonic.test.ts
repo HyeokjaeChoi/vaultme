@@ -18,7 +18,9 @@ describe('Mnemonic masking', () => {
   test('no printing path reveals words', () => {
     const outs = [
       String(m),
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- the implicit string paths are what this test checks
       `${m}`,
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands -- same: implicit coercion must stay masked
       m + '',
       JSON.stringify(m),
       JSON.stringify({ m }),
