@@ -136,13 +136,13 @@ for f in sys.stdin.read().split("\0"):
         if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
             text = raw.decode("utf-16")
         elif b"\0" in raw:
-            # BOM-less UTF-16 is valid UTF-8 with NUL bytes between letters, which hides every word.
-            text = raw.decode("utf-16-le" if raw[1::2].count(0) > raw[0::2].count(0) else "utf-16-be")
+            # BOM-less UTF-16 (or any NUL data) decodes as UTF-8 with NULs between letters, hiding every word.
+            raise UnicodeDecodeError("utf-8", raw, 0, 1, "NUL byte without a UTF-16 BOM")
         else:
             text = raw.decode("utf-8")
     except UnicodeDecodeError:
-        # A text file R10 cannot read is a finding, not a pass. Add true binary types to skip.
-        print(f"{f}: not UTF-8 or UTF-16 text; R10 cannot check it", file=sys.stderr)
+        # A text file R10 cannot read is a finding, not a pass.
+        print(f"{f}: not UTF-8 or BOM-marked UTF-16 text; R10 cannot check it (add a true binary type to skip)", file=sys.stderr)
         bad = 1
         continue
     # A run is consecutive BIP39 words (any case) across punctuation and line breaks; any other word ends it.

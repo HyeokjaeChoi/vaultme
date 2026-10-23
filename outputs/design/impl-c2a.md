@@ -125,7 +125,7 @@ apps/mobile/
 | FSD app layer 이름 | `src/shell/`로 바꿨다 (LLD는 `src/app/`) | `src/app/`이 있으면 Expo Router가 그것을 route root로 쓴다. 그러면 root `app/`이 무시된다. 처음에는 이것을 놓쳐서 route 없이 번들됐다. 지금은 4700 module로 실제 route가 번들된다 |
 | C23 위치 | `shared/ui`에 두었다. `widgets/portfolio-balance`가 아니다 | props만 받는 단순 컴포넌트라 widget을 만들지 않았다 |
 | Switch 크기 | 52×32 (`control_lg` × `avatar_sm`). Figma는 51×31 | Switch token이 없다. raw 숫자를 쓸 수 없다 |
-| C29–C33 token | Component token이 없어 Semantic token을 썼다 | packages/tokens/test/hierarchy.test.ts |
+| C29–C33 token | Component token이 없어 Semantic token을 썼다 | 구현 당시 판단. 현재 코드로 다시 확인하지 않았다 |
 | typedRoutes | 끔 | `.expo/types` 생성에 의존하지 않기 위해서 |
 | 새 라이브러리 | `expo-font`, `@expo-google-fonts/inter`, `@expo-google-fonts/ibm-plex-mono`, `phosphor-react-native`, `react-native-svg`(위 참조), `expo-constants`, `expo-linking`, `expo-status-bar`, `react-native-screens`, `react-native-safe-area-context`, `react-native-worklets`, `react-native-reanimated` | 모두 Expo Router와 Reanimated의 필수 의존이다 |
 | Metro | 설정 파일 없음 | SDK 52+는 monorepo를 자동 설정한다. pnpm isolated install로 번들 성공 |
