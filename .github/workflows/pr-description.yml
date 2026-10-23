@@ -33,7 +33,7 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           BODY: ${{ github.event.pull_request.body }}
         run: |
-          gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | {filename, status, patch}' -c > files.jsonl
+          gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | {filename, status, patch}' > files.jsonl
           python3 - <<'PY'
           import json, os, re, sys
           files = [json.loads(l) for l in open("files.jsonl") if l.strip()]
@@ -54,11 +54,16 @@ jobs:
           if not m:
               print("::error::Add a '## Figma comparison' section with light and dark app-vs-Figma images per changed screen."); sys.exit(1)
           alts = [a.lower() for a in re.findall(r"!\[([^\]]*)\]\([^)]+\)", m.group(1)) + re.findall(r"<img [^>]*alt=\"([^\"]*)\"", m.group(1))]
-          # One screen per top-level route: app/send/index.tsx and src/pages/send/* are the same screen group.
-          # ponytail: groups sub-routes (send/amount, send/review) into one; split by route if that undercounts.
+          # One screen per route path: app/send/amount.tsx and src/pages/send/amount.tsx are "send/amount";
+          # route groups such as (tabs) are dropped, and index or a PascalCase component file maps to its folder.
           def screen(c):
-              m = re.match(r"^apps/mobile/(?:app|src/pages)/((?:\([^/]+\)/)*)([^/.]+)", c)
-              return m.group(2) if m else None
+              m = re.match(r"^apps/mobile/(?:app|src/pages)/(.+)\.tsx$", c)
+              if not m:
+                  return None
+              parts = [p for p in m.group(1).split("/") if not p.startswith("(")]
+              if len(parts) > 1 and (parts[-1] == "index" or parts[-1][:1].isupper()):
+                  parts.pop()
+              return "/".join(parts)
           screens = len({screen(c) for c in changed} - {None}) or 1
           light = sum("light" in a for a in alts); dark = sum("dark" in a for a in alts)
           print(f"screens={screens} light={light} dark={dark}")

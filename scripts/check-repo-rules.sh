@@ -122,15 +122,22 @@ allow = {
     " ".join(["abandon"] * 23 + ["art"]),     # BIP39 24-word test vector
     " ".join(["test"] * 11 + ["junk"]),       # Hardhat/viem dev vector, address 0xf39F...2266, tests only
 }
-skip = re.compile(r"(\.(png|jpe?g|gif|webp|svg|ttf|otf|woff2?|pdf|ico)$)|(^|/)(generated|node_modules)/|pnpm-lock\.yaml$|^scripts/bip39-english\.txt$|^work/")
+skip = re.compile(r"(\.(png|jpe?g|gif|webp|ttf|otf|woff2?|pdf|ico)$)|(^|/)(generated|node_modules)/|pnpm-lock\.yaml$|^scripts/bip39-english\.txt$|^work/")
 token = re.compile(r"[A-Za-z]+")
 bad = 0
 for f in sys.stdin.read().split("\0"):
     if not f or skip.search(f):
         continue
     try:
-        text = open(f, encoding="utf-8").read()
-    except (OSError, UnicodeDecodeError):
+        raw = open(f, "rb").read()
+    except OSError:
+        continue
+    try:
+        text = raw.decode("utf-16") if raw[:2] in (b"\xff\xfe", b"\xfe\xff") else raw.decode("utf-8")
+    except UnicodeDecodeError:
+        # A text file R10 cannot read is a finding, not a pass. Add true binary types to skip.
+        print(f"{f}: not UTF-8 or UTF-16 text; R10 cannot check it", file=sys.stderr)
+        bad = 1
         continue
     # A run is consecutive BIP39 words (any case) across punctuation and line breaks; any other word ends it.
     run, start = [], 0
