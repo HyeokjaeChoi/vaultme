@@ -21,7 +21,7 @@
 
 ## 2. 값은 한 곳에서 관리한다
 
-`work/build_foundation.py`가 `wallet-foundation.tokens.json`을 생성한다. JSON은 `primitive`, `semantic`, `component` 세 Token Set을 사용한다. Alias 경로에는 Set 이름을 넣지 않는다.
+`wallet-foundation.tokens.json`이 원본이다. `packages/tokens/build.mjs`가 앱용 token을 생성한다. JSON은 `primitive`, `semantic`, `semanticDark`, `component` 네 Token Set을 사용한다. `semanticDark`는 Dark mode에서 `semantic` 값을 덮어쓰고, `packages/tokens/build.mjs`가 이를 적용한다. Alias 경로에는 Set 이름을 넣지 않는다.
 
 ```text
 Primitive: color.neutral.900 = #11161D
@@ -244,7 +244,7 @@ Connection, Message signing, Token approval, On-chain transaction은 서로 다�
 
 현재 source, publication, 소비 검증은 [release record](vaultme-release.json)를 따른다. Project는 native asset의 조직 위치다. 로컬 연구·코드·package는 workspace에 둔다. 기존 Draft 기록은 과거 이력이다.
 
-Foundation 변경 시 generator, JSON, 해당 Figma source, guidance를 함께 갱신한다. `python3 work/build_foundation.py`로 duplicate path, missing alias, cycle을 검사한다. 영향을 받은 대비와 실제 Figma frame을 확인한다. [Migration](vaultme-v2-migration.md)에 compatibility 변경을 기록한다.
+Foundation 변경 시 generator, JSON, 해당 Figma source, guidance를 함께 갱신한다. `pnpm --filter @vaultme/tokens test`가 alias 계층을 검사하고, build가 해석되지 않는 alias에서 실패한다. 영향을 받은 대비와 실제 Figma frame을 확인한다. [Migration](vaultme-v2-migration.md)에 compatibility 변경을 기록한다.
 
 ## 9. 적용 계약과 증거
 

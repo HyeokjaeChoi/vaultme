@@ -10,7 +10,7 @@ files() { git ls-files --cached --others --exclude-standard -- "$@" 2>/dev/null;
 # scan <regex> <pathspec...>: grep only when the list is not empty (BSD xargs runs on empty input).
 scan() { local re="$1"; shift; local list; list="$(files "$@" | grep -v -e '/generated/' -e 'pnpm-lock' || true)"; [ -n "$list" ] && printf '%s\n' "$list" | tr '\n' '\0' | xargs -0 grep -nE -- "$re"; }
 
-# R1. No private keys or 32-byte hex secrets in tracked source (docs/agents/foundation.md rule 4).
+# R1. No private keys or 32-byte hex secrets in tracked source.
 if scan '-----BEGIN [A-Z ]*PRIVATE KEY-----|privateKey: *["'\'']0x[0-9a-fA-F]{64}' 'apps/**' 'packages/**'; then
   err "R1: private key material found"
 fi
@@ -111,5 +111,62 @@ while IFS= read -r f; do
     *) err "R9: remove $f; put shared rules in AGENTS.md or docs/agents/ (Claude Code reads AGENTS.md directly)" ;;
   esac
 done < <(git ls-files --cached --others --exclude-standard | grep -E '(^|/)(CLAUDE\.md|CLAUDE\.local\.md)$' || true)
+
+# R10. No recovery phrase in tracked text except public test vectors. Any run of 12+ BIP39 words
+# (scripts/bip39-english.txt, SHA-256 2f5eed53...dbda) must be one of the allowed vectors below.
+if ! git ls-files -z --cached --others --exclude-standard | python3 -c '
+import re, sys
+words = set(open("scripts/bip39-english.txt").read().split())
+allow = {
+    " ".join(["abandon"] * 11 + ["about"]),   # BIP39 test vector, address 0x9858...da94 (also with passphrase TREZOR)
+    " ".join(["abandon"] * 23 + ["art"]),     # BIP39 24-word test vector
+    " ".join(["test"] * 11 + ["junk"]),       # Hardhat/viem dev vector, address 0xf39F...2266, tests only
+}
+skip = re.compile(r"(\.(png|jpe?g|gif|webp|ttf|otf|woff2?|pdf|ico)$)|(^|/)node_modules/|pnpm-lock\.yaml$|^scripts/bip39-english\.txt$|^work/")
+token = re.compile(r"[A-Za-z]+")
+bad = 0
+for f in sys.stdin.read().split("\0"):
+    if not f or skip.search(f):
+        continue
+    try:
+        raw = open(f, "rb").read()
+    except OSError:
+        continue
+    try:
+        if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+            text = raw.decode("utf-16")
+        elif b"\0" in raw:
+            # BOM-less UTF-16 (or any NUL data) decodes as UTF-8 with NULs between letters, hiding every word.
+            raise UnicodeDecodeError("utf-8", raw, 0, 1, "NUL byte without a UTF-16 BOM")
+        else:
+            text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        # A text file R10 cannot read is a finding, not a pass.
+        print(f"{f}: not UTF-8 or BOM-marked UTF-16 text; R10 cannot check it (add a true binary type to skip)", file=sys.stderr)
+        bad = 1
+        continue
+    # A run is consecutive BIP39 words (any case) across punctuation and line breaks; any other word ends it.
+    run, start = [], 0
+    for m in list(token.finditer(text)) + [None]:
+        w = m.group(0).lower() if m else ""
+        if w in words:
+            if not run:
+                start = m.start()
+            run.append(w)
+            continue
+        if len(run) >= 12:
+            # Cut out each allowed vector; any 12+ word remainder is still a finding.
+            # Exact match is not used: identifiers next to a vector (PUBLIC_JUNK_PHRASE) are BIP39 words too.
+            phrase = " ".join(run)
+            for a in sorted(allow, key=len, reverse=True):
+                phrase = phrase.replace(a, "|")
+            if any(len(seg.split()) >= 12 for seg in phrase.split("|")):
+                print(f"{f}:{text.count(chr(10), 0, start) + 1}: {len(run)} BIP39 words in a row", file=sys.stderr)
+                bad = 1
+        run = []
+sys.exit(bad)
+'; then
+  err "R10: possible recovery phrase; only the public test vectors in R10 are allowed"
+fi
 
 exit "$fail"

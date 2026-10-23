@@ -5,7 +5,8 @@ on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
 
-permissions: {}
+permissions:
+  pull-requests: read
 
 jobs:
   check:
@@ -19,3 +20,53 @@ jobs:
           echo "PR description: $len characters (limit 3500)"
           [ "$len" -le 3500 ] || { echo "::error::Keep the PR description at 3500 characters or less."; exit 1; }
           printf '%s' "$body" | grep -Eiq '(closes|fixes|resolves) #[0-9]+' || { echo "::error::Link the issue with 'Closes #N'."; exit 1; }
+
+  # A changed app screen needs app-vs-Figma comparison images in the PR body: one light and one dark per
+  # changed screen file. Name each image by mode in its alt text (e.g. ![S50 light](...), ![S50 dark](...)).
+  # A combined app|Figma image counts once. Files whose diff only touches comments are not UI changes.
+  figma-comparison:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | {filename, status, patch}' > files.jsonl
+          python3 - <<'PY'
+          import json, os, re, sys
+          files = [json.loads(l) for l in open("files.jsonl") if l.strip()]
+          ui = re.compile(r"^apps/mobile/(app|src/(pages|widgets|shared/ui|features/[^/]+/ui))/.*\.tsx$")
+          comment = re.compile(r"^\s*(//|/\*|\*|\*/|\{/\*)|^\s*$")
+          def code_change(f):
+              patch = f.get("patch")
+              if patch is None:
+                  return True  # binary or too large: treat as a change
+              lines = [l[1:] for l in patch.splitlines() if l[:1] in "+-" and not l.startswith(("+++", "---"))]
+              return any(not comment.match(l) for l in lines)
+          changed = [f["filename"] for f in files if f["status"] != "removed" and ui.match(f["filename"]) and code_change(f)]
+          if not changed:
+              print("No app UI code changed."); sys.exit(0)
+          print("App UI files changed:", *changed, sep="\n  ")
+          body = os.environ.get("BODY") or ""
+          m = re.search(r"^## Figma comparison\s*$(.*?)(?=^## |\Z)", body, re.M | re.S)
+          if not m:
+              print("::error::Add a '## Figma comparison' section with light and dark app-vs-Figma images per changed screen."); sys.exit(1)
+          alts = [a.lower() for a in re.findall(r"!\[([^\]]*)\]\([^)]+\)", m.group(1)) + re.findall(r"<img [^>]*alt=\"([^\"]*)\"", m.group(1))]
+          # One screen per route path: app/send/amount.tsx and src/pages/send/amount.tsx are "send/amount";
+          # route groups such as (tabs) are dropped, and index or a PascalCase component file maps to its folder.
+          def screen(c):
+              m = re.match(r"^apps/mobile/(?:app|src/pages)/(.+)\.tsx$", c)
+              if not m:
+                  return None
+              parts = [p for p in m.group(1).split("/") if not p.startswith("(")]
+              if len(parts) > 1 and (parts[-1] == "index" or parts[-1][:1].isupper()):
+                  parts.pop()
+              return "/".join(parts)
+          screens = len({screen(c) for c in changed} - {None}) or 1
+          light = sum("light" in a for a in alts); dark = sum("dark" in a for a in alts)
+          print(f"screens={screens} light={light} dark={dark}")
+          if light < screens or dark < screens:
+              print(f"::error::'## Figma comparison' needs {screens} light and {screens} dark images (mode in the alt text); found {light} light, {dark} dark."); sys.exit(1)
+          PY

@@ -5,7 +5,7 @@ import { feeShortBy, listBalance, sendLimits } from '../src/features/send/model/
 import { pressKey } from '../src/shared/lib/amount'
 import { parseAddressQr } from '../src/shared/lib/qrAddress'
 
-const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94' // public test vector (docs/agents/foundation.md rule 4)
+const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94' // public test vector (scripts/check-repo-rules.sh R10)
 const TOKEN = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' // Sepolia USDC
 const CAP = 227_500_000_000_000n // fake USDC fee cap (0.0002275 ETH)
 

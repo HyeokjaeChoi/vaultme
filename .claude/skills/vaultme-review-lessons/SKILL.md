@@ -10,7 +10,9 @@ When a lesson has a check, `scripts/check-repo-rules.sh` enforces it.
 
 ## How to add a lesson
 
-Add a lesson when the same kind of finding appears in 2 PRs, or twice in one PR.
+When the same kind of finding appears in 2 PRs, or twice in one PR, first add a check that fails on it
+(`scripts/check-repo-rules.sh`, a test, or a type) and list it in `AGENTS.md` "Enforced rules".
+Add a lesson here only when no check can detect it (judgment calls).
 Use this format. Keep it short. Link the PRs.
 
 ```
