@@ -73,8 +73,8 @@ importers:
         specifier: 1.9.1
         version: 1.9.1
       '@noble/hashes':
-        specifier: 1.8.0
-        version: 1.8.0
+        specifier: 2.4.0
+        version: 2.4.0
       '@solar-icons/react-native':
         specifier: 2.3.2
         version: 2.3.2(react-native-svg@15.15.4(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)
