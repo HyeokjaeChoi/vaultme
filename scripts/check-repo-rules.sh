@@ -133,7 +133,13 @@ for f in sys.stdin.read().split("\0"):
     except OSError:
         continue
     try:
-        text = raw.decode("utf-16") if raw[:2] in (b"\xff\xfe", b"\xfe\xff") else raw.decode("utf-8")
+        if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+            text = raw.decode("utf-16")
+        elif b"\0" in raw:
+            # BOM-less UTF-16 is valid UTF-8 with NUL bytes between letters, which hides every word.
+            text = raw.decode("utf-16-le" if raw[1::2].count(0) > raw[0::2].count(0) else "utf-16-be")
+        else:
+            text = raw.decode("utf-8")
     except UnicodeDecodeError:
         # A text file R10 cannot read is a finding, not a pass. Add true binary types to skip.
         print(f"{f}: not UTF-8 or UTF-16 text; R10 cannot check it", file=sys.stderr)
