@@ -34,7 +34,7 @@ export function maxSendable(balance: bigint, asset: AssetId, feeCap: bigint, nat
 export type ChipShare = 25 | 50 | 100
 
 /**
- * Amount chips on the send screen (redesign-b.md §6 #2): `percent` of the sendable amount, floored (never rounded up)
+ * Amount chips on the send screen: `percent` of the sendable amount, floored (never rounded up)
  * to the asset's display digits (ASSETS[asset].display.maxFraction), so the typed value always fits what the UI shows.
  * Sendable = `maxSendable` (ETH: balance - fee cap; USDC: balance when native covers the fee cap, else nothing).
  * Returns 0n when nothing is sendable (balance <= fee cap, or no native for the fee): the chip is disabled.

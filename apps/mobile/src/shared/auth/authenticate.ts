@@ -15,8 +15,8 @@ export function mapAuthResult(r: { success: true } | { success: false; error: st
 }
 
 /**
- * OS auth (Q12, Q13, Q34): biometrics, with the device passcode as fallback (`disableDeviceFallback: false`).
- * `reason` is the Korean text on the OS sheet. Never throws. Used by the lock gate (S90); send (#23) reuses it per send (Q12).
+ * OS auth (ADR-0004): biometrics, with the device passcode as fallback (`disableDeviceFallback: false`).
+ * `reason` is the Korean text on the OS sheet. Never throws. Used by the lock gate (S90); send (#23) reuses it per send (ADR-0004).
  */
 export async function authenticate(reason: string): Promise<AuthResult> {
   try {

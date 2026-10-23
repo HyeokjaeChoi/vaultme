@@ -5,7 +5,7 @@ import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
 import { Icon, ListItem, Text } from '@/shared/ui'
 
-// Chosen from the official pages on 2026-10-17: no account, no mainnet balance (outputs/design/ux-copy.md "Faucet 조사"). VaultMe does not run it.
+// Chosen from the official pages on 2026-10-17: no account, no mainnet balance. VaultMe does not run it.
 export const FAUCET_URL = 'https://faucet.quicknode.com/ethereum/sepolia'
 
 /** Empty Home: one tappable block (icon tile, title, Body Small reason, external icon), left aligned. Same action as the row below. */
@@ -54,7 +54,7 @@ export function FaucetAction({ address }: { address: string }) {
   )
 }
 
-/** "테스트 ETH 받기 · QuickNode ↗" with its caption. Tap = copy the receive address (copy feedback), then open the faucet in the browser. Shown only after backup (the address is hidden before, Q14). */
+/** "테스트 ETH 받기 · QuickNode ↗" with its caption. Tap = copy the receive address (copy feedback), then open the faucet in the browser. Shown only after backup (the address is hidden before). */
 export function FaucetRow({
   address,
   inFooter,

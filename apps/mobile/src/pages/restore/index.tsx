@@ -31,7 +31,7 @@ import {
 import { NO_AUTOFILL } from '@/shared/ui/noAutofill'
 
 /**
- * B-S05 지갑 복구 (Figma 423:15293 + 10 states, ux-flow §3): title + helper, 12/24 chips + 붙여넣기, numbered word cells in 2 columns
+ * B-S05 지갑 복구 (Figma 423:15293 + 10 states): title + helper, 12/24 chips + 붙여넣기, numbered word cells in 2 columns
  * (column 1 = first half), one error line under the grid, collapsed "고급 · 패스프레이즈 입력" row, 복구 in the footer.
  * Words and passphrase live only in this component's state (and, for "다른 주소예요", in the in-memory hand-off): both are cleared on success,
  * on leaving the screen and when the app goes to the background. Collapsing the passphrase row clears the passphrase too.

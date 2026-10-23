@@ -29,7 +29,7 @@ export function BackupCheckPage({
 
   useFocusEffect(useCallback(() => clearCheck, []))
   useEffect(() => {
-    // Leaving the app drops the check and starts the backup over from S03 (Q15 spirit: nothing about the phrase lingers).
+    // Leaving the app drops the check and starts the backup over from S03 (nothing about the phrase lingers).
     const sub = AppState.addEventListener('change', (s) => {
       if (s !== 'background') return
       clearCheck()
@@ -52,7 +52,7 @@ export function BackupCheckPage({
     if (!demo) setBackupDone(true) // the dev fixture never records a real backup
     clearCheck()
     router.dismissTo('/home')
-    router.push('/receive') // ux-flow §4: S04 ok -> S30; back from Receive lands on Home
+    router.push('/receive') // S04 ok -> S30; back from Receive lands on Home
   }
 
   return (

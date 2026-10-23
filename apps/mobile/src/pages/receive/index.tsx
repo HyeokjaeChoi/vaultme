@@ -17,7 +17,7 @@ import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 /**
  * B-S30 받기. A real QR of the wallet's own address (decoded in CI against the address, test/qr-decode.test.ts), the full address (Address L, first and last group strong), a network caption.
  * Copy gives a light haptic and the Copied label (shared `useCopy`); the faucet row (테스트 ETH 받기, first block of the footer stack: faucet, copy, share) copies the address and opens QuickNode; share opens the OS share sheet with the address. `sheet=1` opens S50.
- * Q14: receive works before backup; until then a warning with a "백업하기" link stays under the title (Figma S30B 586:97529). The address is the wallet's own, derived at creation and kept in kv; without one the screen redirects to Start.
+ * Receive works before backup; until then a warning with a "백업하기" link stays under the title (Figma S30B 586:97529). The address is the wallet's own, derived at creation and kept in kv; without one the screen redirects to Start.
  * `backedUp=1` is a __DEV__-only design-capture override: it shows the fixture address and no warning (`0` shows the fixture address with the warning).
  */
 export function ReceivePage() {
@@ -36,7 +36,7 @@ export function ReceivePage() {
   const demo = __DEV__ && (backedUp === '1' || backedUp === '0')
   const address = stored ?? (demo ? account.address : null)
   if (!address) return <Redirect href="/" /> // no wallet on this install: never show a fixture address as the user's own
-  const warn = !gate.backedUp && !(__DEV__ && backedUp === '1') // Q14: receive is open before the backup; the warning stays until it is done
+  const warn = !gate.backedUp && !(__DEV__ && backedUp === '1') // Receive is open before the backup; the warning stays until it is done
   const header = <ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} chips={<NetworkChips />} />
   const title = (
     <View>

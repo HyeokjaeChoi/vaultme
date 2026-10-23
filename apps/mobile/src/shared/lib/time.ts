@@ -3,7 +3,7 @@ const hhmm = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`
 const sameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 
-/** Update time of the history (Q58): "09:41" today, "10월 13일 09:12" on another day. Device local time. */
+/** Update time of the history (ADR-0007): "09:41" today, "10월 13일 09:12" on another day. Device local time. */
 export function formatUpdated(ms: number, now: number): string {
   const d = new Date(ms)
   return sameDay(d, new Date(now)) ? hhmm(d) : `${d.getMonth() + 1}월 ${d.getDate()}일 ${hhmm(d)}`

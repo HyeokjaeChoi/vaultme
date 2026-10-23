@@ -10,7 +10,7 @@ const read = () => {
   }
 }
 
-/** True when this install's wallet came from a restore (kv flag). Not backup proof (Q16). Re-read on focus. */
+/** True when this install's wallet came from a restore (kv flag). Not backup proof. Re-read on focus. */
 export function useRestored(): boolean {
   const [restored, setRestored] = useState(read)
   useFocusEffect(useCallback(() => setRestored(read()), []))

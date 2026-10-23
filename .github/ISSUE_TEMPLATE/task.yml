@@ -7,7 +7,7 @@ body:
     validations: { required: true }
   - type: textarea
     id: sources
-    attributes: { label: Design sources, description: Sections from docs/agents/design-index.md }
+    attributes: { label: Design sources, description: Sections of ARCHITECTURE.md, ADRs in docs/adr/, or Figma nodes }
   - type: textarea
     id: done
     attributes: { label: Done when, description: Checks that must pass }

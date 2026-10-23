@@ -1,61 +1,61 @@
-# ADR-0001: apps/web을 Workers Static Assets에 호스팅한다
+# 0001. Host apps/web on Workers Static Assets
 
-- 상태: 채택 (2026-10-14, 이슈 #36)
-- 대체: Q45·Q52의 Cloudflare Pages 배포
+Status: Accepted (2026-10-14, issue #36). Not implemented: `apps/web` does not exist yet.
+Supersedes/Aliases: Q45 and Q52 (Cloudflare Pages deploy)
 
-## 배경
+## Context
 
-Q45는 `apps/web`을 Cloudflare Pages에 정적 배포하기로 했다. Cloudflare Workers Best Practices는 새 프로젝트에 Pages 대신 Workers를 권한다. 소유자가 2026-10-14에 Workers로 옮기기로 정했다.
+Q45 chose a static deploy of `apps/web` on Cloudflare Pages. The Cloudflare Workers Best Practices recommend Workers instead of Pages for new projects. The owner decided on 2026-10-14 to move to Workers.
 
-문서에는 "Cloudflare Vite plugin은 SPA mode와 prerender를 지원하지 않는다"는 주의가 있다. 그래서 먼저 로컬 spike로 구성이 되는지 확인했다. 실제 계정에는 로그인하지도 배포하지도 않았다.
+The docs warn: "the Cloudflare Vite plugin does not support SPA mode and prerender". So a local spike first checked that the setup works. The spike did not log in to a real account and did not deploy.
 
-## 결정
+## Decision
 
-- `apps/web`은 별도 Worker + Static Assets로 호스팅한다. Worker 코드는 없다(`main` 없음).
-- 빌드는 plain `react-router build`다. Cloudflare Vite plugin은 쓰지 않는다.
-- `wrangler.jsonc`는 `assets.directory: ./build/client`, `not_found_handling: "single-page-application"`이다.
-- `public/_redirects`에 `/admin`과 `/admin/*`를 `/__spa-fallback 200`으로 rewrite한다. (아래 발견 1)
-- `public/_headers`로 보안 header를 붙인다.
-- Web과 API는 별도 Worker로 둔다. 보안 경계와 배포 결합을 분리하기 위해서다.
-- Cloudflare Access에는 `/admin`과 `/admin/*`를 둘 다 등록한다.
-- CI: 미리보기는 Workers Builds 또는 `wrangler versions upload --preview-alias pr-<number>`, staging은 `wrangler deploy --env staging`, release는 100% 단일 버전 `wrangler deploy`와 `wrangler rollback`이다. Web은 gradual deployment를 쓰지 않는다. Gradual 중에는 HTML과 해시 asset 요청이 서로 다른 버전으로 가 새 HTML의 asset이 없을 수 있고, SPA fallback이 그 오류를 200 HTML로 가린다. 쓰려면 먼저 version affinity(`Cloudflare-Workers-Version-Key`)를 적용한다.
+- Host `apps/web` as its own Worker with Static Assets. There is no Worker code (no `main`).
+- Build with plain `react-router build`. Do not use the Cloudflare Vite plugin.
+- `wrangler.jsonc` sets `assets.directory: ./build/client` and `not_found_handling: "single-page-application"`.
+- `public/_redirects` rewrites `/admin` and `/admin/*` to `/__spa-fallback 200` (see finding 1 below).
+- `public/_headers` adds the security headers.
+- Keep Web and API as separate Workers. This separates the security boundary and the deploy coupling.
+- Register both `/admin` and `/admin/*` in Cloudflare Access.
+- CI: previews use Workers Builds or `wrangler versions upload --preview-alias pr-<number>`. Staging uses `wrangler deploy --env staging`. Release is a single 100% version with `wrangler deploy`, and `wrangler rollback`. Web does not use gradual deployment. During a gradual rollout the HTML and the hashed asset requests can go to different versions, so an asset of the new HTML can be missing, and the SPA fallback hides that error as a 200 HTML. To use it, first apply version affinity (`Cloudflare-Workers-Version-Key`).
 
-## Spike 증거
+## Spike evidence
 
-환경: macOS, Node 로컬, 별도 scratch 폴더. 버전: react-router / @react-router/dev 8.4.0, vite 8.3.4, wrangler 4.151.0, @cloudflare/vite-plugin 1.64.0. 앱은 `ssr: false`, `prerender: ["/"]`, 랜딩 route 1개와 `admin/*` client route 1개다.
+Environment: macOS, local Node, a separate scratch folder. Versions: react-router and @react-router/dev 8.4.0, vite 8.3.4, wrangler 4.151.0, @cloudflare/vite-plugin 1.64.0. The app used `ssr: false`, `prerender: ["/"]`, one landing route and one `admin/*` client route.
 
-`react-router build` 결과 `build/client`에 `index.html`(prerender된 `/`), `__spa-fallback.html`, `_headers`, `_redirects`, `assets/`가 생겼다.
+`react-router build` put `index.html` (the prerendered `/`), `__spa-fallback.html`, `_headers`, `_redirects` and `assets/` in `build/client`.
 
-| 확인 | 결과 |
+| Check | Result |
 |---|---|
-| `/`에 랜딩 문구가 HTML에 있음 | 통과 (curl로 `LANDING_PRERENDERED_TEXT` 확인) |
-| `/admin`, `/admin/foo`, `/admin/a/b`가 SPA를 200으로 반환 | 통과 (rewrite 적용 후) |
-| 브라우저에서 admin 렌더링, 콘솔 오류 없음 | 통과 (rewrite 적용 후) |
-| `_headers` 적용 | 통과 (`x-spike-header: ok`, `x-content-type-options: nosniff`가 `/`, rewrite 응답 모두에 있음) |
-| 없는 asset (`/x.png`, `/assets/none.js`) | 200 + `text/html` (SPA fallback). 404가 아님 |
-| Cloudflare Vite plugin + prerender | 실패 (아래) |
+| `/` has the landing text in the HTML | Pass (curl found `LANDING_PRERENDERED_TEXT`) |
+| `/admin`, `/admin/foo`, `/admin/a/b` return the SPA with 200 | Pass (after the rewrite) |
+| Admin renders in a browser, no console error | Pass (after the rewrite) |
+| `_headers` applied | Pass (`x-spike-header: ok` and `x-content-type-options: nosniff` on `/` and on rewrite responses) |
+| Missing asset (`/x.png`, `/assets/none.js`) | 200 + `text/html` (SPA fallback). Not a 404 |
+| Cloudflare Vite plugin + prerender | Fail (see below) |
 
-### 발견 1: 기본 SPA fallback은 landing HTML을 돌려준다
+### Finding 1: the default SPA fallback returns the landing HTML
 
-`not_found_handling: "single-page-application"`만 쓰면 `/admin/foo`가 `index.html`, 곧 prerender된 랜딩을 받는다. 상태는 200이다. 브라우저는 landing HTML을 admin URL로 hydrate하다가 React error #418(hydration mismatch)을 내고, client render로 복구해 admin을 그린다. 화면은 맞지만 오류와 깜빡임이 생긴다.
+With only `not_found_handling: "single-page-application"`, `/admin/foo` gets `index.html`, which is the prerendered landing. The status is 200. The browser hydrates the landing HTML on the admin URL and raises React error #418 (hydration mismatch). It recovers with a client render and draws admin. The screen is right, but there is an error and a flicker.
 
-React Router는 prerender 시 SPA 전용 shell을 `__spa-fallback.html`로 따로 만든다. `_redirects`로 admin 경로를 그 파일에 연결하면 해결된다.
+On prerender, React Router also builds an SPA-only shell as `__spa-fallback.html`. Linking the admin paths to that file with `_redirects` fixes it.
 
 ```text
 /admin /__spa-fallback 200
 /admin/* /__spa-fallback 200
 ```
 
-`/__spa-fallback.html`로 연결하면 `html_handling` 때문에 307이 `/__spa-fallback`로 간다. 확장자 없는 경로로 써야 rewrite(200)가 된다.
+Linking to `/__spa-fallback.html` gives a 307 to `/__spa-fallback` because of `html_handling`. Write the path without an extension to get a rewrite (200).
 
 ```text
-$ curl -sI :8799/admin/foo   # rewrite 후
+$ curl -sI :8799/admin/foo   # after the rewrite
 HTTP/1.1 200 OK    (body: HydrateFallback shell)
 ```
 
-### 발견 2: Vite plugin 경로는 문서대로 막혀 있다
+### Finding 2: the Vite plugin path is blocked, as the docs say
 
-`cloudflare({ viteEnvironment: { name: "ssr" } })`와 `reactRouter()`를 함께 두고 `ssr: false`, `prerender: ["/"]`로 빌드했다.
+The build used `cloudflare({ viteEnvironment: { name: "ssr" } })` together with `reactRouter()`, `ssr: false` and `prerender: ["/"]`.
 
 ```text
 Error: Prerender paths missing
@@ -64,17 +64,17 @@ Error: Prerender paths missing
 The following error is a bug in React Router; please open an issue!
 ```
 
-문서의 "SPA mode and prerendering are not supported" 주의가 맞다. 이 경로는 쓰지 않는다.
+The docs note "SPA mode and prerendering are not supported" is correct. Do not use this path.
 
-## 결과
+## Consequences
 
-- 얻는 것: Pages 대신 Workers 단일 플랫폼. 미리보기·staging·rollback 도구가 API와 같다. 정적 HTML이라 SEO 요구(Q45)를 그대로 충족한다.
-- 감수할 것 1: SPA fallback이 없는 asset도 200 HTML로 답한다. 깨진 asset 링크가 404로 드러나지 않는다. 필요하면 `/assets/*`에 대한 404 규칙을 후속으로 검토한다.
-- 감수할 것 2: `_redirects`의 admin 경로 목록을 route와 맞춰야 한다. 새 SPA 전용 경로가 `/admin` 밖에 생기면 같이 추가한다.
-- 감수할 것 3: Vite plugin 경로를 쓸 수 없어 Cloudflare 전용 dev 환경은 얻지 못한다. 로컬 확인은 `react-router build` 후 `wrangler dev`로 한다.
-- 미검증: 실제 계정의 Workers Builds, `--preview-alias`, `wrangler rollback`, Access 정책은 소유자 인증이 필요해 실행하지 않았다. 첫 배포 때 확인한다.
+- Gain: one platform (Workers) instead of Pages. Preview, staging and rollback tools are the same as for the API. The HTML is static, so the SEO need (Q45) is still met.
+- Cost 1: the SPA fallback also answers a missing asset with a 200 HTML. A broken asset link does not show as a 404. If needed, review a 404 rule for `/assets/*` later.
+- Cost 2: the admin path list in `_redirects` must match the routes. If a new SPA-only path appears outside `/admin`, add it too.
+- Cost 3: the Vite plugin path is not usable, so there is no Cloudflare-specific dev environment. Check locally with `react-router build`, then `wrangler dev`.
+- Not verified: Workers Builds, `--preview-alias`, `wrangler rollback` and the Access policy on a real account. They need owner sign-in, so they were not run. Check them at the first deploy.
 
-## 출처
+## Sources
 
 - https://developers.cloudflare.com/workers/best-practices/workers-best-practices/
 - https://developers.cloudflare.com/workers/static-assets/

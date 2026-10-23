@@ -3,12 +3,12 @@ import { backupGateState } from '../src/features/backup/model/gate'
 
 const base = { done: false, restored: false, hasIncoming: false, promptShown: false }
 
-describe('backupGateState (Q14)', () => {
+describe('backupGateState', () => {
   it('receive is always open; send needs a backup', () => {
     expect(backupGateState(base)).toMatchObject({ backedUp: false, canReceive: true, canSend: false })
     expect(backupGateState({ ...base, done: true })).toMatchObject({ backedUp: true, canReceive: true, canSend: true })
   })
-  it('a restored wallet counts as backed up (Q16)', () => {
+  it('a restored wallet counts as backed up', () => {
     expect(backupGateState({ ...base, restored: true }).canSend).toBe(true)
   })
   it('prompts once after the first deposit while not backed up', () => {

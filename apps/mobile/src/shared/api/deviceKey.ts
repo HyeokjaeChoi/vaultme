@@ -2,7 +2,7 @@ import { p256 } from '@noble/curves/nist'
 import { sha256 } from '@noble/hashes/sha2'
 import { bytesToHex, hexToBytes, utf8ToBytes } from '@noble/hashes/utils'
 
-// Device key (lld.md §4.1): ECDSA P-256, separate from the wallet key. Signature = compact r||s over SHA-256(canonical string).
+// Device key (ARCHITECTURE.md#install-auth): ECDSA P-256, separate from the wallet key. Signature = compact r||s over SHA-256(canonical string).
 
 export const b64u = (b: Uint8Array): string =>
   btoa(String.fromCharCode(...b))

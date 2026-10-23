@@ -2,7 +2,7 @@ import { fromUnits, signAndSubmit, type Address, type ApprovedSend } from '@vaul
 import type { ChainPort } from '@/shared/chain/port'
 import type { AuthPrompt, LoadPhraseResult, PendingTx } from '@/shared/storage'
 
-/** Q47: a Pending or Unknown send blocks a new one. A corrupt record must not lift the block. */
+/** ADR-0006: a Pending or Unknown send blocks a new one. A corrupt record must not lift the block. */
 export const blocksNewSend = (tx: PendingTx | null | 'corrupt'): boolean =>
   tx === 'corrupt' || (tx !== null && (tx.state === 'Pending' || tx.state === 'Unknown'))
 
@@ -22,7 +22,7 @@ export type SendDeps = {
 }
 
 /**
- * Per-send flow after the user confirmed Review: OS auth (the phrase read IS the auth, Q12) -> fresh snapshot -> signAndSubmit.
+ * Per-send flow after the user confirmed Review: OS auth (the phrase read IS the auth, ADR-0004) -> fresh snapshot -> signAndSubmit.
  * Cancel signs nothing. The phrase is only referenced inside this function.
  * `amount` is the decimal string the user entered; `from` is the sending account address.
  */
@@ -62,7 +62,7 @@ export async function runSend(
   try {
     d.savePending(tx)
   } catch {
-    // Submitted but not recorded: report Unknown, never a clean failure (Q47).
+    // Submitted but not recorded: report Unknown, never a clean failure (ADR-0006).
     return { status: 'Unknown', tx: { ...tx, state: 'Unknown' } }
   }
   return { status: result.status, tx }

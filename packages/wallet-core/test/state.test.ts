@@ -12,7 +12,7 @@ const submitting = run(
   { type: 'AUTH_OK' },
 )
 
-describe('reduce: LLD §6 table', () => {
+describe('reduce: transaction state table (ARCHITECTURE.md#invariants)', () => {
   test('happy path to Confirmed', () => {
     const s = run(submitting, { type: 'SUBMITTED', hash: H }, { type: 'RECEIPT', ok: true }, { type: 'SAFE', ok: true })
     expect(s).toEqual({ status: 'Confirmed', hash: H })

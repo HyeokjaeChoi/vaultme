@@ -1,6 +1,6 @@
 import base from '@vaultme/config/eslint'
 
-// LLD §1.1: no raw colors or numeric spacing in UI code. Values come from @vaultme/tokens.
+// AGENTS.md "Enforced rules" (R2, R5): no raw colors or numeric spacing in UI code. Values come from @vaultme/tokens.
 const styleKeys =
   '/^(margin|padding|gap|rowGap|columnGap|border.*(Width|Radius)|fontSize|lineHeight|letterSpacing|width|height|min.*|max.*|top|left|right|bottom)/'
 const noRawStyle = {

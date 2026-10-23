@@ -6,7 +6,7 @@ export type TxState = PendingTx['state']
 
 /** Final states: nothing changes them, so nothing re-checks them. */
 export const isFinal = (s: TxState): boolean => s === 'Confirmed' || s === 'Failed' || s === 'Replaced'
-/** States that can still move on their own (hld.md §4.1). Unknown only moves on a manual re-check. */
+/** States that can still move on their own (ARCHITECTURE.md#invariants). Unknown only moves on a manual re-check. */
 export const isPolled = (s: TxState): boolean => s === 'Pending' || s === 'Included'
 
 type Facts = {
@@ -19,10 +19,10 @@ type Facts = {
 }
 
 /**
- * hld.md §4.1 / lld.md §6. A receipt at or below the `safe` block is final: success = Confirmed, reverted = Failed (Q37).
+ * ARCHITECTURE.md#invariants (transaction state). A receipt at or below the `safe` block is final: success = Confirmed, reverted = Failed (ADR-0006).
  * A receipt above it is Included, whether it succeeded or not. No receipt: Included falls back to Pending (reorg);
- * an account nonce at `safe` beyond ours means another tx took the nonce = Replaced (Q77). Nothing else changes the state,
- * and never the passing of time (Q22).
+ * an account nonce at `safe` beyond ours means another tx took the nonce = Replaced (ADR-0006). Nothing else changes the state,
+ * and never the passing of time (ADR-0006).
  */
 export function deriveState(f: Facts): TxState {
   if (isFinal(f.current)) return f.current

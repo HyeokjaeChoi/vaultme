@@ -1,6 +1,6 @@
 import { parseEther, type Address } from 'viem'
 
-// Constants are never fetched from a server (LLD Q73).
+// Constants are never fetched from a server (ADR-0005).
 export const CHAIN = { id: 11155111, name: 'Sepolia' } as const
 
 export const ASSETS = {
@@ -19,7 +19,7 @@ export type AssetId = keyof typeof ASSETS
 
 export const DERIVATION_PATH = "m/44'/60'/0'/0/0"
 
-// Testnet-only absolute fee cap (LLD §14).
+// Testnet-only absolute fee cap (ARCHITECTURE.md#invariants).
 export const ABS_MAX_FEE_WEI = parseEther('0.005')
 
 export const BURN_ADDRESSES = [

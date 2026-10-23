@@ -1,6 +1,6 @@
 import { toChecksumAddress } from '@vaultme/wallet-core'
 
-/** Splits an address into 4-char groups (LLD §12). The "0x" prefix stays attached to the first group, as drawn in Figma ("0x9F3c 7A21 ..."). */
+/** Splits an address into 4-char groups (ARCHITECTURE.md#invariants). The "0x" prefix stays attached to the first group, as drawn in Figma ("0x9F3c 7A21 ..."). */
 export function groupAddress(address: string): string[] {
   const prefix = address.startsWith('0x') ? '0x' : ''
   const groups = address.slice(prefix.length).match(/.{1,4}/g) ?? []

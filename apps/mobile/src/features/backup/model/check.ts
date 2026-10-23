@@ -1,5 +1,5 @@
 // S04 word check: pure logic + a tiny in-memory hand-off from S03 to S04.
-// The hand-off holds only the 3 asked words (never the 12), and is cleared on leaving S04 (Q15).
+// The hand-off holds only the 3 asked words (never the 12), and is cleared on leaving S04.
 
 export const PHRASE_LENGTH = 12
 export const CHECK_COUNT = 3

@@ -13,7 +13,7 @@ const readShown = () => {
   }
 }
 
-/** Single source for the Q14 backup timing. Call `markPromptShown()` when the deposit sheet opens (persisted once). */
+/** Single source for the backup timing. Call `markPromptShown()` when the deposit sheet opens (persisted once). */
 export function useBackupGate(): BackupGateState & { markPromptShown: () => void } {
   const done = useBackupDone()
   const restored = useRestored()

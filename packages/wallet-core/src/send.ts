@@ -4,7 +4,7 @@ import { ABS_MAX_FEE_WEI, ASSETS, CHAIN, type AssetId } from './constants'
 import type { Mnemonic } from './mnemonic'
 import { recipientRisk, type RecipientRisk } from './risk'
 
-/** Local tx hash: keccak256 of the signed raw tx (Q73). */
+/** Local tx hash: keccak256 of the signed raw tx (ADR-0005). */
 export const txHash = (raw: Hex): Hash => keccak256(raw)
 export type { Address, Hash, Hex }
 

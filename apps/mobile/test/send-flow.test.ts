@@ -122,7 +122,7 @@ describe('runSend', () => {
     })
     expect(await runSend(review, '0.05', FROM, d)).toMatchObject({ status: 'ChainError', error: expect.any(Error) })
   })
-  it('Q47: a Pending or Unknown or corrupt record blocks before any auth', async () => {
+  it('ADR-0006: a Pending or Unknown or corrupt record blocks before any auth', async () => {
     const { review, snap } = await base()
     const tx = { hash: '0x1', nonce: 0, asset: 'ETH', to: TO, amount: '1', createdAt: 1, lastCheckedAt: 1 }
     for (const pending of [

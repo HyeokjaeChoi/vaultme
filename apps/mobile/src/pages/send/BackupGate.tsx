@@ -6,7 +6,7 @@ import { Button, EmptyState, Screen, ScreenHeader, Text } from '@/shared/ui'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
 /**
- * B-S31 as the send gate (Q14 revised 2026-10-17): receiving is open before the backup, the first send needs it. Shown by `SendGuard` in place of the send flow.
+ * B-S31 as the send gate (revised 2026-10-17): receiving is open before the backup, the first send needs it. Shown by `SendGuard` in place of the send flow.
  * Title "보내기", warning hero, one reason, Primary "백업 시작", Ghost "나중에" (back to where the user came from).
  */
 export function BackupGate() {

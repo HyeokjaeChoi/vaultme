@@ -34,7 +34,7 @@ import { InvalidCursorError, UpstreamError, fail } from './errors.ts'
 import { AlchemyPayload, handleActivity, subscribe, unsubscribe, verifyAlchemySignature } from './push.ts'
 import { proxyRpc, rpcAllowed } from './rpc.ts'
 
-// No CORS headers on purpose: the only client is the native app (LLD §4).
+// No CORS headers on purpose: the only client is the native app (ARCHITECTURE.md#security-model).
 export const app = new OpenAPIHono<Env>({
   defaultHook: (r, c) => {
     if (!r.success) return fail(c, 400, 'invalid_request', 'Invalid request')

@@ -1,7 +1,7 @@
 import { createMMKV, type MMKV } from 'react-native-mmkv'
 import { getOrCreateKvKey } from './keychain'
 
-// One encrypted MMKV instance (Q63). The key comes from Keychain (async), so call `openKv()` once
+// One encrypted MMKV instance (ADR-0004). The key comes from Keychain (async), so call `openKv()` once
 // at boot (before the first render); after that every helper here is synchronous.
 let kv: MMKV | null = null
 let opening: Promise<void> | null = null
@@ -31,14 +31,14 @@ export const setPushSetting = (v: boolean): void => store().set('settings.push',
 export const getZeroSetting = (): boolean => store().getBoolean('settings.zero') ?? false
 export const setZeroSetting = (v: boolean): void => store().set('settings.zero', v)
 
-/** Q14: the "back up now" sheet after the first incoming deposit was shown once. Reset when a wallet is created or restored. */
+/** The "back up now" sheet after the first incoming deposit was shown once. Reset when a wallet is created or restored. */
 export const getDepositPromptShown = (): boolean => store().getBoolean('backup.depositPromptShown') ?? false
 export const setDepositPromptShown = (v: boolean): void => store().set('backup.depositPromptShown', v)
 
 export const getBackupDone = (): boolean => store().getBoolean('backupDone') ?? false
 export const setBackupDone = (v: boolean): void => store().set('backupDone', v)
 
-// --- restored flag (Q16): set by a successful restore (S05/S06), cleared when a new wallet is created. It is not backup proof ---
+// --- restored flag: set by a successful restore (S05/S06), cleared when a new wallet is created. It is not backup proof ---
 export const getRestored = (): boolean => store().getBoolean('wallet.restored') ?? false
 export const setRestored = (v: boolean): void => store().set('wallet.restored', v)
 
@@ -47,7 +47,7 @@ export const getAccountAddress = (): string | null => store().getString('account
 export const setAccountAddress = (a: string): void => store().set('account.address', a)
 export const clearAccountAddress = (): void => void store().remove('account.address')
 
-// --- lock (Q13): 30 s grace after a real background; cold start is locked ---
+// --- lock: 30 s grace after a real background; cold start is locked ---
 export type LockSettings = { graceSeconds: number }
 export type LockState = { locked: boolean; backgroundedAt: number | null }
 
@@ -74,7 +74,7 @@ export function setLockState(s: LockState): void {
   else k.set('lock.backgroundedAt', s.backgroundedAt)
 }
 
-// --- pending tx (lld.md §6; send wiring is #23). amount is a decimal string, never a Number. ---
+// --- pending tx (ARCHITECTURE.md#invariants; send wiring is #23). amount is a decimal string, never a Number. ---
 export type PendingTx = {
   hash: string
   nonce: number
@@ -135,7 +135,7 @@ export function getPendingTx(): PendingTx | null {
   const raw = store().getString('pendingTx')
   if (raw === undefined) return null
   const tx = parsePendingTx(raw)
-  // A corrupt record must not read as "no pending tx": that would lift the send block (Q47).
+  // A corrupt record must not read as "no pending tx": that would lift the send block (ADR-0006).
   if (!tx) throw new Error('kv: pendingTx record is corrupt')
   return tx
 }
@@ -144,14 +144,14 @@ export function setPendingTx(tx: PendingTx | null): void {
   else store().set('pendingTx', JSON.stringify(tx))
 }
 
-// --- API install id (lld.md §4.1). The device key itself is in Keychain. ---
+// --- API install id (ARCHITECTURE.md#install-auth). The device key itself is in Keychain. ---
 export const getInstallId = (): string | null => store().getString('api.installId') ?? null
 export function setInstallId(id: string | null): void {
   if (id === null) store().remove('api.installId')
   else store().set('api.installId', id)
 }
 
-// --- last /v1/history result and when it was fetched (Q58) ---
+// --- last /v1/history result and when it was fetched (ADR-0007) ---
 export type HistoryCache = { address: string; json: string; updatedAt: number }
 export function getHistoryCache(): HistoryCache | null {
   const raw = store().getString('history.cache')

@@ -122,7 +122,7 @@ describe('real ChainPort', () => {
   })
 })
 
-describe('send with the real adapter (Q73 hash compare)', () => {
+describe('send with the real adapter (ADR-0005 hash compare)', () => {
   async function send(reported: (raw: Hex) => string) {
     const n = node({ eth_sendRawTransaction: (p) => reported(p[0] as Hex) })
     const chain = createRpcChain(n.rpc)
@@ -159,7 +159,7 @@ describe('send with the real adapter (Q73 hash compare)', () => {
   })
 })
 
-describe('safe block and safe nonce (Q37, Q77)', () => {
+describe('safe block and safe nonce (ADR-0006)', () => {
   it('getSafeBlock asks eth_getBlockByNumber("safe", false) and reads the number', async () => {
     const n = node({ eth_getBlockByNumber: () => ({ number: '0x64', hash: '0x1' }) })
     expect(await createRpcChain(n.rpc).getSafeBlock()).toBe(100n)

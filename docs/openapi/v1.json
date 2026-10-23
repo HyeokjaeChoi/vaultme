@@ -295,7 +295,7 @@
           },
           "zeroValue": {
             "type": "boolean",
-            "description": "value is 0 (contract call, or an address-poisoning transfer, Q71)."
+            "description": "value is 0 (contract call, or an address-poisoning transfer)."
           }
         },
         "required": [

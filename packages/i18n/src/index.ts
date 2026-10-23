@@ -14,7 +14,7 @@ declare module 'i18next' {
   }
 }
 
-/** Shared instance. Language is fixed to ko for v1 (Q49). Resources are inline, so init is synchronous. */
+/** Shared instance. Language is fixed to ko for v1. Resources are inline, so init is synchronous. */
 export const i18n = createInstance()
 void i18n.use(initReactI18next).init({
   lng: 'ko',

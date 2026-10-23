@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 #
-# Design sources are the rule sources. docs/agents/design-index.md maps areas to them.
+# Rule sources: AGENTS.md, ARCHITECTURE.md and the accepted ADRs in docs/adr/.
 # CodeRabbit learnings only calibrate the reviewer. They hold no design facts.
 language: en-US
 reviews:
@@ -16,14 +16,14 @@ reviews:
   path_instructions:
     - path: 'packages/wallet-core/**'
       instructions: >-
-        Judge against outputs/design/lld.md §3, §6, §11 and AGENTS.md "Enforced rules" (scripts/check-repo-rules.sh R10).
+        Judge against ARCHITECTURE.md (Invariants), docs/adr/ and AGENTS.md "Enforced rules" (scripts/check-repo-rules.sh R10).
         Amounts use decimal strings and bigint only, never Number. No IO, no React/RN.
         Recovery phrases and keys must never reach logs, errors, toString or JSON.
-        Flag any state transition that is not in the lld.md §6 table.
+        Flag any state transition that is not in the ARCHITECTURE.md transaction state list.
     - path: 'apps/mobile/**'
       instructions: >-
-        Judge against AGENTS.md, DESIGN.md, outputs/design/lld.md §1.1 and §12,
-        outputs/design/ux-flow.md, CONTEXT.md and outputs/components/.
+        Judge against AGENTS.md, ARCHITECTURE.md, docs/adr/, DESIGN.md
+        and CONTEXT.md.
         Use token values only (no raw hex or numeric spacing). Review screens show account,
         network, asset, full recipient, amount, estimated fee and status. Korean copy must
         match the CONTEXT.md glossary. 44 pt targets, accessibility labels on icon-only controls.
@@ -33,11 +33,11 @@ reviews:
         values alias Primitive tokens. Flag any raw value outside Primitive.
     - path: 'packages/i18n/**'
       instructions: >-
-        Strings must follow CONTEXT.md and outputs/design/ux-copy.md.
-    - path: 'outputs/**'
+        Strings must follow CONTEXT.md.
+    - path: 'docs/adr/**'
       instructions: >-
-        These are design sources. Treat changes to decisions (requirements session, hld, lld)
-        as decision changes: the PR description must name each changed decision and its reason.
+        An accepted ADR binds. Flag an edit that changes an accepted decision: it needs a new
+        ADR that supersedes the old one.
     - path: '.github/workflows/**'
       instructions: >-
         Pin third-party actions to a full commit SHA with a version comment. Least privilege
@@ -81,7 +81,7 @@ knowledge_base:
     filePatterns:
       - files: AGENTS.md
         applyTo: '**'
-      - files: docs/agents/design-index.md
+      - files: ARCHITECTURE.md
         applyTo: '**'
       - files: docs/agents/workflow.md
         applyTo: '**'

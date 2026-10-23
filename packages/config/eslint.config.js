@@ -2,7 +2,7 @@ import js from '@eslint/js'
 import prettier from 'eslint-config-prettier/flat'
 import tseslint from 'typescript-eslint'
 
-// Amount code must use bigint + decimal strings only (LLD §12).
+// Amount code must use bigint + decimal strings only (ARCHITECTURE.md#invariants).
 const noFloat = {
   files: ['src/amount.ts', 'src/send.ts'],
   rules: {

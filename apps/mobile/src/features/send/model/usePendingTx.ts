@@ -3,10 +3,10 @@ import { useCallback, useState } from 'react'
 import { getPendingTx, setPendingTx, type PendingTx } from '@/shared/storage'
 import { blocksNewSend } from './runSend'
 
-// A submitted tx whose kv write failed. It keeps the Q47 block and the result screen alive until the app restarts.
+// A submitted tx whose kv write failed. It keeps the ADR-0006 block and the result screen alive until the app restarts.
 let unsaved: PendingTx | null = null
 
-/** Writes the kv record. If the write fails the tx is kept in memory, so a submitted send is never forgotten (Q47). */
+/** Writes the kv record. If the write fails the tx is kept in memory, so a submitted send is never forgotten (ADR-0006). */
 export function writePendingTx(tx: PendingTx | null): void {
   try {
     setPendingTx(tx)
@@ -17,7 +17,7 @@ export function writePendingTx(tx: PendingTx | null): void {
   }
 }
 
-/** Reads the kv record (or the unsaved one); a corrupt or unreadable one is `'corrupt'` so the send block stays on (Q47). */
+/** Reads the kv record (or the unsaved one); a corrupt or unreadable one is `'corrupt'` so the send block stays on (ADR-0006). */
 export function readPendingTx(): PendingTx | null | 'corrupt' {
   try {
     return getPendingTx() ?? unsaved
@@ -26,7 +26,7 @@ export function readPendingTx(): PendingTx | null | 'corrupt' {
   }
 }
 
-/** Pending tx from the kv, re-read whenever the screen regains focus. `blocked` = Q47. */
+/** Pending tx from the kv, re-read whenever the screen regains focus. `blocked` = ADR-0006. */
 export function usePendingTx(): { tx: PendingTx | null; blocked: boolean; reload: () => void } {
   const [raw, setRaw] = useState(readPendingTx)
   const reload = useCallback(() => setRaw(readPendingTx()), [])
