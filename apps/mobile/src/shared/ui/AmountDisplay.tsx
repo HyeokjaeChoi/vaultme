@@ -9,12 +9,32 @@ type Props = { amount: string; ticker: string; sub?: string; error?: boolean }
 export function AmountDisplay({ amount, ticker, sub, error }: Props) {
   const t = useTheme()
   return (
-    <View accessible accessibilityLabel={`${amount} ${ticker}${sub ? `. ${sub}` : ''}`} style={{ alignItems: 'center', gap: t.primitive.space[2], paddingVertical: t.semantic.layout.groupGap }}>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'center', gap: t.primitive.space['1_5'] }}>
-        <Text variant="figure" tabular color={error ? t.semantic.status.danger.fg : t.semantic.text.primary}>{amount}</Text>
-        <Text variant="figureUnit" color={t.semantic.text.secondary}>{ticker}</Text>
+    <View
+      accessible
+      accessibilityLabel={`${amount} ${ticker}${sub ? `. ${sub}` : ''}`}
+      style={{ alignItems: 'center', gap: t.primitive.space[2], paddingVertical: t.semantic.layout.groupGap }}
+    >
+      <View
+        style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          alignItems: 'baseline',
+          justifyContent: 'center',
+          gap: t.primitive.space['1_5'],
+        }}
+      >
+        <Text variant="figure" tabular color={error ? t.semantic.status.danger.fg : t.semantic.text.primary}>
+          {amount}
+        </Text>
+        <Text variant="figureUnit" color={t.semantic.text.secondary}>
+          {ticker}
+        </Text>
       </View>
-      {sub ? <Text variant="bodySmall" tabular color={t.semantic.text.secondary} style={{ textAlign: 'center' }}>{sub}</Text> : null}
+      {sub ? (
+        <Text variant="bodySmall" tabular color={t.semantic.text.secondary} style={{ textAlign: 'center' }}>
+          {sub}
+        </Text>
+      ) : null}
     </View>
   )
 }

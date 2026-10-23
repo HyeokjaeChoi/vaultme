@@ -23,7 +23,11 @@ import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 export function ReceivePage() {
   const { t } = useTranslation()
   const th = useTheme()
-  const { sheet, backedUp, copied: copiedParam } = useLocalSearchParams<{ sheet?: string; backedUp?: string; copied?: string }>()
+  const {
+    sheet,
+    backedUp,
+    copied: copiedParam,
+  } = useLocalSearchParams<{ sheet?: string; backedUp?: string; copied?: string }>()
   const [open, setOpen] = useState(sheet === '1')
   const { copied, copy } = useCopy(t('receive.copied'), __DEV__ && copiedParam === '1')
   const router = useRouter()
@@ -37,12 +41,18 @@ export function ReceivePage() {
   const title = (
     <View>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
-        <Text variant="title1" accessibilityRole="header">{t('receive.title')}</Text>
-        <Text variant="factUpper" color={th.semantic.text.tertiary}>{networkFact.toUpperCase()}</Text>
+        <Text variant="title1" accessibilityRole="header">
+          {t('receive.title')}
+        </Text>
+        <Text variant="factUpper" color={th.semantic.text.tertiary}>
+          {networkFact.toUpperCase()}
+        </Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.semantic.layout.fieldGap }}>
         <Icon name="account" size={th.component.icon.account.size} color={th.component.icon.account.fg} />
-        <Text variant="bodySmall" color={th.semantic.text.secondary}>{t('receive.account')}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.secondary}>
+          {t('receive.account')}
+        </Text>
       </View>
     </View>
   )
@@ -53,20 +63,39 @@ export function ReceivePage() {
       {...(warn ? {} : { footerLead: <FaucetRow address={address} inFooter /> })} // the faucet row is for a backed-up wallet (S30B has none)
       footer={
         <>
-          <Button label={copied ? t('receive.copied') : t('receive.copy')} copied={copied} onPress={() => void copy(address)} />
-          <Button label={t('receive.share')} variant="ghost" onPress={() => void Share.share({ message: address }).catch(() => undefined)} />
+          <Button
+            label={copied ? t('receive.copied') : t('receive.copy')}
+            copied={copied}
+            onPress={() => void copy(address)}
+          />
+          <Button
+            label={t('receive.share')}
+            variant="ghost"
+            onPress={() => void Share.share({ message: address }).catch(() => undefined)}
+          />
         </>
       }
     >
       {title}
-      {warn ? <StatusNotice tone="warning" title={t('receive.backupWarn.title')} body={t('receive.backupWarn.body')} link={{ label: t('receive.backupWarn.link'), onPress: () => router.push('/backup') }} /> : null}
+      {warn ? (
+        <StatusNotice
+          tone="warning"
+          title={t('receive.backupWarn.title')}
+          body={t('receive.backupWarn.body')}
+          link={{ label: t('receive.backupWarn.link'), onPress: () => router.push('/backup') }}
+        />
+      ) : null}
       <View style={{ paddingVertical: th.primitive.space[2] }}>
         <QrCode value={address} label={t('receive.qrLabel')} />
       </View>
       <View style={{ gap: th.semantic.layout.fieldGap }}>
-        <Text variant="bodySmall" color={th.semantic.text.tertiary}>{t('receive.addressLabel')}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.tertiary}>
+          {t('receive.addressLabel')}
+        </Text>
         <AddressText address={address} size="L" />
-        <Text variant="bodySmall" color={th.semantic.text.primary}>{t('receive.warning')}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.primary}>
+          {t('receive.warning')}
+        </Text>
       </View>
       <PushOptInSheet visible={open} onClose={() => setOpen(false)} />
     </Screen>

@@ -9,7 +9,15 @@ import { Icon } from './Icon'
 import { Text } from './Text'
 
 type Action = { label: string; onPress: () => void }
-type Props = { label: string; value: string; onChangeText: (v: string) => void; placeholder?: string; error?: string; actions?: Action[]; /** Show scan icon: QR icon button after the link actions. `label` is its accessible name (icon-only control). */ scan?: Action }
+type Props = {
+  label: string
+  value: string
+  onChangeText: (v: string) => void
+  placeholder?: string
+  error?: string
+  actions?: Action[]
+  /** Show scan icon: QR icon button after the link actions. `label` is its accessible name (icon-only control). */ scan?: Action
+}
 
 /** C13 Recipient field (B/Input, Address kind): Label, bordered field (functional border: editable, focus, error). Typing shows the raw text in Address mono; a shown address uses B/Address (4-char groups, first and last group strong). Link actions (붙여넣기 / 지우기) and the optional scan icon sit inside the field. The format check is not a safety claim. */
 export function RecipientField({ label, value, onChangeText, placeholder, error, actions, scan }: Props) {
@@ -19,8 +27,21 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
   const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
   return (
     <View style={{ gap: c.fieldGap }}>
-      <Text variant="label" color={c.label}>{label}</Text>
-      <View style={{ minHeight: t.component.buttonB.height.lg, gap: t.primitive.space[2], paddingHorizontal: c.paddingX, paddingVertical: t.primitive.space[4], borderRadius: c.radius, borderWidth: c.borderWidth, borderColor: border, backgroundColor: c.bg.default }}>
+      <Text variant="label" color={c.label}>
+        {label}
+      </Text>
+      <View
+        style={{
+          minHeight: t.component.buttonB.height.lg,
+          gap: t.primitive.space[2],
+          paddingHorizontal: c.paddingX,
+          paddingVertical: t.primitive.space[4],
+          borderRadius: c.radius,
+          borderWidth: c.borderWidth,
+          borderColor: border,
+          backgroundColor: c.bg.default,
+        }}
+      >
         {isAddressFormat(value) && !focused ? (
           // Shown address: first and last group strong, grouped in 4 (Figma B/Address). Tapping it edits the raw text.
           <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => setFocused(true)}>
@@ -45,19 +66,41 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
         {actions?.length || scan ? (
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: t.semantic.layout.groupGap }}>
             {(actions ?? []).map((a) => (
-              <Pressable key={a.label} accessibilityRole="button" accessibilityLabel={a.label} onPress={a.onPress} style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}>
-                <Text variant="link" color={t.semantic.text.link}>{a.label}</Text>
+              <Pressable
+                key={a.label}
+                accessibilityRole="button"
+                accessibilityLabel={a.label}
+                onPress={a.onPress}
+                style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}
+              >
+                <Text variant="link" color={t.semantic.text.link}>
+                  {a.label}
+                </Text>
               </Pressable>
             ))}
             {scan ? (
-              <Pressable accessibilityRole="button" accessibilityLabel={scan.label} onPress={scan.onPress} style={{ width: t.primitive.size.touch_min, height: t.primitive.size.touch_min, alignItems: 'center', justifyContent: 'center' }}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={scan.label}
+                onPress={scan.onPress}
+                style={{
+                  width: t.primitive.size.touch_min,
+                  height: t.primitive.size.touch_min,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 <Icon name="qr" size={t.component.icon.size.feature} color={t.component.icon.action.fg} />
               </Pressable>
             ) : null}
           </View>
         ) : null}
       </View>
-      {error ? <Text variant="caption" color={c.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text variant="caption" color={c.errorText}>
+          {error}
+        </Text>
+      ) : null}
     </View>
   )
 }

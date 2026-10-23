@@ -50,6 +50,7 @@ You need Node 24 or newer and pnpm 11.17.0 (`packageManager` in `package.json`).
 git config core.hooksPath .githooks   # once per clone
 pnpm install
 pnpm typecheck
+pnpm format:check
 pnpm lint
 pnpm test
 scripts/check-repo-rules.sh
@@ -62,7 +63,7 @@ pnpm --filter @vaultme/mobile start   # Expo dev server
 ```
 
 `packages/tokens` generates its TypeScript output on `build`. Its `typecheck`, `lint`, and `test` scripts run `build` first.
-CI runs `scripts/check-repo-rules.sh` and `pnpm turbo run typecheck lint test` ([ci.yml](.github/workflows/ci.yml)).
+The pre-commit hook runs ESLint `--fix` and Prettier on staged files. CI runs `scripts/check-repo-rules.sh`, `prettier --check .` and `pnpm turbo run typecheck lint test` ([ci.yml](.github/workflows/ci.yml)).
 
 ## Design system
 

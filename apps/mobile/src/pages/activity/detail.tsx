@@ -16,7 +16,19 @@ import { goBack } from '@/shared/lib/nav'
 import { showAmount } from '@/shared/lib/amount'
 import { factTime } from '@/shared/lib/time'
 import { useTheme } from '@/shared/theme'
-import { AmountHero, BottomSheet, Block, Button, Icon, Screen, ScreenHeader, SectionBand, StatusNotice, SummaryRow, Text } from '@/shared/ui'
+import {
+  AmountHero,
+  BottomSheet,
+  Block,
+  Button,
+  Icon,
+  Screen,
+  ScreenHeader,
+  SectionBand,
+  StatusNotice,
+  SummaryRow,
+  Text,
+} from '@/shared/ui'
 import { AddressText } from '@/shared/ui/AddressBlock'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
@@ -31,7 +43,13 @@ const hhmm = (at: number) => new Date(at).toTimeString().slice(0, 5)
 export function TxDetailPage() {
   const { t } = useTranslation()
   const th = useTheme()
-  const { hash, demo, real, sheet, err } = useLocalSearchParams<{ hash: string; demo?: string; real?: string; sheet?: string; err?: string }>()
+  const { hash, demo, real, sheet, err } = useLocalSearchParams<{
+    hash: string
+    demo?: string
+    real?: string
+    sheet?: string
+    err?: string
+  }>()
   const router = useRouter()
   const [confirmClear, setConfirmClear] = useState(__DEV__ && sheet === '1')
   const { tx: stored, checking, error: trackedError, recheck } = useTrackedTx()
@@ -42,12 +60,19 @@ export function TxDetailPage() {
     if (confirmClear) haptic.warning()
   }, [confirmClear])
   if (!tx) return <Redirect href="/activity" />
-  const explorer = explorerUrl(chain, tx.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${tx.hash}` : null)
+  const explorer =
+    explorerUrl(chain, tx.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${tx.hash}` : null)
   const copy = resultCopy(tx.state)
   const test = testMode && isPolled(tx.state)
   const final = isFinal(tx.state)
   const [figure, unit] = showAmount(tx.amount, tx.asset, 'exact').split(' ')
-  const stateWord = test ? t('detail.state.test') : tx.state === 'Confirmed' ? t('detail.state.confirmed') : tx.state === 'Unknown' ? t('detail.state.unknown') : t(txView(tx.state).label)
+  const stateWord = test
+    ? t('detail.state.test')
+    : tx.state === 'Confirmed'
+      ? t('detail.state.confirmed')
+      : tx.state === 'Unknown'
+        ? t('detail.state.unknown')
+        : t(txView(tx.state).label)
   const lastChecked = `${t('detail.lastChecked', { time: hhmm(tx.lastCheckedAt) })}.${isPolled(tx.state) ? ` ${t('detail.auto')}` : ''}`
   const showFee = !test && tx.state !== 'Replaced'
   return (
@@ -55,11 +80,25 @@ export function TxDetailPage() {
       bleed
       gap="none"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/activity')} chips={<NetworkChips />} />}
-      footer={final || test ? undefined : <Button label={t('detail.recheck')} busy={checking} busyLabel={t('busy.recheck')} onPress={() => void recheck()} />}
+      footer={
+        final || test ? undefined : (
+          <Button
+            label={t('detail.recheck')}
+            busy={checking}
+            busyLabel={t('busy.recheck')}
+            onPress={() => void recheck()}
+          />
+        )
+      }
     >
       {error ? (
         <View style={{ paddingHorizontal: th.semantic.layout.screen.padding, paddingTop: th.primitive.space[2] }}>
-          <StatusNotice tier="banner" tone="warning" title={t(`${apiErrorKey(error)}.title`)} body={t(`${apiErrorKey(error)}.body`)} />
+          <StatusNotice
+            tier="banner"
+            tone="warning"
+            title={t(`${apiErrorKey(error)}.title`)}
+            body={t(`${apiErrorKey(error)}.body`)}
+          />
         </View>
       ) : null}
       <AmountHero
@@ -80,16 +119,29 @@ export function TxDetailPage() {
         <SummaryRow format="address" plain fact label={t('detail.hashTitle')} value={tx.hash} />
         <SummaryRow label={t('detail.sender')} value={account.name} />
         <SummaryRow label={t('result.network')} fact value={networkFact} />
-        {tx.blockNumber !== undefined && !test ? <SummaryRow label={t('detail.block')} fact value={String(tx.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} /> : null}
-        {showFee ? <SummaryRow label={t(tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal')} value={tx.fee ? `${tx.fee} ETH` : '—'} /> : null}
+        {tx.blockNumber !== undefined && !test ? (
+          <SummaryRow label={t('detail.block')} fact value={String(tx.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} />
+        ) : null}
+        {showFee ? (
+          <SummaryRow
+            label={t(tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal')}
+            value={tx.fee ? `${tx.fee} ETH` : '—'}
+          />
+        ) : null}
         {final || test ? null : <StatusNotice tone="info" title={lastChecked} />}
       </Block>
       {test ? (
         <>
           <SectionBand />
           <Block>
-            <Pressable accessibilityRole="button" onPress={() => setConfirmClear(true)} style={{ minHeight: th.primitive.size.touch_min, justifyContent: 'center' }}>
-              <Text variant="headline" color={th.semantic.status.danger.fg}>{t('detail.clearTest')}</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setConfirmClear(true)}
+              style={{ minHeight: th.primitive.size.touch_min, justifyContent: 'center' }}
+            >
+              <Text variant="headline" color={th.semantic.status.danger.fg}>
+                {t('detail.clearTest')}
+              </Text>
             </Pressable>
           </Block>
         </>
@@ -101,7 +153,12 @@ export function TxDetailPage() {
               accessibilityRole="link"
               accessibilityLabel={t('detail.etherscan')}
               onPress={() => void Linking.openURL(explorer)}
-              style={{ minHeight: th.primitive.size.touch_min, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+              style={{
+                minHeight: th.primitive.size.touch_min,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
             >
               <Text variant="headline">{t('detail.etherscan')}</Text>
               <Icon name="external" size={th.component.icon.size.control} color={th.component.icon.action.fg} />

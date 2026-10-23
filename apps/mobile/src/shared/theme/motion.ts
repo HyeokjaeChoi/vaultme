@@ -1,5 +1,14 @@
 import { useEffect } from 'react'
-import { cancelAnimation, Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated'
+import {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated'
 
 // DESIGN motion (emil-design-eng): strong ease-out for UI. No tokens exist for these values yet.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
@@ -82,7 +91,12 @@ export function useShake(amplitude: number) {
   const step = (to: number) => withTiming(to, { duration: SHAKE_STEP_MS, easing: Easing.linear })
   const shake = () => {
     if (reduce) return
-    x.set(withSequence(...Array.from({ length: SHAKE_HALF_STEPS }, (_, i) => step(i % 2 === 0 ? -amplitude : amplitude)), step(0)))
+    x.set(
+      withSequence(
+        ...Array.from({ length: SHAKE_HALF_STEPS }, (_, i) => step(i % 2 === 0 ? -amplitude : amplitude)),
+        step(0),
+      ),
+    )
   }
   return { style, shake }
 }

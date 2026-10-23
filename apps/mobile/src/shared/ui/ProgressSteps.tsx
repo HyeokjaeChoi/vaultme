@@ -15,12 +15,25 @@ export function ProgressSteps({ state, labels }: Props) {
   const dot = t.primitive.size.icon_xs
   const ring = t.primitive.borderWidth.strong
   const s = t.semantic.status
-  const phase = (['done', state === 'Pending' ? 'current' : 'done', state === 'Confirmed' ? 'done' : state === 'Pending' ? 'future' : 'current'] as const)
+  const phase = [
+    'done',
+    state === 'Pending' ? 'current' : 'done',
+    state === 'Confirmed' ? 'done' : state === 'Pending' ? 'future' : 'current',
+  ] as const
   const accessibilityLabel = labels.join(', ') // the hero text says the state in words
   // Each of the 3 equal columns holds [left line][dot][right line] with the label centered under the dot; the two outer lines are transparent (Figma 494:1176).
-  const seg = (right: (typeof phase)[number] | null) => ({ flex: 1, height: ring, backgroundColor: right === null ? 'transparent' : right === 'done' ? s.success.fg : t.semantic.border.subtle })
+  const seg = (right: (typeof phase)[number] | null) => ({
+    flex: 1,
+    height: ring,
+    backgroundColor: right === null ? 'transparent' : right === 'done' ? s.success.fg : t.semantic.border.subtle,
+  })
   return (
-    <View accessible accessibilityLabel={accessibilityLabel} accessibilityRole="progressbar" style={{ flexDirection: 'row' }}>
+    <View
+      accessible
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="progressbar"
+      style={{ flexDirection: 'row' }}
+    >
       {phase.map((p, i) => (
         <View key={i} style={{ flex: 1, alignItems: 'center', gap: t.semantic.layout.fieldGap }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch' }}>
@@ -35,9 +48,14 @@ export function ProgressSteps({ state, labels }: Props) {
                 backgroundColor: p === 'done' ? s.success.fg : t.semantic.surface.default,
               }}
             />
-            <View style={seg(i === 2 ? null : phase[i + 1] ?? null)} />
+            <View style={seg(i === 2 ? null : (phase[i + 1] ?? null))} />
           </View>
-          <Text variant="label" color={p === 'current' ? s.warning.fg : p === 'future' ? t.semantic.text.tertiary : t.semantic.text.primary}>{labels[i]}</Text>
+          <Text
+            variant="label"
+            color={p === 'current' ? s.warning.fg : p === 'future' ? t.semantic.text.tertiary : t.semantic.text.primary}
+          >
+            {labels[i]}
+          </Text>
         </View>
       ))}
     </View>

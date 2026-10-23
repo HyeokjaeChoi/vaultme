@@ -18,5 +18,11 @@ export function UpdateRequiredPage() {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => true)
     return () => sub.remove()
   }, [])
-  return <BrandScreen title={t('updateRequired.title')} body={t('updateRequired.body')} actions={<Button label={t('updateRequired.cta')} onPress={() => void Linking.openURL(STORE_URL)} />} />
+  return (
+    <BrandScreen
+      title={t('updateRequired.title')}
+      body={t('updateRequired.body')}
+      actions={<Button label={t('updateRequired.cta')} onPress={() => void Linking.openURL(STORE_URL)} />}
+    />
+  )
 }

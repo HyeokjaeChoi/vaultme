@@ -1,4 +1,12 @@
-import { ASSETS, chipAmount, fromUnits, maxSendable, type AssetId, type ChipShare, type Warning } from '@vaultme/wallet-core'
+import {
+  ASSETS,
+  chipAmount,
+  fromUnits,
+  maxSendable,
+  type AssetId,
+  type ChipShare,
+  type Warning,
+} from '@vaultme/wallet-core'
 
 /** Balance of the asset being sent (its own units), the ETH balance that pays the fee, and the worst-case fee cap. */
 export type Sendable = { balance: bigint; nativeBalance: bigint; feeCap: bigint }

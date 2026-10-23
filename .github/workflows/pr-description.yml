@@ -6,6 +6,7 @@ on:
     types: [opened, edited, reopened, synchronize]
 
 permissions:
+  contents: read
   pull-requests: read
 
 jobs:
@@ -23,11 +24,17 @@ jobs:
 
   # A changed app screen needs app-vs-Figma comparison images in the PR body: one light and one dark per
   # changed screen file. Name each image by mode in its alt text (e.g. ![S50 light](...), ![S50 dark](...)).
-  # A combined app|Figma image counts once. Files whose diff only touches comments are not UI changes.
+  # A combined app|Figma image counts once. Files whose diff only touches comments or formatting are not UI changes.
   figma-comparison:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
@@ -35,11 +42,28 @@ jobs:
         run: |
           gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | {filename, status, patch}' > files.jsonl
           python3 - <<'PY'
-          import json, os, re, sys
+          import json, os, re, subprocess, sys
           files = [json.loads(l) for l in open("files.jsonl") if l.strip()]
           ui = re.compile(r"^apps/mobile/(app|src/(pages|widgets|shared/ui|features/[^/]+/ui))/.*\.tsx$")
           comment = re.compile(r"^\s*(//|/\*|\*|\*/|\{/\*)|^\s*$")
+          base = subprocess.run(["git", "merge-base", os.environ["BASE_SHA"], os.environ["HEAD_SHA"]], capture_output=True, text=True, check=True).stdout.strip()
+          show = lambda sha, path: subprocess.run(["git", "show", f"{sha}:{path}"], capture_output=True, text=True, check=True).stdout
+          # Head is already Prettier-formatted (CI verify runs prettier --check), so a format-only change equals Prettier(base).
+          # Keep the version equal to package.json; a mismatch fails safe (the file counts as a UI change).
+          fmt = lambda text, path: subprocess.run(["npx", "--yes", "prettier@3.9.10", "--stdin-filepath", path], input=text, capture_output=True, text=True, check=True).stdout
           def code_change(f):
+              # Formatting or comments only: Prettier(merge-base) equals head once comment and blank lines are dropped.
+              # If Prettier cannot format the base file, treat the file as a UI change.
+              if f["status"] == "modified":
+                  # Drop a leading /* */ or {/* */} span but keep the code after it on the same line.
+                  lead = lambda l: re.sub(r"^\s*\{?/\*.*?\*/\}?", "", l)
+                  code = lambda text: [s for s in map(lead, text.splitlines()) if not comment.match(s)]
+                  try:
+                      if code(fmt(show(base, f["filename"]), f["filename"])) == code(show(os.environ["HEAD_SHA"], f["filename"])):
+                          return False
+                  except subprocess.CalledProcessError:
+                      return True
+                  return True
               patch = f.get("patch")
               if patch is None:
                   return True  # binary or too large: treat as a change

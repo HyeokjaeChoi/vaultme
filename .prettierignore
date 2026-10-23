@@ -1,0 +1,11 @@
+pnpm-lock.yaml
+**/generated/
+**/dist/
+**/coverage/
+**/.expo/
+**/.wrangler/
+work/
+outputs/
+*.md
+apps/mobile/src/shared/ui/artwork.ts
+docs/openapi/

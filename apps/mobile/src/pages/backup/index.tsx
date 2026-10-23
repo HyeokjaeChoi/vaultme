@@ -24,7 +24,17 @@ type Load = 'idle' | 'busy' | 'error'
  * it is loaded after OS auth, and cleared when the screen loses focus or the app leaves the foreground (Q15).
  * Capture is blocked only while this screen is focused (Q43); the UI does not promise the block. No copy button.
  */
-export function BackupPage({ demo = false, view = false, revealed = false, checked = false }: { demo?: boolean; view?: boolean; revealed?: boolean; checked?: boolean }) {
+export function BackupPage({
+  demo = false,
+  view = false,
+  revealed = false,
+  checked = false,
+}: {
+  demo?: boolean
+  view?: boolean
+  revealed?: boolean
+  checked?: boolean
+}) {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
@@ -88,14 +98,48 @@ export function BackupPage({ demo = false, view = false, revealed = false, check
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} />}
       {...(view ? {} : { footer: <Button label={t('backup.done')} disabled={!words || !ack} onPress={done} /> })}
     >
-      <View style={{ gap: th.semantic.layout.fieldGap, paddingTop: th.primitive.space[2], paddingBottom: th.semantic.layout.groupGap }}>
-        <Text variant="title1" accessibilityRole="header">{t('backup.title')}</Text>
-        <Text variant="bodySmall" color={th.semantic.text.secondary}>{body}</Text>
+      <View
+        style={{
+          gap: th.semantic.layout.fieldGap,
+          paddingTop: th.primitive.space[2],
+          paddingBottom: th.semantic.layout.groupGap,
+        }}
+      >
+        <Text variant="title1" accessibilityRole="header">
+          {t('backup.title')}
+        </Text>
+        <Text variant="bodySmall" color={th.semantic.text.secondary}>
+          {body}
+        </Text>
       </View>
-      <SecretGrid words={words} onReveal={() => void reveal()} revealLabel={t('backup.reveal')} busy={load === 'busy'} />
-      {words && !view ? <CheckRow title={t('backup.ack')} checked={ack} onToggle={() => { haptic.select(); setAck((v) => !v) }} /> : null}
-      {load === 'error' ? <StatusNotice tier="banner" tone="danger" title={t('backup.loadError.title')} body={t('backup.loadError.body')} /> : null}
-      <StatusNotice tone="warning" title={`${words || view ? t('backup.warnTitle') : t('backup.revealHint')}\n${t('backup.warnBody')}`} />
+      <SecretGrid
+        words={words}
+        onReveal={() => void reveal()}
+        revealLabel={t('backup.reveal')}
+        busy={load === 'busy'}
+      />
+      {words && !view ? (
+        <CheckRow
+          title={t('backup.ack')}
+          checked={ack}
+          onToggle={() => {
+            haptic.select()
+            setAck((v) => !v)
+          }}
+        />
+      ) : null}
+      {load === 'error' ? (
+        <StatusNotice
+          tier="banner"
+          tone="danger"
+          title={t('backup.loadError.title')}
+          body={t('backup.loadError.body')}
+        />
+      ) : null}
+      <StatusNotice
+        tone="warning"
+        title={`${words || view ? t('backup.warnTitle') : t('backup.revealHint')}\n${t('backup.warnBody')}`}
+      />
     </Screen>
   )
 }

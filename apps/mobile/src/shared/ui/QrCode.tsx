@@ -17,9 +17,26 @@ export function QrCode({ value, label }: { value: string; label: string }) {
   const quiet = (QUIET_MODULES * symbol) / modules
   const size = symbol + quiet * 2
   return (
-    <View accessible accessibilityRole="image" accessibilityLabel={label} style={{ alignSelf: 'center', padding: t.primitive.space[3], borderRadius: t.primitive.radius['2xl'], backgroundColor: t.semantic.surface.subtle }}>
+    <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={label}
+      style={{
+        alignSelf: 'center',
+        padding: t.primitive.space[3],
+        borderRadius: t.primitive.radius['2xl'],
+        backgroundColor: t.semantic.surface.subtle,
+      }}
+    >
       <View style={{ borderRadius: t.primitive.radius.xl, overflow: 'hidden' }}>
-        <QRCodeSvg value={value} size={size} quietZone={quiet} ecl="M" backgroundColor={t.primitive.color.neutral[0]} color={t.primitive.color.neutral[950]} />
+        <QRCodeSvg
+          value={value}
+          size={size}
+          quietZone={quiet}
+          ecl="M"
+          backgroundColor={t.primitive.color.neutral[0]}
+          color={t.primitive.color.neutral[950]}
+        />
       </View>
     </View>
   )

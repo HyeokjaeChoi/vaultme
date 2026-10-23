@@ -8,5 +8,5 @@ if [ ! -f "$ROOT/package.json" ]; then
   echo "pre-push: no package.json yet, skipping typecheck lint test" >&2
 elif [ -z "$base" ] || [ -n "$(git diff --name-only "$base"..HEAD -- . ':!*.md' ':!outputs/' ':!docs/')" ]; then
   echo "pre-push: code changed, running typecheck lint test" >&2
-  (cd "$ROOT" && pnpm turbo run typecheck lint test)
+  (cd "$ROOT" && pnpm exec prettier --check . && pnpm turbo run typecheck lint test)
 fi

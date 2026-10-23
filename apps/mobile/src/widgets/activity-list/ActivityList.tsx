@@ -13,11 +13,33 @@ import { ActivityRow, DateHeader } from '@/shared/ui'
 const assetName = (symbol: string) => assets.find((a) => a.symbol === symbol)?.name ?? symbol
 
 /** Fixture rows as history items (fake adapter). The real pending send replaces the example pending row. */
-export function fakeHistoryItems(tx: ReturnType<typeof usePendingTx>["tx"]): HistoryItem[] {
-  const own: HistoryItem[] = tx ? [{ hash: tx.hash, kind: 'send', asset: tx.asset, amount: tx.amount, counterparty: tx.to, at: tx.createdAt, ...txView(tx.state), local: true }] : []
+export function fakeHistoryItems(tx: ReturnType<typeof usePendingTx>['tx']): HistoryItem[] {
+  const own: HistoryItem[] = tx
+    ? [
+        {
+          hash: tx.hash,
+          kind: 'send',
+          asset: tx.asset,
+          amount: tx.amount,
+          counterparty: tx.to,
+          at: tx.createdAt,
+          ...txView(tx.state),
+          local: true,
+        },
+      ]
+    : []
   const rest = transactions
     .filter((x) => !(tx && x.id === '1'))
-    .map((x): HistoryItem => ({ hash: x.id, kind: x.kind, asset: x.asset, amount: x.amount, counterparty: '', at: x.at, ...txView(x.state), local: false }))
+    .map((x): HistoryItem => ({
+      hash: x.id,
+      kind: x.kind,
+      asset: x.asset,
+      amount: x.amount,
+      counterparty: '',
+      at: x.at,
+      ...txView(x.state),
+      local: false,
+    }))
   return [...own, ...rest].sort((a, b) => b.at - a.at)
 }
 
@@ -40,7 +62,9 @@ function Row({ item, dated }: { item: HistoryItem; dated?: boolean }) {
       asset={item.asset}
       status={item.status}
       statusLabel={t(item.label)}
-      {...(item.local ? { onPress: () => router.push({ pathname: '/activity/[hash]', params: { hash: item.hash } }) } : {})}
+      {...(item.local
+        ? { onPress: () => router.push({ pathname: '/activity/[hash]', params: { hash: item.hash } }) }
+        : {})}
     />
   )
 }
@@ -58,19 +82,22 @@ export function ActivityList({ items }: { items: HistoryItem[] }) {
       {groups.map((g) => (
         <View key={g.key}>
           <DateHeader date={g.day} />
-          {g.items.map((item) => <Row key={item.hash} item={item} />)}
+          {g.items.map((item) => (
+            <Row key={item.hash} item={item} />
+          ))}
         </View>
       ))}
     </>
   )
 }
 
-
 /** Home / asset detail: the newest rows (default 3), no date headers (Figma S10 515:42137, S11 515:43319). */
 export function RecentRows({ items, limit = 3 }: { items: HistoryItem[]; limit?: number }) {
   return (
     <>
-      {items.slice(0, limit).map((item) => <Row key={item.hash} item={item} dated />)}
+      {items.slice(0, limit).map((item) => (
+        <Row key={item.hash} item={item} dated />
+      ))}
     </>
   )
 }

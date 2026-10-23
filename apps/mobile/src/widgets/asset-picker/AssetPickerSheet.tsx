@@ -29,17 +29,29 @@ export function AssetPickerSheet({ visible, onClose, onPick, balances, selected 
             accessibilityState={{ selected: a.symbol === selected }}
             accessibilityLabel={`${a.name}, ${balances[a.symbol] ?? '—'} ${a.symbol}`}
             onPress={() => onPick(a.symbol)}
-            style={{ minHeight: th.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: th.semantic.layout.rowGap, paddingHorizontal: th.component.rowB.paddingX }}
+            style={{
+              minHeight: th.component.rowB.height,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: th.semantic.layout.rowGap,
+              paddingHorizontal: th.component.rowB.paddingX,
+            }}
           >
             <AssetIcon symbol={a.symbol} size={th.primitive.size.avatar_md} />
             <View style={{ flex: 1 }}>
               <Text variant="rowTitle">{a.name}</Text>
-              <Text variant="caption" color={th.semantic.text.tertiary}>{a.symbol}</Text>
+              <Text variant="caption" color={th.semantic.text.tertiary}>
+                {a.symbol}
+              </Text>
             </View>
-            <Text variant="headline" tabular style={{ textAlign: 'right' }}>{balances[a.symbol] ?? '—'} {a.symbol}</Text>
+            <Text variant="headline" tabular style={{ textAlign: 'right' }}>
+              {balances[a.symbol] ?? '—'} {a.symbol}
+            </Text>
             {/* Current selection: a trailing check (Ink, no accent). The slot is reserved on the other row so the balances stay aligned. */}
             <View style={{ width: th.component.icon.size.control }}>
-              {a.symbol === selected ? <Icon name="check" size={th.component.icon.size.control} color={th.semantic.text.primary} /> : null}
+              {a.symbol === selected ? (
+                <Icon name="check" size={th.component.icon.size.control} color={th.semantic.text.primary} />
+              ) : null}
             </View>
           </Pressable>
         ))}

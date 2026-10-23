@@ -7,5 +7,13 @@ export type AssetSymbol = keyof typeof ART
 
 /** Asset or network artwork at an exact token size (icon.asset.size 32, icon.network.size 16). */
 export function AssetIcon({ symbol, size }: { symbol: AssetSymbol; size: number }) {
-  return <SvgXml xml={ART[symbol]} width={size} height={size} accessible={false} importantForAccessibility="no-hide-descendants" />
+  return (
+    <SvgXml
+      xml={ART[symbol]}
+      width={size}
+      height={size}
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+    />
+  )
 }

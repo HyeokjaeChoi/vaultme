@@ -10,7 +10,8 @@ const TOKEN = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' // Sepolia USDC
 const CAP = 227_500_000_000_000n // fake USDC fee cap (0.0002275 ETH)
 
 describe('sendLimits: ETH-short boundaries (issue #64 decisions 4 and 7)', () => {
-  const usdc = (nativeBalance: bigint) => sendLimits('USDC', { balance: toUnits('25.5', 'USDC'), nativeBalance, feeCap: CAP })
+  const usdc = (nativeBalance: bigint) =>
+    sendLimits('USDC', { balance: toUnits('25.5', 'USDC'), nativeBalance, feeCap: CAP })
   it('ETH exactly equal to the fee cap is enough; one wei less blocks', () => {
     expect(usdc(CAP).feeShort).toBe(false)
     expect(usdc(CAP - 1n).feeShort).toBe(true)
@@ -36,14 +37,15 @@ describe('sendLimits: ETH-short boundaries (issue #64 decisions 4 and 7)', () =>
 })
 
 describe('prepare() fee shortage through feeShortBy', () => {
-  const snap = (nativeBalance: bigint): ChainSnapshot => ({
-    nativeBalance,
-    tokenBalance: toUnits('25.5', 'USDC'),
-    nonce: 0,
-    gasLimit: 65_000n,
-    baseFeePerGas: 1_500_000_000n,
-    maxPriorityFeePerGas: 1_000_000_000n,
-  } as ChainSnapshot)
+  const snap = (nativeBalance: bigint): ChainSnapshot =>
+    ({
+      nativeBalance,
+      tokenBalance: toUnits('25.5', 'USDC'),
+      nonce: 0,
+      gasLimit: 65_000n,
+      baseFeePerGas: 1_500_000_000n,
+      maxPriorityFeePerGas: 1_000_000_000n,
+    }) as ChainSnapshot
   it('USDC send with ETH below the cap reports the exact missing ETH; with enough ETH it reports none', () => {
     const short = prepare({ asset: 'USDC', to: A, amount: '5', previous: [] }, snap(0n))
     if (!short.ok) throw new Error(short.error)
@@ -72,7 +74,8 @@ describe('listBalance rounding edges', () => {
 
 describe('cleanAmount for USDC', () => {
   it('rejects zero, empty, a bare dot and a 7th decimal; accepts 6 decimals and a trailing dot', () => {
-    for (const s of [undefined, '', '0', '0.', '0.000000', '.', 'abc', '0.0000001']) expect(cleanAmount(s, 'USDC'), String(s)).toBeNull()
+    for (const s of [undefined, '', '0', '0.', '0.000000', '.', 'abc', '0.0000001'])
+      expect(cleanAmount(s, 'USDC'), String(s)).toBeNull()
     expect(cleanAmount('0.000001', 'USDC')).toBe('0.000001')
     expect(cleanAmount('25.', 'USDC')).toBe('25')
   })
@@ -81,16 +84,36 @@ describe('cleanAmount for USDC', () => {
 describe('resolveReview with a wallet-core review for USDC', () => {
   it('fee and cap come from the review, the total stays empty', () => {
     const base = { gasLimit: 65_000n, maxFeePerGas: 4_000_000_000n, maxPriorityFeePerGas: 1_000_000_000n, nonce: 0 }
-    const core = { asset: 'USDC' as const, to: A as `0x${string}`, amount: 5_000_000n, ...base, estimatedFee: 162_500_000_000_000n, feeCap: 260_000_000_000_000n, risk: 'first' as const, warnings: [] }
+    const core = {
+      asset: 'USDC' as const,
+      to: A as `0x${string}`,
+      amount: 5_000_000n,
+      ...base,
+      estimatedFee: 162_500_000_000_000n,
+      feeCap: 260_000_000_000_000n,
+      risk: 'first' as const,
+      warnings: [],
+    }
     const r = resolveReview(A, '5', false, core, [])
-    expect(r).toMatchObject({ asset: 'USDC', amount: '5 USDC', fee: '0.0001625 ETH', feeCap: '0.00026 ETH', total: null, totalMax: null })
+    expect(r).toMatchObject({
+      asset: 'USDC',
+      amount: '5 USDC',
+      fee: '0.0001625 ETH',
+      feeCap: '0.00026 ETH',
+      total: null,
+      totalMax: null,
+    })
   })
 })
 
 describe('pressKey at the USDC sendable limit', () => {
   it('the exact balance is accepted; one more micro-unit is rejected', () => {
     expect(pressKey('25.49999', '9', '25.499999', 'USDC')).toMatchObject({ amount: '25.499999', accepted: true })
-    expect(pressKey('25.499999', '1', '25.499999', 'USDC')).toEqual({ amount: '25.499999', accepted: false, overMax: false })
+    expect(pressKey('25.499999', '1', '25.499999', 'USDC')).toEqual({
+      amount: '25.499999',
+      accepted: false,
+      overMax: false,
+    })
     expect(pressKey('25.5', '1', '25.5', 'USDC')).toEqual({ amount: '25.5', accepted: false, overMax: true })
   })
 })
@@ -101,13 +124,20 @@ describe('parseAddressQr: parameter edge cases', () => {
     expect(parseAddressQr(`ethereum:${A}?VALUE=1`)).toMatchObject({ ok: true, hadAmount: true })
   })
   it('percent-encoded recipient in a transfer QR decodes to the address', () => {
-    expect(parseAddressQr(`ethereum:${TOKEN}/transfer?address=%30x${A.slice(2)}`)).toMatchObject({ ok: true, address: A })
+    expect(parseAddressQr(`ethereum:${TOKEN}/transfer?address=%30x${A.slice(2)}`)).toMatchObject({
+      ok: true,
+      address: A,
+    })
   })
   it('a transfer to a bad-checksum recipient is rejected, never falls back to the token contract', () => {
     const bad = A.slice(0, -1) + (A.endsWith('4') ? '5' : '4')
     expect(parseAddressQr(`ethereum:${TOKEN}/transfer?address=${bad}`)).toEqual({ ok: false, error: 'notAddress' })
   })
   it('the wrong chain wins over a valid transfer form', () => {
-    expect(parseAddressQr(`ethereum:${TOKEN}@1/transfer?address=${A}&uint256=1`)).toEqual({ ok: false, error: 'wrongChain', chainId: 1 })
+    expect(parseAddressQr(`ethereum:${TOKEN}@1/transfer?address=${A}&uint256=1`)).toEqual({
+      ok: false,
+      error: 'wrongChain',
+      chainId: 1,
+    })
   })
 })

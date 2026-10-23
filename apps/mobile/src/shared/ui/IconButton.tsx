@@ -5,7 +5,14 @@ import { useTheme } from '../theme'
 import { usePressScale } from '../theme/motion'
 import { Icon, type IconName } from './Icon'
 
-type Props = { icon: IconName; label: string; onPress?: () => void; disabled?: boolean; variant?: 'filled' | 'plain'; /** Icon color override for a control on a dark surface (QR scan close, Figma 618:102956). Default = iconButton.fg. */ color?: string }
+type Props = {
+  icon: IconName
+  label: string
+  onPress?: () => void
+  disabled?: boolean
+  variant?: 'filled' | 'plain'
+  /** Icon color override for a control on a dark surface (QR scan close, Figma 618:102956). Default = iconButton.fg. */ color?: string
+}
 
 /**
  * C02 Icon button. 44 px target, radius 12. `filled` = white chip (iconButton.bg); `plain` = no background at rest

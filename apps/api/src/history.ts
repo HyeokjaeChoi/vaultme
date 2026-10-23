@@ -19,9 +19,15 @@ const ATTEMPTS = [
 
 const USDC = USDC_SEPOLIA.toLowerCase()
 const Num = z.string().regex(/^\d{1,18}$/)
-const Addr = z.string().regex(/^0x[0-9a-fA-F]{40}$/).transform((s) => s.toLowerCase())
+const Addr = z
+  .string()
+  .regex(/^0x[0-9a-fA-F]{40}$/)
+  .transform((s) => s.toLowerCase())
 const Common = z.object({
-  hash: z.string().regex(/^0x[0-9a-fA-F]{64}$/).transform((s) => s.toLowerCase()),
+  hash: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/)
+    .transform((s) => s.toLowerCase()),
   blockNumber: Num,
   timeStamp: Num,
   transactionIndex: Num,
@@ -41,20 +47,38 @@ type Placed = Cand & { seq: number }
 const pad = (s: string, n: number) => s.padStart(n, '0')
 
 /** Rows of one list -> candidates. `bottom` = lowest block among ALL rows read (also the ones dropped here). */
-function normalize(list: List, rows: unknown[], addr: string, sent: ReadonlySet<string>): { cands: Cand[]; bottom: number } {
+function normalize(
+  list: List,
+  rows: unknown[],
+  addr: string,
+  sent: ReadonlySet<string>,
+): { cands: Cand[]; bottom: number } {
   const cands: Cand[] = []
   const repeats = new Map<string, number>()
   let bottom = Infinity
   rows.forEach((raw) => {
     const p = Row[list].safeParse(raw)
     if (!p.success) throw new UpstreamError('bad row')
-    const r = p.data as z.infer<typeof Common> & { isError?: string; txreceipt_status?: string; traceId?: string; contractAddress?: string }
+    const r = p.data as z.infer<typeof Common> & {
+      isError?: string
+      txreceipt_status?: string
+      traceId?: string
+      contractAddress?: string
+    }
     const block = Number(r.blockNumber)
     bottom = Math.min(bottom, block)
     // Etherscan puts native ETH moves into tokentx as a fake token (contract 0xff..fe). Only USDC is real.
     if (list === 'tokentx' && r.contractAddress?.toLowerCase() !== USDC) return
     if (r.from !== addr && r.to !== addr) return
-    const base = { hash: r.hash, blockNumber: block, txIndex: Number(r.transactionIndex), timestamp: Number(r.timeStamp), value: r.value, from: r.from, to: r.to || null }
+    const base = {
+      hash: r.hash,
+      blockNumber: block,
+      txIndex: Number(r.transactionIndex),
+      timestamp: Number(r.timeStamp),
+      value: r.value,
+      from: r.from,
+      to: r.to || null,
+    }
     const zeroValue = /^0+$/.test(r.value)
     // #53: a zero-value token row is outgoing only when WE sent the tx (txlist `from` = tx sender). A token log `from` == us is
     // not enough: anyone can emit it with transferFrom(us, victim, 0). No txlist row of ours for the hash => unknown => hidden.
@@ -68,7 +92,10 @@ function normalize(list: List, rows: unknown[], addr: string, sent: ReadonlySet<
       item = { ...common, kind: 'native', asset: 'ETH', status: bad ? 'failed' : 'ok' }
     } else if (list === 'txlistinternal') {
       key = `int:${r.hash}:${r.traceId}`
-      order = `1${r.traceId!.split('_').map((s) => pad(s, 10)).join('_')}`
+      order = `1${r
+        .traceId!.split('_')
+        .map((s) => pad(s, 10))
+        .join('_')}`
       item = { ...common, kind: 'internal', asset: 'ETH', status: bad ? 'failed' : 'ok' }
     } else {
       // No logIndex: identical rows of one tx are told apart by their count. They are interchangeable, so the
@@ -97,7 +124,9 @@ function place(cands: Cand[]): Placed[] {
   }
   return [...groups.values()]
     .sort((a, b) => b[0]!.block - a[0]!.block || b[0]!.txIndex - a[0]!.txIndex)
-    .flatMap((g) => g.sort((a, b) => (a.order < b.order ? -1 : a.order > b.order ? 1 : 0)).map((c, seq) => ({ ...c, seq })))
+    .flatMap((g) =>
+      g.sort((a, b) => (a.order < b.order ? -1 : a.order > b.order ? 1 : 0)).map((c, seq) => ({ ...c, seq })),
+    )
 }
 
 export async function addressHash(addr: string): Promise<string> {
@@ -170,7 +199,11 @@ export async function loadHistory(fetchList: FetchList, address: string, cursor?
       const page = safe.slice(0, HISTORY_PAGE_SIZE)
       const last = page.at(-1)
       const more = placed.length > HISTORY_PAGE_SIZE || anyFull
-      return { items: page.map(toItem), nextCursor: last && more ? fmt(h8, last.block, last.txIndex, last.seq) : null, incomplete: false }
+      return {
+        items: page.map(toItem),
+        nextCursor: last && more ? fmt(h8, last.block, last.txIndex, last.seq) : null,
+        incomplete: false,
+      }
     }
     const limiting = st.flatMap((s, i) => (s.full && parts[i]!.bottom === H ? [i] : []))
     if (limiting.every((i) => st[i]!.next < ATTEMPTS.length)) {

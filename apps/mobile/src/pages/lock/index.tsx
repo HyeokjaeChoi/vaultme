@@ -18,7 +18,15 @@ type Failure = Exclude<AuthResult, 'ok' | 'cancelled'>
  * A cancel or a failure turns the row into the "잠금 해제" button (a failure also changes the body line); the mark and title never move.
  * `initial` is a __DEV__ capture override of the two states (no OS prompt).
  */
-export function LockPage({ onUnlock, autoPrompt = true, initial }: { onUnlock: () => void; autoPrompt?: boolean; initial?: 'checking' | 'failed' }) {
+export function LockPage({
+  onUnlock,
+  autoPrompt = true,
+  initial,
+}: {
+  onUnlock: () => void
+  autoPrompt?: boolean
+  initial?: 'checking' | 'failed'
+}) {
   const { t } = useTranslation()
   const th = useTheme()
   const [method, setMethod] = useState<keyof typeof BODY | 'passcode' | null>(null)
@@ -44,8 +52,7 @@ export function LockPage({ onUnlock, autoPrompt = true, initial }: { onUnlock: (
       if (reduce) fade.set(withTiming(0, timing))
       else bloom.set(withTiming(1, timing))
       setTimeout(onUnlock, BLOOM_MS)
-    }
-    else if (r !== 'cancelled') setFailure(r)
+    } else if (r !== 'cancelled') setFailure(r)
   }, [onUnlock, t, reduce, bloom, fade])
 
   useEffect(() => {
@@ -65,25 +72,44 @@ export function LockPage({ onUnlock, autoPrompt = true, initial }: { onUnlock: (
   }, [prompt, autoPrompt])
 
   const key = method ? (BODY[method as keyof typeof BODY] ?? 'passcode') : null
-  const body = failure ? `${t(`lock.${failure}.title`)}. ${t(`lock.${failure}.body`)}` : key ? t(`lock.body.${key}`) : undefined
+  const body = failure
+    ? `${t(`lock.${failure}.title`)}. ${t(`lock.${failure}.body`)}`
+    : key
+      ? t(`lock.body.${key}`)
+      : undefined
   return (
     <Animated.View style={[{ flex: 1 }, fadeStyle]}>
-    <BrandScreen
-      wordmark
-      bloom={bloom}
-      title={t('lock.title')}
-      {...(body ? { body } : {})}
-      actions={
-        busy ? (
-          <View accessibilityLiveRegion="polite" style={{ height: th.component.buttonB.height.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: th.primitive.space[2] }}>
-            {key === 'faceId' || key === 'face' ? <Icon name="face" size={(th.primitive.size.icon_xl * 2) / 3} color={th.semantic.icon.primary} /> : null}
-            {key ? <Text variant="label" color={th.semantic.text.secondary}>{t(`lock.checking.${key}`)}</Text> : null}
-          </View>
-        ) : (
-          <Button label={t('lock.unlock')} onPress={() => void prompt()} />
-        )
-      }
-    />
+      <BrandScreen
+        wordmark
+        bloom={bloom}
+        title={t('lock.title')}
+        {...(body ? { body } : {})}
+        actions={
+          busy ? (
+            <View
+              accessibilityLiveRegion="polite"
+              style={{
+                height: th.component.buttonB.height.lg,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: th.primitive.space[2],
+              }}
+            >
+              {key === 'faceId' || key === 'face' ? (
+                <Icon name="face" size={(th.primitive.size.icon_xl * 2) / 3} color={th.semantic.icon.primary} />
+              ) : null}
+              {key ? (
+                <Text variant="label" color={th.semantic.text.secondary}>
+                  {t(`lock.checking.${key}`)}
+                </Text>
+              ) : null}
+            </View>
+          ) : (
+            <Button label={t('lock.unlock')} onPress={() => void prompt()} />
+          )
+        }
+      />
     </Animated.View>
   )
 }

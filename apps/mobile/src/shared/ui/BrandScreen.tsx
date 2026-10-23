@@ -28,19 +28,48 @@ type Props = {
 }
 
 /** Centered brand screen: mark 96, gap space/8, wordmark Display M or Title 1 + body (gap 8), 64 of bottom padding lifts the block above the middle (Figma 515:45580). Start, Lock, Update and Device warning share it, so the mark and title sit at the same y. */
-export function BrandScreen({ hero, title, wordmark, bodyVariant = 'body', bloom, body, fact, anchor = 'center', actions }: Props) {
+export function BrandScreen({
+  hero,
+  title,
+  wordmark,
+  bodyVariant = 'body',
+  bloom,
+  body,
+  fact,
+  anchor = 'center',
+  actions,
+}: Props) {
   const t = useTheme()
   return (
-    <Screen
-      footer={actions}
-      footerLine={false}
-    >
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: t.primitive.space[8], paddingBottom: anchor === 'start' ? t.primitive.space[12] : t.primitive.space[16] }}>
+    <Screen footer={actions} footerLine={false}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: t.primitive.space[8],
+          paddingBottom: anchor === 'start' ? t.primitive.space[12] : t.primitive.space[16],
+        }}
+      >
         {hero ?? <BrandMark {...(bloom ? { bloom } : {})} />}
         <View style={{ alignSelf: 'stretch', alignItems: 'center', gap: t.primitive.space[2] }}>
-          <Text variant={wordmark ? 'displayM' : 'title1'} accessibilityRole="header" style={{ textAlign: 'center' }}>{title}</Text>
-          {body ? <Text variant={bodyVariant} color={t.semantic.text.secondary} style={{ textAlign: 'center' }}>{body}</Text> : null}
-          {fact ? <Text variant="factUpper" color={t.semantic.text.tertiary} style={{ textAlign: 'center', paddingTop: t.semantic.layout.groupGap }}>{fact.toUpperCase()}</Text> : null}
+          <Text variant={wordmark ? 'displayM' : 'title1'} accessibilityRole="header" style={{ textAlign: 'center' }}>
+            {title}
+          </Text>
+          {body ? (
+            <Text variant={bodyVariant} color={t.semantic.text.secondary} style={{ textAlign: 'center' }}>
+              {body}
+            </Text>
+          ) : null}
+          {fact ? (
+            <Text
+              variant="factUpper"
+              color={t.semantic.text.tertiary}
+              style={{ textAlign: 'center', paddingTop: t.semantic.layout.groupGap }}
+            >
+              {fact.toUpperCase()}
+            </Text>
+          ) : null}
         </View>
       </View>
     </Screen>

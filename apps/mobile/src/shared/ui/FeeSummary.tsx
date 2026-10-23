@@ -22,14 +22,39 @@ export function FeeSummary({ title, fee, fiat, note, state = 'fresh', message, a
   const msgColor = state === 'stale' ? c.stale : state === 'insufficient' ? c.insufficient : c.note
   return (
     <View style={{ gap: t.semantic.layout.fieldGap, borderRadius: c.radius }}>
-      <Text variant="label" color={c.title}>{title}</Text>
-      {fee ? <Text variant="headline" color={c.amount}>{fee}</Text> : null}
-      {message ? <Text variant="body" color={msgColor}>{message}</Text> : null}
-      {action ? (
-        <Text variant="link" accessibilityRole="link" onPress={onAction} color={state === 'insufficient' ? c.insufficient : t.semantic.text.link}>{action}</Text>
+      <Text variant="label" color={c.title}>
+        {title}
+      </Text>
+      {fee ? (
+        <Text variant="headline" color={c.amount}>
+          {fee}
+        </Text>
       ) : null}
-      {fiat ? <Text variant="body" color={c.note}>{fiat}</Text> : null}
-      {note ? <Text variant="body" color={c.note}>{note}</Text> : null}
+      {message ? (
+        <Text variant="body" color={msgColor}>
+          {message}
+        </Text>
+      ) : null}
+      {action ? (
+        <Text
+          variant="link"
+          accessibilityRole="link"
+          onPress={onAction}
+          color={state === 'insufficient' ? c.insufficient : t.semantic.text.link}
+        >
+          {action}
+        </Text>
+      ) : null}
+      {fiat ? (
+        <Text variant="body" color={c.note}>
+          {fiat}
+        </Text>
+      ) : null}
+      {note ? (
+        <Text variant="body" color={c.note}>
+          {note}
+        </Text>
+      ) : null}
     </View>
   )
 }

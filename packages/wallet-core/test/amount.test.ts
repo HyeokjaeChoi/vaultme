@@ -91,13 +91,19 @@ describe('chipAmount', () => {
   })
   test('floor never exceeds the share and stays on the display grid (property)', () => {
     fc.assert(
-      fc.property(fc.constantFrom(...assets), fc.constantFrom(25 as const, 50 as const, 100 as const), fc.bigInt({ min: 0n, max: 2n ** 90n }), fc.bigInt({ min: 0n, max: 2n ** 60n }), (a, pct, bal, cap) => {
-        const got = chipAmount(a, pct, bal, cap, bal + cap)
-        const m = maxSendable(bal, a, cap, bal + cap)
-        const max = m.ok ? m.amount : 0n
-        expect(got <= (max * BigInt(pct)) / 100n).toBe(true)
-        expect(got % 10n ** BigInt(decimals[a] - (a === 'ETH' ? 6 : 2))).toBe(0n)
-      }),
+      fc.property(
+        fc.constantFrom(...assets),
+        fc.constantFrom(25 as const, 50 as const, 100 as const),
+        fc.bigInt({ min: 0n, max: 2n ** 90n }),
+        fc.bigInt({ min: 0n, max: 2n ** 60n }),
+        (a, pct, bal, cap) => {
+          const got = chipAmount(a, pct, bal, cap, bal + cap)
+          const m = maxSendable(bal, a, cap, bal + cap)
+          const max = m.ok ? m.amount : 0n
+          expect(got <= (max * BigInt(pct)) / 100n).toBe(true)
+          expect(got % 10n ** BigInt(decimals[a] - (a === 'ETH' ? 6 : 2))).toBe(0n)
+        },
+      ),
     )
   })
 })

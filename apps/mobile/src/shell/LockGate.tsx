@@ -20,7 +20,10 @@ function hasWallet(): boolean {
  * Requires the kv to be open (root layout awaits it), so the first render already knows.
  */
 export function LockGate({ phraseStored, children }: { phraseStored: boolean; children: ReactNode }) {
-  const [lock, dispatch] = useReducer(reduceLock, undefined, () => ({ locked: hasWallet() || phraseStored, backgroundedAt: null }))
+  const [lock, dispatch] = useReducer(reduceLock, undefined, () => ({
+    locked: hasWallet() || phraseStored,
+    backgroundedAt: null,
+  }))
 
   useEffect(() => {
     try {
@@ -34,7 +37,14 @@ export function LockGate({ phraseStored, children }: { phraseStored: boolean; ch
     const sub = AppState.addEventListener('change', (next) => {
       const wallet = hasWallet()
       const authInProgress = isAuthInProgress()
-      dispatch({ type: 'appState', next: next === 'active' || next === 'background' ? next : 'inactive', now: Date.now(), wallet, authInProgress, graceSeconds: getLockSettings().graceSeconds })
+      dispatch({
+        type: 'appState',
+        next: next === 'active' || next === 'background' ? next : 'inactive',
+        now: Date.now(),
+        wallet,
+        authInProgress,
+        graceSeconds: getLockSettings().graceSeconds,
+      })
     })
     return () => sub.remove()
   }, [])

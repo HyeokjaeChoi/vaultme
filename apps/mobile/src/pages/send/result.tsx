@@ -11,7 +11,17 @@ import { haptic } from '@/shared/lib/haptics'
 import { showAmount } from '@/shared/lib/amount'
 import { useTestMode } from '@/shared/chain/useTestMode'
 import { useTheme } from '@/shared/theme'
-import { AmountHero, Block, Button, ProgressSteps, SectionBand, Screen, ScreenHeader, StatusNotice, SummaryRow } from '@/shared/ui'
+import {
+  AmountHero,
+  Block,
+  Button,
+  ProgressSteps,
+  SectionBand,
+  Screen,
+  ScreenHeader,
+  StatusNotice,
+  SummaryRow,
+} from '@/shared/ui'
 import { BackHandler, View } from 'react-native'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
@@ -30,7 +40,10 @@ export function SendResultPage() {
   const tracked = useTrackedTx()
   const { checking, recheck } = tracked
   const testMode = useTestMode()
-  const tx = __DEV__ && demo ? { ...demoTx(demo as TxState), ...(reason === 'gas' ? { failReason: 'outOfGas' as const } : {}) } : tracked.tx
+  const tx =
+    __DEV__ && demo
+      ? { ...demoTx(demo as TxState), ...(reason === 'gas' ? { failReason: 'outOfGas' as const } : {}) }
+      : tracked.tx
   const state = tx?.state
   const seen = useRef(state) // the state at mount: reopening an already final result gives no haptic, only a change seen here does
   useEffect(() => {
@@ -54,7 +67,10 @@ export function SendResultPage() {
   if (!tx) return <Redirect href="/home" />
   const copy = resultCopy(tx.state)
   const test = testMode && !(__DEV__ && real === '1') && isPolled(tx.state) // the fake adapter keeps a send Pending forever: it was never on the network
-  const toHome = () => { router.dismissAll(); router.replace('/home') }
+  const toHome = () => {
+    router.dismissAll()
+    router.replace('/home')
+  }
   const toDetail = () => router.push({ pathname: '/activity/[hash]', params: { hash: tx.hash } })
   const resend = () => {
     router.dismissAll()
@@ -63,7 +79,8 @@ export function SendResultPage() {
   }
   const [figure, unit] = showAmount(tx.amount, tx.asset, 'exact').split(' ')
   const lines = (test ? t('result.testBody') : t(copy.body)).split('\n')
-  const progress = !test && (tx.state === 'Pending' || tx.state === 'Included' || tx.state === 'Confirmed') ? tx.state : null
+  const progress =
+    !test && (tx.state === 'Pending' || tx.state === 'Included' || tx.state === 'Confirmed') ? tx.state : null
   const feeLabel = tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal'
   const showFee = !test && tx.state !== 'Replaced'
   const unknown = tx.state === 'Unknown'
@@ -76,13 +93,22 @@ export function SendResultPage() {
       footer={
         <>
           {unknown ? (
-            <Button label={t('result.recheck')} busy={checking} busyLabel={t('busy.recheck')} onPress={() => void recheck()} />
+            <Button
+              label={t('result.recheck')}
+              busy={checking}
+              busyLabel={t('busy.recheck')}
+              onPress={() => void recheck()}
+            />
           ) : failed ? (
             <Button label={t('result.resend')} onPress={resend} />
           ) : (
             <Button label={t('result.ok')} onPress={toHome} />
           )}
-          {failed ? <Button label={t('result.ok')} variant="secondary" onPress={toHome} /> : <Button label={t('result.details')} variant="ghost" size="sm" link onPress={toDetail} />}
+          {failed ? (
+            <Button label={t('result.ok')} variant="secondary" onPress={toHome} />
+          ) : (
+            <Button label={t('result.details')} variant="ghost" size="sm" link onPress={toDetail} />
+          )}
         </>
       }
     >
@@ -98,7 +124,10 @@ export function SendResultPage() {
       />
       {progress ? (
         <View style={{ paddingHorizontal: th.semantic.layout.screen.padding, paddingBottom: th.primitive.space[6] }}>
-          <ProgressSteps state={progress} labels={[t('result.progress.sent'), t('result.progress.included'), t('result.progress.confirmed')]} />
+          <ProgressSteps
+            state={progress}
+            labels={[t('result.progress.sent'), t('result.progress.included'), t('result.progress.confirmed')]}
+          />
         </View>
       ) : null}
       <SectionBand />

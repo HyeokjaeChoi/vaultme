@@ -1,4 +1,12 @@
-import { formatDecimal, fromUnits, recipientRisk, toUnits, type AssetId, type RecipientRisk, type Review } from '@vaultme/wallet-core'
+import {
+  formatDecimal,
+  fromUnits,
+  recipientRisk,
+  toUnits,
+  type AssetId,
+  type RecipientRisk,
+  type Review,
+} from '@vaultme/wallet-core'
 import { diffGroups, isAddressFormat } from '../../shared/lib/address'
 import { review } from './fixtures'
 
@@ -38,10 +46,22 @@ export function cleanAmount(raw: string | undefined, asset: AssetId = 'ETH'): st
  * ETH total = amount + estimated fee (not the fee cap); a token has no total.
  * `recentAddresses` = recipients this device sent to (look-alike check). `core` = wallet-core `prepare()` result: fee, cap and total come from it. Without it (fixture preview) they come from the Review fixture.
  */
-export function resolveReview(to?: string, amount?: string, forceRisk = false, core?: Review, recentAddresses: readonly string[] = [review.recipient], asset: AssetId = core?.asset ?? 'ETH'): ReviewValues {
+export function resolveReview(
+  to?: string,
+  amount?: string,
+  forceRisk = false,
+  core?: Review,
+  recentAddresses: readonly string[] = [review.recipient],
+  asset: AssetId = core?.asset ?? 'ETH',
+): ReviewValues {
   const entered = to && isAddressFormat(to) ? to : null
   const recipient = entered ?? (forceRisk ? review.lookalike : review.recipient)
-  const risk: RecipientRisk = forceRisk ? 'lookalike' : recipientRisk(recipient as `0x${string}`, recentAddresses.map((a) => a as `0x${string}`))
+  const risk: RecipientRisk = forceRisk
+    ? 'lookalike'
+    : recipientRisk(
+        recipient as `0x${string}`,
+        recentAddresses.map((a) => a as `0x${string}`),
+      )
   const lookalike = risk === 'lookalike'
   // Previous = the recent address that differs from the recipient in the fewest (but not zero) 4-char groups.
   const previous = lookalike
@@ -56,6 +76,18 @@ export function resolveReview(to?: string, amount?: string, forceRisk = false, c
   const feeCap = core ? `${fromUnits(core.feeCap, 'ETH')} ETH` : review.feeCap
   const eth = asset === 'ETH'
   const total = eth ? `${fromUnits(toUnits(shown, 'ETH') + toUnits(fee, 'ETH'), 'ETH')} ETH` : null
-  const totalMax = eth ? `${fromUnits(toUnits(shown, 'ETH') + toUnits(feeCap.replace(' ETH', ''), 'ETH'), 'ETH')} ETH` : null
-  return { recipient, previous, risk, asset, amount: `${formatDecimal(shown, asset, 'exact')} ${asset}`, fee: `${fee} ETH`, feeCap, total, totalMax }
+  const totalMax = eth
+    ? `${fromUnits(toUnits(shown, 'ETH') + toUnits(feeCap.replace(' ETH', ''), 'ETH'), 'ETH')} ETH`
+    : null
+  return {
+    recipient,
+    previous,
+    risk,
+    asset,
+    amount: `${formatDecimal(shown, asset, 'exact')} ${asset}`,
+    fee: `${fee} ETH`,
+    feeCap,
+    total,
+    totalMax,
+  }
 }

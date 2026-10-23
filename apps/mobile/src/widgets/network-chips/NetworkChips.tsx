@@ -6,5 +6,10 @@ import { StatusChip } from '@/shared/ui'
 export function NetworkChips({ onPress }: { onPress?: (testData: boolean) => void }) {
   const { t } = useTranslation()
   const test = useTestMode()
-  return <StatusChip label={test ? t('chip.testData') : t('chip.network')} {...(onPress ? { onPress: () => onPress(test) } : {})} />
+  return (
+    <StatusChip
+      label={test ? t('chip.testData') : t('chip.network')}
+      {...(onPress ? { onPress: () => onPress(test) } : {})}
+    />
+  )
 }

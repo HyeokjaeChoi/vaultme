@@ -14,7 +14,19 @@ import { chain } from '@/shared/chain'
 import { goBack } from '@/shared/lib/nav'
 import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
-import { ActionRow, AmountHero, Block, BottomSheet, Button, Screen, ScreenHeader, SectionBand, StatusNotice, SummaryRow, Text } from '@/shared/ui'
+import {
+  ActionRow,
+  AmountHero,
+  Block,
+  BottomSheet,
+  Button,
+  Screen,
+  ScreenHeader,
+  SectionBand,
+  StatusNotice,
+  SummaryRow,
+  Text,
+} from '@/shared/ui'
 import { RecentRows, fakeHistoryItems } from '@/widgets/activity-list/ActivityList'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 
@@ -36,11 +48,28 @@ export function AssetDetailPage() {
   const items = (chain.broadcasts ? (view?.items ?? []) : fakeHistoryItems(tx)).filter((i) => i.asset === asset.symbol)
   const usdc = asset.symbol === 'USDC'
   return (
-    <Screen gap="none" edges={['top']} bleed topGap="none" header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/home')} title={asset.name} chips={<NetworkChips />} />}>
+    <Screen
+      gap="none"
+      edges={['top']}
+      bleed
+      topGap="none"
+      header={
+        <ScreenHeader
+          backLabel={t('common.back')}
+          onBack={() => goBack('/home')}
+          title={asset.name}
+          chips={<NetworkChips />}
+        />
+      }
+    >
       <AmountHero asset={asset.symbol} amount={balance} unit={asset.symbol} />
       <View style={{ paddingHorizontal: th.semantic.layout.screen.padding }}>
         <ActionRow
-          send={{ label: t('home.send'), icon: 'send', onPress: () => (blocked ? setSheet(true) : (setPreselectedAsset(asset.symbol), router.push('/send'))) }}
+          send={{
+            label: t('home.send'),
+            icon: 'send',
+            onPress: () => (blocked ? setSheet(true) : (setPreselectedAsset(asset.symbol), router.push('/send'))),
+          }}
           receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
         />
       </View>
@@ -52,7 +81,14 @@ export function AssetDetailPage() {
             <View style={{ flex: 1 }}>
               <SummaryRow label={t('asset.contract')} value={USDC_SEPOLIA} format="address" plain />
             </View>
-            <Button size="sm" variant="secondary" icon="copy" label={copied ? t('asset.copied') : t('asset.copy')} {...(copied ? { copied } : {})} onPress={() => void copy(USDC_SEPOLIA)} />
+            <Button
+              size="sm"
+              variant="secondary"
+              icon="copy"
+              label={copied ? t('asset.copied') : t('asset.copy')}
+              {...(copied ? { copied } : {})}
+              onPress={() => void copy(USDC_SEPOLIA)}
+            />
           </View>
         ) : (
           <SummaryRow label={t('asset.contractNative')} value={t('asset.noContract')} />
@@ -63,7 +99,11 @@ export function AssetDetailPage() {
       {items.length > 0 ? (
         <>
           <SectionBand />
-          <Block title={t('asset.history')} link={t('home.viewAll')} onLink={() => router.push({ pathname: '/activity', params: { asset: asset.symbol } })}>
+          <Block
+            title={t('asset.history')}
+            link={t('home.viewAll')}
+            onLink={() => router.push({ pathname: '/activity', params: { asset: asset.symbol } })}
+          >
             <RecentRows items={items} />
           </Block>
         </>

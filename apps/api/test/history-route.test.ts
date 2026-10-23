@@ -6,21 +6,47 @@ import { b64uEncode, issueToken } from '../src/auth.ts'
 
 const open: RateLimit = { limit: async () => ({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
-const grant = (wait: number | null) => ({ getByName: () => ({ acquire: async () => wait }) }) as unknown as typeof env.ETHERSCAN_BUCKET
+const grant = (wait: number | null) =>
+  ({ getByName: () => ({ acquire: async () => wait }) }) as unknown as typeof env.ETHERSCAN_BUCKET
 // Unique key so a leak is easy to grep for.
 const KEY = 'KEY' + rand()
 const E = {
-  ...env, TOKEN_SECRET: rand() + rand(), ETHERSCAN_API_KEY: KEY, INSTALL_LIMITER: open, HISTORY_IP_LIMITER: open, ETHERSCAN_BUCKET: grant(0),
+  ...env,
+  TOKEN_SECRET: rand() + rand(),
+  ETHERSCAN_API_KEY: KEY,
+  INSTALL_LIMITER: open,
+  HISTORY_IP_LIMITER: open,
+  ETHERSCAN_BUCKET: grant(0),
 }
-const bearer = async () => ({ Authorization: `Bearer ${(await issueToken({ env: E } as never, crypto.randomUUID())).token}` })
-const newAddress = () => '0x' + [...crypto.getRandomValues(new Uint8Array(20))].map((x) => x.toString(16).padStart(2, '0')).join('')
+const bearer = async () => ({
+  Authorization: `Bearer ${(await issueToken({ env: E } as never, crypto.randomUUID())).token}`,
+})
+const newAddress = () =>
+  '0x' + [...crypto.getRandomValues(new Uint8Array(20))].map((x) => x.toString(16).padStart(2, '0')).join('')
 
 const post = async (body: unknown, e: typeof E = E, auth = true) =>
-  app.request('/v1/history', { method: 'POST', headers: { 'X-App-Version': '1.0.0', 'content-type': 'application/json', ...(auth ? await bearer() : {}) }, body: JSON.stringify(body) }, e)
+  app.request(
+    '/v1/history',
+    {
+      method: 'POST',
+      headers: { 'X-App-Version': '1.0.0', 'content-type': 'application/json', ...(auth ? await bearer() : {}) },
+      body: JSON.stringify(body),
+    },
+    e,
+  )
 
 const hash = (n: number) => '0x' + n.toString(16).padStart(64, '0')
 const row = (address: string, block: number, o: Record<string, string> = {}) => ({
-  hash: hash(block), blockNumber: String(block), timeStamp: '1700000000', transactionIndex: '0', from: '0x' + 'b'.repeat(40), to: address, value: '1000', isError: '0', txreceipt_status: '1', ...o,
+  hash: hash(block),
+  blockNumber: String(block),
+  timeStamp: '1700000000',
+  transactionIndex: '0',
+  from: '0x' + 'b'.repeat(40),
+  to: address,
+  value: '1000',
+  isError: '0',
+  txreceipt_status: '1',
+  ...o,
 })
 const ok = (result: unknown[]) => Response.json({ status: '1', message: 'OK', result })
 const empty = () => Response.json({ status: '0', message: 'No transactions found', result: [] })
@@ -54,7 +80,11 @@ describe('POST /v1/history', () => {
       expect(u.searchParams.get('sort')).toBe('desc')
       expect(u.searchParams.get('apikey')).toBe(KEY)
     }
-    expect(urls(f).find((u) => u.searchParams.get('action') === 'tokentx')!.searchParams.get('contractaddress')).toBe(USDC_SEPOLIA)
+    expect(
+      urls(f)
+        .find((u) => u.searchParams.get('action') === 'tokentx')!
+        .searchParams.get('contractaddress'),
+    ).toBe(USDC_SEPOLIA)
     expect(JSON.stringify(body)).not.toContain(KEY)
   })
 
@@ -80,12 +110,20 @@ describe('POST /v1/history', () => {
 
   it('429 when the IP limiter says so', async () => {
     const f = mock({})
-    const r = await post({ address: newAddress() }, { ...E, HISTORY_IP_LIMITER: { limit: async () => ({ success: false }) } })
+    const r = await post(
+      { address: newAddress() },
+      { ...E, HISTORY_IP_LIMITER: { limit: async () => ({ success: false }) } },
+    )
     expect(r.status).toBe(429)
     expect(f).not.toHaveBeenCalled()
   })
 
-  it.each([['short', '0x12'], ['no 0x', 'a'.repeat(40)], ['non hex', '0x' + 'g'.repeat(40)], ['missing', undefined]])('400 on a bad address (%s), no upstream call', async (_n, address) => {
+  it.each([
+    ['short', '0x12'],
+    ['no 0x', 'a'.repeat(40)],
+    ['non hex', '0x' + 'g'.repeat(40)],
+    ['missing', undefined],
+  ])('400 on a bad address (%s), no upstream call', async (_n, address) => {
     const f = mock({})
     const r = await post({ address })
     expect(r.status).toBe(400)
@@ -98,10 +136,17 @@ describe('POST /v1/history', () => {
     const a1 = newAddress()
     const page = HistoryResponse.parse(await (await post({ address: a1 })).json())
     f.mockClear()
-    for (const [address, cursor] of [[a1, 'garbage'], [newAddress(), page.nextCursor!]] as const) {
+    for (const [address, cursor] of [
+      [a1, 'garbage'],
+      [newAddress(), page.nextCursor!],
+    ] as const) {
       const r = await post({ address, cursor })
       expect(r.status).toBe(400)
-      expect(ErrorEnvelope.parse(await r.json())).toEqual({ code: 'invalid_cursor', message: 'Invalid cursor', retryable: false })
+      expect(ErrorEnvelope.parse(await r.json())).toEqual({
+        code: 'invalid_cursor',
+        message: 'Invalid cursor',
+        retryable: false,
+      })
     }
     expect(f).not.toHaveBeenCalled()
   })
@@ -150,12 +195,17 @@ describe('Etherscan failures -> 503 retryable, nothing leaks', () => {
   const expect503 = async (r: Response) => {
     expect(r.status).toBe(503)
     const text = await r.text()
-    expect(ErrorEnvelope.parse(JSON.parse(text))).toEqual({ code: 'unavailable', message: 'History unavailable', retryable: true })
+    expect(ErrorEnvelope.parse(JSON.parse(text))).toEqual({
+      code: 'unavailable',
+      message: 'History unavailable',
+      retryable: true,
+    })
     expect(text).not.toContain(KEY)
   }
   const logs = () => {
     const out: string[] = []
-    for (const m of ['log', 'warn', 'error'] as const) vi.spyOn(console, m).mockImplementation((...a) => void out.push(a.join(' ')))
+    for (const m of ['log', 'warn', 'error'] as const)
+      vi.spyOn(console, m).mockImplementation((...a) => void out.push(a.join(' ')))
     return out
   }
   afterEach(() => vi.restoreAllMocks())
@@ -163,12 +213,20 @@ describe('Etherscan failures -> 503 retryable, nothing leaks', () => {
   it.each([
     ['Query Timeout', () => notok(null, 'Query Timeout occured. Please select a smaller result dataset')],
     ['invalid key', () => notok('Invalid API Key (#err2)')],
-    ['window too large', () => notok(null, 'Result window is too large, PageNo x Offset size must be less than or equal to 10000')],
+    [
+      'window too large',
+      () => notok(null, 'Result window is too large, PageNo x Offset size must be less than or equal to 10000'),
+    ],
     ['http 500', () => new Response('boom ' + KEY, { status: 500 })],
     ['json null', () => Response.json(null)],
     ['json array', () => Response.json([])],
     ['not json', () => new Response('<html>' + KEY + '</html>')],
-    ['network error', () => { throw new TypeError('fetch failed ' + KEY) }],
+    [
+      'network error',
+      () => {
+        throw new TypeError('fetch failed ' + KEY)
+      },
+    ],
   ])('%s', async (_n, res) => {
     const out = logs()
     mock({ txlist: res })
@@ -186,7 +244,9 @@ describe('Etherscan failures -> 503 retryable, nothing leaks', () => {
     let n = 0
     const out = logs()
     const a = newAddress()
-    const f = mock({ txlist: () => (n++ === 0 ? notok('Max calls per sec rate limit reached (3/sec)') : ok([row(a, 7)])) })
+    const f = mock({
+      txlist: () => (n++ === 0 ? notok('Max calls per sec rate limit reached (3/sec)') : ok([row(a, 7)])),
+    })
     const r = await post({ address: a })
     expect(r.status).toBe(200)
     expect(f).toHaveBeenCalledTimes(4)

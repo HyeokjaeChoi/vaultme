@@ -52,7 +52,8 @@ function step(s: SendState, e: SendEvent): SendState | undefined {
       return undefined
     case 'Reviewing':
       if (e.type === 'EDIT') return { status: 'Draft' }
-      if (e.type === 'CONFIRM' && !s.blocked && (!s.requiresAck || e.ack)) return { status: 'Authenticating', requiresAck: s.requiresAck }
+      if (e.type === 'CONFIRM' && !s.blocked && (!s.requiresAck || e.ack))
+        return { status: 'Authenticating', requiresAck: s.requiresAck }
       return undefined
     case 'Authenticating':
       if (e.type === 'AUTH_OK') return { status: 'Submitting', requiresAck: s.requiresAck }

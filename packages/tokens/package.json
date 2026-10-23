@@ -9,7 +9,7 @@
     "build": "node build.mjs",
     "test": "node build.mjs && vitest run",
     "typecheck": "node build.mjs && tsc -p tsconfig.json",
-    "lint": "node build.mjs && eslint ."
+    "lint": "node build.mjs && eslint . --max-warnings=0"
   },
   "dependencies": {
     "style-dictionary": "^5.6.0"

@@ -5,7 +5,13 @@ import { AssetIcon, type AssetSymbol } from './AssetIcon'
 import { Icon } from './Icon'
 import { Text } from './Text'
 
-type Props = { name: string; symbol: AssetSymbol; /** Accessible label prefix, e.g. "보낼 자산". */ label: string; /** What a tap does, e.g. "자산 바꾸기" (VoiceOver hint; never the symbol). */ hint: string; onPress: () => void }
+type Props = {
+  name: string
+  symbol: AssetSymbol
+  /** Accessible label prefix, e.g. "보낼 자산". */ label: string
+  /** What a tap does, e.g. "자산 바꾸기" (VoiceOver hint; never the symbol). */ hint: string
+  onPress: () => void
+}
 
 /** Asset selector on the amount screen: 64 pt row (40 pt asset icon, name Row title, symbol Caption tertiary) and a 20 pt expand chevron. Tap opens the asset sheet. */
 export function AssetSelector({ name, symbol, label, hint, onPress }: Props) {
@@ -16,14 +22,28 @@ export function AssetSelector({ name, symbol, label, hint, onPress }: Props) {
       accessibilityLabel={`${label}, ${name} ${symbol}`}
       accessibilityHint={hint}
       onPress={onPress}
-      style={{ minHeight: t.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}
+      style={{
+        minHeight: t.component.rowB.height,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: t.semantic.layout.rowGap,
+      }}
     >
-      <View style={{ width: t.primitive.size.avatar_md, height: t.primitive.size.avatar_md, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          width: t.primitive.size.avatar_md,
+          height: t.primitive.size.avatar_md,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <AssetIcon symbol={symbol} size={t.primitive.size.avatar_md} />
       </View>
       <View style={{ flex: 1 }}>
         <Text variant="rowTitle">{name}</Text>
-        <Text variant="caption" color={t.semantic.text.tertiary}>{symbol}</Text>
+        <Text variant="caption" color={t.semantic.text.tertiary}>
+          {symbol}
+        </Text>
       </View>
       <Icon name="expand" size={t.component.icon.size.control} color={t.component.icon.action.fg} />
     </Pressable>

@@ -43,7 +43,9 @@ function toApiError(status: number, json: unknown): ApiError {
   const env = ErrorEnvelope.safeParse(json)
   if (env.success) return new ApiError(env.data.code, status, env.data.retryable, env.data.message)
   if (status === 426) return new ApiError('update_required', status, false, 'update required')
-  const retryable = typeof (json as { retryable?: unknown } | null)?.retryable === 'boolean' && (json as { retryable: boolean }).retryable
+  const retryable =
+    typeof (json as { retryable?: unknown } | null)?.retryable === 'boolean' &&
+    (json as { retryable: boolean }).retryable
   return new ApiError('Unknown', status, retryable, 'unknown error')
 }
 
@@ -66,7 +68,11 @@ export function createApiClient(d: ApiDeps) {
     try {
       res = await (d.fetch ?? fetch)(base + path, {
         method,
-        headers: { [APP_VERSION_HEADER]: d.appVersion, ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...headers },
+        headers: {
+          [APP_VERSION_HEADER]: d.appVersion,
+          ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+          ...headers,
+        },
         ...(body === undefined ? {} : { body }),
       })
     } catch {
@@ -102,7 +108,10 @@ export function createApiClient(d: ApiDeps) {
         installId = null
       }
       if (!installId) {
-        const r = parseWith((v) => RegisterResponse.parse(v), await http('POST', '/v1/installs', {}, JSON.stringify({ publicKey: publicKeyB64u(keyHex) })))
+        const r = parseWith(
+          (v) => RegisterResponse.parse(v),
+          await http('POST', '/v1/installs', {}, JSON.stringify({ publicKey: publicKeyB64u(keyHex) })),
+        )
         installId = r.installId
         d.store.setInstallId(installId)
       }
@@ -183,7 +192,11 @@ export function createApiClient(d: ApiDeps) {
     },
     /** POST /v1/history (lld.md §4). Returned as is (`HistoryResponse`, lld §4.2): the history model checks each item, so one unknown item does not fail the page. */
     history(address: string, cursor?: string): Promise<unknown> {
-      return post('/v1/history', HistoryRequest.parse({ address, ...(cursor === undefined ? {} : { cursor }) }), (v) => v)
+      return post(
+        '/v1/history',
+        HistoryRequest.parse({ address, ...(cursor === undefined ? {} : { cursor }) }),
+        (v) => v,
+      )
     },
   }
 }

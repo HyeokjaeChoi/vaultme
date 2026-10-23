@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { AppVersion, canonicalString, ErrorEnvelope, HistoryRequest, HistoryResponse, errorEnvelope, isBelow } from '../src/index.ts'
+import {
+  AppVersion,
+  canonicalString,
+  ErrorEnvelope,
+  HistoryRequest,
+  HistoryResponse,
+  errorEnvelope,
+  isBelow,
+} from '../src/index.ts'
 
 describe('contracts', () => {
   it('builds a valid error envelope', () => {

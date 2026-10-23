@@ -19,7 +19,15 @@ import {
 } from '@vaultme/contracts'
 import type { ErrorHandler, MiddlewareHandler } from 'hono'
 import pkg from '../package.json' with { type: 'json' }
-import { importPublicKey, issueToken, limitInstall, nowSeconds, rateLimited, requireSigned, requireToken } from './auth.ts'
+import {
+  importPublicKey,
+  issueToken,
+  limitInstall,
+  nowSeconds,
+  rateLimited,
+  requireSigned,
+  requireToken,
+} from './auth.ts'
 import type { Env } from './env.ts'
 import { getHistory } from './etherscan.ts'
 import { InvalidCursorError, UpstreamError, fail } from './errors.ts'
@@ -78,11 +86,13 @@ app.use('/v1/installs', async (c, next) => {
 })
 app.use('/v1/installs/token', requireSigned, limitInstall)
 app.use('/v1/installs/me', requireToken)
-const ipLimit = (name: 'RPC_IP_LIMITER' | 'HISTORY_IP_LIMITER'): MiddlewareHandler<Env> => async (c, next) => {
-  const key = c.req.header('CF-Connecting-IP') ?? 'unknown'
-  if (!(await c.env[name].limit({ key })).success) return rateLimited(c)
-  await next()
-}
+const ipLimit =
+  (name: 'RPC_IP_LIMITER' | 'HISTORY_IP_LIMITER'): MiddlewareHandler<Env> =>
+  async (c, next) => {
+    const key = c.req.header('CF-Connecting-IP') ?? 'unknown'
+    if (!(await c.env[name].limit({ key })).success) return rateLimited(c)
+    await next()
+  }
 app.use('/v1/rpc', ipLimit('RPC_IP_LIMITER'), requireToken)
 app.use('/v1/history', ipLimit('HISTORY_IP_LIMITER'), requireToken)
 app.use('/v1/push/*', requireToken)
@@ -149,7 +159,10 @@ app.openapi(
     path: '/v1/rpc',
     request: { body: { content: { 'application/json': { schema: RpcRequest } }, required: true } },
     responses: {
-      200: { description: 'Upstream JSON-RPC response, errors included', content: { 'application/json': { schema: RpcResponse } } },
+      200: {
+        description: 'Upstream JSON-RPC response, errors included',
+        content: { 'application/json': { schema: RpcResponse } },
+      },
       400: errorResponse('Not a single JSON-RPC 2.0 request (batches are not supported)'),
       403: errorResponse('Method or eth_call target not allowed'),
       503: errorResponse('Both upstreams failed (retryable)'),
@@ -171,7 +184,10 @@ app.openapi(
     path: '/v1/history',
     request: { body: { content: { 'application/json': { schema: HistoryRequest } }, required: true } },
     responses: {
-      200: { description: 'One page of history, newest first', content: { 'application/json': { schema: HistoryResponse } } },
+      200: {
+        description: 'One page of history, newest first',
+        content: { 'application/json': { schema: HistoryResponse } },
+      },
       400: errorResponse('Invalid address or cursor (`invalid_cursor`)'),
       503: errorResponse('Etherscan failed or was throttled (retryable)'),
       ...bearer,
@@ -195,7 +211,10 @@ app.openapi(
     path: '/v1/push/subscription',
     request: { body: { content: { 'application/json': { schema: PushSubscribeRequest } }, required: true } },
     responses: {
-      200: { description: 'Address and push token registered', content: { 'application/json': { schema: PushOkResponse } } },
+      200: {
+        description: 'Address and push token registered',
+        content: { 'application/json': { schema: PushOkResponse } },
+      },
       400: errorResponse('Invalid address or push token'),
       503: errorResponse('Webhook registration failed, nothing was kept (retryable)'),
       ...bearer,
@@ -203,7 +222,8 @@ app.openapi(
   }),
   async (c) => {
     const { address, expoToken } = c.req.valid('json')
-    if (!(await subscribe(c.env, c.get('installId'), address, expoToken))) return c.json(errorEnvelope('unavailable', 'Push registration unavailable'), 503)
+    if (!(await subscribe(c.env, c.get('installId'), address, expoToken)))
+      return c.json(errorEnvelope('unavailable', 'Push registration unavailable'), 503)
     return c.json({ ok: true as const }, 200)
   },
 )
@@ -213,7 +233,10 @@ app.openapi(
     method: 'delete',
     path: '/v1/push/subscription',
     responses: {
-      200: { description: 'Subscription deleted (also when there was none)', content: { 'application/json': { schema: PushOkResponse } } },
+      200: {
+        description: 'Subscription deleted (also when there was none)',
+        content: { 'application/json': { schema: PushOkResponse } },
+      },
       ...bearer,
     },
   }),
@@ -227,7 +250,8 @@ app.openapi(
 // Alchemy Notify address-activity webhook. Not under /v1: Alchemy sends no app version header. Authenticated by HMAC, not by token.
 app.post('/webhooks/alchemy', async (c) => {
   const raw = await c.req.text()
-  if (!(await verifyAlchemySignature(c.env, raw, c.req.header('X-Alchemy-Signature')))) return fail(c, 401, 'unauthorized', 'Signature is invalid')
+  if (!(await verifyAlchemySignature(c.env, raw, c.req.header('X-Alchemy-Signature'))))
+    return fail(c, 401, 'unauthorized', 'Signature is invalid')
   let json: unknown
   try {
     json = JSON.parse(raw)

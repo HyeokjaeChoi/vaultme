@@ -19,7 +19,10 @@ const ECDSA = { name: 'ECDSA', namedCurve: 'P-256' } as const
 export const nowSeconds = () => Math.floor(Date.now() / 1000)
 
 export const b64uEncode = (b: Uint8Array): string =>
-  btoa(String.fromCharCode(...b)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
+  btoa(String.fromCharCode(...b))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replace(/=+$/, '')
 export const b64uDecode = (s: string): Uint8Array<ArrayBuffer> =>
   Uint8Array.from(atob(s.replaceAll('-', '+').replaceAll('_', '/')), (ch) => ch.charCodeAt(0))
 
@@ -91,7 +94,9 @@ export const requireSigned: MiddlewareHandler<Env> = async (c, next) => {
 const hmacKey = (c: Context<Env>, usage: 'sign' | 'verify') => {
   // Fail closed (500) when the secret is missing or weak.
   if (typeof c.env.TOKEN_SECRET !== 'string' || c.env.TOKEN_SECRET.length < 32) throw new Error('invalid TOKEN_SECRET')
-  return crypto.subtle.importKey('raw', enc.encode(c.env.TOKEN_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, [usage])
+  return crypto.subtle.importKey('raw', enc.encode(c.env.TOKEN_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, [
+    usage,
+  ])
 }
 
 export async function issueToken(c: Context<Env>, installId: string) {
@@ -110,7 +115,12 @@ export const requireToken: MiddlewareHandler<Env> = async (c, next) => {
     return fail(c, 401, 'unauthorized', 'Token is required')
   }
   if (!/^[A-Za-z0-9_-]{43}$/.test(mac)) return fail(c, 401, 'unauthorized', 'Token is required')
-  const valid = await crypto.subtle.verify('HMAC', await hmacKey(c, 'verify'), b64uDecode(mac), enc.encode(`${id}.${exp}`))
+  const valid = await crypto.subtle.verify(
+    'HMAC',
+    await hmacKey(c, 'verify'),
+    b64uDecode(mac),
+    enc.encode(`${id}.${exp}`),
+  )
   if (!valid) return fail(c, 401, 'unauthorized', 'Token is invalid')
   if (Number(exp) <= nowSeconds()) return fail(c, 401, 'unauthorized', 'Token expired')
   c.set('installId', id)

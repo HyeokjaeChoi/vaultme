@@ -39,7 +39,21 @@ type Props = {
  * Busy: the icon is the loading glyph (3/4 ring), rotating 800 ms linear. Under Reduce Motion it is static and the label switches to `busyLabel`.
  * Press feedback: scale 0.97, 100 ms ease-out (off under Reduce Motion), plus the pressed color.
  */
-export function Button({ label, onPress, variant = 'primary', size = 'lg', disabled, busy, danger, link, rowTitle, icon, busyLabel, copied, style }: Props) {
+export function Button({
+  label,
+  onPress,
+  variant = 'primary',
+  size = 'lg',
+  disabled,
+  busy,
+  danger,
+  link,
+  rowTitle,
+  icon,
+  busyLabel,
+  copied,
+  style,
+}: Props) {
   const t = useTheme()
   const reduce = useReducedMotion()
   const onRaised = useOnRaised()
@@ -56,11 +70,26 @@ export function Button({ label, onPress, variant = 'primary', size = 'lg', disab
   const disabledBg = bb.primary.bgDisabled
   const bg =
     variant === 'primary'
-      ? dimmed ? disabledBg : { default: bb.primary.bg, pressed: b.primary.bg.pressed }
+      ? dimmed
+        ? disabledBg
+        : { default: bb.primary.bg, pressed: b.primary.bg.pressed }
       : variant === 'secondary'
-        ? dimmed ? disabledBg : { default: sec, pressed: onRaised ? t.semantic.surface.pressedOnRaised : bb.secondary.bgPressed }
-        : dimmed ? b.ghost.bg.disabled : { default: b.ghost.bg.default, pressed: b.ghost.bg.pressed }
-  const fgDefault = variant === 'primary' ? bb.primary.fg : danger ? t.semantic.status.danger.fg : link ? t.semantic.text.link : variant === 'secondary' ? bb.secondary.fg : t.semantic.text.primary
+        ? dimmed
+          ? disabledBg
+          : { default: sec, pressed: onRaised ? t.semantic.surface.pressedOnRaised : bb.secondary.bgPressed }
+        : dimmed
+          ? b.ghost.bg.disabled
+          : { default: b.ghost.bg.default, pressed: b.ghost.bg.pressed }
+  const fgDefault =
+    variant === 'primary'
+      ? bb.primary.fg
+      : danger
+        ? t.semantic.status.danger.fg
+        : link
+          ? t.semantic.text.link
+          : variant === 'secondary'
+            ? bb.secondary.fg
+            : t.semantic.text.primary
   const fg = dimmed ? bb.primary.fgDisabled : fgDefault
   const leading: IconName | undefined = busy ? 'loading' : copied ? 'check' : icon
   const shownLabel = busy && reduce && busyLabel ? busyLabel : label
@@ -89,14 +118,29 @@ export function Button({ label, onPress, variant = 'primary', size = 'lg', disab
         <Animated.View
           key={copied ? 'copied' : 'rest'}
           {...(copied && !reduce ? { entering: FadeIn.duration(COPIED_FADE_MS) } : {})}
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: t.semantic.layout.fieldGap, flexShrink: 1 }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: t.semantic.layout.fieldGap,
+            flexShrink: 1,
+          }}
         >
           {leading ? (
             <Animated.View style={busy ? spin : undefined}>
-              <Icon name={leading} size={busy || size === 'sm' ? t.component.icon.size.inline : t.component.icon.size.control} color={iconColor} />
+              <Icon
+                name={leading}
+                size={busy || size === 'sm' ? t.component.icon.size.inline : t.component.icon.size.control}
+                color={iconColor}
+              />
             </Animated.View>
           ) : null}
-          <Text variant={link ? 'link' : size === 'sm' ? 'label' : rowTitle ? 'rowTitle' : 'headline'} numberOfLines={2} color={fg} style={{ textAlign: 'center', flexShrink: 1 }}>
+          <Text
+            variant={link ? 'link' : size === 'sm' ? 'label' : rowTitle ? 'rowTitle' : 'headline'}
+            numberOfLines={2}
+            color={fg}
+            style={{ textAlign: 'center', flexShrink: 1 }}
+          >
             {shownLabel}
           </Text>
         </Animated.View>

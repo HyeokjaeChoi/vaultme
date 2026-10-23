@@ -13,7 +13,10 @@ export function formatAmount(raw: bigint, asset: AssetId, mode: 'floor' | 'exact
   const exact = pad(fromUnits(raw, asset), display.minFraction)
   if (mode === 'exact') return exact
   const [int = '0', frac = ''] = exact.split('.')
-  const cut = pad(frac.length > display.maxFraction ? `${int}.${frac.slice(0, display.maxFraction)}` : exact, display.minFraction)
+  const cut = pad(
+    frac.length > display.maxFraction ? `${int}.${frac.slice(0, display.maxFraction)}` : exact,
+    display.minFraction,
+  )
   const shown = trimTo(cut, display.minFraction)
   if (raw > 0n && Number(shown) === 0) return `<${smallestStep(display.maxFraction, decimals)}`
   return shown

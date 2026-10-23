@@ -12,14 +12,36 @@ export function AccountBlock({ name, address, copyLabel, onCopy, copied }: Props
   const t = useTheme()
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}>
-      <View style={{ width: t.primitive.size.avatar_lg, height: t.primitive.size.avatar_lg, borderRadius: t.primitive.radius.pill, backgroundColor: t.semantic.surface.subtle, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          width: t.primitive.size.avatar_lg,
+          height: t.primitive.size.avatar_lg,
+          borderRadius: t.primitive.radius.pill,
+          backgroundColor: t.semantic.surface.subtle,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Icon name="wallet" size={t.component.icon.size.feature} color={t.component.icon.account.fg} />
       </View>
       <View style={{ flex: 1 }}>
         <Text variant="headline">{name}</Text>
-        {address ? <Text variant="address" color={t.semantic.text.secondary}>{address}</Text> : null}
+        {address ? (
+          <Text variant="address" color={t.semantic.text.secondary}>
+            {address}
+          </Text>
+        ) : null}
       </View>
-      {address ? <Button size="sm" variant="secondary" icon="copy" label={copyLabel} {...(copied ? { copied } : {})} onPress={onCopy} /> : null}
+      {address ? (
+        <Button
+          size="sm"
+          variant="secondary"
+          icon="copy"
+          label={copyLabel}
+          {...(copied ? { copied } : {})}
+          onPress={onCopy}
+        />
+      ) : null}
     </View>
   )
 }

@@ -32,9 +32,20 @@ function Key({ cell, labels, onKey }: { cell: Cell; labels: Labels; onKey: OnKey
         accessibilityLabel={label}
         onPress={press}
         {...handlers}
-        style={{ height: t.component.buttonB.height.lg, borderRadius: t.component.buttonB.radius, alignItems: 'center', justifyContent: 'center' }}
+        style={{
+          height: t.component.buttonB.height.lg,
+          borderRadius: t.component.buttonB.radius,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       >
-        {cell === 'backspace' ? <Icon name="backspace" size={t.component.icon.size.feature} color={t.semantic.text.primary} /> : <Text variant="title1" tabular maxFontSizeMultiplier={1.3}>{text}</Text>}
+        {cell === 'backspace' ? (
+          <Icon name="backspace" size={t.component.icon.size.feature} color={t.semantic.text.primary} />
+        ) : (
+          <Text variant="title1" tabular maxFontSizeMultiplier={1.3}>
+            {text}
+          </Text>
+        )}
       </Pressable>
     </Animated.View>
   )

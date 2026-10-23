@@ -14,9 +14,20 @@ export function useTabHeaderHeight() {
 export function TabHeader({ title, chips }: { title: string; chips?: ReactNode }) {
   const t = useTheme()
   return (
-    <View style={{ minHeight: useTabHeaderHeight(), flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.fieldGap }}>
-      <Text variant="title1" accessibilityRole="header" style={{ flex: 1 }}>{title}</Text>
-      {chips ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.primitive.space['1_5'] }}>{chips}</View> : null}
+    <View
+      style={{
+        minHeight: useTabHeaderHeight(),
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: t.semantic.layout.fieldGap,
+      }}
+    >
+      <Text variant="title1" accessibilityRole="header" style={{ flex: 1 }}>
+        {title}
+      </Text>
+      {chips ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.primitive.space['1_5'] }}>{chips}</View>
+      ) : null}
     </View>
   )
 }
