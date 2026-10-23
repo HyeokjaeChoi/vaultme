@@ -56,7 +56,8 @@ jobs:
               # If Prettier cannot format the base file, treat the file as a UI change.
               if f["status"] == "modified":
                   # Drop a leading /* */ or {/* */} span but keep the code after it on the same line.
-                  lead = lambda l: re.sub(r"^\s*\{?/\*.*?\*/\}?", "", l)
+                  # Also drop a trailing "// ..." comment (space before the slashes, so URLs in strings stay).
+                  lead = lambda l: re.sub(r"\s+//\s.*$", "", re.sub(r"^\s*\{?/\*.*?\*/\}?", "", l))
                   code = lambda text: [s for s in map(lead, text.splitlines()) if not comment.match(s)]
                   try:
                       if code(fmt(show(base, f["filename"]), f["filename"])) == code(show(os.environ["HEAD_SHA"], f["filename"])):

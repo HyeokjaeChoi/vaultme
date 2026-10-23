@@ -172,7 +172,7 @@ fi
 # R11. Markdown references must resolve. In tracked *.md outside work/: every relative [x](path) link and every
 # backticked token that looks like a repo file path (has "/" and a known extension) must exist. Skipped: URLs,
 # #anchors, fenced code, tokens with glob or placeholder characters, and tokens that start with "/" (URL paths).
-# A token also passes when a tracked file ends with it (so `shared/lib/address.ts` works).
+# A backticked token also passes when a tracked file ends with it (so `shared/lib/address.ts` works).
 if ! { files; echo ---; files '*.md' ':!work/**'; } | python3 -c '
 import os, re, sys
 raw = sys.stdin.read().split("\n---\n")
@@ -190,8 +190,10 @@ for m in mds:
             continue
         if fenced:
             continue
-        for t in re.findall(r"\]\(([^)\s]+)\)", line):
-            if not t.startswith(("#", "http://", "https://", "mailto:")) and not ok(t, base):
+        # A link resolves from the Markdown file folder, as GitHub renders it. An optional "title" may follow.
+        for t in re.findall(r"\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)", line):
+            t = t.split("#", 1)[0]
+            if t and not t.startswith(("http://", "https://", "mailto:")) and not os.path.exists(os.path.normpath(os.path.join(base, t))):
                 print(f"{m}:{n}: broken link {t}", file=sys.stderr); bad = 1
         for t in re.findall(r"`([^`\s]+)`", line):
             if "/" in t and not t.startswith(("/", "http")) and not re.search(r"[*<>{}$:]", t) and re.search(r"\." + ext + r"(#.*)?$", t) and not ok(t, "."):

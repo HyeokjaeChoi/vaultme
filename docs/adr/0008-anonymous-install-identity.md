@@ -7,7 +7,7 @@ Supersedes/Aliases: Q57
 The proxy needs to limit abuse, but the app has no user accounts. Device attestation is out of scope. The only client is a native app.
 
 ## Decision
-On first start the app makes an ECDSA P-256 key pair. It is not the wallet key. The app registers the public key and gets an install ID. A signed request (timestamp, one-time nonce, canonical string) gets a 15-minute HMAC token. The token is stateless. Other routes need only the token. The install ID is never linked to a wallet address. The server rejects any request that has an `Origin` header and sends no CORS headers.
+On first start the app makes an ECDSA P-256 key pair. It is not the wallet key. The app registers the public key and gets an install ID. A signed request (timestamp, one-time nonce, canonical string) gets a 15-minute HMAC token. The token is stateless. Other routes need the token and the `X-App-Version` header; the server rejects an app below the minimum version. The install ID is never linked to a wallet address. The server rejects any request that has an `Origin` header and sends no CORS headers.
 
 ## Consequences
 - This raises the cost of abuse. It is not strong defense: anyone can make a new install.

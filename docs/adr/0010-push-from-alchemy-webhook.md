@@ -9,7 +9,7 @@ The design planned our own Cron watcher with a block cursor, an outbox, and Queu
 ## Decision
 Reason: lower run cost and fewer moving parts. We do not run our own block scanner, queue or cursor.
 
-Alchemy Notify watches the subscribed Sepolia addresses and calls our webhook. The webhook checks an HMAC signature, then sends one Expo push for each deposit or send of ETH or USDC. Zero-value and other-token transfers are skipped. The text has no amount and no address. A table of sent references stops double pushes on retry. An hourly Cron deletes subscriptions of installs that were inactive for 30 days. A subscription belongs to the install token. The user does not sign to prove the address.
+Alchemy Notify watches the subscribed Sepolia addresses and calls our webhook. The webhook checks an HMAC signature, then sends one Expo push for each deposit or send of ETH or USDC. Zero-value and other-token transfers are skipped. The text has no amount and no address. A table of sent references stops double pushes on retry. An hourly Cron deletes subscriptions of installs that were inactive for 30 days. A subscription belongs to the install ID (one row per install). The user does not sign to prove the address.
 
 ## Consequences
 - We depend on Alchemy for detection and for the address list. Failed removals are retried by Cron.
