@@ -4,9 +4,7 @@ import { expect, it } from 'vitest'
 
 // Primitive → Semantic → Component: raw values live only in Primitive; every other layer aliases.
 type Node = { value?: unknown; type?: string; [k: string]: unknown }
-const source = JSON.parse(
-  readFileSync(resolve(__dirname, '../../../outputs/wallet-foundation.tokens.json'), 'utf8'),
-) as Record<string, Node>
+const source = JSON.parse(readFileSync(resolve(__dirname, '../tokens.json'), 'utf8')) as Record<string, Node>
 
 const leaves = (n: Node, path: string[] = []): [string, unknown][] =>
   'value' in n && 'type' in n

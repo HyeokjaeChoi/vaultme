@@ -14,7 +14,7 @@ The Figma file NMXrn0q75G1SX2Bn1L1jP8 is the visual source. Code never guesses a
 3. **Token values only.** Colors, spacing, radii, font size, line height, letter spacing come from `@vaultme/tokens`. Numeric literals in those style keys are rejected by `scripts/check-repo-rules.sh` R5 (0 is allowed).
 4. **Product spacing scale.** Screen gaps use `semantic.layout.sectionGap.product`, `groupGap`, `rowGap`, `fieldGap`. `sectionGap.mobile` and `sectionGap.desktop` are banned in app code (R4).
 5. **Hierarchy comes from the Figma frame**, not from guesses: which button is Primary, which is Ghost, which surface is the white card.
-6. **Copy comes from `packages/i18n`**, which follows `outputs/design/ux-terminology.md`.
+6. **Copy comes from `packages/i18n`**, which follows the glossary in `CONTEXT.md`.
 
 ## Completion gate (all required)
 

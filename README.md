@@ -68,8 +68,8 @@ The pre-commit hook runs ESLint `--fix` and Prettier on staged files. CI runs `s
 ## Design system
 
 The Figma file is the design source: [VaultMe Foundation](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8).
-`outputs/wallet-foundation.tokens.json` is the token value source, and `packages/tokens` turns it into app constants.
-App code uses `@vaultme/tokens` for every color, spacing, radius, and type value. The [design language](outputs/VaultMe-DESIGN.md) and the [Foundation guide](outputs/wallet-foundation-guide.md) explain the values.
+`packages/tokens/tokens.json` is the token value source, and `packages/tokens` turns it into app constants.
+App code uses `@vaultme/tokens` for every color, spacing, radius, and type value. [DESIGN.md](DESIGN.md) explains the values and the rules that cross components. [CONTEXT.md](CONTEXT.md) holds the product terms.
 The rules and the reason for them are in [the retro](docs/retro/2026-10-13-design-system-not-applied.md).
 
 ## Workflow
