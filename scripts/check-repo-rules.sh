@@ -122,7 +122,7 @@ allow = {
     " ".join(["abandon"] * 23 + ["art"]),     # BIP39 24-word test vector
     " ".join(["test"] * 11 + ["junk"]),       # Hardhat/viem dev vector, address 0xf39F...2266, tests only
 }
-skip = re.compile(r"(\.(png|jpe?g|gif|webp|ttf|otf|woff2?|pdf|ico)$)|(^|/)(generated|node_modules)/|pnpm-lock\.yaml$|^scripts/bip39-english\.txt$|^work/")
+skip = re.compile(r"(\.(png|jpe?g|gif|webp|ttf|otf|woff2?|pdf|ico)$)|(^|/)node_modules/|pnpm-lock\.yaml$|^scripts/bip39-english\.txt$|^work/")
 token = re.compile(r"[A-Za-z]+")
 bad = 0
 for f in sys.stdin.read().split("\0"):

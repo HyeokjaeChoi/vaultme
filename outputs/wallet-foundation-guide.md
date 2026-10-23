@@ -21,7 +21,7 @@
 
 ## 2. 값은 한 곳에서 관리한다
 
-`wallet-foundation.tokens.json`이 원본이다. `packages/tokens/build.mjs`가 앱용 token을 생성한다. JSON은 `primitive`, `semantic`, `component` 세 Token Set을 사용한다. Alias 경로에는 Set 이름을 넣지 않는다.
+`wallet-foundation.tokens.json`이 원본이다. `packages/tokens/build.mjs`가 앱용 token을 생성한다. JSON은 `primitive`, `semantic`, `semanticDark`, `component` 네 Token Set을 사용한다. `semanticDark`는 Dark mode에서 `semantic` 값을 덮어쓰고, `packages/tokens/build.mjs`가 이를 적용한다. Alias 경로에는 Set 이름을 넣지 않는다.
 
 ```text
 Primitive: color.neutral.900 = #11161D
