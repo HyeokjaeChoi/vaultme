@@ -4,12 +4,26 @@ import { createHistory } from '../src/shared/api/history'
 import type { HistoryCache, PendingTx } from '../src/shared/storage/kv'
 
 const A = '0x' + 'a'.repeat(40)
-const tx: PendingTx = { hash: '0x1', nonce: 0, asset: 'ETH', to: A, amount: '1', createdAt: 1, lastCheckedAt: 1, state: 'Pending' }
+const tx: PendingTx = {
+  hash: '0x1',
+  nonce: 0,
+  asset: 'ETH',
+  to: A,
+  amount: '1',
+  createdAt: 1,
+  lastCheckedAt: 1,
+  state: 'Pending',
+}
 const err = (code: ConstructorParameters<typeof ApiError>[0], status = 500) => new ApiError(code, status, false, code)
 
 function setup(fetchPage: (a: string, c?: string) => Promise<unknown>) {
   let cache: HistoryCache | null = null
-  const h = createHistory({ fetchPage, cache: { get: () => cache, set: (c) => void (cache = c) }, local: () => [tx], now: () => 42 })
+  const h = createHistory({
+    fetchPage,
+    cache: { get: () => cache, set: (c) => void (cache = c) },
+    local: () => [tx],
+    now: () => 42,
+  })
   return { h, cache: () => cache }
 }
 
@@ -25,12 +39,17 @@ describe('history adapter', () => {
     expect(s.cache()).toBeNull()
   })
   it('404 falls back to the locally recorded sends', async () => {
-    const s = setup(async () => { throw err('not_found', 404) })
+    const s = setup(async () => {
+      throw err('not_found', 404)
+    })
     expect(await s.h.load(A)).toEqual({ source: 'local', sent: [tx] })
   })
   it('other failures show the cache with the error and its time', async () => {
     let fail = false
-    const s = setup(async () => { if (fail) throw err('unavailable', 503); return { items: [1] } })
+    const s = setup(async () => {
+      if (fail) throw err('unavailable', 503)
+      return { items: [1] }
+    })
     await s.h.load(A)
     fail = true
     const r = await s.h.load(A)
@@ -38,13 +57,18 @@ describe('history adapter', () => {
   })
   it('a cache of another address is not shown', async () => {
     let fail = false
-    const s = setup(async () => { if (fail) throw err('network'); return {} })
+    const s = setup(async () => {
+      if (fail) throw err('network')
+      return {}
+    })
     await s.h.load('0x' + 'b'.repeat(40))
     fail = true
     await expect(s.h.load(A)).rejects.toMatchObject({ code: 'network' })
   })
   it('update_required always throws', async () => {
-    const s = setup(async () => { throw err('update_required', 426) })
+    const s = setup(async () => {
+      throw err('update_required', 426)
+    })
     await expect(s.h.load(A)).rejects.toMatchObject({ code: 'update_required' })
   })
 })

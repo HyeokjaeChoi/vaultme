@@ -27,7 +27,9 @@ it('shows an address in EIP-55 form, leaves hashes alone', () => {
   expect(displayGroups(lower).join('')).not.toBe(lower)
   expect(displayGroups(lower).join('').toLowerCase()).toBe(lower)
   // vector from the EIP-55 spec
-  expect(displayGroups('0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed').join('')).toBe('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
+  expect(displayGroups('0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed').join('')).toBe(
+    '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed',
+  )
   expect(shortAddress('0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed')).toBe('0x5aAe…eAed')
   const hash = '0x' + 'ab'.repeat(32)
   expect(shortAddress(hash)).toBe('0xabab…abab')
@@ -37,5 +39,6 @@ it('fixture recipients are valid EIP-55 addresses, so captures match the checksu
   const { review, recentExamples } = await import('../src/entities/transaction/fixtures')
   const { toChecksumAddress } = await import('@vaultme/wallet-core')
   // Checksum from the lowercase form: a wrongly mixed-case fixture would not round-trip.
-  for (const a of [review.recipient, ...recentExamples.map((r) => r.address)]) expect(toChecksumAddress(a.toLowerCase())).toBe(a)
+  for (const a of [review.recipient, ...recentExamples.map((r) => r.address)])
+    expect(toChecksumAddress(a.toLowerCase())).toBe(a)
 })

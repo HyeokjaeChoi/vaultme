@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { applyCellInput, emptyWords, fromPhrase, inspectCells, joinWords, togglePassphrase, type WordCount } from '../src/features/restore/model/cells'
+import {
+  applyCellInput,
+  emptyWords,
+  fromPhrase,
+  inspectCells,
+  joinWords,
+  togglePassphrase,
+  type WordCount,
+} from '../src/features/restore/model/cells'
 import { clearHeld, holdRestore, restoredWithPassphrase, takeWords } from '../src/features/restore/model/handoff'
 
 // Published BIP39 test vectors only (all-zero entropy). Not wallet phrases.

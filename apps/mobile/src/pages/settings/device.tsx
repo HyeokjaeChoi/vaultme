@@ -10,7 +10,14 @@ export function DeviceWarningPage() {
   const th = useTheme()
   return (
     <BrandScreen
-      hero={<Icon name="deviceWarning" weight="duotone" size={th.primitive.size.avatar_lg + th.primitive.space[6]} color={th.component.icon.status.info} />}
+      hero={
+        <Icon
+          name="deviceWarning"
+          weight="duotone"
+          size={th.primitive.size.avatar_lg + th.primitive.space[6]}
+          color={th.component.icon.status.info}
+        />
+      }
       title={t('settings.deviceScreen.title')}
       body={t('settings.deviceScreen.body')}
       actions={<Button label={t('settings.deviceScreen.cta')} onPress={() => goBack('/settings')} />}

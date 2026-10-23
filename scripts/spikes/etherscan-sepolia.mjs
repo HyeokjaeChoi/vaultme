@@ -10,14 +10,19 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 
 const envPath = process.env.ETHERSCAN_ENV ?? `${homedir()}/.config/vaultme/etherscan.env`
-const key = readFileSync(envPath, 'utf8').match(/^ETHERSCAN_API_KEY=(.+)$/m)?.[1]?.trim()
+const key = readFileSync(envPath, 'utf8')
+  .match(/^ETHERSCAN_API_KEY=(.+)$/m)?.[1]
+  ?.trim()
 if (!key) throw new Error('ETHERSCAN_API_KEY missing in env file')
 const redact = (s) => s.split(key).join('REDACTED')
-const kv = (args) => Object.fromEntries(args.map((a) => {
-  const i = a.indexOf('=')
-  if (i < 1) throw new Error(`bad argument (expected k=v): ${a}`)
-  return [a.slice(0, i), a.slice(i + 1)]
-}))
+const kv = (args) =>
+  Object.fromEntries(
+    args.map((a) => {
+      const i = a.indexOf('=')
+      if (i < 1) throw new Error(`bad argument (expected k=v): ${a}`)
+      return [a.slice(0, i), a.slice(i + 1)]
+    }),
+  )
 
 async function call(params) {
   const q = new URLSearchParams({ chainid: '11155111', ...params, apikey: key })
@@ -26,7 +31,11 @@ async function call(params) {
   const text = await res.text()
   const ms = Math.round(performance.now() - t)
   let body
-  try { body = JSON.parse(redact(text)) } catch { body = { nonJson: redact(text).slice(0, 200) } }
+  try {
+    body = JSON.parse(redact(text))
+  } catch {
+    body = { nonJson: redact(text).slice(0, 200) }
+  }
   return { http: res.status, ms, body }
 }
 const pct = (xs, p) => [...xs].sort((a, b) => a - b)[Math.min(xs.length - 1, Math.ceil((p / 100) * xs.length) - 1)]
@@ -36,36 +45,86 @@ const [cmd, ...rest] = process.argv.slice(2)
 const { n: nStr, show: showStr, file, ...params } = kv(rest)
 const n = Number(nStr ?? (cmd === 'burst' ? 6 : 20))
 const show = Number(showStr ?? 2)
-if (!Number.isSafeInteger(n) || n < 1) { console.error('n must be a positive integer'); process.exit(2) }
+if (!Number.isSafeInteger(n) || n < 1) {
+  console.error('n must be a positive integer')
+  process.exit(2)
+}
 
 if (cmd === 'get') {
   const r = await call(params)
   const { result } = r.body
   const list = Array.isArray(result)
-  out({ http: r.http, ms: r.ms, status: r.body.status, message: r.body.message,
-    resultType: list ? 'array' : typeof result, count: list ? result.length : undefined,
+  out({
+    http: r.http,
+    ms: r.ms,
+    status: r.body.status,
+    message: r.body.message,
+    resultType: list ? 'array' : typeof result,
+    count: list ? result.length : undefined,
     result: list ? result.slice(0, show) : result,
-    last: list && result.length > show ? result[result.length - 1] : undefined })
+    last: list && result.length > show ? result[result.length - 1] : undefined,
+  })
 } else if (cmd === 'dump') {
-  if (!file) { console.error('dump needs file=PATH'); process.exit(2) }
+  if (!file) {
+    console.error('dump needs file=PATH')
+    process.exit(2)
+  }
   const r = await call(params)
   writeFileSync(file, JSON.stringify(r.body))
-  console.log(r.http, r.ms, r.body.status, r.body.message, Array.isArray(r.body.result) ? r.body.result.length : r.body.result)
+  console.log(
+    r.http,
+    r.ms,
+    r.body.status,
+    r.body.message,
+    Array.isArray(r.body.result) ? r.body.result.length : r.body.result,
+  )
 } else if (cmd === 'latency') {
   const ms = []
-  for (let i = 0; i < n; i++) { const r = await call(params); ms.push(r.ms); if (r.body.status !== '1') console.log('non-ok', r.body.message); await new Promise((r) => setTimeout(r, 400)) }
+  for (let i = 0; i < n; i++) {
+    const r = await call(params)
+    ms.push(r.ms)
+    if (r.body.status !== '1') console.log('non-ok', r.body.message)
+    await new Promise((r) => setTimeout(r, 400))
+  }
   out({ n, p50: pct(ms, 50), p95: pct(ms, 95), min: Math.min(...ms), max: Math.max(...ms) })
 } else if (cmd === 'burst') {
   const rs = await Promise.all(Array.from({ length: n }, () => call(params)))
-  out(rs.map((r) => ({ http: r.http, ms: r.ms, status: r.body.status, message: r.body.message, result: typeof r.body.result === 'string' ? r.body.result.slice(0, 160) : `array:${r.body.result?.length}` })))
+  out(
+    rs.map((r) => ({
+      http: r.http,
+      ms: r.ms,
+      status: r.body.status,
+      message: r.body.message,
+      result: typeof r.body.result === 'string' ? r.body.result.slice(0, 160) : `array:${r.body.result?.length}`,
+    })),
+  )
 } else if (cmd === 'fresh') {
-  if (!/^0x[0-9a-fA-F]{40}$/.test(params.address ?? '')) { console.error('fresh needs address=0x<40 hex> (use a recently active one)'); process.exit(2) }
+  if (!/^0x[0-9a-fA-F]{40}$/.test(params.address ?? '')) {
+    console.error('fresh needs address=0x<40 hex> (use a recently active one)')
+    process.exit(2)
+  }
   const bn = async () => parseInt((await call({ module: 'proxy', action: 'eth_blockNumber' })).body.result, 16)
   const tip = await bn()
-  const r = await call({ module: 'account', action: 'txlist', address: params.address, sort: 'desc', page: '1', offset: '1' })
+  const r = await call({
+    module: 'account',
+    action: 'txlist',
+    address: params.address,
+    sort: 'desc',
+    page: '1',
+    offset: '1',
+  })
   const top = Array.isArray(r.body.result) ? r.body.result[0] : undefined
   const tip2 = await bn()
-  out({ tipBefore: tip, tipAfter: tip2, status: r.body.status, message: r.body.message, newestTxBlock: top && Number(top.blockNumber), newestTxTime: top && new Date(top.timeStamp * 1000).toISOString(), now: new Date().toISOString() })
+  out({
+    tipBefore: tip,
+    tipAfter: tip2,
+    status: r.body.status,
+    message: r.body.message,
+    newestTxBlock: top && Number(top.blockNumber),
+    newestTxTime: top && new Date(top.timeStamp * 1000).toISOString(),
+    now: new Date().toISOString(),
+  })
 } else {
-  console.error('usage: get|dump|latency|burst|fresh k=v...'); process.exit(2)
+  console.error('usage: get|dump|latency|burst|fresh k=v...')
+  process.exit(2)
 }

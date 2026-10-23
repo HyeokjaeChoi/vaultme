@@ -16,9 +16,7 @@
     "android": {
       "package": "app.vaultme.mobile",
       "allowBackup": false,
-      "permissions": [
-        "android.permission.USE_BIOMETRIC"
-      ],
+      "permissions": ["android.permission.USE_BIOMETRIC"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-foreground.png",
         "monochromeImage": "./assets/adaptive-foreground.png",

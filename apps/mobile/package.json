@@ -11,7 +11,7 @@
     "export": "node scripts/generate-licenses.mjs && expo export --platform ios",
     "test": "node scripts/generate-licenses.mjs && vitest run --passWithNoTests",
     "typecheck": "node scripts/generate-licenses.mjs && tsc -p tsconfig.json",
-    "lint": "node scripts/generate-licenses.mjs && eslint ."
+    "lint": "node scripts/generate-licenses.mjs && eslint . --max-warnings=0"
   },
   "dependencies": {
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",

@@ -8,8 +8,17 @@ export type BackupGateState = {
 }
 
 /** `backedUp` = backup done or wallet restored (Q16: the user already holds the phrase). */
-export function backupGateState(i: { done: boolean; restored: boolean; hasIncoming: boolean; promptShown: boolean }): BackupGateState {
+export function backupGateState(i: {
+  done: boolean
+  restored: boolean
+  hasIncoming: boolean
+  promptShown: boolean
+}): BackupGateState {
   const backedUp = i.done || i.restored
-  return { backedUp, canReceive: true, canSend: backedUp, shouldPromptAfterDeposit: !backedUp && i.hasIncoming && !i.promptShown }
+  return {
+    backedUp,
+    canReceive: true,
+    canSend: backedUp,
+    shouldPromptAfterDeposit: !backedUp && i.hasIncoming && !i.promptShown,
+  }
 }
-

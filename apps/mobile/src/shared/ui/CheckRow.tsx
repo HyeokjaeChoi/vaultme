@@ -16,7 +16,13 @@ export function CheckRow({ title, body, checked, onToggle }: Props) {
       accessibilityState={{ checked }}
       accessibilityLabel={body ? `${title}. ${body}` : title}
       onPress={onToggle}
-      style={{ minHeight: t.primitive.size.touch_min, flexDirection: 'row', alignItems: 'flex-start', gap: t.semantic.layout.rowGap, paddingVertical: t.primitive.space[2] }}
+      style={{
+        minHeight: t.primitive.size.touch_min,
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: t.semantic.layout.rowGap,
+        paddingVertical: t.primitive.space[2],
+      }}
     >
       <View
         style={{
@@ -30,11 +36,17 @@ export function CheckRow({ title, body, checked, onToggle }: Props) {
           justifyContent: 'center',
         }}
       >
-        {checked ? <Icon name="check" size={t.component.icon.size.control} color={t.component.icon.action.onPrimary} /> : null}
+        {checked ? (
+          <Icon name="check" size={t.component.icon.size.control} color={t.component.icon.action.onPrimary} />
+        ) : null}
       </View>
       <View style={{ flex: 1 }}>
         <Text variant="headline">{title}</Text>
-        {body ? <Text variant="bodySmall" color={t.semantic.text.secondary}>{body}</Text> : null}
+        {body ? (
+          <Text variant="bodySmall" color={t.semantic.text.secondary}>
+            {body}
+          </Text>
+        ) : null}
       </View>
     </Pressable>
   )

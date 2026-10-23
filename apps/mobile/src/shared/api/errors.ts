@@ -18,10 +18,14 @@ export class ApiError extends Error {
 
 /** JSON-RPC error inside a 200 answer (the node answered, the call failed). */
 export class RpcError extends Error {
-  constructor(readonly rpcCode: number, message: string) {
+  constructor(
+    readonly rpcCode: number,
+    message: string,
+  ) {
     super(message)
     this.name = 'RpcError'
   }
 }
 
-export const isApiError = (e: unknown, code?: ApiErrorCode): e is ApiError => e instanceof ApiError && (code === undefined || e.code === code)
+export const isApiError = (e: unknown, code?: ApiErrorCode): e is ApiError =>
+  e instanceof ApiError && (code === undefined || e.code === code)

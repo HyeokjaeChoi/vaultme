@@ -1,12 +1,33 @@
 import type { PendingTx } from '@/shared/storage'
 
-type Tx = { id: string; kind: 'send' | 'receive'; asset: 'ETH' | 'USDC'; amount: string; at: number; state: 'Pending' | 'Confirmed' | 'Failed' | 'Unknown' }
+type Tx = {
+  id: string
+  kind: 'send' | 'receive'
+  asset: 'ETH' | 'USDC'
+  amount: string
+  at: number
+  state: 'Pending' | 'Confirmed' | 'Failed' | 'Unknown'
+}
 
 // Fixture data only (fake adapter). Dates match Figma Activity 404:387 (2026-10-16 is a Friday). `amount` has no sign.
 export const transactions: Tx[] = [
   { id: '1', kind: 'send', asset: 'ETH', amount: '0.05', at: new Date(2026, 9, 16, 9, 41).getTime(), state: 'Pending' },
-  { id: '2', kind: 'receive', asset: 'USDC', amount: '12.5', at: new Date(2026, 9, 12, 9, 12).getTime(), state: 'Confirmed' },
-  { id: '3', kind: 'send', asset: 'ETH', amount: '0.02', at: new Date(2026, 9, 12, 8, 30).getTime(), state: 'Confirmed' },
+  {
+    id: '2',
+    kind: 'receive',
+    asset: 'USDC',
+    amount: '12.5',
+    at: new Date(2026, 9, 12, 9, 12).getTime(),
+    state: 'Confirmed',
+  },
+  {
+    id: '3',
+    kind: 'send',
+    asset: 'ETH',
+    amount: '0.02',
+    at: new Date(2026, 9, 12, 8, 30).getTime(),
+    state: 'Confirmed',
+  },
   { id: '4', kind: 'send', asset: 'USDC', amount: '1', at: new Date(2026, 9, 11, 7, 55).getTime(), state: 'Failed' },
 ]
 
@@ -28,8 +49,18 @@ export type Recent = { address: string; at: number; asset: string; amount: strin
 /** Example recent recipients, shown only while the fake chain adapter is on (the same kind of example rows as the activity fixtures). Real mode lists only what this device sent. */
 export const recentExamples: Recent[] = [
   { address: review.recipient, at: new Date(2026, 9, 12, 8, 30).getTime(), asset: 'ETH', amount: '0.02' },
-  { address: '0x7c3a91d2e5f04b88a1c603d95e72bb149f206A1D', at: new Date(2026, 9, 3, 10, 5).getTime(), asset: 'ETH', amount: '0.1' },
-  { address: '0x2F9E0C418d73B6A5E91247Cd3a08F5B16c2E91d4', at: new Date(2026, 8, 28, 15, 20).getTime(), asset: 'USDC', amount: '1' },
+  {
+    address: '0x7c3a91d2e5f04b88a1c603d95e72bb149f206A1D',
+    at: new Date(2026, 9, 3, 10, 5).getTime(),
+    asset: 'ETH',
+    amount: '0.1',
+  },
+  {
+    address: '0x2F9E0C418d73B6A5E91247Cd3a08F5B16c2E91d4',
+    at: new Date(2026, 8, 28, 15, 20).getTime(),
+    asset: 'USDC',
+    amount: '1',
+  },
 ]
 
 /** __DEV__ design-capture only (`?variant=pending` on Home, `?demo=<state>` on the result screen): a synthetic send in the given state. Never written to kv. */

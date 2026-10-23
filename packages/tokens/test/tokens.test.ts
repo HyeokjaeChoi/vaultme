@@ -11,7 +11,10 @@ const ratio = (a: string, b: string) => {
   return (hi + 0.05) / (lo + 0.05)
 }
 
-describe.each([['light', light], ['dark', dark]] as const)('%s', (_, t) => {
+describe.each([
+  ['light', light],
+  ['dark', dark],
+] as const)('%s', (_, t) => {
   it('resolves values to RN-ready numbers', () => {
     expect(t.component.button.size.md.height).toBe(44)
     expect(t.semantic.layout.screen.padding).toBe(16)

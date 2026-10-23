@@ -16,7 +16,9 @@ const norm = (w: string) => w.trim().toLowerCase()
 
 /** True when every answer matches its expected word (trim + case-insensitive). */
 export const checkAnswers = (expected: readonly string[], answers: readonly string[]): boolean =>
-  expected.length > 0 && expected.length === answers.length && expected.every((w, i) => norm(w) === norm(answers[i] ?? ''))
+  expected.length > 0 &&
+  expected.length === answers.length &&
+  expected.every((w, i) => norm(w) === norm(answers[i] ?? ''))
 
 /** Indexes of the answers that differ from the expected word (same rule as checkAnswers). An empty answer counts as wrong. */
 export const wrongIndexes = (expected: readonly string[], answers: readonly string[]): number[] =>

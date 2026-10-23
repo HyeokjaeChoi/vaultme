@@ -21,26 +21,50 @@ export function PortfolioBalance({ label, value, unit, note, unavailable, onLabe
   const t = useTheme()
   const c = t.component.portfolioBalance
   return (
-    <View accessibilityLabel={`${label}, ${value}${unit ? ` ${unit}` : ''}. ${note}`} accessible={!onLabelPress} style={{ gap: c.gap, paddingTop: t.primitive.space[6], paddingBottom: t.primitive.space[4] }}>
+    <View
+      accessibilityLabel={`${label}, ${value}${unit ? ` ${unit}` : ''}. ${note}`}
+      accessible={!onLabelPress}
+      style={{ gap: c.gap, paddingTop: t.primitive.space[6], paddingBottom: t.primitive.space[4] }}
+    >
       {onLabelPress ? (
-        <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onLabelPress} hitSlop={{ top: t.primitive.space[3], bottom: t.primitive.space[3], right: t.primitive.space[4] }} style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' }}>
-          <Text variant="label" color={t.semantic.text.secondary}>{label}</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          onPress={onLabelPress}
+          hitSlop={{ top: t.primitive.space[3], bottom: t.primitive.space[3], right: t.primitive.space[4] }}
+          style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' }}
+        >
+          <Text variant="label" color={t.semantic.text.secondary}>
+            {label}
+          </Text>
           <Icon name="disclosure" size={t.primitive.size.icon_sm} color={t.semantic.text.secondary} />
         </Pressable>
       ) : (
-        <Text variant="label" color={t.semantic.text.secondary}>{label}</Text>
+        <Text variant="label" color={t.semantic.text.secondary}>
+          {label}
+        </Text>
       )}
       {unavailable ? (
-        <Text variant="title2" color={t.semantic.text.secondary}>{value}</Text>
+        <Text variant="title2" color={t.semantic.text.secondary}>
+          {value}
+        </Text>
       ) : unit ? (
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: t.primitive.space['1_5'], flexWrap: 'wrap' }}>
-          <Text variant="figure" tabular color={c.value}>{value}</Text>
-          <Text variant="figureUnit" color={t.semantic.text.secondary}>{unit}</Text>
+          <Text variant="figure" tabular color={c.value}>
+            {value}
+          </Text>
+          <Text variant="figureUnit" color={t.semantic.text.secondary}>
+            {unit}
+          </Text>
         </View>
       ) : (
-        <Text variant="displayL" tabular color={c.value}>{value}</Text>
+        <Text variant="displayL" tabular color={c.value}>
+          {value}
+        </Text>
       )}
-      <Text variant="bodySmall" color={t.semantic.text.tertiary}>{note}</Text>
+      <Text variant="bodySmall" color={t.semantic.text.tertiary}>
+        {note}
+      </Text>
     </View>
   )
 }

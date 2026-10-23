@@ -24,7 +24,6 @@ function store(): MMKV {
   return kv
 }
 
-
 // --- backup flag ---
 /** Settings toggles (S62 거래 알림, S63 0원 거래 표시). Local preferences only: push registration and the zero-value filter are not wired to them yet (ponytail: wire when the push server is). */
 export const getPushSetting = (): boolean => store().getBoolean('settings.push') ?? true
@@ -107,12 +106,25 @@ export function parsePendingTx(raw: string): PendingTx | null {
   if (typeof v !== 'object' || v === null) return null
   const o = v as Record<string, unknown>
   if (
-    !isStr(o.hash) || !isNum(o.nonce) || !isStr(o.asset) || !isStr(o.to) || !isStr(o.amount) ||
-    !isNum(o.createdAt) || !isNum(o.lastCheckedAt) || !STATES.includes(o.state as string)
-  ) return null
+    !isStr(o.hash) ||
+    !isNum(o.nonce) ||
+    !isStr(o.asset) ||
+    !isStr(o.to) ||
+    !isStr(o.amount) ||
+    !isNum(o.createdAt) ||
+    !isNum(o.lastCheckedAt) ||
+    !STATES.includes(o.state as string)
+  )
+    return null
   return {
-    hash: o.hash, nonce: o.nonce, asset: o.asset, to: o.to, amount: o.amount,
-    createdAt: o.createdAt, lastCheckedAt: o.lastCheckedAt, state: o.state as PendingTx['state'],
+    hash: o.hash,
+    nonce: o.nonce,
+    asset: o.asset,
+    to: o.to,
+    amount: o.amount,
+    createdAt: o.createdAt,
+    lastCheckedAt: o.lastCheckedAt,
+    state: o.state as PendingTx['state'],
     ...(isStr(o.fee) ? { fee: o.fee } : {}),
     ...(isNum(o.blockNumber) ? { blockNumber: o.blockNumber } : {}),
     ...(o.failReason === 'outOfGas' ? { failReason: 'outOfGas' as const } : {}),
@@ -146,7 +158,9 @@ export function getHistoryCache(): HistoryCache | null {
   if (raw === undefined) return null
   try {
     const v = JSON.parse(raw) as Partial<HistoryCache>
-    return typeof v.address === 'string' && typeof v.json === 'string' && typeof v.updatedAt === 'number' ? (v as HistoryCache) : null
+    return typeof v.address === 'string' && typeof v.json === 'string' && typeof v.updatedAt === 'number'
+      ? (v as HistoryCache)
+      : null
   } catch {
     return null
   }
@@ -166,7 +180,15 @@ export function parseRecents(raw: string | undefined): RecentRecipient[] {
     const v = JSON.parse(raw) as unknown
     if (!Array.isArray(v)) return []
     return v
-      .filter((x): x is RecentRecipient => !!x && typeof x.address === 'string' && /^0x[0-9a-fA-F]{40}$/.test(x.address) && typeof x.at === 'number' && typeof x.asset === 'string' && typeof x.amount === 'string')
+      .filter(
+        (x): x is RecentRecipient =>
+          !!x &&
+          typeof x.address === 'string' &&
+          /^0x[0-9a-fA-F]{40}$/.test(x.address) &&
+          typeof x.at === 'number' &&
+          typeof x.asset === 'string' &&
+          typeof x.amount === 'string',
+      )
       .slice(0, MAX_RECENTS)
   } catch {
     return []

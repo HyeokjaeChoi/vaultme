@@ -131,7 +131,10 @@ describe('installs', () => {
   it.each([-1, 1])('rejects a timestamp outside the skew window (%i)', async (dir) => {
     const d = await newDevice()
     const ts = Math.floor(Date.now() / 1000) + dir * (CLOCK_SKEW_SECONDS + 5)
-    const r = await call('/v1/installs/token', { method: 'POST', headers: await d.sign('POST', '/v1/installs/token', '', { ts }) })
+    const r = await call('/v1/installs/token', {
+      method: 'POST',
+      headers: await d.sign('POST', '/v1/installs/token', '', { ts }),
+    })
     expect(r.status).toBe(401)
     expect(await code(r)).toBe('clock_skew')
   })
@@ -166,14 +169,22 @@ describe('installs', () => {
 
   it('fails closed when TOKEN_SECRET is missing', async () => {
     const d = await newDevice()
-    const r = await call('/v1/installs/token', { method: 'POST', headers: await d.sign('POST', '/v1/installs/token') }, { ...E, TOKEN_SECRET: '' })
+    const r = await call(
+      '/v1/installs/token',
+      { method: 'POST', headers: await d.sign('POST', '/v1/installs/token') },
+      { ...E, TOKEN_SECRET: '' },
+    )
     expect(r.status).toBe(500)
   })
 
   it('429 with Retry-After from the install limiter', async () => {
     const d = await newDevice()
     const { body } = await d.token()
-    const r = await call('/v1/installs/me', { headers: { Authorization: `Bearer ${body.token}` } }, { ...E, INSTALL_LIMITER: closed })
+    const r = await call(
+      '/v1/installs/me',
+      { headers: { Authorization: `Bearer ${body.token}` } },
+      { ...E, INSTALL_LIMITER: closed },
+    )
     expect(r.status).toBe(429)
     expect(r.headers.get('Retry-After')).toBe('60')
     expect(await r.json()).toEqual({ code: 'rate_limited', message: 'Too many requests', retryable: true })
@@ -184,14 +195,22 @@ describe('installs', () => {
     const statuses: number[] = []
     for (let i = 0; i < 4; i++) {
       const publicKey = await rawPublic(await genKey())
-      const r = await call('/v1/installs', { ...json({ publicKey }), headers: { 'content-type': 'application/json', 'CF-Connecting-IP': '203.0.113.7' } }, real)
+      const r = await call(
+        '/v1/installs',
+        { ...json({ publicKey }), headers: { 'content-type': 'application/json', 'CF-Connecting-IP': '203.0.113.7' } },
+        real,
+      )
       statuses.push(r.status)
       if (r.status === 429) expect(r.headers.get('Retry-After')).toBe('60')
     }
     expect(statuses).toEqual([201, 201, 201, 429])
     // The IP limiter covers registration only, not the other /v1/installs/* routes.
     const d = await newDevice()
-    const r = await call('/v1/installs/token', { method: 'POST', headers: await d.sign('POST', '/v1/installs/token') }, real)
+    const r = await call(
+      '/v1/installs/token',
+      { method: 'POST', headers: await d.sign('POST', '/v1/installs/token') },
+      real,
+    )
     expect(r.status).toBe(200)
   })
 })

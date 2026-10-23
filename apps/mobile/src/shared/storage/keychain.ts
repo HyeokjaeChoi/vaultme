@@ -40,7 +40,9 @@ export function decodePhrase(stored: string): Mnemonic {
 }
 
 export async function savePhrase(m: Mnemonic, prompt: AuthPrompt): Promise<void> {
-  const ok = await withAuthInProgress(() => Keychain.setGenericPassword(USER, encodePhrase(m), { ...PHRASE_OPTIONS, authenticationPrompt: prompt }))
+  const ok = await withAuthInProgress(() =>
+    Keychain.setGenericPassword(USER, encodePhrase(m), { ...PHRASE_OPTIONS, authenticationPrompt: prompt }),
+  )
   if (!ok) throw new Error('keychain: save failed')
 }
 

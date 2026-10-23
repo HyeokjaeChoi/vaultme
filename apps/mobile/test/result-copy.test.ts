@@ -5,7 +5,8 @@ it('says "보내는 중이에요" for Pending and Included, "보냈어요" only 
   expect(resultCopy('Pending').title).toBe('result.sending')
   expect(resultCopy('Included').title).toBe('result.sending')
   expect(resultCopy('Confirmed').title).toBe('result.sent')
-  for (const s of ['Pending', 'Included', 'Failed', 'Unknown', 'Replaced'] as const) expect(resultCopy(s).title).not.toBe('result.sent')
+  for (const s of ['Pending', 'Included', 'Failed', 'Unknown', 'Replaced'] as const)
+    expect(resultCopy(s).title).not.toBe('result.sent')
 })
 it('warns not to send again while a send may still go through', () => {
   expect(resultCopy('Pending').warn).toBe('result.sendAgainWarn')

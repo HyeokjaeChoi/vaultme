@@ -1,7 +1,14 @@
 // Figma: Bottom sheet 301:606 (Grabber 301:607), Redesign B: top radius sheetB.radius 32, Title 3, Secondary action above Primary
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Modal, PanResponder, Pressable, ScrollView, useWindowDimensions, View } from 'react-native'
-import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated'
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 import { scheduleOnRN } from 'react-native-worklets'
 import { ko } from '@vaultme/i18n'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -19,7 +26,11 @@ const DISMISS_VELOCITY = 500
 const RUBBER = 0.15
 const SPRING = { duration: 300, dampingRatio: 0.8 }
 
-type SheetAction = { label: string; onPress: () => void; /** Secondary only: the action cannot be undone, so it gets a danger-colored label. */ danger?: boolean }
+type SheetAction = {
+  label: string
+  onPress: () => void
+  /** Secondary only: the action cannot be undone, so it gets a danger-colored label. */ danger?: boolean
+}
 type Props = {
   visible: boolean
   onClose: () => void
@@ -67,9 +78,11 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
       setMounted(true)
       y.set(reduce ? 0 : withTiming(0, { duration: OPEN_MS, easing: OPEN_EASING }))
     } else if (mounted) {
-      y.set(withTiming(height, { duration: reduce ? 0 : closeMs, easing: OPEN_EASING }, (done) => {
-        if (done) scheduleOnRN(setMounted, false)
-      }))
+      y.set(
+        withTiming(height, { duration: reduce ? 0 : closeMs, easing: OPEN_EASING }, (done) => {
+          if (done) scheduleOnRN(setMounted, false)
+        }),
+      )
     }
   }, [visible])
 
@@ -81,7 +94,12 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
     <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <View style={{ flex: 1, justifyContent: 'flex-end' }}>
         <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }, scrim]}>
-          <Pressable accessibilityRole="button" accessibilityLabel={ko.common.close} onPress={onClose} style={{ flex: 1, backgroundColor: t.component.overlay.scrimBg, opacity: t.component.overlay.scrimOpacity }} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={ko.common.close}
+            onPress={onClose}
+            style={{ flex: 1, backgroundColor: t.component.overlay.scrimBg, opacity: t.component.overlay.scrimOpacity }}
+          />
         </Animated.View>
         <Animated.View
           accessibilityViewIsModal
@@ -103,14 +121,40 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
           ]}
         >
           {/* ponytail: grabber height 5 has no token; space-1 (4) is the nearest. */}
-          <View {...pan.panHandlers} hitSlop={{ top: t.primitive.space[4], bottom: t.primitive.space[4], left: t.primitive.space[8], right: t.primitive.space[8] }} style={{ width: t.primitive.size.control_sm, height: t.primitive.space[1], borderRadius: t.component.buttonB.radius, backgroundColor: t.component.bottomSheet.grabber }} />
-          <ScrollView style={{ flexShrink: 1, alignSelf: 'stretch' }} contentContainerStyle={{ gap: t.semantic.layout.groupGap }}>
-            <Text variant="title3" accessibilityRole="header" color={t.component.overlay.fg}>{title}</Text>
+          <View
+            {...pan.panHandlers}
+            hitSlop={{
+              top: t.primitive.space[4],
+              bottom: t.primitive.space[4],
+              left: t.primitive.space[8],
+              right: t.primitive.space[8],
+            }}
+            style={{
+              width: t.primitive.size.control_sm,
+              height: t.primitive.space[1],
+              borderRadius: t.component.buttonB.radius,
+              backgroundColor: t.component.bottomSheet.grabber,
+            }}
+          />
+          <ScrollView
+            style={{ flexShrink: 1, alignSelf: 'stretch' }}
+            contentContainerStyle={{ gap: t.semantic.layout.groupGap }}
+          >
+            <Text variant="title3" accessibilityRole="header" color={t.component.overlay.fg}>
+              {title}
+            </Text>
             {children}
           </ScrollView>
           <OnRaisedContext value>
             <View style={{ gap: t.semantic.layout.fieldGap, alignSelf: 'stretch' }}>
-              {secondary ? <Button variant="secondary" label={secondary.label} onPress={secondary.onPress} {...(secondary.danger ? { danger: true } : {})} /> : null}
+              {secondary ? (
+                <Button
+                  variant="secondary"
+                  label={secondary.label}
+                  onPress={secondary.onPress}
+                  {...(secondary.danger ? { danger: true } : {})}
+                />
+              ) : null}
               {primary ? <Button label={primary.label} onPress={primary.onPress} /> : null}
               {actions}
             </View>

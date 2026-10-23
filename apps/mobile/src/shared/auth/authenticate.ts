@@ -21,9 +21,14 @@ export function mapAuthResult(r: { success: true } | { success: false; error: st
 export async function authenticate(reason: string): Promise<AuthResult> {
   try {
     // SecurityLevel.NONE: no passcode and no biometrics, so no OS auth can exist.
-    if ((await LocalAuthentication.getEnrolledLevelAsync()) === LocalAuthentication.SecurityLevel.NONE) return 'unavailable'
+    if ((await LocalAuthentication.getEnrolledLevelAsync()) === LocalAuthentication.SecurityLevel.NONE)
+      return 'unavailable'
     const r = await withAuthInProgress(() =>
-      LocalAuthentication.authenticateAsync({ promptMessage: reason, cancelLabel: '취소', disableDeviceFallback: false }),
+      LocalAuthentication.authenticateAsync({
+        promptMessage: reason,
+        cancelLabel: '취소',
+        disableDeviceFallback: false,
+      }),
     )
     return mapAuthResult(r)
   } catch {

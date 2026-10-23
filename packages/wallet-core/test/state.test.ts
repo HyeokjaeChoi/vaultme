@@ -5,16 +5,16 @@ import { canStartDraft, reduce, type SendEvent, type SendState } from '../src'
 const H = `0x${'ab'.repeat(32)}` as const
 const run = (s: SendState, ...es: SendEvent[]) => es.reduce<SendState>((st, e) => reduce(st, e), s)
 const draft: SendState = { status: 'Draft' }
-const submitting = run(draft, { type: 'REVIEW', requiresAck: false }, { type: 'CONFIRM', ack: false }, { type: 'AUTH_OK' })
+const submitting = run(
+  draft,
+  { type: 'REVIEW', requiresAck: false },
+  { type: 'CONFIRM', ack: false },
+  { type: 'AUTH_OK' },
+)
 
 describe('reduce: LLD §6 table', () => {
   test('happy path to Confirmed', () => {
-    const s = run(
-      submitting,
-      { type: 'SUBMITTED', hash: H },
-      { type: 'RECEIPT', ok: true },
-      { type: 'SAFE', ok: true },
-    )
+    const s = run(submitting, { type: 'SUBMITTED', hash: H }, { type: 'RECEIPT', ok: true }, { type: 'SAFE', ok: true })
     expect(s).toEqual({ status: 'Confirmed', hash: H })
   })
   test('rows', () => {
@@ -70,10 +70,18 @@ describe('canStartDraft', () => {
   })
   const event: fc.Arbitrary<SendEvent> = fc.oneof(
     fc.constantFrom<SendEvent>(
-      { type: 'INPUT_VALID' }, { type: 'EDIT' }, { type: 'AUTH_OK' }, { type: 'AUTH_FAIL' },
-      { type: 'AUTH_CANCEL' }, { type: 'FEE_CAP_EXCEEDED' }, { type: 'ABS_CAP_EXCEEDED' },
-      { type: 'REORGED' }, { type: 'NONCE_PASSED_NO_RECEIPT' }, { type: 'TIMEOUT' },
-      { type: 'SUBMITTED', hash: H }, { type: 'SUBMIT_UNKNOWN', hash: H },
+      { type: 'INPUT_VALID' },
+      { type: 'EDIT' },
+      { type: 'AUTH_OK' },
+      { type: 'AUTH_FAIL' },
+      { type: 'AUTH_CANCEL' },
+      { type: 'FEE_CAP_EXCEEDED' },
+      { type: 'ABS_CAP_EXCEEDED' },
+      { type: 'REORGED' },
+      { type: 'NONCE_PASSED_NO_RECEIPT' },
+      { type: 'TIMEOUT' },
+      { type: 'SUBMITTED', hash: H },
+      { type: 'SUBMIT_UNKNOWN', hash: H },
     ),
     fc.boolean().map<SendEvent>((requiresAck) => ({ type: 'REVIEW', requiresAck })),
     fc.boolean().map<SendEvent>((ack) => ({ type: 'CONFIRM', ack })),

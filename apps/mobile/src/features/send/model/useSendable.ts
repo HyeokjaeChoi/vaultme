@@ -19,9 +19,16 @@ export function useSendable(to: string, asset: AssetId = 'ETH'): { sendable: Sen
     const fresh = key.current !== k
     if (fresh) setS(null)
     key.current = k
-    chain
-      .getSnapshot(sendFrom(), asset, to as Address, PROBE_AMOUNT)
-      .then((snap) => live && setS({ balance: asset === 'ETH' ? snap.nativeBalance : snap.tokenBalance, nativeBalance: snap.nativeBalance, feeCap: feeCapOf(snap) }), () => live && fresh && setS(null)) // a failed refresh keeps the last numbers, so the ETH-short state (and the retry on the next return) stays
+    chain.getSnapshot(sendFrom(), asset, to as Address, PROBE_AMOUNT).then(
+      (snap) =>
+        live &&
+        setS({
+          balance: asset === 'ETH' ? snap.nativeBalance : snap.tokenBalance,
+          nativeBalance: snap.nativeBalance,
+          feeCap: feeCapOf(snap),
+        }),
+      () => live && fresh && setS(null),
+    ) // a failed refresh keeps the last numbers, so the ETH-short state (and the retry on the next return) stays
     return () => {
       live = false
     }

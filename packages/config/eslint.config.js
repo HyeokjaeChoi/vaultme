@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import prettier from 'eslint-config-prettier/flat'
 import tseslint from 'typescript-eslint'
 
 // Amount code must use bigint + decimal strings only (LLD §12).
@@ -8,7 +9,7 @@ const noFloat = {
     'no-restricted-syntax': [
       'error',
       {
-        selector: "CallExpression[callee.name=/^(Number|parseFloat|parseInt)$/]",
+        selector: 'CallExpression[callee.name=/^(Number|parseFloat|parseInt)$/]',
         message: 'No Number()/parseFloat in amount code. Use bigint and decimal strings.',
       },
       {
@@ -24,4 +25,5 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   noFloat,
+  prettier, // last: turns off rules that fight Prettier
 )

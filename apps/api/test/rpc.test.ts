@@ -7,7 +7,15 @@ import { b64uEncode, issueToken } from '../src/auth.ts'
 const open: RateLimit = { limit: async () => ({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
 // Fresh secrets per run. Upstream keys are unique so a leak is easy to grep for.
-const E = { ...env, TOKEN_SECRET: rand() + rand(), INFURA_KEY: rand(), ALCHEMY_KEY: rand(), INSTALL_IP_LIMITER: open, INSTALL_LIMITER: open, RPC_IP_LIMITER: open }
+const E = {
+  ...env,
+  TOKEN_SECRET: rand() + rand(),
+  INFURA_KEY: rand(),
+  ALCHEMY_KEY: rand(),
+  INSTALL_IP_LIMITER: open,
+  INSTALL_LIMITER: open,
+  RPC_IP_LIMITER: open,
+}
 const bearer = async () => ({
   Authorization: `Bearer ${(await issueToken({ env: E } as never, crypto.randomUUID())).token}`,
 })
@@ -105,7 +113,10 @@ describe('POST /v1/rpc', () => {
   })
 
   it('returns a retryable error when both upstreams are down', async () => {
-    mock(() => new Response('x', { status: 500 }), () => Promise.reject(new TypeError('fetch failed')))
+    mock(
+      () => new Response('x', { status: 500 }),
+      () => Promise.reject(new TypeError('fetch failed')),
+    )
     const r = await rpc(req('eth_blockNumber'))
     expect(r.status).toBe(503)
     expect(await r.json()).toMatchObject({ code: 'unavailable', retryable: true })
@@ -121,7 +132,8 @@ describe('POST /v1/rpc', () => {
   })
 
   it('never leaks an upstream key', async () => {
-    const leaky = (k: string) => () => new Response(JSON.stringify({ jsonrpc: '2.0', id: 7, error: { code: 1, message: `bad https://x/v3/${k}` } }))
+    const leaky = (k: string) => () =>
+      new Response(JSON.stringify({ jsonrpc: '2.0', id: 7, error: { code: 1, message: `bad https://x/v3/${k}` } }))
     mock(leaky(E.INFURA_KEY), leaky(E.ALCHEMY_KEY))
     const r = await rpc(req('eth_blockNumber'))
     const text = await r.text()

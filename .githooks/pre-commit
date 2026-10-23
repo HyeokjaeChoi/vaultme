@@ -1,2 +1,8 @@
 #!/usr/bin/env bash
-exec "$(git rev-parse --show-toplevel)/scripts/check-repo-rules.sh"
+# Repo rules on the tree, then ESLint --fix and Prettier on staged files only (lint-staged in package.json).
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+"$ROOT/scripts/check-repo-rules.sh"
+if [ -f "$ROOT/package.json" ]; then
+  (cd "$ROOT" && pnpm exec lint-staged)
+fi

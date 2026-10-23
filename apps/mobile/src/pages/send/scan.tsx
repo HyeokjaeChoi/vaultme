@@ -34,8 +34,12 @@ function Brackets({ color }: { color: string }) {
     <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
       <View style={{ ...base, top: 0, left: 0, borderTopWidth: w, borderLeftWidth: w, borderTopLeftRadius: r }} />
       <View style={{ ...base, top: 0, right: 0, borderTopWidth: w, borderRightWidth: w, borderTopRightRadius: r }} />
-      <View style={{ ...base, bottom: 0, left: 0, borderBottomWidth: w, borderLeftWidth: w, borderBottomLeftRadius: r }} />
-      <View style={{ ...base, bottom: 0, right: 0, borderBottomWidth: w, borderRightWidth: w, borderBottomRightRadius: r }} />
+      <View
+        style={{ ...base, bottom: 0, left: 0, borderBottomWidth: w, borderLeftWidth: w, borderBottomLeftRadius: r }}
+      />
+      <View
+        style={{ ...base, bottom: 0, right: 0, borderBottomWidth: w, borderRightWidth: w, borderBottomRightRadius: r }}
+      />
     </View>
   )
 }
@@ -147,7 +151,9 @@ export function ScanPage() {
         }
       >
         <View style={{ paddingVertical: th.primitive.space[2] }}>
-          <Text variant="title1" accessibilityRole="header">{t('send.qr.title')}</Text>
+          <Text variant="title1" accessibilityRole="header">
+            {t('send.qr.title')}
+          </Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center' }}>
           <EmptyState bold="warning" title={t('send.qr.denied.title')} body={t('send.qr.denied.body')} />
@@ -171,10 +177,19 @@ export function ScanPage() {
       >
         <View style={{ gap: th.semantic.layout.groupGap, paddingTop: th.semantic.layout.groupGap }}>
           <View style={{ paddingHorizontal: pad, paddingVertical: th.primitive.space[2] }}>
-            <Text variant="title1" accessibilityRole="header" color={onBrand}>{t('send.qr.title')}</Text>
+            <Text variant="title1" accessibilityRole="header" color={onBrand}>
+              {t('send.qr.title')}
+            </Text>
           </View>
           <View style={{ alignItems: 'center', paddingVertical: th.semantic.layout.sectionGap.product }}>
-            <View style={{ width: VIEWFINDER, height: VIEWFINDER, overflow: 'hidden', borderRadius: th.primitive.radius.lg }}>
+            <View
+              style={{
+                width: VIEWFINDER,
+                height: VIEWFINDER,
+                overflow: 'hidden',
+                borderRadius: th.primitive.radius.lg,
+              }}
+            >
               {perm?.granted ? (
                 <CameraView
                   style={{ flex: 1 }}
@@ -192,12 +207,24 @@ export function ScanPage() {
             </View>
           ) : null}
           <View style={{ gap: th.semantic.layout.fieldGap, paddingHorizontal: pad }}>
-            <Text variant="body" color={onBrand} accessibilityLabel={t('send.qr.a11yHint')} style={{ textAlign: 'center' }}>{t('send.qr.hint')}</Text>
+            <Text
+              variant="body"
+              color={onBrand}
+              accessibilityLabel={t('send.qr.a11yHint')}
+              style={{ textAlign: 'center' }}
+            >
+              {t('send.qr.hint')}
+            </Text>
             <Text variant="fact" color={onBrand} style={{ textAlign: 'center' }}>{`${CHAIN.name} · ${CHAIN.id}`}</Text>
           </View>
           {test ? (
             <View style={{ alignItems: 'center' }}>
-              <Button size="md" variant="secondary" label={t('send.qr.testQr')} onPress={() => onData(account.address)} />
+              <Button
+                size="md"
+                variant="secondary"
+                label={t('send.qr.testQr')}
+                onPress={() => onData(account.address)}
+              />
             </View>
           ) : null}
         </View>
@@ -212,7 +239,11 @@ export function ScanPage() {
           <Text variant="body" color={th.semantic.text.secondary}>
             {knownName !== null
               ? t('send.qr.wrongChain.bodyKnown', { name: knownName, chainId: wrongChain, sepolia: CHAIN.id })
-              : t('send.qr.wrongChain.body', { chainId: wrongChain, copula: chainIdCopula(wrongChain), sepolia: CHAIN.id })}
+              : t('send.qr.wrongChain.body', {
+                  chainId: wrongChain,
+                  copula: chainIdCopula(wrongChain),
+                  sepolia: CHAIN.id,
+                })}
           </Text>
         ) : null}
       </BottomSheet>

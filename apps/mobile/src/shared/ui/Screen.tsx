@@ -29,7 +29,20 @@ type Props = {
 }
 
 /** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
-export function Screen({ children, header, footer, footerLead, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true, revealRef, onRefresh, bg }: Props) {
+export function Screen({
+  children,
+  header,
+  footer,
+  footerLead,
+  edges = ['top', 'bottom'],
+  gap = 'section',
+  topGap = 'field',
+  bleed,
+  footerLine = true,
+  revealRef,
+  onRefresh,
+  bg,
+}: Props) {
   const t = useTheme()
   const l = t.semantic.layout
   const scrollRef = useRef<ScrollView>(null)
@@ -59,7 +72,8 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
       const clear = l.screen.padding
       const top = scrollY.current
       if (y - clear < top) scrollRef.current?.scrollTo({ y: Math.max(0, y - clear), animated: true })
-      else if (y + h + clear > top + layoutHeight) scrollRef.current?.scrollTo({ y: y + h + clear - layoutHeight, animated: true })
+      else if (y + h + clear > top + layoutHeight)
+        scrollRef.current?.scrollTo({ y: y + h + clear - layoutHeight, animated: true })
     }
   }
 
@@ -68,7 +82,16 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
       {header}
       <ScrollView
         ref={scrollRef}
-        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={() => void pull()} tintColor={t.semantic.text.secondary} colors={[t.semantic.text.secondary]} /> : undefined}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => void pull()}
+              tintColor={t.semantic.text.secondary}
+              colors={[t.semantic.text.secondary]}
+            />
+          ) : undefined
+        }
         onScroll={(e) => {
           scrollY.current = e.nativeEvent.contentOffset.y
         }}
@@ -87,10 +110,27 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
         {children}
       </ScrollView>
       {footer ? (
+<<<<<<< HEAD
         // Fixed-footer boundary (Borderless functional exception, outputs/VaultMe-DESIGN.md): Figma draws the 1 px line above the actions on every screen with a footer.
         <View style={{ borderTopWidth: footerLine ? t.component.reviewFooter.borderWidth : 0, borderTopColor: t.semantic.border.subtle }}>
+=======
+        // Fixed-footer boundary (docs/agents/foundation.md rule 10 functional exception): Figma draws the 1 px line above the actions on every screen with a footer.
+        <View
+          style={{
+            borderTopWidth: footerLine ? t.component.reviewFooter.borderWidth : 0,
+            borderTopColor: t.semantic.border.subtle,
+          }}
+        >
+>>>>>>> 923b4f4 (style: format the repo with Prettier (#89))
           {footerLead}
-          <View style={{ paddingHorizontal: l.screen.padding, paddingTop: t.primitive.space[3], paddingBottom: t.primitive.space[1], gap: l.fieldGap }}>
+          <View
+            style={{
+              paddingHorizontal: l.screen.padding,
+              paddingTop: t.primitive.space[3],
+              paddingBottom: t.primitive.space[1],
+              gap: l.fieldGap,
+            }}
+          >
             {footer}
           </View>
         </View>
@@ -100,7 +140,9 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
   return (
     <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: bg ?? t.component.screenB.bg }}>
       {revealRef ? (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>{body}</KeyboardAvoidingView>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          {body}
+        </KeyboardAvoidingView>
       ) : (
         body
       )}

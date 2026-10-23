@@ -6,7 +6,10 @@ import { authNameOf, type AuthName } from './authName'
 export function useAuthName(): AuthName {
   const [name, setName] = useState<AuthName>('device')
   useEffect(() => {
-    biometryType().then((t) => setName(authNameOf(t)), () => undefined)
+    biometryType().then(
+      (t) => setName(authNameOf(t)),
+      () => undefined,
+    )
   }, [])
   return name
 }

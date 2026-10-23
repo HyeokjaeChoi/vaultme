@@ -13,12 +13,19 @@ export function PrecheckPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const { checked } = useLocalSearchParams<{ checked?: string }>() // `?checked=1` is a __DEV__ capture override
-  const [ack, setAck] = useState<boolean[]>(() => (__DEV__ && checked === '1' ? [true, true, true] : [false, false, false]))
+  const [ack, setAck] = useState<boolean[]>(() =>
+    __DEV__ && checked === '1' ? [true, true, true] : [false, false, false],
+  )
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
   const alive = useRef(true)
-  useEffect(() => () => { alive.current = false }, [])
+  useEffect(
+    () => () => {
+      alive.current = false
+    },
+    [],
+  )
   const create = async () => {
     setBusy(true)
     setFailed(false)
@@ -35,11 +42,29 @@ export function PrecheckPage() {
       gap="group"
       topGap="none"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/')} />}
-      footer={<Button label={t('precheck.cta')} busy={busy} busyLabel={t('busy.create')} disabled={!ack.every(Boolean)} onPress={() => void create()} />}
+      footer={
+        <Button
+          label={t('precheck.cta')}
+          busy={busy}
+          busyLabel={t('busy.create')}
+          disabled={!ack.every(Boolean)}
+          onPress={() => void create()}
+        />
+      }
     >
-      <View style={{ gap: th.semantic.layout.fieldGap, paddingTop: th.primitive.space[2], paddingBottom: th.semantic.layout.groupGap }}>
-        <Text variant="title1" accessibilityRole="header">{t('precheck.title')}</Text>
-        <Text variant="bodySmall" color={th.semantic.text.secondary}>{t('precheck.subtitle')}</Text>
+      <View
+        style={{
+          gap: th.semantic.layout.fieldGap,
+          paddingTop: th.primitive.space[2],
+          paddingBottom: th.semantic.layout.groupGap,
+        }}
+      >
+        <Text variant="title1" accessibilityRole="header">
+          {t('precheck.title')}
+        </Text>
+        <Text variant="bodySmall" color={th.semantic.text.secondary}>
+          {t('precheck.subtitle')}
+        </Text>
       </View>
       {(['lose', 'scam', 'testnet'] as const).map((k, i) => (
         <CheckRow
@@ -53,7 +78,14 @@ export function PrecheckPage() {
           }}
         />
       ))}
-      {failed ? <StatusNotice tier="banner" tone="danger" title={t('precheck.createError.title')} body={t('precheck.createError.body')} /> : null}
+      {failed ? (
+        <StatusNotice
+          tier="banner"
+          tone="danger"
+          title={t('precheck.createError.title')}
+          body={t('precheck.createError.body')}
+        />
+      ) : null}
     </Screen>
   )
 }

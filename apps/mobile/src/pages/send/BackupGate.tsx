@@ -22,8 +22,15 @@ export function BackupGate() {
         </>
       }
     >
-      <Text variant="title1" accessibilityRole="header">{t('send.title')}</Text>
-      <EmptyState icon="deviceWarning" tone="warning" title={t('send.backupGate.title')} body={t('send.backupGate.body')} />
+      <Text variant="title1" accessibilityRole="header">
+        {t('send.title')}
+      </Text>
+      <EmptyState
+        icon="deviceWarning"
+        tone="warning"
+        title={t('send.backupGate.title')}
+        body={t('send.backupGate.body')}
+      />
     </Screen>
   )
 }

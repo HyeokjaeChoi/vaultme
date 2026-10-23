@@ -1,5 +1,15 @@
 import { deriveAddress, toMnemonic } from '@vaultme/wallet-core'
-import { clearAccountAddress, deletePhrase, hasPhrase, savePhrase, setAccountAddress, setBackupDone, setDepositPromptShown, setRestored, type AuthPrompt } from '@/shared/storage'
+import {
+  clearAccountAddress,
+  deletePhrase,
+  hasPhrase,
+  savePhrase,
+  setAccountAddress,
+  setBackupDone,
+  setDepositPromptShown,
+  setRestored,
+  type AuthPrompt,
+} from '@/shared/storage'
 import { inspectPhrase, type PhraseIssue } from './phrase'
 
 export type RestoreResult =
