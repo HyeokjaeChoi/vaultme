@@ -1,3 +1,4 @@
+import process from 'node:process'
 import js from '@eslint/js'
 import prettier from 'eslint-config-prettier/flat'
 import tseslint from 'typescript-eslint'
@@ -26,8 +27,9 @@ export default tseslint.config(
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   {
-    // Lint runs per package (turbo), so cwd is the package root that holds tsconfig.json.
-    languageOptions: { parserOptions: { projectService: true } },
+    // projectService finds the nearest tsconfig.json of each file. tsconfigRootDir is set because apps/mobile adds its own
+    // config file, and then typescript-eslint cannot pick a root alone. Turbo runs lint in the package dir; lint-staged runs at the repo root.
+    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: process.cwd() } },
     rules: {
       '@typescript-eslint/consistent-type-definitions': 'off', // owner choice: allow both interface and type
       '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
