@@ -84,15 +84,7 @@ knowledge_base:
       - files: docs/agents/design-index.md
         applyTo: '**'
       - files: docs/agents/workflow.md
-<<<<<<< HEAD
-        applyTo: "**"
-=======
         applyTo: '**'
-      - files: docs/agents/foundation.md
-        applyTo: '**'
-      - files: docs/agents/design-system.md
-        applyTo: '**'
->>>>>>> 923b4f4 (style: format the repo with Prettier (#89))
       - files: .claude/skills/vaultme-review-lessons/SKILL.md
         applyTo: '**'
       - files: .claude/skills/vaultme-design-to-code/SKILL.md

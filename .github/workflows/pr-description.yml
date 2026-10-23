@@ -6,6 +6,7 @@ on:
     types: [opened, edited, reopened, synchronize]
 
 permissions:
+  contents: read
   pull-requests: read
 
 jobs:
@@ -23,11 +24,17 @@ jobs:
 
   # A changed app screen needs app-vs-Figma comparison images in the PR body: one light and one dark per
   # changed screen file. Name each image by mode in its alt text (e.g. ![S50 light](...), ![S50 dark](...)).
-  # A combined app|Figma image counts once. Files whose diff only touches comments are not UI changes.
+  # A combined app|Figma image counts once. Files whose diff only touches comments or formatting are not UI changes.
   figma-comparison:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
@@ -35,14 +42,21 @@ jobs:
         run: |
           gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | {filename, status, patch}' > files.jsonl
           python3 - <<'PY'
-          import json, os, re, sys
+          import json, os, re, subprocess, sys
           files = [json.loads(l) for l in open("files.jsonl") if l.strip()]
           ui = re.compile(r"^apps/mobile/(app|src/(pages|widgets|shared/ui|features/[^/]+/ui))/.*\.tsx$")
           comment = re.compile(r"^\s*(//|/\*|\*|\*/|\{/\*)|^\s*$")
+          show = lambda sha, path: subprocess.run(["git", "show", f"{sha}:{path}"], capture_output=True, text=True, check=True).stdout
+          # Prettier also adds a leading "|" to multi-line unions (type A =\n  | B).
+          norm = lambda text: re.sub(r"[\s'\"`;,()\\]", "", re.sub(r"([:=<,(])\s*\|", r"\1", text))
           def code_change(f):
               patch = f.get("patch")
               if patch is None:
                   return True  # binary or too large: treat as a change
+              # Formatting only (Prettier): base and head files match once whitespace, quotes, commas, semicolons and parens are dropped.
+              # ponytail: a change that only moves parens or commas also passes; compare ASTs if that ever matters.
+              if f["status"] == "modified" and norm(show(os.environ["BASE_SHA"], f["filename"])) == norm(show(os.environ["HEAD_SHA"], f["filename"])):
+                  return False
               lines = [l[1:] for l in patch.splitlines() if l[:1] in "+-" and not l.startswith(("+++", "---"))]
               return any(not comment.match(l) for l in lines)
           changed = [f["filename"] for f in files if f["status"] != "removed" and ui.match(f["filename"]) and code_change(f)]
