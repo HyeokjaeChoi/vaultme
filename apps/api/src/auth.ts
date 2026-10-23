@@ -10,7 +10,7 @@ import {
   TOKEN_TTL_SECONDS,
   canonicalString,
 } from '@vaultme/contracts'
-import type { Context, MiddlewareHandler } from 'hono'
+import type { Context, Input, MiddlewareHandler } from 'hono'
 import type { Env } from './env.ts'
 import { fail } from './errors.ts'
 
@@ -36,7 +36,7 @@ export const importPublicKey = (b64u: string) => {
 
 // Cloudflare limiters count per location and do not report a reset time. Retry-After = the period.
 export const RETRY_AFTER_SECONDS = 60
-export const rateLimited = (c: Context) => {
+export const rateLimited = <P extends string, I extends Input>(c: Context<Env, P, I>) => {
   c.header('Retry-After', String(RETRY_AFTER_SECONDS))
   return fail(c, 429, 'rate_limited', 'Too many requests')
 }
@@ -101,7 +101,7 @@ const hmacKey = (c: Context<Env>, usage: 'sign' | 'verify') => {
 
 export async function issueToken(c: Context<Env>, installId: string) {
   const expiresAt = nowSeconds() + TOKEN_TTL_SECONDS
-  const payload = `${installId}.${expiresAt}`
+  const payload = `${installId}.${String(expiresAt)}`
   const mac = await crypto.subtle.sign('HMAC', await hmacKey(c, 'sign'), enc.encode(payload))
   return { token: `${payload}.${b64uEncode(new Uint8Array(mac))}`, expiresAt }
 }

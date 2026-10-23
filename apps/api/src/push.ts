@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { nowSeconds } from './auth.ts'
 import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
+import { at } from './util.ts'
 
 type Bindings = Env['Bindings']
 
@@ -40,7 +41,7 @@ export async function updateWebhookAddresses(env: Bindings, add: string[], remov
   } catch {
     throw new UpstreamError('alchemy unreachable') // never log the URL or token
   }
-  if (!res.ok) throw new UpstreamError(`alchemy ${res.status}`)
+  if (!res.ok) throw new UpstreamError(`alchemy ${String(res.status)}`)
 }
 
 /** Removes addresses that no subscription uses any more. Rows in push_unregister stay until Alchemy confirms. */
@@ -134,7 +135,7 @@ export async function sweep(env: Bindings): Promise<void> {
 // ---- webhook ----
 
 const hexToBytes = (hex: string): Uint8Array<ArrayBuffer> | null =>
-  /^(?:[0-9a-f]{2})+$/i.test(hex) ? Uint8Array.from(hex.match(/../g)!, (h) => Number.parseInt(h, 16)) : null
+  /^(?:[0-9a-f]{2})+$/i.test(hex) ? Uint8Array.from(hex.match(/../g) ?? [], (h) => Number.parseInt(h, 16)) : null
 
 /** X-Alchemy-Signature = hex HMAC-SHA256(signing key, raw body). Compared in constant time by WebCrypto. */
 export async function verifyAlchemySignature(
@@ -199,11 +200,10 @@ export function notificationsFor(
     if (a.log?.removed) continue
     let ok = false
     if (a.category === 'external' || a.category === 'internal')
-      ok = a.asset === 'ETH' && isZero(a.rawContract?.rawValue, a.value) === false
+      ok = a.asset === 'ETH' && !isZero(a.rawContract?.rawValue, a.value)
     else if (a.category === 'token' || a.category === 'erc20')
       ok =
-        a.rawContract?.address?.toLowerCase() === USDC_SEPOLIA.toLowerCase() &&
-        !isZero(a.rawContract?.rawValue, a.value)
+        a.rawContract?.address?.toLowerCase() === USDC_SEPOLIA.toLowerCase() && !isZero(a.rawContract.rawValue, a.value)
     if (!ok || !/^0x[0-9a-fA-F]{64}$/.test(a.hash)) continue
     const from = a.fromAddress?.toLowerCase()
     const to = a.toAddress?.toLowerCase()
@@ -292,7 +292,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     } catch {
       throw new UpstreamError('expo unreachable')
     }
-    if (res.status === 429 || res.status >= 500) throw new UpstreamError(`expo ${res.status}`)
+    if (res.status === 429 || res.status >= 500) throw new UpstreamError(`expo ${String(res.status)}`)
     if (!res.ok) {
       // Our own request is wrong (400) or the access token is (401): retrying cannot help.
       console.error('expo rejected push', res.status)
@@ -302,13 +302,14 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     if (!tickets.success || tickets.data.data.length !== batch.length) throw new UpstreamError('expo ticket shape')
     // Only accepted tickets (and dead tokens, which are deleted below) count as sent. Any other ticket error stays retryable.
     const settled: typeof batch = []
-    tickets.data.data.forEach((t, j) => {
-      if (t.status === 'ok') settled.push(batch[j]!)
+    for (const [j, t] of tickets.data.data.entries()) {
+      const sent = at(batch, j) // lengths are equal, checked above
+      if (t.status === 'ok') settled.push(sent)
       else if (t.details?.error === 'DeviceNotRegistered') {
-        dead.push(batch[j]!.sub.install_id)
-        settled.push(batch[j]!)
+        dead.push(sent.sub.install_id)
+        settled.push(sent)
       } else ticketFailed = true
-    })
+    }
     if (settled.length > 0)
       await env.DB.batch(
         settled.map(({ sub, note }) =>
