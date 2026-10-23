@@ -55,7 +55,9 @@ jobs:
               # Formatting or comments only: Prettier(merge-base) equals head once comment and blank lines are dropped.
               # If Prettier cannot format the base file, treat the file as a UI change.
               if f["status"] == "modified":
-                  code = lambda text: [l for l in text.splitlines() if not comment.match(l)]
+                  # Drop a leading /* */ or {/* */} span but keep the code after it on the same line.
+                  lead = lambda l: re.sub(r"^\s*\{?/\*.*?\*/\}?", "", l)
+                  code = lambda text: [s for s in map(lead, text.splitlines()) if not comment.match(s)]
                   try:
                       if code(fmt(show(base, f["filename"]), f["filename"])) == code(show(os.environ["HEAD_SHA"], f["filename"])):
                           return False
