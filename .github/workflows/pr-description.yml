@@ -56,8 +56,13 @@ jobs:
               if patch is None:
                   return True  # binary or too large: treat as a change
               # Formatting only: Prettier turns the merge-base file into exactly the head file.
-              if f["status"] == "modified" and fmt(show(base, f["filename"]), f["filename"]) == show(os.environ["HEAD_SHA"], f["filename"]):
-                  return False
+              # If Prettier cannot format the base file, treat the file as a UI change.
+              if f["status"] == "modified":
+                  try:
+                      if fmt(show(base, f["filename"]), f["filename"]) == show(os.environ["HEAD_SHA"], f["filename"]):
+                          return False
+                  except subprocess.CalledProcessError:
+                      return True
               lines = [l[1:] for l in patch.splitlines() if l[:1] in "+-" and not l.startswith(("+++", "---"))]
               return any(not comment.match(l) for l in lines)
           changed = [f["filename"] for f in files if f["status"] != "removed" and ui.match(f["filename"]) and code_change(f)]
