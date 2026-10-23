@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-// @ts-expect-error plain .mjs module without types
 import { designPath, frontMatter, tokensPath, withFrontMatter } from '../design-md.mjs'
 
 describe('DESIGN.md', () => {
