@@ -28,7 +28,13 @@ export async function checkStored(): Promise<TxState | null> {
  * The pending send for S23/S41, Home and the send gates, with its re-check: `recheck` is the manual button; while the screen is focused and the app is
  * active, a Pending or Included send is re-checked on its own. `error` = the last check could not reach the network.
  */
-export function useTrackedTx(): { tx: PendingTx | null; blocked: boolean; checking: boolean; error: unknown; recheck: () => Promise<void> } {
+export function useTrackedTx(): {
+  tx: PendingTx | null
+  blocked: boolean
+  checking: boolean
+  error: unknown
+  recheck: () => Promise<void>
+} {
   const { tx, blocked, reload } = usePendingTx()
   const [checking, setChecking] = useState(false)
   const [error, setError] = useState<unknown>(null)

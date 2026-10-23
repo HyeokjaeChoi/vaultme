@@ -9,8 +9,15 @@ type Props = { label: string; onPress: () => void; accessibilityLabel?: string; 
 export function TextLink({ label, onPress, accessibilityLabel, align = 'flex-start' }: Props) {
   const t = useTheme()
   return (
-    <Pressable accessibilityRole="link" accessibilityLabel={accessibilityLabel ?? label} onPress={onPress} style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center', alignSelf: align }}>
-      <Text variant="link" color={t.semantic.text.link}>{label}</Text>
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel={accessibilityLabel ?? label}
+      onPress={onPress}
+      style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center', alignSelf: align }}
+    >
+      <Text variant="link" color={t.semantic.text.link}>
+        {label}
+      </Text>
     </Pressable>
   )
 }

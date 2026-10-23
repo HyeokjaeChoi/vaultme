@@ -3,8 +3,31 @@ import { useTranslation } from 'react-i18next'
 import { View } from 'react-native'
 import { useTheme } from '@/shared/theme'
 import {
-  ActionRow, ActivityRow, AmountDisplay, AssetRow, BottomSheet, Button, Chip, DateHeader, EmptyState, Input, Keypad, ListItem, PortfolioBalance, Screen, ScreenHeader,
-  SecretGrid, SectionHeader, Segmented, SensitiveReveal, SkeletonRow, StatusHero, StatusNotice, SummaryRow, Switch, Text,
+  ActionRow,
+  ActivityRow,
+  AmountDisplay,
+  AssetRow,
+  BottomSheet,
+  Button,
+  Chip,
+  DateHeader,
+  EmptyState,
+  Input,
+  Keypad,
+  ListItem,
+  PortfolioBalance,
+  Screen,
+  ScreenHeader,
+  SecretGrid,
+  SectionHeader,
+  Segmented,
+  SensitiveReveal,
+  SkeletonRow,
+  StatusHero,
+  StatusNotice,
+  SummaryRow,
+  Switch,
+  Text,
 } from '@/shared/ui'
 import { goBack } from '@/shared/lib/nav'
 import { biometryType, getBackupDone, hasPhrase, openKv, setBackupDone } from '@/shared/storage'
@@ -48,8 +71,12 @@ export function KitPage() {
       <Text variant="title1">Kit</Text>
       {__DEV__ ? <NativeSmoke /> : null}
       <View>
-        <Text variant="displayL" tabular>Display L 0.05</Text>
-        <Text variant="displayM" tabular>Display M 0.05</Text>
+        <Text variant="displayL" tabular>
+          Display L 0.05
+        </Text>
+        <Text variant="displayM" tabular>
+          Display M 0.05
+        </Text>
         <Text variant="title1">Title 1 화면 제목</Text>
         <Text variant="title2">Title 2 섹션 제목</Text>
         <Text variant="title3">Title 3 시트 제목</Text>
@@ -68,11 +95,41 @@ export function KitPage() {
         <AssetRow name="Sepolia ETH" symbol="ETH" subtitle="테스트넷" balance="0.05" />
         <AssetRow name="USD Coin" symbol="USDC" subtitle="테스트 토큰" balance="12.5" />
         <DateHeader date="10월 16일 (금)" />
-        <ActivityRow title="보내는 중" detail="Sepolia ETH · 09:41" time="09:41" amount="-0.05 ETH" kind="send" asset="ETH" status="pending" statusLabel="처리 중" />
-        <ActivityRow title="받음" detail="USDC · 08:10" time="08:10" amount="+12.5 USDC" kind="receive" asset="USDC" status="confirmed" statusLabel="확정" />
-        <ActivityRow title="보내기 실패" detail="ETH · 07:00" time="07:00" amount="-0.01 ETH" kind="send" asset="ETH" status="failed" statusLabel="실패" />
+        <ActivityRow
+          title="보내는 중"
+          detail="Sepolia ETH · 09:41"
+          time="09:41"
+          amount="-0.05 ETH"
+          kind="send"
+          asset="ETH"
+          status="pending"
+          statusLabel="처리 중"
+        />
+        <ActivityRow
+          title="받음"
+          detail="USDC · 08:10"
+          time="08:10"
+          amount="+12.5 USDC"
+          kind="receive"
+          asset="USDC"
+          status="confirmed"
+          statusLabel="확정"
+        />
+        <ActivityRow
+          title="보내기 실패"
+          detail="ETH · 07:00"
+          time="07:00"
+          amount="-0.01 ETH"
+          kind="send"
+          asset="ETH"
+          status="failed"
+          statusLabel="실패"
+        />
         <ListItem title="복구 구문 보기" trailing={{ kind: 'disclosure', text: '켜짐' }} onPress={() => undefined} />
-        <ListItem title="알림" trailing={{ kind: 'custom', node: <Switch label="알림" value={on} onValueChange={setOn} /> }} />
+        <ListItem
+          title="알림"
+          trailing={{ kind: 'custom', node: <Switch label="알림" value={on} onValueChange={setOn} /> }}
+        />
       </View>
       <View>
         <SummaryRow label="네트워크" value="Sepolia" />
@@ -87,7 +144,9 @@ export function KitPage() {
       <AmountDisplay amount="0.05" ticker="ETH" sub="보낼 수 있는 금액 1.284732 ETH" />
       <AmountDisplay error amount="2" ticker="ETH" sub="보낼 수 있는 금액보다 많아요" />
       <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
-        {(['25', '50', '100'] as const).map((v) => <Chip key={v} label={v === '100' ? '전액' : `${v}%`} selected={chip === v} onPress={() => setChip(v)} />)}
+        {(['25', '50', '100'] as const).map((v) => (
+          <Chip key={v} label={v === '100' ? '전액' : `${v}%`} selected={chip === v} onPress={() => setChip(v)} />
+        ))}
         <Chip label="비활성" disabled />
       </View>
       <Keypad onKey={() => undefined} labels={{ dot: '소수점', delete: '지우기' }} />
@@ -95,10 +154,21 @@ export function KitPage() {
       <StatusHero tone="pending" title="보내는 중이에요" body="네트워크 처리를 기다리는 중이에요" />
       <StatusHero tone="failed" title="보내지 못했어요" body="수수료가 나갔을 수 있어요." />
       <SkeletonRow />
-      <EmptyState title="아직 거래가 없어요" body="받기 주소를 공유하면 여기에 거래가 보여요." action={{ label: '받기 주소 보기' }} />
+      <EmptyState
+        title="아직 거래가 없어요"
+        body="받기 주소를 공유하면 여기에 거래가 보여요."
+        action={{ label: '받기 주소 보기' }}
+      />
       <SecretGrid words={null} />
       <SecretGrid words={Array.from({ length: 12 }, (_, i) => `단어${i + 1}`)} />
-      <Segmented options={[{ value: '24', label: '24단어' }, { value: '12', label: '12단어' }]} value={seg} onChange={setSeg} />
+      <Segmented
+        options={[
+          { value: '24', label: '24단어' },
+          { value: '12', label: '12단어' },
+        ]}
+        value={seg}
+        onChange={setSeg}
+      />
       <Switch label="switch" value={on} onValueChange={setOn} />
       <Input label="단어 1" placeholder="단어 입력" />
       <Input label="단어 2" error="형식이 맞지 않아요" />
@@ -117,7 +187,12 @@ export function KitPage() {
         visible={sheet}
         onClose={() => setSheet(false)}
         title="이대로 보낼까요?"
-        actions={<><Button label="수정" variant="ghost" onPress={() => setSheet(false)} /><Button label="확인하고 보내기" onPress={() => setSheet(false)} /></>}
+        actions={
+          <>
+            <Button label="수정" variant="ghost" onPress={() => setSheet(false)} />
+            <Button label="확인하고 보내기" onPress={() => setSheet(false)} />
+          </>
+        }
       >
         <Text color={th.semantic.text.secondary}>시트 본문 Body 16/24</Text>
       </BottomSheet>

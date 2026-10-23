@@ -36,7 +36,9 @@ export function StatusLabel({ state, label }: { state: State; label: string }) {
       }}
     >
       <Icon name={MAP[state].icon} size={t.component.icon.size.control} color={c.fg} />
-      <Text variant="label" color={c.fg}>{label}</Text>
+      <Text variant="label" color={c.fg}>
+        {label}
+      </Text>
     </View>
   )
 }

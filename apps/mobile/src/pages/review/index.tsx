@@ -12,7 +12,20 @@ import { AddressText } from '@/shared/ui/AddressBlock'
 import { ReviewPanel } from '@/widgets/review-panel/ReviewPanel'
 import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
 import { goBack } from '@/shared/lib/nav'
-import { feeShortBy, parseSendAsset, rememberRecipient, runSend, sendFrom, useAuthName, useOnForeground, useRecents, useReviewCore, readPendingTx, writePendingTx, type SendOutcome } from '@/features/send'
+import {
+  feeShortBy,
+  parseSendAsset,
+  rememberRecipient,
+  runSend,
+  sendFrom,
+  useAuthName,
+  useOnForeground,
+  useRecents,
+  useReviewCore,
+  readPendingTx,
+  writePendingTx,
+  type SendOutcome,
+} from '@/features/send'
 import { apiErrorKey } from '@/shared/api'
 import { chain } from '@/shared/chain'
 import { useDevEthShort } from '@/shared/chain/useDevEthShort'
@@ -26,21 +39,39 @@ function Compare({ current, previous }: { current: string; previous: string }) {
     <View style={{ gap: th.semantic.layout.groupGap }}>
       <StatusNotice tone="info" heading title={t('review.lookalike.compareTitle')} />
       <View style={{ gap: th.primitive.space[1] }}>
-        <Text variant="bodySmall" color={th.semantic.text.tertiary}>{t('review.lookalike.previous')}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.tertiary}>
+          {t('review.lookalike.previous')}
+        </Text>
         <AddressTextPlain address={previous} />
       </View>
       <View style={{ gap: th.primitive.space[1] }}>
-        <Text variant="bodySmall" color={th.semantic.text.tertiary}>{t('review.lookalike.current')}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.tertiary}>
+          {t('review.lookalike.current')}
+        </Text>
         <AddressTextPlain address={current} highlight={diffChars(current, previous)} />
       </View>
     </View>
   )
 }
 
-const AddressTextPlain = ({ address, highlight }: { address: string; highlight?: number[] }) => <AddressText address={address} size="S" emphasis={false} {...(highlight ? { highlight } : {})} />
+const AddressTextPlain = ({ address, highlight }: { address: string; highlight?: number[] }) => (
+  <AddressText address={address} size="S" emphasis={false} {...(highlight ? { highlight } : {})} />
+)
 
 type Notice = 'authError' | 'chainError' | 'needsReview' | 'blocked' | 'pending' | 'prepareError'
-const NOTICE: Record<Notice, { tone: 'danger' | 'warning'; key: 'send.authError' | 'send.chainError' | 'send.needsReview' | 'send.blocked' | 'send.pendingBlock' | 'send.prepareError' }> = {
+const NOTICE: Record<
+  Notice,
+  {
+    tone: 'danger' | 'warning'
+    key:
+      | 'send.authError'
+      | 'send.chainError'
+      | 'send.needsReview'
+      | 'send.blocked'
+      | 'send.pendingBlock'
+      | 'send.prepareError'
+  }
+> = {
   authError: { tone: 'warning', key: 'send.authError' }, // Figma C3-S22 Auth error 379:2279 is a warning
   chainError: { tone: 'danger', key: 'send.chainError' },
   needsReview: { tone: 'warning', key: 'send.needsReview' },
@@ -58,7 +89,25 @@ export function ReviewPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { risk, sheet: sheetParam, ack, to, amount, asset: assetParam, notice: noticeParam, recheck } = useLocalSearchParams<{ risk?: string; sheet?: string; ack?: string; to?: string; amount?: string; asset?: string; notice?: string; recheck?: string }>()
+  const {
+    risk,
+    sheet: sheetParam,
+    ack,
+    to,
+    amount,
+    asset: assetParam,
+    notice: noticeParam,
+    recheck,
+  } = useLocalSearchParams<{
+    risk?: string
+    sheet?: string
+    ack?: string
+    to?: string
+    amount?: string
+    asset?: string
+    notice?: string
+    recheck?: string
+  }>()
   useDevEthShort() // `?ethShort=1` is a __DEV__ capture override (fake adapter with too little ETH for the fee)
   const asset = parseSendAsset(assetParam)
   const recents = useRecents()
@@ -74,7 +123,9 @@ export function ReviewPage() {
   const [rechecking, setRechecking] = useState(__DEV__ && recheck === '1') // `?recheck=1` is a __DEV__ capture override of Figma 461:5074
   const authName = useAuthName()
   // `?notice=` is a __DEV__ capture override (Figma C3-S22 notice states).
-  const [notice, setNotice] = useState<Notice | null>(__DEV__ && noticeParam && noticeParam in NOTICE ? (noticeParam as Notice) : null)
+  const [notice, setNotice] = useState<Notice | null>(
+    __DEV__ && noticeParam && noticeParam in NOTICE ? (noticeParam as Notice) : null,
+  )
   const [cause, setCause] = useState<unknown>(null)
   const isRisk = values.risk === 'lookalike' || values.risk === 'burn' || values.risk === 'tokenContract'
   const [sheet, setSheet] = useState(isRisk && sheetParam === '1')
@@ -111,16 +162,32 @@ export function ReviewPage() {
     else {
       if (out.status === 'NeedsReview' && !(await core.refresh())) return // the new fee and total replace the old ones; if the re-read failed, its own error shows instead
       if (out.status === 'ChainError') setCause(out.error)
-      setNotice(out.status === 'AuthError' ? 'authError' : out.status === 'ChainError' ? 'chainError' : out.status === 'NeedsReview' ? 'needsReview' : out.status === 'Blocked' ? 'blocked' : 'pending')
+      setNotice(
+        out.status === 'AuthError'
+          ? 'authError'
+          : out.status === 'ChainError'
+            ? 'chainError'
+            : out.status === 'NeedsReview'
+              ? 'needsReview'
+              : out.status === 'Blocked'
+                ? 'blocked'
+                : 'pending',
+      )
     }
   }
   // Sheet opened by the route param stays in step with a later param change (same route re-opened with ?sheet=1 keeps this screen mounted).
   useEffect(() => {
     if (isRisk && sheetParam === '1') setSheet(true)
   }, [isRisk, sheetParam])
-  const shownNotice: Notice | null = notice ?? (core.error && core.error !== 'chain' ? 'prepareError' : core.error === 'chain' ? 'chainError' : null)
+  const shownNotice: Notice | null =
+    notice ?? (core.error && core.error !== 'chain' ? 'prepareError' : core.error === 'chain' ? 'chainError' : null)
   // A failed network call says why (offline, busy, clock); anything else keeps the generic send.chainError line.
-  const noticeKey = shownNotice === 'chainError' ? apiErrorKey(notice === 'chainError' ? cause : core.cause) : shownNotice ? NOTICE[shownNotice].key : null
+  const noticeKey =
+    shownNotice === 'chainError'
+      ? apiErrorKey(notice === 'chainError' ? cause : core.cause)
+      : shownNotice
+        ? NOTICE[shownNotice].key
+        : null
   const riskKey = values.risk === 'burn' || values.risk === 'tokenContract' ? values.risk : 'lookalike'
   const gate = isRisk && !acknowledged // the risk sheet must be confirmed before the blue button
   const goPending = () => {
@@ -131,25 +198,57 @@ export function ReviewPage() {
   // chain error -> 다시 시도, needs review -> 다시 검토 (Primary, no caption); auth error -> 다시 시도 with the caption; risk -> grey 위험 확인하기; else Primary with the caption.
   const caption = t(`send.preSend.${authName}`)
   let footer
-  if (shownNotice === 'blocked') footer = <Button label={t('result.home')} variant="secondary" onPress={() => { router.dismissAll(); router.replace('/home') }} />
-  else if (shownNotice === 'pending') footer = <Button label={t('send.pendingBlock.view')} variant="secondary" onPress={goPending} />
-  else if (shownNotice === 'prepareError') footer = <Button label={t('send.editAmount')} variant="secondary" onPress={() => goBack()} />
-  else if (shownNotice === 'chainError') footer = <Button label={t('common.retry')} busy={rechecking} busyLabel={t('busy.recheck')} onPress={() => void core.refresh()} />
-  else if (shownNotice === 'needsReview') footer = <Button label={t('review.reconfirm')} busy={busy} busyLabel={t('busy.send')} onPress={() => void send()} />
+  if (shownNotice === 'blocked')
+    footer = (
+      <Button
+        label={t('result.home')}
+        variant="secondary"
+        onPress={() => {
+          router.dismissAll()
+          router.replace('/home')
+        }}
+      />
+    )
+  else if (shownNotice === 'pending')
+    footer = <Button label={t('send.pendingBlock.view')} variant="secondary" onPress={goPending} />
+  else if (shownNotice === 'prepareError')
+    footer = <Button label={t('send.editAmount')} variant="secondary" onPress={() => goBack()} />
+  else if (shownNotice === 'chainError')
+    footer = (
+      <Button
+        label={t('common.retry')}
+        busy={rechecking}
+        busyLabel={t('busy.recheck')}
+        onPress={() => void core.refresh()}
+      />
+    )
+  else if (shownNotice === 'needsReview')
+    footer = <Button label={t('review.reconfirm')} busy={busy} busyLabel={t('busy.send')} onPress={() => void send()} />
   else if (rechecking) footer = <Button label={t('review.confirm')} disabled />
-  else if (shortBy !== null) footer = <Button label={t('review.confirm')} disabled /> // the reason is the Banner on top (said once)
+  else if (shortBy !== null)
+    footer = <Button label={t('review.confirm')} disabled /> // the reason is the Banner on top (said once)
   else if (gate && !shownNotice) {
     footer = (
       <>
-        <Text variant="bodySmall" color={th.semantic.text.primary} style={{ textAlign: 'center' }}>{t('send.riskCaption')}</Text>
+        <Text variant="bodySmall" color={th.semantic.text.primary} style={{ textAlign: 'center' }}>
+          {t('send.riskCaption')}
+        </Text>
         <Button label={t('send.checkRisk')} variant="secondary" onPress={openSheet} />
       </>
     )
   } else
     footer = (
       <>
-        <Text variant="bodySmall" color={th.semantic.text.primary} style={{ textAlign: 'center' }}>{caption}</Text>
-        <Button label={t(shownNotice === 'authError' ? 'common.retry' : 'review.confirm')} busy={busy} busyLabel={t('busy.send')} disabled={!core.review} onPress={() => void send()} />
+        <Text variant="bodySmall" color={th.semantic.text.primary} style={{ textAlign: 'center' }}>
+          {caption}
+        </Text>
+        <Button
+          label={t(shownNotice === 'authError' ? 'common.retry' : 'review.confirm')}
+          busy={busy}
+          busyLabel={t('busy.send')}
+          disabled={!core.review}
+          onPress={() => void send()}
+        />
       </>
     )
   return (
@@ -166,8 +265,13 @@ export function ReviewPage() {
         acknowledged={acknowledged}
         feeUnknown={shownNotice === 'chainError'}
         feeShortBy={shortBy}
-        {...(shownNotice && noticeKey ? { banner: { tone: NOTICE[shownNotice].tone, title: t(`${noticeKey}.title`), body: t(`${noticeKey}.body`) } } : {})}
-        onRecheck={() => { setRechecking(true); void core.refresh().finally(() => setRechecking(false)) }}
+        {...(shownNotice && noticeKey
+          ? { banner: { tone: NOTICE[shownNotice].tone, title: t(`${noticeKey}.title`), body: t(`${noticeKey}.body`) } }
+          : {})}
+        onRecheck={() => {
+          setRechecking(true)
+          void core.refresh().finally(() => setRechecking(false))
+        }}
         onEditRecipient={() => router.navigate({ pathname: '/send', params: { to: values.recipient } })}
         onEditAmount={() => goBack()}
       />
@@ -175,11 +279,20 @@ export function ReviewPage() {
         visible={sheet}
         onClose={() => setSheet(false)}
         title={t(`review.${riskKey}.sheetTitle`)}
-        secondary={{ label: t('review.ack'), danger: true, onPress: () => { setSheet(false); setAcknowledged(true) } }}
+        secondary={{
+          label: t('review.ack'),
+          danger: true,
+          onPress: () => {
+            setSheet(false)
+            setAcknowledged(true)
+          },
+        }}
         primary={{ label: t('common.cancel'), onPress: () => setSheet(false) }}
       >
         <Text color={th.semantic.text.secondary}>{t(`review.${riskKey}.sheetBody`)}</Text>
-        {values.risk === 'lookalike' ? <Compare current={values.recipient} previous={values.previous ?? values.recipient} /> : null}
+        {values.risk === 'lookalike' ? (
+          <Compare current={values.recipient} previous={values.previous ?? values.recipient} />
+        ) : null}
       </BottomSheet>
     </Screen>
   )

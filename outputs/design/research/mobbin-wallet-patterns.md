@@ -26,5 +26,5 @@
 3. 주요 행동은 같은 폭 버튼 2개(보내기 Primary, 받기 Secondary tonal)다. VaultMe는 행동이 2개라 Toss 방식이 맞는다.
 4. 목록은 평평한 행이다. 행 사이 구분선이 없다. 기록은 날짜로 묶는다.
 5. 금액 입력은 가운데 큰 숫자다. Max는 작은 pill이다. 하단에 고정 CTA가 있다.
-6. 필드는 테두리 없는 tinted 면이다. Borderless 규칙(docs/agents/foundation.md rule 10)과 맞는다. focus·error일 때만 테두리를 쓴다.
+6. 필드는 테두리 없는 tinted 면이다. Borderless 규칙(outputs/VaultMe-DESIGN.md)과 맞는다. focus·error일 때만 테두리를 쓴다.
 7. 상세·보조 작업은 시트로 연다. 시트에는 grabber와 가운데 제목이 있다.

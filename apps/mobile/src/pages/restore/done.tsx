@@ -16,10 +16,18 @@ import { Button, Screen, StatusNotice, SummaryRow, Text } from '@/shared/ui'
  * The address is read from kv (derived at restore); with none the screen redirects to Start. `demo` (__DEV__ `?demo=1`) shows the fixture address for design capture.
  * Backup is not claimed anywhere here (Q16).
  */
-// Public Trezor test vector: the demo address of the passphrase state (docs/agents/foundation.md rule 4 exception).
+// Public Trezor test vector: the demo address of the passphrase state (allowed by scripts/check-repo-rules.sh R10).
 const DEMO_PASSPHRASE_ADDRESS = '0x9c32F71D4DB8Fb9e1A58B0a80dF79935e7256FA6'
 
-export function RestoreDonePage({ demo = false, copiedDemo = false, passphraseDemo = false }: { demo?: boolean; copiedDemo?: boolean; passphraseDemo?: boolean }) {
+export function RestoreDonePage({
+  demo = false,
+  copiedDemo = false,
+  passphraseDemo = false,
+}: {
+  demo?: boolean
+  copiedDemo?: boolean
+  passphraseDemo?: boolean
+}) {
   const { t } = useTranslation()
   const router = useRouter()
   const th = useTheme()
@@ -46,7 +54,12 @@ export function RestoreDonePage({ demo = false, copiedDemo = false, passphraseDe
       gap="section"
       footer={
         <View style={{ gap: th.semantic.layout.fieldGap }}>
-          <Button label={t('restore.done.different')} variant="secondary" disabled={removing} onPress={() => void different()} />
+          <Button
+            label={t('restore.done.different')}
+            variant="secondary"
+            disabled={removing}
+            onPress={() => void different()}
+          />
           <Button
             label={t('restore.open')}
             disabled={removing}
@@ -59,11 +72,25 @@ export function RestoreDonePage({ demo = false, copiedDemo = false, passphraseDe
       }
     >
       <View style={{ gap: th.semantic.layout.fieldGap, paddingTop: th.primitive.space[4] }}>
-        <Text variant="title1" accessibilityRole="header">{t('restore.done.title')}</Text>
-        {withPassphrase ? <Text variant="body" color={th.semantic.text.secondary}>{t('restore.done.withPassphrase')}</Text> : null}
+        <Text variant="title1" accessibilityRole="header">
+          {t('restore.done.title')}
+        </Text>
+        {withPassphrase ? (
+          <Text variant="body" color={th.semantic.text.secondary}>
+            {t('restore.done.withPassphrase')}
+          </Text>
+        ) : null}
       </View>
       <SummaryRow format="address" plain label={t('restore.done.addressLabel')} value={address} />
-      <Button size="sm" variant="ghost" link label={copied ? t('restore.done.copied') : t('receive.copy')} copied={copied} onPress={() => void copy(address)} style={{ alignSelf: 'flex-start' }} />
+      <Button
+        size="sm"
+        variant="ghost"
+        link
+        label={copied ? t('restore.done.copied') : t('receive.copy')}
+        copied={copied}
+        onPress={() => void copy(address)}
+        style={{ alignSelf: 'flex-start' }}
+      />
       <StatusNotice tone="info" title={t('restore.done.noteTitle')} body={t('restore.done.noteBody')} />
     </Screen>
   )

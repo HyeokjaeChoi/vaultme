@@ -4,8 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { Hono } from 'hono'
 import { app, handleError } from '../src/app.ts'
 
-const get = (path: string, headers: Record<string, string> = {}, e = env) =>
-  app.request(path, { headers }, e)
+const get = (path: string, headers: Record<string, string> = {}, e = env) => app.request(path, { headers }, e)
 const V = { 'X-App-Version': '1.0.0' }
 
 describe('api', () => {

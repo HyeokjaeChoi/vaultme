@@ -8,7 +8,7 @@
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "openapi": "node scripts/openapi.ts",
     "openapi:check": "node scripts/openapi.ts --check"
   },

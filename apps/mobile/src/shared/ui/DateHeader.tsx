@@ -8,7 +8,9 @@ export function DateHeader({ date }: { date: string }) {
   const t = useTheme()
   return (
     <View style={{ paddingTop: t.primitive.space[6], paddingBottom: t.primitive.space[2] }}>
-      <Text variant="label" tabular accessibilityRole="header" color={t.semantic.text.tertiary}>{date}</Text>
+      <Text variant="label" tabular accessibilityRole="header" color={t.semantic.text.tertiary}>
+        {date}
+      </Text>
     </View>
   )
 }

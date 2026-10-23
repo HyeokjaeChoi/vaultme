@@ -103,7 +103,9 @@ describe('restoreWallet', () => {
     const { loadPhrase } = await import('../src/shared/storage/keychain')
     const loaded = await loadPhrase(PROMPT)
     expect(loaded.status === 'ok' && loaded.mnemonic.reveal()).toBe(VECTOR) // words only
-    expect(loaded.status === 'ok' && loaded.mnemonic.account().address.toLowerCase()).toBe('0x9c32f71d4db8fb9e1a58b0a80df79935e7256fa6')
+    expect(loaded.status === 'ok' && loaded.mnemonic.account().address.toLowerCase()).toBe(
+      '0x9c32f71d4db8fb9e1a58b0a80df79935e7256fa6',
+    )
   })
   it('no passphrase keeps the original storage format', async () => {
     const { restoreWallet } = await setup()
@@ -113,7 +115,10 @@ describe('restoreWallet', () => {
   it('rejects bad input without touching storage', async () => {
     const { restoreWallet, kv } = await setup()
     expect(await restoreWallet(BAD_CHECKSUM, PROMPT)).toEqual({ status: 'invalid', issue: { kind: 'badChecksum' } })
-    expect(await restoreWallet('abandon abcd', PROMPT)).toEqual({ status: 'invalid', issue: { kind: 'unknownWord', word: 'abcd' } })
+    expect(await restoreWallet('abandon abcd', PROMPT)).toEqual({
+      status: 'invalid',
+      issue: { kind: 'unknownWord', word: 'abcd' },
+    })
     expect(items.has('app.vaultme.phrase')).toBe(false)
     expect(kv.getAccountAddress()).toBeNull()
   })

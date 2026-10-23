@@ -14,7 +14,12 @@ export { useUpdateRequired } from './updateGate'
 const apiUrl = process.env.EXPO_PUBLIC_API_URL // must be read as `process.env.EXPO_PUBLIC_*` so Expo inlines it
 
 export const api: ApiClient | null = apiUrl
-  ? createApiClient({ baseUrl: apiUrl, appVersion: Constants.expoConfig?.version ?? '0.0.0', store: deviceStore, onUpdateRequired: markUpdateRequired })
+  ? createApiClient({
+      baseUrl: apiUrl,
+      appVersion: Constants.expoConfig?.version ?? '0.0.0',
+      store: deviceStore,
+      onUpdateRequired: markUpdateRequired,
+    })
   : null
 
 export { createHistory }

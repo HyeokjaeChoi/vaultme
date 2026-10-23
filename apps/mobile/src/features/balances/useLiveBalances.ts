@@ -28,7 +28,8 @@ export function useLiveBalancesState(): { balances: Record<AssetId, string> | nu
     if (!chain.broadcasts) return
     try {
       const r = await chain.getBalances(address as `0x${string}`)
-      if (alive.current && mine === seq.current) setB({ ETH: formatAmount(r.ETH, 'ETH', 'floor'), USDC: formatAmount(r.USDC, 'USDC', 'floor') })
+      if (alive.current && mine === seq.current)
+        setB({ ETH: formatAmount(r.ETH, 'ETH', 'floor'), USDC: formatAmount(r.USDC, 'USDC', 'floor') })
     } catch {
       if (alive.current && mine === seq.current) setB(null)
     }

@@ -40,20 +40,56 @@ export function SettingsPage() {
       </View>
       <SectionBand />
       <Block title={t('settings.group.security')} gap={tight}>
-        <ListItem icon="key" title={t('settings.phrase')} trailing={{ kind: 'disclosure' }} onPress={() => router.push('/settings/phrase')} />
+        <ListItem
+          icon="key"
+          title={t('settings.phrase')}
+          trailing={{ kind: 'disclosure' }}
+          onPress={() => router.push('/settings/phrase')}
+        />
         {/* The Figma value "확인됨" is left out: root/jailbreak detection is not built, so the app cannot claim the device was checked. */}
-        <ListItem icon="deviceWarning" title={t('settings.device')} trailing={{ kind: 'disclosure' }} onPress={() => router.push('/settings/device')} />
+        <ListItem
+          icon="deviceWarning"
+          title={t('settings.device')}
+          trailing={{ kind: 'disclosure' }}
+          onPress={() => router.push('/settings/device')}
+        />
       </Block>
       <SectionBand />
       <Block title={t('settings.group.notify')} gap={tight}>
-        <ListItem icon="bell" title={t('settings.push')} trailing={{ kind: 'disclosure', text: push ? t('settings.on') : t('settings.off') }} onPress={() => router.push('/settings/push')} />
-        <ListItem icon="eye" title={t('settings.zero')} trailing={{ kind: 'disclosure', text: zero ? t('settings.shown') : t('settings.hidden') }} onPress={() => router.push('/settings/zero')} />
+        <ListItem
+          icon="bell"
+          title={t('settings.push')}
+          trailing={{ kind: 'disclosure', text: push ? t('settings.on') : t('settings.off') }}
+          onPress={() => router.push('/settings/push')}
+        />
+        <ListItem
+          icon="eye"
+          title={t('settings.zero')}
+          trailing={{ kind: 'disclosure', text: zero ? t('settings.shown') : t('settings.hidden') }}
+          onPress={() => router.push('/settings/zero')}
+        />
       </Block>
       <SectionBand />
       <Block title={t('settings.group.info')} gap={tight}>
-        <ListItem icon="network" title={t('settings.network')} factValue trailing={{ kind: 'value', text: networkFact }} />
-        <ListItem icon="document" title={t('settings.licenses')} trailing={{ kind: 'disclosure' }} onPress={() => router.push('/settings/licenses')} />
-        <ListItem icon="info" iconColor={th.component.icon.status.info} title={t('settings.version')} factValue trailing={{ kind: 'value', text: `v${Constants.expoConfig?.version ?? ''}` }} />
+        <ListItem
+          icon="network"
+          title={t('settings.network')}
+          factValue
+          trailing={{ kind: 'value', text: networkFact }}
+        />
+        <ListItem
+          icon="document"
+          title={t('settings.licenses')}
+          trailing={{ kind: 'disclosure' }}
+          onPress={() => router.push('/settings/licenses')}
+        />
+        <ListItem
+          icon="info"
+          iconColor={th.component.icon.status.info}
+          title={t('settings.version')}
+          factValue
+          trailing={{ kind: 'value', text: `v${Constants.expoConfig?.version ?? ''}` }}
+        />
       </Block>
     </Screen>
   )

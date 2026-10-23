@@ -2,7 +2,10 @@ import type { ActivityStatus } from '@/shared/ui'
 import type { TxState } from './txState'
 
 /** Icon status and i18n label of a send in lists and on S23/S41. Replaced has its own badge (refresh): nothing was executed, nothing went wrong on chain. */
-export function txView(state: TxState): { status: ActivityStatus; label: `activity.${'pending' | 'included' | 'confirmed' | 'failed' | 'unknown' | 'replaced'}` } {
+export function txView(state: TxState): {
+  status: ActivityStatus
+  label: `activity.${'pending' | 'included' | 'confirmed' | 'failed' | 'unknown' | 'replaced'}`
+} {
   switch (state) {
     case 'Pending':
       return { status: 'pending', label: 'activity.pending' }
@@ -27,14 +30,23 @@ const NOTICE = {
   Confirmed: { tone: 'confirmed', title: 'detail.confirmed.title', body: 'detail.confirmed.body' },
   Failed: { tone: 'danger', title: 'detail.failed.title', body: 'detail.failed.body' },
   Replaced: { tone: 'warning', title: 'detail.replaced.title', body: 'detail.replaced.body' },
-} as const satisfies Record<TxState, { tone: 'info' | 'unknown' | 'confirmed' | 'danger' | 'warning'; title: string; body: string }>
+} as const satisfies Record<
+  TxState,
+  { tone: 'info' | 'unknown' | 'confirmed' | 'danger' | 'warning'; title: string; body: string }
+>
 
 export const txNotice = (state: TxState) => NOTICE[state]
 
 type ResultCopy = {
   tone: 'pending' | 'confirmed' | 'failed' | 'unknown' | 'replaced'
   title: 'result.sending' | 'result.sent' | 'result.failedTitle' | 'result.unknownTitle' | 'result.replacedTitle'
-  body: 'result.pendingBody' | 'result.includedBody' | 'result.unknownBody' | 'detail.confirmed.body' | 'detail.failed.body' | 'detail.replaced.body'
+  body:
+    | 'result.pendingBody'
+    | 'result.includedBody'
+    | 'result.unknownBody'
+    | 'detail.confirmed.body'
+    | 'detail.failed.body'
+    | 'detail.replaced.body'
   /** Warning line under the progress: a send that may still go through says not to send again (two lines, Figma S23). */
   warn: 'result.sendAgainWarn' | null
 }

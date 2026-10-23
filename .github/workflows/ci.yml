@@ -34,6 +34,8 @@ jobs:
       - if: hashFiles('package.json') != ''
         run: pnpm install --frozen-lockfile
       - if: hashFiles('package.json') != ''
+        run: pnpm exec prettier --check .
+      - if: hashFiles('package.json') != ''
         run: pnpm turbo run typecheck lint test
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api openapi:check

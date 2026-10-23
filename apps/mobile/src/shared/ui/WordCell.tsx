@@ -35,7 +35,20 @@ type Props = {
  * Keyboard: ASCII, no auto-capitalize / auto-correct / spell check / suggestions. No haptic. The word is not secret on screen, so no secureTextEntry;
  * nothing here logs it.
  */
-export function WordCell({ number, label, value, error, focused, last, inputRef, onChangeText, onFocus, onBlur, onNext, onBackspaceEmpty }: Props) {
+export function WordCell({
+  number,
+  label,
+  value,
+  error,
+  focused,
+  last,
+  inputRef,
+  onChangeText,
+  onFocus,
+  onBlur,
+  onNext,
+  onBackspaceEmpty,
+}: Props) {
   const t = useTheme()
   const c = t.component.input
   const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
@@ -58,7 +71,9 @@ export function WordCell({ number, label, value, error, focused, last, inputRef,
       }}
     >
       <View importantForAccessibility="no-hide-descendants" accessible={false} style={{ width: t.primitive.space[5] }}>
-        <Text variant="caption" color={t.semantic.text.tertiary} tabular>{number}</Text>
+        <Text variant="caption" color={t.semantic.text.tertiary} tabular>
+          {number}
+        </Text>
       </View>
       <TextInput
         ref={inputRef}
@@ -77,7 +92,14 @@ export function WordCell({ number, label, value, error, focused, last, inputRef,
         keyboardType={Platform.OS === 'android' ? 'visible-password' : 'ascii-capable'}
         cursorColor={c.border.focus}
         selectionColor={c.border.focus}
-        style={{ flex: 1, padding: 0, transform: [{ translateY: Platform.OS === 'ios' ? -IOS_MULTILINE_DROP : 0 }], color: c.fg, textAlignVertical: 'center', ...textStyle(t.primitive.type.productB.body) }}
+        style={{
+          flex: 1,
+          padding: 0,
+          transform: [{ translateY: Platform.OS === 'ios' ? -IOS_MULTILINE_DROP : 0 }],
+          color: c.fg,
+          textAlignVertical: 'center',
+          ...textStyle(t.primitive.type.productB.body),
+        }}
       />
     </View>
   )

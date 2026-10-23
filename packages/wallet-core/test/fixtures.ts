@@ -1,4 +1,4 @@
-// PUBLIC TEST VECTORS ONLY. Never use these phrases for real funds (docs/agents/foundation.md rule 4).
+// PUBLIC TEST VECTORS ONLY. Never use these phrases for real funds (scripts/check-repo-rules.sh R10).
 import type { Address } from 'viem'
 
 /** viem test suite + Hardhat/Anvil default account 0:

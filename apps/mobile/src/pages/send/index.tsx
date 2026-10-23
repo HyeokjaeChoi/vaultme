@@ -28,7 +28,9 @@ export function SendPage() {
   const { qr: devQr } = useLocalSearchParams<{ qr?: string }>()
   const [to, setTo] = useState(initial ?? '')
   // Address that came from a QR (and whether the QR carried an amount). The label stays only while the field still holds exactly that address.
-  const [qr, setQr] = useState<{ address: string; hadAmount: boolean } | null>(__DEV__ && devQr && initial ? { address: initial, hadAmount: devQr === 'amount' } : null)
+  const [qr, setQr] = useState<{ address: string; hadAmount: boolean } | null>(
+    __DEV__ && devQr && initial ? { address: initial, hadAmount: devQr === 'amount' } : null,
+  )
   useFocusEffect(
     useCallback(() => {
       const r = takeScanResult()
@@ -54,36 +56,77 @@ export function SendPage() {
       topGap="group"
       gap="group"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} chips={<NetworkChips />} />}
-      footer={<Button label={t('send.next')} disabled={!valid} onPress={() => router.push({ pathname: '/send/amount', params: { to } })} />}
+      footer={
+        <Button
+          label={t('send.next')}
+          disabled={!valid}
+          onPress={() => router.push({ pathname: '/send/amount', params: { to } })}
+        />
+      }
     >
       <View style={{ paddingVertical: th.primitive.space[2] }}>
-        <Text variant="title1" accessibilityRole="header">{t('send.recipientQuestion')}</Text>
+        <Text variant="title1" accessibilityRole="header">
+          {t('send.recipientQuestion')}
+        </Text>
       </View>
       <View style={{ paddingVertical: th.primitive.space[2] }}>
-      <RecipientField
-        label={t('send.recipientLabel')}
-        value={to}
-        onChangeText={(v) => { setTo(v); setQr(null) }}
-        placeholder={t('send.recipientPlaceholder')}
-        actions={[to ? { label: t('send.clear'), onPress: () => { setTo(''); setQr(null) } } : { label: t('send.paste'), onPress: () => void paste() }]}
-        {...(to ? {} : { scan: { label: t('send.scan'), onPress: () => router.push('/send/scan') } })}
-      />
+        <RecipientField
+          label={t('send.recipientLabel')}
+          value={to}
+          onChangeText={(v) => {
+            setTo(v)
+            setQr(null)
+          }}
+          placeholder={t('send.recipientPlaceholder')}
+          actions={[
+            to
+              ? {
+                  label: t('send.clear'),
+                  onPress: () => {
+                    setTo('')
+                    setQr(null)
+                  },
+                }
+              : { label: t('send.paste'), onPress: () => void paste() },
+          ]}
+          {...(to ? {} : { scan: { label: t('send.scan'), onPress: () => router.push('/send/scan') } })}
+        />
       </View>
       {fromQr ? (
         <View style={{ paddingVertical: th.semantic.layout.fieldGap }}>
-          <Text variant="caption" color={th.semantic.text.tertiary}>{t('send.qr.source')}</Text>
+          <Text variant="caption" color={th.semantic.text.tertiary}>
+            {t('send.qr.source')}
+          </Text>
         </View>
       ) : null}
       {valid ? <StatusNotice tone="info" title={t('send.recipientHint')} /> : null}
       {valid && fromQr && qr?.hadAmount ? <StatusNotice tone="info" title={t('send.qr.amountNote')} /> : null}
       {!to && recents.length ? (
         <View style={{ gap: th.semantic.layout.rowGap, paddingTop: th.primitive.space[2] }}>
-          <Text variant="label" color={th.semantic.text.tertiary} accessibilityRole="header">{t('send.recent')}</Text>
+          <Text variant="label" color={th.semantic.text.tertiary} accessibilityRole="header">
+            {t('send.recent')}
+          </Text>
           {recents.map((r) => (
-            <Pressable key={r.address} accessibilityRole="button" onPress={() => setTo(r.address)} style={{ flexDirection: 'row', alignItems: 'center', gap: th.semantic.layout.rowGap, minHeight: th.primitive.size.touch_min, paddingVertical: th.primitive.space[2] }}>
+            <Pressable
+              key={r.address}
+              accessibilityRole="button"
+              onPress={() => setTo(r.address)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: th.semantic.layout.rowGap,
+                minHeight: th.primitive.size.touch_min,
+                paddingVertical: th.primitive.space[2],
+              }}
+            >
               <View style={{ flex: 1, gap: th.primitive.space[1] }}>
                 <AddressText address={r.address} />
-                <Text variant="caption" color={th.semantic.text.tertiary}>{t('send.recentRow', { date: dateLabel(r.at).replace(/ \(.\)$/, ''), amount: showAmount(r.amount, r.asset, 'floor') })}</Text>
+                <Text variant="caption" color={th.semantic.text.tertiary}>
+                  {t('send.recentRow', {
+                    date: dateLabel(r.at).replace(/ \(.\)$/, ''),
+                    amount: showAmount(r.amount, r.asset, 'floor'),
+                  })}
+                </Text>
               </View>
               <Icon name="disclosure" size={th.component.icon.size.control} color={th.component.icon.navigation.fg} />
             </Pressable>

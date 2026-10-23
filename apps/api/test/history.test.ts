@@ -12,12 +12,21 @@ const hash = (n: number) => '0x' + n.toString(16).padStart(64, '0')
 
 let n = 0
 const base = (block: number, txIndex: number, o: Row = {}): Row => ({
-  hash: hash(++n), blockNumber: String(block), timeStamp: String(1_700_000_000 + block), transactionIndex: String(txIndex),
-  from: OTHER, to: ME, value: '1000', ...o,
+  hash: hash(++n),
+  blockNumber: String(block),
+  timeStamp: String(1_700_000_000 + block),
+  transactionIndex: String(txIndex),
+  from: OTHER,
+  to: ME,
+  value: '1000',
+  ...o,
 })
-const tx = (block: number, txIndex = 0, o: Row = {}) => base(block, txIndex, { isError: '0', txreceipt_status: '1', ...o })
-const internal = (block: number, txIndex: number, traceId: string, o: Row = {}) => base(block, txIndex, { traceId, isError: '0', ...o })
-const token = (block: number, txIndex: number, o: Row = {}) => base(block, txIndex, { contractAddress: USDC_SEPOLIA.toLowerCase(), ...o })
+const tx = (block: number, txIndex = 0, o: Row = {}) =>
+  base(block, txIndex, { isError: '0', txreceipt_status: '1', ...o })
+const internal = (block: number, txIndex: number, traceId: string, o: Row = {}) =>
+  base(block, txIndex, { traceId, isError: '0', ...o })
+const token = (block: number, txIndex: number, o: Row = {}) =>
+  base(block, txIndex, { contractAddress: USDC_SEPOLIA.toLowerCase(), ...o })
 
 /** In-memory Etherscan: sort=desc, endblock inclusive, page x offset, the 10000 window. `flip` reverses the order inside a block. */
 function sim(data: Partial<Record<List, Row[]>>, flip = false) {
@@ -48,18 +57,43 @@ describe('loadHistory merge', () => {
   it('normalizes the three lists, drops the fake ETH token row, orders a tx native -> internal -> erc20', async () => {
     const h = hash(9999)
     const { f } = sim({
-      txlist: [tx(100, 3, { hash: h, from: ME, to: OTHER, value: '5' }), tx(90, 0, { isError: '1', txreceipt_status: '0' }), tx(80, 0, { value: '0' })],
-      txlistinternal: [internal(100, 3, '0_1_2', { hash: h, value: '7' }), internal(100, 3, '0_1_10', { hash: h, value: '8' }), internal(70, 0, '0', { isError: '1' })],
-      tokentx: [token(100, 3, { hash: h, value: '9' }), token(100, 3, { hash: h, value: '99', contractAddress: FAKE_ETH })],
+      txlist: [
+        tx(100, 3, { hash: h, from: ME, to: OTHER, value: '5' }),
+        tx(90, 0, { isError: '1', txreceipt_status: '0' }),
+        tx(80, 0, { value: '0' }),
+      ],
+      txlistinternal: [
+        internal(100, 3, '0_1_2', { hash: h, value: '7' }),
+        internal(100, 3, '0_1_10', { hash: h, value: '8' }),
+        internal(70, 0, '0', { isError: '1' }),
+      ],
+      tokentx: [
+        token(100, 3, { hash: h, value: '9' }),
+        token(100, 3, { hash: h, value: '99', contractAddress: FAKE_ETH }),
+      ],
     })
     const r = await loadHistory(f, ME.toUpperCase().replace('0X', '0x'))
     expect(r.incomplete).toBe(false)
     expect(r.nextCursor).toBeNull()
     expect(r.items.map((i) => [i.blockNumber, i.kind, i.value])).toEqual([
-      [100, 'native', '5'], [100, 'internal', '7'], [100, 'internal', '8'], [100, 'erc20', '9'], [90, 'native', '1000'], [80, 'native', '0'], [70, 'internal', '1000'],
+      [100, 'native', '5'],
+      [100, 'internal', '7'],
+      [100, 'internal', '8'],
+      [100, 'erc20', '9'],
+      [90, 'native', '1000'],
+      [80, 'native', '0'],
+      [70, 'internal', '1000'],
     ])
     expect(r.items.slice(0, 4).map((i) => i.id)).toEqual([0, 1, 2, 3].map((q) => `${h}:${q}`))
-    expect(r.items[0]).toMatchObject({ direction: 'out', asset: 'ETH', from: ME, to: OTHER, status: 'ok', zeroValue: false, txIndex: 3 })
+    expect(r.items[0]).toMatchObject({
+      direction: 'out',
+      asset: 'ETH',
+      from: ME,
+      to: OTHER,
+      status: 'ok',
+      zeroValue: false,
+      txIndex: 3,
+    })
     expect(r.items[3]).toMatchObject({ direction: 'in', asset: 'USDC', status: 'ok' })
     expect(r.items.map((i) => i.status)).toEqual(['ok', 'ok', 'ok', 'ok', 'failed', 'ok', 'failed'])
     expect(r.items[5]!.zeroValue).toBe(true)
@@ -72,7 +106,10 @@ describe('loadHistory merge', () => {
   it('self transfer is out; contract creation has no `to`', async () => {
     const { f } = sim({ txlist: [tx(5, 0, { from: ME, to: ME }), tx(4, 0, { from: ME, to: '' })] })
     const r = await loadHistory(f, ME)
-    expect(r.items.map((i) => [i.direction, i.to])).toEqual([['out', ME], ['out', null]])
+    expect(r.items.map((i) => [i.direction, i.to])).toEqual([
+      ['out', ME],
+      ['out', null],
+    ])
   })
 
   it('zero-value token row with log from == me but tx sender != me (transferFrom spoof) is not outgoing (#53)', async () => {
@@ -95,10 +132,16 @@ describe('loadHistory merge', () => {
     const h = hash(7002)
     const { f } = sim({
       txlist: [tx(10, 0, { hash: h, from: ME, to: USDC_SEPOLIA.toLowerCase(), value: '0' })],
-      tokentx: [token(10, 0, { hash: h, from: ME, to: OTHER, value: '0' }), token(9, 0, { from: ME, to: OTHER, value: '5' })],
+      tokentx: [
+        token(10, 0, { hash: h, from: ME, to: OTHER, value: '0' }),
+        token(9, 0, { from: ME, to: OTHER, value: '5' }),
+      ],
     })
     const r = await loadHistory(f, ME)
-    expect(r.items.filter((i) => i.kind === 'erc20').map((i) => [i.value, i.direction])).toEqual([['0', 'out'], ['5', 'out']])
+    expect(r.items.filter((i) => i.kind === 'erc20').map((i) => [i.value, i.direction])).toEqual([
+      ['0', 'out'],
+      ['5', 'out'],
+    ])
   })
 
   it('malformed upstream row is an UpstreamError', async () => {
@@ -157,7 +200,9 @@ describe('loadHistory paging', () => {
     expect(pages.every((p) => !p.incomplete)).toBe(true)
     expect(all.map((i) => i.blockNumber)).toEqual([500, ...Array(130).fill(400), 300])
     // within the block rows are numbered by traceId, numerically (0_2 before 0_10)
-    expect(all.filter((i) => i.blockNumber === 400).map((i) => i.id.split(':')[1])).toEqual(Array.from({ length: 130 }, (_, i) => String(i)))
+    expect(all.filter((i) => i.blockNumber === 400).map((i) => i.id.split(':')[1])).toEqual(
+      Array.from({ length: 130 }, (_, i) => String(i)),
+    )
     expect(calls.length).toBeLessThanOrEqual(12 * pages.length)
   })
 
@@ -168,7 +213,9 @@ describe('loadHistory paging', () => {
     }
     const a = (await walk(sim(data, false).f)).flatMap((p) => p.items)
     const b = (await walk(sim(data, true).f)).flatMap((p) => p.items)
-    expect(a.map((i) => [i.blockNumber, i.txIndex, i.kind, i.value])).toEqual(b.map((i) => [i.blockNumber, i.txIndex, i.kind, i.value]))
+    expect(a.map((i) => [i.blockNumber, i.txIndex, i.kind, i.value])).toEqual(
+      b.map((i) => [i.blockNumber, i.txIndex, i.kind, i.value]),
+    )
   })
 
   it('randomized walk: ties across lists and blocks, no gap, no duplicate, no reorder', async () => {

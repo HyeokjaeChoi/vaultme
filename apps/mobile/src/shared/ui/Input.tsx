@@ -8,8 +8,20 @@ import { Text } from './Text'
 
 type Props = Pick<
   TextInputProps,
-  | 'value' | 'onChangeText' | 'placeholder' | 'autoCapitalize' | 'keyboardType' | 'multiline' | 'autoCorrect' | 'spellCheck'
-  | 'autoComplete' | 'textContentType' | 'importantForAutofill' | 'onBlur' | 'testID' | 'secureTextEntry'
+  | 'value'
+  | 'onChangeText'
+  | 'placeholder'
+  | 'autoCapitalize'
+  | 'keyboardType'
+  | 'multiline'
+  | 'autoCorrect'
+  | 'spellCheck'
+  | 'autoComplete'
+  | 'textContentType'
+  | 'importantForAutofill'
+  | 'onBlur'
+  | 'testID'
+  | 'secureTextEntry'
 > & {
   label: string
   helper?: string
@@ -50,7 +62,12 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
               paddingLeft: c.paddingX,
               paddingRight: action ? t.primitive.size.touch_min : c.paddingX,
               // A multiline field wraps, so its height follows the text; the padding keeps one line centered in the field.
-              ...(field.multiline ? { paddingVertical: (t.component.buttonB.height.lg - t.primitive.type.productB.body.lineHeight) / 2, textAlignVertical: 'center' as const } : {}),
+              ...(field.multiline
+                ? {
+                    paddingVertical: (t.component.buttonB.height.lg - t.primitive.type.productB.body.lineHeight) / 2,
+                    textAlignVertical: 'center' as const,
+                  }
+                : {}),
               borderRadius: c.radius,
               borderWidth: c.borderWidth,
               borderColor: border,
@@ -63,36 +80,71 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
   )
   return (
     <View style={{ gap: c.fieldGap }}>
-      <Text variant="label" color={editable ? c.label : t.semantic.text.disabled}>{label}</Text>
+      <Text variant="label" color={editable ? c.label : t.semantic.text.disabled}>
+        {label}
+      </Text>
       {actions ? (
-        <View style={{ minHeight: t.component.buttonB.height.lg, gap: t.primitive.space[2], paddingHorizontal: c.paddingX, paddingVertical: t.primitive.space[4], borderRadius: c.radius, borderWidth: c.borderWidth, borderColor: border, backgroundColor: c.bg.default }}>
+        <View
+          style={{
+            minHeight: t.component.buttonB.height.lg,
+            gap: t.primitive.space[2],
+            paddingHorizontal: c.paddingX,
+            paddingVertical: t.primitive.space[4],
+            borderRadius: c.radius,
+            borderWidth: c.borderWidth,
+            borderColor: border,
+            backgroundColor: c.bg.default,
+          }}
+        >
           {input}
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: t.semantic.layout.groupGap }}>
             {actions.map((a) => (
-              <Pressable key={a.label} accessibilityRole="button" accessibilityLabel={a.label} onPress={a.onPress} style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}>
-                <Text variant="link" color={t.semantic.text.link}>{a.label}</Text>
+              <Pressable
+                key={a.label}
+                accessibilityRole="button"
+                accessibilityLabel={a.label}
+                onPress={a.onPress}
+                style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}
+              >
+                <Text variant="link" color={t.semantic.text.link}>
+                  {a.label}
+                </Text>
               </Pressable>
             ))}
           </View>
         </View>
+      ) : action ? (
+        <View>
+          {input}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={action.label}
+            onPress={action.onPress}
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: t.primitive.size.touch_min,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon name={action.icon} size={t.component.icon.size.control} color={t.component.icon.action.fg} />
+          </Pressable>
+        </View>
       ) : (
-        action ? (
-          <View>
-            {input}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={action.label}
-              onPress={action.onPress}
-              style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: t.primitive.size.touch_min, alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Icon name={action.icon} size={t.component.icon.size.control} color={t.component.icon.action.fg} />
-            </Pressable>
-          </View>
-        ) : (
-          input
-        )
+        input
       )}
-      {error ? <Text variant="caption" color={c.errorText}>{error}</Text> : helper ? <Text variant="caption" color={c.helper}>{helper}</Text> : null}
+      {error ? (
+        <Text variant="caption" color={c.errorText}>
+          {error}
+        </Text>
+      ) : helper ? (
+        <Text variant="caption" color={c.helper}>
+          {helper}
+        </Text>
+      ) : null}
     </View>
   )
 }

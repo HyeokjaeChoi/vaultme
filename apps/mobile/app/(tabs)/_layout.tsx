@@ -13,16 +13,25 @@ export default function TabsLayout() {
     <Tabs
       tabBar={({ state, descriptors, navigation }) => (
         <ProductNavigation
-          items={state.routes.filter((r) => r.name !== 'asset').map((r) => ({
-            key: r.key,
-            label: String(descriptors[r.key]?.options.title ?? r.name),
-            icon: TAB_ICON[r.name] ?? 'assets',
-            active: state.routes[state.index]?.name === 'asset' ? r.name === 'home' : state.routes[state.index]?.key === r.key,
-            onPress: () => navigation.navigate(r.name),
-          }))}
+          items={state.routes
+            .filter((r) => r.name !== 'asset')
+            .map((r) => ({
+              key: r.key,
+              label: String(descriptors[r.key]?.options.title ?? r.name),
+              icon: TAB_ICON[r.name] ?? 'assets',
+              active:
+                state.routes[state.index]?.name === 'asset'
+                  ? r.name === 'home'
+                  : state.routes[state.index]?.key === r.key,
+              onPress: () => navigation.navigate(r.name),
+            }))}
         />
       )}
-      screenOptions={{ headerShown: false, animation: 'none', sceneStyle: { backgroundColor: th.semantic.surface.canvas } }}
+      screenOptions={{
+        headerShown: false,
+        animation: 'none',
+        sceneStyle: { backgroundColor: th.semantic.surface.canvas },
+      }}
     >
       <Tabs.Screen name="home" options={{ title: t('tab.assets') }} />
       <Tabs.Screen name="activity" options={{ title: t('tab.activity') }} />

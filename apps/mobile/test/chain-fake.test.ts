@@ -50,6 +50,8 @@ describe('fake chain', () => {
       setEthShort(false)
       delete g.__DEV__
     }
-    expect((await createFakeChain(mem()).getSnapshot(TO, 'USDC', TO, '5')).nativeBalance).toBe(1_284_732_000_000_000_000n)
+    expect((await createFakeChain(mem()).getSnapshot(TO, 'USDC', TO, '5')).nativeBalance).toBe(
+      1_284_732_000_000_000_000n,
+    )
   })
 })

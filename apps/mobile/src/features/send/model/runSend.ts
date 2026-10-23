@@ -3,7 +3,8 @@ import type { ChainPort } from '@/shared/chain/port'
 import type { AuthPrompt, LoadPhraseResult, PendingTx } from '@/shared/storage'
 
 /** Q47: a Pending or Unknown send blocks a new one. A corrupt record must not lift the block. */
-export const blocksNewSend = (tx: PendingTx | null | 'corrupt'): boolean => tx === 'corrupt' || (tx !== null && (tx.state === 'Pending' || tx.state === 'Unknown'))
+export const blocksNewSend = (tx: PendingTx | null | 'corrupt'): boolean =>
+  tx === 'corrupt' || (tx !== null && (tx.state === 'Pending' || tx.state === 'Unknown'))
 
 export type SendOutcome =
   | { status: 'Pending' | 'Unknown'; tx: PendingTx }
@@ -25,7 +26,12 @@ export type SendDeps = {
  * Cancel signs nothing. The phrase is only referenced inside this function.
  * `amount` is the decimal string the user entered; `from` is the sending account address.
  */
-export async function runSend(approved: ApprovedSend, amount: string, from: Address, d: SendDeps): Promise<SendOutcome> {
+export async function runSend(
+  approved: ApprovedSend,
+  amount: string,
+  from: Address,
+  d: SendDeps,
+): Promise<SendOutcome> {
   if (blocksNewSend(d.readPending())) return { status: 'PendingExists' }
 
   const auth = await d.loadPhrase(d.prompt)

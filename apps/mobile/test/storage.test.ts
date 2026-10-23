@@ -172,7 +172,16 @@ describe('kv key + store', () => {
     const kv = await import('../src/shared/storage/kv')
     await kv.openKv()
     expect(kv.getPendingTx()).toBeNull()
-    const tx = { hash: '0xabc', nonce: 3, asset: 'ETH', to: '0xdef', amount: '0.1', createdAt: 1, lastCheckedAt: 2, state: 'Pending' as const }
+    const tx = {
+      hash: '0xabc',
+      nonce: 3,
+      asset: 'ETH',
+      to: '0xdef',
+      amount: '0.1',
+      createdAt: 1,
+      lastCheckedAt: 2,
+      state: 'Pending' as const,
+    }
     kv.setPendingTx(tx)
     expect(kv.getPendingTx()).toEqual(tx)
     kv.setPendingTx(null)

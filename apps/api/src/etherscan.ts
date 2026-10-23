@@ -32,7 +32,14 @@ function etherscanList(env: Bindings, address: string): FetchList {
   return async (list, q) => {
     const url = new URL(BASE)
     const params: Record<string, string> = {
-      chainid: SEPOLIA, module: 'account', action: list, address, sort: 'desc', page: String(q.page), offset: String(q.offset), apikey: key,
+      chainid: SEPOLIA,
+      module: 'account',
+      action: list,
+      address,
+      sort: 'desc',
+      page: String(q.page),
+      offset: String(q.offset),
+      apikey: key,
     }
     if (q.endblock !== undefined) params.endblock = String(q.endblock)
     if (list === 'tokentx') params.contractaddress = USDC_SEPOLIA
@@ -73,7 +80,9 @@ export async function getHistory(env: Bindings, address: string, cursor: string 
   const fetchList = etherscanList(env, address)
   await checkCursor(address, cursor) // before the cache: a bad cursor must never get a cached 200
   const cache = caches.default
-  const cacheKey = new Request(`https://history.vaultme.invalid/${await addressHash(address)}/${cursor === undefined ? 'first' : `c/${cursor}`}`)
+  const cacheKey = new Request(
+    `https://history.vaultme.invalid/${await addressHash(address)}/${cursor === undefined ? 'first' : `c/${cursor}`}`,
+  )
   const hit = await cache.match(cacheKey)
   if (hit) return (await hit.json()) as HistoryResponse
   const out = await loadHistory(fetchList, address, cursor)

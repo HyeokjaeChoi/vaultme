@@ -1,7 +1,15 @@
 // Approved Korean copy: outputs/design/ux-copy.md + ux-terminology.md. Screens in C2a only.
 export const ko = {
   tab: { assets: '자산', activity: '내역', settings: '설정' },
-  common: { cancel: '취소', close: '닫기', later: '나중에', edit: '수정', back: '뒤로', retry: '다시 시도', confirm: '확인' },
+  common: {
+    cancel: '취소',
+    close: '닫기',
+    later: '나중에',
+    edit: '수정',
+    back: '뒤로',
+    retry: '다시 시도',
+    confirm: '확인',
+  },
   // Busy button label under Reduce Motion (no spinner rotation): the progressive form (ux-copy.md 2026-10-17).
   busy: { send: '보내는 중…', create: '만드는 중…', restore: '복구하는 중…', recheck: '확인하는 중…' },
   // B/Status chip (Figma 494:1067): one neutral chip on every wallet screen; the label says "· 테스트 데이터" while the fake chain adapter is on.
@@ -36,7 +44,10 @@ export const ko = {
   precheck: {
     title: '시작하기 전에 확인해 주세요',
     subtitle: '모두 확인해야 지갑을 만들 수 있어요.',
-    lose: { title: '복구 구문을 잃으면 되찾을 수 없어요', body: 'VaultMe는 복구 구문을 보관하지도,\n되찾아 주지도 않아요.' },
+    lose: {
+      title: '복구 구문을 잃으면 되찾을 수 없어요',
+      body: 'VaultMe는 복구 구문을 보관하지도,\n되찾아 주지도 않아요.',
+    },
     scam: { title: '알림으로 복구 구문을 묻지 않아요', body: '복구 구문을 묻는 메시지는 모두 사기예요.' },
     testnet: { title: '테스트넷 전용이에요', body: 'Sepolia 자산만 다뤄요. 실제 가치는 없어요.' },
     cta: '지갑 만들기',
@@ -65,7 +76,11 @@ export const ko = {
     viewAll: '전체 보기',
     backupRow: '복구 구문을 아직 백업하지 않았어요',
     // First deposit while not backed up (Figma 586:97341): shown once, `useBackupGate.markPromptShown`.
-    deposit: { title: '입금이 도착했어요', body: '복구 구문을 아직 백업하지 않았어요.\n기기를 잃으면 이 자산을 되찾을 수 없어요.', cta: '지금 백업' },
+    deposit: {
+      title: '입금이 도착했어요',
+      body: '복구 구문을 아직 백업하지 않았어요.\n기기를 잃으면 이 자산을 되찾을 수 없어요.',
+      cta: '지금 백업',
+    },
     emptyTitle: '아직 자산이 없어요',
     emptyBody: 'ETH나 USDC를 받으려면 주소를 공유하세요.',
     heroLabel: 'Sepolia ETH',
@@ -73,7 +88,11 @@ export const ko = {
     introBody: '실제 가치가 없는 테스트 자산만 다뤄요.\n시장 가격이 없어서 수량으로 보여 줘요.',
     introCta: '확인',
     testDataCta: '확인',
-    faucet: { title: '테스트 ETH 받기', value: 'QuickNode', caption: '받기 주소를 복사하고 외부 사이트(faucet)⁠를 열어요.' },
+    faucet: {
+      title: '테스트 ETH 받기',
+      value: 'QuickNode',
+      caption: '받기 주소를 복사하고 외부 사이트(faucet)⁠를 열어요.',
+    },
   },
   // S11 asset detail (ux-copy.md Redesign B 2차).
   asset: {
@@ -157,12 +176,19 @@ export const ko = {
     share: '공유',
     warning: 'Sepolia 네트워크로만 보내세요.',
     // S30B: receive is open before the backup; the warning stays on the screen (Figma 586:97529).
-    backupWarn: { title: '복구 구문을 아직 백업하지 않았어요', body: '기기를 잃으면 자산을 되찾을 수 없어요.', link: '백업하기' },
+    backupWarn: {
+      title: '복구 구문을 아직 백업하지 않았어요',
+      body: '기기를 잃으면 자산을 되찾을 수 없어요.',
+      link: '백업하기',
+    },
   },
   send: {
     title: '보내기',
     // B-S31 send gate (Figma 423:13750): the first send needs the backup.
-    backupGate: { title: '먼저 복구 구문을 백업하세요', body: '기기를 잃어도 지갑을 되찾으려면\n복구 구문이 필요해요.\n백업을 마치면 보낼 수 있어요.' },
+    backupGate: {
+      title: '먼저 복구 구문을 백업하세요',
+      body: '기기를 잃어도 지갑을 되찾으려면\n복구 구문이 필요해요.\n백업을 마치면 보낼 수 있어요.',
+    },
     recipientQuestion: '누구에게 보낼까요?',
     recipientLabel: '받는 주소',
     recipientPlaceholder: '0x…',
@@ -183,10 +209,15 @@ export const ko = {
         title: '이 QR은 Sepolia가 아니에요',
         body: '이 QR의 체인 ID는 {{chainId}}{{copula}}. VaultMe는 Sepolia({{sepolia}})로만 보내요.\n받는 사람에게 Sepolia 주소를 다시 받으세요.',
         // Known chain id (qrAddress.ts chainName): "{{name}}용이에요" (Figma). Unknown ids use `body` below.
-        bodyKnown: '이 QR은 {{name}}용이에요. VaultMe는 Sepolia({{sepolia}})로만 보내요.\n받는 사람에게 Sepolia 주소를 다시 받으세요.',
+        bodyKnown:
+          '이 QR은 {{name}}용이에요. VaultMe는 Sepolia({{sepolia}})로만 보내요.\n받는 사람에게 Sepolia 주소를 다시 받으세요.',
         back: '돌아가기',
       },
-      denied: { title: '카메라를 쓸 수 없어요', body: 'QR을 스캔하려면 카메라 권한이 필요해요.\n설정에서 켜 주세요.', openSettings: '설정 열기' },
+      denied: {
+        title: '카메라를 쓸 수 없어요',
+        body: 'QR을 스캔하려면 카메라 권한이 필요해요.\n설정에서 켜 주세요.',
+        openSettings: '설정 열기',
+      },
       pasteAddress: '주소 붙여넣기',
       testQr: '테스트 QR',
       source: 'QR에서 가져온 주소',
@@ -225,8 +256,14 @@ export const ko = {
     authError: { title: '인증하지 못했어요', body: '다시 시도하세요.' },
     chainError: { title: '네트워크 정보를 가져오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
     // C3 (#44): needsReview, blocked and the retry buttons are the owner-approved Figma frames C3-S22 (379:2099, 379:2187, 379:2279).
-    needsReview: { title: '내용이 바뀌었어요', body: '보내기 전에 수수료나 거래 정보가 바뀌었어요.\n새 내용을 확인한 뒤 다시 보내세요.' },
-    blocked: { title: '수수료가 너무 높아요', body: '정해 둔 최대 수수료를 넘어서 보내지 않았어요.\n나중에 다시 시도하세요.' },
+    needsReview: {
+      title: '내용이 바뀌었어요',
+      body: '보내기 전에 수수료나 거래 정보가 바뀌었어요.\n새 내용을 확인한 뒤 다시 보내세요.',
+    },
+    blocked: {
+      title: '수수료가 너무 높아요',
+      body: '정해 둔 최대 수수료를 넘어서 보내지 않았어요.\n나중에 다시 시도하세요.',
+    },
     prepareError: { title: '보낼 수 없어요', body: '받는 주소와 금액을 확인하세요.' },
     pendingBlock: {
       title: '진행 중인 보내기가 있어요',
@@ -247,8 +284,14 @@ export const ko = {
     cta: '스토어에서 업데이트',
   },
   // C2b #23/#24, shown while the fake chain adapter is on. testData and notBroadcast are new (listed in the PR for approval).
-  testData: { title: '테스트 데이터예요', body: '잔액과 내역은 이 기기에서 만든 예시예요.\n실제 네트워크와 연결되지 않았어요.' },
-  notBroadcast: { title: '네트워크로 보내지 않았어요 (테스트)', body: '테스트 버전이라 거래 해시와 상태는 이 기기에서 만든 예시예요.' },
+  testData: {
+    title: '테스트 데이터예요',
+    body: '잔액과 내역은 이 기기에서 만든 예시예요.\n실제 네트워크와 연결되지 않았어요.',
+  },
+  notBroadcast: {
+    title: '네트워크로 보내지 않았어요 (테스트)',
+    body: '테스트 버전이라 거래 해시와 상태는 이 기기에서 만든 예시예요.',
+  },
   // S23: Figma C2b-S23 + ux-copy.md. unknown.* from ux-flow.md S23 state table.
   result: {
     // S23 headline per state (ux-copy.md: "보내는 중이에요" for Pending and Included, "보냈어요" only when Confirmed).
@@ -343,7 +386,11 @@ export const ko = {
     reconfirm: '다시 검토',
     ack: '확인했어요, 보내기',
     // After the risk sheet was confirmed: one inline line under the address (Figma S22L/B/T acknowledged).
-    acknowledged: { lookalike: '비슷한 주소예요. 위험을 확인했어요.', burn: '소각 주소예요. 위험을 확인했어요.', tokenContract: '토큰 컨트랙트 주소예요. 위험을 확인했어요.' },
+    acknowledged: {
+      lookalike: '비슷한 주소예요. 위험을 확인했어요.',
+      burn: '소각 주소예요. 위험을 확인했어요.',
+      tokenContract: '토큰 컨트랙트 주소예요. 위험을 확인했어요.',
+    },
     burn: {
       title: '소각 주소예요',
       body: '이 주소로 보낸 자산은 누구도 되찾을 수 없어요.',
@@ -380,7 +427,15 @@ export const ko = {
     oct12: '10월 12일',
     oct11: '10월 11일',
     // Row titles (ux-copy.md "Redesign B 수정안" S40 행 제목): direction + progress. Status badge words above stay for S41.
-    row: { sending: '보내는 중', sent: '보냄', received: '받음', failed: '보내기 실패', unknown: '보내기 확인 못 함', unknownSub: '상태를 확인해 주세요', replaced: '실행되지 않음' },
+    row: {
+      sending: '보내는 중',
+      sent: '보냄',
+      received: '받음',
+      failed: '보내기 실패',
+      unknown: '보내기 확인 못 함',
+      unknownSub: '상태를 확인해 주세요',
+      replaced: '실행되지 않음',
+    },
     // C3 (#44): Figma C3-S40 frames 377:2216 (loading), 377:2261 (empty), 377:2332 (error cached), 377:2388 (normal).
     updatedAt: '마지막 업데이트 {{time}}',
     loading: '내역을 불러오는 중이에요',
@@ -421,10 +476,24 @@ export const ko = {
       npm: 'npm에서 패키지 보기',
     },
     // S62 거래 알림, S63 0원 거래 표시 (ux-copy.md)
-    pushScreen: { title: '거래 알림', row: '거래 알림 받기', body: '켜면 이 주소가 VaultMe 알림 서버에 등록돼요. 끄면 등록을 지워요.', warnTitle: '알림으로 복구 구문을 묻지 않아요', warnBody: '복구 구문을 묻는 알림은 모두 사기예요.' },
+    pushScreen: {
+      title: '거래 알림',
+      row: '거래 알림 받기',
+      body: '켜면 이 주소가 VaultMe 알림 서버에 등록돼요. 끄면 등록을 지워요.',
+      warnTitle: '알림으로 복구 구문을 묻지 않아요',
+      warnBody: '복구 구문을 묻는 알림은 모두 사기예요.',
+    },
     // S92 (ux-copy.md 기기 보안 경고). The root/jailbreak detection is not wired: the screen opens from the S60 row only.
-    deviceScreen: { title: '기기 보안 안내', body: '루팅·탈옥된 기기에서는\n다른 앱이 지갑 키를 읽을 수 있어요.\n이 지갑에는 테스트넷 자산만 두세요.', cta: '이해했어요' },
-    zeroScreen: { title: '수량 0 거래 표시', row: '수량 0 거래 보기', body: '수량 0 거래는 주소 오염 공격에 자주 쓰여요.\n기본으로 숨겨요.' },
+    deviceScreen: {
+      title: '기기 보안 안내',
+      body: '루팅·탈옥된 기기에서는\n다른 앱이 지갑 키를 읽을 수 있어요.\n이 지갑에는 테스트넷 자산만 두세요.',
+      cta: '이해했어요',
+    },
+    zeroScreen: {
+      title: '수량 0 거래 표시',
+      row: '수량 0 거래 보기',
+      body: '수량 0 거래는 주소 오염 공격에 자주 쓰여요.\n기본으로 숨겨요.',
+    },
   },
   pushSheet: {
     title: '거래 알림을 받을까요?',

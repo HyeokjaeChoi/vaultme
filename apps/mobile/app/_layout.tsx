@@ -33,10 +33,13 @@ export default function RootLayout() {
     // ponytail: blank screen on a failed open; a boot-error screen belongs to the lock gate.
     openKv()
       .then(() => hasPhrase().catch(() => true)) // phrase without an address (interrupted creation) counts as a wallet; a failed lookup fails closed (locked)
-      .then((has) => {
-        setPhraseStored(has)
-        setKvReady(true)
-      }, () => undefined)
+      .then(
+        (has) => {
+          setPhraseStored(has)
+          setKvReady(true)
+        },
+        () => undefined,
+      )
   }, [])
   if ((!loaded && !error) || !kvReady) return null // fonts are bundled; this is one frame
   return (

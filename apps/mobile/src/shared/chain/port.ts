@@ -26,4 +26,5 @@ export type ChainPort = {
 const ETHERSCAN_TX = 'https://sepolia.etherscan.io/tx/'
 
 /** Explorer link for a tx hash, or null while the adapter does not broadcast (the hash is not on any network). */
-export const explorerUrl = (c: Pick<ChainPort, 'broadcasts'>, hash: string): string | null => (c.broadcasts ? `${ETHERSCAN_TX}${hash}` : null)
+export const explorerUrl = (c: Pick<ChainPort, 'broadcasts'>, hash: string): string | null =>
+  c.broadcasts ? `${ETHERSCAN_TX}${hash}` : null

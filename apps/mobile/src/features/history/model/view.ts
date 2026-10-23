@@ -49,7 +49,16 @@ export function parseItems(data: unknown): HistoryItem[] {
   return out
 }
 
-const fromLocal = (tx: PendingTx): HistoryItem => ({ hash: tx.hash, kind: 'send', asset: tx.asset, amount: tx.amount, counterparty: tx.to, at: tx.createdAt, ...txView(tx.state), local: true })
+const fromLocal = (tx: PendingTx): HistoryItem => ({
+  hash: tx.hash,
+  kind: 'send',
+  asset: tx.asset,
+  amount: tx.amount,
+  counterparty: tx.to,
+  at: tx.createdAt,
+  ...txView(tx.state),
+  local: true,
+})
 
 export type HistoryView = {
   items: HistoryItem[]
@@ -73,4 +82,8 @@ export function toView(r: HistoryResult, local: PendingTx | null, now: number): 
 }
 
 /** No answer and no cache: the sent tx of this device is still shown. */
-export const failedView = (local: PendingTx | null): HistoryView => ({ items: merge([], local), updatedAt: null, failed: true })
+export const failedView = (local: PendingTx | null): HistoryView => ({
+  items: merge([], local),
+  updatedAt: null,
+  failed: true,
+})

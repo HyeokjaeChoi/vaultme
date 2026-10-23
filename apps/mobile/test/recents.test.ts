@@ -17,7 +17,7 @@ const C = '0x3333333333333333333333333333333333333333'
 const D = '0x4444444444444444444444444444444444444444'
 
 describe('mergeRecents', () => {
-  it('puts this device\'s own sends first, then fills with examples', () => {
+  it("puts this device's own sends first, then fills with examples", () => {
     expect(mergeRecents([r(A, 3)], [r(B, 2), r(C, 1)]).map((x) => x.address)).toEqual([A, B, C])
   })
 
@@ -55,7 +55,8 @@ describe('recents only hold addresses this wallet signed and sent to (analyst R4
       for (const e of readdirSync(d, { withFileTypes: true })) {
         const p = join(d, e.name)
         if (e.isDirectory()) walk(p)
-        else if (/\.tsx?$/.test(e.name) && /\b(addRecent|rememberRecipient)\(/.test(readFileSync(p, 'utf8'))) hits.push(relative(src, p))
+        else if (/\.tsx?$/.test(e.name) && /\b(addRecent|rememberRecipient)\(/.test(readFileSync(p, 'utf8')))
+          hits.push(relative(src, p))
       }
     }
     walk(src)

@@ -12,7 +12,13 @@ import { NO_AUTOFILL } from '@/shared/ui/noAutofill'
 
 /** R-S04 단어 확인. Asks the 3 positions picked by S03. Wrong: only the wrong cells turn Invalid with "N번째 단어가 달라요" (right cells stay), focus moves to the first wrong cell, one error haptic. Right: backup flag set, then Receive (S30) with Home beneath. */
 /** `preset` is a __DEV__ design-capture state: typed answers and which cells are already judged wrong. */
-export function BackupCheckPage({ demo = false, preset }: { demo?: boolean; preset?: { answers: string[]; wrong?: number[] } }) {
+export function BackupCheckPage({
+  demo = false,
+  preset,
+}: {
+  demo?: boolean
+  preset?: { answers: string[]; wrong?: number[] }
+}) {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
@@ -55,8 +61,12 @@ export function BackupCheckPage({ demo = false, preset }: { demo?: boolean; pres
       footer={<Button label={t('backup.check.confirm')} disabled={!filled} onPress={confirm} />}
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>
-        <Text variant="title1" accessibilityRole="header">{t('backup.check.title')}</Text>
-        <Text variant="body" color={th.semantic.text.secondary}>{t('backup.check.body')}</Text>
+        <Text variant="title1" accessibilityRole="header">
+          {t('backup.check.title')}
+        </Text>
+        <Text variant="body" color={th.semantic.text.secondary}>
+          {t('backup.check.body')}
+        </Text>
       </View>
       <View style={{ gap: th.semantic.layout.groupGap }}>
         {session.positions.map((p, i) => (

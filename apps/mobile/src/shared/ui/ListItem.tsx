@@ -20,7 +20,11 @@ type Props = {
   /** The trailing value is a Fact (Product B/Fact mono): network + chainId, version. */
   factValue?: boolean
   /** `value` = text only, `disclosure` = optional value + chevron, `external` = optional value + the open-in-browser icon (link row), `custom` = any node, e.g. a Switch (Switch row). */
-  trailing?: { kind: 'value'; text: string } | { kind: 'disclosure'; text?: string } | { kind: 'external'; text?: string } | { kind: 'custom'; node: ReactNode }
+  trailing?:
+    | { kind: 'value'; text: string }
+    | { kind: 'disclosure'; text?: string }
+    | { kind: 'external'; text?: string }
+    | { kind: 'custom'; node: ReactNode }
   onPress?: () => void
 }
 
@@ -28,11 +32,30 @@ type Props = {
 export function ListItem({ title, icon, iconColor, mono, compact, factValue, trailing, onPress }: Props) {
   const t = useTheme()
   const { style, handlers } = usePressScale()
-  const value = (text: string) => <Text variant={factValue ? 'fact' : compact ? 'caption' : 'bodySmall'} color={factValue ? t.semantic.text.secondary : t.semantic.text.tertiary} tabular>{text}</Text>
+  const value = (text: string) => (
+    <Text
+      variant={factValue ? 'fact' : compact ? 'caption' : 'bodySmall'}
+      color={factValue ? t.semantic.text.secondary : t.semantic.text.tertiary}
+      tabular
+    >
+      {text}
+    </Text>
+  )
   const row = (
-    <View style={{ minHeight: compact ? t.primitive.size.control_lg : t.component.rowB.height, flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.rowGap }}>
-      {icon ? <Icon name={icon} size={t.component.icon.size.control} color={iconColor ?? t.component.icon.action.fg} /> : null}
-      <Text variant={mono ? 'address' : 'rowTitle'} color={t.component.listItem.label} style={{ flex: 1 }}>{title}</Text>
+    <View
+      style={{
+        minHeight: compact ? t.primitive.size.control_lg : t.component.rowB.height,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: t.semantic.layout.rowGap,
+      }}
+    >
+      {icon ? (
+        <Icon name={icon} size={t.component.icon.size.control} color={iconColor ?? t.component.icon.action.fg} />
+      ) : null}
+      <Text variant={mono ? 'address' : 'rowTitle'} color={t.component.listItem.label} style={{ flex: 1 }}>
+        {title}
+      </Text>
       {trailing?.kind === 'value' ? value(trailing.text) : null}
       {trailing?.kind === 'disclosure' ? (
         <>
@@ -42,7 +65,11 @@ export function ListItem({ title, icon, iconColor, mono, compact, factValue, tra
       ) : null}
       {trailing?.kind === 'external' ? (
         <>
-          {trailing.text ? <Text variant="bodySmall" color={t.semantic.text.tertiary}>{trailing.text}</Text> : null}
+          {trailing.text ? (
+            <Text variant="bodySmall" color={t.semantic.text.tertiary}>
+              {trailing.text}
+            </Text>
+          ) : null}
           <Icon name="external" size={t.component.icon.size.control} color={t.component.listItem.icon} />
         </>
       ) : null}
@@ -51,7 +78,9 @@ export function ListItem({ title, icon, iconColor, mono, compact, factValue, tra
   )
   return onPress ? (
     <Animated.View style={style}>
-      <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} {...handlers}>{row}</Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} {...handlers}>
+        {row}
+      </Pressable>
     </Animated.View>
   ) : (
     row

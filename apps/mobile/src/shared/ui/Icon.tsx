@@ -83,7 +83,16 @@ const RING = 2 * Math.PI * RING_R
 function SpinnerGlyph({ size, color }: { size: number; color: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx={12} cy={12} r={RING_R} stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeDasharray={`${RING * 0.75} ${RING}`} transform="rotate(-90 12 12)" />
+      <Circle
+        cx={12}
+        cy={12}
+        r={RING_R}
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeDasharray={`${RING * 0.75} ${RING}`}
+        transform="rotate(-90 12 12)"
+      />
     </Svg>
   )
 }
@@ -167,10 +176,19 @@ type Props =
 
 /** Decorative: hidden from screen readers; the label next to it carries the meaning. Duotone back layer = same color at 50% (wallet-icon-guide §0). */
 export function Icon({ name, size, color, weight = 'linear' }: Props) {
-  const Glyph = weight === 'bold' ? BOLD[name as BoldIconName] : weight === 'duotone' ? DUOTONE[name as HeroIconName] : LINEAR[name as IconName]
+  const Glyph =
+    weight === 'bold'
+      ? BOLD[name as BoldIconName]
+      : weight === 'duotone'
+        ? DUOTONE[name as HeroIconName]
+        : LINEAR[name as IconName]
   return (
     <View accessible={false} importantForAccessibility="no-hide-descendants">
-      <Glyph size={size} color={color} {...(weight === 'duotone' ? { secondaryColor: color, secondaryOpacity: 0.5 } : {})} />
+      <Glyph
+        size={size}
+        color={color}
+        {...(weight === 'duotone' ? { secondaryColor: color, secondaryOpacity: 0.5 } : {})}
+      />
     </View>
   )
 }

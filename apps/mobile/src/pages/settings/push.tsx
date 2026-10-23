@@ -14,11 +14,25 @@ export function PushSettingPage() {
   return (
     <Screen gap="section" header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/settings')} />}>
       <View style={{ gap: th.semantic.layout.fieldGap }}>
-        <Text variant="title1" accessibilityRole="header">{t('settings.pushScreen.title')}</Text>
-        <Text variant="body" color={th.semantic.text.secondary}>{t('settings.pushScreen.body')}</Text>
+        <Text variant="title1" accessibilityRole="header">
+          {t('settings.pushScreen.title')}
+        </Text>
+        <Text variant="body" color={th.semantic.text.secondary}>
+          {t('settings.pushScreen.body')}
+        </Text>
       </View>
-      <ListItem title={t('settings.pushScreen.row')} trailing={{ kind: 'custom', node: <Switch label={t('settings.pushScreen.row')} value={on} onValueChange={setOn} /> }} />
-      <StatusNotice tone="warning" title={t('settings.pushScreen.warnTitle')} body={t('settings.pushScreen.warnBody')} />
+      <ListItem
+        title={t('settings.pushScreen.row')}
+        trailing={{
+          kind: 'custom',
+          node: <Switch label={t('settings.pushScreen.row')} value={on} onValueChange={setOn} />,
+        }}
+      />
+      <StatusNotice
+        tone="warning"
+        title={t('settings.pushScreen.warnTitle')}
+        body={t('settings.pushScreen.warnBody')}
+      />
     </Screen>
   )
 }

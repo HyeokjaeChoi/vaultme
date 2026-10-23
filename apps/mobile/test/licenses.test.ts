@@ -34,7 +34,7 @@ describe('generated license list (S64 / S65)', () => {
     }
   })
 
-  it('does not list this repo\'s own packages', () => {
+  it("does not list this repo's own packages", () => {
     expect(data.libs.some((l) => l.name.startsWith('@vaultme/'))).toBe(false)
   })
 })

@@ -30,38 +30,85 @@ export function AmountHero({ asset, amount, unit, lines, result, note, link, cel
   const t = useTheme()
   const pop = useCheckPop(!!celebrate && !!result)
   const big = !!celebrate && !!result
-  const logo = big ? t.primitive.size.avatar_lg * 2 : result ? t.primitive.size.avatar_lg + t.primitive.space[2] : t.primitive.size.avatar_lg // 96 | 56 | 48
+  const logo = big
+    ? t.primitive.size.avatar_lg * 2
+    : result
+      ? t.primitive.size.avatar_lg + t.primitive.space[2]
+      : t.primitive.size.avatar_lg // 96 | 56 | 48
   const align = result ? 'center' : 'flex-start'
   const text = [...(lines ?? []), ...(note ? [note] : [])].join('. ')
   return (
     <View
       accessible
       accessibilityLabel={`${result ? `${result.title}. ` : ''}${amount} ${unit}${text ? `. ${text}` : ''}`}
-      style={{ alignItems: align, gap: t.primitive.space[3], paddingTop: t.semantic.layout.groupGap, paddingBottom: t.primitive.space[6], paddingHorizontal: t.semantic.layout.screen.padding }}
+      style={{
+        alignItems: align,
+        gap: t.primitive.space[3],
+        paddingTop: t.semantic.layout.groupGap,
+        paddingBottom: t.primitive.space[6],
+        paddingHorizontal: t.semantic.layout.screen.padding,
+      }}
     >
       <View style={{ width: logo, height: logo }}>
         <AssetIcon symbol={asset} size={logo} />
         {result ? (
-          <View style={{ position: 'absolute', right: 0, bottom: 0, transform: [{ translateX: t.component.rowBadge.ring }, { translateY: t.component.rowBadge.ring }] }}>
+          <View
+            style={{
+              position: 'absolute',
+              right: 0,
+              bottom: 0,
+              transform: [{ translateX: t.component.rowBadge.ring }, { translateY: t.component.rowBadge.ring }],
+            }}
+          >
             <Animated.View style={big ? pop : undefined}>
-              <RowBadge kind={result.badge} {...(big ? { size: t.primitive.size.icon_xl - t.component.rowBadge.ring * 2 } : {})} />
+              <RowBadge
+                kind={result.badge}
+                {...(big ? { size: t.primitive.size.icon_xl - t.component.rowBadge.ring * 2 } : {})}
+              />
             </Animated.View>
           </View>
         ) : null}
       </View>
-      {result ? <Text variant={big ? 'title1' : 'title2'} accessibilityRole="header" style={{ textAlign: 'center' }}>{result.title}</Text> : null}
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: t.primitive.space['1_5'], flexWrap: 'wrap', justifyContent: align }}>
-        <Text variant="figure" tabular>{amount}</Text>
-        <Text variant="figureUnit" color={t.semantic.text.secondary}>{unit}</Text>
+      {result ? (
+        <Text variant={big ? 'title1' : 'title2'} accessibilityRole="header" style={{ textAlign: 'center' }}>
+          {result.title}
+        </Text>
+      ) : null}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          gap: t.primitive.space['1_5'],
+          flexWrap: 'wrap',
+          justifyContent: align,
+        }}
+      >
+        <Text variant="figure" tabular>
+          {amount}
+        </Text>
+        <Text variant="figureUnit" color={t.semantic.text.secondary}>
+          {unit}
+        </Text>
       </View>
       {lines?.length ? (
         <View>
           {lines.map((l) => (
-            <Text key={l} variant="body" color={t.semantic.text.secondary} style={result ? { textAlign: 'center' } : undefined}>{l}</Text>
+            <Text
+              key={l}
+              variant="body"
+              color={t.semantic.text.secondary}
+              style={result ? { textAlign: 'center' } : undefined}
+            >
+              {l}
+            </Text>
           ))}
         </View>
       ) : null}
-      {note ? <Text variant="caption" color={t.semantic.text.secondary} style={{ textAlign: 'center' }}>{note}</Text> : null}
+      {note ? (
+        <Text variant="caption" color={t.semantic.text.secondary} style={{ textAlign: 'center' }}>
+          {note}
+        </Text>
+      ) : null}
       {link ? <TextLink label={link.label} onPress={link.onPress} align="center" /> : null}
     </View>
   )
