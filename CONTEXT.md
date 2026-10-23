@@ -53,7 +53,7 @@ The app could not look up the result. The user must check the original transacti
 _Avoid_: 알 수 없음
 
 **실행되지 않음** (replaced):
-Another transaction was processed first, so this one did not run.
+Another transaction with the same nonce was processed first, so this one did not run. That other transaction may still have moved the funds. The user checks the account activity before sending again.
 
 ### Keys and recovery
 

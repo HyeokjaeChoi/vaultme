@@ -273,7 +273,7 @@ export function frontMatter(src, theme = 'light') {
 }
 
 // Replace the leading --- block of DESIGN.md with fresh front matter.
-export const withFrontMatter = (doc, fm) => fm + doc.replace(/^---\n[\s\S]*?\n---\n/, '')
+export const withFrontMatter = (doc, fm) => fm + doc.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '')
 
 if (process.argv.includes('--write')) {
   const fm = frontMatter(JSON.parse(readFileSync(tokensPath, 'utf8')))

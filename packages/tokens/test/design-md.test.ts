@@ -15,4 +15,10 @@ describe('DESIGN.md', () => {
       '---\nnew: 2\n---\n# Body\n---\nx\n---\n',
     )
   })
+
+  it('replaces CRLF front matter too', () => {
+    expect(withFrontMatter('---\r\nold: 1\r\n---\r\n# Body\r\n', '---\nnew: 2\n---\n')).toBe(
+      '---\nnew: 2\n---\n# Body\r\n',
+    )
+  })
 })
