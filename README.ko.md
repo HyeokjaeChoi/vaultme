@@ -50,6 +50,7 @@ Node 24 이상과 pnpm 11.17.0이 필요합니다(`package.json`의 `packageMana
 git config core.hooksPath .githooks   # once per clone
 pnpm install
 pnpm typecheck
+pnpm format:check
 pnpm lint
 pnpm test
 scripts/check-repo-rules.sh
@@ -62,7 +63,7 @@ pnpm --filter @vaultme/mobile start   # Expo dev server
 ```
 
 `packages/tokens`는 `build`에서 TypeScript 출력을 생성합니다. `typecheck`, `lint`, `test` script가 먼저 `build`를 실행합니다.
-CI는 `scripts/check-repo-rules.sh`와 `pnpm turbo run typecheck lint test`를 실행합니다([ci.yml](.github/workflows/ci.yml)).
+pre-commit hook은 stage된 파일에 ESLint `--fix`와 Prettier를 실행합니다. CI는 `scripts/check-repo-rules.sh`, `prettier --check .`, `pnpm turbo run typecheck lint test`를 실행합니다([ci.yml](.github/workflows/ci.yml)).
 
 ## 디자인 시스템
 

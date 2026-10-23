@@ -4,5 +4,5 @@ set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 "$ROOT/scripts/check-repo-rules.sh"
 if [ -f "$ROOT/package.json" ]; then
-  (cd "$ROOT" && pnpm exec lint-staged)
+  (cd "$ROOT" && pnpm exec lint-staged --quiet)
 fi
