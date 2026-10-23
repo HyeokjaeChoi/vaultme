@@ -17,7 +17,7 @@ export default function TabsLayout() {
             .filter((r) => r.name !== 'asset')
             .map((r) => ({
               key: r.key,
-              label: String(descriptors[r.key]?.options.title ?? r.name),
+              label: descriptors[r.key]?.options.title ?? r.name,
               icon: TAB_ICON[r.name] ?? 'assets',
               active:
                 state.routes[state.index]?.name === 'asset'

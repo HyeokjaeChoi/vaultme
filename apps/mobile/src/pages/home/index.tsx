@@ -115,7 +115,14 @@ export function HomePage() {
         send={{
           label: t('home.send'),
           icon: 'send',
-          onPress: () => (blocked ? setSheet('block') : (setPreselectedAsset('ETH'), router.push('/send'))),
+          onPress: () => {
+            if (blocked) {
+              setSheet('block')
+              return
+            }
+            setPreselectedAsset('ETH')
+            router.push('/send')
+          },
         }}
         receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
       />

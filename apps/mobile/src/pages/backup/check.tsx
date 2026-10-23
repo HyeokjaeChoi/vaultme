@@ -4,6 +4,7 @@ import { AppState, View, type TextInput } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { clearCheck, getCheck, wrongIndexes } from '@/features/backup/model/check'
 import { setBackupDone } from '@/shared/storage'
+import { at } from '@/shared/lib/at'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
@@ -46,7 +47,7 @@ export function BackupCheckPage({
     if (bad.length > 0) {
       setWrong(bad)
       haptic.error()
-      cells.current[bad[0]!]?.focus()
+      cells.current[at(bad, 0)]?.focus()
       return
     }
     if (!demo) setBackupDone(true) // the dev fixture never records a real backup

@@ -100,7 +100,7 @@ function DevState({ state, cache }: { state: string; cache?: string }) {
     )
   if (state === 'rows') {
     const extra: HistoryItem[] = (['Unknown', 'Replaced'] as const).map((st, i) => ({
-      hash: `x${i}`,
+      hash: `x${String(i)}`,
       kind: 'send',
       asset: 'ETH',
       amount: i ? '0.01' : '0.05',

@@ -1,6 +1,6 @@
 // Figma: B/Word cell 565:73619 (State Empty 565:73599 / Focus 565:73604 / Filled 565:73609 / Error 565:73614)
 import { type Ref } from 'react'
-import { Platform, TextInput, View, type NativeSyntheticEvent, type TextInputKeyPressEventData } from 'react-native'
+import { Platform, TextInput, View, type TextInputKeyPressEvent } from 'react-native'
 import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
 import { NO_AUTOFILL } from './noAutofill'
@@ -52,7 +52,7 @@ export function WordCell({
   const t = useTheme()
   const c = t.component.input
   const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
-  const onKeyPress = (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+  const onKeyPress = (e: TextInputKeyPressEvent) => {
     if (e.nativeEvent.key === 'Backspace' && value === '') onBackspaceEmpty()
     else if (e.nativeEvent.key === ' ') onNext()
   }

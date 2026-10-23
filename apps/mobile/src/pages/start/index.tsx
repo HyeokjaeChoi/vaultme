@@ -18,7 +18,7 @@ export function StartPage({ demo = false }: { demo?: boolean }) {
       anchor="start"
       title={t('start.title')}
       bodyVariant="title2"
-      fact={`v${Constants.expoConfig?.version ?? ''} · ${account.network} · chain id ${account.chainId}`}
+      fact={`v${Constants.expoConfig?.version ?? ''} · ${account.network} · chain id ${String(account.chainId)}`}
       body={t('start.body')}
       actions={
         <>

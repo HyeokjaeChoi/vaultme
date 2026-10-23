@@ -90,7 +90,7 @@ function SpinnerGlyph({ size, color }: { size: number; color: string }) {
         stroke={color}
         strokeWidth={1.5}
         strokeLinecap="round"
-        strokeDasharray={`${RING * 0.75} ${RING}`}
+        strokeDasharray={`${String(RING * 0.75)} ${String(RING)}`}
         transform="rotate(-90 12 12)"
       />
     </Svg>

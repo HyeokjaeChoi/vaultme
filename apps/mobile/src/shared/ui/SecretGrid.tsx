@@ -46,14 +46,14 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
         accessibilityRole="button"
         accessibilityLabel={revealLabel ?? ''}
         accessibilityState={{ disabled: !!busy, busy: !!busy }}
-        disabled={busy || !onReveal}
+        disabled={!!busy || !onReveal}
         onPress={onReveal}
         style={{ ...panel, justifyContent: 'center' }}
       >
         <Svg
           width="100%"
           height={height}
-          viewBox={`0 0 ${w} ${height}`}
+          viewBox={`0 0 ${String(w)} ${String(height)}`}
           preserveAspectRatio="none"
           accessible={false}
           importantForAccessibility="no-hide-descendants"
@@ -69,6 +69,8 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
               const r = i % per
               const x = col * (colW + colGap)
               const y = r * (rowH + gap)
+              // Rect x/y are SVG geometry. react-native-svg 15.15.4 types inherit the @deprecated tag of the transform x/y props. Remove when the types drop it.
+              /* eslint-disable @typescript-eslint/no-deprecated */
               return (
                 <Fragment key={i}>
                   <Rect
@@ -91,6 +93,7 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
                   />
                 </Fragment>
               )
+              /* eslint-enable @typescript-eslint/no-deprecated */
             })}
           </G>
         </Svg>
@@ -124,7 +127,7 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
               <View
                 key={i}
                 accessible
-                accessibilityLabel={`${i + 1}, ${words[i] ?? ''}`}
+                accessibilityLabel={`${String(i + 1)}, ${words[i] ?? ''}`}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.fieldGap }}
               >
                 <Text

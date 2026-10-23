@@ -68,7 +68,14 @@ export function AssetDetailPage() {
           send={{
             label: t('home.send'),
             icon: 'send',
-            onPress: () => (blocked ? setSheet(true) : (setPreselectedAsset(asset.symbol), router.push('/send'))),
+            onPress: () => {
+              if (blocked) {
+                setSheet(true)
+                return
+              }
+              setPreselectedAsset(asset.symbol)
+              router.push('/send')
+            },
           }}
           receive={{ label: t('home.receive'), icon: 'receive', onPress: () => router.push('/receive') }}
         />

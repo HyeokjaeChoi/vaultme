@@ -36,7 +36,7 @@ export function LicensesPage() {
     { key: 'end-1', kind: 'end' },
     { key: 'band-2', kind: 'band' },
     { key: 'h-libs', kind: 'header', text: t('settings.licensesScreen.groupLibs') },
-    ...libLicenses.map((e): Item => ({ key: `p-${e.name}@${e.version}`, kind: 'row', entry: e })),
+    ...libLicenses.map((e): Item => ({ key: `p-${e.name}@${e.version ?? ''}`, kind: 'row', entry: e })),
   ]
   const pad = th.semantic.layout.screen.padding
   const open = useCallback(

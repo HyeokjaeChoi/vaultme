@@ -29,7 +29,7 @@ export function SensitiveReveal({ words, onReveal, hint, busy }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={shown ? list.map((w, i) => `${i + 1}, ${w}`).join(', ') : ko.a11y.reveal}
+      accessibilityLabel={shown ? list.map((w, i) => `${String(i + 1)}, ${w}`).join(', ') : ko.a11y.reveal}
       accessibilityState={{ disabled: shown || busy === true, busy: busy === true }}
       disabled={shown || busy}
       onPress={onReveal}
@@ -62,7 +62,7 @@ export function SensitiveReveal({ words, onReveal, hint, busy }: Props) {
                   backgroundColor: t.component.sensitiveReveal.wordBg,
                 }}
               >
-                <Text variant="address">{`${n}. ${w}`}</Text>
+                <Text variant="address">{`${String(n)}. ${w}`}</Text>
               </View>
             ))}
           </View>

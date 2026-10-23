@@ -63,7 +63,7 @@ export function Button({
   const spin = useSpin(!!busy)
   const height = bb.height[size]
   const slop = Math.max(0, (b.hitTarget - height) / 2)
-  const blocked = disabled || busy // no presses
+  const blocked = !!disabled || !!busy // no presses
   const dimmed = disabled // Busy keeps the normal fill (Figma S05 Loading: blue pill, white spinner + progressive label); only Disabled grays out
   const sec = onRaised ? bb.secondary.bgOnRaised : bb.secondary.bg
   // Disabled (Figma): surface/disabled fill + text/disabled label, for every variant.
@@ -99,7 +99,7 @@ export function Button({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={shownLabel}
-        accessibilityState={{ disabled: !!blocked, busy: !!busy }}
+        accessibilityState={{ disabled: blocked, busy: !!busy }}
         onPress={blocked ? undefined : onPress}
         hitSlop={{ top: slop, bottom: slop }}
         onPressIn={() => !blocked && handlers.onPressIn()}
