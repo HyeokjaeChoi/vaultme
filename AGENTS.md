@@ -31,10 +31,18 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | PR body ≤ 3,500 characters and `Closes #N` | `.github/workflows/pr-description.yml` `check` |
 | Code is Prettier-formatted and ESLint-clean with 0 warnings | pre-commit `lint-staged`, pre-push, CI `verify` |
 | Typecheck, lint and tests pass | CI `verify`, pre-push hook |
+| Claude Code: no `--no-verify`, no force push or push to main; no edits to CLAUDE.md or generated files; edited files are formatted and linted; a turn with code changes ends only when typecheck and lint pass | `.claude/settings.json` hooks in `.claude/hooks/` |
 | pnpm installs only package versions published at least 7 days (10080 min) ago | `pnpm-workspace.yaml` `minimumReleaseAge` |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |
 
 When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a test) and list it here. Only if no check can detect it, add a lesson to `vaultme-review-lessons`.
+
+## Production code
+
+1. Think before coding. State your assumptions. If the request is unclear, ask; do not guess.
+2. Simplest change that works. No speculative features, options or abstractions.
+3. Surgical changes. Touch only what the task needs. Match the surrounding style. Report unrelated problems; do not fix them in passing.
+4. Verifiable goals. Define how you will prove the result (a test, a check, a screenshot) before you start, and run it before you report done. A bug fix starts with a failing test.
 
 ## Judgment rules
 
@@ -52,5 +60,6 @@ When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a t
 - Architecture: `ARCHITECTURE.md`
 - Decisions: `docs/adr/`
 - Before you edit an area, read `ARCHITECTURE.md`, the ADRs that touch it and `.claude/skills/vaultme-review-lessons/SKILL.md`.
+- Area rules: `apps/mobile/AGENTS.md`, `packages/tokens/AGENTS.md` (loaded when you open a file there).
 
 Prefer a low-cost model for research and implementation. The main agent splits work, tracks it, and reviews results.
