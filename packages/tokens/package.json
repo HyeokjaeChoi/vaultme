@@ -12,12 +12,12 @@
     "lint": "node build.mjs && eslint . --max-warnings=0 && design.md lint --format=text ../../DESIGN.md"
   },
   "dependencies": {
-    "style-dictionary": "^5.6.0"
+    "style-dictionary": "^5.7.0"
   },
   "devDependencies": {
     "@google/design.md": "0.4.0",
     "@vaultme/config": "workspace:*",
-    "eslint": "^10.12.0",
+    "eslint": "^10.13.0",
     "typescript": "^6.0.3",
     "vitest": "^5.0.3"
   }
