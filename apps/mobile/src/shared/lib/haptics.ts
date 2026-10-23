@@ -15,5 +15,4 @@ export const haptic = {
 }
 
 /** Keypad cue: a rejected key (or one that made the amount too big) gives the warning cue, never the selection one. `undefined` = accepted. */
-// eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- Keypad passes `onKey()` results typed `boolean | void`; narrow this when #107 touches Keypad
-export const keyHaptic = (accepted: boolean | void) => (accepted === false ? haptic.warning() : haptic.select())
+export const keyHaptic = (accepted?: boolean) => (accepted === false ? haptic.warning() : haptic.select())

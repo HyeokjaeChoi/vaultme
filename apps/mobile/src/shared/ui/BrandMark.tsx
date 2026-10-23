@@ -32,7 +32,7 @@ export function BrandMark({ size = GRID, bloom }: { size?: number; bloom?: Share
       accessible={false}
       importantForAccessibility="no-hide-descendants"
     >
-      <Svg width={size} height={size} viewBox={`0 0 ${GRID} ${GRID}`} fill="none">
+      <Svg width={size} height={size} viewBox={`0 0 ${String(GRID)} ${String(GRID)}`} fill="none">
         <Path d={TILE} fill={tile} />
         <Path d={GLYPH} fill={glyph} fillRule="evenodd" clipRule="evenodd" />
       </Svg>

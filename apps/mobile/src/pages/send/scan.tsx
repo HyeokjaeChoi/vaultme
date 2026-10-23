@@ -1,5 +1,5 @@
 // Figma: B-S21 QR scan 618:102942 (test QR 618:103021, invalid QR 618:103107, camera denied 618:103195), B-S21+QRX chain mismatch sheet 618:103288
-import { CameraView, useCameraPermissions } from 'expo-camera'
+import { CameraView, PermissionStatus, useCameraPermissions } from 'expo-camera'
 import * as Clipboard from 'expo-clipboard'
 import { useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
@@ -64,11 +64,16 @@ export function ScanPage() {
   const done = useRef(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => () => void (timer.current && clearTimeout(timer.current)), [])
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current)
+    },
+    [],
+  )
   // First visit: ask now (the user just tapped the scan icon). Back from Settings: read the permission again.
   const asked = useRef(false)
   useEffect(() => {
-    if (perm?.status === 'undetermined' && perm.canAskAgain && !asked.current) {
+    if (perm?.status === PermissionStatus.UNDETERMINED && perm.canAskAgain && !asked.current) {
       asked.current = true
       void requestPerm()
     }
@@ -115,6 +120,7 @@ export function ScanPage() {
     if (done.current) return
     try {
       const text = (await Clipboard.getStringAsync()).trim().replace(/\s/g, '')
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- onScan can set the ref during the await; TS narrows it to false
       if (done.current) return // a QR scan finished while the clipboard read was pending
       done.current = true
       setScanResult({ to: text, fromQr: false, hadAmount: false })
@@ -125,7 +131,7 @@ export function ScanPage() {
   }
 
   const knownName = wrongChain !== null ? chainName(wrongChain) : null
-  const denied = dev === 'denied' || (perm !== null && !perm.granted && perm.status !== 'undetermined')
+  const denied = dev === 'denied' || (perm !== null && !perm.granted && perm.status !== PermissionStatus.UNDETERMINED)
   const header = (
     <ScreenHeader
       icon="close"
@@ -215,7 +221,11 @@ export function ScanPage() {
             >
               {t('send.qr.hint')}
             </Text>
-            <Text variant="fact" color={onBrand} style={{ textAlign: 'center' }}>{`${CHAIN.name} · ${CHAIN.id}`}</Text>
+            <Text
+              variant="fact"
+              color={onBrand}
+              style={{ textAlign: 'center' }}
+            >{`${CHAIN.name} · ${String(CHAIN.id)}`}</Text>
           </View>
           {test ? (
             <View style={{ alignItems: 'center' }}>

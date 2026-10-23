@@ -1,5 +1,5 @@
 // Figma: product screen frame (R-S10R 333:113 / R-S22 336:390): screenB.bg (flat white), optional Nav row, body px screen.padding, content pt space-2, section gap 24, Actions pinned below
-import { type MutableRefObject, type ReactNode, useEffect, useRef, useState } from 'react'
+import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react'
 import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
@@ -21,7 +21,7 @@ type Props = {
   /** Brand screens (Figma 423:13440, 423:15412, 423:15443, 423:15474) draw no line above the actions. */
   footerLine?: boolean
   /** Form screens: the body shrinks above the keyboard, and `revealRef.current(y, height)` scrolls a body-content box into view with `l.screen.padding` (16) clearance. */
-  revealRef?: MutableRefObject<((y: number | 'end', height?: number) => void) | null>
+  revealRef?: RefObject<((y: number | 'end', height?: number) => void) | null>
   /** Pull-to-refresh (native RefreshControl). The spinner shows until the returned promise settles. Omit = no pull-to-refresh. */
   onRefresh?: () => Promise<unknown>
   /** Surface color override: the QR scan screen is dark in both themes (Figma 618:102942, overlay.scrimBg). Default = screenB.bg. */

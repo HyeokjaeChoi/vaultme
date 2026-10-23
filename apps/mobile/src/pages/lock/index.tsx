@@ -71,7 +71,7 @@ export function LockPage({
     }
   }, [prompt, autoPrompt])
 
-  const key = method ? (BODY[method as keyof typeof BODY] ?? 'passcode') : null
+  const key = method === null ? null : method === 'passcode' ? 'passcode' : BODY[method]
   const body = failure
     ? `${t(`lock.${failure}.title`)}. ${t(`lock.${failure}.body`)}`
     : key

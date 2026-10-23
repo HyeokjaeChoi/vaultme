@@ -1,5 +1,4 @@
 import base from '@vaultme/config/eslint'
-import tseslint from 'typescript-eslint'
 
 // AGENTS.md "Enforced rules" (R2, R5): no raw colors or numeric spacing in UI code. Values come from @vaultme/tokens.
 const styleKeys =
@@ -23,22 +22,4 @@ const noRawStyle = {
   },
 }
 
-// Workaround: screen files keep the old rule set until #107 fixes them with Figma comparison screenshots. Remove this block in #107.
-// Globs mirror the Figma gate regex in AGENTS.md (screen code under app/, pages, widgets, shared/ui, features/*/ui).
-const screenFiles = {
-  files: [
-    'app/**/*.tsx',
-    'src/pages/**/*.tsx',
-    'src/widgets/**/*.tsx',
-    'src/shared/ui/**/*.tsx',
-    'src/features/*/ui/**/*.tsx',
-  ],
-  ...tseslint.configs.disableTypeChecked,
-  rules: {
-    ...tseslint.configs.disableTypeChecked.rules,
-    '@typescript-eslint/no-non-null-assertion': 'off',
-    '@typescript-eslint/no-invalid-void-type': 'off',
-  },
-}
-
-export default [{ ignores: ['.expo', 'dist', 'plugins'] }, ...base, screenFiles, noRawStyle]
+export default [{ ignores: ['.expo', 'dist', 'plugins'] }, ...base, noRawStyle]

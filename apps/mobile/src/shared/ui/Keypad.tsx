@@ -17,7 +17,7 @@ const ROWS: Cell[][] = [
 ]
 
 /** Returns `false` when the key was rejected (or made the amount too big): the haptic is then the warning cue, not selection. */
-type OnKey = (k: KeypadKey) => boolean | void
+type OnKey = (k: KeypadKey) => boolean | undefined
 type Labels = { dot: string; delete: string }
 function Key({ cell, labels, onKey }: { cell: Cell; labels: Labels; onKey: OnKey }) {
   const t = useTheme()

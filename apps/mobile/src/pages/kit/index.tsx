@@ -160,7 +160,7 @@ export function KitPage() {
         action={{ label: '받기 주소 보기' }}
       />
       <SecretGrid words={null} />
-      <SecretGrid words={Array.from({ length: 12 }, (_, i) => `단어${i + 1}`)} />
+      <SecretGrid words={Array.from({ length: 12 }, (_, i) => `단어${String(i + 1)}`)} />
       <Segmented
         options={[
           { value: '24', label: '24단어' },

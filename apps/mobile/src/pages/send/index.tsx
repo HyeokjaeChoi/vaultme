@@ -100,7 +100,7 @@ export function SendPage() {
         </View>
       ) : null}
       {valid ? <StatusNotice tone="info" title={t('send.recipientHint')} /> : null}
-      {valid && fromQr && qr?.hadAmount ? <StatusNotice tone="info" title={t('send.qr.amountNote')} /> : null}
+      {valid && fromQr && qr.hadAmount ? <StatusNotice tone="info" title={t('send.qr.amountNote')} /> : null}
       {!to && recents.length ? (
         <View style={{ gap: th.semantic.layout.rowGap, paddingTop: th.primitive.space[2] }}>
           <Text variant="label" color={th.semantic.text.tertiary} accessibilityRole="header">

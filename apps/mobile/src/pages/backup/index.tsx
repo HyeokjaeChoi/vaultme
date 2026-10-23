@@ -68,16 +68,23 @@ export function BackupPage({
   }, [])
 
   const reveal = async () => {
-    if (demo) return setWords(DEMO_WORDS)
+    if (demo) {
+      setWords(DEMO_WORDS)
+      return
+    }
     setLoad('busy')
     const g = gen.current
     try {
       await preventScreenCaptureAsync(CAPTURE_KEY) // never reveal unless the capture block is in place
     } catch {
-      return setLoad('error')
+      setLoad('error')
+      return
     }
     const r = await loadPhrase({ title: t('backup.authPrompt'), cancel: t('common.cancel') })
-    if (g !== gen.current || AppState.currentState !== 'active') return setLoad('idle') // left the screen or app meanwhile: never show it
+    if (g !== gen.current || AppState.currentState !== 'active') {
+      setLoad('idle') // left the screen or app meanwhile: never show it
+      return
+    }
     if (r.status === 'ok') {
       setWords(r.mnemonic.reveal().split(' '))
       setLoad('idle')

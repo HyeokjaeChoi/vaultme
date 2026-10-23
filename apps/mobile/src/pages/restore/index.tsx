@@ -50,7 +50,9 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const { t } = useTranslation()
   const router = useRouter()
   const th = useTheme()
-  const [start] = useState(() => initial ?? takeWords() ?? { words: emptyWords(), count: 12 as WordCount }) // read once: the hand-off is consumed
+  const [start] = useState<{ words: string[]; count: WordCount }>(
+    () => initial ?? takeWords() ?? { words: emptyWords(), count: 12 },
+  ) // read once: the hand-off is consumed
   const [words, setWords] = useState(start.words)
   const [count, setCount] = useState<WordCount>(start.count)
   const [focus, setFocus] = useState<number | null>(dev?.focus ?? null)
@@ -155,7 +157,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
           key={i}
           number={i + 1}
           label={t('restore.word', { n: i + 1 })}
-          value={words[i]!}
+          value={words[i] ?? ''}
           focused={focus === i}
           error={state.unknown.includes(i)}
           last={i === count - 1}

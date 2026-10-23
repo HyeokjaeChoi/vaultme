@@ -45,14 +45,14 @@ export function AddressText({ address, highlight = [], color, markColor, size = 
   const text = displayAddress(address)
   const marks = new Set(highlight)
   const runs: { kind: Kind; text: string }[] = []
-  ;[...text].forEach((c, i) => {
+  Array.from(text).forEach((c, i) => {
     const kind: Kind = marks.has(i)
       ? 'hit'
       : emphasis && (i < ADDRESS_HEAD || i >= text.length - ADDRESS_TAIL)
         ? 'end'
         : 'mid'
     const last = runs[runs.length - 1]
-    if (last && last.kind === kind) last.text += c
+    if (last?.kind === kind) last.text += c
     else runs.push({ kind, text: c })
   })
   const style = {
