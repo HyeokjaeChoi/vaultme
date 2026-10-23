@@ -1,4 +1,4 @@
-// Style Dictionary build: outputs/wallet-foundation.tokens.json -> src/generated/*.ts
+// Style Dictionary build: packages/tokens/tokens.json -> src/generated/*.ts
 // Dark = the `semanticDark` set (Tokens Studio theme "Dark") layered over `semantic`; component values follow by alias.
 // Source is Tokens Studio style ({ value, type }, `{path}` aliases without layer prefix). SD v5 reads that natively,
 // so sd-transforms is not needed. A preprocessor adds the layer prefix to every alias so layers stay separate.
@@ -7,7 +7,7 @@ import { resolve } from 'node:path'
 import StyleDictionary from 'style-dictionary'
 
 const root = `${import.meta.dirname}/`
-const foundation = resolve(root, '../../outputs/wallet-foundation.tokens.json')
+const foundation = resolve(root, 'tokens.json')
 const out = `${root}src/generated/`
 const ESC = '__value'
 const LAYERS = ['primitive', 'semantic', 'component']

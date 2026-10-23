@@ -68,8 +68,8 @@ pre-commit hook은 stage된 파일에 ESLint `--fix`와 Prettier를 실행합니
 ## 디자인 시스템
 
 디자인 원본은 Figma 파일입니다: [VaultMe Foundation](https://www.figma.com/design/NMXrn0q75G1SX2Bn1L1jP8).
-`outputs/wallet-foundation.tokens.json`이 token 값의 원본이고, `packages/tokens`가 이를 앱 상수로 바꿉니다.
-앱 코드는 모든 색, 간격, radius, 글자 값에 `@vaultme/tokens`를 씁니다. 값의 설명은 [디자인 언어](outputs/VaultMe-DESIGN.md)와 [Foundation 가이드](outputs/wallet-foundation-guide.md)에 있습니다.
+`packages/tokens/tokens.json`이 token 값의 원본이고, `packages/tokens`가 이를 앱 상수로 바꿉니다.
+앱 코드는 모든 색, 간격, radius, 글자 값에 `@vaultme/tokens`를 씁니다. 값과 컴포넌트 공통 규칙은 [DESIGN.md](DESIGN.md)에, 제품 용어는 [CONTEXT.md](CONTEXT.md)에 있습니다.
 규칙이 생긴 이유는 [retro](docs/retro/2026-10-13-design-system-not-applied.md)에 있습니다.
 
 ## 작업 방식

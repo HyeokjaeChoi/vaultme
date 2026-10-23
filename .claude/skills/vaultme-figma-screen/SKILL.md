@@ -17,7 +17,7 @@ Also load `figma:figma-use` and `figma:figma-generate-design` before any `use_fi
    - Never use `layout/sectionGap/mobile` or `desktop` in app screens. They are landing-page values.
 3. **Every fill and stroke binds to a color variable.** Prefer Component, then Semantic. Never a hex.
 4. **Every text node uses a text style** (`Product/*`, `h1/*`, `display/*`). No local font size or weight overrides.
-5. **Copy follows** `outputs/design/ux-terminology.md`. Foundation components stay English; screens override text in Korean.
+5. **Copy follows** the glossary in `CONTEXT.md`. Foundation components stay English; screens override text in Korean.
 6. **Exempt only OS chrome and synthetic art**: Status bar, Home indicator, Placeholder QR. Name them exactly so the audit can skip them.
 
 ## Component map (master node IDs)
@@ -42,10 +42,10 @@ Button hierarchy: one Primary per screen for the main forward action. Risky ackn
 
 ## Steps
 
-1. Read `docs/agents/design-index.md`, `outputs/design/ux-flow.md`, `outputs/design/ux-terminology.md`.
-2. **Mobbin reference search** (only for a screen you restructure, not for a copy change): load the tool with ToolSearch `select:mcp__ff84db7e-b0c7-4a72-808c-aaab282df65b__search_screens`, then call it 1–2 times with `platform: "ios"`, `output_destination: "design_tool"`, `output_tool: "Figma"`, one screen per query, `mode: "standard"`, `limit: 3`, and the same `task_intent` for the whole task. Look at the returned images. Write the `mobbin_url` links in the frame annotation (`Note · <frame name>` text under the frame). If Mobbin is not signed in, say so and use the links from `work/review/rr-*-2026-10-17.md`. Check the result against `outputs/VaultMe-DESIGN.md` "Design principles".
+1. Read `docs/agents/design-index.md`, `outputs/design/ux-flow.md`, `CONTEXT.md`, `DESIGN.md`.
+2. **Mobbin reference search** (only for a screen you restructure, not for a copy change): load the tool with ToolSearch `select:mcp__ff84db7e-b0c7-4a72-808c-aaab282df65b__search_screens`, then call it 1–2 times with `platform: "ios"`, `output_destination: "design_tool"`, `output_tool: "Figma"`, one screen per query, `mode: "standard"`, `limit: 3`, and the same `task_intent` for the whole task. Look at the returned images. Write the `mobbin_url` links in the frame annotation (`Note · <frame name>` text under the frame). If Mobbin is not signed in, say so and use the links from `work/review/rr-*-2026-10-17.md`. Check the result against `DESIGN.md` "Design principles".
 3. List the sections of the screen and the component for each section from the map. Write this list in your reply before any mutation.
-4. Build with `use_figma`: create the screen frame (390×844, fill `screenB/bg`, flat white; outputs/VaultMe-DESIGN.md). Use `surface/canvas` only for the 12 px `sectionBand` on detail screens, then layout frames bound per rule 2, then instances with property overrides.
+4. Build with `use_figma`: create the screen frame (390×844, fill `screenB/bg`, flat white; DESIGN.md). Use `surface/canvas` only for the 12 px `sectionBand` on detail screens, then layout frames bound per rule 2, then instances with property overrides.
 5. Run `.claude/skills/vaultme-figma-screen/audit.js` (set `PAGE_ID`, and `ROOT_IDS` to the new frames). **All counts must be 0**, including `unboundPaint` (every visible solid paint, inside instances too, is variable-bound or a style; only asset identity ETH 137:402 / USDC 137:429 and OS chrome/QR are exempt) and `stalePaint` (bound paint whose stored color differs from the resolved value: the desktop export draws the stored color). Fix and re-run until they are.
 6. Take one screenshot of the frames and check hierarchy, copy, and overflow. Check one frame in Dark mode (`setExplicitVariableModeForCollection` on 02 Semantic).
 7. Report: frame IDs, the audit result object, and the screenshot. A screen without an audit result of 0 is not done.

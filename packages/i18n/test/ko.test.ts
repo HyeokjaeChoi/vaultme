@@ -6,7 +6,7 @@ it('resolves ko keys synchronously', () => {
   expect(i18n.t('receive.qrLabel')).toBe('받기 주소 QR 코드')
 })
 
-it('has no banned terms (ux-terminology)', () => {
+it('has no banned terms (CONTEXT.md)', () => {
   const all = JSON.stringify(ko)
   for (const bad of ['전송', '송신', '가스비', '시드', '니모닉', 'Testnet']) expect(all).not.toContain(bad)
 })

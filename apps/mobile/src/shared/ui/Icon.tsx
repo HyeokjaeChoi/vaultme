@@ -1,4 +1,4 @@
-// Figma: Icon set 137:3 (Solar Linear/Bold/Bold Duotone; Icon button swap slot 67:205; Icon / action / qr 434:230, more 434:235; navigation / assets 506:24468; hero 506:26134..; wallet-icon-guide.md)
+// Figma: Icon set 137:3 (Solar Linear/Bold/Bold Duotone; Icon button swap slot 67:205; Icon / action / qr 434:230, more 434:235; navigation / assets 506:24468; hero 506:26134..; DESIGN.md Icons)
 // Icons by 480 Design, Solar Icon Set, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Changes were made: resized and recolored. Code: @solar-icons/react-native (MIT).
 import { View } from 'react-native'
 import Svg, { Circle, Path } from 'react-native-svg'
@@ -174,7 +174,7 @@ type Props =
   | { name: BoldIconName; size: number; color: string; weight: 'bold' }
   | { name: HeroIconName; size: number; color: string; weight: 'duotone' }
 
-/** Decorative: hidden from screen readers; the label next to it carries the meaning. Duotone back layer = same color at 50% (wallet-icon-guide §0). */
+/** Decorative: hidden from screen readers; the label next to it carries the meaning. Duotone back layer = same color at 50% (DESIGN.md, Icons). */
 export function Icon({ name, size, color, weight = 'linear' }: Props) {
   const Glyph =
     weight === 'bold'

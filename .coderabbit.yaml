@@ -22,18 +22,18 @@ reviews:
         Flag any state transition that is not in the lld.md §6 table.
     - path: 'apps/mobile/**'
       instructions: >-
-        Judge against AGENTS.md, outputs/VaultMe-DESIGN.md, outputs/design/lld.md §1.1 and §12,
-        outputs/design/ux-flow.md, outputs/design/ux-terminology.md and outputs/components/.
+        Judge against AGENTS.md, DESIGN.md, outputs/design/lld.md §1.1 and §12,
+        outputs/design/ux-flow.md, CONTEXT.md and outputs/components/.
         Use token values only (no raw hex or numeric spacing). Review screens show account,
         network, asset, full recipient, amount, estimated fee and status. Korean copy must
-        match ux-terminology.md. 44 pt targets, accessibility labels on icon-only controls.
+        match the CONTEXT.md glossary. 44 pt targets, accessibility labels on icon-only controls.
     - path: 'packages/tokens/**'
       instructions: >-
-        Values come from outputs/wallet-foundation.tokens.json only. Semantic and Component
+        Values come from packages/tokens/tokens.json only. Semantic and Component
         values alias Primitive tokens. Flag any raw value outside Primitive.
     - path: 'packages/i18n/**'
       instructions: >-
-        Strings must follow outputs/design/ux-terminology.md and outputs/design/ux-copy.md.
+        Strings must follow CONTEXT.md and outputs/design/ux-copy.md.
     - path: 'outputs/**'
       instructions: >-
         These are design sources. Treat changes to decisions (requirements session, hld, lld)

@@ -1,4 +1,4 @@
-// Approved Korean copy: outputs/design/ux-copy.md + ux-terminology.md. Screens in C2a only.
+// Approved Korean copy: outputs/design/ux-copy.md + the CONTEXT.md glossary. Screens in C2a only.
 export const ko = {
   tab: { assets: '자산', activity: '내역', settings: '설정' },
   common: {
