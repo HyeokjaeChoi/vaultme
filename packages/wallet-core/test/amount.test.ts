@@ -38,7 +38,7 @@ describe('toUnits / fromUnits', () => {
         (a, whole, fracSeed) => {
           const d = decimals[a]
           const frac = (fracSeed % 10n ** BigInt(d)).toString().padStart(d, '0').replace(/0+$/, '')
-          const s = frac ? `${whole}.${frac}` : `${whole}`
+          const s = frac ? `${String(whole)}.${frac}` : String(whole)
           expect(fromUnits(toUnits(s, a), a)).toBe(s)
         },
       ),
