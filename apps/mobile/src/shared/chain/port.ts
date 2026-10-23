@@ -1,7 +1,7 @@
 import type { Address, AssetId, ChainSnapshot, Hash, Hex } from '@vaultme/wallet-core'
 
 /**
- * Chain access for the app. Shaped after POST /v1/rpc (lld.md §4): getSnapshot = eth_getBalance, eth_call(balanceOf),
+ * Chain access for the app. Shaped after POST /v1/rpc (ARCHITECTURE.md#send): getSnapshot = eth_getBalance, eth_call(balanceOf),
  * eth_getTransactionCount, eth_estimateGas, eth_feeHistory; submit = eth_sendRawTransaction.
  */
 export type Receipt = { status: 'success' | 'reverted'; blockNumber: bigint }
@@ -15,9 +15,9 @@ export type ChainPort = {
   getBalances(address: Address): Promise<Record<AssetId, bigint>>
   /** eth_getTransactionReceipt: null while the tx is not in a block. */
   getReceipt(hash: Hash): Promise<Receipt | null>
-  /** eth_getBlockByNumber('safe', false): the number of the newest `safe` block (Q37). A receipt at or below it is final. */
+  /** eth_getBlockByNumber('safe', false): the number of the newest `safe` block (ADR-0006). A receipt at or below it is final. */
   getSafeBlock(): Promise<bigint>
-  /** eth_getTransactionCount(address, 'safe'): the account nonce as of the `safe` block (Replaced, Q77). */
+  /** eth_getTransactionCount(address, 'safe'): the account nonce as of the `safe` block (Replaced, ADR-0006). */
   getSafeNonce(address: Address): Promise<bigint>
   /** false = nothing leaves the device (fake adapter). The UI says so and hides explorer links. */
   readonly broadcasts: boolean

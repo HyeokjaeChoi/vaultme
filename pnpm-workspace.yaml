@@ -2,7 +2,7 @@ packages:
   - apps/*
   - packages/*
 
-# Supply-chain rules (LLD Q74). Minutes: 10080 = 7 days.
+# Supply-chain rules. Minutes: 10080 = 7 days.
 minimumReleaseAge: 10080
 # Fail install when a dependency has an unreviewed build script.
 strictDepBuilds: true

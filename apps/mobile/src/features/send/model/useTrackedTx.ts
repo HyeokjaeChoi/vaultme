@@ -7,7 +7,7 @@ import { sendFrom } from './useReviewCore'
 import { checkTx, isPolled, startPolling, type TxState } from './txState'
 import { readPendingTx, usePendingTx, writePendingTx } from './usePendingTx'
 
-/** hld.md §4.1: re-check a Pending or Included send every 15 s while its screen is focused. */
+/** ARCHITECTURE.md#send: re-check a Pending or Included send every 15 s while its screen is focused. */
 export const POLL_MS = 15_000
 /** Test-data mode polls faster, so a fake send is seen settling (fakeSettle). */
 export const FAKE_POLL_MS = 3_000

@@ -6,7 +6,7 @@
   // vars only. No account IDs, no secrets here. Secrets go in `.dev.vars` (local) or `wrangler secret` (deployed).
   // Vars and bindings are not inherited by named environments, so each env repeats them.
   "vars": { "MIN_APP_VERSION": "0.0.0" },
-  // ETHERSCAN_API_KEY (history upstream) is a secret too. The EtherscanBucket Durable Object is one global token bucket (LLD §5.1).
+  // ETHERSCAN_API_KEY (history upstream) is a secret too. The EtherscanBucket Durable Object is one global token bucket (ARCHITECTURE.md#history).
   // ALCHEMY_WEBHOOK_ID, ALCHEMY_SIGNING_KEY, ALCHEMY_NOTIFY_TOKEN, EXPO_ACCESS_TOKEN (transaction push, #67) are secrets too.
   // INFURA_KEY and ALCHEMY_KEY (RPC upstreams) are secrets too, set the same way.
   // TOKEN_SECRET (>= 32 chars) is a secret: .dev.vars locally, `wrangler secret put TOKEN_SECRET` when deployed.
@@ -16,7 +16,7 @@
   "triggers": { "crons": ["17 * * * *"] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
   "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api", "migrations_dir": "migrations" }],
-  // Cloudflare limits count per location and are approximate (LLD §5.0). period is 10 or 60 only.
+  // Cloudflare limits count per location and are approximate (ARCHITECTURE.md#invariants, rate limits). period is 10 or 60 only.
   // namespace_id is account-wide: each env needs its own ids (1xxx top level, 2xxx staging, 3xxx production).
   "ratelimits": [
     { "name": "INSTALL_IP_LIMITER", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } },

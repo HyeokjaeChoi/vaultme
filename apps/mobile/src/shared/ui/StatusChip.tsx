@@ -9,7 +9,7 @@ type Props = {
 }
 
 /**
- * The one honesty chip: pill, Caption, neutral (`component.chip.bg/fg`, accent rule: no amber, no blue). Static, except on Home where it opens the explainer sheet (ux-copy S10);
+ * The one honesty chip: pill, Caption, neutral (`component.chip.bg/fg`, accent rule: no amber, no blue). Static, except on Home where it opens the explainer sheet (S10);
  * the 44 pt target comes from hitSlop.
  */
 export function StatusChip({ label, onPress }: Props) {

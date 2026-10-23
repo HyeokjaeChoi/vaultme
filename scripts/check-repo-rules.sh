@@ -15,7 +15,7 @@ if scan '-----BEGIN [A-Z ]*PRIVATE KEY-----|privateKey: *["'\'']0x[0-9a-fA-F]{64
   err "R1: private key material found"
 fi
 
-# R2. No raw hex colors in app UI code. Use packages/tokens (lld.md §1.1).
+# R2. No raw hex colors in app UI code. Use packages/tokens (AGENTS.md "Enforced rules").
 if scan "['\"]#[0-9a-fA-F]{3,8}['\"]" 'apps/mobile/src/**/*.ts' 'apps/mobile/src/**/*.tsx' 'apps/mobile/app/**/*.tsx'; then
   err "R2: raw hex color in apps/mobile; use token values"
 fi
@@ -167,6 +167,38 @@ for f in sys.stdin.read().split("\0"):
 sys.exit(bad)
 '; then
   err "R10: possible recovery phrase; only the public test vectors in R10 are allowed"
+fi
+
+# R11. Markdown references must resolve. In tracked *.md outside work/: every relative [x](path) link and every
+# backticked token that looks like a repo file path (has "/" and a known extension) must exist. Skipped: URLs,
+# #anchors, fenced code, tokens with glob or placeholder characters, and tokens that start with "/" (URL paths).
+# A token also passes when a tracked file ends with it (so `shared/lib/address.ts` works).
+if ! { files; echo ---; files '*.md' ':!work/**'; } | python3 -c '
+import os, re, sys
+raw = sys.stdin.read().split("\n---\n")
+allf = set(raw[0].split("\n")); mds = [m for m in raw[1].split("\n") if m and os.path.exists(m)]
+ext = r"(?:md|ts|tsx|js|mjs|cjs|json|jsonc|yml|yaml|sh|sql|toml|css|html)"
+def ok(t, base):
+    t = t.split("#", 1)[0]
+    return not t or os.path.exists(os.path.normpath(os.path.join(base, t))) or os.path.exists(t) or any(f.endswith("/" + t) for f in allf)
+bad = 0
+for m in mds:
+    base, fenced = os.path.dirname(m), False
+    for n, line in enumerate(open(m, encoding="utf-8", errors="replace"), 1):
+        if line.lstrip().startswith(("```", "~~~")):
+            fenced = not fenced
+            continue
+        if fenced:
+            continue
+        for t in re.findall(r"\]\(([^)\s]+)\)", line):
+            if not t.startswith(("#", "http://", "https://", "mailto:")) and not ok(t, base):
+                print(f"{m}:{n}: broken link {t}", file=sys.stderr); bad = 1
+        for t in re.findall(r"`([^`\s]+)`", line):
+            if "/" in t and not t.startswith(("/", "http")) and not re.search(r"[*<>{}$:]", t) and re.search(r"\." + ext + r"(#.*)?$", t) and not ok(t, "."):
+                print(f"{m}:{n}: missing path {t}", file=sys.stderr); bad = 1
+sys.exit(bad)
+'; then
+  err "R11: broken Markdown link or repo path (see above)"
 fi
 
 exit "$fail"

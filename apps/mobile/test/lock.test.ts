@@ -26,7 +26,7 @@ const ev = (
 })
 const run = (events: LockEvent[]) => events.reduce(reduceLock, { locked: false, backgroundedAt: null })
 
-describe('lock timer (Q13)', () => {
+describe('lock timer', () => {
   it('stays unlocked when back after 29 s', () => {
     expect(run([ev('background', T0), ev('active', T0 + 29_000)]).locked).toBe(false)
   })

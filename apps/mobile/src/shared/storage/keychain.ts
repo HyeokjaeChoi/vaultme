@@ -3,14 +3,14 @@ import * as Keychain from 'react-native-keychain'
 import { Mnemonic } from '@vaultme/wallet-core'
 import { withAuthInProgress } from '../auth/inProgress'
 
-// Keychain access for the app (lld.md §3: wallet-core does not know storage).
-// Two items, two tiers (hld.md §5, Q34, Q63):
+// Keychain access for the app (ARCHITECTURE.md#invariants: wallet-core does not know storage).
+// Two items, two tiers (ARCHITECTURE.md#invariants, ADR-0004):
 const PHRASE_SERVICE = 'app.vaultme.phrase'
 const KV_KEY_SERVICE = 'app.vaultme.kvkey'
 const DEVICE_KEY_SERVICE = 'app.vaultme.devicekey'
 const USER = 'vaultme'
 
-// Phrase (Q34): "BIOMETRY_ANY_OR_DEVICE_PASSCODE, this device only, no cloud backup".
+// Phrase (ADR-0004): "BIOMETRY_ANY_OR_DEVICE_PASSCODE, this device only, no cloud backup".
 // OS enforces auth; survives biometric changes; device passcode is the fallback.
 // WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: needs a device passcode, never migrates, never in backups.
 const PHRASE_OPTIONS = {
@@ -20,7 +20,7 @@ const PHRASE_OPTIONS = {
   cloudSync: false,
 } as const
 
-// MMKV encryption key (Q63): "keychain tier without authentication" so the lock gate can read
+// MMKV encryption key (ADR-0004): "keychain tier without authentication" so the lock gate can read
 // MMKV before the first render. This device only. It is not the phrase.
 const KV_KEY_OPTIONS = {
   service: KV_KEY_SERVICE,
@@ -92,7 +92,7 @@ export async function getOrCreateKvKey(): Promise<string> {
 }
 
 /**
- * Install auth key (lld.md §4.1): ECDSA P-256 private key, hex. Same no-auth tier as the MMKV key, so API calls need no prompt.
+ * Install auth key (ARCHITECTURE.md#install-auth): ECDSA P-256 private key, hex. Same no-auth tier as the MMKV key, so API calls need no prompt.
  * It signs token requests only. It is not the wallet key and cannot move funds.
  */
 export async function loadDeviceKey(): Promise<string | null> {

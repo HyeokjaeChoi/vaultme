@@ -5,14 +5,14 @@ export type Address = z.infer<typeof Address>
 
 export const HISTORY_PAGE_SIZE = 50
 
-// POST /v1/history body (owner decision 2026-10-14). `cursor` is the opaque `nextCursor` of the previous page (LLD §4.2).
+// POST /v1/history body (owner decision 2026-10-14). `cursor` is the opaque `nextCursor` of the previous page (ARCHITECTURE.md#history).
 // Its format is checked by the server (`400 invalid_cursor`), not here, so the client never depends on it.
 export const HistoryRequest = z
   .object({ address: Address, cursor: z.string().max(100).optional() })
   .meta({ id: 'HistoryRequest' })
 export type HistoryRequest = z.infer<typeof HistoryRequest>
 
-// One movement of value relative to the requested address (LLD §4.2). Addresses are lowercase.
+// One movement of value relative to the requested address (ARCHITECTURE.md#history). Addresses are lowercase.
 export const HistoryItem = z
   .object({
     id: z.string().describe('Unique within a response: `<hash>:<seq>`.'),
@@ -31,7 +31,7 @@ export const HistoryItem = z
     from: Address,
     to: Address.nullable().describe('Null for a contract creation.'),
     status: z.enum(['ok', 'failed']).describe('`failed`: the value did not move.'),
-    zeroValue: z.boolean().describe('value is 0 (contract call, or an address-poisoning transfer, Q71).'),
+    zeroValue: z.boolean().describe('value is 0 (contract call, or an address-poisoning transfer).'),
   })
   .meta({ id: 'HistoryItem' })
 export type HistoryItem = z.infer<typeof HistoryItem>

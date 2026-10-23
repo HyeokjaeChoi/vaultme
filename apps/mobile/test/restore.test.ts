@@ -84,7 +84,7 @@ async function setup() {
 }
 
 describe('restoreWallet', () => {
-  it('stores the phrase and the first-account address; restored, backup not done (Q16)', async () => {
+  it('stores the phrase and the first-account address; restored, backup not done', async () => {
     const { restoreWallet, kv } = await setup()
     expect(await restoreWallet(`  ${VECTOR.toUpperCase()} `, PROMPT)).toEqual({ status: 'ok', address: VECTOR_ADDRESS })
     expect(kv.getAccountAddress()).toBe(VECTOR_ADDRESS)

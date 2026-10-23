@@ -14,7 +14,7 @@ import { Button, Screen, StatusNotice, SummaryRow, Text } from '@/shared/ui'
 /**
  * B-S06 복구 완료 (Figma 423:13703): title, first-account address (Detail row, Address kind), info notice; 주소 복사 is an inline Ghost button under the address (Figma 2026-10-17); the footer has 다른 주소예요 (Secondary) and 지갑 열기 (Primary). The wallet's own first-account address in full (4-char groups, copy), and the note that only the first account was loaded (Q40).
  * The address is read from kv (derived at restore); with none the screen redirects to Start. `demo` (__DEV__ `?demo=1`) shows the fixture address for design capture.
- * Backup is not claimed anywhere here (Q16).
+ * Backup is not claimed anywhere here.
  */
 // Public Trezor test vector: the demo address of the passphrase state (allowed by scripts/check-repo-rules.sh R10).
 const DEMO_PASSPHRASE_ADDRESS = '0x9c32F71D4DB8Fb9e1A58B0a80dF79935e7256FA6'

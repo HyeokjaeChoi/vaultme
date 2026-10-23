@@ -9,7 +9,7 @@ export const PushSubscribeRequest = z
   .meta({ id: 'PushSubscribeRequest' })
 export const PushOkResponse = z.object({ ok: z.literal(true) }).meta({ id: 'PushOkResponse' })
 
-/** Push payload `data`. The app ignores anything else and re-reads the chain (LLD §12). */
+/** Push payload `data`. The app ignores anything else and re-reads the chain (ARCHITECTURE.md#security-model). */
 export const PUSH_KINDS = ['deposit', 'send'] as const
 export const PushData = z.object({ kind: z.enum(PUSH_KINDS), hash: z.string().regex(/^0x[0-9a-fA-F]{64}$/) })
 export type PushData = z.infer<typeof PushData>

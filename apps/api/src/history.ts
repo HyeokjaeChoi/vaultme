@@ -2,7 +2,7 @@ import { HISTORY_PAGE_SIZE, USDC_SEPOLIA, type HistoryItem, type HistoryResponse
 import { z } from 'zod'
 import { InvalidCursorError, UpstreamError } from './errors.ts'
 
-// Merge and paging of the three Etherscan lists. Pure: the caller injects the fetch (LLD §4.2).
+// Merge and paging of the three Etherscan lists. Pure: the caller injects the fetch (ARCHITECTURE.md#history).
 export type List = 'txlist' | 'txlistinternal' | 'tokentx'
 export const LISTS: readonly List[] = ['txlist', 'txlistinternal', 'tokentx']
 export type Query = { endblock?: number; page: number; offset: number }

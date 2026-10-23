@@ -37,9 +37,9 @@ const isZero = (v: string) => /^0(\.0+)?$/.test(v)
 /**
  * B-S10 Home. Header (account + honesty chips), balance hero (the ETH holding, no price), Send left / Receive right
  * (Primary = Send; an empty wallet makes Receive Primary), the backup row while not backed up, "다른 자산" (the hero holds ETH, so only the other asset), and the 3 newest rows with "전체 보기".
- * The first deposit while not backed up opens the backup sheet once (Q14). Send without a backup goes to the S31 gate (SendGuard).
+ * The first deposit while not backed up opens the backup sheet once. Send without a backup goes to the S31 gate (SendGuard).
  * A new or empty wallet shows the empty state instead of assets and activity. The chips open their explainer sheets (no sheet opens by itself).
- * An empty wallet that is backed up or restored also shows the faucet row. A Pending or Included send blocks a new send behind a sheet (Q47).
+ * An empty wallet that is backed up or restored also shows the faucet row. A Pending or Included send blocks a new send behind a sheet (ADR-0006).
  * `variant=restored|pending|empty|unbacked` (unbacked = restored data without a backup: backup row, deposit sheet) and `sheet=intro|testdata|push|deposit|1` are __DEV__ capture overrides.
  */
 export function HomePage() {
@@ -86,7 +86,7 @@ export function HomePage() {
     [eth, balanceOf('USDC', assets[1].balance)].every(isZero) &&
     (!chain.broadcasts || (view !== null && items.length === 0))
   const close = () => setSheet(null)
-  // Q14 (Figma 586:97341): the first deposit while not backed up opens the backup sheet once. `markPromptShown` persists it; no other sheet is cut off.
+  // Figma 586:97341: the first deposit while not backed up opens the backup sheet once. `markPromptShown` persists it; no other sheet is cut off.
   useEffect(() => {
     if (!gate.shouldPromptAfterDeposit || sheet !== null) return
     gate.markPromptShown()

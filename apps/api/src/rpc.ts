@@ -13,7 +13,7 @@ const ARG_32_BYTES = new RegExp(`^${BALANCE_OF_SELECTOR}[0-9a-fA-F]{64}$`)
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
-/** Allow-list check (LLD §4). Cheap to be strict: anything unexpected is refused. */
+/** Allow-list check (ARCHITECTURE.md#api-contract). Cheap to be strict: anything unexpected is refused. */
 export function rpcAllowed({ method, params = [] }: RpcRequest): boolean {
   if (!(RPC_ALLOWED_METHODS as readonly string[]).includes(method)) return false
   switch (method as RpcMethod) {

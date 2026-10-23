@@ -1,6 +1,6 @@
 import type { ErrorCode } from '@vaultme/contracts'
 
-/** `network` = the request never got an answer. `Unknown` = a code or body this app does not know (Q61). */
+/** `network` = the request never got an answer. `Unknown` = a code or body this app does not know. */
 export type ApiErrorCode = ErrorCode | 'network' | 'Unknown'
 
 /** Typed API failure. The UI branches on `code`: `update_required` -> S91 (#44), `clock_skew` -> clock hint. */

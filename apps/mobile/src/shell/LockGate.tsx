@@ -15,7 +15,7 @@ function hasWallet(): boolean {
 }
 
 /**
- * Lock gate (Q13, lld.md): with a wallet, the app is replaced by S90 until OS auth succeeds.
+ * Lock gate (ARCHITECTURE.md#invariants): with a wallet, the app is replaced by S90 until OS auth succeeds.
  * Cold start is locked; returning after >= 30 s in the background locks; no wallet means no lock.
  * Requires the kv to be open (root layout awaits it), so the first render already knows.
  */
@@ -50,7 +50,7 @@ export function LockGate({ phraseStored, children }: { phraseStored: boolean; ch
   }, [])
 
   // The app stays mounted while locked (the root navigator must exist for deep links; the route survives a grace lock) but is not displayed or reachable.
-  // App-switcher preview hiding is only for the phrase screens S03/S61 (ux-flow.md section 9, Q43), not here.
+  // App-switcher preview hiding is only for the phrase screens S03/S61, not here.
   return (
     <>
       <View style={{ flex: 1, display: lock.locked ? 'none' : 'flex' }}>{children}</View>

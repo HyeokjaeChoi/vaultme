@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics'
 
 /**
- * Haptic cues from the Figma notes (redesign-b.md §9.3): keypad and chip selection, copy, risk sheet warning, success, failure.
+ * Haptic cues from the Figma notes: keypad and chip selection, copy, risk sheet warning, success, failure.
  * Reduce Motion turns motion off, not haptics, so nothing here reads that setting. A device without a haptic engine ignores the call.
  */
 const run = (p: Promise<void>) => void p.catch(() => undefined)

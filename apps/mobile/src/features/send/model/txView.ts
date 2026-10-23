@@ -51,7 +51,7 @@ type ResultCopy = {
   warn: 'result.sendAgainWarn' | null
 }
 
-/** S23 headline by state (ux-copy.md "Redesign B 수정안"): "보내는 중이에요" while Pending or Included, "보냈어요" only when Confirmed. */
+/** S23 headline by state (Redesign B): "보내는 중이에요" while Pending or Included, "보냈어요" only when Confirmed. */
 const RESULT: Record<TxState, ResultCopy> = {
   Pending: { tone: 'pending', title: 'result.sending', body: 'result.pendingBody', warn: 'result.sendAgainWarn' },
   Included: { tone: 'pending', title: 'result.sending', body: 'result.includedBody', warn: 'result.sendAgainWarn' },
@@ -63,7 +63,7 @@ const RESULT: Record<TxState, ResultCopy> = {
 
 export const resultCopy = (state: TxState): ResultCopy => RESULT[state]
 
-/** S40 row title key (ux-copy.md "Redesign B 수정안"): direction plus progress. Received rows are always Confirmed (no incoming pending row). */
+/** S40 row title key (Redesign B): direction plus progress. Received rows are always Confirmed (no incoming pending row). */
 export function rowTitleKey(kind: 'send' | 'receive', label: ReturnType<typeof txView>['label']) {
   switch (label) {
     case 'activity.pending':

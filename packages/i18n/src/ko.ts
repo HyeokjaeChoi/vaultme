@@ -1,4 +1,4 @@
-// Approved Korean copy: outputs/design/ux-copy.md + the CONTEXT.md glossary. Screens in C2a only.
+// Approved Korean copy: the CONTEXT.md glossary. Screens in C2a only.
 export const ko = {
   tab: { assets: '자산', activity: '내역', settings: '설정' },
   common: {
@@ -10,7 +10,7 @@ export const ko = {
     retry: '다시 시도',
     confirm: '확인',
   },
-  // Busy button label under Reduce Motion (no spinner rotation): the progressive form (ux-copy.md 2026-10-17).
+  // Busy button label under Reduce Motion (no spinner rotation): the progressive form (approved 2026-10-17).
   busy: { send: '보내는 중…', create: '만드는 중…', restore: '복구하는 중…', recheck: '확인하는 중…' },
   // B/Status chip (Figma 494:1067): one neutral chip on every wallet screen; the label says "· 테스트 데이터" while the fake chain adapter is on.
   chip: { network: 'Sepolia', testData: 'Sepolia · 테스트 데이터' },
@@ -20,7 +20,7 @@ export const ko = {
     create: '새 지갑 만들기',
     restore: '기존 지갑 복구',
   },
-  // S90: all copy (title, button, device-type bodies, authPrompt, the two notices) approved by the owner 2026-10-14 (ux-copy.md).
+  // S90: all copy (title, button, device-type bodies, authPrompt, the two notices) approved by the owner 2026-10-14.
   lock: {
     title: 'VaultMe',
     body: {
@@ -51,14 +51,14 @@ export const ko = {
     scam: { title: '알림으로 복구 구문을 묻지 않아요', body: '복구 구문을 묻는 메시지는 모두 사기예요.' },
     testnet: { title: '테스트넷 전용이에요', body: 'Sepolia 자산만 다뤄요. 실제 가치는 없어요.' },
     cta: '지갑 만들기',
-    // Not in ux-copy.md yet (PR #20 open question): shown when the OS refuses to store the phrase (e.g. no screen lock).
+    // PR #20 open question: shown when the OS refuses to store the phrase (e.g. no screen lock).
     createError: { title: '지갑을 만들지 못했어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도하세요.' },
   },
   home: {
     account: '계정 1',
     network: 'Sepolia',
     details: '계정 상세',
-    // Redesign B (ux-copy.md "Redesign B 수정안", decision 7): network first, main holding as the hero value.
+    // Redesign B: network first, main holding as the hero value.
     testnetLabel: 'Sepolia 테스트넷',
     priceNote: '테스트넷 자산은 시장 가격이 없어요.',
     assets: '다른 자산',
@@ -71,7 +71,7 @@ export const ko = {
     backupTitle: '백업을 아직 확인하지 않았어요',
     backupBody: '복구 구문을 백업해야 받기 주소가 보여요.',
     backupCta: '백업 시작',
-    // Redesign B 2차 (ux-copy.md): recent activity, backup row, empty wallet, the two explainer sheets.
+    // Redesign B 2차: recent activity, backup row, empty wallet, the two explainer sheets.
     recent: '최근 내역',
     viewAll: '전체 보기',
     backupRow: '복구 구문을 아직 백업하지 않았어요',
@@ -94,7 +94,7 @@ export const ko = {
       caption: '받기 주소를 복사하고 외부 사이트(faucet)⁠를 열어요.',
     },
   },
-  // S11 asset detail (ux-copy.md Redesign B 2차).
+  // S11 asset detail (Redesign B 2차).
   asset: {
     info: '자산 정보',
     network: '네트워크',
@@ -108,7 +108,7 @@ export const ko = {
     feeUsdc: '보낼 때 네트워크 수수료는 ETH로 내요.',
     history: '이 자산의 내역',
   },
-  // S03/S04: approved copy (ux-copy.md). authPrompt*, loadError, check.wrong and precheck.createError were approved by the owner in PR #28 (not yet in ux-copy.md); the S03 body drops the capture promise (Q43).
+  // S03/S04: approved copy. authPrompt*, loadError, check.wrong and precheck.createError were approved by the owner in PR #28 ; the S03 body drops the capture promise.
   backup: {
     title: '복구 구문',
     body: '아래 12단어를 순서대로 종이에 적으세요.\n화면을 캡처하지 마세요.',
@@ -130,7 +130,7 @@ export const ko = {
       wrong: '{{n}}번째 단어가 달라요',
     },
   },
-  // S05/S06: title, label, button, passphrase and path copy are approved (ux-copy.md); helper, unknownWord and the Redesign A S05 layout come from issue #18.
+  // S05/S06: title, label, button, passphrase and path copy are approved; helper, unknownWord and the Redesign A S05 layout come from issue #18.
   // wrongCount, badChecksum, authPrompt, exists, saveError and done.copied are new (listed in the PR for approval).
   restore: {
     title: '지갑 복구',
@@ -141,7 +141,7 @@ export const ko = {
     word: '{{n}}번째 단어',
     unknownWord: '{{n}}번째 단어가 복구 구문 단어 목록에 없어요',
     badChecksum: '단어나 순서가 맞지 않아요. 복구 구문을 다시 확인하세요.',
-    // S05 passphrase (owner 2026-10-17, Q40 changed): optional, collapsed, masked.
+    // S05 passphrase (owner 2026-10-17, ADR-0003): optional, collapsed, masked.
     passphrase: {
       row: '고급 · 패스프레이즈 입력',
       label: '패스프레이즈',
@@ -244,14 +244,14 @@ export const ko = {
     maxSendable: '보낼 수 있는 금액',
     insufficient: '보낼 수 있는 금액보다 많아요',
     keypad: { dot: '소수점', delete: '지우기' },
-    // Pre-send notice by device auth name (ux-copy.md decision 8): Face ID / Touch ID / 지문 / 기기 인증.
+    // Pre-send notice by device auth name: Face ID / Touch ID / 지문 / 기기 인증.
     preSend: {
       faceId: '보내면 취소할 수 없어요 · 다음 단계에서 Face ID로 확인해요',
       touchId: '보내면 취소할 수 없어요 · 다음 단계에서 Touch ID로 확인해요',
       fingerprint: '보내면 취소할 수 없어요 · 다음 단계에서 지문으로 확인해요',
       device: '보내면 취소할 수 없어요 · 다음 단계에서 기기 인증으로 확인해요',
     },
-    // C2b #23. pendingBlock is approved copy (ux-copy.md S10P+S24); the rest is new (listed in the PR for approval).
+    // C2b #23. pendingBlock is approved copy (S10P+S24); the rest is new (listed in the PR for approval).
     authPrompt: '보내려면 인증하세요',
     authError: { title: '인증하지 못했어요', body: '다시 시도하세요.' },
     chainError: { title: '네트워크 정보를 가져오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
@@ -292,9 +292,9 @@ export const ko = {
     title: '네트워크로 보내지 않았어요 (테스트)',
     body: '테스트 버전이라 거래 해시와 상태는 이 기기에서 만든 예시예요.',
   },
-  // S23: Figma C2b-S23 + ux-copy.md. unknown.* from ux-flow.md S23 state table.
+  // S23: Figma C2b-S23. unknown.* from the S23 state table.
   result: {
-    // S23 headline per state (ux-copy.md: "보내는 중이에요" for Pending and Included, "보냈어요" only when Confirmed).
+    // S23 headline per state ("보내는 중이에요" for Pending and Included, "보냈어요" only when Confirmed).
     sending: '보내는 중이에요',
     sent: '보냈어요',
     pendingBody: '네트워크 처리를 기다리는 중이에요.',
@@ -324,7 +324,7 @@ export const ko = {
     history: '내역 보기',
     home: '홈으로',
   },
-  // S41: Figma C2b-S41 + ux-copy.md.
+  // S41: Figma C2b-S41.
   detail: {
     title: '거래 상세',
     sender: '보낸 계정',
@@ -426,7 +426,7 @@ export const ko = {
     today: '오늘',
     oct12: '10월 12일',
     oct11: '10월 11일',
-    // Row titles (ux-copy.md "Redesign B 수정안" S40 행 제목): direction + progress. Status badge words above stay for S41.
+    // Row titles (S40 행 제목): direction + progress. Status badge words above stay for S41.
     row: {
       sending: '보내는 중',
       sent: '보냄',
@@ -456,10 +456,10 @@ export const ko = {
     version: '버전',
     on: '켜짐',
     hidden: '숨김',
-    // Not in ux-copy.md: the other state of the two values above (S60 shows 켜짐 / 숨김 only). Needs owner/Figma confirmation.
+    // Not in approved copy: the other state of the two values above (S60 shows 켜짐 / 숨김 only). Needs owner/Figma confirmation.
     off: '꺼짐',
     shown: '표시',
-    // S61 (ux-copy.md 복구 구문 다시 보기): body of the settings view of the phrase.
+    // S61 (복구 구문 다시 보기): body of the settings view of the phrase.
     // {{auth}} is the device's method with its particle (S90 rule): "Face ID로", "지문으로", "기기 암호로".
     phraseBody: '{{auth}} 확인했어요. 화면을 캡처하지 마세요.\n앱을 벗어나면 다시 가려져요.',
     phraseAuth: { faceId: 'Face ID로', touchId: 'Touch ID로', fingerprint: '지문으로', device: '기기 암호로' },
@@ -475,7 +475,7 @@ export const ko = {
       noText: '이 패키지는 라이선스 원문 파일을 포함하지 않아요.',
       npm: 'npm에서 패키지 보기',
     },
-    // S62 거래 알림, S63 0원 거래 표시 (ux-copy.md)
+    // S62 거래 알림, S63 0원 거래 표시
     pushScreen: {
       title: '거래 알림',
       row: '거래 알림 받기',
@@ -483,7 +483,7 @@ export const ko = {
       warnTitle: '알림으로 복구 구문을 묻지 않아요',
       warnBody: '복구 구문을 묻는 알림은 모두 사기예요.',
     },
-    // S92 (ux-copy.md 기기 보안 경고). The root/jailbreak detection is not wired: the screen opens from the S60 row only.
+    // S92 (기기 보안 경고). The root/jailbreak detection is not wired: the screen opens from the S60 row only.
     deviceScreen: {
       title: '기기 보안 안내',
       body: '루팅·탈옥된 기기에서는\n다른 앱이 지갑 키를 읽을 수 있어요.\n이 지갑에는 테스트넷 자산만 두세요.',

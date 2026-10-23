@@ -42,7 +42,7 @@ Button hierarchy: one Primary per screen for the main forward action. Risky ackn
 
 ## Steps
 
-1. Read `docs/agents/design-index.md`, `outputs/design/ux-flow.md`, `CONTEXT.md`, `DESIGN.md`.
+1. Read `CONTEXT.md`, `DESIGN.md`. The screen flows are in the Figma flow pages.
 2. **Mobbin reference search** (only for a screen you restructure, not for a copy change): load the tool with ToolSearch `select:mcp__ff84db7e-b0c7-4a72-808c-aaab282df65b__search_screens`, then call it 1–2 times with `platform: "ios"`, `output_destination: "design_tool"`, `output_tool: "Figma"`, one screen per query, `mode: "standard"`, `limit: 3`, and the same `task_intent` for the whole task. Look at the returned images. Write the `mobbin_url` links in the frame annotation (`Note · <frame name>` text under the frame). If Mobbin is not signed in, say so and use the links from `work/review/rr-*-2026-10-17.md`. Check the result against `DESIGN.md` "Design principles".
 3. List the sections of the screen and the component for each section from the map. Write this list in your reply before any mutation.
 4. Build with `use_figma`: create the screen frame (390×844, fill `screenB/bg`, flat white; DESIGN.md). Use `surface/canvas` only for the 12 px `sectionBand` on detail screens, then layout frames bound per rule 2, then instances with property overrides.

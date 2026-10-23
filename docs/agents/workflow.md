@@ -12,7 +12,7 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
 2. Create a branch from `main`: `<type>/<issue-number>-<slug>`. Types: `feat`, `fix`, `docs`, `chore`, `test`, `ci`.
    Set Project Status `In Progress`.
 3. For UI work, use `vaultme-figma-screen` (Figma) or `vaultme-design-to-code` (app). Their completion gates are part of done.
-   Before you edit an area, read the sources in `docs/agents/design-index.md` and the lessons skill
+   Before you edit an area, read `ARCHITECTURE.md`, the ADRs in `docs/adr/` that touch it, and the lessons skill
    `.claude/skills/vaultme-review-lessons/SKILL.md`.
 4. Commit with Conventional Commits. The pre-commit hook runs `scripts/check-repo-rules.sh`.
    The pre-push hook also runs `pnpm turbo run typecheck lint test` when code changed.

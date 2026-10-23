@@ -6,7 +6,7 @@ import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
 import { ListItem, Screen, ScreenHeader, Switch, Text } from '@/shared/ui'
 
-/** B-S63 0원 거래 표시: one switch row (default off = hidden, Q71). */
+/** B-S63 0원 거래 표시: one switch row (default off = hidden). */
 export function ZeroSettingPage() {
   const { t } = useTranslation()
   const th = useTheme()

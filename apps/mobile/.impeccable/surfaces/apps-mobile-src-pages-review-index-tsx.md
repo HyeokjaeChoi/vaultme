@@ -7,7 +7,7 @@ related_targets: ["apps/mobile/src/pages/home/index.tsx","apps/mobile/src/pages/
 
 # VaultMe mobile app surfaces (Operate, iOS + Android, Expo)
 
-Scope: Start, Home, Send (recipient, amount), Review (+look-alike), Receive, Activity, Settings. Tokens fixed (Blue A, Inter, IBM Plex Mono, canvas, Borderless, one C23 summary). Evidence: outputs/design/research/mobbin-wallet-patterns.md.
+Scope: Start, Home, Send (recipient, amount), Review (+look-alike), Receive, Activity, Settings. Tokens fixed (Blue A, Inter, IBM Plex Mono, canvas, Borderless, one C23 summary).
 
 ## Direction contract
 

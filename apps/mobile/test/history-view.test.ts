@@ -20,7 +20,7 @@ const local: PendingTx = {
   state: 'Pending',
 }
 const B = '0x' + 'b'.repeat(40)
-// HistoryItem of the API contract (lld §4.2). `out` rows show the recipient, `in` rows the sender.
+// HistoryItem of the API contract (ARCHITECTURE.md#history). `out` rows show the recipient, `in` rows the sender.
 const item = (hash: string, timestamp: number, status = 'ok', o: Record<string, unknown> = {}) => ({
   id: `${hash}:0`,
   kind: 'native',
@@ -38,7 +38,7 @@ const item = (hash: string, timestamp: number, status = 'ok', o: Record<string, 
   ...o,
 })
 
-describe('history view (Q58)', () => {
+describe('history view (ADR-0007)', () => {
   it('parses contract items and drops what it does not understand', () => {
     expect(parseItems({ items: [item(H2, 100), { hash: 'x' }, null, item(H2, 100, 'weird')] })).toHaveLength(1)
     expect(parseItems(undefined)).toEqual([])
@@ -50,7 +50,7 @@ describe('history view (Q58)', () => {
       local: false,
     })
   })
-  it('hides incoming zero-value rows (Q71), keeps own zero-value calls', () => {
+  it('hides incoming zero-value rows, keeps own zero-value calls', () => {
     const rows = parseItems({
       items: [
         item(H2, 1, 'ok', { value: '0', zeroValue: true }),

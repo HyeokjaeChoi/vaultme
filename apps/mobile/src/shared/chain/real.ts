@@ -29,7 +29,7 @@ function toBig(v: unknown): bigint {
   return BigInt(v)
 }
 
-/** Real adapter over the API proxy (lld.md §4, hld.md §3.1). Allowed methods only; see RPC_ALLOWED_METHODS. */
+/** Real adapter over the API proxy (ARCHITECTURE.md#send). Allowed methods only; see RPC_ALLOWED_METHODS. */
 export function createRpcChain(rpc: RpcCall): ChainPort {
   const balanceOf = async (address: Address) =>
     toBig(await rpc('eth_call', [{ to: USDC_SEPOLIA, data: `${BALANCE_OF_SELECTOR}${word(address)}` }, 'latest']))
@@ -85,7 +85,7 @@ export function createRpcChain(rpc: RpcCall): ChainPort {
     async submit(raw: Hex): Promise<Hash> {
       const h = await rpc('eth_sendRawTransaction', [raw])
       if (typeof h !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(h)) throw new Error('rpc: bad tx hash')
-      return h as Hash // wallet-core compares it with the locally computed hash (Q73)
+      return h as Hash // wallet-core compares it with the locally computed hash (ADR-0005)
     },
     async getSafeBlock() {
       const b = (await rpc('eth_getBlockByNumber', ['safe', false])) as { number?: unknown } | null

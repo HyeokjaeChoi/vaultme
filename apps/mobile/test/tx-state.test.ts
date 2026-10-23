@@ -26,7 +26,7 @@ const tx = (state: PendingTx['state'], nonce = 5): PendingTx => ({
 const ok = (n: bigint): Receipt => ({ status: 'success', blockNumber: n })
 const bad = (n: bigint): Receipt => ({ status: 'reverted', blockNumber: n })
 
-describe('deriveState (hld.md §4.1, Q37)', () => {
+describe('deriveState (ARCHITECTURE.md#invariants, ADR-0006)', () => {
   const f = (over: Partial<Parameters<typeof deriveState>[0]>) =>
     deriveState({ current: 'Pending', nonce: 5, receipt: null, safeBlock: null, safeNonce: null, ...over })
   it('receipt above the safe block = Included, success or reverted', () => {
@@ -52,7 +52,7 @@ describe('deriveState (hld.md §4.1, Q37)', () => {
     expect(f({})).toBe('Pending')
     expect(f({ current: 'Unknown' })).toBe('Unknown')
   })
-  it('no receipt: safe nonce beyond ours = Replaced (Q77); equal or below is not', () => {
+  it('no receipt: safe nonce beyond ours = Replaced (ADR-0006); equal or below is not', () => {
     expect(f({ safeNonce: 6n })).toBe('Replaced')
     expect(f({ current: 'Unknown', safeNonce: 9n })).toBe('Replaced')
     expect(f({ safeNonce: 5n })).toBe('Pending')

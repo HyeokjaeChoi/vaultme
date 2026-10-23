@@ -1,4 +1,4 @@
--- Anonymous installs (LLD §4, §7). Times are unix seconds.
+-- Anonymous installs (ARCHITECTURE.md#install-auth). Times are unix seconds.
 CREATE TABLE installs (
   id           TEXT PRIMARY KEY,
   public_key   TEXT NOT NULL, -- base64url, uncompressed P-256 point

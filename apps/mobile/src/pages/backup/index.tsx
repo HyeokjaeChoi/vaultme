@@ -21,8 +21,8 @@ type Load = 'idle' | 'busy' | 'error'
 /**
  * `view` = B-S61 복구 구문 다시 보기 (Figma 423:13856, from Settings): same screen without the "다 적었어요" footer and the word check.
  * B-S03 복구 구문 (Figma 423:13533 hidden -> 423:13622 revealed, B/Secret grid 426:2044). The phrase lives only in this screen's state:
- * it is loaded after OS auth, and cleared when the screen loses focus or the app leaves the foreground (Q15).
- * Capture is blocked only while this screen is focused (Q43); the UI does not promise the block. No copy button.
+ * it is loaded after OS auth, and cleared when the screen loses focus or the app leaves the foreground.
+ * Capture is blocked only while this screen is focused; the UI does not promise the block. No copy button.
  */
 export function BackupPage({
   demo = false,
