@@ -28,6 +28,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | Tokens: raw values only in Primitive; Semantic and Component alias | `packages/tokens/test/hierarchy.test.ts`, `packages/tokens/build.mjs` |
 | A PR that changes app screen code shows one light and one dark app-vs-Figma image per changed screen (mode in the alt text) | `.github/workflows/pr-description.yml` `figma-comparison` |
 | PR body ≤ 3,500 characters and `Closes #N` | `.github/workflows/pr-description.yml` `check` |
+| Code is Prettier-formatted and ESLint-clean with 0 warnings | pre-commit `lint-staged`, pre-push, CI `verify` |
 | Typecheck, lint and tests pass | CI `verify`, pre-push hook |
 | pnpm installs only package versions published at least 7 days (10080 min) ago | `pnpm-workspace.yaml` `minimumReleaseAge` |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |
