@@ -7,7 +7,7 @@ cmd=$(jq -r '.tool_input.command // empty' <<<"$input")
 # A quoted word without whitespace is unwrapped ("main", "--force" stay visible). Double quotes with $( or a backtick,
 # and any bash/sh/zsh/eval wrapper, keep their text (they run it). ponytail: regex, not a shell parser; use a real one if bypasses appear.
 chk=$(perl -0pe 's/(<<-?[ \t]*([\x27"]?)(\w+)\2[^\n]*\n).*?\n[ \t]*\3(?=\n|$)/$1$3/sg;
-  s/("(?:\\.|[^"\\])*"|\x27[^\x27]*\x27)/my $q=$1; my $c=substr($q,0,1); ($c eq "\"" && $q =~ m{\$\(|`}) ? $q : $q =~ m{\s} ? "$c$c" : substr($q,1,-1)/ge' <<<"$cmd")
+  s/("(?:\\.|[^"\\])*"|\x27[^\x27]*\x27)/my $q=$1; my $c=substr($q,0,1); ($c eq "\"" && $q =~ m{\$\(|`}) ? $q : $q =~ m{\s} ? "$c$c" : substr($q,1,-1)/ge' <<<"$cmd") || chk=$cmd # no perl or a perl error: check the raw text (fail closed)
 grep -Eq '(^|[[:space:];&|(])(bash|sh|zsh|eval)([[:space:]]|$)' <<<"$chk" && chk=$cmd
 block() { echo "Blocked by .claude/hooks/guard-bash.sh: $1" >&2; exit 2; }
 if grep -Eq 'git[^|;&]*\b(commit|push|merge|rebase)\b[^|;&]*--no-verify' <<<"$chk" || grep -Eq 'git[^|;&]*\bcommit\b[^|;&]*[[:space:]]-[a-zA-Z]*n' <<<"$chk"; then
