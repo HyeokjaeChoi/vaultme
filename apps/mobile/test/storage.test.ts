@@ -194,7 +194,7 @@ describe('kv key + store', () => {
     expect(kv.parsePendingTx(JSON.stringify({ hash: 'x' }))).toBeNull()
   })
 
-  it('pending tx keeps the sending account; a record saved before it (or a bad one) has none', async () => {
+  it('pending tx keeps the sending account index; a record saved before it (or a bad one) has none', async () => {
     const kv = await import('../src/shared/storage/kv')
     const tx = {
       hash: '0xabc',
@@ -206,16 +206,11 @@ describe('kv key + store', () => {
       lastCheckedAt: 2,
       state: 'Pending' as const,
     }
-    const from = '0x1a2b3C4d5e6F7A8B9c0D1e2f3A4B5c6d7e8F9A0B'
-    expect(kv.parsePendingTx(JSON.stringify({ ...tx, from, accountIndex: 0 }))).toEqual({
-      ...tx,
-      from,
-      accountIndex: 0,
-    })
+    expect(kv.parsePendingTx(JSON.stringify({ ...tx, accountIndex: 0 }))).toEqual({ ...tx, accountIndex: 0 })
     expect(kv.parsePendingTx(JSON.stringify(tx))).toEqual(tx)
-    expect(kv.parsePendingTx(JSON.stringify({ ...tx, from, accountIndex: -1 }))).toEqual(tx)
-    expect(kv.parsePendingTx(JSON.stringify({ ...tx, from: 'nope', accountIndex: 0 }))).toEqual(tx)
-    expect(kv.parsePendingTx(JSON.stringify({ ...tx, accountIndex: 0 }))).toEqual(tx)
+    expect(kv.parsePendingTx(JSON.stringify({ ...tx, accountIndex: -1 }))).toEqual(tx)
+    expect(kv.parsePendingTx(JSON.stringify({ ...tx, accountIndex: 1.5 }))).toEqual(tx)
+    expect(kv.parsePendingTx(JSON.stringify({ ...tx, accountIndex: null }))).toEqual(tx)
   })
 
   it('a corrupt stored pending tx throws instead of reading as none', async () => {

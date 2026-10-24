@@ -89,8 +89,7 @@ export type PendingTx = {
   failReason?: 'outOfGas'
   /** Block of the receipt, once the network has one (S41 "블록" Fact row). */
   blockNumber?: number
-  /** Sending account address and its derivation index, saved at send time (S23/S41 "보낸 계정"). Both or neither: records saved before #32 have none, and the row is hidden. */
-  from?: string
+  /** Derivation index of the sending account, saved at send time (S23/S41 "보낸 계정" = 계정 index + 1). Records saved before #32 have none, and the row is hidden. */
   accountIndex?: number
   state: 'Pending' | 'Unknown' | 'Included' | 'Confirmed' | 'Failed' | 'Replaced'
 }
@@ -98,7 +97,6 @@ export type PendingTx = {
 const STATES = new Set(['Pending', 'Unknown', 'Included', 'Confirmed', 'Failed', 'Replaced'])
 const isStr = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
-const isAddr = (v: unknown): v is string => typeof v === 'string' && /^0x[0-9a-fA-F]{40}$/.test(v)
 
 export function parsePendingTx(raw: string): PendingTx | null {
   let v: unknown
@@ -132,8 +130,8 @@ export function parsePendingTx(raw: string): PendingTx | null {
     ...(isStr(o.fee) ? { fee: o.fee } : {}),
     ...(isNum(o.blockNumber) ? { blockNumber: o.blockNumber } : {}),
     ...(o.failReason === 'outOfGas' ? { failReason: 'outOfGas' as const } : {}),
-    ...(isAddr(o.from) && Number.isInteger(o.accountIndex) && (o.accountIndex as number) >= 0
-      ? { from: o.from, accountIndex: o.accountIndex as number }
+    ...(Number.isInteger(o.accountIndex) && (o.accountIndex as number) >= 0
+      ? { accountIndex: o.accountIndex as number }
       : {}),
   }
 }

@@ -58,7 +58,6 @@ export async function runSend(
     createdAt: at,
     lastCheckedAt: at,
     fee: fromUnits(approved.estimatedFee, 'ETH'),
-    from,
     accountIndex: ACCOUNT_INDEX,
     state: result.status,
   }

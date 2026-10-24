@@ -74,7 +74,6 @@ export const demoTx = (state: PendingTx['state']): PendingTx => ({
   lastCheckedAt: Date.now(),
   fee: '0.000042',
   blockNumber: 5812044, // Figma S41 realchain example
-  from: '0x9858EfFD232B4033E47d90003D41EC34EcaEda94', // public test vector first account (entities/account fixtures)
   accountIndex: 0,
   state,
 })
