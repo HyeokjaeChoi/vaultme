@@ -80,7 +80,17 @@ function EtherscanRow({ url }: { url: string }) {
  * History has no confirmation state, so: status 성공/실패 only, no fee row, no recheck, no clear sheet (Figma Flow 4 A 742:2487, B 742:2584).
  * No counterparty (contract creation, example rows): the 보낸 사람 / 받는 사람 block is left out.
  */
-function RowDetail({ row, address, real }: { row: HistoryItem; address: string | null; real: string | undefined }) {
+function RowDetail({
+  row,
+  address,
+  real,
+  example,
+}: {
+  row: HistoryItem
+  address: string | null
+  real: string | undefined
+  example: boolean
+}) {
   const { t } = useTranslation()
   const copy = rowCopy(row)
   const explorer =
@@ -93,11 +103,11 @@ function RowDetail({ row, address, real }: { row: HistoryItem; address: string |
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/activity')} chips={<NetworkChips />} />}
     >
       <AmountHero
-        result={{ badge: copy.badge, title: t(copy.title) }}
+        result={{ badge: example ? 'info' : copy.badge, title: example ? t('result.testTitle') : t(copy.title) }}
         asset={row.asset === 'USDC' ? 'USDC' : 'ETH'}
         amount={figure ?? row.amount}
         unit={unit ?? row.asset}
-        lines={copy.body ? t(copy.body).split('\n') : []}
+        lines={example ? t('result.testBody').split('\n') : copy.body ? t(copy.body).split('\n') : []}
       />
       <SectionBand />
       {row.counterparty ? (
@@ -110,7 +120,7 @@ function RowDetail({ row, address, real }: { row: HistoryItem; address: string |
       ) : null}
       <Block title={t('detail.infoTitle')}>
         <SummaryRow label={t('detail.time')} fact value={factTime(row.at)} />
-        <SummaryRow label={t('result.statusLabel')} value={t(copy.statusWord)} />
+        <SummaryRow label={t('result.statusLabel')} value={example ? t('detail.state.test') : t(copy.statusWord)} />
         {/^0x[0-9a-fA-F]{64}$/.test(row.hash) ? (
           <SummaryRow format="address" plain fact label={t('detail.hashTitle')} value={row.hash} />
         ) : null}
@@ -168,11 +178,16 @@ export function TxDetailPage() {
         : null
   if (!tx) {
     const address = __DEV__ && devRow ? DEV_ADDRESS : getAccountAddress()
+    const cached = findCachedRow(historyCache.get(), address, id)
     const row =
       (__DEV__ && (devRow === 'in' || devRow === 'out') ? devHistoryRow(devRow) : null) ??
-      findCachedRow(historyCache.get(), address, id) ??
+      cached ??
       (testMode ? fakeHistoryItems(null).find((i) => i.id === id) : undefined)
-    return row ? <RowDetail row={row} address={address} real={real} /> : <Redirect href="/activity" />
+    return row ? (
+      <RowDetail row={row} address={address} real={real} example={testMode && !cached} />
+    ) : (
+      <Redirect href="/activity" />
+    )
   }
   const explorer =
     explorerUrl(chain, tx.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${tx.hash}` : null)
