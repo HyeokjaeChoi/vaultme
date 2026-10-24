@@ -119,7 +119,7 @@ App side (`features/push`):
 - S50 "알림 켜기" (offered once, after the first copy or share on Receive) and the S62 switch ask the OS, get the Expo token, then `PUT`. The setting turns on only after the `PUT` succeeds.
 - S62 off and wallet removal call `DELETE`. kv `push.unregisterPending` is set before a `DELETE` and before a `PUT` and cleared on success, so an interrupted or unanswered call is undone at the next launch.
 - At launch `syncPush` finishes an owed `DELETE`, or re-sends address and token when the setting is on. Push operations run one at a time.
-- A tap opens the 내역 list (`/activity`) after `PushData` parses. Test-data mode (no API) registers nothing.
+- A tap (after `PushData` parses) fetches a fresh first page of `/v1/history` (3 s limit; nothing shows while it waits) and caches it. Exactly one row with the pushed hash -> S41 `/activity/<id>`; zero or several rows, or any failure (error, timeout, no address, `update_required`) -> the 내역 list `/activity`. The Worker caches a page for 30 s and Etherscan may index late, so a very fast tap can miss the new row: it then opens the list. Only the newest tap navigates, once. The shell joins `features/push` and `features/history` (`shell/pushTap.ts`). Test-data mode (no API) registers nothing and opens the list.
 - The Expo token uses the EAS `projectId` in `app.json` (`extra.eas.projectId`, project `@gurwo1007/vaultme`).
 
 ## Invariants

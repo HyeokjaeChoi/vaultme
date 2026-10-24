@@ -120,10 +120,42 @@ export function syncPush(d: PushDeps): Promise<void> {
   })
 }
 
+/** What `router.push` takes: the list, or S41 of one row. */
+export type PushRoute = '/activity' | { pathname: '/activity/[hash]'; params: { hash: string } }
+
+export type PushTapDeps = {
+  address(): string | null
+  /**
+   * Ids (`<hash>:<seq>`) of the rows with this hash in a FRESH first page of the history, which the call also writes to the history cache
+   * (S41 reads its row from there). Rejects when the page is not fresh. null = test-data mode (no API).
+   */
+  rowIdsForHash: ((address: string, hash: string) => Promise<string[]>) | null
+  detailRoute(row: { id: string }): PushRoute
+  /** Longest wait for the page. Short on purpose: the tap shows nothing while it waits, and the list is a fine answer. */
+  timeoutMs: number
+}
+
 /**
- * A tapped push opens the 내역 list (owner decision #163; S41 shows only the app's own last send, so a hash route would redirect anyway).
- * Anything the server contract does not describe is ignored.
+ * A tapped push opens S41 of the pushed transaction when a fresh history page holds exactly one row with its hash (owner decision, #171).
+ * The pushed tx is usually not in the cached page, so the page is fetched at tap time. Zero or several rows, and every failure
+ * (error, timeout, no address, test-data mode, update_required) open the 내역 list. Null = the payload is not a push of this app: do nothing.
  */
-export function routeForPush(data: unknown): string | null {
-  return PushData.safeParse(data).success ? '/activity' : null
+export async function routeForPush(data: unknown, d: PushTapDeps): Promise<PushRoute | null> {
+  const p = PushData.safeParse(data)
+  if (!p.success) return null
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    const address = d.address()
+    if (!address || !d.rowIdsForHash) return '/activity'
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error('push tap: history timeout')), d.timeoutMs)
+    })
+    const ids = await Promise.race([d.rowIdsForHash(address, p.data.hash), timeout])
+    const [only] = ids
+    return ids.length === 1 && only ? d.detailRoute({ id: only }) : '/activity'
+  } catch {
+    return '/activity'
+  } finally {
+    clearTimeout(timer)
+  }
 }

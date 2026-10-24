@@ -6,6 +6,7 @@ import {
   syncPush,
   type Permission,
   type PushDeps,
+  type PushTapDeps,
 } from '@/features/push/model/push'
 
 const ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
@@ -174,13 +175,58 @@ describe('ordering', () => {
 })
 
 describe('routeForPush', () => {
-  it('routes a valid payload to the activity list (S41 shows only the own last send, #163)', () => {
-    expect(routeForPush({ kind: 'deposit', hash: HASH })).toBe('/activity')
-    expect(routeForPush({ kind: 'send', hash: HASH })).toBe('/activity')
+  const DETAIL = (id: string) => ({ pathname: '/activity/[hash]' as const, params: { hash: id } })
+  const tapDeps = (over: Partial<PushTapDeps> = {}): PushTapDeps => ({
+    address: () => ADDRESS,
+    rowIdsForHash: vi.fn(() => Promise.resolve([`${HASH}:0`])),
+    detailRoute: (row) => DETAIL(row.id),
+    timeoutMs: 3000,
+    ...over,
   })
-  it('ignores anything else', () => {
-    expect(routeForPush(undefined)).toBeNull()
-    expect(routeForPush({ kind: 'other', hash: HASH })).toBeNull()
-    expect(routeForPush({ kind: 'deposit', hash: '../../settings' })).toBeNull()
+
+  it('exactly one row -> that row detail, looked up for the current account and the pushed hash', async () => {
+    const d = tapDeps()
+    expect(await routeForPush({ kind: 'deposit', hash: HASH }, d)).toEqual(DETAIL(`${HASH}:0`))
+    expect(d.rowIdsForHash).toHaveBeenCalledWith(ADDRESS, HASH)
+  })
+  it('zero or several rows -> the list', async () => {
+    expect(
+      await routeForPush({ kind: 'send', hash: HASH }, tapDeps({ rowIdsForHash: () => Promise.resolve([]) })),
+    ).toBe('/activity')
+    const two = () => Promise.resolve([`${HASH}:0`, `${HASH}:1`])
+    expect(await routeForPush({ kind: 'send', hash: HASH }, tapDeps({ rowIdsForHash: two }))).toBe('/activity')
+  })
+  it('fetch error (incl. update_required), no address, test-data mode -> the list', async () => {
+    const fail = () => Promise.reject(new Error('boom'))
+    expect(await routeForPush({ kind: 'send', hash: HASH }, tapDeps({ rowIdsForHash: fail }))).toBe('/activity')
+    expect(await routeForPush({ kind: 'send', hash: HASH }, tapDeps({ address: () => null }))).toBe('/activity')
+    const throws = () => {
+      throw new Error('kv unreadable')
+    }
+    expect(await routeForPush({ kind: 'send', hash: HASH }, tapDeps({ address: throws }))).toBe('/activity')
+    expect(await routeForPush({ kind: 'send', hash: HASH }, tapDeps({ rowIdsForHash: null }))).toBe('/activity')
+  })
+  it('a fetch slower than the timeout -> the list, at the timeout', async () => {
+    vi.useFakeTimers()
+    try {
+      const never = () => new Promise<string[]>(() => undefined)
+      const p = routeForPush({ kind: 'send', hash: HASH }, tapDeps({ rowIdsForHash: never, timeoutMs: 3000 }))
+      await vi.advanceTimersByTimeAsync(2999)
+      let done = false
+      void p.then(() => (done = true))
+      await vi.advanceTimersByTimeAsync(0)
+      expect(done).toBe(false)
+      await vi.advanceTimersByTimeAsync(1)
+      expect(await p).toBe('/activity')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+  it('ignores anything the contract does not describe, without a fetch', async () => {
+    const d = tapDeps()
+    expect(await routeForPush(undefined, d)).toBeNull()
+    expect(await routeForPush({ kind: 'other', hash: HASH }, d)).toBeNull()
+    expect(await routeForPush({ kind: 'deposit', hash: '../../settings' }, d)).toBeNull()
+    expect(d.rowIdsForHash).not.toHaveBeenCalled()
   })
 })

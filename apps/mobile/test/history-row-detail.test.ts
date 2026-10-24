@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { detailRoute, findCachedRow, hashOfId, rowCopy } from '../src/features/history/model/detail'
+import { createHistory } from '../src/shared/api/history'
 import { explorerUrl } from '../src/shared/chain/port'
 import type { HistoryCache } from '../src/shared/storage/kv'
 
@@ -54,6 +55,21 @@ describe('findCachedRow', () => {
   })
   it('keeps a contract creation (to = null) as a row without counterparty', () => {
     expect(findCachedRow(cache([row(0, 'out', { to: null })]), ME, `${H}:0`)?.counterparty).toBe('')
+  })
+})
+
+describe('fresh page cached, then S41 lookup (push tap)', () => {
+  it('createHistory.load caches the first page, so findCachedRow finds the pushed row', async () => {
+    let stored: HistoryCache | null = cache([row(5, 'out')]) // stale: the pushed tx is not in it
+    const h = createHistory({
+      fetchPage: () => Promise.resolve({ items: [row(0, 'in')], nextCursor: null, incomplete: false }),
+      cache: { get: () => stored, set: (c) => (stored = c) },
+      local: () => [],
+      now: () => 1,
+    })
+    expect(findCachedRow(stored, ME, `${H}:0`)).toBeNull()
+    await h.load(ME)
+    expect(findCachedRow(stored, ME, `${H}:0`)).toMatchObject({ kind: 'receive' })
   })
 })
 
