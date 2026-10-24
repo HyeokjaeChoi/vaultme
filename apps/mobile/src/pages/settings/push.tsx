@@ -79,7 +79,11 @@ export function PushSettingPage() {
             <TextLink label={t('settings.pushScreen.openSettings')} onPress={() => void Linking.openSettings()} />
           </View>
         ) : null}
-        <Text variant="bodySmall" color={th.semantic.text.secondary}>
+        <Text
+          variant="bodySmall"
+          color={th.semantic.text.secondary}
+          style={{ paddingTop: denied ? 0 : th.semantic.layout.fieldGap }} // Figma Privacy line: pt 8, except right under the denied help
+        >
           {t('settings.pushScreen.privacy')}
         </Text>
       </View>

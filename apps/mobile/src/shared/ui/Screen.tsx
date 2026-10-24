@@ -1,8 +1,19 @@
 // Figma: product screen frame (R-S10R 333:113 / R-S22 336:390): screenB.bg (flat white), optional Nav row, body px screen.padding, content pt space-2, section gap 24, Actions pinned below
-import { type ReactNode, type RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, View, type ScrollViewInstance } from 'react-native'
+import { type ReactNode, type RefObject, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+  AccessibilityInfo,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  View,
+  type ScrollViewInstance,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
+import { Toast, ToastContext } from './Toast'
+
+const TOAST_MS = 3000
 
 type Props = {
   children: ReactNode
@@ -28,7 +39,7 @@ type Props = {
   bg?: string
 }
 
-/** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
+/** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. Children can show a B/Toast with `useToast()`: it sits 16 above the scroll area's bottom (above the footer or tab bar) for 3 s. */
 export function Screen({
   children,
   header,
@@ -51,6 +62,15 @@ export function Screen({
   const scrollY = useRef(0)
   const overflows = contentHeight > layoutHeight + 1
   const [refreshing, setRefreshing] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  useEffect(() => () => clearTimeout(toastTimer.current), [])
+  const showToast = useCallback((message: string) => {
+    AccessibilityInfo.announceForAccessibility(message)
+    setToast(message)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), TOAST_MS)
+  }, [])
   const pull = async () => {
     setRefreshing(true)
     try {
@@ -79,35 +99,45 @@ export function Screen({
   const body = (
     <>
       {header}
-      <ScrollView
-        ref={scrollRef}
-        refreshControl={
-          onRefresh ? (
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => void pull()}
-              tintColor={t.semantic.text.secondary}
-              colors={[t.semantic.text.secondary]}
-            />
-          ) : undefined
-        }
-        onScroll={(e) => {
-          scrollY.current = e.nativeEvent.contentOffset.y
-        }}
-        scrollEventThrottle={16}
-        keyboardShouldPersistTaps="handled"
-        onLayout={(e) => setLayoutHeight(e.nativeEvent.layout.height)}
-        onContentSizeChange={(_, h) => setContentHeight(h)}
-        contentContainerStyle={{
-          paddingHorizontal: bleed ? 0 : l.screen.padding,
-          paddingTop: bleed || topGap === 'none' ? 0 : topGap === 'group' ? l.groupGap : t.primitive.space[2],
-          paddingBottom: bleed ? l.groupGap : t.primitive.space[2], // bleed: last row keeps 16 clearance above the footer line / tab bar
-          gap: gap === 'none' ? 0 : gap === 'group' ? l.groupGap : gap === 'row' ? l.rowGap : l.sectionGap.product,
-          flexGrow: 1,
-        }}
-      >
-        {children}
-      </ScrollView>
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          ref={scrollRef}
+          refreshControl={
+            onRefresh ? (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => void pull()}
+                tintColor={t.semantic.text.secondary}
+                colors={[t.semantic.text.secondary]}
+              />
+            ) : undefined
+          }
+          onScroll={(e) => {
+            scrollY.current = e.nativeEvent.contentOffset.y
+          }}
+          scrollEventThrottle={16}
+          keyboardShouldPersistTaps="handled"
+          onLayout={(e) => setLayoutHeight(e.nativeEvent.layout.height)}
+          onContentSizeChange={(_, h) => setContentHeight(h)}
+          contentContainerStyle={{
+            paddingHorizontal: bleed ? 0 : l.screen.padding,
+            paddingTop: bleed || topGap === 'none' ? 0 : topGap === 'group' ? l.groupGap : t.primitive.space[2],
+            paddingBottom: bleed ? l.groupGap : t.primitive.space[2], // bleed: last row keeps 16 clearance above the footer line / tab bar
+            gap: gap === 'none' ? 0 : gap === 'group' ? l.groupGap : gap === 'row' ? l.rowGap : l.sectionGap.product,
+            flexGrow: 1,
+          }}
+        >
+          <ToastContext value={showToast}>{children}</ToastContext>
+        </ScrollView>
+        {toast ? (
+          <View
+            pointerEvents="none"
+            style={{ position: 'absolute', left: l.screen.padding, right: l.screen.padding, bottom: l.screen.padding }}
+          >
+            <Toast message={toast} />
+          </View>
+        ) : null}
+      </View>
       {footer ? (
         // Fixed-footer boundary (Borderless functional exception, DESIGN.md): Figma draws the 1 px line above the actions on every screen with a footer.
         <View
