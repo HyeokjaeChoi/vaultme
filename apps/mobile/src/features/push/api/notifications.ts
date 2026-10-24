@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications'
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
+import { ko } from '@vaultme/i18n'
 import { api } from '@/shared/api'
 import {
   getAccountAddress,
@@ -18,7 +19,7 @@ const toPermission = (r: Notifications.NotificationPermissionsStatus): Permissio
 const ensureChannel = () =>
   Platform.OS === 'android'
     ? Notifications.setNotificationChannelAsync('default', {
-        name: '거래 알림',
+        name: ko.settings.pushScreen.title,
         importance: Notifications.AndroidImportance.DEFAULT,
       })
     : Promise.resolve(null)

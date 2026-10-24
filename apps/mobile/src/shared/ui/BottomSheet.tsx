@@ -15,16 +15,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useIsFocused } from 'expo-router'
 import { useTheme } from '../theme'
 import { OnRaisedContext } from '../theme/sheet'
-import { closeOnBlur, sheetOnScreen } from './sheetFocus'
+import { closeOnBlur, releaseCloses, sheetOnScreen } from './sheetFocus'
 import { Button } from './Button'
 import { Text } from './Text'
 
 // DESIGN motion: sheet open 250 ms (0.32,0.72,0,1), close 200 ms. Open has no token; close = motion.duration.baseMs.
 const OPEN_MS = 250
 const OPEN_EASING = Easing.bezier(0.32, 0.72, 0, 1)
-// Grabber drag (staff-PD P1-3): close when dragged past 30% of the sheet height or released faster than 500 pt/s; else spring back.
-const DISMISS_FRACTION = 0.3
-const DISMISS_VELOCITY = 500
 const RUBBER = 0.15
 const SPRING = { duration: 300, dampingRatio: 0.8 }
 
@@ -46,10 +43,22 @@ type Props = {
   actions?: ReactNode
   /** The `Show notice` slot: a Status notice (inline, e.g. danger) between the body and the actions. Off when omitted. */
   notice?: ReactNode
+  /** false = scrim, back, blur and drag do not close it (drag springs back), e.g. while a request runs. Default true. */
+  dismissible?: boolean
 }
 
 /** C32 Bottom sheet, attached to the bottom edge (home-indicator padding inside). Max height 90%, only the content scrolls, actions stay pinned: Secondary above, Primary below. Buttons inside use the on-raised Secondary fill. */
-export function BottomSheet({ visible, onClose, title, children, primary, secondary, actions, notice }: Props) {
+export function BottomSheet({
+  visible,
+  onClose,
+  title,
+  children,
+  primary,
+  secondary,
+  actions,
+  notice,
+  dismissible = true,
+}: Props) {
   const t = useTheme()
   const insets = useSafeAreaInsets()
   const { height } = useWindowDimensions()
@@ -59,10 +68,13 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
   const y = useSharedValue(height)
   const closeMs = t.primitive.motion.duration.baseMs
   const sheetH = useRef(0)
-  const live = useRef({ onClose, reduce })
+  const live = useRef({ onClose, reduce, dismissible })
   useEffect(() => {
-    live.current = { onClose, reduce }
-  }, [onClose, reduce])
+    live.current = { onClose, reduce, dismissible }
+  }, [onClose, reduce, dismissible])
+  const dismiss = () => {
+    if (dismissible) onClose()
+  }
   // Plain PanResponder on the grabber: it needs no native gesture module, and a sheet drag is one touch on the JS thread.
   const pan = useMemo(
     () =>
@@ -71,7 +83,8 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
         onStartShouldSetPanResponder: () => true,
         onPanResponderMove: (_, g) => y.set(g.dy > 0 ? g.dy : g.dy * RUBBER),
         onPanResponderRelease: (_, g) => {
-          if (g.dy > sheetH.current * DISMISS_FRACTION || g.vy * 1000 > DISMISS_VELOCITY) live.current.onClose()
+          if (releaseCloses({ dy: g.dy, vy: g.vy, height: sheetH.current, dismissible: live.current.dismissible }))
+            live.current.onClose()
           else y.set(live.current.reduce ? 0 : withSpring(0, { ...SPRING, velocity: g.vy * 1000 }))
         },
         onPanResponderTerminate: () => y.set(live.current.reduce ? 0 : withSpring(0, SPRING)),
@@ -98,7 +111,7 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
 
   // Another route or tab came to the front: close, so the native Modal does not stay over it.
   useEffect(() => {
-    if (closeOnBlur({ visible, focused })) live.current.onClose()
+    if (closeOnBlur({ visible, focused }) && live.current.dismissible) live.current.onClose()
   }, [focused]) // eslint-disable-line react-hooks/exhaustive-deps -- only a focus change closes; `visible` is read as it is now
 
   const sheet = useAnimatedStyle(() => ({ transform: [{ translateY: y.get() }] }))
@@ -110,7 +123,7 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
       visible={sheetOnScreen({ mounted, focused })}
       transparent
       animationType="none"
-      onRequestClose={onClose}
+      onRequestClose={dismiss}
       statusBarTranslucent
     >
       <View style={{ flex: 1, justifyContent: 'flex-end' }}>
@@ -118,7 +131,7 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={ko.common.close}
-            onPress={onClose}
+            onPress={dismiss}
             style={{ flex: 1, backgroundColor: t.component.overlay.scrimBg, opacity: t.component.overlay.scrimOpacity }}
           />
         </Animated.View>
