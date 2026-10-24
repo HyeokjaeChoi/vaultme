@@ -40,7 +40,9 @@ export function fakeHistoryItems(tx: ReturnType<typeof usePendingTx>['tx']): His
       ...txView(x.state),
       local: false,
     }))
-  return [...own, ...rest].toSorted((a, b) => b.at - a.at)
+  const all = [...own, ...rest]
+  all.sort((a, b) => b.at - a.at)
+  return all
 }
 
 /** `dated`: Home's list has no date headers, so a finished row says its day ("10월 12일"); a row in progress and any row of today say the time. */

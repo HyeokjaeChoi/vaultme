@@ -65,10 +65,11 @@ export function resolveReview(
   const lookalike = risk === 'lookalike'
   // Previous = the recent address that differs from the recipient in the fewest (but not zero) 4-char groups.
   const previous = lookalike
-    ? ([...recentAddresses]
+    ? (recentAddresses
         .map((a) => ({ a, n: diffGroups(recipient, a).length }))
         .filter((c) => c.n > 0)
-        .toSorted((x, y) => x.n - y.n)[0]?.a ?? review.recipient)
+        .reduce<{ a: string; n: number } | undefined>((best, c) => (best && best.n <= c.n ? best : c), undefined)?.a ??
+      review.recipient)
     : null
   const clean = cleanAmount(amount, asset)
   const shown = clean ?? review.amount.replace(' ETH', '')

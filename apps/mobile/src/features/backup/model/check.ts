@@ -12,7 +12,8 @@ export function pickPositions(rand: () => number = Math.random, length = PHRASE_
   const out: number[] = []
   while (out.length < count)
     out.push(at(pool.splice(Math.min(pool.length - 1, Math.floor(rand() * pool.length)), 1), 0))
-  return out.toSorted((a, b) => a - b)
+  out.sort((a, b) => a - b)
+  return out
 }
 
 const norm = (w: string) => w.trim().toLowerCase()

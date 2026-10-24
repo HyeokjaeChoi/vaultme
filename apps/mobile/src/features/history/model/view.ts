@@ -71,7 +71,9 @@ export type HistoryView = {
 /** Newest first. The send recorded on this device wins over an API row with the same hash: its state is the one this app checks. */
 function merge(api: HistoryItem[], local: PendingTx | null): HistoryItem[] {
   const rest = local ? api.filter((i) => i.hash.toLowerCase() !== local.hash.toLowerCase()) : api
-  return (local ? [fromLocal(local), ...rest] : rest).toSorted((a, b) => b.at - a.at)
+  const all = local ? [fromLocal(local), ...rest] : [...rest]
+  all.sort((a, b) => b.at - a.at)
+  return all
 }
 
 /** ADR-0007: fresh result, or the cache with an error, or (404) only what this device sent. */
