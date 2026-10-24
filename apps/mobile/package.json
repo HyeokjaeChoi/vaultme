@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
-    "@noble/curves": "1.9.1",
+    "@noble/curves": "2.4.0",
     "@noble/hashes": "1.8.0",
     "@solar-icons/react-native": "2.3.2",
     "@vaultme/contracts": "workspace:*",
