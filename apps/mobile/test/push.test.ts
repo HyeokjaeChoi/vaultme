@@ -68,6 +68,14 @@ describe('enablePush', () => {
     expect(await enablePush(t.deps)).toBe('unavailable')
     expect(t.state.setting).toBe(false)
   })
+  it('never rejects when the wallet address cannot be read (callers reset their busy state)', async () => {
+    const t = make({
+      address: () => {
+        throw new Error('kv closed')
+      },
+    })
+    expect(await enablePush(t.deps)).toBe('error')
+  })
   it('test-data mode (no server): on locally, nothing registered', async () => {
     const t = make({ server: null, projectId: null })
     expect(await enablePush(t.deps)).toBe('on')

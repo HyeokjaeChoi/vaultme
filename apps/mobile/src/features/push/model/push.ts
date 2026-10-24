@@ -50,9 +50,9 @@ function serial<T>(op: () => Promise<T>): Promise<T> {
  */
 export function enablePush(d: PushDeps): Promise<EnableResult> {
   return serial(async () => {
-    const address = d.address()
-    if (!address) return 'unavailable'
     try {
+      const address = d.address()
+      if (!address) return 'unavailable'
       let p = await d.port.permission()
       if (p === 'undetermined') p = await d.port.request()
       if (p !== 'granted') return 'denied'
@@ -77,14 +77,14 @@ export function enablePush(d: PushDeps): Promise<EnableResult> {
  */
 export function disablePush(d: PushDeps): Promise<void> {
   return serial(async () => {
-    d.setSetting(false)
-    if (!d.server) return
-    d.setUnregisterPending(true)
     try {
+      d.setSetting(false)
+      if (!d.server) return
+      d.setUnregisterPending(true)
       await d.server.deletePushSubscription()
       d.setUnregisterPending(false)
     } catch {
-      // still owed: retried at the next launch
+      // still owed (or kv unavailable): retried at the next launch
     }
   })
 }
