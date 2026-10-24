@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Checks guard-bash.sh: run `bash .claude/hooks/guard-bash.test.sh`. Exit 0 = all cases pass.
 set -u
+# A git hook (pre-commit runs R12) exports GIT_DIR and GIT_INDEX_FILE. With them set, the git calls below act on
+# the real repo: init re-inits it (core.bare=true) and commit adds commits to it. Clear them first.
+unset $(git rev-parse --local-env-vars)
 hook="$(cd "$(dirname "$0")" && pwd)/guard-bash.sh"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
