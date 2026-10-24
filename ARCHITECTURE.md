@@ -11,7 +11,6 @@ Goals:
 - Show history. Send a push when a watched address gets a deposit or sends a transaction.
 
 Non-goals (not built): other chains, other tokens, swap, multiple accounts, smart accounts, WalletConnect, cloud backup, ENS, address book, speed-up or cancel, a web app, an admin dashboard.
-Planned: staging deploy (#45).
 
 ## System map
 
@@ -188,9 +187,11 @@ Local:
 
 CI (`.github/workflows`):
 - `ci.yml`, on pull request and push to `main`: job `repo-rules` runs `scripts/check-repo-rules.sh` (R1 to R11). Job `verify` runs `pnpm turbo run typecheck lint test` and `openapi:check`.
+- `api-staging.yml`, on push to `main` that touches the API (and by hand): in the GitHub Environment `staging`, applies D1 migrations, runs `wrangler deploy --env staging`, then checks `/v1/health`.
 - `pr-description.yml`, on pull request: `check` (body 3,500 characters or less, `Closes #N`). `figma-comparison` (light and dark app-vs-Figma images for each changed screen).
 
 Release:
-- Not automated. No deploy workflow, no EAS config, no store build. Deploy the API by hand with `wrangler deploy` (top level, `--env staging`, `--env production`). Apply D1 migrations first with `wrangler d1 migrations apply`.
+- Staging API: `api-staging.yml` (above). Production API: by hand, `wrangler d1 migrations apply DB --remote --env production`, then `wrangler deploy --env production`. No EAS config, no store build.
+- The first deploy of an env creates its D1 database (no `database_id` in `wrangler.jsonc`); later runs find it by name. Run it by hand once, because `migrations apply` cannot create the database.
 - D1 migrations are forward-only SQL files. Write them so the old Worker still runs: add columns and tables, do not drop or rename in the same release.
 - `MIN_APP_VERSION` (a var) forces old apps to update.
