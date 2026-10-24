@@ -16,10 +16,7 @@ export function Toast({ message }: { message: string }) {
   const t = useTheme()
   const b = t.component.noticeBanner
   return (
-    <View
-      accessibilityLiveRegion="polite"
-      style={{ padding: b.padding, borderRadius: b.radius, backgroundColor: t.semantic.surface.inverse }}
-    >
+    <View style={{ padding: b.padding, borderRadius: b.radius, backgroundColor: t.semantic.surface.inverse }}>
       <Text variant="bodySmall" color={t.semantic.text.inverse}>
         {message}
       </Text>
