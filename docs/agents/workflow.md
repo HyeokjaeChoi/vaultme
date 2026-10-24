@@ -17,11 +17,13 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
 4. Commit with Conventional Commits. The pre-commit hook runs `scripts/check-repo-rules.sh`.
    The pre-push hook also runs `pnpm turbo run typecheck lint test` when code changed.
 5. Run `coderabbit review --base main --agent` locally and fix its findings before you open the PR.
+   Iterate with this CLI and `/code-review`, not with repeated PR reviews (step 7).
 6. Open the PR with `Closes #N`. Keep the description at 3,500 characters or less.
+   Keep the PR at 100 changed files or fewer; split a larger change into several PRs.
    State what changed, which design sections it follows, and the exact verification commands and results.
    Never label a step verified without a run. Set Project Status `In Review`.
-7. CodeRabbit reviews the PR. Collect all findings of one round, fix them together, push once,
-   then comment `@coderabbitai full review`.
+7. Request one CodeRabbit PR review: comment `@coderabbitai review` once per PR (the OSS plan reviews about
+   1 PR per hour). Collect all its findings, fix them together, check the fixes with step 5, and push once.
 8. Answer each finding with one of: fix the code; fix the design source in the same PR;
    add a check to `scripts/check-repo-rules.sh`; or reject it and cite the design source section.
 9. Repeated finding (same kind seen in 2 PRs, or twice in one PR): add a check that fails on it
