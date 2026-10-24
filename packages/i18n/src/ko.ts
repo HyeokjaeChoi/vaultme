@@ -331,10 +331,16 @@ export const ko = {
     /** Sending account name from the record's derivation index (n = index + 1). */
     accountName: '계정 {{n}}',
     recipientTitle: '받는 주소',
+    // History rows without a local record (Figma Flow 4 A 742:2487, B 742:2584).
+    senderTitle: '보낸 사람',
+    recipientWho: '받는 사람',
+    receivedAccount: '받은 계정',
+    received: '받았어요',
+    success: { body: '이 거래는 성공했어요.' },
     infoTitle: '거래 정보',
     time: '시각',
     block: '블록',
-    state: { confirmed: '확정', unknown: '확인 못 함', test: '예시' },
+    state: { confirmed: '확정', unknown: '확인 못 함', test: '예시', success: '성공' },
     hashTitle: '거래 해시',
     // Figma B-S41 423:16381: "마지막 확인 09:41." The second sentence only while the app polls (Pending, Included).
     lastChecked: '마지막 확인 {{time}}',

@@ -19,8 +19,10 @@ export type HistoryItem = {
   status: ActivityStatus
   /** i18n key of the status words. */
   label: ReturnType<typeof txView>['label']
-  /** The send recorded on this device: its row opens S41. */
+  /** The send recorded on this device: S41 shows its full record. */
   local: boolean
+  /** API rows only (S41 "블록"). */
+  blockNumber?: number
 }
 
 /**
@@ -47,6 +49,7 @@ export function parseItems(data: unknown): HistoryItem[] {
       at: i.timestamp * 1000,
       ...txView(i.status === 'ok' ? 'Confirmed' : 'Failed'),
       local: false,
+      blockNumber: i.blockNumber,
     })
   }
   return out

@@ -205,7 +205,7 @@ export function HomePage() {
               label={t('send.pendingBlock.view')}
               onPress={() => {
                 close()
-                router.push(shownTx ? { pathname: '/activity/[hash]', params: { hash: shownTx.hash } } : '/activity')
+                router.push(shownTx ? { pathname: '/activity/[id]', params: { id: shownTx.hash } } : '/activity')
               }}
             />
           </>
