@@ -6,6 +6,8 @@ import type { ActivityStatus } from '@/shared/ui'
 import { txView } from '@/entities/transaction'
 
 export type HistoryItem = {
+  /** List key. API rows: `<hash>:<seq>` (one tx can have several rows). The local send: its hash. */
+  id: string
   hash: string
   kind: 'send' | 'receive'
   asset: string
@@ -36,6 +38,7 @@ export function parseItems(data: unknown): HistoryItem[] {
     const i = p.data
     if (i.zeroValue && i.direction === 'in') continue // Incoming 0-value rows are the address-poisoning vector. Own calls stay.
     out.push({
+      id: i.id,
       hash: i.hash,
       kind: i.direction === 'out' ? 'send' : 'receive',
       asset: i.asset,
@@ -50,6 +53,7 @@ export function parseItems(data: unknown): HistoryItem[] {
 }
 
 const fromLocal = (tx: PendingTx): HistoryItem => ({
+  id: tx.hash,
   hash: tx.hash,
   kind: 'send',
   asset: tx.asset,

@@ -17,6 +17,7 @@ export function fakeHistoryItems(tx: ReturnType<typeof usePendingTx>['tx']): His
   const own: HistoryItem[] = tx
     ? [
         {
+          id: tx.hash,
           hash: tx.hash,
           kind: 'send',
           asset: tx.asset,
@@ -31,6 +32,7 @@ export function fakeHistoryItems(tx: ReturnType<typeof usePendingTx>['tx']): His
   const rest = transactions
     .filter((x) => !(tx && x.id === '1'))
     .map((x): HistoryItem => ({
+      id: x.id,
       hash: x.id,
       kind: x.kind,
       asset: x.asset,
@@ -85,7 +87,7 @@ export function ActivityList({ items }: { items: HistoryItem[] }) {
         <View key={g.key}>
           <DateHeader date={g.day} />
           {g.items.map((item) => (
-            <Row key={item.hash} item={item} />
+            <Row key={item.id} item={item} />
           ))}
         </View>
       ))}
@@ -98,7 +100,7 @@ export function RecentRows({ items, limit = 3 }: { items: HistoryItem[]; limit?:
   return (
     <>
       {items.slice(0, limit).map((item) => (
-        <Row key={item.hash} item={item} dated />
+        <Row key={item.id} item={item} dated />
       ))}
     </>
   )
