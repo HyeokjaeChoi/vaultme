@@ -188,6 +188,6 @@ CI (`.github/workflows`):
 
 Release:
 - Staging API: `api-staging.yml` (above). Production API: by hand, `wrangler d1 migrations apply DB --remote --env production`, then `wrangler deploy --env production`. No EAS config, no store build.
-- The first deploy of an env creates its D1 database (no `database_id` in `wrangler.jsonc`); later runs find it by name. Run it by hand once, because `migrations apply` cannot create the database.
+- Before the first run in a new env, create its D1 database once by hand (`wrangler d1 create vaultme-api-<env>`; no `database_id` in `wrangler.jsonc`, later runs find it by name). The workflow applies migrations before `wrangler deploy`, and `migrations apply` cannot create the database (staging run #2 failed this way).
 - D1 migrations are forward-only SQL files. Write them so the old Worker still runs: add columns and tables, do not drop or rename in the same release.
 - `MIN_APP_VERSION` (a var) forces old apps to update.

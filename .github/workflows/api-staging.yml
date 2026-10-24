@@ -2,8 +2,8 @@ name: api-staging
 
 # Deploys apps/api to the `staging` env in wrangler.jsonc.
 # Needs the GitHub Environment `staging` with secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
-# and variable STAGING_API_URL (the Worker URL, no trailing slash). The D1 database must exist
-# before the first run: `wrangler deploy --env staging` creates it, `migrations apply` does not.
+# and variable STAGING_API_URL (the Worker URL, no trailing slash). Create the D1 database once before
+# the first run (`wrangler d1 create vaultme-api-staging`): migrations run first and cannot create it.
 on:
   push:
     branches: [main]
