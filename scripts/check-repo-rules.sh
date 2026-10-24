@@ -208,4 +208,13 @@ if ! bash .claude/hooks/guard-bash.test.sh >/dev/null; then
   err "R12: .claude/hooks/guard-bash.test.sh failed (run it to see the case)"
 fi
 
+# R13. Every package waits 7 days, with no exceptions (#142): pnpm minimumReleaseAge >= 10080 and no
+# minimumReleaseAgeExclude, so no tool (Renovate security updates included) can add one past CI.
+if ! awk '/^minimumReleaseAge:/ { ok = ($2 >= 10080) } END { exit !ok }' pnpm-workspace.yaml; then
+  err "R13: pnpm-workspace.yaml minimumReleaseAge must be 10080 (7 days) or more"
+fi
+if grep -nE '^[[:space:]]*minimumReleaseAgeExclude' pnpm-workspace.yaml; then
+  err "R13: no minimumReleaseAgeExclude in pnpm-workspace.yaml; wait 7 days instead"
+fi
+
 exit "$fail"

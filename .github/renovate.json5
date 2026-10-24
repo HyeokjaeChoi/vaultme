@@ -9,9 +9,10 @@
   ignorePresets: [':pinDevDependencies', ':maintainLockFilesWeekly'],
   timezone: 'Asia/Seoul',
   dependencyDashboard: true,
-  // Security fixes still open for disabled packages (the alert rules use `force`) and skip schedule and release age.
-  // A fix younger than 7 days fails the lockfile update, because pnpm minimumReleaseAge still applies.
-  vulnerabilityAlerts: { enabled: true },
+  // Security fixes still open for disabled packages (the alert rules use `force`) and skip the schedule.
+  // Owner rule (#142): they wait 7 days like every other update. The default `minimumReleaseAge: null` skipped it
+  // (https://docs.renovatebot.com/key-concepts/minimum-release-age), and pnpm would need a minimumReleaseAgeExclude.
+  vulnerabilityAlerts: { enabled: true, minimumReleaseAge: '7 days' },
   // GitHub auto-merge waits for the ruleset's required checks (repo-rules, verify, check, figma-comparison).
   // Needs the repo setting "Allow auto-merge"; without it Renovate merges itself after checks pass.
   platformAutomerge: true,
