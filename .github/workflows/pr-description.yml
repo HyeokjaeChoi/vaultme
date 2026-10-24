@@ -15,7 +15,10 @@ jobs:
     steps:
       - env:
           BODY: ${{ github.event.pull_request.body }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
+          # Dependency bot PRs have no issue and long generated release notes, so they skip both rules.
+          case "$AUTHOR" in renovate\[bot\]|dependabot\[bot\]) echo "Bot PR by $AUTHOR: skipped."; exit 0;; esac
           body=$(printf '%s' "$BODY" | sed '/<!-- This is an auto-generated comment: release notes by coderabbit.ai -->/,/<!-- end of auto-generated comment: release notes by coderabbit.ai -->/d')
           len=$(printf '%s' "$body" | LC_ALL=C.UTF-8 wc -m)
           echo "PR description: $len characters (limit 3500)"

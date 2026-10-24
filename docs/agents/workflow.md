@@ -35,6 +35,13 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
 10. Merge when no Critical or Major finding is open and all checks pass. Record open Minor findings
     as new issues and link them. Squash merge. Project Status moves to `Done` when the issue closes.
 
+## Dependency update PRs
+
+Renovate opens them (`.github/renovate.json5`); the Dependency Dashboard issue lists pending and disabled updates.
+They need no issue, skip the `Closes #N` and length rules, and get no Claude review. Renovate automerges npm patch and devDependency minor
+updates when the required checks pass. Review the others with step 10. Expo SDK packages update only through
+`npx expo install --fix`, in a normal PR.
+
 ## Setup once per clone
 
 `git config core.hooksPath .githooks`

@@ -28,7 +28,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | Markdown links and backticked repo paths in tracked `*.md` resolve | R11 |
 | Tokens: raw values only in Primitive; Semantic and Component alias | `packages/tokens/test/hierarchy.test.ts`, `packages/tokens/build.mjs` |
 | A PR that changes app screen code shows one light and one dark app-vs-Figma image per changed screen (mode in the alt text) | `.github/workflows/pr-description.yml` `figma-comparison` |
-| PR body ≤ 3,500 characters and `Closes #N` | `.github/workflows/pr-description.yml` `check` |
+| PR body ≤ 3,500 characters and `Closes #N` (Renovate and Dependabot PRs exempt) | `.github/workflows/pr-description.yml` `check` |
 | Code is Prettier-formatted and ESLint-clean with 0 warnings | pre-commit `lint-staged`, pre-push, CI `verify` |
 | Mobile FSD layers: imports go down only, other slices only through their `index`, route files only re-export `src/shell` or `src/pages` | `apps/mobile/eslint.config.mjs` boundaries, `apps/mobile/steiger.config.mjs` |
 | Typecheck, lint and tests pass | CI `verify`, pre-push hook |
@@ -36,7 +36,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | No unused files or dependencies, no unlisted dependencies | `knip.jsonc`, CI `verify` (`pnpm knip`) |
 | The mobile app bundles for iOS and Android | CI `verify` (`export:check`); `expo-doctor` reports only |
 | Claude Code: no `--no-verify`, no force push or push to main; no edits to CLAUDE.md or generated files; edited files are formatted and linted; a turn with code changes ends only when typecheck and lint pass | `.claude/settings.json` hooks in `.claude/hooks/`; R12 tests `guard-bash.sh` |
-| pnpm installs only package versions published at least 7 days (10080 min) ago | `pnpm-workspace.yaml` `minimumReleaseAge` |
+| pnpm installs only package versions published at least 7 days (10080 min) ago | `pnpm-workspace.yaml` `minimumReleaseAge`; Renovate waits the same 7 days (`.github/renovate.json5`) |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |
 
 When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a test) and list it here. Only if no check can detect it, add a lesson to `vaultme-review-lessons`.
