@@ -76,6 +76,18 @@ describe('history view (ADR-0007)', () => {
     expect(usdc).toMatchObject({ asset: 'USDC', amount: '12.34' })
     expect(bad).toMatchObject({ kind: 'send', status: 'failed', label: 'activity.failed', counterparty: '' })
   })
+  it('keeps the API id: one tx with a native and an erc20 row gives two rows with unique ids (#157)', () => {
+    const v = toView(
+      {
+        source: 'api',
+        data: { items: [item(H2, 1), item(H2, 1, 'ok', { id: `${H2}:1`, kind: 'erc20', asset: 'USDC', value: '1' })] },
+        updatedAt: 1,
+      },
+      local,
+      99,
+    )
+    expect(v.items.map((i) => i.id)).toEqual([H1, `${H2}:0`, `${H2}:1`])
+  })
   it('api result: updatedAt is the fetch time, not failed; the local send wins over the same hash and sorts newest first', () => {
     const v = toView({ source: 'api', data: { items: [item(H1, 1), item(H2, 9000)] }, updatedAt: 777 }, local, 99)
     expect(v).toMatchObject({ updatedAt: 777, failed: false })

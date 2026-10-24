@@ -100,6 +100,7 @@ function DevState({ state, cache }: { state: string; cache?: string }) {
     )
   if (state === 'rows') {
     const extra: HistoryItem[] = (['Unknown', 'Replaced'] as const).map((st, i) => ({
+      id: `x${String(i)}`,
       hash: `x${String(i)}`,
       kind: 'send',
       asset: 'ETH',
@@ -117,6 +118,7 @@ function DevState({ state, cache }: { state: string; cache?: string }) {
     return <Content view={{ items: [], updatedAt: null, failed: true }} reload={() => undefined} />
   const cached = transactions.filter((x) => x.id === '2' || x.id === '3')
   const items = cached.map((x): HistoryItem => ({
+    id: x.id,
     hash: x.id,
     kind: x.kind,
     asset: x.asset,
