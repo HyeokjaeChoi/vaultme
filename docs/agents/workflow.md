@@ -17,7 +17,7 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
 4. Commit with Conventional Commits. The pre-commit hook runs `scripts/check-repo-rules.sh`.
    The pre-push hook also runs `pnpm turbo run typecheck lint test` when code changed.
 5. Run `coderabbit review --base main --agent` locally and fix its findings before you open the PR.
-   Iterate with this CLI and `/code-review`, not with PR reviews.
+   Iterate with this CLI and `/code-review`, not with repeated PR reviews (step 7).
 6. Open the PR with `Closes #N`. Keep the description at 3,500 characters or less.
    Keep the PR at 100 changed files or fewer; split a larger change into several PRs.
    State what changed, which design sections it follows, and the exact verification commands and results.
