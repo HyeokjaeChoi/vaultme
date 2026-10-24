@@ -7,7 +7,8 @@ reviews:
   profile: chill
   request_changes_workflow: false
   auto_review:
-    enabled: true
+    # Off: Claude reviews each PR on open (.github/workflows/claude-code-review.yml). `@coderabbitai review` still works.
+    enabled: false
     drafts: true
   path_filters:
     - '!pnpm-lock.yaml'
