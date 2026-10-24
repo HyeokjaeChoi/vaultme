@@ -3,14 +3,20 @@
 # The GitHub ruleset on main is the real guard; this catches the mistake before it runs.
 input=$(cat)
 cmd=$(jq -r '.tool_input.command // empty' <<<"$input")
+# Checks run on `chk`: heredoc bodies dropped, quoted prose blanked ("git push" in an issue body is not a push).
+# A quoted word without whitespace is unwrapped ("main", "--force" stay visible). Double quotes with $( or a backtick,
+# and any bash/sh/zsh/eval wrapper, keep their text (they run it). ponytail: regex, not a shell parser; use a real one if bypasses appear.
+chk=$(perl -0pe 's/(<<-?[ \t]*([\x27"]?)(\w+)\2[^\n]*\n).*?\n[ \t]*\3(?=\n|$)/$1$3/sg;
+  s/("(?:\\.|[^"\\])*"|\x27[^\x27]*\x27)/my $q=$1; my $c=substr($q,0,1); ($c eq "\"" && $q =~ m{\$\(|`}) ? $q : $q =~ m{\s} ? "$c$c" : substr($q,1,-1)/ge' <<<"$cmd")
+grep -Eq '(^|[[:space:];&|(])(bash|sh|zsh|eval)([[:space:]]|$)' <<<"$chk" && chk=$cmd
 block() { echo "Blocked by .claude/hooks/guard-bash.sh: $1" >&2; exit 2; }
-if grep -Eq 'git[^|;&]*\b(commit|push|merge|rebase)\b[^|;&]*--no-verify' <<<"$cmd" || grep -Eq 'git[^|;&]*\bcommit\b[^|;&]*[[:space:]]-[a-zA-Z]*n' <<<"$cmd"; then
+if grep -Eq 'git[^|;&]*\b(commit|push|merge|rebase)\b[^|;&]*--no-verify' <<<"$chk" || grep -Eq 'git[^|;&]*\bcommit\b[^|;&]*[[:space:]]-[a-zA-Z]*n' <<<"$chk"; then
   block "do not skip git hooks (--no-verify). Fix what the hook reports."
 fi
-if grep -Eq 'git[^|;&]*\bpush\b[^|;&]*([[:space:]]--force([[:space:]]|$)|[[:space:]]-[a-zA-Z]*f|[[:space:]]\+[^[:space:]])' <<<"$cmd"; then
+if grep -Eq 'git[^|;&]*\bpush\b[^|;&]*([[:space:]]--force([[:space:]")]|$)|[[:space:]]-[a-zA-Z]*f|[[:space:]]\+[^[:space:]])' <<<"$chk"; then
   block "no plain force push (--force, -f, +refspec). Use --force-with-lease on your own feature branch."
 fi
-if grep -Eq 'git[^|;&]*\bpush\b[^|;&]*[[:space:]](origin[[:space:]]+)?([^[:space:]]*:)?(refs/heads/)?(main|master)([[:space:]]|$)' <<<"$cmd"; then
+if grep -Eq 'git[^|;&]*\bpush\b[^|;&]*[[:space:]](origin[[:space:]]+)?([^[:space:]]*:)?(refs/heads/)?(main|master)([[:space:]")]|$)' <<<"$chk"; then
   block "do not push to main. Open a PR."
 fi
 # Check the folder the push runs in, not the project folder: a worktree session has its own branch.
@@ -22,7 +28,8 @@ resolve() { # resolve <cd|-C match>: print the folder, quotes stripped, ~ and $H
   d=${d#[\"\']} d=${d%[\"\']} d=${d/#\~/$HOME} d=${d//\$HOME/$HOME}
   if [[ $d == /* ]]; then echo "$d"; else echo "$cwd/$d"; fi
 }
-push=$(grep -oE 'git[^|;&]*\bpush\b[^|;&]*' <<<"$cmd" | head -1)
+push=$(grep -oE 'git[^|;&]*\bpush\b[^|;&]*' <<<"$chk" | head -1) # is there a push? the folder logic below reads the original text (quoted -C paths)
+[ -n "$push" ] && push=$(grep -oE 'git[^|;&]*\bpush\b[^|;&]*' <<<"$cmd" | head -1)
 if [ -n "$push" ]; then
   cwd=$(jq -r '.cwd // empty' <<<"$input")
   cwd=${cwd:-${CLAUDE_PROJECT_DIR:-.}}

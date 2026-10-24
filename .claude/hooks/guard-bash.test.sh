@@ -37,4 +37,18 @@ case_ 2 "$tmp/feat" "$tmp/feat" "git push origin main" "push to main"
 case_ 2 "$tmp/feat" "$tmp/feat" "git push --force" "force push"
 case_ 0 "$tmp/feat" "$tmp/feat" "git push --force-with-lease" "force-with-lease"
 case_ 2 "$tmp/feat" "$tmp/feat" "git commit --no-verify -m x" "skip hooks"
+# Quoted text and heredoc bodies are prose, not commands.
+case_ 0 "$tmp/main" "$tmp/main" 'gh issue create --body "run git push --force origin main with --no-verify"' "double-quoted prose with push/force/main"
+case_ 0 "$tmp/main" "$tmp/main" "gh issue create --body 'never git push origin main'" "single-quoted prose"
+case_ 0 "$tmp/main" "$tmp/main" 'git commit -m "do not use git commit --no-verify"' "commit message that names --no-verify"
+case_ 0 "$tmp/main" "$tmp/main" "gh pr create --body \"don't git push\" --title x" "apostrophe inside double quotes"
+case_ 0 "$tmp/main" "$tmp/main" $'gh issue create --body-file - <<\'EOF\'\ngit push --force origin main\nit\'s --no-verify\nEOF' "quoted heredoc body"
+case_ 0 "$tmp/main" "$tmp/main" $'cat <<EOF\ngit push origin main\nEOF' "unquoted heredoc body"
+# Quoting a real argument or wrapping the command must not hide it.
+case_ 2 "$tmp/feat" "$tmp/feat" 'git push origin "main"' "quoted main arg"
+case_ 2 "$tmp/feat" "$tmp/feat" 'git push "--force"' "quoted --force arg"
+case_ 2 "$tmp/feat" "$tmp/feat" 'git commit "--no-verify" -m x' "quoted --no-verify arg"
+case_ 2 "$tmp/feat" "$tmp/feat" 'bash -c "git push --force"' "bash -c wrapper"
+case_ 2 "$tmp/feat" "$tmp/feat" 'echo "$(git push origin main)"' "command substitution in double quotes"
+case_ 2 "$tmp/main" "$tmp/main" 'echo "x" && git push' "real push on main after a quoted string"
 exit $fail
