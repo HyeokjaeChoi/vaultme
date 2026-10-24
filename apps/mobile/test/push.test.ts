@@ -174,9 +174,9 @@ describe('ordering', () => {
 })
 
 describe('routeForPush', () => {
-  it('routes a valid payload to the transaction detail', () => {
-    expect(routeForPush({ kind: 'deposit', hash: HASH })).toBe(`/activity/${HASH}`)
-    expect(routeForPush({ kind: 'send', hash: HASH })).toBe(`/activity/${HASH}`)
+  it('routes a valid payload to the activity list (S41 shows only the own last send, #163)', () => {
+    expect(routeForPush({ kind: 'deposit', hash: HASH })).toBe('/activity')
+    expect(routeForPush({ kind: 'send', hash: HASH })).toBe('/activity')
   })
   it('ignores anything else', () => {
     expect(routeForPush(undefined)).toBeNull()
