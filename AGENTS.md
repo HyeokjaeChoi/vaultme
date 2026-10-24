@@ -47,6 +47,7 @@ When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a t
 2. Simplest change that works. No speculative features, options or abstractions.
 3. Surgical changes. Touch only what the task needs. Match the surrounding style. Report unrelated problems; do not fix them in passing.
 4. Verifiable goals. Define how you will prove the result (a test, a check, a screenshot) before you start, and run it before you report done. A bug fix starts with a failing test.
+5. Real data. New app code reads real data (wallet, chain, api, OS state), not mock or fixture values; tests may use fixtures. When real data needs an API token, key or credential, stop and ask the owner; do not fake it.
 
 ## Judgment rules
 
