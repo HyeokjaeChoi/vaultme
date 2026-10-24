@@ -9,8 +9,8 @@ const files = readdirSync(src, { recursive: true, encoding: 'utf8' })
 
 // A slice's index re-exports its files, so a file that imports its own index makes a require cycle (Metro warns, values can be undefined).
 describe('no file imports its own slice index', () => {
-  it('has no `from "."` or `from "./index"`', () => {
-    const bad = files.filter((f) => /from '\.(\/index)?'/.test(readFileSync(f, 'utf8'))).map((f) => relative(src, f))
+  it('has no `from "."`, `"./index"`, `".."` or `"../index"`', () => {
+    const bad = files.filter((f) => /from '\.\.?(\/index)?'/.test(readFileSync(f, 'utf8'))).map((f) => relative(src, f))
     expect(bad).toEqual([])
   })
 })
