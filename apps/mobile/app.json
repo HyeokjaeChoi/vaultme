@@ -56,6 +56,12 @@
       "expo-status-bar",
       "expo-system-ui"
     ],
-    "icon": "./assets/icon.png"
+    "icon": "./assets/icon.png",
+    "extra": {
+      "eas": {
+        "projectId": "ebb84cd1-35eb-4aca-9702-cf1a03faa4b5"
+      }
+    },
+    "owner": "gurwo1007"
   }
 }

@@ -119,7 +119,7 @@ App side (`features/push`):
 - S62 off and wallet removal call `DELETE`. kv `push.unregisterPending` is set before a `DELETE` and before a `PUT` and cleared on success, so an interrupted or unanswered call is undone at the next launch.
 - At launch `syncPush` finishes an owed `DELETE`, or re-sends address and token when the setting is on. Push operations run one at a time.
 - A tap opens `/activity/<hash>` after `PushData` parses. Test-data mode (no API) registers nothing.
-- Needs the EAS `projectId` in `app.json` (`eas init`, owner) before a token can be read.
+- The Expo token uses the EAS `projectId` in `app.json` (`extra.eas.projectId`, project `@gurwo1007/vaultme`).
 
 ## Invariants
 
