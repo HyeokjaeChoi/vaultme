@@ -93,9 +93,11 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
     reveal.current?.(phraseY.current + gridY.current + (i % half) * (cellH + th.semantic.layout.fieldGap), cellH)
   useEffect(() => {
     // Opened passphrase row: bring the field and its helper above the footer (after the content has grown).
+    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- also runs on mount for the dev passphrase capture; scrolls after the row has grown
     if (passOpen) setTimeout(() => reveal.current?.('end'), 300)
   }, [passOpen])
   useEffect(() => {
+    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- focus after render: a 12 -> 24 switch adds the target cell in this render
     if (!focusReq) return
     cells.current[focusReq.i]?.focus()
   }, [focusReq])

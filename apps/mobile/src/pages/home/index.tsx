@@ -66,9 +66,11 @@ export function HomePage() {
               ? 'block'
               : null
   const [sheet, setSheet] = useState<SheetName>(() => (__DEV__ && sheetParam ? devSheet() : null))
-  useEffect(() => {
-    if (__DEV__) setSheet(sheetParam ? devSheet() : null) // capture links reuse the mounted Home: follow the param
-  }, [sheetParam])
+  const [seenSheetParam, setSeenSheetParam] = useState(sheetParam)
+  if (__DEV__ && seenSheetParam !== sheetParam) {
+    setSeenSheetParam(sheetParam)
+    setSheet(sheetParam ? devSheet() : null) // capture links reuse the mounted Home: follow the param
+  }
   const restored = useRestored() || dev('restored') || dev('pending') || dev('unbacked')
   const balanceOf = (symbol: (typeof assets)[number]['symbol'], fixture: string) =>
     chain.broadcasts ? (live?.[symbol] ?? '—') : restored ? fixture : '0'
@@ -87,11 +89,13 @@ export function HomePage() {
     (!chain.broadcasts || (view !== null && items.length === 0))
   const close = () => setSheet(null)
   // Figma 586:97341: the first deposit while not backed up opens the backup sheet once. `markPromptShown` persists it; no other sheet is cut off.
+  const { shouldPromptAfterDeposit, markPromptShown } = gate
   useEffect(() => {
-    if (!gate.shouldPromptAfterDeposit || sheet !== null) return
-    gate.markPromptShown()
-    setSheet('deposit')
-  }, [gate.shouldPromptAfterDeposit, sheet])
+    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- reacts to a deposit from the chain (no event here) and persists the prompt once
+    if (!shouldPromptAfterDeposit || sheet !== null) return
+    markPromptShown()
+    setSheet('deposit') // eslint-disable-line react-hooks/set-state-in-effect, react-you-might-not-need-an-effect/no-chain-state-updates -- same reason
+  }, [shouldPromptAfterDeposit, markPromptShown, sheet])
   return (
     <Screen
       edges={['top']}

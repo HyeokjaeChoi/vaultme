@@ -68,7 +68,7 @@ export function resolveReview(
     ? ([...recentAddresses]
         .map((a) => ({ a, n: diffGroups(recipient, a).length }))
         .filter((c) => c.n > 0)
-        .sort((x, y) => x.n - y.n)[0]?.a ?? review.recipient)
+        .toSorted((x, y) => x.n - y.n)[0]?.a ?? review.recipient)
     : null
   const clean = cleanAmount(amount, asset)
   const shown = clean ?? review.amount.replace(' ETH', '')

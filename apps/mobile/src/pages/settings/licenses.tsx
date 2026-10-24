@@ -15,6 +15,7 @@ type Item = {
   text?: string
   entry?: LicenseEntry
 }
+const keyOf = (i: Item) => i.key
 
 /**
  * B-S64 오픈소스 라이선스. The list is generated at build time from the installed dependency closure incl. transitive packages (scripts/generate-licenses.mjs).
@@ -119,7 +120,7 @@ export function LicensesPage() {
       <ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/settings')} />
       <FlatList
         data={items}
-        keyExtractor={(i) => i.key}
+        keyExtractor={keyOf}
         renderItem={render}
         initialNumToRender={20}
         windowSize={9}

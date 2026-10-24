@@ -1,6 +1,6 @@
 // Figma: B-S22 Send review 419:12973 (+ states R-S22 error/risk frames: autherror, chainerror, needsreview, blocked, pendingblock, prepareerror, rechecking, lookalike / burn / token + sheet + acknowledged)
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { cleanAmount, resolveReview } from '@/entities/transaction/review'
@@ -176,9 +176,12 @@ export function ReviewPage() {
     }
   }
   // Sheet opened by the route param stays in step with a later param change (same route re-opened with ?sheet=1 keeps this screen mounted).
-  useEffect(() => {
+  const sheetKey = `${String(isRisk)}|${sheetParam ?? ''}`
+  const [seenSheetKey, setSeenSheetKey] = useState(sheetKey)
+  if (seenSheetKey !== sheetKey) {
+    setSeenSheetKey(sheetKey)
     if (isRisk && sheetParam === '1') setSheet(true)
-  }, [isRisk, sheetParam])
+  }
   const shownNotice: Notice | null =
     notice ?? (core.error && core.error !== 'chain' ? 'prepareError' : core.error === 'chain' ? 'chainError' : null)
   // A failed network call says why (offline, busy, clock); anything else keeps the generic send.chainError line.

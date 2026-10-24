@@ -30,7 +30,7 @@ export function SkeletonRow() {
           true,
         ),
       )
-  }, [])
+  }, [p, reduce, t.primitive.opacity, t.primitive.motion.duration.slowMs])
   const pulse = useAnimatedStyle(() => ({ opacity: p.get() }))
   const bar = { backgroundColor: c.bg, borderRadius: c.radius }
   return (

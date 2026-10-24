@@ -39,7 +39,7 @@ function Content({
   const { t } = useTranslation()
   const router = useRouter()
   if (!view) return <Loading />
-  const now = Date.now()
+  const now = Date.now() // eslint-disable-line react-hooks/purity -- each render reads the clock so day groups roll over
   if (view.failed && view.items.length === 0) {
     // Nothing cached and the fetch failed: the whole body is the error state (Figma error no cache, cloud-cross hero).
     return (
@@ -109,7 +109,7 @@ function DevState({ state, cache }: { state: string; cache?: string }) {
       ...txView(st),
       local: false,
     }))
-    return <List items={[...fakeHistoryItems(null), ...extra].sort((a, b) => b.at - a.at)} />
+    return <List items={[...fakeHistoryItems(null), ...extra].toSorted((a, b) => b.at - a.at)} />
   }
   if (state === 'error' && cache === '0')
     return <Content view={{ items: [], updatedAt: null, failed: true }} reload={() => undefined} />

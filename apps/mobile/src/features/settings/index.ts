@@ -6,16 +6,18 @@ type Setting = readonly [get: () => boolean, set: (v: boolean) => void, fallback
 const PUSH: Setting = [getPushSetting, setPushSetting, true]
 const ZERO: Setting = [getZeroSetting, setZeroSetting, false]
 
-function useSetting([get, set, fallback]: Setting): [boolean, (v: boolean) => void] {
-  const read = () => {
-    try {
-      return get()
-    } catch {
-      return fallback // kv not open (tests, early render): the default
-    }
+function read([get, , fallback]: Setting): boolean {
+  try {
+    return get()
+  } catch {
+    return fallback // kv not open (tests, early render): the default
   }
-  const [value, setValue] = useState(read)
-  useFocusEffect(useCallback(() => setValue(read()), []))
+}
+
+function useSetting(setting: Setting): [boolean, (v: boolean) => void] {
+  const [, set] = setting
+  const [value, setValue] = useState(() => read(setting))
+  useFocusEffect(useCallback(() => setValue(read(setting)), [setting]))
   return [
     value,
     (v) => {

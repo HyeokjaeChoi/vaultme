@@ -40,7 +40,7 @@ export function fakeHistoryItems(tx: ReturnType<typeof usePendingTx>['tx']): His
       ...txView(x.state),
       local: false,
     }))
-  return [...own, ...rest].sort((a, b) => b.at - a.at)
+  return [...own, ...rest].toSorted((a, b) => b.at - a.at)
 }
 
 /** `dated`: Home's list has no date headers, so a finished row says its day ("10월 12일"); a row in progress and any row of today say the time. */
@@ -49,7 +49,7 @@ function Row({ item, dated }: { item: HistoryItem; dated?: boolean }) {
   const router = useRouter()
   const unknown = item.label === 'activity.unknown'
   const title = t(rowTitleKey(item.kind, item.label))
-  const day = dated && item.status !== 'pending' ? dayGroup(item.at, Date.now()) : 'today'
+  const day = dated && item.status !== 'pending' ? dayGroup(item.at, Date.now()) : 'today' // eslint-disable-line react-hooks/purity -- each render reads the clock so day groups roll over
   const when = day === 'today' ? clock(item.at) : day
   const amount = `${item.kind === 'send' ? '−' : '+'}${showAmount(item.amount, item.asset, 'floor')}`
   return (

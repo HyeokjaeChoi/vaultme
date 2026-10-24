@@ -61,6 +61,7 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
   // Plain PanResponder on the grabber: it needs no native gesture module, and a sheet drag is one touch on the JS thread.
   const pan = useMemo(
     () =>
+      // eslint-disable-next-line react-hooks/refs -- the refs are read inside the gesture callbacks, not during render
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onPanResponderMove: (_, g) => y.set(g.dy > 0 ? g.dy : g.dy * RUBBER),
@@ -73,6 +74,9 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
     [y],
   )
 
+  // Open and close are a Reanimated sequence: mount, slide in; slide out, then unmount. Only `visible` starts it; the other
+  // values are read as they are now, and adding them would restart the slide.
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, react-you-might-not-need-an-effect/no-derived-state, react-you-might-not-need-an-effect/no-event-handler */
   useEffect(() => {
     if (visible) {
       setMounted(true)
@@ -85,6 +89,7 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
       )
     }
   }, [visible])
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, react-you-might-not-need-an-effect/no-derived-state, react-you-might-not-need-an-effect/no-event-handler */
 
   const sheet = useAnimatedStyle(() => ({ transform: [{ translateY: y.get() }] }))
   const scrim = useAnimatedStyle(() => ({ opacity: 1 - Math.min(Math.max(y.get(), 0) / height, 1) }))

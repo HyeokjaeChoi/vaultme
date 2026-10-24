@@ -1,6 +1,6 @@
 // Figma: B-S41 Transaction detail (Confirmed 423:16327, real chain 460:4988, Unknown 423:16381, API error 457:17668, test mode + clear sheet)
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Linking, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account, networkFact } from '@/entities/account/fixtures'
@@ -56,9 +56,6 @@ export function TxDetailPage() {
   const testMode = useTestMode()
   const error = __DEV__ && err === '1' ? new ApiError('network', 0, true, 'offline') : trackedError // `?err=1` is a __DEV__ capture override (Figma 457:17668)
   const tx = __DEV__ && demo ? demoTx(demo as TxState) : stored?.hash === hash ? stored : null
-  useEffect(() => {
-    if (confirmClear) haptic.warning()
-  }, [confirmClear])
   if (!tx) return <Redirect href="/activity" />
   const explorer =
     explorerUrl(chain, tx.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${tx.hash}` : null)
@@ -136,7 +133,10 @@ export function TxDetailPage() {
           <Block>
             <Pressable
               accessibilityRole="button"
-              onPress={() => setConfirmClear(true)}
+              onPress={() => {
+                haptic.warning()
+                setConfirmClear(true)
+              }}
               style={{ minHeight: th.primitive.size.touch_min, justifyContent: 'center' }}
             >
               <Text variant="headline" color={th.semantic.status.danger.fg}>
