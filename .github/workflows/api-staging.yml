@@ -21,10 +21,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Manual runs too: only main reaches staging (migrations are forward-only).
+    if: github.ref == 'refs/heads/main'
     environment: staging
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -37,9 +36,18 @@ jobs:
       # Wrangler from the lockfile (7-day release age), not a separate action.
       - run: pnpm install --frozen-lockfile --filter @vaultme/api...
       # Migrations first, so the new Worker never runs on an old schema (ARCHITECTURE.md, Release).
+      # The token is set per step, so dependency install scripts cannot read it.
       - run: pnpm --filter @vaultme/api exec wrangler d1 migrations apply DB --remote --env staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - run: pnpm --filter @vaultme/api exec wrangler deploy --env staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Smoke test
         env:
           STAGING_API_URL: ${{ vars.STAGING_API_URL }}
-        run: curl -fsS --retry 3 --retry-all-errors "$STAGING_API_URL/v1/health" | grep -q '"ok":true'
+        run: |
+          : "${STAGING_API_URL:?set variable STAGING_API_URL in the staging environment}"
+          curl -fsS --retry 3 --retry-all-errors "$STAGING_API_URL/v1/health" | grep -q '"ok":true'
