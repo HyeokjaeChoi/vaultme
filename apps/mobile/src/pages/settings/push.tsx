@@ -1,5 +1,5 @@
 // Figma: B-S62 거래 알림 on 423:15349, off 652:108018, denied 652:108041 (List item Trailing=Switch 300:636)
-import { useFocusEffect, useLocalSearchParams } from 'expo-router'
+import { useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { AppState, Linking, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
@@ -13,14 +13,11 @@ import { ListItem, Screen, ScreenHeader, StatusNotice, Switch, Text, TextLink } 
  * B-S62 거래 알림: one switch row, the privacy line under it, the anti-phishing notice. The switch is on only when the setting is on AND the OS allows notifications.
  * The OS said no: the switch is off and disabled, with a link to the device settings (the app cannot ask again).
  * A failed registration leaves the switch off without a message: the failure state waits for its Figma frames (#81).
- * `variant=on|denied` seeds those states for __DEV__ design captures only (a real `on` needs a wallet and the OS permission).
  */
 export function PushSettingPage() {
   const { t } = useTranslation()
   const th = useTheme()
-  const { variant: demo } = useLocalSearchParams<{ variant?: string }>()
-  const [storedSetting, setStored] = usePushSetting()
-  const stored = storedSetting || (__DEV__ && demo === 'on')
+  const [stored, setStored] = usePushSetting()
   const [permission, setPermission] = useState<Permission>('undetermined')
   const [busy, setBusy] = useState(false)
   // Re-read on focus and when the app comes back (설정 열기 leaves the app; the screen keeps focus).
@@ -33,7 +30,7 @@ export function PushSettingPage() {
       return () => sub.remove()
     }, []),
   )
-  const denied = permission === 'denied' || (__DEV__ && demo === 'denied')
+  const denied = permission === 'denied'
   const on = stored && !denied
   const toggle = async (next: boolean) => {
     setBusy(true)
