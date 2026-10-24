@@ -22,8 +22,9 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
    Keep the PR at 100 changed files or fewer; split a larger change into several PRs.
    State what changed, which design sections it follows, and the exact verification commands and results.
    Never label a step verified without a run. Set Project Status `In Review`.
-7. Request one CodeRabbit PR review: comment `@coderabbitai review` once per PR (the OSS plan reviews about
-   1 PR per hour). Collect all its findings, fix them together, check the fixes with step 5, and push once.
+7. Claude reviews the PR once, automatically when it opens (`.github/workflows/claude-code-review.yml`).
+   Collect all its findings, fix them together, check the fixes with step 5, and push once.
+   A CodeRabbit PR review (`@coderabbitai review`, about 1 PR per hour on the OSS plan) is optional.
 8. Answer each finding with one of: fix the code; fix the design source in the same PR;
    add a check to `scripts/check-repo-rules.sh`; or reject it and cite the design source section.
 9. Repeated finding (same kind seen in 2 PRs, or twice in one PR): add a check that fails on it

@@ -71,7 +71,7 @@ App code uses `@vaultme/tokens` for every color, spacing, radius, and type value
 
 ## Workflow
 
-One task is one GitHub issue, one branch, one pull request. CodeRabbit reviews each pull request.
+One task is one GitHub issue, one branch, one pull request. Claude reviews each pull request.
 The steps are in [docs/agents/workflow.md](docs/agents/workflow.md).
 
 ## README sync
