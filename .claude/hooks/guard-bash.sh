@@ -13,10 +13,30 @@ fi
 if grep -Eq 'git[^|;&]*\bpush\b[^|;&]*[[:space:]](origin[[:space:]]+)?([^[:space:]]*:)?(refs/heads/)?(main|master)([[:space:]]|$)' <<<"$cmd"; then
   block "do not push to main. Open a PR."
 fi
-# The branch of the folder the push runs in (`-C <dir>` or the hook input cwd), not of the project folder: a worktree session has its own branch.
-dir=$(sed -nE 's/.*git[[:space:]]+-C[[:space:]]+([^[:space:]]+).*/\1/p' <<<"$cmd")
-dir=${dir:-$(jq -r '.cwd // empty' <<<"$input")}
-if grep -Eq 'git[^|;&]*\bpush\b' <<<"$cmd" && [ "$(git -C "${dir:-${CLAUDE_PROJECT_DIR:-.}}" branch --show-current 2>/dev/null)" = main ]; then
-  block "you are on main. Create a branch and open a PR."
+# Check the folder the push runs in, not the project folder: a worktree session has its own branch.
+# Folder = `-C <dir>` of the push, else the last `cd <dir>` into a git folder, else the hook input cwd.
+# A `-C` folder that does not resolve blocks (fail closed). ponytail: first push only; no $VAR expansion except $HOME.
+path='("[^"]+"|'"'"'[^'"'"']+'"'"'|[^[:space:];&|)]+)'
+resolve() { # resolve <cd|-C match>: print the folder, quotes stripped, ~ and $HOME expanded, relative to cwd
+  local d; d=$(sed -E 's/^(cd|git[[:space:]]+-C)[[:space:]]+//' <<<"$1")
+  d=${d#[\"\']} d=${d%[\"\']} d=${d/#\~/$HOME} d=${d//\$HOME/$HOME}
+  if [[ $d == /* ]]; then echo "$d"; else echo "$cwd/$d"; fi
+}
+push=$(grep -oE 'git[^|;&]*\bpush\b[^|;&]*' <<<"$cmd" | head -1)
+if [ -n "$push" ]; then
+  cwd=$(jq -r '.cwd // empty' <<<"$input")
+  cwd=${cwd:-${CLAUDE_PROJECT_DIR:-.}}
+  dir=$cwd
+  c=$(grep -oE "git[[:space:]]+-C[[:space:]]+$path" <<<"$push" | head -1)
+  if [ -n "$c" ]; then
+    dir=$(resolve "$c")
+    git -C "$dir" rev-parse --git-dir >/dev/null 2>&1 || block "cannot read the branch of $dir. Run the push from a feature-branch folder."
+  else
+    while IFS= read -r m; do
+      d=$(resolve "$m")
+      git -C "$d" rev-parse --git-dir >/dev/null 2>&1 && dir=$d # a cd outside git (e.g. /tmp) does not move the push
+    done < <(grep -oE "(^|[[:space:];&|(])cd[[:space:]]+$path" <<<"${cmd%%"$push"*}" | sed -E 's/^[[:space:];&|(]//')
+  fi
+  [ "$(git -C "$dir" branch --show-current 2>/dev/null)" = main ] && block "you are on main ($dir). Create a branch and open a PR."
 fi
 exit 0
