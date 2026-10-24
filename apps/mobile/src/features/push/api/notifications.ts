@@ -58,10 +58,17 @@ export function installForegroundHandler(): void {
   })
 }
 
-/** Calls `open` for the push that cold-started the app, then for every later tap. Each response is handled once (cleared after use). */
+/**
+ * Calls `open` for the push that cold-started the app, then for every later tap. Each response is handled once: cleared after use, and a
+ * response with the same notification identifier as the previous one is ignored (the cold-start read and the listener can both deliver it).
+ */
 export function onPushTap(open: (data: unknown) => void): () => void {
+  let handled: string | null = null
   const handle = (r: Notifications.NotificationResponse) => {
     Notifications.clearLastNotificationResponse()
+    const id = r.notification.request.identifier
+    if (id === handled) return
+    handled = id
     open(r.notification.request.content.data)
   }
   const last = Notifications.getLastNotificationResponse()

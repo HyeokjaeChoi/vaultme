@@ -120,10 +120,19 @@ export function syncPush(d: PushDeps): Promise<void> {
   })
 }
 
+export type PushNav = {
+  navigate(href: '/activity'): void
+  push(href: { pathname: '/activity/[hash]'; params: { hash: string } }): void
+}
+
 /**
- * A tapped push opens the 내역 list (owner decision #163; S41 shows only the app's own last send, so a hash route would redirect anyway).
- * Anything the server contract does not describe is ignored.
+ * A tapped push opens S41 of the pushed transaction with the 내역 list below it, at once (owner decision, #171): no fetch, no wait.
+ * S41 looks the bare hash up itself (cache, then a fresh page). Anything the server contract does not describe is ignored (returns false).
  */
-export function routeForPush(data: unknown): string | null {
-  return PushData.safeParse(data).success ? '/activity' : null
+export function openPush(data: unknown, nav: PushNav): boolean {
+  const p = PushData.safeParse(data)
+  if (!p.success) return false
+  nav.navigate('/activity')
+  nav.push({ pathname: '/activity/[hash]', params: { hash: p.data.hash } })
+  return true
 }

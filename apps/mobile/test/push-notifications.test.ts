@@ -27,7 +27,9 @@ vi.mock('@/shared/storage', () => ({
 const { expoPort, installForegroundHandler, onPushTap, pushDeps } =
   await import('../src/features/push/api/notifications')
 
-const response = (data: unknown) => ({ notification: { request: { content: { data } } } })
+const response = (data: unknown, identifier = Math.random().toString()) => ({
+  notification: { request: { identifier, content: { data } } },
+})
 
 beforeEach(() => vi.clearAllMocks())
 
@@ -76,5 +78,20 @@ describe('expo-notifications adapter', () => {
     expect(N.clearLastNotificationResponse).toHaveBeenCalledTimes(2)
     stop()
     expect(remove).toHaveBeenCalled()
+  })
+  it('opens one notification once when it arrives twice (cold-start read plus the listener)', () => {
+    let listener!: (r: unknown) => void
+    const same = response({ kind: 'deposit' }, 'n1')
+    N.getLastNotificationResponse.mockReturnValueOnce(same)
+    N.addNotificationResponseReceivedListener.mockImplementationOnce((l: (r: unknown) => void) => {
+      listener = l
+      return { remove: vi.fn() }
+    })
+    const open = vi.fn()
+    onPushTap(open)
+    listener(same)
+    expect(open).toHaveBeenCalledTimes(1)
+    listener(response({ kind: 'send' }, 'n2'))
+    expect(open).toHaveBeenCalledTimes(2)
   })
 })

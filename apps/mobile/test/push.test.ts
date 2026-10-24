@@ -1,12 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  disablePush,
-  enablePush,
-  routeForPush,
-  syncPush,
-  type Permission,
-  type PushDeps,
-} from '@/features/push/model/push'
+import { disablePush, enablePush, openPush, syncPush, type Permission, type PushDeps } from '@/features/push/model/push'
 
 const ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const HASH = `0x${'ab'.repeat(32)}`
@@ -173,14 +166,22 @@ describe('ordering', () => {
   })
 })
 
-describe('routeForPush', () => {
-  it('routes a valid payload to the activity list (S41 shows only the own last send, #163)', () => {
-    expect(routeForPush({ kind: 'deposit', hash: HASH })).toBe('/activity')
-    expect(routeForPush({ kind: 'send', hash: HASH })).toBe('/activity')
+describe('openPush', () => {
+  const nav = () => ({ navigate: vi.fn(), push: vi.fn() })
+
+  it('builds list-then-detail: /activity first, then S41 of the bare hash on top', () => {
+    const n = nav()
+    expect(openPush({ kind: 'deposit', hash: HASH }, n)).toBe(true)
+    expect(n.navigate).toHaveBeenCalledExactlyOnceWith('/activity')
+    expect(n.push).toHaveBeenCalledExactlyOnceWith({ pathname: '/activity/[hash]', params: { hash: HASH } })
+    expect(n.navigate.mock.invocationCallOrder[0]).toBeLessThan(n.push.mock.invocationCallOrder[0] ?? 0)
   })
-  it('ignores anything else', () => {
-    expect(routeForPush(undefined)).toBeNull()
-    expect(routeForPush({ kind: 'other', hash: HASH })).toBeNull()
-    expect(routeForPush({ kind: 'deposit', hash: '../../settings' })).toBeNull()
+  it('ignores anything the contract does not describe', () => {
+    for (const data of [undefined, { kind: 'other', hash: HASH }, { kind: 'deposit', hash: '../../settings' }]) {
+      const n = nav()
+      expect(openPush(data, n)).toBe(false)
+      expect(n.navigate).not.toHaveBeenCalled()
+      expect(n.push).not.toHaveBeenCalled()
+    }
   })
 })

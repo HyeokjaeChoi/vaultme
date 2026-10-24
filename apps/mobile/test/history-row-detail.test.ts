@@ -1,5 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { detailRoute, findCachedRow, hashOfId, rowCopy } from '../src/features/history/model/detail'
+import {
+  detailRoute,
+  findCachedRow,
+  hashOfId,
+  resolveRow,
+  rowCopy,
+  rowFromCache,
+} from '../src/features/history/model/detail'
+import { createHistory } from '../src/shared/api/history'
 import { explorerUrl } from '../src/shared/chain/port'
 import type { HistoryCache } from '../src/shared/storage/kv'
 
@@ -54,6 +62,84 @@ describe('findCachedRow', () => {
   })
   it('keeps a contract creation (to = null) as a row without counterparty', () => {
     expect(findCachedRow(cache([row(0, 'out', { to: null })]), ME, `${H}:0`)?.counterparty).toBe('')
+  })
+})
+
+describe('fresh page cached, then S41 lookup (push tap)', () => {
+  it('createHistory.load caches the first page, so findCachedRow finds the pushed row', async () => {
+    let stored: HistoryCache | null = cache([row(5, 'out')]) // stale: the pushed tx is not in it
+    const h = createHistory({
+      fetchPage: () => Promise.resolve({ items: [row(0, 'in')], nextCursor: null, incomplete: false }),
+      cache: { get: () => stored, set: (c) => (stored = c) },
+      local: () => [],
+      now: () => 1,
+    })
+    expect(findCachedRow(stored, ME, `${H}:0`)).toBeNull()
+    await h.load(ME)
+    expect(findCachedRow(stored, ME, `${H}:0`)).toMatchObject({ kind: 'receive' })
+  })
+})
+
+describe('resolveRow (S41 without a local record)', () => {
+  const H2 = '0x' + '2'.repeat(64)
+  const page = (items: unknown[]) => ({ items, nextCursor: null, incomplete: false })
+  const make = (o: { cache?: HistoryCache | null; fetch?: () => Promise<unknown>; address?: string | null } = {}) => {
+    let stored: HistoryCache | null = o.cache ?? null
+    const fetchPage = vi.fn(o.fetch ?? (() => Promise.resolve(page([]))))
+    return {
+      fetchPage,
+      d: {
+        address: () => (o.address === undefined ? ME : o.address),
+        cache: () => stored,
+        fresh: async (a: string): Promise<unknown> => {
+          const data = await fetchPage()
+          stored = { address: a, json: JSON.stringify(data), updatedAt: 1 }
+          return data
+        },
+      },
+    }
+  }
+
+  it('cached: exactly one row of the bare hash -> that row, no fetch', async () => {
+    const { d, fetchPage } = make({ cache: cache([row(0, 'in')]) })
+    expect(rowFromCache(H, d.address(), d.cache())).toMatchObject({ status: 'row', row: { id: `${H}:0` } })
+    expect((await resolveRow(H, d)).status).toBe('row')
+    expect(fetchPage).not.toHaveBeenCalled()
+  })
+  it('a list tap (row id) finds its row in the cache even when the hash has several rows', async () => {
+    const { d, fetchPage } = make({ cache: cache([row(0, 'in'), row(1, 'out')]) })
+    expect(await resolveRow(`${H}:1`, d)).toMatchObject({ status: 'row', row: { id: `${H}:1` } })
+    expect(fetchPage).not.toHaveBeenCalled()
+  })
+  it('stale cache (the pushed tx is missing): fetches a fresh page -> one row, and the cache now holds it', async () => {
+    const { d } = make({
+      cache: cache([row(5, 'out', { hash: H2, id: `${H2}:0` })]),
+      fetch: () => Promise.resolve(page([row(0, 'in')])),
+    })
+    expect(await resolveRow(H, d)).toMatchObject({ status: 'row', row: { id: `${H}:0` } })
+    expect(findCachedRow(d.cache(), ME, `${H}:0`)).not.toBeNull()
+  })
+  it('hash compare is case-insensitive', async () => {
+    const { d } = make({ fetch: () => Promise.resolve(page([row(0, 'in')])) })
+    expect((await resolveRow(H.toUpperCase().replace('0X', '0x'), d)).status).toBe('row')
+  })
+  it('fresh page: several rows -> several (S41 goes back to the list); none -> none', async () => {
+    const two = make({
+      cache: cache([row(0, 'in'), row(1, 'out')]),
+      fetch: () => Promise.resolve(page([row(0, 'in'), row(1, 'out')])),
+    })
+    expect((await resolveRow(H, two.d)).status).toBe('several')
+    expect(two.fetchPage).toHaveBeenCalledTimes(1)
+    const none = make({ fetch: () => Promise.resolve(page([])) })
+    expect((await resolveRow(H, none.d)).status).toBe('none')
+  })
+  it('a row id that is in neither the cache nor the fresh page -> none', async () => {
+    const { d } = make({ fetch: () => Promise.resolve(page([row(0, 'in')])) })
+    expect((await resolveRow(`${H}:7`, d)).status).toBe('none')
+  })
+  it('fetch error, update_required, no address -> failed', async () => {
+    expect((await resolveRow(H, make({ fetch: () => Promise.reject(new Error('x')) }).d)).status).toBe('failed')
+    expect((await resolveRow(H, make({ address: null }).d)).status).toBe('failed')
   })
 })
 

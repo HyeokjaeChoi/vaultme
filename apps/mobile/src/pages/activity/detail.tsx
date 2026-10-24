@@ -5,7 +5,7 @@ import { Linking, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { networkFact } from '@/entities/account'
 import { demoTx } from '@/entities/transaction'
-import { findCachedRow, hashOfId, rowCopy, type HistoryItem } from '@/features/history'
+import { findCachedRow, hashOfId, rowCopy, useRowLookup, type HistoryItem, type RowLookup } from '@/features/history'
 import type { TxState } from '@/features/send'
 import { clearTestTx, isFinal, isPolled, resultCopy, txView, useTrackedTx, writePendingTx } from '@/features/send'
 import { ApiError, apiErrorKey, historyCache } from '@/shared/api'
@@ -23,6 +23,7 @@ import {
   BottomSheet,
   Block,
   Button,
+  EmptyState,
   Icon,
   Screen,
   ScreenHeader,
@@ -34,6 +35,7 @@ import {
 import { AddressText } from '@/shared/ui'
 import { fakeHistoryItems } from '@/widgets/activity-list'
 import { NetworkChips } from '@/widgets/network-chips'
+import { Loading } from './Loading'
 
 // __DEV__ capture only (`?row=in|out`): a history row as in Figma Flow 4 A 742:2487 / B 742:2584.
 const DEV_ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
@@ -141,10 +143,65 @@ function RowDetail({
 }
 
 /**
+ * S41 for a route param with no local record, no cached row and not an example row: looks the row up (cache, then a fresh history page).
+ * Loading = Figma 749:2651, load failed 749:2738, not found 749:2800. Several rows with one hash: back to the list, which a push tap has below S41.
+ * `?lookup=loading|failed|none` is a __DEV__ capture override of the three states.
+ */
+function LookupDetail({
+  id,
+  address,
+  real,
+  dev,
+}: {
+  id: string
+  address: string | null
+  real: string | undefined
+  dev?: string
+}) {
+  const { t } = useTranslation()
+  const { lookup, retry } = useRowLookup(id)
+  const state: RowLookup | null =
+    __DEV__ && dev ? (dev === 'loading' ? null : { status: dev === 'failed' ? 'failed' : 'none' }) : lookup
+  if (state?.status === 'row') return <RowDetail row={state.row} address={address} real={real} example={false} />
+  const header = (
+    <ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/activity')} chips={<NetworkChips />} />
+  )
+  if (state?.status === 'failed')
+    return (
+      <Screen header={header}>
+        <EmptyState
+          icon="cloudCross"
+          tone="warning"
+          title={t('activity.errorNoCache.title')}
+          body={t('activity.errorNoCache.body')}
+          action={{ label: t('common.retry'), onPress: retry }}
+        />
+      </Screen>
+    )
+  if (state?.status === 'none')
+    return (
+      <Screen header={header}>
+        <EmptyState
+          icon="cloudCross"
+          tone="warning"
+          title={t('detail.notFound.title')}
+          body={t('detail.notFound.body')}
+          action={{ label: t('common.retry'), onPress: retry }}
+        />
+      </Screen>
+    )
+  return (
+    <Screen header={header}>
+      <Loading />
+    </Screen>
+  )
+}
+
+/**
  * B-S41 거래 상세 for the send in the kv. State comes from the chain (ARCHITECTURE.md#invariants): receipt + `safe` block = Confirmed or Failed.
  * Hero shares the S23 copy (`resultCopy`); a send the fake adapter never broadcast is a test send ("테스트 거래예요", state "예시", no fee row, 테스트 거래 지우기 with a confirm sheet).
  * Blocks: 받는 주소 / 거래 정보 (시각, 상태, 보낸 계정 from the record — hidden for a record saved before #32, 네트워크, 네트워크 수수료) / 거래 해시 + Etherscan row (real network only). 상태 다시 확인 asks the chain; a Pending or Included send is also re-checked every 15 s while focused.
- * `?demo=<state>` | `?row=in|out` (history row) (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
+ * `?demo=<state>` | `?row=in|out` (history row) | `?lookup=loading|failed|none` (S41 lookup states) (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
  */
 export function TxDetailPage() {
   const { t } = useTranslation()
@@ -153,12 +210,14 @@ export function TxDetailPage() {
     hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash)
     demo,
     row: devRow,
+    lookup: devLookup,
     real,
     sheet,
     err,
   } = useLocalSearchParams<{
     hash: string
     row?: string
+    lookup?: string
     demo?: string
     real?: string
     sheet?: string
@@ -183,10 +242,12 @@ export function TxDetailPage() {
       (__DEV__ && (devRow === 'in' || devRow === 'out') ? devHistoryRow(devRow) : null) ??
       cached ??
       (testMode ? fakeHistoryItems(null).find((i) => i.id === id) : undefined)
-    return row ? (
-      <RowDetail row={row} address={address} real={real} example={testMode && !cached} />
-    ) : (
+    if (row) return <RowDetail row={row} address={address} real={real} example={testMode && !cached} />
+    // Test-data mode has no API: an unknown id still goes back to the list. Real mode looks the row up.
+    return testMode ? (
       <Redirect href="/activity" />
+    ) : (
+      <LookupDetail id={id} address={address} real={real} {...(__DEV__ && devLookup ? { dev: devLookup } : {})} />
     )
   }
   const explorer =
