@@ -4,7 +4,7 @@ import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { assets } from '@/entities/asset'
 import { transactions } from '@/entities/transaction'
-import type { HistoryItem } from '@/features/history'
+import { detailRoute, type HistoryItem } from '@/features/history'
 import { rowTitleKey, txView, usePendingTx } from '@/features/send'
 import { showAmount } from '@/shared/lib/amount'
 import { clock, dateLabel, dayGroup, dayKey } from '@/shared/lib/time'
@@ -66,9 +66,7 @@ function Row({ item, dated }: { item: HistoryItem; dated?: boolean }) {
       asset={item.asset}
       status={item.status}
       statusLabel={t(item.label)}
-      {...(item.local
-        ? { onPress: () => router.push({ pathname: '/activity/[hash]', params: { hash: item.hash } }) }
-        : {})}
+      onPress={() => router.push(detailRoute(item))}
     />
   )
 }
