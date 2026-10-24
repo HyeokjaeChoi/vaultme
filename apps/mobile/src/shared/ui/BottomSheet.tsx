@@ -12,8 +12,10 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets'
 import { ko } from '@vaultme/i18n'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useIsFocused } from 'expo-router'
 import { useTheme } from '../theme'
 import { OnRaisedContext } from '../theme/sheet'
+import { closeOnBlur, sheetOnScreen } from './sheetFocus'
 import { Button } from './Button'
 import { Text } from './Text'
 
@@ -50,6 +52,7 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
   const insets = useSafeAreaInsets()
   const { height } = useWindowDimensions()
   const reduce = useReducedMotion()
+  const focused = useIsFocused()
   const [mounted, setMounted] = useState(visible)
   const y = useSharedValue(height)
   const closeMs = t.primitive.motion.duration.baseMs
@@ -91,12 +94,23 @@ export function BottomSheet({ visible, onClose, title, children, primary, second
   }, [visible])
   /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, react-you-might-not-need-an-effect/no-derived-state, react-you-might-not-need-an-effect/no-event-handler */
 
+  // Another route or tab came to the front: close, so the native Modal does not stay over it.
+  useEffect(() => {
+    if (closeOnBlur({ visible, focused })) live.current.onClose()
+  }, [focused]) // eslint-disable-line react-hooks/exhaustive-deps -- only a focus change closes; `visible` is read as it is now
+
   const sheet = useAnimatedStyle(() => ({ transform: [{ translateY: y.get() }] }))
   const scrim = useAnimatedStyle(() => ({ opacity: 1 - Math.min(Math.max(y.get(), 0) / height, 1) }))
   const pad = t.semantic.layout.screen.padding
 
   return (
-    <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
+    <Modal
+      visible={sheetOnScreen({ mounted, focused })}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
       <View style={{ flex: 1, justifyContent: 'flex-end' }}>
         <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }, scrim]}>
           <Pressable

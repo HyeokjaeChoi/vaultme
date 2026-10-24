@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router'
-import { chain } from '.'
+import { chain } from './adapter'
 
 /**
  * True while the fake chain adapter is on (nothing leaves the device): screens say so with the "테스트 데이터" chip and test copy.
