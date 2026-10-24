@@ -16,7 +16,7 @@ jobs:
     # Bot PRs (Renovate, Dependabot) skip too: claude-code-action rejects bot actors, so the check would always fail.
     if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15 # recent runs took 1.5-3 min; sequential agents get 5x margin
     permissions:
       contents: read
       pull-requests: read
@@ -42,6 +42,6 @@ jobs:
           prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
           # The repo forbids CLAUDE.md (check-repo-rules.sh R9); the skill audits "CLAUDE.md" rules.
           claude_args: |
-            --allowedTools "mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*)"
             --append-system-prompt "This repository keeps its project rules in AGENTS.md files (root and apps/mobile, packages/tokens) and has no CLAUDE.md. Wherever the review asks for CLAUDE.md files, use the AGENTS.md files at the same paths instead. If step 1 stops the review only because the PR does not need code review, still post one summary comment with gh pr comment that gives the reason; post nothing when the PR is closed, a draft, or already has a Claude comment."
             --model opus
