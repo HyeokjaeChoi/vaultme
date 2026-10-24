@@ -14,6 +14,9 @@ export const PUSH_KINDS = ['deposit', 'send'] as const
 export const PushData = z.object({ kind: z.enum(PUSH_KINDS), hash: z.string().regex(/^0x[0-9a-fA-F]{64}$/) })
 export type PushData = z.infer<typeof PushData>
 
+/** Android notification channel. The app creates it before it asks for permission; the server sends every push on it (Expo `channelId`). */
+export const PUSH_CHANNEL_ID = 'default'
+
 /** Lock-screen text carries no amount and no address (#67 decision 4). Copy: Figma notification spec 652:108108. */
 export const PUSH_COPY = {
   deposit: { title: '입금이 들어왔어요', body: '앱에서 확인해 주세요.' },

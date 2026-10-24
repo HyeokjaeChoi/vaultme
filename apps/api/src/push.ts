@@ -1,4 +1,4 @@
-import { PUSH_COPY, USDC_SEPOLIA, type PushData } from '@vaultme/contracts'
+import { PUSH_CHANNEL_ID, PUSH_COPY, USDC_SEPOLIA, type PushData } from '@vaultme/contracts'
 import { z } from 'zod'
 import { nowSeconds } from './auth.ts'
 import type { Env } from './env.ts'
@@ -283,6 +283,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
           batch.map(({ sub, note }) => ({
             to: sub.expo_token,
             ...PUSH_COPY[note.kind],
+            channelId: PUSH_CHANNEL_ID,
             sound: 'default',
             data: { kind: note.kind, hash: note.hash } satisfies PushData,
           })),

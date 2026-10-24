@@ -231,6 +231,7 @@ describe('POST /webhooks/alchemy', () => {
       to: TOKEN,
       title: '입금이 들어왔어요',
       body: '앱에서 확인해 주세요.',
+      channelId: 'default', // the channel the app creates; without it Android uses the FCM fallback channel (#161)
       data: { kind: 'deposit', hash: HASH },
     })
     const text = JSON.stringify([m?.title, m?.body])
@@ -242,7 +243,7 @@ describe('POST /webhooks/alchemy', () => {
 
   it('pushes a confirmed send', async () => {
     await hook(activity([eth({ fromAddress: ADDR, toAddress: OTHER })]))
-    expect(sentMessages()).toMatchObject([{ data: { kind: 'send', hash: HASH } }])
+    expect(sentMessages()).toMatchObject([{ channelId: 'default', data: { kind: 'send', hash: HASH } }])
   })
 
   it('pushes an ERC-20 USDC deposit matched by contract address', async () => {
