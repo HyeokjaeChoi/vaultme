@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "852781815455",
+    "project_id": "vaultme-91333",
+    "storage_bucket": "vaultme-91333.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:852781815455:android:161ef3a52942eea5bab4aa",
+        "android_client_info": {
+          "package_name": "app.vaultme.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4irY0VUpHWNc8OKV7FpWEuNzHafdigUY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

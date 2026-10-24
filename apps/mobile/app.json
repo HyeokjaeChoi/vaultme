@@ -15,6 +15,7 @@
     },
     "android": {
       "package": "app.vaultme.mobile",
+      "googleServicesFile": "./google-services.json",
       "allowBackup": false,
       "permissions": ["android.permission.USE_BIOMETRIC"],
       "adaptiveIcon": {
