@@ -1,0 +1,45 @@
+name: api-staging
+
+# Deploys apps/api to the `staging` env in wrangler.jsonc.
+# Needs the GitHub Environment `staging` with secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+# and variable STAGING_API_URL (the Worker URL, no trailing slash). The D1 database must exist
+# before the first run: `wrangler deploy --env staging` creates it, `migrations apply` does not.
+on:
+  push:
+    branches: [main]
+    paths: [apps/api/**, packages/contracts/**, pnpm-lock.yaml, .github/workflows/api-staging.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      # Wrangler from the lockfile (7-day release age), not a separate action.
+      - run: pnpm install --frozen-lockfile --filter @vaultme/api...
+      # Migrations first, so the new Worker never runs on an old schema (ARCHITECTURE.md, Release).
+      - run: pnpm --filter @vaultme/api exec wrangler d1 migrations apply DB --remote --env staging
+      - run: pnpm --filter @vaultme/api exec wrangler deploy --env staging
+      - name: Smoke test
+        env:
+          STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+        run: curl -fsS --retry 3 --retry-all-errors "$STAGING_API_URL/v1/health" | grep -q '"ok":true'
