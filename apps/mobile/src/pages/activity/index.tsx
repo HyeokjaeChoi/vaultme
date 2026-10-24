@@ -109,7 +109,9 @@ function DevState({ state, cache }: { state: string; cache?: string }) {
       ...txView(st),
       local: false,
     }))
-    return <List items={[...fakeHistoryItems(null), ...extra].toSorted((a, b) => b.at - a.at)} />
+    const items = [...fakeHistoryItems(null), ...extra]
+    items.sort((a, b) => b.at - a.at)
+    return <List items={items} />
   }
   if (state === 'error' && cache === '0')
     return <Content view={{ items: [], updatedAt: null, failed: true }} reload={() => undefined} />

@@ -32,6 +32,9 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | Code is Prettier-formatted and ESLint-clean with 0 warnings | pre-commit `lint-staged`, pre-push, CI `verify` |
 | Mobile FSD layers: imports go down only, other slices only through their `index`, route files only re-export `src/shell` or `src/pages` | `apps/mobile/eslint.config.mjs` boundaries, `apps/mobile/steiger.config.mjs` |
 | Typecheck, lint and tests pass | CI `verify`, pre-push hook |
+| Test coverage stays at or above each package's floor | `coverage.thresholds` in each `vitest.config.ts` |
+| No unused files or dependencies, no unlisted dependencies | `knip.jsonc`, CI `verify` (`pnpm knip`) |
+| The mobile app bundles for iOS and Android | CI `verify` (`export:check`); `expo-doctor` reports only |
 | Claude Code: no `--no-verify`, no force push or push to main; no edits to CLAUDE.md or generated files; edited files are formatted and linted; a turn with code changes ends only when typecheck and lint pass | `.claude/settings.json` hooks in `.claude/hooks/` |
 | pnpm installs only package versions published at least 7 days (10080 min) ago | `pnpm-workspace.yaml` `minimumReleaseAge` |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |

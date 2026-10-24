@@ -44,3 +44,12 @@ jobs:
       - if: hashFiles('package.json') != ''
         continue-on-error: true
         run: pnpm turbo boundaries
+      - if: hashFiles('package.json') != ''
+        run: pnpm knip
+      # Bundles both platforms, so a broken import or asset fails here, not on a device.
+      - if: hashFiles('package.json') != ''
+        run: pnpm --filter @vaultme/mobile run export:check
+      # Report-only until expo 57.0.31 and expo-router 57.0.29 pass the 7-day rule (2026-10-28); then remove continue-on-error.
+      - if: hashFiles('package.json') != ''
+        continue-on-error: true
+        run: pnpm --filter @vaultme/mobile run doctor

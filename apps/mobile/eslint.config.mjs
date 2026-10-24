@@ -26,6 +26,10 @@ const restrictedSyntax = {
         message: 'No raw negative spacing. Use a token.',
       },
       {
+        selector: 'CallExpression[callee.property.name=/^(toSorted|toReversed|toSpliced)$/]',
+        message: 'Hermes in this app has no ES2023 copy methods (crash in #93). Copy, then sort or reverse in place.',
+      },
+      {
         selector:
           'JSXAttribute[name.name=/^(renderItem|renderSectionHeader|keyExtractor)$/] > JSXExpressionContainer > :function',
         message: 'Define list callbacks outside JSX so each row gets a stable reference.',
