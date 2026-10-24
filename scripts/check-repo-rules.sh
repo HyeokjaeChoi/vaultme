@@ -203,4 +203,9 @@ sys.exit(bad)
   err "R11: broken Markdown link or repo path (see above)"
 fi
 
+# R12. The Claude Code guard hook still blocks what it should (#124).
+if ! bash .claude/hooks/guard-bash.test.sh >/dev/null; then
+  err "R12: .claude/hooks/guard-bash.test.sh failed (run it to see the case)"
+fi
+
 exit "$fail"
