@@ -14,3 +14,7 @@ allowBuilds:
 minimumReleaseAgeExclude:
   # Renovate security update: zod@4.6.6
   - zod@4.6.6
+
+# Peer suffixes by name@version only. Without it, @babel/core 8 (from @vitest/coverage-istanbul 5) gave packages/i18n
+# its own react-native peer path and a second react-i18next copy in the app bundle (two i18next contexts).
+dedupePeers: true
