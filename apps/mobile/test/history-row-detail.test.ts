@@ -3,6 +3,8 @@ import {
   detailRoute,
   findCachedRow,
   hashOfId,
+  localRecordMatches,
+  parseDir,
   resolveRow,
   rowCopy,
   rowFromCache,
@@ -140,6 +142,61 @@ describe('resolveRow (S41 without a local record)', () => {
   it('fetch error, update_required, no address -> failed', async () => {
     expect((await resolveRow(H, make({ fetch: () => Promise.reject(new Error('x')) }).d)).status).toBe('failed')
     expect((await resolveRow(H, make({ address: null }).d)).status).toBe('failed')
+  })
+})
+
+describe('push direction (one tx = an in row and an out row)', () => {
+  const both = [row(0, 'in'), row(1, 'out')]
+  const page = { items: both, nextCursor: null, incomplete: false }
+  const deps = (cached: HistoryCache | null) => {
+    let stored = cached
+    const fresh = vi.fn((a: string) => {
+      stored = { address: a, json: JSON.stringify(page), updatedAt: 1 }
+      return Promise.resolve(page)
+    })
+    return { fresh, d: { address: () => ME, cache: () => stored, fresh } }
+  }
+
+  it('hash + in / out picks the row of that direction, from the cache, no fetch', async () => {
+    const { d, fresh } = deps(cache(both))
+    expect(await resolveRow(H, d, 'in')).toMatchObject({ status: 'row', row: { id: `${H}:0`, kind: 'receive' } })
+    expect(await resolveRow(H, d, 'out')).toMatchObject({ status: 'row', row: { id: `${H}:1`, kind: 'send' } })
+    expect(fresh).not.toHaveBeenCalled()
+  })
+  it('a cached single row of the OTHER direction is not shown: fetch fresh', async () => {
+    const { d, fresh } = deps(cache([row(0, 'in')]))
+    expect(await resolveRow(H, d, 'out')).toMatchObject({ status: 'row', row: { id: `${H}:1` } })
+    expect(fresh).toHaveBeenCalledTimes(1)
+    expect(rowFromCache(H, ME, cache([row(0, 'in')]), 'out')).toBeNull()
+  })
+  it('fresh page without a row of that direction -> none; several of that direction -> several', async () => {
+    const onlyIn = { fresh: () => Promise.resolve({ items: [row(0, 'in')] }), cache: () => null, address: () => ME }
+    expect((await resolveRow(H, onlyIn, 'out')).status).toBe('none')
+    const twoIn = {
+      fresh: () => Promise.resolve({ items: [row(0, 'in'), row(2, 'in')] }),
+      cache: () => null,
+      address: () => ME,
+    }
+    expect((await resolveRow(H, twoIn, 'in')).status).toBe('several')
+  })
+  it('no direction (list tap row id, old push): unchanged', async () => {
+    const { d } = deps(cache(both))
+    expect((await resolveRow(H, d)).status).toBe('several')
+    expect(await resolveRow(`${H}:1`, d, 'in')).toMatchObject({ status: 'row', row: { id: `${H}:1` } }) // a row id is exact
+  })
+  it('parseDir accepts only in | out', () => {
+    expect(parseDir('in')).toBe('in')
+    expect(parseDir('out')).toBe('out')
+    expect(parseDir('x')).toBeUndefined()
+    expect(parseDir(undefined)).toBeUndefined()
+  })
+  it('the local own-send record wins unless the push says in (a self-send deposit)', () => {
+    expect(localRecordMatches(H, H)).toBe(true)
+    expect(localRecordMatches(H.toUpperCase().replace('0X', '0x'), H, 'out')).toBe(true)
+    expect(localRecordMatches(H, H, 'in')).toBe(false)
+    expect(localRecordMatches(H, `${H}:1`)).toBe(true)
+    expect(localRecordMatches(undefined, H)).toBe(false)
+    expect(localRecordMatches('0x' + '3'.repeat(64), H)).toBe(false)
   })
 })
 

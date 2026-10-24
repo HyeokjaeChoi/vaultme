@@ -5,7 +5,16 @@ import { Linking, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { networkFact } from '@/entities/account'
 import { demoTx } from '@/entities/transaction'
-import { findCachedRow, hashOfId, rowCopy, useRowLookup, type HistoryItem, type RowLookup } from '@/features/history'
+import {
+  findCachedRow,
+  localRecordMatches,
+  parseDir,
+  rowCopy,
+  useRowLookup,
+  type HistoryItem,
+  type PushDir,
+  type RowLookup,
+} from '@/features/history'
 import type { TxState } from '@/features/send'
 import { clearTestTx, isFinal, isPolled, resultCopy, txView, useTrackedTx, writePendingTx } from '@/features/send'
 import { ApiError, apiErrorKey, historyCache } from '@/shared/api'
@@ -151,15 +160,17 @@ function LookupDetail({
   id,
   address,
   real,
+  dir,
   dev,
 }: {
   id: string
   address: string | null
   real: string | undefined
+  dir: PushDir | undefined
   dev?: string
 }) {
   const { t } = useTranslation()
-  const { lookup, retry } = useRowLookup(id)
+  const { lookup, retry } = useRowLookup(id, dir)
   const state: RowLookup | null =
     __DEV__ && dev ? (dev === 'loading' ? null : { status: dev === 'failed' ? 'failed' : 'none' }) : lookup
   if (state?.status === 'row') return <RowDetail row={state.row} address={address} real={real} example={false} />
@@ -207,7 +218,8 @@ export function TxDetailPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const {
-    hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash)
+    hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash), or a bare hash from a push
+    dir: dirParam, // `in` | `out`: the direction a push named (a tx can have a row of each)
     demo,
     row: devRow,
     lookup: devLookup,
@@ -216,6 +228,7 @@ export function TxDetailPage() {
     err,
   } = useLocalSearchParams<{
     hash: string
+    dir?: string
     row?: string
     lookup?: string
     demo?: string
@@ -228,13 +241,9 @@ export function TxDetailPage() {
   const { tx: stored, checking, error: trackedError, recheck } = useTrackedTx()
   const testMode = useTestMode()
   const error = __DEV__ && err === '1' ? new ApiError('network', 0, true, 'offline') : trackedError // `?err=1` is a __DEV__ capture override (Figma 457:17668)
-  // The local record wins over a history row with the same hash.
-  const tx =
-    __DEV__ && demo
-      ? demoTx(demo as TxState)
-      : stored?.hash.toLowerCase() === hashOfId(id).toLowerCase()
-        ? stored
-        : null
+  const dir = parseDir(dirParam)
+  // The local record wins over a history row with the same hash (not for the deposit leg of a self-send: `dir` = in).
+  const tx = __DEV__ && demo ? demoTx(demo as TxState) : localRecordMatches(stored?.hash, id, dir) ? stored : null
   if (!tx) {
     const address = __DEV__ && devRow ? DEV_ADDRESS : getAccountAddress()
     const cached = findCachedRow(historyCache.get(), address, id)
@@ -247,7 +256,13 @@ export function TxDetailPage() {
     return testMode ? (
       <Redirect href="/activity" />
     ) : (
-      <LookupDetail id={id} address={address} real={real} {...(__DEV__ && devLookup ? { dev: devLookup } : {})} />
+      <LookupDetail
+        id={id}
+        address={address}
+        real={real}
+        dir={dir}
+        {...(__DEV__ && devLookup ? { dev: devLookup } : {})}
+      />
     )
   }
   const explorer =
