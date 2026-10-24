@@ -3,7 +3,7 @@ import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Linking, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { account, networkFact } from '@/entities/account'
+import { networkFact } from '@/entities/account'
 import { demoTx } from '@/entities/transaction'
 import type { TxState } from '@/features/send'
 import { clearTestTx, isFinal, isPolled, resultCopy, txView, useTrackedTx, writePendingTx } from '@/features/send'
@@ -37,7 +37,7 @@ const hhmm = (at: number) => new Date(at).toTimeString().slice(0, 5)
 /**
  * B-S41 거래 상세 for the send in the kv. State comes from the chain (ARCHITECTURE.md#invariants): receipt + `safe` block = Confirmed or Failed.
  * Hero shares the S23 copy (`resultCopy`); a send the fake adapter never broadcast is a test send ("테스트 거래예요", state "예시", no fee row, 테스트 거래 지우기 with a confirm sheet).
- * Blocks: 받는 주소 / 거래 정보 (시각, 상태, 보낸 계정, 네트워크, 네트워크 수수료) / 거래 해시 + Etherscan row (real network only). 상태 다시 확인 asks the chain; a Pending or Included send is also re-checked every 15 s while focused.
+ * Blocks: 받는 주소 / 거래 정보 (시각, 상태, 보낸 계정 from the record — hidden for a record saved before #32, 네트워크, 네트워크 수수료) / 거래 해시 + Etherscan row (real network only). 상태 다시 확인 asks the chain; a Pending or Included send is also re-checked every 15 s while focused.
  * `?demo=<state>` (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
  */
 export function TxDetailPage() {
@@ -114,7 +114,9 @@ export function TxDetailPage() {
         <SummaryRow label={t('detail.time')} fact value={factTime(tx.createdAt)} />
         <SummaryRow label={t('result.statusLabel')} value={stateWord} />
         <SummaryRow format="address" plain fact label={t('detail.hashTitle')} value={tx.hash} />
-        <SummaryRow label={t('detail.sender')} value={account.name} />
+        {tx.accountIndex !== undefined ? (
+          <SummaryRow label={t('detail.sender')} value={t('detail.accountName', { n: tx.accountIndex + 1 })} />
+        ) : null}
         <SummaryRow label={t('result.network')} fact value={networkFact} />
         {tx.blockNumber !== undefined && !test ? (
           <SummaryRow label={t('detail.block')} fact value={String(tx.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} />

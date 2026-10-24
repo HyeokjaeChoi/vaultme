@@ -328,6 +328,8 @@ export const ko = {
   detail: {
     title: '거래 상세',
     sender: '보낸 계정',
+    /** Sending account name from the record's derivation index (n = index + 1). */
+    accountName: '계정 {{n}}',
     recipientTitle: '받는 주소',
     infoTitle: '거래 정보',
     time: '시각',

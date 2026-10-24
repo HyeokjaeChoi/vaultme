@@ -1,4 +1,4 @@
-// Figma: B-S23 Send result (Pending 423:15795, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode)
+// Figma: B-S23 Send result (Pending 423:15795, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode; 보낸 계정 row 723:5774)
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef } from 'react'
 import { Redirect } from 'expo-router'
@@ -29,6 +29,7 @@ import { NetworkChips } from '@/widgets/network-chips'
  * B-S23 보내기 결과: a centered end moment (asset logo + status badge, headline, Figure amount, sentence), the 보냄 -> 블록 포함 -> 확정 progress for Pending / Included / Confirmed only,
  * then a band and flat detail rows. Fee label: "예상 네트워크 수수료" until the network has it, "네트워크 수수료" once included. Replaced has no fee row.
  * A send the fake adapter never put on the network is a test send: "테스트 거래예요", no progress, no warning line, no fee (the chip says it too).
+ * 보낸 계정 comes from the record (`accountIndex`, saved at send time); a record saved before #32 has none and the row is hidden.
  * A failure reason line shows only when the record carries a confirmed reason (`failReason`). Success and failure give a haptic once.
  * Reads the kv pending record and re-checks it every 15 s while focused. `?demo=<state>` (+ `&reason=gas`; `&real=1` shows the real-chain variant) is a __DEV__ capture override: a synthetic send in that state.
  */
@@ -134,6 +135,9 @@ export function SendResultPage() {
       <Block>
         {!test && copy.warn ? <StatusNotice tone="warning" title={t(copy.warn)} /> : null}
         <SummaryRow format="address" label={t('result.recipient')} value={tx.to} />
+        {tx.accountIndex !== undefined ? (
+          <SummaryRow label={t('detail.sender')} value={t('detail.accountName', { n: tx.accountIndex + 1 })} />
+        ) : null}
         <SummaryRow label={t('result.network')} fact value={networkFact} />
         {showFee ? <SummaryRow label={t(feeLabel)} value={`${tx.fee ?? '—'} ETH`} /> : null}
       </Block>

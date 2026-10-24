@@ -1,4 +1,5 @@
 import { fromUnits, signAndSubmit, type Address, type ApprovedSend } from '@vaultme/wallet-core'
+import { ACCOUNT_INDEX } from '@/entities/account'
 import type { ChainPort } from '@/shared/chain'
 import type { AuthPrompt, LoadPhraseResult, PendingTx } from '@/shared/storage'
 
@@ -57,6 +58,8 @@ export async function runSend(
     createdAt: at,
     lastCheckedAt: at,
     fee: fromUnits(approved.estimatedFee, 'ETH'),
+    from,
+    accountIndex: ACCOUNT_INDEX,
     state: result.status,
   }
   try {
