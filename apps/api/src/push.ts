@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { nowSeconds } from './auth.ts'
 import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
+import { at } from './util.ts'
 
 type Bindings = Env['Bindings']
 
@@ -40,7 +41,7 @@ export async function updateWebhookAddresses(env: Bindings, add: string[], remov
   } catch {
     throw new UpstreamError('alchemy unreachable') // never log the URL or token
   }
-  if (!res.ok) throw new UpstreamError(`alchemy ${res.status}`)
+  if (!res.ok) throw new UpstreamError(`alchemy ${String(res.status)}`)
 }
 
 /** Removes addresses that no subscription uses any more. Rows in push_unregister stay until Alchemy confirms. */
@@ -61,7 +62,9 @@ export async function flushUnregister(env: Bindings): Promise<void> {
 export async function unregisterAddresses(env: Bindings, addresses: string[]): Promise<boolean> {
   if (addresses.length === 0) return true
   await env.DB.batch(
-    addresses.map((a) => env.DB.prepare('INSERT OR IGNORE INTO push_unregister (address, created_at) VALUES (?, ?)').bind(a, nowSeconds())),
+    addresses.map((a) =>
+      env.DB.prepare('INSERT OR IGNORE INTO push_unregister (address, created_at) VALUES (?, ?)').bind(a, nowSeconds()),
+    ),
   )
   try {
     await flushUnregister(env)
@@ -75,7 +78,12 @@ export async function unregisterAddresses(env: Bindings, addresses: string[]): P
 // ---- subscription ----
 
 /** Upserts the install's subscription and registers the address. Returns false when Alchemy failed (nothing is kept). */
-export async function subscribe(env: Bindings, installId: string, address: string, expoToken: string): Promise<boolean> {
+export async function subscribe(
+  env: Bindings,
+  installId: string,
+  address: string,
+  expoToken: string,
+): Promise<boolean> {
   const addr = address.toLowerCase()
   const old = await env.DB.prepare('SELECT address FROM push_subscriptions WHERE install_id = ?')
     .bind(installId)
@@ -117,7 +125,9 @@ export async function sweep(env: Bindings): Promise<void> {
   )
     .bind(now - PUSH_INACTIVE_SECONDS)
     .all<{ address: string }>()
-  await env.DB.prepare('DELETE FROM push_sent WHERE sent_at < ?').bind(now - SENT_KEEP_SECONDS).run()
+  await env.DB.prepare('DELETE FROM push_sent WHERE sent_at < ?')
+    .bind(now - SENT_KEEP_SECONDS)
+    .run()
   await unregisterAddresses(env, [...new Set(expired.results.map((r) => r.address))])
   await flushUnregister(env)
 }
@@ -125,14 +135,24 @@ export async function sweep(env: Bindings): Promise<void> {
 // ---- webhook ----
 
 const hexToBytes = (hex: string): Uint8Array<ArrayBuffer> | null =>
-  /^(?:[0-9a-f]{2})+$/i.test(hex) ? Uint8Array.from(hex.match(/../g)!, (h) => Number.parseInt(h, 16)) : null
+  /^(?:[0-9a-f]{2})+$/i.test(hex) ? Uint8Array.from(hex.match(/../g) ?? [], (h) => Number.parseInt(h, 16)) : null
 
 /** X-Alchemy-Signature = hex HMAC-SHA256(signing key, raw body). Compared in constant time by WebCrypto. */
-export async function verifyAlchemySignature(env: Bindings, rawBody: string, header: string | undefined): Promise<boolean> {
+export async function verifyAlchemySignature(
+  env: Bindings,
+  rawBody: string,
+  header: string | undefined,
+): Promise<boolean> {
   const key = secret(env.ALCHEMY_SIGNING_KEY)
   const sig = hexToBytes(header ?? '')
   if (!sig) return false
-  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify'])
+  const k = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(key),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['verify'],
+  )
   return crypto.subtle.verify('HMAC', k, sig, new TextEncoder().encode(rawBody))
 }
 
@@ -170,29 +190,40 @@ const isZero = (rawValue: string | null | undefined, value: number | null | unde
  * Skips removed (reorged) logs, zero-value transfers, and anything other than ETH or USDC (#67 decision 6).
  * Token symbols are chosen by the token contract, so USDC is matched by contract address, never by symbol.
  */
-export function notificationsFor(payload: z.infer<typeof AlchemyPayload>, subscribed: ReadonlySet<string>): Notification[] {
+export function notificationsFor(
+  payload: z.infer<typeof AlchemyPayload>,
+  subscribed: ReadonlySet<string>,
+): Notification[] {
   if (payload.type !== 'ADDRESS_ACTIVITY' || payload.event.network !== NETWORK) return []
   const out = new Map<string, Notification>()
   for (const a of payload.event.activity) {
     if (a.log?.removed) continue
     let ok = false
-    if (a.category === 'external' || a.category === 'internal') ok = a.asset === 'ETH' && isZero(a.rawContract?.rawValue, a.value) === false
+    if (a.category === 'external' || a.category === 'internal')
+      ok = a.asset === 'ETH' && !isZero(a.rawContract?.rawValue, a.value)
     else if (a.category === 'token' || a.category === 'erc20')
-      ok = a.rawContract?.address?.toLowerCase() === USDC_SEPOLIA.toLowerCase() && !isZero(a.rawContract?.rawValue, a.value)
+      ok =
+        a.rawContract?.address?.toLowerCase() === USDC_SEPOLIA.toLowerCase() && !isZero(a.rawContract.rawValue, a.value)
     if (!ok || !/^0x[0-9a-fA-F]{64}$/.test(a.hash)) continue
     const from = a.fromAddress?.toLowerCase()
     const to = a.toAddress?.toLowerCase()
     const ref = `${a.hash.toLowerCase()}:${a.log?.logIndex ?? a.category}`
     // Received wins over sent: a self-send is a deposit as well, and one tx never pushes twice to an address.
-    for (const [addr, kind] of [[to, 'deposit'], [from, 'send']] as const) {
-      if (addr && subscribed.has(addr) && !out.has(`${addr}:${ref}`)) out.set(`${addr}:${ref}`, { address: addr, kind, hash: a.hash.toLowerCase(), ref })
+    for (const [addr, kind] of [
+      [to, 'deposit'],
+      [from, 'send'],
+    ] as const) {
+      if (addr && subscribed.has(addr) && !out.has(`${addr}:${ref}`))
+        out.set(`${addr}:${ref}`, { address: addr, kind, hash: a.hash.toLowerCase(), ref })
     }
   }
   return [...out.values()]
 }
 
 const ExpoTickets = z.object({
-  data: z.array(z.object({ status: z.string(), details: z.object({ error: z.string().optional() }).partial().nullish() })),
+  data: z.array(
+    z.object({ status: z.string(), details: z.object({ error: z.string().optional() }).partial().nullish() }),
+  ),
 })
 
 /**
@@ -203,7 +234,10 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   const expoToken = secret(env.EXPO_ACCESS_TOKEN)
   if (payload.webhookId !== secret(env.ALCHEMY_WEBHOOK_ID)) return
   const addresses = new Set(
-    payload.event.activity.flatMap((a) => [a.fromAddress, a.toAddress]).filter((x): x is string => !!x).map((x) => x.toLowerCase()),
+    payload.event.activity
+      .flatMap((a) => [a.fromAddress, a.toAddress])
+      .filter((x): x is string => !!x)
+      .map((x) => x.toLowerCase()),
   )
   if (addresses.size === 0) return
   const list = [...addresses]
@@ -226,7 +260,9 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   for (const note of notes) {
     for (const sub of subs.results) {
       if (sub.address !== note.address) continue
-      const seen = await env.DB.prepare('SELECT 1 AS x FROM push_sent WHERE install_id = ? AND ref = ?').bind(sub.install_id, note.ref).first()
+      const seen = await env.DB.prepare('SELECT 1 AS x FROM push_sent WHERE install_id = ? AND ref = ?')
+        .bind(sub.install_id, note.ref)
+        .first()
       if (!seen) jobs.push({ sub, note })
     }
   }
@@ -238,7 +274,11 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     try {
       res = await fetch(EXPO_SEND_URL, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', accept: 'application/json', authorization: `Bearer ${expoToken}` },
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json',
+          authorization: `Bearer ${expoToken}`,
+        },
         body: JSON.stringify(
           batch.map(({ sub, note }) => ({
             to: sub.expo_token,
@@ -252,7 +292,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     } catch {
       throw new UpstreamError('expo unreachable')
     }
-    if (res.status === 429 || res.status >= 500) throw new UpstreamError(`expo ${res.status}`)
+    if (res.status === 429 || res.status >= 500) throw new UpstreamError(`expo ${String(res.status)}`)
     if (!res.ok) {
       // Our own request is wrong (400) or the access token is (401): retrying cannot help.
       console.error('expo rejected push', res.status)
@@ -262,17 +302,22 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     if (!tickets.success || tickets.data.data.length !== batch.length) throw new UpstreamError('expo ticket shape')
     // Only accepted tickets (and dead tokens, which are deleted below) count as sent. Any other ticket error stays retryable.
     const settled: typeof batch = []
-    tickets.data.data.forEach((t, j) => {
-      if (t.status === 'ok') settled.push(batch[j]!)
+    for (const [j, t] of tickets.data.data.entries()) {
+      const sent = at(batch, j) // lengths are equal, checked above
+      if (t.status === 'ok') settled.push(sent)
       else if (t.details?.error === 'DeviceNotRegistered') {
-        dead.push(batch[j]!.sub.install_id)
-        settled.push(batch[j]!)
+        dead.push(sent.sub.install_id)
+        settled.push(sent)
       } else ticketFailed = true
-    })
+    }
     if (settled.length > 0)
       await env.DB.batch(
         settled.map(({ sub, note }) =>
-          env.DB.prepare('INSERT OR IGNORE INTO push_sent (install_id, ref, sent_at) VALUES (?, ?, ?)').bind(sub.install_id, note.ref, nowSeconds()),
+          env.DB.prepare('INSERT OR IGNORE INTO push_sent (install_id, ref, sent_at) VALUES (?, ?, ?)').bind(
+            sub.install_id,
+            note.ref,
+            nowSeconds(),
+          ),
         ),
       )
   }
@@ -280,4 +325,3 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   for (const id of new Set(dead)) await unsubscribe(env, id)
   if (ticketFailed) throw new UpstreamError('expo ticket error') // push_sent keeps the retry from notifying the others twice
 }
-

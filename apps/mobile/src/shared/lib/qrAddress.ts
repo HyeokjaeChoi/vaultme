@@ -1,5 +1,6 @@
 import { CHAIN, toChecksumAddress } from '@vaultme/wallet-core'
 import { isAddressFormat } from './address'
+import { at } from './at'
 
 /**
  * Address QR parser (issue #64 Q8, Q9). Address only: accepts a bare 0x address and the EIP-681 form
@@ -48,23 +49,35 @@ export function parseAddressQr(data: string): QrParse {
   const m = /^ethereum:(?:pay-)?([^?]*)(?:\?(.*))?$/i.exec(raw)
   if (!m) return NOT_ADDRESS
   const path = PATH.exec(m[1] ?? '')
-  if (!path || !validAddress(path[1]!)) return NOT_ADDRESS
+  if (!path || !validAddress(at(path, 1))) return NOT_ADDRESS
   const chainId = path[2] === undefined ? null : Number(path[2])
   const fn = path[3]
   const params = queryParams(m[2] ?? '')
-  let address = path[1]!
+  let address = at(path, 1)
   if (fn !== undefined) {
     const to = params.get('address')
     if (fn !== 'transfer' || to === undefined || !validAddress(to)) return NOT_ADDRESS
     address = to
   }
   if (chainId !== null && chainId !== CHAIN.id) return { ok: false, error: 'wrongChain', chainId }
-  return { ok: true, address: toChecksumAddress(address), chainId, hadAmount: fn !== undefined || AMOUNT_PARAMS.some((k) => params.has(k)) }
+  return {
+    ok: true,
+    address: toChecksumAddress(address),
+    chainId,
+    hadAmount: fn !== undefined || AMOUNT_PARAMS.some((k) => params.has(k)),
+  }
 }
 
 /** 이에요 / 예요 after a chain id number: a Korean digit name ends in a vowel for 2 (이), 4 (사), 5 (오), 9 (구); every other last digit (and every round number) ends in a consonant. */
-export const chainIdCopula = (chainId: number): '이에요' | '예요' => ('2459'.includes(String(chainId).slice(-1)) ? '예요' : '이에요')
+export const chainIdCopula = (chainId: number): '이에요' | '예요' =>
+  '2459'.includes(String(chainId).slice(-1)) ? '예요' : '이에요'
 
-const CHAIN_NAMES: Record<number, string> = { 1: 'Ethereum 메인넷', 8453: 'Base', 137: 'Polygon', 42161: 'Arbitrum One', 10: 'OP Mainnet' }
+const CHAIN_NAMES: Record<number, string> = {
+  1: 'Ethereum 메인넷',
+  8453: 'Base',
+  137: 'Polygon',
+  42161: 'Arbitrum One',
+  10: 'OP Mainnet',
+}
 /** Display name of a well-known chain id for the chain-mismatch sheet; null = unknown (the sheet shows the id). */
 export const chainName = (chainId: number): string | null => CHAIN_NAMES[chainId] ?? null

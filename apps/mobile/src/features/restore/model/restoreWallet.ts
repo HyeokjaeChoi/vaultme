@@ -1,5 +1,15 @@
 import { deriveAddress, toMnemonic } from '@vaultme/wallet-core'
-import { clearAccountAddress, deletePhrase, hasPhrase, savePhrase, setAccountAddress, setBackupDone, setDepositPromptShown, setRestored, type AuthPrompt } from '@/shared/storage'
+import {
+  clearAccountAddress,
+  deletePhrase,
+  hasPhrase,
+  savePhrase,
+  setAccountAddress,
+  setBackupDone,
+  setDepositPromptShown,
+  setRestored,
+  type AuthPrompt,
+} from '@/shared/storage'
 import { inspectPhrase, type PhraseIssue } from './phrase'
 
 export type RestoreResult =
@@ -10,7 +20,7 @@ export type RestoreResult =
 
 /**
  * S05 -> S06. Validates the typed phrase, refuses to overwrite a stored one, stores it behind OS auth and keeps the
- * first-account public address in kv (derived here, Q40 path m/44'/60'/0'/0/0). Backup stays not done (Q16: a restore
+ * first-account public address in kv (derived here, ADR-0002 path m/44'/60'/0'/0/0). Backup stays not done (a restore
  * is no proof of a safe backup); `restored` marks the wallet so Home and Receive can skip the new-wallet backup gate.
  * `passphrase` (optional BIP39 25th word, '' = none) is stored in the same keychain item and never shown again; the caller
  * must clear its own copy wherever it clears `text`. Nothing here logs or rethrows: errors carry no phrase and the UI only needs the status.

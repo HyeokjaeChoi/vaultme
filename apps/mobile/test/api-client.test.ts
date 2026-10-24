@@ -1,4 +1,13 @@
-import { CLOCK_SKEW_SECONDS, INSTALL_ID_HEADER, NONCE_HEADER, PublicKey, SIGNATURE_HEADER, Signature, TIMESTAMP_HEADER, canonicalString } from '@vaultme/contracts'
+import {
+  CLOCK_SKEW_SECONDS,
+  INSTALL_ID_HEADER,
+  NONCE_HEADER,
+  PublicKey,
+  SIGNATURE_HEADER,
+  Signature,
+  TIMESTAMP_HEADER,
+  canonicalString,
+} from '@vaultme/contracts'
 import { describe, expect, it } from 'vitest'
 import { createApiClient, type DeviceStore } from '../src/shared/api/client'
 import { newPrivateKeyHex, publicKeyB64u, sha256Hex, signCanonical } from '../src/shared/api/deviceKey'
@@ -7,8 +16,10 @@ import { ApiError, RpcError } from '../src/shared/api/errors'
 // Test key only (not a wallet key, never leaves this file).
 const TEST_KEY = '11'.repeat(32)
 const enc = new TextEncoder()
-const b64uDecode = (s: string) => Uint8Array.from(atob(s.replaceAll('-', '+').replaceAll('_', '/')), (c) => c.charCodeAt(0))
-const importPub = (b64u: string) => crypto.subtle.importKey('raw', b64uDecode(b64u), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify'])
+const b64uDecode = (s: string) =>
+  Uint8Array.from(atob(s.replaceAll('-', '+').replaceAll('_', '/')), (c) => c.charCodeAt(0))
+const importPub = (b64u: string) =>
+  crypto.subtle.importKey('raw', b64uDecode(b64u), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify'])
 const verify = async (pub: string, sig: string, canonical: string) =>
   crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, await importPub(pub), b64uDecode(sig), enc.encode(canonical))
 
@@ -19,7 +30,16 @@ describe('device key signing', () => {
 
   it('canonicalString from the mobile inputs equals the contracts vector (empty body hash)', () => {
     expect(sha256Hex('')).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
-    expect(canonicalString({ method: 'POST', path: '/v1/installs/token', installId: '123e4567-e89b-42d3-a456-426614174000', ts: 1760400000, nonce: 'AAAAAAAAAAAAAAAAAAAAAA', bodySha256Hex: sha256Hex('') })).toBe(VECTOR)
+    expect(
+      canonicalString({
+        method: 'POST',
+        path: '/v1/installs/token',
+        installId: '123e4567-e89b-42d3-a456-426614174000',
+        ts: 1760400000,
+        nonce: 'AAAAAAAAAAAAAAAAAAAAAA',
+        bodySha256Hex: sha256Hex(''),
+      }),
+    ).toBe(VECTOR)
   })
   it('a noble-produced r||s signature verifies with WebCrypto, and the key and signature have the contract shapes', async () => {
     const pub = publicKeyB64u(TEST_KEY)
@@ -47,8 +67,10 @@ function setup(over: { appVersion?: string } = {}) {
     tokenReply: null as null | { status: number; body: unknown },
     rpcReply: null as null | { status: number; body: unknown },
     nonces: new Set<string>(),
+    pushCalls: [] as { method: string; auth: string | null; body: unknown }[],
   }
-  const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
+  const json = (status: number, body: unknown) =>
+    new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
   const f = (async (url: string, init: RequestInit) => {
     const path = new URL(url).pathname
     const h = new Headers(init.headers)
@@ -65,17 +87,30 @@ function setup(over: { appVersion?: string } = {}) {
       const pub = server.installs.get(id)
       if (!pub) return json(401, { code: 'unauthorized', message: 'Unknown install', retryable: false })
       const ts = Number(h.get(TIMESTAMP_HEADER))
-      if (Math.abs(sec - ts) > CLOCK_SKEW_SECONDS) return json(401, { code: 'clock_skew', message: 'x', retryable: false })
-      const canonical = canonicalString({ method: init.method ?? '', path, installId: id, ts, nonce: h.get(NONCE_HEADER) ?? '', bodySha256Hex: sha256Hex(init.body === undefined ? '' : (init.body as string)) })
-      if (!(await verify(pub, h.get(SIGNATURE_HEADER) ?? '', canonical))) return json(401, { code: 'signature_invalid', message: 'x', retryable: false })
+      if (Math.abs(sec - ts) > CLOCK_SKEW_SECONDS)
+        return json(401, { code: 'clock_skew', message: 'x', retryable: false })
+      const canonical = canonicalString({
+        method: init.method ?? '',
+        path,
+        installId: id,
+        ts,
+        nonce: h.get(NONCE_HEADER) ?? '',
+        bodySha256Hex: sha256Hex(init.body === undefined ? '' : (init.body as string)),
+      })
+      if (!(await verify(pub, h.get(SIGNATURE_HEADER) ?? '', canonical)))
+        return json(401, { code: 'signature_invalid', message: 'x', retryable: false })
       const n = h.get(NONCE_HEADER) ?? ''
       if (server.nonces.has(n)) return json(401, { code: 'nonce_reused', message: 'x', retryable: false })
       server.nonces.add(n)
       server.tokens++
-      return json(200, { token: `tok${server.tokens}`, expiresAt: sec + 900 })
+      return json(200, { token: `tok${String(server.tokens)}`, expiresAt: sec + 900 })
     }
     if (path === '/v1/rpc' || path === '/v1/history') {
-      server.rpcCalls.push({ auth: h.get('Authorization'), version: h.get('X-App-Version'), body: JSON.parse(init.body as string) })
+      server.rpcCalls.push({
+        auth: h.get('Authorization'),
+        version: h.get('X-App-Version'),
+        body: JSON.parse(init.body as string),
+      })
       if (server.reject401 > 0) {
         server.reject401--
         return json(401, { code: 'unauthorized', message: 'Token expired', retryable: false })
@@ -83,18 +118,32 @@ function setup(over: { appVersion?: string } = {}) {
       if (server.rpcReply) return json(server.rpcReply.status, server.rpcReply.body)
       return json(200, { jsonrpc: '2.0', id: 1, result: '0x1' })
     }
+    if (path === '/v1/push/subscription') {
+      server.pushCalls.push({ method: init.method ?? '', auth: h.get('Authorization'), body: init.body })
+      return json(200, { ok: true })
+    }
     return json(404, { code: 'not_found', message: 'x', retryable: false })
   }) as unknown as typeof fetch
 
   let key: string | null = null
   let installId: string | null = null
   const store: DeviceStore = {
-    loadKey: async () => key,
-    saveKey: async (hex) => void (key = hex),
+    loadKey: () => Promise.resolve(key),
+    saveKey: (hex) => {
+      key = hex
+      return Promise.resolve()
+    },
     getInstallId: () => installId,
     setInstallId: (id) => void (installId = id),
   }
-  const client = () => createApiClient({ baseUrl: 'http://x.test/', appVersion: over.appVersion ?? '1.2.3', store, fetch: f, now: () => t.ms })
+  const client = () =>
+    createApiClient({
+      baseUrl: 'http://x.test/',
+      appVersion: over.appVersion ?? '1.2.3',
+      store,
+      fetch: f,
+      now: () => t.ms,
+    })
   return { t, server, client, store, state: () => ({ key, installId }) }
 }
 
@@ -106,7 +155,10 @@ describe('api client', () => {
     await c.rpc('eth_blockNumber')
     expect(s.server.registers).toBe(1)
     expect(s.server.tokens).toBe(1)
-    expect(s.server.rpcCalls.map((x) => [x.auth, x.version])).toEqual([['Bearer tok1', '1.2.3'], ['Bearer tok1', '1.2.3']])
+    expect(s.server.rpcCalls.map((x) => [x.auth, x.version])).toEqual([
+      ['Bearer tok1', '1.2.3'],
+      ['Bearer tok1', '1.2.3'],
+    ])
     expect(s.server.rpcCalls[0]?.body).toMatchObject({ jsonrpc: '2.0', method: 'eth_chainId', params: [] })
     // The key is stored as hex, the public half is what the server holds.
     expect(s.server.installs.get(s.state().installId!)).toBe(publicKeyB64u(s.state().key!))
@@ -155,8 +207,14 @@ describe('api client', () => {
   })
   it('426 -> update_required', async () => {
     const s = setup()
-    s.server.rpcReply = { status: 426, body: { code: 'update_required', message: 'Update the app to continue', retryable: false } }
-    const e = await s.client().rpc('eth_chainId').catch((x: unknown) => x)
+    s.server.rpcReply = {
+      status: 426,
+      body: { code: 'update_required', message: 'Update the app to continue', retryable: false },
+    }
+    const e = await s
+      .client()
+      .rpc('eth_chainId')
+      .catch((x: unknown) => x)
     expect(e).toBeInstanceOf(ApiError)
     expect(e).toMatchObject({ code: 'update_required', status: 426 })
   })
@@ -177,17 +235,33 @@ describe('api client', () => {
   })
   it('clock_skew from the token endpoint is a typed error', async () => {
     const s = setup()
-    s.server.tokenReply = { status: 401, body: { code: 'clock_skew', message: 'Device clock is off', retryable: false } }
+    s.server.tokenReply = {
+      status: 401,
+      body: { code: 'clock_skew', message: 'Device clock is off', retryable: false },
+    }
     await expect(s.client().rpc('x')).rejects.toMatchObject({ code: 'clock_skew' })
     expect(s.server.rpcCalls).toHaveLength(0)
   })
   it('a dropped connection is a network error', async () => {
-    const c = createApiClient({ baseUrl: 'http://x.test', appVersion: '1.0.0', store: { loadKey: async () => TEST_KEY, saveKey: async () => undefined, getInstallId: () => 'i', setInstallId: () => undefined }, fetch: (async () => { throw new TypeError('offline') }) as typeof fetch })
+    const c = createApiClient({
+      baseUrl: 'http://x.test',
+      appVersion: '1.0.0',
+      store: {
+        loadKey: () => Promise.resolve(TEST_KEY),
+        saveKey: () => Promise.resolve(undefined),
+        getInstallId: () => 'i',
+        setInstallId: () => undefined,
+      },
+      fetch: () => Promise.reject(new TypeError('offline')),
+    })
     await expect(c.rpc('x')).rejects.toMatchObject({ code: 'network', retryable: true })
   })
   it('a JSON-RPC error is an RpcError', async () => {
     const s = setup()
-    s.server.rpcReply = { status: 200, body: { jsonrpc: '2.0', id: 1, error: { code: -32000, message: 'insufficient funds' } } }
+    s.server.rpcReply = {
+      status: 200,
+      body: { jsonrpc: '2.0', id: 1, error: { code: -32000, message: 'insufficient funds' } },
+    }
     await expect(s.client().rpc('eth_estimateGas')).rejects.toBeInstanceOf(RpcError)
   })
   it('a null result is a result (receipt not found yet)', async () => {
@@ -201,5 +275,20 @@ describe('api client', () => {
     const addr = '0x' + 'a'.repeat(40)
     await s.client().history(addr, 'c1')
     expect(s.server.rpcCalls[0]).toMatchObject({ auth: 'Bearer tok1', body: { address: addr, cursor: 'c1' } })
+  })
+  it('push subscription: PUT {address, expoToken}, DELETE without a body, both with the token', async () => {
+    const s = setup()
+    const addr = '0x' + 'a'.repeat(40)
+    const c = s.client()
+    await c.putPushSubscription(addr, 'ExponentPushToken[abcdefgh12345678]')
+    await c.deletePushSubscription()
+    expect(s.server.pushCalls).toEqual([
+      {
+        method: 'PUT',
+        auth: 'Bearer tok1',
+        body: JSON.stringify({ address: addr, expoToken: 'ExponentPushToken[abcdefgh12345678]' }),
+      },
+      { method: 'DELETE', auth: 'Bearer tok1', body: undefined },
+    ])
   })
 })

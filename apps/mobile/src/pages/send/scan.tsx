@@ -1,5 +1,5 @@
 // Figma: B-S21 QR scan 618:102942 (test QR 618:103021, invalid QR 618:103107, camera denied 618:103195), B-S21+QRX chain mismatch sheet 618:103288
-import { CameraView, useCameraPermissions } from 'expo-camera'
+import { CameraView, PermissionStatus, useCameraPermissions } from 'expo-camera'
 import * as Clipboard from 'expo-clipboard'
 import { useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
@@ -7,16 +7,16 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppState, Linking, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { CHAIN } from '@vaultme/wallet-core'
-import { account } from '@/entities/account/fixtures'
+import { account } from '@/entities/account'
 import { setScanResult } from '@/features/send'
-import { useTestMode } from '@/shared/chain/useTestMode'
+import { useTestMode } from '@/shared/chain'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { chainIdCopula, chainName, parseAddressQr } from '@/shared/lib/qrAddress'
 import { createScanGate } from '@/shared/lib/scanGate'
 import { useTheme } from '@/shared/theme'
 import { BottomSheet, Button, EmptyState, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { NetworkChips } from '@/widgets/network-chips'
 
 /** The invalid notice stays this long (issue #64 Q10: 2 s). A code in view is handled once (`createScanGate`), not every 2 s. */
 const NOTICE_MS = 2000
@@ -34,8 +34,12 @@ function Brackets({ color }: { color: string }) {
     <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
       <View style={{ ...base, top: 0, left: 0, borderTopWidth: w, borderLeftWidth: w, borderTopLeftRadius: r }} />
       <View style={{ ...base, top: 0, right: 0, borderTopWidth: w, borderRightWidth: w, borderTopRightRadius: r }} />
-      <View style={{ ...base, bottom: 0, left: 0, borderBottomWidth: w, borderLeftWidth: w, borderBottomLeftRadius: r }} />
-      <View style={{ ...base, bottom: 0, right: 0, borderBottomWidth: w, borderRightWidth: w, borderBottomRightRadius: r }} />
+      <View
+        style={{ ...base, bottom: 0, left: 0, borderBottomWidth: w, borderLeftWidth: w, borderBottomLeftRadius: r }}
+      />
+      <View
+        style={{ ...base, bottom: 0, right: 0, borderBottomWidth: w, borderRightWidth: w, borderBottomRightRadius: r }}
+      />
     </View>
   )
 }
@@ -60,11 +64,16 @@ export function ScanPage() {
   const done = useRef(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => () => void (timer.current && clearTimeout(timer.current)), [])
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current)
+    },
+    [],
+  )
   // First visit: ask now (the user just tapped the scan icon). Back from Settings: read the permission again.
   const asked = useRef(false)
   useEffect(() => {
-    if (perm?.status === 'undetermined' && perm.canAskAgain && !asked.current) {
+    if (perm?.status === PermissionStatus.UNDETERMINED && perm.canAskAgain && !asked.current) {
       asked.current = true
       void requestPerm()
     }
@@ -111,6 +120,7 @@ export function ScanPage() {
     if (done.current) return
     try {
       const text = (await Clipboard.getStringAsync()).trim().replace(/\s/g, '')
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- onScan can set the ref during the await; TS narrows it to false
       if (done.current) return // a QR scan finished while the clipboard read was pending
       done.current = true
       setScanResult({ to: text, fromQr: false, hadAmount: false })
@@ -121,7 +131,7 @@ export function ScanPage() {
   }
 
   const knownName = wrongChain !== null ? chainName(wrongChain) : null
-  const denied = dev === 'denied' || (perm !== null && !perm.granted && perm.status !== 'undetermined')
+  const denied = dev === 'denied' || (perm !== null && !perm.granted && perm.status !== PermissionStatus.UNDETERMINED)
   const header = (
     <ScreenHeader
       icon="close"
@@ -147,7 +157,9 @@ export function ScanPage() {
         }
       >
         <View style={{ paddingVertical: th.primitive.space[2] }}>
-          <Text variant="title1" accessibilityRole="header">{t('send.qr.title')}</Text>
+          <Text variant="title1" accessibilityRole="header">
+            {t('send.qr.title')}
+          </Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center' }}>
           <EmptyState bold="warning" title={t('send.qr.denied.title')} body={t('send.qr.denied.body')} />
@@ -171,10 +183,19 @@ export function ScanPage() {
       >
         <View style={{ gap: th.semantic.layout.groupGap, paddingTop: th.semantic.layout.groupGap }}>
           <View style={{ paddingHorizontal: pad, paddingVertical: th.primitive.space[2] }}>
-            <Text variant="title1" accessibilityRole="header" color={onBrand}>{t('send.qr.title')}</Text>
+            <Text variant="title1" accessibilityRole="header" color={onBrand}>
+              {t('send.qr.title')}
+            </Text>
           </View>
           <View style={{ alignItems: 'center', paddingVertical: th.semantic.layout.sectionGap.product }}>
-            <View style={{ width: VIEWFINDER, height: VIEWFINDER, overflow: 'hidden', borderRadius: th.primitive.radius.lg }}>
+            <View
+              style={{
+                width: VIEWFINDER,
+                height: VIEWFINDER,
+                overflow: 'hidden',
+                borderRadius: th.primitive.radius.lg,
+              }}
+            >
               {perm?.granted ? (
                 <CameraView
                   style={{ flex: 1 }}
@@ -192,12 +213,28 @@ export function ScanPage() {
             </View>
           ) : null}
           <View style={{ gap: th.semantic.layout.fieldGap, paddingHorizontal: pad }}>
-            <Text variant="body" color={onBrand} accessibilityLabel={t('send.qr.a11yHint')} style={{ textAlign: 'center' }}>{t('send.qr.hint')}</Text>
-            <Text variant="fact" color={onBrand} style={{ textAlign: 'center' }}>{`${CHAIN.name} · ${CHAIN.id}`}</Text>
+            <Text
+              variant="body"
+              color={onBrand}
+              accessibilityLabel={t('send.qr.a11yHint')}
+              style={{ textAlign: 'center' }}
+            >
+              {t('send.qr.hint')}
+            </Text>
+            <Text
+              variant="fact"
+              color={onBrand}
+              style={{ textAlign: 'center' }}
+            >{`${CHAIN.name} · ${String(CHAIN.id)}`}</Text>
           </View>
           {test ? (
             <View style={{ alignItems: 'center' }}>
-              <Button size="md" variant="secondary" label={t('send.qr.testQr')} onPress={() => onData(account.address)} />
+              <Button
+                size="md"
+                variant="secondary"
+                label={t('send.qr.testQr')}
+                onPress={() => onData(account.address)}
+              />
             </View>
           ) : null}
         </View>
@@ -212,7 +249,11 @@ export function ScanPage() {
           <Text variant="body" color={th.semantic.text.secondary}>
             {knownName !== null
               ? t('send.qr.wrongChain.bodyKnown', { name: knownName, chainId: wrongChain, sepolia: CHAIN.id })
-              : t('send.qr.wrongChain.body', { chainId: wrongChain, copula: chainIdCopula(wrongChain), sepolia: CHAIN.id })}
+              : t('send.qr.wrongChain.body', {
+                  chainId: wrongChain,
+                  copula: chainIdCopula(wrongChain),
+                  sepolia: CHAIN.id,
+                })}
           </Text>
         ) : null}
       </BottomSheet>

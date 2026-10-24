@@ -1,0 +1,76 @@
+// Renovate dependency updates. Options: https://docs.renovatebot.com/configuration-options/
+// Later packageRules win over earlier ones, so the never-automerge rules come last.
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  // best-practices adds GitHub Actions digest pinning (keeps the `@<sha> # vX.Y.Z` style) and abandonment notes.
+  // Skipped: :pinDevDependencies (we keep ^ ranges) and :maintainLockFilesWeekly (a full lockfile refresh would
+  // also move Expo SDK packages, which only `npx expo install --fix` may change).
+  extends: ['config:best-practices', 'schedule:weekly'],
+  ignorePresets: [':pinDevDependencies', ':maintainLockFilesWeekly'],
+  timezone: 'Asia/Seoul',
+  dependencyDashboard: true,
+  // Security fixes still open for disabled packages (the alert rules use `force`) and skip the schedule.
+  // Owner rule (#142): they wait 7 days like every other update. The default `minimumReleaseAge: null` skipped it
+  // (https://docs.renovatebot.com/key-concepts/minimum-release-age), and pnpm would need a minimumReleaseAgeExclude.
+  vulnerabilityAlerts: { enabled: true, minimumReleaseAge: '7 days' },
+  // GitHub auto-merge waits for the ruleset's required checks (repo-rules, verify, check, figma-comparison).
+  // Needs the repo setting "Allow auto-merge"; without it Renovate merges itself after checks pass.
+  platformAutomerge: true,
+  automergeType: 'pr',
+  packageRules: [
+    {
+      // Same 7 days as pnpm-workspace.yaml minimumReleaseAge (10080 min), so pnpm can install every proposed version.
+      // strict: no branch until the version is old enough; the Dependency Dashboard lists pending ones.
+      // Only update types with release timestamps; best-practices handles pin, lockFileMaintenance and the rest.
+      matchUpdateTypes: ['major', 'minor', 'patch'],
+      minimumReleaseAge: '7 days',
+      internalChecksFilter: 'strict',
+    },
+    {
+      matchManagers: ['npm'],
+      matchUpdateTypes: ['minor', 'patch'],
+      groupName: 'npm minor and patch',
+    },
+    // A group automerges only when every update in it may automerge, so the automerge scope has its own group.
+    {
+      matchManagers: ['npm'],
+      matchUpdateTypes: ['patch'],
+      groupName: 'npm patch and dev minor',
+      automerge: true,
+    },
+    {
+      matchManagers: ['npm'],
+      matchDepTypes: ['devDependencies'],
+      matchUpdateTypes: ['minor', 'patch'],
+      groupName: 'npm patch and dev minor',
+      automerge: true,
+    },
+    {
+      matchManagers: ['github-actions'],
+      groupName: 'GitHub Actions',
+    },
+    // Never automerge. Majors and GitHub Actions (they get repo secrets) never match an automerge rule above.
+    {
+      // Owner rule: nothing in wallet-core automerges. Its own group keeps the shared automerge group mergeable
+      // (a group automerges only if every update may), at the cost of a second branch for deps such as vitest.
+      matchFileNames: ['packages/wallet-core/**'],
+      matchUpdateTypes: ['minor', 'patch'],
+      groupName: 'wallet-core minor and patch',
+      automerge: false,
+    },
+    {
+      matchPackageNames: ['@noble/*', '@scure/*'],
+      groupName: 'noble and scure',
+      automerge: false,
+    },
+    {
+      matchPackageNames: ['viem', '@vaultme/*'],
+      automerge: false,
+    },
+    {
+      // Expo SDK pins these together: upgrade with `npx expo install --fix`, not one by one.
+      matchPackageNames: ['expo', 'expo-*', '@expo/*', 'react', 'react-dom', 'react-native', 'react-native-*'],
+      enabled: false,
+    },
+  ],
+}

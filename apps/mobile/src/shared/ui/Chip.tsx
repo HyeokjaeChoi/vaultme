@@ -6,7 +6,13 @@ import { useTheme } from '../theme'
 import { usePressScale } from '../theme/motion'
 import { Text } from './Text'
 
-type Props = { label: string; selected?: boolean; disabled?: boolean; /** Why the chip is off (VoiceOver hint when disabled). */ disabledReason?: string; onPress?: () => void }
+type Props = {
+  label: string
+  selected?: boolean
+  disabled?: boolean
+  /** Why the chip is off (VoiceOver hint when disabled). */ disabledReason?: string
+  onPress?: () => void
+}
 
 /** Amount chip (25% / 50% / 전액). Pill, height buttonB.height.sm 40 with a 44 pt touch area, Label text. Selected = inverse fill. */
 export function Chip({ label, selected, disabled, disabledReason, onPress }: Props) {
@@ -29,9 +35,18 @@ export function Chip({ label, selected, disabled, disabledReason, onPress }: Pro
         }}
         hitSlop={{ top: slop, bottom: slop }}
         {...handlers}
-        style={{ height: t.component.buttonB.height.sm, paddingHorizontal: t.primitive.space[4], borderRadius: t.component.buttonB.radius, alignItems: 'center', justifyContent: 'center', backgroundColor: bg }}
+        style={{
+          height: t.component.buttonB.height.sm,
+          paddingHorizontal: t.primitive.space[4],
+          borderRadius: t.component.buttonB.radius,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: bg,
+        }}
       >
-        <Text variant="label" color={fg}>{label}</Text>
+        <Text variant="label" color={fg}>
+          {label}
+        </Text>
       </Pressable>
     </Animated.View>
   )

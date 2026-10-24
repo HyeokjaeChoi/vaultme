@@ -15,19 +15,19 @@ vi.mock('react-native-keychain', () => ({
     WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: 'AccessibleWhenPasscodeSetThisDeviceOnly',
     AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: 'AccessibleAfterFirstUnlockThisDeviceOnly',
   },
-  setGenericPassword: vi.fn(async (username: string, password: string, o: { service: string }) => {
+  setGenericPassword: vi.fn((username: string, password: string, o: { service: string }) => {
     calls.push({ fn: 'set', service: o.service, opts: o })
     items.set(o.service, { username, password })
-    return { service: o.service, storage: 'x' }
+    return Promise.resolve({ service: o.service, storage: 'x' })
   }),
-  getGenericPassword: vi.fn(async (o: { service: string }) => {
+  getGenericPassword: vi.fn((o: { service: string }) => {
     calls.push({ fn: 'get', service: o.service, opts: o })
-    if (failGet && o.service.endsWith('phrase')) throw new Error(failGet)
-    return items.get(o.service) ?? false
+    if (failGet && o.service.endsWith('phrase')) return Promise.reject(new Error(failGet))
+    return Promise.resolve(items.get(o.service) ?? false)
   }),
-  hasGenericPassword: vi.fn(async (o: { service: string }) => items.has(o.service)),
-  resetGenericPassword: vi.fn(async (o: { service: string }) => items.delete(o.service)),
-  getSupportedBiometryType: vi.fn(async () => null),
+  hasGenericPassword: vi.fn((o: { service: string }) => Promise.resolve(items.has(o.service))),
+  resetGenericPassword: vi.fn((o: { service: string }) => Promise.resolve(items.delete(o.service))),
+  getSupportedBiometryType: vi.fn(() => Promise.resolve(null)),
 }))
 
 let mmkvFail = false
@@ -172,7 +172,16 @@ describe('kv key + store', () => {
     const kv = await import('../src/shared/storage/kv')
     await kv.openKv()
     expect(kv.getPendingTx()).toBeNull()
-    const tx = { hash: '0xabc', nonce: 3, asset: 'ETH', to: '0xdef', amount: '0.1', createdAt: 1, lastCheckedAt: 2, state: 'Pending' as const }
+    const tx = {
+      hash: '0xabc',
+      nonce: 3,
+      asset: 'ETH',
+      to: '0xdef',
+      amount: '0.1',
+      createdAt: 1,
+      lastCheckedAt: 2,
+      state: 'Pending' as const,
+    }
     kv.setPendingTx(tx)
     expect(kv.getPendingTx()).toEqual(tx)
     kv.setPendingTx(null)

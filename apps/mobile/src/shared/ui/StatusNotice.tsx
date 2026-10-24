@@ -6,7 +6,14 @@ import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
 
 export type Tone = 'info' | 'warning' | 'danger' | 'unknown' | 'confirmed' | 'clear'
-const ICON: Record<Tone, IconName> = { info: 'info', warning: 'warning', danger: 'danger', unknown: 'unknown', confirmed: 'confirmed', clear: 'clear' }
+const ICON: Record<Tone, IconName> = {
+  info: 'info',
+  warning: 'warning',
+  danger: 'danger',
+  unknown: 'unknown',
+  confirmed: 'confirmed',
+  clear: 'clear',
+}
 
 type Props = {
   tone: Tone
@@ -42,16 +49,38 @@ export function StatusNotice({ tone, tier = 'inline', title, heading, body, icon
         flexDirection: 'row',
         alignItems: 'flex-start',
         gap: c.gap,
-        ...(banner ? { padding: b.padding, borderRadius: b.radius, backgroundColor: b[tone].bg } : { paddingVertical: t.primitive.space[2] }),
+        ...(banner
+          ? { padding: b.padding, borderRadius: b.radius, backgroundColor: b[tone].bg }
+          : { paddingVertical: t.primitive.space[2] }),
       }}
     >
       <Icon name={icon ?? ICON[tone]} size={banner ? b.iconSize : t.component.icon.size.control} color={c[tone].fg} />
       <View style={{ flex: 1, gap: t.primitive.space[1] }}>
-        {title ? <Text variant={banner ? 'headline' : heading ? 'label' : 'bodySmall'} color={heading ? c[tone].fg : banner || !quiet ? t.semantic.text.primary : t.semantic.text.secondary}>{title}</Text> : null}
-        {typeof body === 'string' ? <Text variant="bodySmall" color={banner || quiet ? t.semantic.text.secondary : t.semantic.text.primary}>{body}</Text> : body}
+        {title ? (
+          <Text
+            variant={banner ? 'headline' : heading ? 'label' : 'bodySmall'}
+            color={heading ? c[tone].fg : banner || !quiet ? t.semantic.text.primary : t.semantic.text.secondary}
+          >
+            {title}
+          </Text>
+        ) : null}
+        {typeof body === 'string' ? (
+          <Text variant="bodySmall" color={banner || quiet ? t.semantic.text.secondary : t.semantic.text.primary}>
+            {body}
+          </Text>
+        ) : (
+          body
+        )}
         {link ? (
-          <Pressable accessibilityRole="link" accessibilityLabel={link.label} onPress={link.onPress} style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}>
-            <Text variant="link" color={t.semantic.text.link}>{link.label}</Text>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel={link.label}
+            onPress={link.onPress}
+            style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center' }}
+          >
+            <Text variant="link" color={t.semantic.text.link}>
+              {link.label}
+            </Text>
           </Pressable>
         ) : null}
       </View>

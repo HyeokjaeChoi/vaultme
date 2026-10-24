@@ -45,7 +45,9 @@ function toApiError(status: number, json: unknown): ApiError {
   const env = ErrorEnvelope.safeParse(json)
   if (env.success) return new ApiError(env.data.code, status, env.data.retryable, env.data.message)
   if (status === 426) return new ApiError('update_required', status, false, 'update required')
-  const retryable = typeof (json as { retryable?: unknown } | null)?.retryable === 'boolean' && (json as { retryable: boolean }).retryable
+  const retryable =
+    typeof (json as { retryable?: unknown } | null)?.retryable === 'boolean' &&
+    (json as { retryable: boolean }).retryable
   return new ApiError('Unknown', status, retryable, 'unknown error')
 }
 
@@ -68,7 +70,11 @@ export function createApiClient(d: ApiDeps) {
     try {
       res = await (d.fetch ?? fetch)(base + path, {
         method,
-        headers: { [APP_VERSION_HEADER]: d.appVersion, ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...headers },
+        headers: {
+          [APP_VERSION_HEADER]: d.appVersion,
+          ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+          ...headers,
+        },
         ...(body === undefined ? {} : { body }),
       })
     } catch {
@@ -104,12 +110,15 @@ export function createApiClient(d: ApiDeps) {
         installId = null
       }
       if (!installId) {
-        const r = parseWith((v) => RegisterResponse.parse(v), await http('POST', '/v1/installs', {}, JSON.stringify({ publicKey: publicKeyB64u(keyHex) })))
+        const r = parseWith(
+          (v) => RegisterResponse.parse(v),
+          await http('POST', '/v1/installs', {}, JSON.stringify({ publicKey: publicKeyB64u(keyHex) })),
+        )
         installId = r.installId
         d.store.setInstallId(installId)
       }
       return { installId, keyHex }
-    })().catch((e) => {
+    })().catch((e: unknown) => {
       identity = null
       throw e
     })
@@ -184,13 +193,19 @@ export function createApiClient(d: ApiDeps) {
       if (!('result' in r)) throw unknown('rpc: no result')
       return r.result
     },
-    /** POST /v1/history (lld.md §4). Returned as is (`HistoryResponse`, lld §4.2): the history model checks each item, so one unknown item does not fail the page. */
+    /** POST /v1/history (ARCHITECTURE.md#api-contract). Returned as is (`HistoryResponse`, ARCHITECTURE.md#history): the history model checks each item, so one unknown item does not fail the page. */
     history(address: string, cursor?: string): Promise<unknown> {
-      return post('/v1/history', HistoryRequest.parse({ address, ...(cursor === undefined ? {} : { cursor }) }), (v) => v)
+      return post(
+        '/v1/history',
+        HistoryRequest.parse({ address, ...(cursor === undefined ? {} : { cursor }) }),
+        (v) => v,
+      )
     },
     /** PUT /v1/push/subscription: registers this install's address and Expo push token (#67). Replaces any earlier one. */
     async putPushSubscription(address: string, expoToken: string): Promise<void> {
-      await send('PUT', '/v1/push/subscription', PushSubscribeRequest.parse({ address, expoToken }), (v) => PushOkResponse.parse(v))
+      await send('PUT', '/v1/push/subscription', PushSubscribeRequest.parse({ address, expoToken }), (v) =>
+        PushOkResponse.parse(v),
+      )
     },
     /** DELETE /v1/push/subscription: deletes the address and token on the server. Also fine when there is none. */
     async deletePushSubscription(): Promise<void> {

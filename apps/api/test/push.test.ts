@@ -5,7 +5,7 @@ import { app } from '../src/app.ts'
 import { b64uEncode, issueToken, nowSeconds } from '../src/auth.ts'
 import { PUSH_INACTIVE_SECONDS, sweep } from '../src/push.ts'
 
-const open: RateLimit = { limit: async () => ({ success: true }) }
+const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
 const E = {
   ...env,
@@ -26,32 +26,47 @@ const expoSend = 'https://exp.host/--/api/v2/push/send'
 
 const newInstall = async (lastSeen = nowSeconds()) => {
   const id = crypto.randomUUID()
-  await E.DB.prepare('INSERT INTO installs (id, public_key, created_at, last_seen_at) VALUES (?, ?, ?, ?)').bind(id, 'k', lastSeen, lastSeen).run()
+  await E.DB.prepare('INSERT INTO installs (id, public_key, created_at, last_seen_at) VALUES (?, ?, ?, ?)')
+    .bind(id, 'k', lastSeen, lastSeen)
+    .run()
   return id
 }
-const auth = async (id: string) => ({ Authorization: `Bearer ${(await issueToken({ env: E } as never, id)).token}`, 'X-App-Version': '1.0.0' })
+const auth = async (id: string) => ({
+  Authorization: `Bearer ${(await issueToken({ env: E } as never, id)).token}`,
+  'X-App-Version': '1.0.0',
+})
 const put = async (id: string, body: unknown) =>
-  app.request('/v1/push/subscription', { method: 'PUT', headers: { ...(await auth(id)), 'content-type': 'application/json' }, body: JSON.stringify(body) }, E)
+  app.request(
+    '/v1/push/subscription',
+    { method: 'PUT', headers: { ...(await auth(id)), 'content-type': 'application/json' }, body: JSON.stringify(body) },
+    E,
+  )
 const del = async (id: string) => app.request('/v1/push/subscription', { method: 'DELETE', headers: await auth(id) }, E)
-const subs = async () => (await E.DB.prepare('SELECT * FROM push_subscriptions').all<{ install_id: string; address: string }>()).results
-const pending = async () => (await E.DB.prepare('SELECT address FROM push_unregister').all<{ address: string }>()).results.map((r) => r.address)
+const subs = async () =>
+  (await E.DB.prepare('SELECT * FROM push_subscriptions').all<{ install_id: string; address: string }>()).results
+const pending = async () =>
+  (await E.DB.prepare('SELECT address FROM push_unregister').all<{ address: string }>()).results.map((r) => r.address)
 
 type Call = { url: string; init: RequestInit }
 let calls: Call[]
 let alchemyOk = true
 let expoReply: () => Response
-const body = (c: Call) => JSON.parse(c.init.body as string)
+type AddressPatch = { addresses_to_add: string[]; addresses_to_remove: string[] }
+type PushMessage = { title: string; body: string }
+const body = (c: Call) => JSON.parse(c.init.body as string) as AddressPatch
+const messagesOf = (c: Call) => JSON.parse(c.init.body as string) as PushMessage[]
 beforeEach(async () => {
   calls = []
   alchemyOk = true
   expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
-  vi.stubGlobal('fetch', async (url: string, init: RequestInit) => {
+  vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
     calls.push({ url, init })
-    if (url === addrPatch) return alchemyOk ? new Response('{}') : new Response('no', { status: 500 })
-    if (url === expoSend) return expoReply()
-    throw new Error('unexpected fetch')
+    if (url === addrPatch) return Promise.resolve(alchemyOk ? new Response('{}') : new Response('no', { status: 500 }))
+    if (url === expoSend) return Promise.resolve(expoReply())
+    return Promise.reject(new Error('unexpected fetch'))
   })
-  for (const t of ['push_sent', 'push_unregister', 'push_subscriptions', 'installs']) await E.DB.prepare(`DELETE FROM ${t}`).run()
+  for (const t of ['push_sent', 'push_unregister', 'push_subscriptions', 'installs'])
+    await E.DB.prepare(`DELETE FROM ${t}`).run()
 })
 afterEach(() => vi.unstubAllGlobals())
 
@@ -141,8 +156,16 @@ describe('push subscription routes', () => {
 })
 
 const sign = async (raw: string, key = E.ALCHEMY_SIGNING_KEY) => {
-  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-  return [...new Uint8Array(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(raw)))].map((b) => b.toString(16).padStart(2, '0')).join('')
+  const k = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(key),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  )
+  return [...new Uint8Array(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(raw)))]
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
 }
 const activity = (a: Record<string, unknown>[], over: Record<string, unknown> = {}) => ({
   webhookId: 'wh_test',
@@ -152,17 +175,39 @@ const activity = (a: Record<string, unknown>[], over: Record<string, unknown> = 
   ...over,
 })
 const eth = (o: Record<string, unknown> = {}) => ({
-  hash: HASH, fromAddress: OTHER, toAddress: ADDR, value: 0.5, asset: 'ETH', category: 'external', rawContract: { rawValue: '0x6f05b59d3b20000', decimals: 18 }, ...o,
+  hash: HASH,
+  fromAddress: OTHER,
+  toAddress: ADDR,
+  value: 0.5,
+  asset: 'ETH',
+  category: 'external',
+  rawContract: { rawValue: '0x6f05b59d3b20000', decimals: 18 },
+  ...o,
 })
 const usdc = (o: Record<string, unknown> = {}) => ({
-  hash: HASH, fromAddress: OTHER, toAddress: ADDR, value: 5, asset: 'USDC', category: 'token',
-  rawContract: { rawValue: '0x4c4b40', address: USDC_SEPOLIA, decimals: 6 }, log: { logIndex: '0x2', removed: false }, ...o,
+  hash: HASH,
+  fromAddress: OTHER,
+  toAddress: ADDR,
+  value: 5,
+  asset: 'USDC',
+  category: 'token',
+  rawContract: { rawValue: '0x4c4b40', address: USDC_SEPOLIA, decimals: 6 },
+  log: { logIndex: '0x2', removed: false },
+  ...o,
 })
 const hook = async (payload: unknown, sig?: string) => {
   const raw = JSON.stringify(payload)
-  return app.request('/webhooks/alchemy', { method: 'POST', headers: { 'X-Alchemy-Signature': sig ?? (await sign(raw)), 'content-type': 'application/json' }, body: raw }, E)
+  return app.request(
+    '/webhooks/alchemy',
+    {
+      method: 'POST',
+      headers: { 'X-Alchemy-Signature': sig ?? (await sign(raw)), 'content-type': 'application/json' },
+      body: raw,
+    },
+    E,
+  )
 }
-const sentMessages = () => calls.filter((c) => c.url === expoSend).flatMap(body)
+const sentMessages = () => calls.filter((c) => c.url === expoSend).flatMap(messagesOf)
 
 describe('POST /webhooks/alchemy', () => {
   let install: string
@@ -182,10 +227,17 @@ describe('POST /webhooks/alchemy', () => {
   it('pushes a deposit with no amount and no address on the lock screen', async () => {
     expect((await hook(activity([eth()]))).status).toBe(200)
     const [m] = sentMessages()
-    expect(m).toMatchObject({ to: TOKEN, title: '입금이 들어왔어요', body: '앱에서 확인해 주세요.', data: { kind: 'deposit', hash: HASH } })
-    const text = JSON.stringify([m.title, m.body])
+    expect(m).toMatchObject({
+      to: TOKEN,
+      title: '입금이 들어왔어요',
+      body: '앱에서 확인해 주세요.',
+      data: { kind: 'deposit', hash: HASH },
+    })
+    const text = JSON.stringify([m?.title, m?.body])
     expect(text).not.toMatch(/0x|ETH|USDC|0\.5/)
-    expect((calls.find((c) => c.url === expoSend)!.init.headers as Record<string, string>).authorization).toBe(`Bearer ${E.EXPO_ACCESS_TOKEN}`)
+    expect((calls.find((c) => c.url === expoSend)!.init.headers as Record<string, string>).authorization).toBe(
+      `Bearer ${E.EXPO_ACCESS_TOKEN}`,
+    )
   })
 
   it('pushes a confirmed send', async () => {
@@ -234,7 +286,10 @@ describe('POST /webhooks/alchemy', () => {
   })
 
   it('does not mark an Expo error ticket as sent, so the retry sends it', async () => {
-    expoReply = () => new Response(JSON.stringify({ data: [{ status: 'error', message: 'x', details: { error: 'MessageRateExceeded' } }] }))
+    expoReply = () =>
+      new Response(
+        JSON.stringify({ data: [{ status: 'error', message: 'x', details: { error: 'MessageRateExceeded' } }] }),
+      )
     expect((await hook(activity([eth()]))).status).toBe(503)
     expect(await E.DB.prepare('SELECT COUNT(*) AS n FROM push_sent').first<{ n: number }>()).toEqual({ n: 0 })
     expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
@@ -243,7 +298,10 @@ describe('POST /webhooks/alchemy', () => {
   })
 
   it('deletes the subscription and the address when Expo says DeviceNotRegistered', async () => {
-    expoReply = () => new Response(JSON.stringify({ data: [{ status: 'error', message: 'x', details: { error: 'DeviceNotRegistered' } }] }))
+    expoReply = () =>
+      new Response(
+        JSON.stringify({ data: [{ status: 'error', message: 'x', details: { error: 'DeviceNotRegistered' } }] }),
+      )
     await hook(activity([eth()]))
     expect(await subs()).toHaveLength(0)
     expect(calls.some((c) => c.url === addrPatch && body(c).addresses_to_remove[0] === ADDR)).toBe(true)
@@ -255,14 +313,23 @@ describe('POST /webhooks/alchemy', () => {
   })
 
   it('looks up more than 100 addresses in one payload', async () => {
-    const many = Array.from({ length: 150 }, (_, i) => eth({ toAddress: '0x' + (i + 1).toString(16).padStart(40, '0'), hash: '0x' + (i + 1).toString(16).padStart(64, '0') }))
+    const many = Array.from({ length: 150 }, (_, i) =>
+      eth({
+        toAddress: '0x' + (i + 1).toString(16).padStart(40, '0'),
+        hash: '0x' + (i + 1).toString(16).padStart(64, '0'),
+      }),
+    )
     expect((await hook(activity([...many, eth()]))).status).toBe(200)
     expect(sentMessages()).toHaveLength(1)
   })
 
   it('refuses a malformed body', async () => {
     const raw = '{"nope":1}'
-    const r = await app.request('/webhooks/alchemy', { method: 'POST', headers: { 'X-Alchemy-Signature': await sign(raw) }, body: raw }, E)
+    const r = await app.request(
+      '/webhooks/alchemy',
+      { method: 'POST', headers: { 'X-Alchemy-Signature': await sign(raw) }, body: raw },
+      E,
+    )
     expect(r.status).toBe(400)
   })
 })

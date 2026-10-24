@@ -1,6 +1,25 @@
-import { keccak256, parseEther, parseGwei, parseTransaction, recoverTransactionAddress, decodeFunctionData, erc20Abi, type Hash } from 'viem'
+import {
+  keccak256,
+  parseEther,
+  parseGwei,
+  parseTransaction,
+  recoverTransactionAddress,
+  decodeFunctionData,
+  erc20Abi,
+  type Hash,
+} from 'viem'
 import { describe, expect, test } from 'vitest'
-import { ABS_MAX_FEE_WEI, ASSETS, CHAIN, Mnemonic, deriveAddress, prepare, signAndSubmit, type ChainSnapshot, type SendIntent } from '../src'
+import {
+  ABS_MAX_FEE_WEI,
+  ASSETS,
+  CHAIN,
+  Mnemonic,
+  deriveAddress,
+  prepare,
+  signAndSubmit,
+  type ChainSnapshot,
+  type SendIntent,
+} from '../src'
 import { OTHER, PUBLIC_JUNK_PHRASE, RECIPIENT } from './fixtures'
 
 const mnemonic = new Mnemonic(PUBLIC_JUNK_PHRASE)
@@ -61,7 +80,10 @@ describe('signAndSubmit (fake submit, no network)', () => {
 
   test('matching hash -> Pending; tx is a correct signed USDC transfer', async () => {
     let raw: `0x${string}` | undefined
-    const res = await run(undefined, snap, async (r) => ((raw = r), keccak256(r)))
+    const res = await run(undefined, snap, (r) => {
+      raw = r
+      return Promise.resolve(keccak256(r))
+    })
     expect(res.status).toBe('Pending')
     if (!raw || res.status !== 'Pending') throw new Error('unreachable')
     expect(res.hash).toBe(keccak256(raw))
@@ -76,37 +98,47 @@ describe('signAndSubmit (fake submit, no network)', () => {
   })
   test('ETH transfer goes to recipient with value', async () => {
     let raw: `0x${string}` | undefined
-    await run(ok({ ...usdc, asset: 'ETH', amount: '0.1' }), snap, async (r) => ((raw = r), keccak256(r)))
+    await run(ok({ ...usdc, asset: 'ETH', amount: '0.1' }), snap, (r) => {
+      raw = r
+      return Promise.resolve(keccak256(r))
+    })
     const tx = parseTransaction(raw!)
     expect(tx.to?.toLowerCase()).toBe(RECIPIENT.toLowerCase())
     expect(tx.value).toBe(parseEther('0.1'))
   })
   test('hash mismatch -> Unknown with local hash', async () => {
-    const res = await run(undefined, snap, async () => `0x${'11'.repeat(32)}`)
+    const res = await run(undefined, snap, () => Promise.resolve(`0x${'11'.repeat(32)}` as const))
     expect(res).toMatchObject({ status: 'Unknown', reason: 'hashMismatch' })
   })
   test('submit throws -> Unknown (tx may be out there)', async () => {
-    const res = await run(undefined, snap, async () => {
-      throw new Error('timeout')
-    })
+    const res = await run(undefined, snap, () => Promise.reject(new Error('timeout')))
     expect(res).toMatchObject({ status: 'Unknown', reason: 'submitError' })
   })
   test('latest fee cap above approved -> NeedsReview, nothing submitted', async () => {
     let called = false
-    const res = await run(undefined, { ...snap, baseFeePerGas: parseGwei('20') }, async () => ((called = true), '0x'))
+    const res = await run(undefined, { ...snap, baseFeePerGas: parseGwei('20') }, () => {
+      called = true
+      return Promise.resolve('0x' as const)
+    })
     expect(res).toEqual({ status: 'NeedsReview' })
     expect(called).toBe(false)
   })
   test('nonce changed since review -> NeedsReview, nothing submitted', async () => {
     let called = false
-    const res = await run(undefined, { ...snap, nonce: snap.nonce + 1 }, async () => ((called = true), '0x'))
+    const res = await run(undefined, { ...snap, nonce: snap.nonce + 1 }, () => {
+      called = true
+      return Promise.resolve('0x' as const)
+    })
     expect(res).toEqual({ status: 'NeedsReview' })
     expect(called).toBe(false)
   })
   test('latest fee cap over absolute cap -> Blocked', async () => {
     let called = false
     const huge = { ...snap, baseFeePerGas: ABS_MAX_FEE_WEI } // cap = gas * 2*base >> 0.005 ETH
-    const res = await run(undefined, huge, async () => ((called = true), '0x'))
+    const res = await run(undefined, huge, () => {
+      called = true
+      return Promise.resolve('0x' as const)
+    })
     expect(res).toEqual({ status: 'Blocked' })
     expect(called).toBe(false)
   })

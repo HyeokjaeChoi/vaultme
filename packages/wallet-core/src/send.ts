@@ -1,18 +1,10 @@
-import {
-  encodeFunctionData,
-  erc20Abi,
-  isAddress,
-  keccak256,
-  type Address,
-  type Hash,
-  type Hex,
-} from 'viem'
+import { encodeFunctionData, erc20Abi, isAddress, keccak256, type Address, type Hash, type Hex } from 'viem'
 import { toUnits, AmountError } from './amount'
 import { ABS_MAX_FEE_WEI, ASSETS, CHAIN, type AssetId } from './constants'
 import type { Mnemonic } from './mnemonic'
 import { recipientRisk, type RecipientRisk } from './risk'
 
-/** Local tx hash: keccak256 of the signed raw tx (Q73). */
+/** Local tx hash: keccak256 of the signed raw tx (ADR-0005). */
 export const txHash = (raw: Hex): Hash => keccak256(raw)
 export type { Address, Hash, Hex }
 
@@ -36,8 +28,7 @@ export type ChainSnapshot = {
 }
 
 export type Warning =
-  | { kind: 'recipientRisk'; risk: Exclude<RecipientRisk, 'known'> }
-  | { kind: 'nativeFeeShortfall'; shortBy: bigint }
+  { kind: 'recipientRisk'; risk: Exclude<RecipientRisk, 'known'> } | { kind: 'nativeFeeShortfall'; shortBy: bigint }
 
 export type Review = {
   asset: AssetId
@@ -56,12 +47,7 @@ export type Review = {
 export type ApprovedSend = Review
 
 export type PrepareError =
-  | 'invalidAddress'
-  | 'invalidAmount'
-  | 'tooManyDecimals'
-  | 'zeroAmount'
-  | 'insufficientFunds'
-  | 'overAbsCap'
+  'invalidAddress' | 'invalidAmount' | 'tooManyDecimals' | 'zeroAmount' | 'insufficientFunds' | 'overAbsCap'
 export type PrepareResult = { ok: true; review: Review } | { ok: false; error: PrepareError }
 
 /** EIP-1559 rule of thumb: max fee = 2 * base + tip. */

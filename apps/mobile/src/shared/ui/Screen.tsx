@@ -1,6 +1,6 @@
 // Figma: product screen frame (R-S10R 333:113 / R-S22 336:390): screenB.bg (flat white), optional Nav row, body px screen.padding, content pt space-2, section gap 24, Actions pinned below
-import { type MutableRefObject, type ReactNode, useEffect, useRef, useState } from 'react'
-import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, View } from 'react-native'
+import { type ReactNode, type RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, View, type ScrollViewInstance } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
 
@@ -21,7 +21,7 @@ type Props = {
   /** Brand screens (Figma 423:13440, 423:15412, 423:15443, 423:15474) draw no line above the actions. */
   footerLine?: boolean
   /** Form screens: the body shrinks above the keyboard, and `revealRef.current(y, height)` scrolls a body-content box into view with `l.screen.padding` (16) clearance. */
-  revealRef?: MutableRefObject<((y: number | 'end', height?: number) => void) | null>
+  revealRef?: RefObject<((y: number | 'end', height?: number) => void) | null>
   /** Pull-to-refresh (native RefreshControl). The spinner shows until the returned promise settles. Omit = no pull-to-refresh. */
   onRefresh?: () => Promise<unknown>
   /** Surface color override: the QR scan screen is dark in both themes (Figma 618:102942, overlay.scrimBg). Default = screenB.bg. */
@@ -29,10 +29,23 @@ type Props = {
 }
 
 /** Safe-area screen with screenB.bg background, scroll body and optional pinned footer. */
-export function Screen({ children, header, footer, footerLead, edges = ['top', 'bottom'], gap = 'section', topGap = 'field', bleed, footerLine = true, revealRef, onRefresh, bg }: Props) {
+export function Screen({
+  children,
+  header,
+  footer,
+  footerLead,
+  edges = ['top', 'bottom'],
+  gap = 'section',
+  topGap = 'field',
+  bleed,
+  footerLine = true,
+  revealRef,
+  onRefresh,
+  bg,
+}: Props) {
   const t = useTheme()
   const l = t.semantic.layout
-  const scrollRef = useRef<ScrollView>(null)
+  const scrollRef = useRef<ScrollViewInstance>(null)
   const [layoutHeight, setLayoutHeight] = useState(0)
   const [contentHeight, setContentHeight] = useState(0)
   const scrollY = useRef(0)
@@ -50,25 +63,34 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- overflow comes from two layout events; flash once when it turns on
     if (overflows) scrollRef.current?.flashScrollIndicators()
   }, [overflows])
 
-  if (revealRef) {
-    revealRef.current = (y, h = 0) => {
-      if (y === 'end') return scrollRef.current?.scrollToEnd({ animated: true })
-      const clear = l.screen.padding
-      const top = scrollY.current
-      if (y - clear < top) scrollRef.current?.scrollTo({ y: Math.max(0, y - clear), animated: true })
-      else if (y + h + clear > top + layoutHeight) scrollRef.current?.scrollTo({ y: y + h + clear - layoutHeight, animated: true })
-    }
-  }
+  useImperativeHandle(revealRef, () => (y, h = 0) => {
+    if (y === 'end') return scrollRef.current?.scrollToEnd({ animated: true })
+    const clear = l.screen.padding
+    const top = scrollY.current
+    if (y - clear < top) scrollRef.current?.scrollTo({ y: Math.max(0, y - clear), animated: true })
+    else if (y + h + clear > top + layoutHeight)
+      scrollRef.current?.scrollTo({ y: y + h + clear - layoutHeight, animated: true })
+  })
 
   const body = (
     <>
       {header}
       <ScrollView
         ref={scrollRef}
-        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={() => void pull()} tintColor={t.semantic.text.secondary} colors={[t.semantic.text.secondary]} /> : undefined}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => void pull()}
+              tintColor={t.semantic.text.secondary}
+              colors={[t.semantic.text.secondary]}
+            />
+          ) : undefined
+        }
         onScroll={(e) => {
           scrollY.current = e.nativeEvent.contentOffset.y
         }}
@@ -87,10 +109,22 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
         {children}
       </ScrollView>
       {footer ? (
-        // Fixed-footer boundary (AGENTS rule 10 functional exception): Figma draws the 1 px line above the actions on every screen with a footer.
-        <View style={{ borderTopWidth: footerLine ? t.component.reviewFooter.borderWidth : 0, borderTopColor: t.semantic.border.subtle }}>
+        // Fixed-footer boundary (Borderless functional exception, DESIGN.md): Figma draws the 1 px line above the actions on every screen with a footer.
+        <View
+          style={{
+            borderTopWidth: footerLine ? t.component.reviewFooter.borderWidth : 0,
+            borderTopColor: t.semantic.border.subtle,
+          }}
+        >
           {footerLead}
-          <View style={{ paddingHorizontal: l.screen.padding, paddingTop: t.primitive.space[3], paddingBottom: t.primitive.space[1], gap: l.fieldGap }}>
+          <View
+            style={{
+              paddingHorizontal: l.screen.padding,
+              paddingTop: t.primitive.space[3],
+              paddingBottom: t.primitive.space[1],
+              gap: l.fieldGap,
+            }}
+          >
             {footer}
           </View>
         </View>
@@ -100,7 +134,9 @@ export function Screen({ children, header, footer, footerLead, edges = ['top', '
   return (
     <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: bg ?? t.component.screenB.bg }}>
       {revealRef ? (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>{body}</KeyboardAvoidingView>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          {body}
+        </KeyboardAvoidingView>
       ) : (
         body
       )}

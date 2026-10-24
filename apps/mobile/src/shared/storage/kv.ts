@@ -1,7 +1,7 @@
 import { createMMKV, type MMKV } from 'react-native-mmkv'
 import { getOrCreateKvKey } from './keychain'
 
-// One encrypted MMKV instance (Q63). The key comes from Keychain (async), so call `openKv()` once
+// One encrypted MMKV instance (ADR-0004). The key comes from Keychain (async), so call `openKv()` once
 // at boot (before the first render); after that every helper here is synchronous.
 let kv: MMKV | null = null
 let opening: Promise<void> | null = null
@@ -24,7 +24,6 @@ function store(): MMKV {
   return kv
 }
 
-
 // --- backup flag ---
 /**
  * Settings toggles (S62 거래 알림, S63 0원 거래 표시). S62 is on only after the user opted in and the OS allowed notifications (#67):
@@ -35,20 +34,20 @@ export const setPushSetting = (v: boolean): void => store().set('settings.push',
 /** #67 decision 5: the S50 sheet is offered once. */
 export const getPushOptinShown = (): boolean => store().getBoolean('push.optinShown') ?? false
 export const setPushOptinShown = (v: boolean): void => store().set('push.optinShown', v)
-/** The server still holds this device's address because DELETE failed. Retried at the next launch (#67 decision 7). */
+/** The server may still hold this install's address and token (a DELETE failed or was cut off, or a PUT got no answer). The DELETE is retried at the next launch (#67 decision 7). */
 export const getPushUnregisterPending = (): boolean => store().getBoolean('push.unregisterPending') ?? false
 export const setPushUnregisterPending = (v: boolean): void => store().set('push.unregisterPending', v)
 export const getZeroSetting = (): boolean => store().getBoolean('settings.zero') ?? false
 export const setZeroSetting = (v: boolean): void => store().set('settings.zero', v)
 
-/** Q14: the "back up now" sheet after the first incoming deposit was shown once. Reset when a wallet is created or restored. */
+/** The "back up now" sheet after the first incoming deposit was shown once. Reset when a wallet is created or restored. */
 export const getDepositPromptShown = (): boolean => store().getBoolean('backup.depositPromptShown') ?? false
 export const setDepositPromptShown = (v: boolean): void => store().set('backup.depositPromptShown', v)
 
 export const getBackupDone = (): boolean => store().getBoolean('backupDone') ?? false
 export const setBackupDone = (v: boolean): void => store().set('backupDone', v)
 
-// --- restored flag (Q16): set by a successful restore (S05/S06), cleared when a new wallet is created. It is not backup proof ---
+// --- restored flag: set by a successful restore (S05/S06), cleared when a new wallet is created. It is not backup proof ---
 export const getRestored = (): boolean => store().getBoolean('wallet.restored') ?? false
 export const setRestored = (v: boolean): void => store().set('wallet.restored', v)
 
@@ -57,7 +56,7 @@ export const getAccountAddress = (): string | null => store().getString('account
 export const setAccountAddress = (a: string): void => store().set('account.address', a)
 export const clearAccountAddress = (): void => void store().remove('account.address')
 
-// --- lock (Q13): 30 s grace after a real background; cold start is locked ---
+// --- lock: 30 s grace after a real background; cold start is locked ---
 export type LockSettings = { graceSeconds: number }
 export type LockState = { locked: boolean; backgroundedAt: number | null }
 
@@ -84,7 +83,7 @@ export function setLockState(s: LockState): void {
   else k.set('lock.backgroundedAt', s.backgroundedAt)
 }
 
-// --- pending tx (lld.md §6; send wiring is #23). amount is a decimal string, never a Number. ---
+// --- pending tx (ARCHITECTURE.md#invariants; send wiring is #23). amount is a decimal string, never a Number. ---
 export type PendingTx = {
   hash: string
   nonce: number
@@ -102,7 +101,7 @@ export type PendingTx = {
   state: 'Pending' | 'Unknown' | 'Included' | 'Confirmed' | 'Failed' | 'Replaced'
 }
 
-const STATES = ['Pending', 'Unknown', 'Included', 'Confirmed', 'Failed', 'Replaced']
+const STATES = new Set(['Pending', 'Unknown', 'Included', 'Confirmed', 'Failed', 'Replaced'])
 const isStr = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 
@@ -116,12 +115,25 @@ export function parsePendingTx(raw: string): PendingTx | null {
   if (typeof v !== 'object' || v === null) return null
   const o = v as Record<string, unknown>
   if (
-    !isStr(o.hash) || !isNum(o.nonce) || !isStr(o.asset) || !isStr(o.to) || !isStr(o.amount) ||
-    !isNum(o.createdAt) || !isNum(o.lastCheckedAt) || !STATES.includes(o.state as string)
-  ) return null
+    !isStr(o.hash) ||
+    !isNum(o.nonce) ||
+    !isStr(o.asset) ||
+    !isStr(o.to) ||
+    !isStr(o.amount) ||
+    !isNum(o.createdAt) ||
+    !isNum(o.lastCheckedAt) ||
+    !STATES.has(o.state as string)
+  )
+    return null
   return {
-    hash: o.hash, nonce: o.nonce, asset: o.asset, to: o.to, amount: o.amount,
-    createdAt: o.createdAt, lastCheckedAt: o.lastCheckedAt, state: o.state as PendingTx['state'],
+    hash: o.hash,
+    nonce: o.nonce,
+    asset: o.asset,
+    to: o.to,
+    amount: o.amount,
+    createdAt: o.createdAt,
+    lastCheckedAt: o.lastCheckedAt,
+    state: o.state as PendingTx['state'],
     ...(isStr(o.fee) ? { fee: o.fee } : {}),
     ...(isNum(o.blockNumber) ? { blockNumber: o.blockNumber } : {}),
     ...(o.failReason === 'outOfGas' ? { failReason: 'outOfGas' as const } : {}),
@@ -132,7 +144,7 @@ export function getPendingTx(): PendingTx | null {
   const raw = store().getString('pendingTx')
   if (raw === undefined) return null
   const tx = parsePendingTx(raw)
-  // A corrupt record must not read as "no pending tx": that would lift the send block (Q47).
+  // A corrupt record must not read as "no pending tx": that would lift the send block (ADR-0006).
   if (!tx) throw new Error('kv: pendingTx record is corrupt')
   return tx
 }
@@ -141,21 +153,23 @@ export function setPendingTx(tx: PendingTx | null): void {
   else store().set('pendingTx', JSON.stringify(tx))
 }
 
-// --- API install id (lld.md §4.1). The device key itself is in Keychain. ---
+// --- API install id (ARCHITECTURE.md#install-auth). The device key itself is in Keychain. ---
 export const getInstallId = (): string | null => store().getString('api.installId') ?? null
 export function setInstallId(id: string | null): void {
   if (id === null) store().remove('api.installId')
   else store().set('api.installId', id)
 }
 
-// --- last /v1/history result and when it was fetched (Q58) ---
+// --- last /v1/history result and when it was fetched (ADR-0007) ---
 export type HistoryCache = { address: string; json: string; updatedAt: number }
 export function getHistoryCache(): HistoryCache | null {
   const raw = store().getString('history.cache')
   if (raw === undefined) return null
   try {
     const v = JSON.parse(raw) as Partial<HistoryCache>
-    return typeof v.address === 'string' && typeof v.json === 'string' && typeof v.updatedAt === 'number' ? (v as HistoryCache) : null
+    return typeof v.address === 'string' && typeof v.json === 'string' && typeof v.updatedAt === 'number'
+      ? (v as HistoryCache)
+      : null
   } catch {
     return null
   }
@@ -174,8 +188,18 @@ export function parseRecents(raw: string | undefined): RecentRecipient[] {
   try {
     const v = JSON.parse(raw) as unknown
     if (!Array.isArray(v)) return []
-    return v
-      .filter((x): x is RecentRecipient => !!x && typeof x.address === 'string' && /^0x[0-9a-fA-F]{40}$/.test(x.address) && typeof x.at === 'number' && typeof x.asset === 'string' && typeof x.amount === 'string')
+    return (v as unknown[])
+      .filter((x): x is RecentRecipient => {
+        if (typeof x !== 'object' || x === null) return false
+        const r = x as Record<string, unknown>
+        return (
+          typeof r.address === 'string' &&
+          /^0x[0-9a-fA-F]{40}$/.test(r.address) &&
+          typeof r.at === 'number' &&
+          typeof r.asset === 'string' &&
+          typeof r.amount === 'string'
+        )
+      })
       .slice(0, MAX_RECENTS)
   } catch {
     return []

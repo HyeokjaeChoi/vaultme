@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// Install auth (LLD §4). The app signs requests with a device key (ECDSA P-256, separate from the wallet key).
+// Install auth (ARCHITECTURE.md#install-auth). The app signs requests with a device key (ECDSA P-256, separate from the wallet key).
 export const INSTALL_ID_HEADER = 'X-Install-Id'
 export const TIMESTAMP_HEADER = 'X-Timestamp' // unix seconds
 export const NONCE_HEADER = 'X-Nonce' // 16 random bytes, base64url

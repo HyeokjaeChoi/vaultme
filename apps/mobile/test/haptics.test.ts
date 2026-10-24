@@ -1,7 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const h = vi.hoisted(() => ({ selectionAsync: vi.fn(async () => undefined), notificationAsync: vi.fn(async () => undefined) }))
-vi.mock('expo-haptics', () => ({ ...h, impactAsync: vi.fn(async () => undefined), ImpactFeedbackStyle: { Light: 'l' }, NotificationFeedbackType: { Warning: 'w', Success: 's', Error: 'e' } }))
+const h = vi.hoisted(() => ({
+  selectionAsync: vi.fn(() => Promise.resolve(undefined)),
+  notificationAsync: vi.fn(() => Promise.resolve(undefined)),
+}))
+vi.mock('expo-haptics', () => ({
+  ...h,
+  impactAsync: vi.fn(() => Promise.resolve(undefined)),
+  ImpactFeedbackStyle: { Light: 'l' },
+  NotificationFeedbackType: { Warning: 'w', Success: 's', Error: 'e' },
+}))
 
 import { keyHaptic } from '../src/shared/lib/haptics'
 

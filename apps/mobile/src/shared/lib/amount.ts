@@ -21,7 +21,12 @@ export function applyKey(amount: string, key: KeypadKey, decimals: number = ASSE
  * Keypad press against the sendable max. A key that would make the amount exceed `sendable` is rejected (amount unchanged, `overMax`); backspace is always allowed.
  * `accepted` is false for any rejected key (over max, max length, max decimals, second "."). `sendable` null = not known yet: no max check.
  */
-export function pressKey(amount: string, key: KeypadKey, sendable: string | null, asset: AssetId = 'ETH'): { amount: string; accepted: boolean; overMax: boolean } {
+export function pressKey(
+  amount: string,
+  key: KeypadKey,
+  sendable: string | null,
+  asset: AssetId = 'ETH',
+): { amount: string; accepted: boolean; overMax: boolean } {
   const next = applyKey(amount, key, ASSETS[asset].decimals)
   if (key === 'backspace') return { amount: next, accepted: true, overMax: false }
   if (next === amount) return { amount, accepted: false, overMax: false }

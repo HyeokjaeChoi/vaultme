@@ -32,7 +32,14 @@ function etherscanList(env: Bindings, address: string): FetchList {
   return async (list, q) => {
     const url = new URL(BASE)
     const params: Record<string, string> = {
-      chainid: SEPOLIA, module: 'account', action: list, address, sort: 'desc', page: String(q.page), offset: String(q.offset), apikey: key,
+      chainid: SEPOLIA,
+      module: 'account',
+      action: list,
+      address,
+      sort: 'desc',
+      page: String(q.page),
+      offset: String(q.offset),
+      apikey: key,
     }
     if (q.endblock !== undefined) params.endblock = String(q.endblock)
     if (list === 'tokentx') params.contractaddress = USDC_SEPOLIA
@@ -43,7 +50,7 @@ function etherscanList(env: Bindings, address: string): FetchList {
       let body: { status?: unknown; message?: unknown; result?: unknown }
       try {
         const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) })
-        if (!res.ok) throw new Error(`http ${res.status}`)
+        if (!res.ok) throw new Error(`http ${String(res.status)}`)
         const json: unknown = await res.json()
         if (typeof json !== 'object' || json === null || Array.isArray(json)) throw new Error('not an object')
         body = json
@@ -53,7 +60,8 @@ function etherscanList(env: Bindings, address: string): FetchList {
       }
       if (body.status === '1' && Array.isArray(body.result)) {
         console.log('etherscan ok', list, Date.now() - t0) // latency of successful calls only
-        return body.result
+        const rows: unknown[] = body.result
+        return rows
       }
       if (body.message === 'No transactions found') return []
       if (typeof body.result === 'string' && /rate limit/i.test(body.result)) {
@@ -73,10 +81,12 @@ export async function getHistory(env: Bindings, address: string, cursor: string 
   const fetchList = etherscanList(env, address)
   await checkCursor(address, cursor) // before the cache: a bad cursor must never get a cached 200
   const cache = caches.default
-  const cacheKey = new Request(`https://history.vaultme.invalid/${await addressHash(address)}/${cursor === undefined ? 'first' : `c/${cursor}`}`)
+  const cacheKey = new Request(
+    `https://history.vaultme.invalid/${await addressHash(address)}/${cursor === undefined ? 'first' : `c/${cursor}`}`,
+  )
   const hit = await cache.match(cacheKey)
-  if (hit) return (await hit.json()) as HistoryResponse
+  if (hit) return await hit.json<HistoryResponse>()
   const out = await loadHistory(fetchList, address, cursor)
-  await cache.put(cacheKey, Response.json(out, { headers: { 'Cache-Control': `max-age=${CACHE_SECONDS}` } }))
+  await cache.put(cacheKey, Response.json(out, { headers: { 'Cache-Control': `max-age=${String(CACHE_SECONDS)}` } }))
   return out
 }

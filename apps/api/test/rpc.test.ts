@@ -4,10 +4,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { app } from '../src/app.ts'
 import { b64uEncode, issueToken } from '../src/auth.ts'
 
-const open: RateLimit = { limit: async () => ({ success: true }) }
+const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
 // Fresh secrets per run. Upstream keys are unique so a leak is easy to grep for.
-const E = { ...env, TOKEN_SECRET: rand() + rand(), INFURA_KEY: rand(), ALCHEMY_KEY: rand(), INSTALL_IP_LIMITER: open, INSTALL_LIMITER: open, RPC_IP_LIMITER: open }
+const E = {
+  ...env,
+  TOKEN_SECRET: rand() + rand(),
+  INFURA_KEY: rand(),
+  ALCHEMY_KEY: rand(),
+  INSTALL_IP_LIMITER: open,
+  INSTALL_LIMITER: open,
+  RPC_IP_LIMITER: open,
+}
 const bearer = async () => ({
   Authorization: `Bearer ${(await issueToken({ env: E } as never, crypto.randomUUID())).token}`,
 })
@@ -27,7 +35,7 @@ const ok = (result: unknown = '0x1') => new Response(JSON.stringify({ jsonrpc: '
 const balanceOf = `0x70a08231${'0'.repeat(24)}${'ab'.repeat(20)}`
 const call = (o: Record<string, unknown>) => req('eth_call', [{ to: USDC_SEPOLIA, data: balanceOf, ...o }, 'latest'])
 
-const mock = (...impl: Array<() => Response | Promise<Response>>) => {
+const mock = (...impl: (() => Response | Promise<Response>)[]) => {
   const f = vi.fn()
   impl.forEach((i) => f.mockImplementationOnce(async () => i()))
   vi.stubGlobal('fetch', f)
@@ -55,7 +63,7 @@ describe('POST /v1/rpc', () => {
     const f = mock(() => ok())
     const r = await rpc(req('eth_getLogs'))
     expect(r.status).toBe(403)
-    expect(((await r.json()) as { code: string }).code).toBe('method_not_allowed')
+    expect((await r.json<{ code: string }>()).code).toBe('method_not_allowed')
     expect(f).not.toHaveBeenCalled()
   })
 
@@ -105,7 +113,10 @@ describe('POST /v1/rpc', () => {
   })
 
   it('returns a retryable error when both upstreams are down', async () => {
-    mock(() => new Response('x', { status: 500 }), () => Promise.reject(new TypeError('fetch failed')))
+    mock(
+      () => new Response('x', { status: 500 }),
+      () => Promise.reject(new TypeError('fetch failed')),
+    )
     const r = await rpc(req('eth_blockNumber'))
     expect(r.status).toBe(503)
     expect(await r.json()).toMatchObject({ code: 'unavailable', retryable: true })
@@ -121,7 +132,8 @@ describe('POST /v1/rpc', () => {
   })
 
   it('never leaks an upstream key', async () => {
-    const leaky = (k: string) => () => new Response(JSON.stringify({ jsonrpc: '2.0', id: 7, error: { code: 1, message: `bad https://x/v3/${k}` } }))
+    const leaky = (k: string) => () =>
+      new Response(JSON.stringify({ jsonrpc: '2.0', id: 7, error: { code: 1, message: `bad https://x/v3/${k}` } }))
     mock(leaky(E.INFURA_KEY), leaky(E.ALCHEMY_KEY))
     const r = await rpc(req('eth_blockNumber'))
     const text = await r.text()
@@ -137,7 +149,10 @@ describe('POST /v1/rpc', () => {
   })
 
   it('rate limits by IP', async () => {
-    const r = await rpc(req('eth_chainId'), { ...E, RPC_IP_LIMITER: { limit: async () => ({ success: false }) } })
+    const r = await rpc(req('eth_chainId'), {
+      ...E,
+      RPC_IP_LIMITER: { limit: () => Promise.resolve({ success: false }) },
+    })
     expect(r.status).toBe(429)
   })
 })

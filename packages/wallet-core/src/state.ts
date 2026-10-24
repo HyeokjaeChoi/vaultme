@@ -34,7 +34,7 @@ export type InvalidTransitionHook = (state: SendState, event: SendEvent) => void
 
 const hashOf = (s: SendState): Hash | undefined => ('hash' in s ? s.hash : undefined)
 
-/** LLD §6. Unknown transitions return `state` unchanged and call `onInvalid` (never throw). */
+/** ARCHITECTURE.md#invariants (transaction state). Unknown transitions return `state` unchanged and call `onInvalid` (never throw). */
 export function reduce(state: SendState, event: SendEvent, onInvalid?: InvalidTransitionHook): SendState {
   const next = step(state, event)
   if (next === undefined) {
@@ -52,7 +52,8 @@ function step(s: SendState, e: SendEvent): SendState | undefined {
       return undefined
     case 'Reviewing':
       if (e.type === 'EDIT') return { status: 'Draft' }
-      if (e.type === 'CONFIRM' && !s.blocked && (!s.requiresAck || e.ack)) return { status: 'Authenticating', requiresAck: s.requiresAck }
+      if (e.type === 'CONFIRM' && !s.blocked && (!s.requiresAck || e.ack))
+        return { status: 'Authenticating', requiresAck: s.requiresAck }
       return undefined
     case 'Authenticating':
       if (e.type === 'AUTH_OK') return { status: 'Submitting', requiresAck: s.requiresAck }
@@ -66,7 +67,7 @@ function step(s: SendState, e: SendEvent): SendState | undefined {
       return undefined
     case 'Pending':
     case 'Unknown': {
-      if (e.type === 'TIMEOUT') return s // no time-based verdict (Q22)
+      if (e.type === 'TIMEOUT') return s // no time-based verdict (ADR-0006)
       const hash = hashOf(s)
       if (!hash) return undefined
       // RECEIPT(reverted) is also Included; Failed is decided at `safe`.
@@ -89,7 +90,7 @@ const reviewing = (requiresAck: boolean): Extract<SendState, { status: 'Reviewin
   requiresAck,
 })
 
-/** Q47: no new Draft while any send is Pending or Unknown. */
+/** ADR-0006: no new Draft while any send is Pending or Unknown. */
 export function canStartDraft(sends: readonly SendState[]): boolean {
   return !sends.some((s) => s.status === 'Pending' || s.status === 'Unknown')
 }

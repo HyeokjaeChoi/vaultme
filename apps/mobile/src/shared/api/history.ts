@@ -16,7 +16,7 @@ export type HistoryResult =
   | { source: 'local'; sent: PendingTx[] }
 
 /**
- * Q58: last good result is kept with its update time. 404 (an API without `/v1/history`, e.g. an old deployment) -> locally recorded sends. The same list is shown when there is no API client or no address.
+ * ADR-0007: last good result is kept with its update time. 404 (an API without `/v1/history`, e.g. an old deployment) -> locally recorded sends. The same list is shown when there is no API client or no address.
  * Other failures show the cache (with the error) or throw. `update_required` always throws (S91 is #44).
  */
 export function createHistory(d: HistoryDeps) {
@@ -31,7 +31,8 @@ export function createHistory(d: HistoryDeps) {
         if (isApiError(e, 'not_found')) return { source: 'local', sent: d.local() }
         if (!isApiError(e) || isApiError(e, 'update_required')) throw e
         const c = d.cache.get()
-        if (c && c.address === address) return { source: 'cache', data: JSON.parse(c.json) as unknown, updatedAt: c.updatedAt, error: e }
+        if (c?.address === address)
+          return { source: 'cache', data: JSON.parse(c.json) as unknown, updatedAt: c.updatedAt, error: e }
         throw e
       }
     },

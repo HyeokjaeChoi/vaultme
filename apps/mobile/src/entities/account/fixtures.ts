@@ -9,4 +9,4 @@ export const account = {
 } as const
 
 /** Mono Fact line of the network (Product B/Fact): "Sepolia · 11155111". */
-export const networkFact = `${account.network} · ${account.chainId}`
+export const networkFact = `${account.network} · ${String(account.chainId)}`

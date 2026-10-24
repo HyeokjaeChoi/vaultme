@@ -2,11 +2,16 @@ packages:
   - apps/*
   - packages/*
 
-# Supply-chain rules (LLD Q74). Minutes: 10080 = 7 days.
+# Supply-chain rules. Minutes: 10080 = 7 days, for every package, security fixes too. No minimumReleaseAgeExclude (R13).
 minimumReleaseAge: 10080
 # Fail install when a dependency has an unreviewed build script.
 strictDepBuilds: true
 # Explicit allow / deny list for dependency build scripts. Empty = deny all.
 allowBuilds:
   esbuild: true # wrangler and vitest-plugin platform binary
+  unrs-resolver: false # eslint-import-resolver-typescript; its platform binary is an optional dependency, the script is only a fallback download
   workerd: true # Workers runtime binary for wrangler dev and tests
+
+# Peer suffixes by name@version only. Without it, @babel/core 8 (from @vitest/coverage-istanbul 5) gave packages/i18n
+# its own react-native peer path and a second react-i18next copy in the app bundle (two i18next contexts).
+dedupePeers: true

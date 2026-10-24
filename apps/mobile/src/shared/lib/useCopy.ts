@@ -6,7 +6,7 @@ import { haptic } from './haptics'
 const COPIED_MS = 1500
 
 /**
- * Copy feedback (Figma State=Copied, redesign-b.md §9.3): copy `text`, impactLight haptic, screen reader announcement, then `copied` is true for 1.5 s.
+ * Copy feedback (Figma State=Copied): copy `text`, impactLight haptic, screen reader announcement, then `copied` is true for 1.5 s.
  * One hook for every copy button (Receive, account block, USDC contract, S06) and the faucet row. A failed clipboard write gives no feedback.
  */
 export function useCopy(announce: string, initial = false) {

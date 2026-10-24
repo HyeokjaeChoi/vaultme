@@ -5,16 +5,16 @@ import { canStartDraft, reduce, type SendEvent, type SendState } from '../src'
 const H = `0x${'ab'.repeat(32)}` as const
 const run = (s: SendState, ...es: SendEvent[]) => es.reduce<SendState>((st, e) => reduce(st, e), s)
 const draft: SendState = { status: 'Draft' }
-const submitting = run(draft, { type: 'REVIEW', requiresAck: false }, { type: 'CONFIRM', ack: false }, { type: 'AUTH_OK' })
+const submitting = run(
+  draft,
+  { type: 'REVIEW', requiresAck: false },
+  { type: 'CONFIRM', ack: false },
+  { type: 'AUTH_OK' },
+)
 
-describe('reduce: LLD §6 table', () => {
+describe('reduce: transaction state table (ARCHITECTURE.md#invariants)', () => {
   test('happy path to Confirmed', () => {
-    const s = run(
-      submitting,
-      { type: 'SUBMITTED', hash: H },
-      { type: 'RECEIPT', ok: true },
-      { type: 'SAFE', ok: true },
-    )
+    const s = run(submitting, { type: 'SUBMITTED', hash: H }, { type: 'RECEIPT', ok: true }, { type: 'SAFE', ok: true })
     expect(s).toEqual({ status: 'Confirmed', hash: H })
   })
   test('rows', () => {
@@ -50,6 +50,15 @@ describe('reduce: LLD §6 table', () => {
     expect(reduce(s, { type: 'SAFE', ok: true }).status).toBe('Confirmed')
     expect(reduce(s, { type: 'SAFE', ok: false }).status).toBe('Failed')
     expect(reduce(s, { type: 'REORGED' })).toEqual({ status: 'Pending', hash: H })
+    // Any other event leaves Included unchanged. Only the random-sequence property hit this branch, so coverage flaked (#128).
+    expect(reduce(s, { type: 'RECEIPT', ok: true })).toBe(s)
+  })
+  test('Submitting and Pending: an unlisted event leaves the state unchanged', () => {
+    // Same reason as above: these branches were reached only by the random-sequence property (#128).
+    const submitting: SendState = { status: 'Submitting', requiresAck: false }
+    expect(reduce(submitting, { type: 'EDIT' })).toBe(submitting)
+    const pending: SendState = { status: 'Pending', hash: H }
+    expect(reduce(pending, { type: 'SAFE', ok: true })).toBe(pending)
   })
   test('unknown transition: unchanged, hook called, no throw', () => {
     const hook = vi.fn()
@@ -70,10 +79,18 @@ describe('canStartDraft', () => {
   })
   const event: fc.Arbitrary<SendEvent> = fc.oneof(
     fc.constantFrom<SendEvent>(
-      { type: 'INPUT_VALID' }, { type: 'EDIT' }, { type: 'AUTH_OK' }, { type: 'AUTH_FAIL' },
-      { type: 'AUTH_CANCEL' }, { type: 'FEE_CAP_EXCEEDED' }, { type: 'ABS_CAP_EXCEEDED' },
-      { type: 'REORGED' }, { type: 'NONCE_PASSED_NO_RECEIPT' }, { type: 'TIMEOUT' },
-      { type: 'SUBMITTED', hash: H }, { type: 'SUBMIT_UNKNOWN', hash: H },
+      { type: 'INPUT_VALID' },
+      { type: 'EDIT' },
+      { type: 'AUTH_OK' },
+      { type: 'AUTH_FAIL' },
+      { type: 'AUTH_CANCEL' },
+      { type: 'FEE_CAP_EXCEEDED' },
+      { type: 'ABS_CAP_EXCEEDED' },
+      { type: 'REORGED' },
+      { type: 'NONCE_PASSED_NO_RECEIPT' },
+      { type: 'TIMEOUT' },
+      { type: 'SUBMITTED', hash: H },
+      { type: 'SUBMIT_UNKNOWN', hash: H },
     ),
     fc.boolean().map<SendEvent>((requiresAck) => ({ type: 'REVIEW', requiresAck })),
     fc.boolean().map<SendEvent>((ack) => ({ type: 'CONFIRM', ack })),

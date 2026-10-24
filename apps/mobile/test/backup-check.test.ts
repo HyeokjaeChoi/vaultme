@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { checkAnswers, clearCheck, getCheck, pickPositions, startCheck, wrongIndexes } from '../src/features/backup/model/check'
+import {
+  checkAnswers,
+  clearCheck,
+  getCheck,
+  pickPositions,
+  startCheck,
+  wrongIndexes,
+} from '../src/features/backup/model/check'
 
 // Placeholder words only. Never a generated or real phrase.
-const PHRASE = Array.from({ length: 12 }, (_, i) => `word${i + 1}`)
+const PHRASE = Array.from({ length: 12 }, (_, i) => `word${String(i + 1)}`)
 
 describe('pickPositions', () => {
   it('returns 3 distinct ascending positions within 1..12, for any rand', () => {

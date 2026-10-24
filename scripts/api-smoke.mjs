@@ -31,7 +31,10 @@ const signedHeaders = async (method, path, body = '') => {
 }
 
 const noToken = await send('/v1/installs/me')
-const tok = await send('/v1/installs/token', { method: 'POST', headers: await signedHeaders('POST', '/v1/installs/token') })
+const tok = await send('/v1/installs/token', {
+  method: 'POST',
+  headers: await signedHeaders('POST', '/v1/installs/token'),
+})
 const replay = await (async () => {
   const h = await signedHeaders('POST', '/v1/installs/token')
   await send('/v1/installs/token', { method: 'POST', headers: h })
@@ -40,7 +43,11 @@ const replay = await (async () => {
 const me = await send('/v1/installs/me', { headers: { Authorization: `Bearer ${tok.body.token}` } })
 
 const ok =
-  reg.res.status === 201 && noToken.res.status === 401 && tok.res.status === 200 && replay.body.code === 'nonce_reused' &&
-  me.res.status === 200 && me.body.installId === installId
+  reg.res.status === 201 &&
+  noToken.res.status === 401 &&
+  tok.res.status === 200 &&
+  replay.body.code === 'nonce_reused' &&
+  me.res.status === 200 &&
+  me.body.installId === installId
 console.log(ok ? 'SMOKE OK' : 'SMOKE FAILED')
 process.exit(ok ? 0 : 1)

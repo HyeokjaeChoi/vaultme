@@ -1,50 +1,51 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 #
-# Design sources are the rule sources. docs/agents/design-index.md maps areas to them.
+# Rule sources: AGENTS.md, ARCHITECTURE.md and the accepted ADRs in docs/adr/.
 # CodeRabbit learnings only calibrate the reviewer. They hold no design facts.
 language: en-US
 reviews:
   profile: chill
   request_changes_workflow: false
   auto_review:
-    enabled: true
+    # Off: Claude reviews each PR on open (.github/workflows/claude-code-review.yml). `@coderabbitai review` still works.
+    enabled: false
     drafts: true
   path_filters:
-    - "!pnpm-lock.yaml"
-    - "!**/src/generated/**"
-    - "!work/**"
+    - '!pnpm-lock.yaml'
+    - '!**/src/generated/**'
+    - '!work/**'
   path_instructions:
-    - path: "packages/wallet-core/**"
+    - path: 'packages/wallet-core/**'
       instructions: >-
-        Judge against outputs/design/lld.md §3, §6, §11 and AGENTS.md rule 4.
+        Judge against ARCHITECTURE.md (Invariants), docs/adr/ and AGENTS.md "Enforced rules" (scripts/check-repo-rules.sh R10).
         Amounts use decimal strings and bigint only, never Number. No IO, no React/RN.
         Recovery phrases and keys must never reach logs, errors, toString or JSON.
-        Flag any state transition that is not in the lld.md §6 table.
-    - path: "apps/mobile/**"
+        Flag any state transition that is not in the ARCHITECTURE.md transaction state list.
+    - path: 'apps/mobile/**'
       instructions: >-
-        Judge against AGENTS.md (Foundation contract), outputs/design/lld.md §1.1 and §12,
-        outputs/design/ux-flow.md, outputs/design/ux-terminology.md and outputs/components/.
+        Judge against AGENTS.md, ARCHITECTURE.md, docs/adr/, DESIGN.md
+        and CONTEXT.md.
         Use token values only (no raw hex or numeric spacing). Review screens show account,
         network, asset, full recipient, amount, estimated fee and status. Korean copy must
-        match ux-terminology.md. 44 pt targets, accessibility labels on icon-only controls.
-    - path: "packages/tokens/**"
+        match the CONTEXT.md glossary. 44 pt targets, accessibility labels on icon-only controls.
+    - path: 'packages/tokens/**'
       instructions: >-
-        Values come from outputs/wallet-foundation.tokens.json only. Semantic and Component
+        Values come from packages/tokens/tokens.json only. Semantic and Component
         values alias Primitive tokens. Flag any raw value outside Primitive.
-    - path: "packages/i18n/**"
+    - path: 'packages/i18n/**'
       instructions: >-
-        Strings must follow outputs/design/ux-terminology.md and outputs/design/ux-copy.md.
-    - path: "outputs/**"
+        Strings must follow CONTEXT.md.
+    - path: 'docs/adr/**'
       instructions: >-
-        These are design sources. Treat changes to decisions (requirements session, hld, lld)
-        as decision changes: the PR description must name each changed decision and its reason.
-    - path: ".github/workflows/**"
+        An accepted ADR binds. Flag an edit that changes an accepted decision: it needs a new
+        ADR that supersedes the old one.
+    - path: '.github/workflows/**'
       instructions: >-
         Pin third-party actions to a full commit SHA with a version comment. Least privilege
         permissions. persist-credentials false on checkout.
   pre_merge_checks:
     docstrings:
-      mode: "off"
+      mode: 'off'
     custom_checks:
       - name: Verification evidence
         mode: warning
@@ -80,12 +81,14 @@ knowledge_base:
     enabled: true
     filePatterns:
       - files: AGENTS.md
-        applyTo: "**"
-      - files: docs/agents/design-index.md
-        applyTo: "**"
+        applyTo: '**'
+      - files: ARCHITECTURE.md
+        applyTo: '**'
+      - files: docs/agents/workflow.md
+        applyTo: '**'
       - files: .claude/skills/vaultme-review-lessons/SKILL.md
-        applyTo: "**"
+        applyTo: '**'
       - files: .claude/skills/vaultme-design-to-code/SKILL.md
-        applyTo: "apps/**"
+        applyTo: 'apps/**'
       - files: .claude/skills/vaultme-figma-screen/SKILL.md
-        applyTo: "**"
+        applyTo: '**'

@@ -1,4 +1,12 @@
-import { ASSETS, chipAmount, fromUnits, maxSendable, type AssetId, type ChipShare, type Warning } from '@vaultme/wallet-core'
+import {
+  ASSETS,
+  chipAmount,
+  fromUnits,
+  maxSendable,
+  type AssetId,
+  type ChipShare,
+  type Warning,
+} from '@vaultme/wallet-core'
 
 /** Balance of the asset being sent (its own units), the ETH balance that pays the fee, and the worst-case fee cap. */
 export type Sendable = { balance: bigint; nativeBalance: bigint; feeCap: bigint }
@@ -41,5 +49,5 @@ export const parseSendAsset = (raw: string | undefined | null): AssetId => (raw 
 export function listBalance(raw: bigint, asset: AssetId): string {
   const cents = raw / 10n ** BigInt(ASSETS[asset].decimals - 2)
   if (raw > 0n && cents === 0n) return '<0.01'
-  return `${cents / 100n}.${(cents % 100n).toString().padStart(2, '0')}`
+  return `${String(cents / 100n)}.${(cents % 100n).toString().padStart(2, '0')}`
 }

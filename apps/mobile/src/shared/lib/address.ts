@@ -1,6 +1,6 @@
 import { toChecksumAddress } from '@vaultme/wallet-core'
 
-/** Splits an address into 4-char groups (LLD §12). The "0x" prefix stays attached to the first group, as drawn in Figma ("0x9F3c 7A21 ..."). */
+/** Splits an address into 4-char groups (ARCHITECTURE.md#invariants). The "0x" prefix stays attached to the first group, as drawn in Figma ("0x9F3c 7A21 ..."). */
 export function groupAddress(address: string): string[] {
   const prefix = address.startsWith('0x') ? '0x' : ''
   const groups = address.slice(prefix.length).match(/.{1,4}/g) ?? []
@@ -37,7 +37,7 @@ export const displayAddress = (address: string): string => toChecksumAddress(add
 /** Indexes of the characters of the displayed form that differ from `other` (look-alike marks, per character, case-insensitive). */
 export function diffChars(address: string, other: string): number[] {
   const [a, b] = [displayAddress(address), displayAddress(other).toLowerCase()]
-  return [...a].flatMap((c, i) => (c.toLowerCase() === b[i] ? [] : [i]))
+  return a.split('').flatMap((c, i) => (c.toLowerCase() === b[i] ? [] : [i]))
 }
 
 /** Emphasis: the first 6 characters (0x + 4) and the last 4 are strong, so the head and tail can be compared at a glance. */

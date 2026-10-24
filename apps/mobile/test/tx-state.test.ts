@@ -1,15 +1,34 @@
 import { describe, expect, it, vi } from 'vitest'
-import { FAKE_SETTLE_MS, checkTx, deriveState, fakeSettle, isFinal, isPolled, startPolling, type PollTimers } from '../src/features/send/model/txState'
-import { txNotice, txView } from '../src/features/send/model/txView'
+import {
+  FAKE_SETTLE_MS,
+  checkTx,
+  deriveState,
+  fakeSettle,
+  isFinal,
+  isPolled,
+  startPolling,
+  type PollTimers,
+} from '../src/features/send/model/txState'
+import { txNotice, txView } from '../src/entities/transaction/txView'
 import type { Receipt } from '../src/shared/chain/port'
 import type { PendingTx } from '../src/shared/storage/kv'
 
-const tx = (state: PendingTx['state'], nonce = 5): PendingTx => ({ hash: '0x' + 'ab'.repeat(32), nonce, asset: 'ETH', to: '0x' + 'c'.repeat(40), amount: '1', createdAt: 1, lastCheckedAt: 1, state })
+const tx = (state: PendingTx['state'], nonce = 5): PendingTx => ({
+  hash: '0x' + 'ab'.repeat(32),
+  nonce,
+  asset: 'ETH',
+  to: '0x' + 'c'.repeat(40),
+  amount: '1',
+  createdAt: 1,
+  lastCheckedAt: 1,
+  state,
+})
 const ok = (n: bigint): Receipt => ({ status: 'success', blockNumber: n })
 const bad = (n: bigint): Receipt => ({ status: 'reverted', blockNumber: n })
 
-describe('deriveState (hld.md §4.1, Q37)', () => {
-  const f = (over: Partial<Parameters<typeof deriveState>[0]>) => deriveState({ current: 'Pending', nonce: 5, receipt: null, safeBlock: null, safeNonce: null, ...over })
+describe('deriveState (ARCHITECTURE.md#invariants, ADR-0006)', () => {
+  const f = (over: Partial<Parameters<typeof deriveState>[0]>) =>
+    deriveState({ current: 'Pending', nonce: 5, receipt: null, safeBlock: null, safeNonce: null, ...over })
   it('receipt above the safe block = Included, success or reverted', () => {
     expect(f({ receipt: ok(101n), safeBlock: 100n })).toBe('Included')
     expect(f({ receipt: bad(101n), safeBlock: 100n })).toBe('Included')
@@ -33,7 +52,7 @@ describe('deriveState (hld.md §4.1, Q37)', () => {
     expect(f({})).toBe('Pending')
     expect(f({ current: 'Unknown' })).toBe('Unknown')
   })
-  it('no receipt: safe nonce beyond ours = Replaced (Q77); equal or below is not', () => {
+  it('no receipt: safe nonce beyond ours = Replaced (ADR-0006); equal or below is not', () => {
     expect(f({ safeNonce: 6n })).toBe('Replaced')
     expect(f({ current: 'Unknown', safeNonce: 9n })).toBe('Replaced')
     expect(f({ safeNonce: 5n })).toBe('Pending')
@@ -43,20 +62,30 @@ describe('deriveState (hld.md §4.1, Q37)', () => {
     expect(f({ current: 'Included' })).toBe('Pending')
   })
   it('final states never move', () => {
-    for (const s of ['Confirmed', 'Failed', 'Replaced'] as const) expect(f({ current: s, receipt: bad(1n), safeBlock: 100n, safeNonce: 99n })).toBe(s)
+    for (const s of ['Confirmed', 'Failed', 'Replaced'] as const)
+      expect(f({ current: s, receipt: bad(1n), safeBlock: 100n, safeNonce: 99n })).toBe(s)
   })
   it('only Pending and Included are polled; Confirmed, Failed, Replaced are final', () => {
-    expect(['Pending', 'Included', 'Unknown', 'Confirmed', 'Failed', 'Replaced'].map((s) => isPolled(s as PendingTx['state']))).toEqual([true, true, false, false, false, false])
-    expect(['Confirmed', 'Failed', 'Replaced', 'Pending'].map((s) => isFinal(s as PendingTx['state']))).toEqual([true, true, true, false])
+    expect(
+      ['Pending', 'Included', 'Unknown', 'Confirmed', 'Failed', 'Replaced'].map((s) =>
+        isPolled(s as PendingTx['state']),
+      ),
+    ).toEqual([true, true, false, false, false, false])
+    expect(['Confirmed', 'Failed', 'Replaced', 'Pending'].map((s) => isFinal(s as PendingTx['state']))).toEqual([
+      true,
+      true,
+      true,
+      false,
+    ])
   })
 })
 
 describe('checkTx', () => {
   const chain = (receipt: Receipt | null, safe = 100n, safeNonce = 0n, broadcasts = true) => ({
     broadcasts,
-    getReceipt: vi.fn(async () => receipt),
-    getSafeBlock: vi.fn(async () => safe),
-    getSafeNonce: vi.fn(async () => safeNonce),
+    getReceipt: vi.fn(() => Promise.resolve(receipt)),
+    getSafeBlock: vi.fn(() => Promise.resolve(safe)),
+    getSafeNonce: vi.fn(() => Promise.resolve(safeNonce)),
   })
   const FROM = ('0x' + '1'.repeat(40)) as `0x${string}`
   it('asks for the safe block only with a receipt, and the safe nonce only without one', async () => {
@@ -70,7 +99,10 @@ describe('checkTx', () => {
     expect(b.getSafeNonce).toHaveBeenCalledWith(FROM)
   })
   it('a network failure throws, so the caller keeps the old record', async () => {
-    const c = { ...chain(null), getReceipt: vi.fn(async () => { throw new Error('offline') }) }
+    const c = {
+      ...chain(null),
+      getReceipt: vi.fn(() => Promise.reject(new Error('offline'))),
+    }
     await expect(checkTx(tx('Pending'), c, FROM, () => 9)).rejects.toThrow('offline')
   })
   it('the fake adapter only refreshes the checked time', async () => {
@@ -88,13 +120,30 @@ describe('checkTx', () => {
 describe('startPolling (15 s, stop conditions)', () => {
   function manual() {
     const jobs: { fn: () => void; ms: number; live: boolean }[] = []
-    const timers: PollTimers = { set: (fn, ms) => { const j = { fn, ms, live: true }; jobs.push(j); return j }, clear: (h) => { if (h) (h as { live: boolean }).live = false } }
-    const fire = async () => { const j = jobs.find((x) => x.live); if (!j) return false; j.live = false; j.fn(); await Promise.resolve(); await Promise.resolve(); return true }
+    const timers: PollTimers = {
+      set: (fn, ms) => {
+        const j = { fn, ms, live: true }
+        jobs.push(j)
+        return j
+      },
+      clear: (h) => {
+        if (h) (h as { live: boolean }).live = false
+      },
+    }
+    const fire = async () => {
+      const j = jobs.find((x) => x.live)
+      if (!j) return false
+      j.live = false
+      j.fn()
+      await Promise.resolve()
+      await Promise.resolve()
+      return true
+    }
     return { jobs, timers, fire }
   }
   it('checks at once, then every interval, never overlapping', async () => {
     const m = manual()
-    const check = vi.fn(async () => 'Pending' as const)
+    const check = vi.fn(() => Promise.resolve('Pending' as const))
     startPolling(check, 15_000, m.timers)
     await Promise.resolve()
     expect(check).toHaveBeenCalledTimes(1)
@@ -105,7 +154,7 @@ describe('startPolling (15 s, stop conditions)', () => {
   it('stops by itself at a final state and at Unknown', async () => {
     for (const end of ['Confirmed', 'Failed', 'Replaced', 'Unknown'] as const) {
       const m = manual()
-      const check = vi.fn(async () => end)
+      const check = vi.fn(() => Promise.resolve(end))
       startPolling(check, 15_000, m.timers)
       await Promise.resolve()
       await Promise.resolve()
@@ -115,7 +164,10 @@ describe('startPolling (15 s, stop conditions)', () => {
   })
   it('keeps going after Included (not final) and after a failed check', async () => {
     const m = manual()
-    const check = vi.fn<() => Promise<'Included'>>().mockRejectedValueOnce(new Error('offline')).mockResolvedValue('Included')
+    const check = vi
+      .fn<() => Promise<'Included'>>()
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValue('Included')
     startPolling(check, 15_000, m.timers)
     await Promise.resolve()
     await Promise.resolve()
@@ -137,7 +189,7 @@ describe('startPolling (15 s, stop conditions)', () => {
   })
   it('works with real fake timers', async () => {
     vi.useFakeTimers()
-    const check = vi.fn(async () => 'Pending' as const)
+    const check = vi.fn(() => Promise.resolve('Pending' as const))
     const stop = startPolling(check, 15_000)
     await vi.advanceTimersByTimeAsync(0)
     expect(check).toHaveBeenCalledTimes(1)
@@ -165,14 +217,17 @@ describe('txView / txNotice', () => {
   })
 })
 
-
 describe('fakeSettle (test-data mode)', () => {
   it('a Pending send stays Pending until the settle time, then Confirmed with a block', () => {
-    expect(fakeSettle(tx('Pending'), 1 + FAKE_SETTLE_MS - 1)).toMatchObject({ state: 'Pending', lastCheckedAt: FAKE_SETTLE_MS })
+    expect(fakeSettle(tx('Pending'), 1 + FAKE_SETTLE_MS - 1)).toMatchObject({
+      state: 'Pending',
+      lastCheckedAt: FAKE_SETTLE_MS,
+    })
     expect(fakeSettle(tx('Pending'), 1 + FAKE_SETTLE_MS)).toMatchObject({ state: 'Confirmed', blockNumber: 5812044 })
   })
   it('other states do not move', () => {
-    for (const s of ['Unknown', 'Failed', 'Replaced', 'Confirmed', 'Included'] as const) expect(fakeSettle(tx(s), 1e9).state).toBe(s)
+    for (const s of ['Unknown', 'Failed', 'Replaced', 'Confirmed', 'Included'] as const)
+      expect(fakeSettle(tx(s), 1e9).state).toBe(s)
   })
   it('checkTx on the fake adapter settles a Pending send without asking the network', async () => {
     const c = { broadcasts: false, getReceipt: vi.fn(), getSafeBlock: vi.fn(), getSafeNonce: vi.fn() }

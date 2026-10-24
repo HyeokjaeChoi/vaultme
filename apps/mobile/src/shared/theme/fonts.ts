@@ -18,8 +18,17 @@ export const fontAssets = {
   IBMPlexMono_600SemiBold,
 }
 
-const PRETENDARD = { '400': 'Pretendard_400Regular', '500': 'Pretendard_500Medium', '600': 'Pretendard_600SemiBold', '700': 'Pretendard_700Bold' } as const
-const MONO = { '400': 'IBMPlexMono_400Regular', '500': 'IBMPlexMono_500Medium', '600': 'IBMPlexMono_600SemiBold' } as const
+const PRETENDARD = {
+  '400': 'Pretendard_400Regular',
+  '500': 'Pretendard_500Medium',
+  '600': 'Pretendard_600SemiBold',
+  '700': 'Pretendard_700Bold',
+} as const
+const MONO = {
+  '400': 'IBMPlexMono_400Regular',
+  '500': 'IBMPlexMono_500Medium',
+  '600': 'IBMPlexMono_600SemiBold',
+} as const
 
 type Typo = { fontFamily: string; fontWeight: string; fontSize: number; lineHeight: number; letterSpacing: number }
 
@@ -27,7 +36,9 @@ type Typo = { fontFamily: string; fontWeight: string; fontSize: number; lineHeig
 export function textStyle({ fontFamily, fontWeight, fontSize, lineHeight, letterSpacing }: Typo) {
   const w = Number(fontWeight)
   const mono = fontFamily === 'IBM Plex Mono'
-  const family = mono ? MONO[w >= 600 ? '600' : w >= 500 ? '500' : '400'] : PRETENDARD[String(Math.min(Math.max(Math.round(w / 100) * 100, 400), 700)) as keyof typeof PRETENDARD]
+  const family = mono
+    ? MONO[w >= 600 ? '600' : w >= 500 ? '500' : '400']
+    : PRETENDARD[String(Math.min(Math.max(Math.round(w / 100) * 100, 400), 700)) as keyof typeof PRETENDARD]
   return { fontFamily: family, fontSize, lineHeight, letterSpacing }
 }
 

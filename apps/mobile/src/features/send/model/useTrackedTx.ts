@@ -5,9 +5,10 @@ import { chain } from '@/shared/chain'
 import { type PendingTx } from '@/shared/storage'
 import { sendFrom } from './useReviewCore'
 import { checkTx, isPolled, startPolling, type TxState } from './txState'
-import { readPendingTx, usePendingTx, writePendingTx } from './usePendingTx'
+import { readPendingTx, writePendingTx } from '@/entities/transaction'
+import { usePendingTx } from './usePendingTx'
 
-/** hld.md §4.1: re-check a Pending or Included send every 15 s while its screen is focused. */
+/** ARCHITECTURE.md#send: re-check a Pending or Included send every 15 s while its screen is focused. */
 export const POLL_MS = 15_000
 /** Test-data mode polls faster, so a fake send is seen settling (fakeSettle). */
 export const FAKE_POLL_MS = 3_000
@@ -19,7 +20,7 @@ export async function checkStored(): Promise<TxState | null> {
   const next = await checkTx(cur, chain, sendFrom(), Date.now)
   // A new send may have replaced the record while the chain was asked: never write an old tx over it.
   const latest = readPendingTx()
-  if (latest === 'corrupt' || latest === null || latest.hash !== cur.hash) return null
+  if (latest === 'corrupt' || latest?.hash !== cur.hash) return null
   writePendingTx(next)
   return next.state
 }
@@ -28,7 +29,13 @@ export async function checkStored(): Promise<TxState | null> {
  * The pending send for S23/S41, Home and the send gates, with its re-check: `recheck` is the manual button; while the screen is focused and the app is
  * active, a Pending or Included send is re-checked on its own. `error` = the last check could not reach the network.
  */
-export function useTrackedTx(): { tx: PendingTx | null; blocked: boolean; checking: boolean; error: unknown; recheck: () => Promise<void> } {
+export function useTrackedTx(): {
+  tx: PendingTx | null
+  blocked: boolean
+  checking: boolean
+  error: unknown
+  recheck: () => Promise<void>
+} {
   const { tx, blocked, reload } = usePendingTx()
   const [checking, setChecking] = useState(false)
   const [error, setError] = useState<unknown>(null)

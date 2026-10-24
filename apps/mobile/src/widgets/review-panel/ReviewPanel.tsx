@@ -2,14 +2,14 @@ import { fromUnits } from '@vaultme/wallet-core'
 import { useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { account } from '@/entities/account/fixtures'
-import { assets } from '@/entities/asset/fixtures'
-import type { ReviewValues } from '@/entities/transaction/review'
+import { account } from '@/entities/account'
+import { assets } from '@/entities/asset'
+import type { ReviewValues } from '@/entities/transaction'
 import { diffChars } from '@/shared/lib/address'
 import { useTheme } from '@/shared/theme'
 import { AmountHero, Block, SectionBand, StatusNotice, SummaryRow, Text } from '@/shared/ui'
-import { AddressText } from '@/shared/ui/AddressBlock'
-import { FaucetRow } from '@/widgets/faucet-row/FaucetRow'
+import { AddressText } from '@/shared/ui'
+import { FaucetRow } from '@/features/faucet'
 import { sendFrom } from '@/features/send'
 
 type Props = {
@@ -34,7 +34,18 @@ type Props = {
  * [Banner] -> amount hero (asset logo, Figure + unit, sentence + total) -> 받는 사람 (full address, 수정) -> 비용 (fee and total; 자세히 adds the max fee and "최대 …"; caption, check notice with "다시 확인") -> 보내는 것 (asset / network / account, 수정). Fee and total stay in the first viewport.
  * A risky recipient (look-alike, burn, token contract; wallet-core `recipientRisk`) shows a danger Banner before the address; look-alike marks the differing 4-char groups (`values.previous`).
  */
-export function ReviewPanel({ values, checkedAt, rechecking, onRecheck, acknowledged, feeUnknown, feeShortBy, banner, onEditRecipient, onEditAmount }: Props) {
+export function ReviewPanel({
+  values,
+  checkedAt,
+  rechecking,
+  onRecheck,
+  acknowledged,
+  feeUnknown,
+  feeShortBy,
+  banner,
+  onEditRecipient,
+  onEditAmount,
+}: Props) {
   const { t } = useTranslation()
   const th = useTheme()
   const token = values.asset !== 'ETH'
@@ -54,7 +65,12 @@ export function ReviewPanel({ values, checkedAt, rechecking, onRecheck, acknowle
         </View>
       ) : feeShortBy !== null ? (
         <View style={{ paddingHorizontal: pad, paddingTop: th.primitive.space[2] }}>
-          <StatusNotice tier="banner" tone="danger" title={t('send.feeShort')} body={t('review.feeShortBody', { amount: fromUnits(feeShortBy, 'ETH') })} />
+          <StatusNotice
+            tier="banner"
+            tone="danger"
+            title={t('send.feeShort')}
+            body={t('review.feeShortBody', { amount: fromUnits(feeShortBy, 'ETH') })}
+          />
           <FaucetRow address={sendFrom()} bare />
         </View>
       ) : null}
@@ -62,32 +78,67 @@ export function ReviewPanel({ values, checkedAt, rechecking, onRecheck, acknowle
         asset={values.asset}
         amount={figure ?? values.amount}
         unit={unit ?? values.asset}
-        lines={[t('review.heroTo', { account: account.name }), ...(feeUnknown ? [t('review.heroFeeAgain')] : values.total ? [t('review.heroTotal', { total: values.total })] : [])]}
+        lines={[
+          t('review.heroTo', { account: account.name }),
+          ...(feeUnknown
+            ? [t('review.heroFeeAgain')]
+            : values.total
+              ? [t('review.heroTotal', { total: values.total })]
+              : []),
+        ]}
       />
       <SectionBand />
       <Block title={t('review.blockRecipient')} link={t('common.edit')} onLink={onEditRecipient}>
-        {risky && !acknowledged ? <StatusNotice tier="banner" tone="danger" title={t(`review.${risk}.title`)} body={t(`review.${risk}.body`)} /> : null}
+        {risky && !acknowledged ? (
+          <StatusNotice tier="banner" tone="danger" title={t(`review.${risk}.title`)} body={t(`review.${risk}.body`)} />
+        ) : null}
         <AddressText address={recipient} highlight={diff} />
         {risky && acknowledged ? <StatusNotice tone="danger" title={t(`review.acknowledged.${risk}`)} /> : null}
-        {caption ? <Text variant="caption" color={th.semantic.text.tertiary}>{t('review.checkedFormat')}</Text> : null}
+        {caption ? (
+          <Text variant="caption" color={th.semantic.text.tertiary}>
+            {t('review.checkedFormat')}
+          </Text>
+        ) : null}
       </Block>
       <SectionBand />
-      <Block title={t('review.blockCost')} link={open ? t('review.fold') : t('review.unfold')} onLink={() => setOpen((v) => !v)}>
+      <Block
+        title={t('review.blockCost')}
+        link={open ? t('review.fold') : t('review.unfold')}
+        onLink={() => setOpen((v) => !v)}
+      >
         <SummaryRow label={t('review.fee')} value={feeUnknown ? '—' : values.fee} />
         {open && !feeUnknown ? <SummaryRow label={t('review.feeCap')} value={values.feeCap} /> : null}
-        {values.total ? <SummaryRow format="total" label={t('review.total')} value={feeUnknown ? '—' : values.total} {...(open && !feeUnknown && values.totalMax ? { sub: t('review.totalMax', { amount: values.totalMax }) } : {})} /> : null}
-        <Text variant="caption" color={th.semantic.text.tertiary}>{t(token ? 'review.feeNoteToken' : 'review.feeNote')}</Text>
+        {values.total ? (
+          <SummaryRow
+            format="total"
+            label={t('review.total')}
+            value={feeUnknown ? '—' : values.total}
+            {...(open && !feeUnknown && values.totalMax
+              ? { sub: t('review.totalMax', { amount: values.totalMax }) }
+              : {})}
+          />
+        ) : null}
+        <Text variant="caption" color={th.semantic.text.tertiary}>
+          {t(token ? 'review.feeNoteToken' : 'review.feeNote')}
+        </Text>
         {feeShortBy !== null ? null : rechecking ? (
           <View accessibilityLiveRegion="polite">
             <StatusNotice tone="info" icon="loading" title={t('review.rechecking')} />
           </View>
         ) : (
-          <StatusNotice tone="info" title={t('review.checkedTime', { time: checkedAt })} link={{ label: t('review.recheck'), onPress: onRecheck }} />
+          <StatusNotice
+            tone="info"
+            title={t('review.checkedTime', { time: checkedAt })}
+            link={{ label: t('review.recheck'), onPress: onRecheck }}
+          />
         )}
       </Block>
       <SectionBand />
       <Block title={t('review.blockAsset')} link={t('common.edit')} onLink={onEditAmount}>
-        <SummaryRow label={t('review.asset')} value={(assets.find((a) => a.symbol === values.asset) ?? assets[0]).name} />
+        <SummaryRow
+          label={t('review.asset')}
+          value={(assets.find((a) => a.symbol === values.asset) ?? assets[0]).name}
+        />
         <SummaryRow label={t('review.network')} value={account.network} />
         <SummaryRow label={t('review.account')} value={account.name} />
       </Block>

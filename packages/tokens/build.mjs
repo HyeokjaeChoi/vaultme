@@ -1,4 +1,4 @@
-// Style Dictionary build: outputs/wallet-foundation.tokens.json -> src/generated/*.ts
+// Style Dictionary build: packages/tokens/tokens.json -> src/generated/*.ts
 // Dark = the `semanticDark` set (Tokens Studio theme "Dark") layered over `semantic`; component values follow by alias.
 // Source is Tokens Studio style ({ value, type }, `{path}` aliases without layer prefix). SD v5 reads that natively,
 // so sd-transforms is not needed. A preprocessor adds the layer prefix to every alias so layers stay separate.
@@ -7,13 +7,14 @@ import { resolve } from 'node:path'
 import StyleDictionary from 'style-dictionary'
 
 const root = `${import.meta.dirname}/`
-const foundation = resolve(root, '../../outputs/wallet-foundation.tokens.json')
+const foundation = resolve(root, 'tokens.json')
 const out = `${root}src/generated/`
 const ESC = '__value'
 const LAYERS = ['primitive', 'semantic', 'component']
 
 const isToken = (o) => o && typeof o === 'object' && 'value' in o && 'type' in o
-const has = (tree, path) => path.split('.').reduce((n, k) => (n && typeof n === 'object' ? n[k] : undefined), tree) !== undefined
+const has = (tree, path) =>
+  path.split('.').reduce((n, k) => (n && typeof n === 'object' ? n[k] : undefined), tree) !== undefined
 
 function qualify(tree) {
   const fix = (v) =>
@@ -28,7 +29,12 @@ function qualify(tree) {
         : v
   // A group child named `value` would make SD treat the group as a token. Escape the key, restore it in the format.
   const key = (k) => (k === 'value' ? ESC : k)
-  const walk = (o) => (!o || typeof o !== 'object' ? o : isToken(o) ? { ...o, value: fix(o.value) } : Object.fromEntries(Object.entries(o).map(([k, v]) => [key(k), walk(v)])))
+  const walk = (o) =>
+    !o || typeof o !== 'object'
+      ? o
+      : isToken(o)
+        ? { ...o, value: fix(o.value) }
+        : Object.fromEntries(Object.entries(o).map(([k, v]) => [key(k), walk(v)]))
   return walk(tree)
 }
 
@@ -38,10 +44,17 @@ const pct = (s) => (typeof s === 'string' && s.endsWith('%') ? Number.parseFloat
 
 function convert(type, v) {
   switch (type) {
-    case 'spacing': case 'sizing': case 'borderRadius': case 'borderWidth': case 'dimension': case 'fontSizes':
+    case 'spacing':
+    case 'sizing':
+    case 'borderRadius':
+    case 'borderWidth':
+    case 'dimension':
+    case 'fontSizes':
       return px(v)
-    case 'fontWeights': return WEIGHT[String(v).toLowerCase()] ?? String(v)
-    case 'lineHeights': return px(v)
+    case 'fontWeights':
+      return WEIGHT[String(v).toLowerCase()] ?? String(v)
+    case 'lineHeights':
+      return px(v)
     case 'typography': {
       const size = px(v.fontSize)
       const lh = pct(v.lineHeight)
@@ -65,7 +78,8 @@ function convert(type, v) {
       const m = /^cubic-bezier\(([^)]+)\)$/.exec(v)
       return m ? m[1].split(',').map(Number) : v
     }
-    default: return v
+    default:
+      return v
   }
 }
 
@@ -89,7 +103,12 @@ mkdirSync(out, { recursive: true })
 const src = JSON.parse(readFileSync(foundation, 'utf8'))
 const layers = { primitive: src.primitive, semantic: src.semantic, component: src.component }
 const merge = (a, b) =>
-  Object.fromEntries([...new Set([...Object.keys(a), ...Object.keys(b)])].map((k) => [k, k in b ? (isToken(b[k]) || !(k in a) ? b[k] : merge(a[k], b[k])) : a[k]]))
+  Object.fromEntries(
+    [...new Set([...Object.keys(a), ...Object.keys(b)])].map((k) => [
+      k,
+      k in b ? (isToken(b[k]) || !(k in a) ? b[k] : merge(a[k], b[k])) : a[k],
+    ]),
+  )
 const themes = { light: layers, dark: { ...layers, semantic: merge(layers.semantic, src.semanticDark) } }
 
 for (const [name, tokens] of Object.entries(themes)) {
@@ -98,9 +117,16 @@ for (const [name, tokens] of Object.entries(themes)) {
     log: { verbosity: 'silent', warnings: 'error' },
     preprocessors: ['vaultme/qualify'],
     platforms: {
-      rn: { transforms: ['name/kebab'], buildPath: out, files: [{ destination: `${name}.ts`, format: 'vaultme/ts', options: { exportName: name } }] },
+      rn: {
+        transforms: ['name/kebab'],
+        buildPath: out,
+        files: [{ destination: `${name}.ts`, format: 'vaultme/ts', options: { exportName: name } }],
+      },
     },
   })
   await sd.buildAllPlatforms()
 }
-writeFileSync(`${out}tokens.ts`, `// GENERATED\nimport { light } from './light'\nimport { dark } from './dark'\n\nexport { light, dark }\ntype Widen<T> = T extends '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900' ? T : T extends string ? string : T extends number ? number : { readonly [K in keyof T]: Widen<T[K]> }\nexport type Theme = Widen<typeof light>\n`)
+writeFileSync(
+  `${out}tokens.ts`,
+  `// GENERATED\nimport { light } from './light'\nimport { dark } from './dark'\n\nexport { light, dark }\ntype Widen<T> = T extends '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900' ? T : T extends string ? string : T extends number ? number : { readonly [K in keyof T]: Widen<T[K]> }\nexport type Theme = Widen<typeof light>\n`,
+)

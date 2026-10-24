@@ -24,24 +24,17 @@ export function fromUnits(raw: bigint, asset: AssetId): string {
 export type MaxResult = { ok: true; amount: bigint } | { ok: false; reason: 'nativeFeeShortfall' }
 
 /** `balance` is in `asset` units. ETH pays the fee from itself; ERC-20 needs native for the fee. */
-export function maxSendable(
-  balance: bigint,
-  asset: AssetId,
-  feeCap: bigint,
-  nativeBalance: bigint,
-): MaxResult {
+export function maxSendable(balance: bigint, asset: AssetId, feeCap: bigint, nativeBalance: bigint): MaxResult {
   if (ASSETS[asset].kind === 'native') {
     return { ok: true, amount: balance > feeCap ? balance - feeCap : 0n }
   }
-  return nativeBalance >= feeCap
-    ? { ok: true, amount: balance }
-    : { ok: false, reason: 'nativeFeeShortfall' }
+  return nativeBalance >= feeCap ? { ok: true, amount: balance } : { ok: false, reason: 'nativeFeeShortfall' }
 }
 
 export type ChipShare = 25 | 50 | 100
 
 /**
- * Amount chips on the send screen (redesign-b.md §6 #2): `percent` of the sendable amount, floored (never rounded up)
+ * Amount chips on the send screen: `percent` of the sendable amount, floored (never rounded up)
  * to the asset's display digits (ASSETS[asset].display.maxFraction), so the typed value always fits what the UI shows.
  * Sendable = `maxSendable` (ETH: balance - fee cap; USDC: balance when native covers the fee cap, else nothing).
  * Returns 0n when nothing is sendable (balance <= fee cap, or no native for the fee): the chip is disabled.

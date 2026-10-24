@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { createApiClient } from '../src/shared/api/client'
 import { createUpdateGate } from '../src/shared/api/updateGate'
 
-const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
+const json = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
 
 function client(reply: Response, onUpdateRequired?: () => void) {
   let key: string | null = '11'.repeat(32)
@@ -10,8 +11,16 @@ function client(reply: Response, onUpdateRequired?: () => void) {
   return createApiClient({
     baseUrl: 'http://x',
     appVersion: '0.0.0',
-    store: { loadKey: async () => key, saveKey: async (k) => void (key = k), getInstallId: () => id, setInstallId: (v) => void (id = v) },
-    fetch: (async () => reply.clone()) as unknown as typeof fetch,
+    store: {
+      loadKey: () => Promise.resolve(key),
+      saveKey: (k) => {
+        key = k
+        return Promise.resolve()
+      },
+      getInstallId: () => id,
+      setInstallId: (v) => void (id = v),
+    },
+    fetch: () => Promise.resolve(reply.clone()),
     ...(onUpdateRequired ? { onUpdateRequired } : {}),
   })
 }
@@ -26,7 +35,9 @@ describe('426 gate (S91)', () => {
   })
   it('other errors do not raise the gate', async () => {
     const cb = vi.fn()
-    await expect(client(json(503, { code: 'unavailable', message: 'm', retryable: true }), cb).rpc('x')).rejects.toMatchObject({ code: 'unavailable' })
+    await expect(
+      client(json(503, { code: 'unavailable', message: 'm', retryable: true }), cb).rpc('x'),
+    ).rejects.toMatchObject({ code: 'unavailable' })
     expect(cb).not.toHaveBeenCalled()
   })
   it('the gate notifies once and stays set', () => {

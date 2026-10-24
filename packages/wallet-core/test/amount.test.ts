@@ -38,7 +38,7 @@ describe('toUnits / fromUnits', () => {
         (a, whole, fracSeed) => {
           const d = decimals[a]
           const frac = (fracSeed % 10n ** BigInt(d)).toString().padStart(d, '0').replace(/0+$/, '')
-          const s = frac ? `${whole}.${frac}` : `${whole}`
+          const s = frac ? `${String(whole)}.${frac}` : String(whole)
           expect(fromUnits(toUnits(s, a), a)).toBe(s)
         },
       ),
@@ -91,13 +91,19 @@ describe('chipAmount', () => {
   })
   test('floor never exceeds the share and stays on the display grid (property)', () => {
     fc.assert(
-      fc.property(fc.constantFrom(...assets), fc.constantFrom(25 as const, 50 as const, 100 as const), fc.bigInt({ min: 0n, max: 2n ** 90n }), fc.bigInt({ min: 0n, max: 2n ** 60n }), (a, pct, bal, cap) => {
-        const got = chipAmount(a, pct, bal, cap, bal + cap)
-        const m = maxSendable(bal, a, cap, bal + cap)
-        const max = m.ok ? m.amount : 0n
-        expect(got <= (max * BigInt(pct)) / 100n).toBe(true)
-        expect(got % 10n ** BigInt(decimals[a] - (a === 'ETH' ? 6 : 2))).toBe(0n)
-      }),
+      fc.property(
+        fc.constantFrom(...assets),
+        fc.constantFrom(25 as const, 50 as const, 100 as const),
+        fc.bigInt({ min: 0n, max: 2n ** 90n }),
+        fc.bigInt({ min: 0n, max: 2n ** 60n }),
+        (a, pct, bal, cap) => {
+          const got = chipAmount(a, pct, bal, cap, bal + cap)
+          const m = maxSendable(bal, a, cap, bal + cap)
+          const max = m.ok ? m.amount : 0n
+          expect(got <= (max * BigInt(pct)) / 100n).toBe(true)
+          expect(got % 10n ** BigInt(decimals[a] - (a === 'ETH' ? 6 : 2))).toBe(0n)
+        },
+      ),
     )
   })
 })

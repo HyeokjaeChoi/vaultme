@@ -1,16 +1,26 @@
 import { describe, expect, it, vi } from 'vitest'
-import { disablePush, enablePush, routeForPush, syncPush, type Permission, type PushDeps } from '@/features/push/model/push'
+import {
+  disablePush,
+  enablePush,
+  routeForPush,
+  syncPush,
+  type Permission,
+  type PushDeps,
+} from '@/features/push/model/push'
 
 const ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const HASH = `0x${'ab'.repeat(32)}`
 
 function make(over: Partial<PushDeps> & { permission?: Permission; requested?: Permission } = {}) {
   const state = { setting: false, pending: false }
-  const server = { putPushSubscription: vi.fn(async () => undefined), deletePushSubscription: vi.fn(async () => undefined) }
+  const server = {
+    putPushSubscription: vi.fn(() => Promise.resolve()),
+    deletePushSubscription: vi.fn(() => Promise.resolve()),
+  }
   const port = {
-    permission: vi.fn(async () => over.permission ?? 'granted'),
-    request: vi.fn(async () => over.requested ?? 'granted'),
-    token: vi.fn(async () => 'ExponentPushToken[abcdefgh12345678]'),
+    permission: vi.fn(() => Promise.resolve<Permission>(over.permission ?? 'granted')),
+    request: vi.fn(() => Promise.resolve<Permission>(over.requested ?? 'granted')),
+    token: vi.fn(() => Promise.resolve('ExponentPushToken[abcdefgh12345678]')),
   }
   const deps: PushDeps = {
     server,
@@ -50,6 +60,7 @@ describe('enablePush', () => {
     t.server.putPushSubscription.mockRejectedValue(new Error('503'))
     expect(await enablePush(t.deps)).toBe('error')
     expect(t.state.setting).toBe(false)
+    expect(t.state.pending).toBe(true) // the PUT may have landed with its answer lost: the next launch deletes it
   })
   it('is unavailable without a wallet or without an EAS project id', async () => {
     expect(await enablePush(make({ address: () => null }).deps)).toBe('unavailable')
@@ -124,6 +135,33 @@ describe('syncPush', () => {
     t.state.setting = true
     t.server.putPushSubscription.mockRejectedValue(new Error('offline'))
     await expect(syncPush(t.deps)).resolves.toBeUndefined()
+  })
+})
+
+describe('ordering', () => {
+  it('a launch sync still waiting for its token cannot re-register after the user switched off', async () => {
+    const t = make()
+    t.state.setting = true
+    let release!: (v: string) => void
+    t.port.token.mockImplementationOnce(() => new Promise<string>((r) => (release = r)))
+    const sync = syncPush(t.deps)
+    const off = disablePush(t.deps)
+    await vi.waitFor(() => expect(t.port.token).toHaveBeenCalled())
+    release('ExponentPushToken[abcdefgh12345678]')
+    await Promise.all([sync, off])
+    const put = t.server.putPushSubscription.mock.invocationCallOrder[0]!
+    const del = t.server.deletePushSubscription.mock.invocationCallOrder[0]!
+    expect(put).toBeLessThan(del)
+    expect(t.state).toEqual({ setting: false, pending: false })
+  })
+  it('records the owed delete before sending it', async () => {
+    const t = make()
+    t.server.deletePushSubscription.mockImplementationOnce(() => {
+      expect(t.state.pending).toBe(true)
+      return Promise.resolve()
+    })
+    await disablePush(t.deps)
+    expect(t.state.pending).toBe(false)
   })
 })
 

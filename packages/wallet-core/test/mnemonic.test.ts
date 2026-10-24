@@ -2,14 +2,25 @@ import { inspect } from 'node:util'
 import { describe, expect, test } from 'vitest'
 import { deriveAddress, generateMnemonic, isMnemonicWord, toMnemonic, validateMnemonic, Mnemonic } from '../src'
 import { mnemonicToSeedSync } from '@scure/bip39'
-import { BIP39_12, BIP39_12_ADDRESS, BIP39_12_TREZOR_ADDRESS, BIP39_12_TREZOR_SEED, BIP39_24, TREZOR_PASSPHRASE, PUBLIC_JUNK_ADDRESS, PUBLIC_JUNK_PHRASE } from './fixtures'
+import {
+  BIP39_12,
+  BIP39_12_ADDRESS,
+  BIP39_12_TREZOR_ADDRESS,
+  BIP39_12_TREZOR_SEED,
+  BIP39_24,
+  TREZOR_PASSPHRASE,
+  PUBLIC_JUNK_ADDRESS,
+  PUBLIC_JUNK_PHRASE,
+} from './fixtures'
 
 describe('Mnemonic masking', () => {
   const m = new Mnemonic(PUBLIC_JUNK_PHRASE)
   test('no printing path reveals words', () => {
     const outs = [
       String(m),
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- the implicit string paths are what this test checks
       `${m}`,
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands -- same: implicit coercion must stay masked
       m + '',
       JSON.stringify(m),
       JSON.stringify({ m }),
@@ -95,7 +106,9 @@ describe('BIP39 passphrase', () => {
     const m = new Mnemonic(BIP39_12, TREZOR_PASSPHRASE)
     expect(m.reveal()).toBe(BIP39_12)
     expect(m.passphrase()).toBe(TREZOR_PASSPHRASE)
-    expect([String(m), JSON.stringify(m), inspect(m), Object.getOwnPropertyNames(m).join()].join(' ')).not.toContain(TREZOR_PASSPHRASE)
+    expect([String(m), JSON.stringify(m), inspect(m), Object.getOwnPropertyNames(m).join()].join(' ')).not.toContain(
+      TREZOR_PASSPHRASE,
+    )
   })
 })
 

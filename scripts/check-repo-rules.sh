@@ -10,12 +10,12 @@ files() { git ls-files --cached --others --exclude-standard -- "$@" 2>/dev/null;
 # scan <regex> <pathspec...>: grep only when the list is not empty (BSD xargs runs on empty input).
 scan() { local re="$1"; shift; local list; list="$(files "$@" | grep -v -e '/generated/' -e 'pnpm-lock' || true)"; [ -n "$list" ] && printf '%s\n' "$list" | tr '\n' '\0' | xargs -0 grep -nE -- "$re"; }
 
-# R1. No private keys or 32-byte hex secrets in tracked source (AGENTS.md rule 4).
+# R1. No private keys or 32-byte hex secrets in tracked source.
 if scan '-----BEGIN [A-Z ]*PRIVATE KEY-----|privateKey: *["'\'']0x[0-9a-fA-F]{64}' 'apps/**' 'packages/**'; then
   err "R1: private key material found"
 fi
 
-# R2. No raw hex colors in app UI code. Use packages/tokens (lld.md §1.1).
+# R2. No raw hex colors in app UI code. Use packages/tokens (AGENTS.md "Enforced rules").
 if scan "['\"]#[0-9a-fA-F]{3,8}['\"]" 'apps/mobile/src/**/*.ts' 'apps/mobile/src/**/*.tsx' 'apps/mobile/app/**/*.tsx'; then
   err "R2: raw hex color in apps/mobile; use token values"
 fi
@@ -108,8 +108,113 @@ fi
 while IFS= read -r f; do
   case "$f" in
     */CLAUDE.local.md|CLAUDE.local.md) err "R9: remove $f; put personal notes in ~/.claude/CLAUDE.md" ;;
-    *) err "R9: remove $f; put shared rules in AGENTS.md (Claude Code reads it directly)" ;;
+    *) err "R9: remove $f; put shared rules in AGENTS.md or docs/agents/ (Claude Code reads AGENTS.md directly)" ;;
   esac
 done < <(git ls-files --cached --others --exclude-standard | grep -E '(^|/)(CLAUDE\.md|CLAUDE\.local\.md)$' || true)
+
+# R10. No recovery phrase in tracked text except public test vectors. Any run of 12+ BIP39 words
+# (scripts/bip39-english.txt, SHA-256 2f5eed53...dbda) must be one of the allowed vectors below.
+if ! git ls-files -z --cached --others --exclude-standard | python3 -c '
+import re, sys
+words = set(open("scripts/bip39-english.txt").read().split())
+allow = {
+    " ".join(["abandon"] * 11 + ["about"]),   # BIP39 test vector, address 0x9858...da94 (also with passphrase TREZOR)
+    " ".join(["abandon"] * 23 + ["art"]),     # BIP39 24-word test vector
+    " ".join(["test"] * 11 + ["junk"]),       # Hardhat/viem dev vector, address 0xf39F...2266, tests only
+}
+skip = re.compile(r"(\.(png|jpe?g|gif|webp|ttf|otf|woff2?|pdf|ico)$)|(^|/)node_modules/|pnpm-lock\.yaml$|^scripts/bip39-english\.txt$|^work/")
+token = re.compile(r"[A-Za-z]+")
+bad = 0
+for f in sys.stdin.read().split("\0"):
+    if not f or skip.search(f):
+        continue
+    try:
+        raw = open(f, "rb").read()
+    except OSError:
+        continue
+    try:
+        if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+            text = raw.decode("utf-16")
+        elif b"\0" in raw:
+            # BOM-less UTF-16 (or any NUL data) decodes as UTF-8 with NULs between letters, hiding every word.
+            raise UnicodeDecodeError("utf-8", raw, 0, 1, "NUL byte without a UTF-16 BOM")
+        else:
+            text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        # A text file R10 cannot read is a finding, not a pass.
+        print(f"{f}: not UTF-8 or BOM-marked UTF-16 text; R10 cannot check it (add a true binary type to skip)", file=sys.stderr)
+        bad = 1
+        continue
+    # A run is consecutive BIP39 words (any case) across punctuation and line breaks; any other word ends it.
+    run, start = [], 0
+    for m in list(token.finditer(text)) + [None]:
+        w = m.group(0).lower() if m else ""
+        if w in words:
+            if not run:
+                start = m.start()
+            run.append(w)
+            continue
+        if len(run) >= 12:
+            # Cut out each allowed vector; any 12+ word remainder is still a finding.
+            # Exact match is not used: identifiers next to a vector (PUBLIC_JUNK_PHRASE) are BIP39 words too.
+            phrase = " ".join(run)
+            for a in sorted(allow, key=len, reverse=True):
+                phrase = phrase.replace(a, "|")
+            if any(len(seg.split()) >= 12 for seg in phrase.split("|")):
+                print(f"{f}:{text.count(chr(10), 0, start) + 1}: {len(run)} BIP39 words in a row", file=sys.stderr)
+                bad = 1
+        run = []
+sys.exit(bad)
+'; then
+  err "R10: possible recovery phrase; only the public test vectors in R10 are allowed"
+fi
+
+# R11. Markdown references must resolve. In tracked *.md outside work/: every relative [x](path) link and every
+# backticked token that looks like a repo file path (has "/" and a known extension) must exist. Skipped: URLs,
+# #anchors, fenced code, tokens with glob or placeholder characters, and tokens that start with "/" (URL paths).
+# A backticked token also passes when a tracked file ends with it (so `shared/lib/address.ts` works).
+if ! { files; echo ---; files '*.md' ':!work/**'; } | python3 -c '
+import os, re, sys
+raw = sys.stdin.read().split("\n---\n")
+allf = set(raw[0].split("\n")); mds = [m for m in raw[1].split("\n") if m and os.path.exists(m)]
+ext = r"(?:md|ts|tsx|js|mjs|cjs|json|jsonc|yml|yaml|sh|sql|toml|css|html)"
+def ok(t, base):
+    t = t.split("#", 1)[0]
+    return not t or os.path.exists(os.path.normpath(os.path.join(base, t))) or os.path.exists(t) or any(f.endswith("/" + t) for f in allf)
+bad = 0
+for m in mds:
+    base, fenced = os.path.dirname(m), False
+    for n, line in enumerate(open(m, encoding="utf-8", errors="replace"), 1):
+        if line.lstrip().startswith(("```", "~~~")):
+            fenced = not fenced
+            continue
+        if fenced:
+            continue
+        # A link resolves from the Markdown file folder, as GitHub renders it. An optional "title" may follow.
+        for t in re.findall(r"\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)", line):
+            t = t.split("#", 1)[0]
+            if t and not t.startswith(("http://", "https://", "mailto:")) and not os.path.exists(os.path.normpath(os.path.join(base, t))):
+                print(f"{m}:{n}: broken link {t}", file=sys.stderr); bad = 1
+        for t in re.findall(r"`([^`\s]+)`", line):
+            if "/" in t and not t.startswith(("/", "http")) and not re.search(r"[*<>{}$:]", t) and re.search(r"\." + ext + r"(#.*)?$", t) and not ok(t, "."):
+                print(f"{m}:{n}: missing path {t}", file=sys.stderr); bad = 1
+sys.exit(bad)
+'; then
+  err "R11: broken Markdown link or repo path (see above)"
+fi
+
+# R12. The Claude Code guard hook still blocks what it should (#124).
+if ! bash .claude/hooks/guard-bash.test.sh >/dev/null; then
+  err "R12: .claude/hooks/guard-bash.test.sh failed (run it to see the case)"
+fi
+
+# R13. Every package waits 7 days, with no exceptions (#142): pnpm minimumReleaseAge >= 10080 and no
+# minimumReleaseAgeExclude, so no tool (Renovate security updates included) can add one past CI.
+if ! awk '/^minimumReleaseAge:/ { ok = ($2 >= 10080) } END { exit !ok }' pnpm-workspace.yaml; then
+  err "R13: pnpm-workspace.yaml minimumReleaseAge must be 10080 (7 days) or more"
+fi
+if grep -nE '^[[:space:]]*minimumReleaseAgeExclude' pnpm-workspace.yaml; then
+  err "R13: no minimumReleaseAgeExclude in pnpm-workspace.yaml; wait 7 days instead"
+fi
 
 exit "$fail"

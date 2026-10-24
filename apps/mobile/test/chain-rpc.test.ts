@@ -16,18 +16,18 @@ function node(over: Partial<Record<string, (p: unknown[]) => unknown>> = {}) {
   const calls: Call[] = []
   const answers: Record<string, (p: unknown[]) => unknown> = {
     eth_getBalance: () => '0x' + (2n * ETH).toString(16),
-    eth_call: () => '0x' + (5_000_000n).toString(16),
+    eth_call: () => '0x' + 5_000_000n.toString(16),
     eth_getTransactionCount: () => '0x7',
     eth_estimateGas: () => '0x5208',
     eth_feeHistory: () => ({ baseFeePerGas: ['0x1', '0x59682f00'], gasUsedRatio: [0.5] }), // next block base fee 1.5 gwei
     eth_maxPriorityFeePerGas: () => '0x1dcd6500', // 0.5 gwei
     ...over,
   }
-  const rpc: RpcCall = async (m, p) => {
+  const rpc: RpcCall = (m, p) => {
     calls.push([m, p])
     const a = answers[m]
-    if (!a) throw new Error('no answer for ' + m)
-    return a(p)
+    if (!a) return Promise.reject(new Error('no answer for ' + m))
+    return Promise.resolve(a(p))
   }
   return { rpc, calls }
 }
@@ -42,13 +42,23 @@ describe('real ChainPort', () => {
     const n = node()
     expect(await createRpcChain(n.rpc).getBalances(FROM)).toEqual({ ETH: 2n * ETH, USDC: 5_000_000n })
     expect(n.calls).toContainEqual(['eth_getBalance', [FROM, 'latest']])
-    expect(n.calls).toContainEqual(['eth_call', [{ to: USDC_SEPOLIA, data: `${BALANCE_OF_SELECTOR}${pad(FROM)}` }, 'latest']])
+    expect(n.calls).toContainEqual([
+      'eth_call',
+      [{ to: USDC_SEPOLIA, data: `${BALANCE_OF_SELECTOR}${pad(FROM)}` }, 'latest'],
+    ])
   })
 
   it('getSnapshot ETH: request shapes and parsing', async () => {
     const n = node()
     const s = await createRpcChain(n.rpc).getSnapshot(FROM, 'ETH', TO, '0.5')
-    expect(s).toEqual({ nonce: 7, nativeBalance: 2n * ETH, tokenBalance: 5_000_000n, gasLimit: 21_000n, baseFeePerGas: 1_500_000_000n, maxPriorityFeePerGas: 500_000_000n })
+    expect(s).toEqual({
+      nonce: 7,
+      nativeBalance: 2n * ETH,
+      tokenBalance: 5_000_000n,
+      gasLimit: 21_000n,
+      baseFeePerGas: 1_500_000_000n,
+      maxPriorityFeePerGas: 500_000_000n,
+    })
     expect(n.calls).toContainEqual(['eth_getTransactionCount', [FROM, 'pending']])
     expect(n.calls).toContainEqual(['eth_estimateGas', [{ from: FROM, to: TO, value: '0x' + (ETH / 2n).toString(16) }]])
     expect(n.calls).toContainEqual(['eth_feeHistory', [1, 'latest', []]])
@@ -60,19 +70,34 @@ describe('real ChainPort', () => {
     const n = node({ eth_estimateGas: () => '0xc350' }) // 50000
     const s = await createRpcChain(n.rpc).getSnapshot(FROM, 'USDC', TO, '1.5')
     expect(s.gasLimit).toBe(60_000n)
-    expect(n.calls).toContainEqual(['eth_estimateGas', [{ from: FROM, to: USDC_SEPOLIA, data: `0xa9059cbb${pad(TO)}${pad((1_500_000n).toString(16))}` }]])
+    expect(n.calls).toContainEqual([
+      'eth_estimateGas',
+      [{ from: FROM, to: USDC_SEPOLIA, data: `0xa9059cbb${pad(TO)}${pad(1_500_000n.toString(16))}` }],
+    ])
   })
 
   it('a node that refuses to estimate gives the default limit; a transport failure still throws', async () => {
-    const refuse = node({ eth_estimateGas: () => { throw new RpcError(-32000, 'insufficient funds') } })
+    const refuse = node({
+      eth_estimateGas: () => {
+        throw new RpcError(-32000, 'insufficient funds')
+      },
+    })
     expect((await createRpcChain(refuse.rpc).getSnapshot(FROM, 'ETH', TO, '99')).gasLimit).toBe(21_000n)
-    const down = node({ eth_estimateGas: () => { throw new Error('network') } })
+    const down = node({
+      eth_estimateGas: () => {
+        throw new Error('network')
+      },
+    })
     await expect(createRpcChain(down.rpc).getSnapshot(FROM, 'ETH', TO, '1')).rejects.toThrow('network')
   })
 
   it('bad node answers throw', async () => {
-    await expect(createRpcChain(node({ eth_getBalance: () => 'nope' }).rpc).getSnapshot(FROM, 'ETH', TO, '1')).rejects.toThrow()
-    await expect(createRpcChain(node({ eth_feeHistory: () => ({ baseFeePerGas: [] }) }).rpc).getSnapshot(FROM, 'ETH', TO, '1')).rejects.toThrow()
+    await expect(
+      createRpcChain(node({ eth_getBalance: () => 'nope' }).rpc).getSnapshot(FROM, 'ETH', TO, '1'),
+    ).rejects.toThrow()
+    await expect(
+      createRpcChain(node({ eth_feeHistory: () => ({ baseFeePerGas: [] }) }).rpc).getSnapshot(FROM, 'ETH', TO, '1'),
+    ).rejects.toThrow()
   })
 
   it('submit: eth_sendRawTransaction with the raw tx, returns the reported hash', async () => {
@@ -89,11 +114,15 @@ describe('real ChainPort', () => {
     const ok = node({ eth_getTransactionReceipt: () => ({ status: '0x1', blockNumber: '0x10' }) })
     expect(await createRpcChain(ok.rpc).getReceipt(h)).toEqual({ status: 'success', blockNumber: 16n })
     expect(ok.calls).toEqual([['eth_getTransactionReceipt', [h]]])
-    expect(await createRpcChain(node({ eth_getTransactionReceipt: () => ({ status: '0x0', blockNumber: '0x10' }) }).rpc).getReceipt(h)).toMatchObject({ status: 'reverted' })
+    expect(
+      await createRpcChain(
+        node({ eth_getTransactionReceipt: () => ({ status: '0x0', blockNumber: '0x10' }) }).rpc,
+      ).getReceipt(h),
+    ).toMatchObject({ status: 'reverted' })
   })
 })
 
-describe('send with the real adapter (Q73 hash compare)', () => {
+describe('send with the real adapter (ADR-0005 hash compare)', () => {
   async function send(reported: (raw: Hex) => string) {
     const n = node({ eth_sendRawTransaction: (p) => reported(p[0] as Hex) })
     const chain = createRpcChain(n.rpc)
@@ -103,7 +132,7 @@ describe('send with the real adapter (Q73 hash compare)', () => {
     const saved: unknown[] = []
     const d: SendDeps = {
       chain,
-      loadPhrase: vi.fn(async () => ({ status: 'ok' as const, mnemonic: new Mnemonic(VECTOR) })),
+      loadPhrase: vi.fn(() => Promise.resolve({ status: 'ok' as const, mnemonic: new Mnemonic(VECTOR) })),
       readPending: () => null,
       savePending: (tx) => void saved.push(tx),
       now: () => 1,
@@ -123,12 +152,14 @@ describe('send with the real adapter (Q73 hash compare)', () => {
     if (out.status === 'Unknown') expect(out.tx.hash).not.toBe(other)
   })
   it('submit failure after signing: Unknown, never a clean failure', async () => {
-    const { out } = await send(() => { throw new Error('boom') })
+    const { out } = await send(() => {
+      throw new Error('boom')
+    })
     expect(out.status).toBe('Unknown')
   })
 })
 
-describe('safe block and safe nonce (Q37, Q77)', () => {
+describe('safe block and safe nonce (ADR-0006)', () => {
   it('getSafeBlock asks eth_getBlockByNumber("safe", false) and reads the number', async () => {
     const n = node({ eth_getBlockByNumber: () => ({ number: '0x64', hash: '0x1' }) })
     expect(await createRpcChain(n.rpc).getSafeBlock()).toBe(100n)

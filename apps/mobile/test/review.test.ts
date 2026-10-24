@@ -11,7 +11,13 @@ it('falls back to the fixture when params are missing or malformed', () => {
 it('carries the entered recipient and amount, total = amount + fee', () => {
   const to = '0x4E21aB7c9D03F5e86B1a2C4d7E90F3b5a6d8c90F'
   const r = resolveReview(to, '1.5.')
-  expect(r).toMatchObject({ recipient: to, previous: null, amount: '1.5 ETH', total: '1.500042 ETH', feeCap: '0.0000735 ETH' })
+  expect(r).toMatchObject({
+    recipient: to,
+    previous: null,
+    amount: '1.5 ETH',
+    total: '1.500042 ETH',
+    feeCap: '0.0000735 ETH',
+  })
 })
 it('marks a look-alike of a recent address and names the recent one', () => {
   const r = resolveReview(review.lookalike, '0.05')
@@ -19,7 +25,10 @@ it('marks a look-alike of a recent address and names the recent one', () => {
   expect(r.previous).toBe(review.recipient)
 })
 it('?risk=1 keeps working without an entered address', () => {
-  expect(resolveReview(undefined, undefined, true)).toMatchObject({ recipient: review.lookalike, previous: review.recipient })
+  expect(resolveReview(undefined, undefined, true)).toMatchObject({
+    recipient: review.lookalike,
+    previous: review.recipient,
+  })
 })
 it('keeps burn and tokenContract risk instead of dropping it', async () => {
   const { BURN_ADDRESSES } = await import('@vaultme/wallet-core')
@@ -47,4 +56,16 @@ it('an ETH amount with 7 digits is not a USDC amount', async () => {
   const { cleanAmount } = await import('../src/entities/transaction/review')
   expect(cleanAmount('1.1234567', 'USDC')).toBeNull()
   expect(cleanAmount('1.1234567', 'ETH')).toBe('1.1234567')
+})
+it('previous = the recent address with the fewest differing groups; the first one wins a tie; an exact match is skipped', () => {
+  const base = review.lookalike
+  // Flip the hex digit at `i` (0-based, after 0x) of `a`.
+  const flip = (a: string, ...is: number[]) =>
+    is.reduce((s, i) => s.slice(0, 2 + i) + (s[2 + i] === '0' ? '1' : '0') + s.slice(3 + i), a)
+  const far = flip(base, 0, 8, 16)
+  const near = flip(base, 4)
+  const nearToo = flip(base, 12)
+  const r = resolveReview(base, '0.05', true, undefined, [base, far, near, nearToo])
+  expect(r.previous).toBe(near)
+  expect(resolveReview(base, '0.05', true, undefined, [base]).previous).toBe(review.recipient)
 })

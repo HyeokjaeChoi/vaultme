@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  // work/ and spikes are design and research scratch, .claude/ is agent tooling, design-md.d.mts types a .mjs script.
+  "ignore": ["work/**", "scripts/spikes/**", ".claude/**", "packages/tokens/design-md.d.mts"],
+  // Run as binaries from .githooks/ and lint-staged.config.mjs, which knip does not read.
+  "ignoreDependencies": ["eslint", "lint-staged"],
+  "workspaces": {
+    ".": { "entry": ["scripts/*.mjs"] },
+    "apps/api": {
+      // The vitest plugin cannot load this config from the repo root (readD1Migrations reads ./migrations).
+      "vitest": false,
+      "entry": ["vitest.config.ts", "test/**/*.test.ts", "test/setup.ts"],
+      // `cloudflare:workers` is a runtime module, not a package.
+      "ignoreDependencies": ["cloudflare"],
+    },
+    "apps/mobile": {
+      "entry": ["steiger.config.mjs"],
+      // Guessed from app.json: no OTA updates are used; expo-system-ui is a follow-up (Android userInterfaceStyle).
+      "ignoreDependencies": ["expo-updates", "expo-system-ui"],
+    },
+  },
+}

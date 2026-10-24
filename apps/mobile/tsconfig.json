@@ -1,5 +1,7 @@
 {
-  "extends": "expo/tsconfig.base",
+  // Full file name: since SDK 58 `expo` has an `exports` map, and Vite (vitest) cannot resolve the extensionless `expo/tsconfig.base` through it.
+  // Go back to the extensionless form when vitest resolves it.
+  "extends": "expo/tsconfig.base.json",
   "compilerOptions": {
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -7,13 +9,8 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"]
 }

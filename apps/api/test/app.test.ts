@@ -3,9 +3,9 @@ import { ErrorEnvelope } from '@vaultme/contracts'
 import { describe, expect, it } from 'vitest'
 import { Hono } from 'hono'
 import { app, handleError } from '../src/app.ts'
+import type { Env } from '../src/env.ts'
 
-const get = (path: string, headers: Record<string, string> = {}, e = env) =>
-  app.request(path, { headers }, e)
+const get = (path: string, headers: Record<string, string> = {}, e = env) => app.request(path, { headers }, e)
 const V = { 'X-App-Version': '1.0.0' }
 
 describe('api', () => {
@@ -38,7 +38,7 @@ describe('api', () => {
   it('403 on Origin header, even for health', async () => {
     const r = await get('/v1/health', { Origin: 'https://evil.example' })
     expect(r.status).toBe(403)
-    expect((await r.json()) as { code: string }).toMatchObject({ code: 'origin_forbidden' })
+    expect(await r.json<{ code: string }>()).toMatchObject({ code: 'origin_forbidden' })
   })
 
   it('404 envelope for unknown route', async () => {
@@ -48,7 +48,7 @@ describe('api', () => {
   })
 
   it('500 envelope has no stack', async () => {
-    const boom = new Hono()
+    const boom = new Hono<Env>()
     boom.onError(handleError)
     boom.get('/x', () => {
       throw new Error('secret detail')

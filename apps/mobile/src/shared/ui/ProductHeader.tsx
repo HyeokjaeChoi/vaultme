@@ -10,12 +10,27 @@ import { useTabHeaderHeight } from './TabHeader'
 export function ProductHeader({ title, chips }: { title: string; chips?: ReactNode }) {
   const t = useTheme()
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: t.semantic.layout.fieldGap, minHeight: useTabHeaderHeight() }}>
-      <View accessible accessibilityRole="header" accessibilityLabel={title} style={{ flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.fieldGap, flexShrink: 1 }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: t.semantic.layout.fieldGap,
+        minHeight: useTabHeaderHeight(),
+      }}
+    >
+      <View
+        accessible
+        accessibilityRole="header"
+        accessibilityLabel={title}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.fieldGap, flexShrink: 1 }}
+      >
         <Icon name="account" size={t.component.icon.account.size} color={t.component.icon.account.fg} />
         <Text variant="headline">{title}</Text>
       </View>
-      {chips ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.primitive.space['1_5'] }}>{chips}</View> : null}
+      {chips ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.primitive.space['1_5'] }}>{chips}</View>
+      ) : null}
     </View>
   )
 }

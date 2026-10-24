@@ -1,5 +1,14 @@
 import { useEffect } from 'react'
-import { cancelAnimation, Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated'
+import {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated'
 
 // DESIGN motion (emil-design-eng): strong ease-out for UI. No tokens exist for these values yet.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
@@ -24,7 +33,7 @@ export function useFoldIn(offset: number) {
   const p = useSharedValue(reduce ? 1 : 0)
   useEffect(() => {
     if (!reduce) p.set(withTiming(1, { duration: FOLD_MS, easing: EASE_OUT }))
-  }, [])
+  }, [p, reduce])
   return useAnimatedStyle(() => ({ opacity: p.get(), transform: [{ translateY: (1 - p.get()) * offset }] }))
 }
 
@@ -40,8 +49,8 @@ export function useSpin(on: boolean) {
       cancelAnimation(r)
       r.set(0)
     }
-  }, [on, reduce])
-  return useAnimatedStyle(() => ({ transform: [{ rotate: `${r.get()}deg` }] }))
+  }, [r, on, reduce])
+  return useAnimatedStyle(() => ({ transform: [{ rotate: `${String(r.get())}deg` }] }))
 }
 
 /** Unlock bloom (Figma B-S90 note, owner 2026-10-17): the keyhole spreads the brand color, 400 ms ease-out. Reduce Motion: the screen cross-fades over the same time. */
@@ -58,13 +67,14 @@ export function useCheckPop(on: boolean) {
   const reduce = useReducedMotion()
   const s = useSharedValue(1)
   useEffect(() => {
+    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- drives a Reanimated value (an external system) when `on` changes
     if (!on || reduce) {
       s.set(1)
       return
     }
     s.set(POP_FROM)
     s.set(withTiming(1, { duration: POP_MS, easing: EASE_OUT }))
-  }, [on, reduce])
+  }, [s, on, reduce])
   return useAnimatedStyle(() => ({ transform: [{ scale: s.get() }] }))
 }
 
@@ -82,7 +92,12 @@ export function useShake(amplitude: number) {
   const step = (to: number) => withTiming(to, { duration: SHAKE_STEP_MS, easing: Easing.linear })
   const shake = () => {
     if (reduce) return
-    x.set(withSequence(...Array.from({ length: SHAKE_HALF_STEPS }, (_, i) => step(i % 2 === 0 ? -amplitude : amplitude)), step(0)))
+    x.set(
+      withSequence(
+        ...Array.from({ length: SHAKE_HALF_STEPS }, (_, i) => step(i % 2 === 0 ? -amplitude : amplitude)),
+        step(0),
+      ),
+    )
   }
   return { style, shake }
 }

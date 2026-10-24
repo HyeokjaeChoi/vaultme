@@ -9,7 +9,13 @@ import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
 import { Icon, ListItem, ScreenHeader, SectionBand, Text } from '@/shared/ui'
 
-type Item = { key: string; kind: 'title' | 'band' | 'header' | 'row' | 'link' | 'end'; text?: string; entry?: LicenseEntry }
+type Item = {
+  key: string
+  kind: 'title' | 'band' | 'header' | 'row' | 'link' | 'end'
+  text?: string
+  entry?: LicenseEntry
+}
+const keyOf = (i: Item) => i.key
 
 /**
  * B-S64 오픈소스 라이선스. The list is generated at build time from the installed dependency closure incl. transitive packages (scripts/generate-licenses.mjs).
@@ -31,18 +37,36 @@ export function LicensesPage() {
     { key: 'end-1', kind: 'end' },
     { key: 'band-2', kind: 'band' },
     { key: 'h-libs', kind: 'header', text: t('settings.licensesScreen.groupLibs') },
-    ...libLicenses.map((e): Item => ({ key: `p-${e.name}@${e.version}`, kind: 'row', entry: e })),
+    ...libLicenses.map((e): Item => ({ key: `p-${e.name}@${e.version ?? ''}`, kind: 'row', entry: e })),
   ]
   const pad = th.semantic.layout.screen.padding
-  const open = useCallback((e: LicenseEntry) => router.push({ pathname: '/settings/license', params: e.version ? { name: e.name, version: e.version } : { name: e.name } }), [router])
+  const open = useCallback(
+    (e: LicenseEntry) =>
+      router.push({
+        pathname: '/settings/license',
+        params: e.version ? { name: e.name, version: e.version } : { name: e.name },
+      }),
+    [router],
+  )
   const render = ({ item }: { item: Item }) => {
     const e = item.entry
     switch (item.kind) {
       case 'title':
         return (
-          <View style={{ gap: th.semantic.layout.fieldGap, paddingHorizontal: pad, paddingTop: th.primitive.space[2], paddingBottom: th.semantic.layout.groupGap }}>
-            <Text variant="title1" accessibilityRole="header">{t('settings.licensesScreen.title')}</Text>
-            <Text variant="bodySmall" color={th.semantic.text.secondary}>{t('settings.licensesScreen.body')}</Text>
+          <View
+            style={{
+              gap: th.semantic.layout.fieldGap,
+              paddingHorizontal: pad,
+              paddingTop: th.primitive.space[2],
+              paddingBottom: th.semantic.layout.groupGap,
+            }}
+          >
+            <Text variant="title1" accessibilityRole="header">
+              {t('settings.licensesScreen.title')}
+            </Text>
+            <Text variant="bodySmall" color={th.semantic.text.secondary}>
+              {t('settings.licensesScreen.body')}
+            </Text>
           </View>
         )
       case 'end':
@@ -51,20 +75,42 @@ export function LicensesPage() {
         return <SectionBand />
       case 'header':
         return (
-          <View accessibilityRole="header" style={{ paddingHorizontal: pad, paddingTop: th.component.sectionBand.blockPaddingY, paddingBottom: th.primitive.space[1] }}>
-            <Text variant="label" color={th.semantic.text.tertiary}>{item.text}</Text>
+          <View
+            accessibilityRole="header"
+            style={{
+              paddingHorizontal: pad,
+              paddingTop: th.component.sectionBand.blockPaddingY,
+              paddingBottom: th.primitive.space[1],
+            }}
+          >
+            <Text variant="label" color={th.semantic.text.tertiary}>
+              {item.text}
+            </Text>
           </View>
         )
       case 'link':
         return (
           <View style={{ paddingHorizontal: pad, paddingBottom: th.primitive.space[1] }}>
-            <ListItem compact title={t('settings.licensesScreen.solarSource')} trailing={{ kind: 'custom', node: <Icon name="external" size={th.component.icon.size.control} color={th.component.listItem.icon} /> }} onPress={() => void Linking.openURL(e?.url ?? '')} />
+            <ListItem
+              compact
+              title={t('settings.licensesScreen.solarSource')}
+              trailing={{
+                kind: 'custom',
+                node: <Icon name="external" size={th.component.icon.size.control} color={th.component.listItem.icon} />,
+              }}
+              onPress={() => void Linking.openURL(e?.url ?? '')}
+            />
           </View>
         )
       default:
         return e ? (
           <View style={{ paddingHorizontal: pad, paddingBottom: th.primitive.space[1] }}>
-            <ListItem compact title={licenseTitle(e)} trailing={{ kind: 'disclosure', text: e.license }} onPress={() => open(e)} />
+            <ListItem
+              compact
+              title={licenseTitle(e)}
+              trailing={{ kind: 'disclosure', text: e.license }}
+              onPress={() => open(e)}
+            />
           </View>
         ) : null
     }
@@ -72,7 +118,14 @@ export function LicensesPage() {
   return (
     <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: th.component.screenB.bg }}>
       <ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/settings')} />
-      <FlatList data={items} keyExtractor={(i) => i.key} renderItem={render} initialNumToRender={20} windowSize={9} contentContainerStyle={{ paddingBottom: th.component.sectionBand.blockPaddingY }} />
+      <FlatList
+        data={items}
+        keyExtractor={keyOf}
+        renderItem={render}
+        initialNumToRender={20}
+        windowSize={9}
+        contentContainerStyle={{ paddingBottom: th.component.sectionBand.blockPaddingY }}
+      />
     </SafeAreaView>
   )
 }

@@ -11,21 +11,32 @@ const PROBE_AMOUNT = '0.000001'
 export function useSendable(to: string, asset: AssetId = 'ETH'): { sendable: Sendable | null; refresh: () => void } {
   const [s, setS] = useState<Sendable | null>(null)
   const [tick, setTick] = useState(0)
+  // A new recipient or asset clears the old numbers during render; a refresh keeps them until the new ones arrive (chips do not flicker).
+  const k = `${to}|${asset}`
+  const [shownKey, setShownKey] = useState(k)
+  if (shownKey !== k) {
+    setShownKey(k)
+    setS(null)
+  }
   const key = useRef('')
   useEffect(() => {
     let live = true
-    // A new recipient or asset clears the old numbers; a refresh keeps them until the new ones arrive (chips do not flicker).
-    const k = `${to}|${asset}`
     const fresh = key.current !== k
-    if (fresh) setS(null)
     key.current = k
-    chain
-      .getSnapshot(sendFrom(), asset, to as Address, PROBE_AMOUNT)
-      .then((snap) => live && setS({ balance: asset === 'ETH' ? snap.nativeBalance : snap.tokenBalance, nativeBalance: snap.nativeBalance, feeCap: feeCapOf(snap) }), () => live && fresh && setS(null)) // a failed refresh keeps the last numbers, so the ETH-short state (and the retry on the next return) stays
+    chain.getSnapshot(sendFrom(), asset, to as Address, PROBE_AMOUNT).then(
+      (snap) =>
+        live &&
+        setS({
+          balance: asset === 'ETH' ? snap.nativeBalance : snap.tokenBalance,
+          nativeBalance: snap.nativeBalance,
+          feeCap: feeCapOf(snap),
+        }),
+      () => live && fresh && setS(null),
+    ) // a failed refresh keeps the last numbers, so the ETH-short state (and the retry on the next return) stays
     return () => {
       live = false
     }
-  }, [to, asset, tick])
+  }, [k, to, asset, tick])
   const refresh = useCallback(() => setTick((n) => n + 1), [])
   return { sendable: s, refresh }
 }

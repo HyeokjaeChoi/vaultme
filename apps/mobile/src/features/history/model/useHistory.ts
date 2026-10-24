@@ -1,12 +1,14 @@
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
 import { api, createHistory, historyCache } from '@/shared/api'
-import { readPendingTx } from '@/features/send/model/usePendingTx'
+import { readPendingTx } from '@/entities/transaction'
 import { getAccountAddress } from '@/shared/storage'
 import { failedView, toView, type HistoryView } from './view'
 
 const client = api
-const history = client ? createHistory({ fetchPage: (a, c) => client.history(a, c), cache: historyCache, local: () => [], now: Date.now }) : null
+const history = client
+  ? createHistory({ fetchPage: (a, c) => client.history(a, c), cache: historyCache, local: () => [], now: Date.now })
+  : null
 
 /** `null` until the first answer (loading); then the list state of S40. Real mode only (the fake adapter shows example rows). Reloads on focus. `reload` resets to loading; `refresh` (pull-to-refresh) keeps the current view until the new answer. */
 export function useHistory(): { view: HistoryView | null; reload: () => void; refresh: () => Promise<void> } {
@@ -22,7 +24,10 @@ export function useHistory(): { view: HistoryView | null; reload: () => void; re
     } catch {
       // kv unreadable: no address, no API history
     }
-    if (!history || !address) return setView(toView({ source: 'local', sent: [] }, local, Date.now()))
+    if (!history || !address) {
+      setView(toView({ source: 'local', sent: [] }, local, Date.now()))
+      return
+    }
     try {
       const r = await history.load(address)
       if (id === seq.current) setView(toView(r, local, Date.now()))

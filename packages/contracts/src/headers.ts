@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const APP_VERSION_HEADER = 'X-App-Version'
 
-// Dotted numeric version, for example 1.2.3 (Q53).
+// Dotted numeric version, for example 1.2.3.
 export const AppVersion = z.string().regex(/^\d+(\.\d+){0,2}$/)
 export type AppVersion = z.infer<typeof AppVersion>
 

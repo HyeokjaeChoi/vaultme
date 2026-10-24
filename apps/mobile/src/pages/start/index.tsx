@@ -1,9 +1,9 @@
 // Figma: B-S01 시작 423:13440 (dark 430:15497): Brand block (mark 72, wordmark, one sentence) centered in the area above two stacked buttons (optical lift 48), Secondary above Primary
 import { Redirect, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { useAccountAddress } from '@/features/backup/model/useAccountAddress'
+import { useAccountAddress } from '@/features/backup'
 import Constants from 'expo-constants'
-import { account } from '@/entities/account/fixtures'
+import { account } from '@/entities/account'
 import { BrandScreen, Button } from '@/shared/ui'
 
 /** B-S01 시작. `?demo=1` is a __DEV__ capture override: show Start even when a wallet exists. */
@@ -18,7 +18,7 @@ export function StartPage({ demo = false }: { demo?: boolean }) {
       anchor="start"
       title={t('start.title')}
       bodyVariant="title2"
-      fact={`v${Constants.expoConfig?.version ?? ''} · ${account.network} · chain id ${account.chainId}`}
+      fact={`v${Constants.expoConfig?.version ?? ''} · ${account.network} · chain id ${String(account.chainId)}`}
       body={t('start.body')}
       actions={
         <>

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// Allowed JSON-RPC methods for POST /v1/rpc (LLD §4). eth_call is further limited to USDC balanceOf by the handler.
+// Allowed JSON-RPC methods for POST /v1/rpc (ARCHITECTURE.md#api-contract). eth_call is further limited to USDC balanceOf by the handler.
 export const RPC_ALLOWED_METHODS = [
   'eth_chainId',
   'eth_blockNumber',

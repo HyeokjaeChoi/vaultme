@@ -32,7 +32,12 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
   const gap = t.semantic.layout.rowGap
   const colGap = t.semantic.layout.groupGap
   const height = per * rowH + (per - 1) * gap
-  const panel = { backgroundColor: t.semantic.surface.inset, borderRadius: t.primitive.radius.lg, paddingHorizontal: t.primitive.space[4], paddingVertical: t.primitive.space[5] }
+  const panel = {
+    backgroundColor: t.semantic.surface.inset,
+    borderRadius: t.primitive.radius.lg,
+    paddingHorizontal: t.primitive.space[4],
+    paddingVertical: t.primitive.space[5],
+  }
   if (words === null) {
     const colW = 155 // (326 - 16) / 2 at a 390 pt screen; the bars stretch with the panel
     const w = colW * 2 + colGap
@@ -41,32 +46,71 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
         accessibilityRole="button"
         accessibilityLabel={revealLabel ?? ''}
         accessibilityState={{ disabled: !!busy, busy: !!busy }}
-        disabled={busy || !onReveal}
+        disabled={!!busy || !onReveal}
         onPress={onReveal}
         style={{ ...panel, justifyContent: 'center' }}
       >
-        <Svg width="100%" height={height} viewBox={`0 0 ${w} ${height}`} preserveAspectRatio="none" accessible={false} importantForAccessibility="no-hide-descendants">
+        <Svg
+          width="100%"
+          height={height}
+          viewBox={`0 0 ${String(w)} ${String(height)}`}
+          preserveAspectRatio="none"
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+        >
           <Defs>
             <Filter id="blur" x="-20%" y="-50%" width="140%" height="200%">
               <FeGaussianBlur stdDeviation={SIGMA} />
             </Filter>
           </Defs>
           <G filter="url(#blur)">
-          {Array.from({ length: count }, (_, i) => {
-            const col = Math.floor(i / per)
-            const r = i % per
-            const x = col * (colW + colGap)
-            const y = r * (rowH + gap)
-            return (
-              <Fragment key={i}>
-                <Rect x={x} y={y + rowH / 2 - 5} width={8} height={10} rx={3} fill={t.semantic.text.tertiary} opacity={0.3} />
-                <Rect x={x + 32} y={y + rowH / 2 - 7} width={WORD_W[r % WORD_W.length] ?? 54} height={14} rx={7} fill={t.semantic.text.primary} opacity={0.3} />
-              </Fragment>
-            )
-          })}
+            {Array.from({ length: count }, (_, i) => {
+              const col = Math.floor(i / per)
+              const r = i % per
+              const x = col * (colW + colGap)
+              const y = r * (rowH + gap)
+              // Rect x/y are SVG geometry. react-native-svg 15.15.4 types inherit the @deprecated tag of the transform x/y props. Remove when the types drop it.
+              /* eslint-disable @typescript-eslint/no-deprecated */
+              return (
+                <Fragment key={i}>
+                  <Rect
+                    x={x}
+                    y={y + rowH / 2 - 5}
+                    width={8}
+                    height={10}
+                    rx={3}
+                    fill={t.semantic.text.tertiary}
+                    opacity={0.3}
+                  />
+                  <Rect
+                    x={x + 32}
+                    y={y + rowH / 2 - 7}
+                    width={WORD_W[r % WORD_W.length] ?? 54}
+                    height={14}
+                    rx={7}
+                    fill={t.semantic.text.primary}
+                    opacity={0.3}
+                  />
+                </Fragment>
+              )
+              /* eslint-enable @typescript-eslint/no-deprecated */
+            })}
           </G>
         </Svg>
-        <View pointerEvents="none" style={{ position: 'absolute', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: t.primitive.space['1_5'], paddingHorizontal: t.primitive.space[4], paddingVertical: t.primitive.space[2], borderRadius: t.primitive.radius.pill, backgroundColor: t.semantic.surface.default }}>
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            alignSelf: 'center',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: t.primitive.space['1_5'],
+            paddingHorizontal: t.primitive.space[4],
+            paddingVertical: t.primitive.space[2],
+            borderRadius: t.primitive.radius.pill,
+            backgroundColor: t.semantic.surface.default,
+          }}
+        >
           <Icon name="eye" size={t.component.icon.size.control} color={t.component.icon.action.fg} />
           <Text variant="label">{revealLabel}</Text>
         </View>
@@ -80,9 +124,23 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
           {Array.from({ length: per }, (_, r) => {
             const i = col * per + r
             return (
-              <View key={i} accessible accessibilityLabel={`${i + 1}, ${words[i] ?? ''}`} style={{ flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.fieldGap }}>
-                <Text variant="caption" tabular color={t.semantic.text.tertiary} style={{ width: t.primitive.space[6] }}>{i + 1}</Text>
-                <Text variant="headline" tabular>{words[i] ?? ''}</Text>
+              <View
+                key={i}
+                accessible
+                accessibilityLabel={`${String(i + 1)}, ${words[i] ?? ''}`}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: t.semantic.layout.fieldGap }}
+              >
+                <Text
+                  variant="caption"
+                  tabular
+                  color={t.semantic.text.tertiary}
+                  style={{ width: t.primitive.space[6] }}
+                >
+                  {i + 1}
+                </Text>
+                <Text variant="headline" tabular>
+                  {words[i] ?? ''}
+                </Text>
               </View>
             )
           })}

@@ -24,7 +24,18 @@ type Props = {
 }
 
 /** C35 Summary row (Redesign B detail row, center aligned): label Body Small tertiary, value Body right; address stacks under its label. Flat, no divider: group rows in <Group>. */
-export function SummaryRow({ label, value, format = 'text', sub, highlight, fact, plain, editLabel, editAccessibilityLabel, onEdit }: Props) {
+export function SummaryRow({
+  label,
+  value,
+  format = 'text',
+  sub,
+  highlight,
+  fact,
+  plain,
+  editLabel,
+  editAccessibilityLabel,
+  onEdit,
+}: Props) {
   const t = useTheme()
   const labelWidth = t.primitive.space[10] * 4 // Figma label column 160
   const total = format === 'total'
@@ -37,24 +48,67 @@ export function SummaryRow({ label, value, format = 'text', sub, highlight, fact
       accessibilityRole="button"
       accessibilityLabel={editAccessibilityLabel ?? `${editLabel ?? ''} ${label}`.trim()}
       onPress={onEdit}
-      style={{ minWidth: t.primitive.size.touch_min, minHeight: t.primitive.size.touch_min, alignSelf: address || stacked ? 'flex-start' : 'stretch', alignItems: 'center', justifyContent: 'center', paddingHorizontal: t.primitive.space[2] }}
+      style={{
+        minWidth: t.primitive.size.touch_min,
+        minHeight: t.primitive.size.touch_min,
+        alignSelf: address || stacked ? 'flex-start' : 'stretch',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: t.primitive.space[2],
+      }}
     >
-      <Text variant="link" color={t.semantic.text.link}>{editLabel}</Text>
+      <Text variant="link" color={t.semantic.text.link}>
+        {editLabel}
+      </Text>
     </Pressable>
   ) : null
   return (
     <View
       accessible={!onEdit}
       accessibilityLabel={onEdit ? undefined : `${label}, ${value}${sub ? `, ${sub}` : ''}`}
-      style={{ flexDirection: stacked ? 'column' : 'row', alignItems: stacked ? 'stretch' : 'center', gap: address ? t.primitive.space[1] : t.semantic.layout.groupGap, minHeight: t.primitive.size.touch_min, paddingVertical: t.primitive.space[3] }}
+      style={{
+        flexDirection: stacked ? 'column' : 'row',
+        alignItems: stacked ? 'stretch' : 'center',
+        gap: address ? t.primitive.space[1] : t.semantic.layout.groupGap,
+        minHeight: t.primitive.size.touch_min,
+        paddingVertical: t.primitive.space[3],
+      }}
     >
-      <Text variant="bodySmall" color={t.semantic.text.tertiary} style={stacked ? undefined : { width: labelWidth }}>{label}</Text>
+      <Text variant="bodySmall" color={t.semantic.text.tertiary} style={stacked ? undefined : { width: labelWidth }}>
+        {label}
+      </Text>
       {address ? (
-        <AddressText address={value} highlight={highlight ?? []} {...(plain ? { size: fact ? ('F' as const) : ('S' as const), emphasis: false, color: fact ? t.semantic.text.secondary : t.semantic.text.primary } : {})} />
+        <AddressText
+          address={value}
+          highlight={highlight ?? []}
+          {...(plain
+            ? {
+                size: fact ? ('F' as const) : ('S' as const),
+                emphasis: false,
+                color: fact ? t.semantic.text.secondary : t.semantic.text.primary,
+              }
+            : {})}
+        />
       ) : (
         <View style={stacked ? undefined : { flex: 1, alignItems: 'flex-end' }}>
-          <Text variant={total ? 'headline' : fact ? 'fact' : 'body'} tabular {...(fact ? { color: t.semantic.text.secondary } : {})} style={{ textAlign: stacked ? 'left' : 'right' }}>{value}</Text>
-          {sub ? <Text variant="caption" tabular color={t.semantic.text.tertiary} style={{ textAlign: stacked ? 'left' : 'right' }}>{sub}</Text> : null}
+          <Text
+            variant={total ? 'headline' : fact ? 'fact' : 'body'}
+            tabular
+            {...(fact ? { color: t.semantic.text.secondary } : {})}
+            style={{ textAlign: stacked ? 'left' : 'right' }}
+          >
+            {value}
+          </Text>
+          {sub ? (
+            <Text
+              variant="caption"
+              tabular
+              color={t.semantic.text.tertiary}
+              style={{ textAlign: stacked ? 'left' : 'right' }}
+            >
+              {sub}
+            </Text>
+          ) : null}
         </View>
       )}
       {edit}

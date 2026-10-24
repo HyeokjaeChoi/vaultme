@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { failedView, parseItems, toView } from '../src/features/history/model/view'
 import { apiErrorKey } from '../src/shared/api/errorCopy'
 import { ApiError } from '../src/shared/api/errors'
@@ -6,25 +6,60 @@ import { createHistory } from '../src/shared/api/history'
 import { dayGroup, formatUpdated } from '../src/shared/lib/time'
 import type { HistoryCache, PendingTx } from '../src/shared/storage/kv'
 
+// view.ts reaches txView through the entities/transaction index, which also loads the kv store (React Native).
+vi.mock('@/shared/storage', () => ({}))
+
 const A = '0x' + 'a'.repeat(40)
 const H1 = '0x' + '1'.repeat(64)
 const H2 = '0x' + '2'.repeat(64)
-const local: PendingTx = { hash: H1, nonce: 0, asset: 'ETH', to: A, amount: '0.05', createdAt: 5_000_000, lastCheckedAt: 1, state: 'Pending' }
+const local: PendingTx = {
+  hash: H1,
+  nonce: 0,
+  asset: 'ETH',
+  to: A,
+  amount: '0.05',
+  createdAt: 5_000_000,
+  lastCheckedAt: 1,
+  state: 'Pending',
+}
 const B = '0x' + 'b'.repeat(40)
-// HistoryItem of the API contract (lld §4.2). `out` rows show the recipient, `in` rows the sender.
+// HistoryItem of the API contract (ARCHITECTURE.md#history). `out` rows show the recipient, `in` rows the sender.
 const item = (hash: string, timestamp: number, status = 'ok', o: Record<string, unknown> = {}) => ({
-  id: `${hash}:0`, kind: 'native', hash, blockNumber: 1, txIndex: 0, timestamp, direction: 'in', asset: 'ETH', value: '200000000000000000', from: B, to: A, status, zeroValue: false, ...o,
+  id: `${hash}:0`,
+  kind: 'native',
+  hash,
+  blockNumber: 1,
+  txIndex: 0,
+  timestamp,
+  direction: 'in',
+  asset: 'ETH',
+  value: '200000000000000000',
+  from: B,
+  to: A,
+  status,
+  zeroValue: false,
+  ...o,
 })
 
-describe('history view (Q58)', () => {
+describe('history view (ADR-0007)', () => {
   it('parses contract items and drops what it does not understand', () => {
     expect(parseItems({ items: [item(H2, 100), { hash: 'x' }, null, item(H2, 100, 'weird')] })).toHaveLength(1)
     expect(parseItems(undefined)).toEqual([])
     expect(parseItems({ items: 'no' })).toEqual([])
-    expect(parseItems({ items: [item(H2, 100)] })[0]).toMatchObject({ at: 100_000, status: 'confirmed', label: 'activity.confirmed', local: false })
+    expect(parseItems({ items: [item(H2, 100)] })[0]).toMatchObject({
+      at: 100_000,
+      status: 'confirmed',
+      label: 'activity.confirmed',
+      local: false,
+    })
   })
-  it('hides incoming zero-value rows (Q71), keeps own zero-value calls', () => {
-    const rows = parseItems({ items: [item(H2, 1, 'ok', { value: '0', zeroValue: true }), item(H2, 2, 'ok', { direction: 'out', from: A, to: B, value: '0', zeroValue: true })] })
+  it('hides incoming zero-value rows, keeps own zero-value calls', () => {
+    const rows = parseItems({
+      items: [
+        item(H2, 1, 'ok', { value: '0', zeroValue: true }),
+        item(H2, 2, 'ok', { direction: 'out', from: A, to: B, value: '0', zeroValue: true }),
+      ],
+    })
     expect(rows.map((r) => r.kind)).toEqual(['send'])
   })
   it('maps direction, raw value and status', () => {
@@ -44,10 +79,22 @@ describe('history view (Q58)', () => {
   it('api result: updatedAt is the fetch time, not failed; the local send wins over the same hash and sorts newest first', () => {
     const v = toView({ source: 'api', data: { items: [item(H1, 1), item(H2, 9000)] }, updatedAt: 777 }, local, 99)
     expect(v).toMatchObject({ updatedAt: 777, failed: false })
-    expect(v.items.map((i) => [i.hash, i.local])).toEqual([[H2, false], [H1, true]])
+    expect(v.items.map((i) => [i.hash, i.local])).toEqual([
+      [H2, false],
+      [H1, true],
+    ])
   })
   it('cache result: keeps the old update time and says it failed', () => {
-    const v = toView({ source: 'cache', data: { items: [item(H2, 10)] }, updatedAt: 123, error: new ApiError('network', 0, true, 'x') }, null, 999)
+    const v = toView(
+      {
+        source: 'cache',
+        data: { items: [item(H2, 10)] },
+        updatedAt: 123,
+        error: new ApiError('network', 0, true, 'x'),
+      },
+      null,
+      999,
+    )
     expect(v).toMatchObject({ updatedAt: 123, failed: true })
     expect(v.items).toHaveLength(1)
   })
@@ -68,7 +115,10 @@ describe('history view (Q58)', () => {
     let t = 1_000
     let fail = false
     const h = createHistory({
-      fetchPage: async () => { if (fail) throw new ApiError('unavailable', 503, true, 'x'); return { items: [item(H2, 50)] } },
+      fetchPage: () => {
+        if (fail) return Promise.reject(new ApiError('unavailable', 503, true, 'x'))
+        return Promise.resolve({ items: [item(H2, 50)] })
+      },
       cache: { get: () => cache, set: (c) => void (cache = c) },
       local: () => [],
       now: () => t,

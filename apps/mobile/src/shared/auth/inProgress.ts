@@ -1,4 +1,4 @@
-// While an OS auth dialog is up, AppState goes inactive/background for a moment. The lock timer must not count that as the user leaving (Q13).
+// While an OS auth dialog is up, AppState goes inactive/background for a moment. The lock timer must not count that as the user leaving.
 let inProgress = 0
 export const isAuthInProgress = (): boolean => inProgress > 0
 

@@ -1,4 +1,4 @@
-// Figma: Icon set 137:3 (Solar Linear/Bold/Bold Duotone; Icon button swap slot 67:205; Icon / action / qr 434:230, more 434:235; navigation / assets 506:24468; hero 506:26134..; wallet-icon-guide.md)
+// Figma: Icon set 137:3 (Solar Linear/Bold/Bold Duotone; Icon button swap slot 67:205; Icon / action / qr 434:230, more 434:235; navigation / assets 506:24468; hero 506:26134..; DESIGN.md Icons)
 // Icons by 480 Design, Solar Icon Set, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Changes were made: resized and recolored. Code: @solar-icons/react-native (MIT).
 import { View } from 'react-native'
 import Svg, { Circle, Path } from 'react-native-svg'
@@ -83,7 +83,16 @@ const RING = 2 * Math.PI * RING_R
 function SpinnerGlyph({ size, color }: { size: number; color: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx={12} cy={12} r={RING_R} stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeDasharray={`${RING * 0.75} ${RING}`} transform="rotate(-90 12 12)" />
+      <Circle
+        cx={12}
+        cy={12}
+        r={RING_R}
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeDasharray={`${String(RING * 0.75)} ${String(RING)}`}
+        transform="rotate(-90 12 12)"
+      />
     </Svg>
   )
 }
@@ -165,12 +174,21 @@ type Props =
   | { name: BoldIconName; size: number; color: string; weight: 'bold' }
   | { name: HeroIconName; size: number; color: string; weight: 'duotone' }
 
-/** Decorative: hidden from screen readers; the label next to it carries the meaning. Duotone back layer = same color at 50% (wallet-icon-guide §0). */
+/** Decorative: hidden from screen readers; the label next to it carries the meaning. Duotone back layer = same color at 50% (DESIGN.md, Icons). */
 export function Icon({ name, size, color, weight = 'linear' }: Props) {
-  const Glyph = weight === 'bold' ? BOLD[name as BoldIconName] : weight === 'duotone' ? DUOTONE[name as HeroIconName] : LINEAR[name as IconName]
+  const Glyph =
+    weight === 'bold'
+      ? BOLD[name as BoldIconName]
+      : weight === 'duotone'
+        ? DUOTONE[name as HeroIconName]
+        : LINEAR[name as IconName]
   return (
     <View accessible={false} importantForAccessibility="no-hide-descendants">
-      <Glyph size={size} color={color} {...(weight === 'duotone' ? { secondaryColor: color, secondaryOpacity: 0.5 } : {})} />
+      <Glyph
+        size={size}
+        color={color}
+        {...(weight === 'duotone' ? { secondaryColor: color, secondaryOpacity: 0.5 } : {})}
+      />
     </View>
   )
 }

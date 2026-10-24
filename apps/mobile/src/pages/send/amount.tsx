@@ -4,19 +4,38 @@ import { useState } from 'react'
 import { View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next'
-import { assets } from '@/entities/asset/fixtures'
-import { cleanAmount } from '@/entities/transaction/review'
-import { getPreselectedAsset, parseSendAsset, sendFrom, sendLimits, setPreselectedAsset, useOnForeground, useSendBalances, useSendable } from '@/features/send'
-import { useDevEthShort } from '@/shared/chain/useDevEthShort'
+import { assets } from '@/entities/asset'
+import { cleanAmount } from '@/entities/transaction'
+import {
+  getPreselectedAsset,
+  parseSendAsset,
+  sendFrom,
+  sendLimits,
+  setPreselectedAsset,
+  useOnForeground,
+  useSendBalances,
+  useSendable,
+} from '@/features/send'
+import { useDevEthShort } from '@/shared/chain'
 import { type KeypadKey, exceedsBalance, isZeroAmount, pressKey } from '@/shared/lib/amount'
 import { isAddressFormat } from '@/shared/lib/address'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
-import { useShake } from '@/shared/theme/motion'
-import { AmountDisplay, AssetSelector, Button, Chip, Keypad, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
-import { AssetPickerSheet } from '@/widgets/asset-picker/AssetPickerSheet'
-import { FaucetRow } from '@/widgets/faucet-row/FaucetRow'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { useShake } from '@/shared/theme'
+import {
+  AmountDisplay,
+  AssetSelector,
+  Button,
+  Chip,
+  Keypad,
+  Screen,
+  ScreenHeader,
+  StatusNotice,
+  Text,
+} from '@/shared/ui'
+import { AssetPickerSheet } from '@/widgets/asset-picker'
+import { FaucetRow } from '@/features/faucet'
+import { NetworkChips } from '@/widgets/network-chips'
 
 const CHIP_LABEL = { 25: 'send.chip.p25', 50: 'send.chip.p50', 100: 'send.chip.all' } as const
 
@@ -31,7 +50,12 @@ export function SendAmountPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const router = useRouter()
-  const { to, amount: initial, asset: assetParam, sheet } = useLocalSearchParams<{ to?: string; amount?: string; asset?: string; sheet?: string }>()
+  const {
+    to,
+    amount: initial,
+    asset: assetParam,
+    sheet,
+  } = useLocalSearchParams<{ to?: string; amount?: string; asset?: string; sheet?: string }>()
   useDevEthShort()
   const [asset, setAsset] = useState<AssetId>(assetParam ? parseSendAsset(assetParam) : getPreselectedAsset())
   const [amount, setAmount] = useState(initial === undefined ? '0' : (cleanAmount(initial, asset) ?? '0'))
@@ -47,7 +71,8 @@ export function SendAmountPage() {
   const tooMuch = sendable !== null && exceedsBalance(amount, sendable, asset)
   const onKey = (k: KeypadKey) => {
     const r = pressKey(amount, k, sendable, asset)
-    if (r.overMax) shake() // the key is rejected; the Keypad gives the warning haptic for `false`
+    if (r.overMax)
+      shake() // the key is rejected; the Keypad gives the warning haptic for `false`
     else setAmount(r.amount)
     return r.accepted
   }
@@ -60,18 +85,33 @@ export function SendAmountPage() {
     }
   }
   const chosen = chips.find((c) => c.raw > 0n && c.value === amount.replace(/\.$/, ''))
-  const maxLine = sendable !== null ? `${t('send.maxSendable')} ${formatDecimal(sendable, asset, 'floor')} ${asset}` : undefined
+  const maxLine =
+    sendable !== null ? `${t('send.maxSendable')} ${formatDecimal(sendable, asset, 'floor')} ${asset}` : undefined
   const sub = chosen?.pct === 100 && asset === 'ETH' ? t('send.feeExcluded') : maxLine
   return (
     <Screen
       topGap="group"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} chips={<NetworkChips />} />}
-      footer={<Button label={t('send.review')} disabled={isZeroAmount(amount) || tooMuch} onPress={() => router.push({ pathname: '/review', params: { to, amount, asset } })} />}
+      footer={
+        <Button
+          label={t('send.review')}
+          disabled={isZeroAmount(amount) || tooMuch}
+          onPress={() => router.push({ pathname: '/review', params: { to, amount, asset } })}
+        />
+      }
     >
       <View style={{ flex: 1, gap: th.semantic.layout.groupGap }}>
         <View style={{ gap: th.primitive.space[2] }}>
-          <Text variant="title1" accessibilityRole="header">{t('send.amountQuestion')}</Text>
-          <AssetSelector name={info.name} symbol={asset} label={t('send.assetLabel')} hint={t('send.assetChange')} onPress={() => setPicker(true)} />
+          <Text variant="title1" accessibilityRole="header">
+            {t('send.amountQuestion')}
+          </Text>
+          <AssetSelector
+            name={info.name}
+            symbol={asset}
+            label={t('send.assetLabel')}
+            hint={t('send.assetChange')}
+            onPress={() => setPicker(true)}
+          />
         </View>
         {/* Composed column (Figma S20B): amount, sub line and chips sit together at the bottom of the free space, just above the keypad. */}
         <View style={{ flex: 1, justifyContent: 'flex-end', gap: th.semantic.layout.groupGap }}>
@@ -79,11 +119,20 @@ export function SendAmountPage() {
             <Animated.View style={shakeStyle}>
               <AmountDisplay amount={amount} ticker={asset} error={tooMuch} {...(sub && !tooMuch ? { sub } : {})} />
             </Animated.View>
-            {tooMuch ? <StatusNotice tone="danger" title={t('send.insufficient')} {...(maxLine ? { body: maxLine } : {})} /> : null}
+            {tooMuch ? (
+              <StatusNotice tone="danger" title={t('send.insufficient')} {...(maxLine ? { body: maxLine } : {})} />
+            ) : null}
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'center', gap: th.semantic.layout.fieldGap }}>
             {chips.map((c) => (
-              <Chip key={c.pct} label={t(CHIP_LABEL[c.pct])} selected={chosen?.pct === c.pct} disabled={c.raw === 0n} disabledReason={feeShort ? t('send.feeShort') : t('send.chipNoBalance')} onPress={() => setAmount(c.value)} />
+              <Chip
+                key={c.pct}
+                label={t(CHIP_LABEL[c.pct])}
+                selected={chosen?.pct === c.pct}
+                disabled={c.raw === 0n}
+                disabledReason={feeShort ? t('send.feeShort') : t('send.chipNoBalance')}
+                onPress={() => setAmount(c.value)}
+              />
             ))}
           </View>
           {feeShort ? (
@@ -95,7 +144,13 @@ export function SendAmountPage() {
         </View>
         <Keypad labels={{ dot: t('send.keypad.dot'), delete: t('send.keypad.delete') }} onKey={onKey} />
       </View>
-      <AssetPickerSheet visible={picker} onClose={() => setPicker(false)} onPick={pick} balances={balances} selected={asset} />
+      <AssetPickerSheet
+        visible={picker}
+        onClose={() => setPicker(false)}
+        onPick={pick}
+        balances={balances}
+        selected={asset}
+      />
     </Screen>
   )
 }

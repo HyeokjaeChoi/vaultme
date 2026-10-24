@@ -45,17 +45,17 @@ const items = new Map<string, { username: string; password: string }>()
 vi.mock('react-native-keychain', () => ({
   ACCESS_CONTROL: { BIOMETRY_ANY_OR_DEVICE_PASSCODE: 'x' },
   ACCESSIBLE: { WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: 'x', AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: 'y' },
-  setGenericPassword: vi.fn(async (u: string, p: string, o: { service: string }) => {
+  setGenericPassword: vi.fn((u: string, p: string, o: { service: string }) => {
     items.set(o.service, { username: u, password: p })
-    return { service: o.service, storage: 'x' }
+    return Promise.resolve({ service: o.service, storage: 'x' })
   }),
-  getGenericPassword: vi.fn(async (o: { service: string }) => items.get(o.service) ?? false),
-  hasGenericPassword: vi.fn(async (o: { service: string }) => items.has(o.service)),
-  resetGenericPassword: vi.fn(async (o?: { service: string }) => {
+  getGenericPassword: vi.fn((o: { service: string }) => Promise.resolve(items.get(o.service) ?? false)),
+  hasGenericPassword: vi.fn((o: { service: string }) => Promise.resolve(items.has(o.service))),
+  resetGenericPassword: vi.fn((o?: { service: string }) => {
     if (o) items.delete(o.service)
-    return true
+    return Promise.resolve(true)
   }),
-  getSupportedBiometryType: vi.fn(async () => null),
+  getSupportedBiometryType: vi.fn(() => Promise.resolve(null)),
 }))
 vi.mock('react-native-mmkv', () => ({
   createMMKV: () => {
@@ -84,7 +84,7 @@ async function setup() {
 }
 
 describe('restoreWallet', () => {
-  it('stores the phrase and the first-account address; restored, backup not done (Q16)', async () => {
+  it('stores the phrase and the first-account address; restored, backup not done', async () => {
     const { restoreWallet, kv } = await setup()
     expect(await restoreWallet(`  ${VECTOR.toUpperCase()} `, PROMPT)).toEqual({ status: 'ok', address: VECTOR_ADDRESS })
     expect(kv.getAccountAddress()).toBe(VECTOR_ADDRESS)
@@ -103,7 +103,9 @@ describe('restoreWallet', () => {
     const { loadPhrase } = await import('../src/shared/storage/keychain')
     const loaded = await loadPhrase(PROMPT)
     expect(loaded.status === 'ok' && loaded.mnemonic.reveal()).toBe(VECTOR) // words only
-    expect(loaded.status === 'ok' && loaded.mnemonic.account().address.toLowerCase()).toBe('0x9c32f71d4db8fb9e1a58b0a80df79935e7256fa6')
+    expect(loaded.status === 'ok' && loaded.mnemonic.account().address.toLowerCase()).toBe(
+      '0x9c32f71d4db8fb9e1a58b0a80df79935e7256fa6',
+    )
   })
   it('no passphrase keeps the original storage format', async () => {
     const { restoreWallet } = await setup()
@@ -113,7 +115,10 @@ describe('restoreWallet', () => {
   it('rejects bad input without touching storage', async () => {
     const { restoreWallet, kv } = await setup()
     expect(await restoreWallet(BAD_CHECKSUM, PROMPT)).toEqual({ status: 'invalid', issue: { kind: 'badChecksum' } })
-    expect(await restoreWallet('abandon abcd', PROMPT)).toEqual({ status: 'invalid', issue: { kind: 'unknownWord', word: 'abcd' } })
+    expect(await restoreWallet('abandon abcd', PROMPT)).toEqual({
+      status: 'invalid',
+      issue: { kind: 'unknownWord', word: 'abcd' },
+    })
     expect(items.has('app.vaultme.phrase')).toBe(false)
     expect(kv.getAccountAddress()).toBeNull()
   })

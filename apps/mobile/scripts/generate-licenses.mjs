@@ -25,7 +25,19 @@ const ASSETS = [
 const EXCLUDE = new Set(['pretendard', '@expo-google-fonts/ibm-plex-mono'])
 const DISPLAY = { react: 'React', 'react-native': 'React Native', expo: 'Expo' }
 // Shown first in this order (Figma 526:54503); the rest of the direct dependencies follow, then transitive ones, each A to Z.
-const FIRST = ['react-native', 'expo', 'react', 'viem', '@noble/curves', '@noble/hashes', 'react-native-svg', 'react-native-reanimated', 'react-native-keychain', 'react-native-mmkv', 'i18next']
+const FIRST = [
+  'react-native',
+  'expo',
+  'react',
+  'viem',
+  '@noble/curves',
+  '@noble/hashes',
+  'react-native-svg',
+  'react-native-reanimated',
+  'react-native-keychain',
+  'react-native-mmkv',
+  'i18next',
+]
 const LICENSE_FILE = /^(licen[sc]e|copying|unlicense)(\.|-|$)/i
 
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'))
@@ -53,17 +65,35 @@ function licenseId(pkg) {
 export function reflow(text) {
   return text
     .split(/\n{2,}/)
-    .map((para) => para.split('\n').reduce((out, line) => (out === '' ? line : /^(\s|\d+[.)]|[-*•]|\(\w+\)|[A-Za-z][.)]\s)/.test(line) ? `${out}\n${line}` : `${out} ${line}`), ''))
+    .map((para) =>
+      para
+        .split('\n')
+        .reduce(
+          (out, line) =>
+            out === ''
+              ? line
+              : /^(\s|\d+[.)]|[-*•]|\(\w+\)|[A-Za-z][.)]\s)/.test(line)
+                ? `${out}\n${line}`
+                : `${out} ${line}`,
+          '',
+        ),
+    )
     .join('\n\n')
 }
 
 function licenseText(dir) {
-  const f = readdirSync(dir).filter((n) => LICENSE_FILE.test(n)).sort()[0]
+  const f = readdirSync(dir)
+    .filter((n) => LICENSE_FILE.test(n))
+    .sort()[0]
   return f ? reflow(readFileSync(join(dir, f), 'utf8').replace(/\r\n/g, '\n').trim()) : null
 }
 
 /** First line that names a copyright holder, as written in the license text. */
-const copyrightLine = (text) => text?.split('\n').map((l) => l.trim()).find((l) => /^(copyright|\(c\))\b/i.test(l) || /^copyright/i.test(l.replace(/^[#*\s]+/, ''))) ?? null
+const copyrightLine = (text) =>
+  text
+    ?.split('\n')
+    .map((l) => l.trim())
+    .find((l) => /^(copyright|\(c\))\b/i.test(l) || /^copyright/i.test(l.replace(/^[#*\s]+/, ''))) ?? null
 
 export function buildLicenses({ root = appDir } = {}) {
   const app = readJson(join(root, 'package.json'))
@@ -76,7 +106,8 @@ export function buildLicenses({ root = appDir } = {}) {
     if (!dir || seen.has(dir)) continue
     const pkg = readJson(join(dir, 'package.json'))
     seen.set(dir, pkg)
-    for (const dep of [...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.optionalDependencies ?? {})]) queue.push([dep, dir])
+    for (const dep of [...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.optionalDependencies ?? {})])
+      queue.push([dep, dir])
   }
   const texts = {}
   const idOf = (text) => {
@@ -110,7 +141,16 @@ export function buildLicenses({ root = appDir } = {}) {
     const [x, y] = [rank(a), rank(b)]
     return x[0] - y[0] || x[1] - y[1] || x[2].localeCompare(y[2]) || a.version.localeCompare(b.version)
   })
-  const assets = ASSETS.map((a) => entry(a.name, a.version, a.license, reflow(readFileSync(join(root, a.file), 'utf8').replace(/\r\n/g, '\n').trim()), a.copyright ?? null, a.url ? { url: a.url } : {}))
+  const assets = ASSETS.map((a) =>
+    entry(
+      a.name,
+      a.version,
+      a.license,
+      reflow(readFileSync(join(root, a.file), 'utf8').replace(/\r\n/g, '\n').trim()),
+      a.copyright ?? null,
+      a.url ? { url: a.url } : {},
+    ),
+  )
   return { assets, libs, texts }
 }
 
@@ -120,5 +160,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const data = buildLicenses()
   writeFileSync(out, `${JSON.stringify(data)}\n`)
   const missing = data.libs.filter((l) => !l.text).length
-  process.stdout.write(`licenses: ${data.libs.length} packages, ${Object.keys(data.texts).length} distinct texts, ${missing} without a license file -> src/generated/licenses.json\n`)
+  process.stdout.write(
+    `licenses: ${data.libs.length} packages, ${Object.keys(data.texts).length} distinct texts, ${missing} without a license file -> src/generated/licenses.json\n`,
+  )
 }
