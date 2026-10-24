@@ -62,17 +62,17 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 
 ### apps/mobile
 
-Expo Router in `app/` has thin route files. They render a page from `src/pages`.
+Expo Router in `app/` has thin route files. They re-export a page from `src/pages` or a layout or guarded route from `src/shell`.
 `src/` follows Feature-Sliced Design. Allowed import direction: `shell` -> `pages` -> `widgets` -> `features` -> `entities` -> `shared`.
 
-- `shell`: providers, `LockGate` (with pure `reduceLock`), `UpdateGate`.
+- `shell` (the FSD app layer; Expo Router reserves `src/app` for routes): `RootLayout`, `TabsLayout`, providers, `LockGate` (with pure `reduceLock`), `UpdateGate`, and the send routes wrapped in the backup gate.
 - `pages`: one folder per screen.
-- `widgets`: `review-panel`, `activity-list`, `asset-picker`, `faucet-row`, `network-chips`.
-- `features`: `send` (`runSend`, `txState`, `useTrackedTx`), `backup`, `restore`, `history`, `balances`, `push-optin` (UI only), `settings`.
-- `entities`: `account`, `asset`, `transaction`. They hold fixtures and the Review view model.
-- `shared`: `api` (client), `chain` (`ChainPort`), `storage` (`keychain`, `kv`), `auth`, `ui` (primitives), `theme`, `lib`.
+- `widgets`: `review-panel`, `activity-list`, `asset-picker`, `network-chips`, `backup-gate` (`useBackupGate`, `SendGuard`: backup, history and restore together).
+- `features`: `send` (`runSend`, `txState`, `useTrackedTx`), `backup`, `restore`, `history`, `balances`, `faucet` (`FaucetRow`), `push-optin` (UI only), `settings`.
+- `entities`: `account`, `asset`, `transaction`. They hold fixtures, the Review view model, `txView` and the pending tx store (`readPendingTx`, `writePendingTx`).
+- `shared`: `api` (client), `chain` (`ChainPort`, the fake adapter and its sample balances), `storage` (`keychain`, `kv`), `auth`, `ui` (primitives), `theme`, `lib`.
 
-The layer direction is a convention. No tool enforces it yet (#92). Only `wallet-core` is the signing boundary by design.
+`apps/mobile/eslint.config.mjs` (eslint-plugin-boundaries) enforces the direction, and that another slice is imported only through its `index`. `shared/lib` files are each a public entry. `apps/mobile/steiger.config.mjs` checks the folder structure. Only `wallet-core` is the signing boundary by design.
 
 `ChainPort` is the one chain interface. The real adapter calls `POST /v1/rpc`. If `EXPO_PUBLIC_API_URL` is not set, a fake adapter runs, nothing is sent, and the UI says so.
 

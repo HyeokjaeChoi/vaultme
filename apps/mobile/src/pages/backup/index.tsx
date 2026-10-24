@@ -3,7 +3,7 @@ import { allowScreenCaptureAsync, preventScreenCaptureAsync } from 'expo-screen-
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppState, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { startCheck } from '@/features/backup/model/check'
+import { startCheck } from '@/features/backup'
 import { loadPhrase } from '@/shared/storage'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
@@ -150,3 +150,5 @@ export function BackupPage({
     </Screen>
   )
 }
+export { BackupCheckPage } from './check'
+export { BackupCheckRoute } from './checkRoute'

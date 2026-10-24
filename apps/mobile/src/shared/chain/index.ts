@@ -14,3 +14,8 @@ function pick(): ChainPort {
 
 /** The one chain adapter: real `/v1/rpc` when `EXPO_PUBLIC_API_URL` is set, the fake one otherwise. */
 export const chain: ChainPort = pick()
+export { explorerUrl } from './port'
+export type { Receipt } from './port'
+export { useDevEthShort } from './useDevEthShort'
+export { useTestMode } from './useTestMode'
+export { assets } from './fixtures'

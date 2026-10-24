@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
 import { api, createHistory, historyCache } from '@/shared/api'
-import { readPendingTx } from '@/features/send/model/usePendingTx'
+import { readPendingTx } from '@/entities/transaction'
 import { getAccountAddress } from '@/shared/storage'
 import { failedView, toView, type HistoryView } from './view'
 

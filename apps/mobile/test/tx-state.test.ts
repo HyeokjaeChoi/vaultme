@@ -9,7 +9,7 @@ import {
   startPolling,
   type PollTimers,
 } from '../src/features/send/model/txState'
-import { txNotice, txView } from '../src/features/send/model/txView'
+import { txNotice, txView } from '../src/entities/transaction/txView'
 import type { Receipt } from '../src/shared/chain/port'
 import type { PendingTx } from '../src/shared/storage/kv'
 

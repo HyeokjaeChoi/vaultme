@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams } from 'expo-router'
-import { RestoreDonePage } from '@/pages/restore/done'
+import { RestoreDonePage } from '@/pages/restore'
 
 export default function RestoreDoneRoute() {
   const { demo, copied, passphrase } = useLocalSearchParams<{ demo?: string; copied?: string; passphrase?: string }>()

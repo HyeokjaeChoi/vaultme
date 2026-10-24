@@ -1,5 +1,5 @@
 export { useBackupDone } from './model/useBackupDone'
 export { useAccountAddress } from './model/useAccountAddress'
-export { useBackupGate } from './model/useBackupGate'
 export { backupGateState, type BackupGateState } from './model/gate'
-export { SendGuard } from './ui/SendGuard'
+export { clearCheck, getCheck, startCheck, wrongIndexes } from './model/check'
+export { createWallet } from './model/createWallet'

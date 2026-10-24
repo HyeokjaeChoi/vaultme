@@ -3,14 +3,14 @@ import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Linking, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { account, networkFact } from '@/entities/account/fixtures'
-import { demoTx } from '@/entities/transaction/fixtures'
+import { account, networkFact } from '@/entities/account'
+import { demoTx } from '@/entities/transaction'
 import type { TxState } from '@/features/send'
 import { clearTestTx, isFinal, isPolled, resultCopy, txView, useTrackedTx, writePendingTx } from '@/features/send'
 import { ApiError, apiErrorKey } from '@/shared/api'
 import { chain } from '@/shared/chain'
-import { explorerUrl } from '@/shared/chain/port'
-import { useTestMode } from '@/shared/chain/useTestMode'
+import { explorerUrl } from '@/shared/chain'
+import { useTestMode } from '@/shared/chain'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { showAmount } from '@/shared/lib/amount'
@@ -29,8 +29,8 @@ import {
   SummaryRow,
   Text,
 } from '@/shared/ui'
-import { AddressText } from '@/shared/ui/AddressBlock'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { AddressText } from '@/shared/ui'
+import { NetworkChips } from '@/widgets/network-chips'
 
 const hhmm = (at: number) => new Date(at).toTimeString().slice(0, 5)
 

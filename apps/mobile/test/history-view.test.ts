@@ -1,10 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { failedView, parseItems, toView } from '../src/features/history/model/view'
 import { apiErrorKey } from '../src/shared/api/errorCopy'
 import { ApiError } from '../src/shared/api/errors'
 import { createHistory } from '../src/shared/api/history'
 import { dayGroup, formatUpdated } from '../src/shared/lib/time'
 import type { HistoryCache, PendingTx } from '../src/shared/storage/kv'
+
+// view.ts reaches txView through the entities/transaction index, which also loads the kv store (React Native).
+vi.mock('@/shared/storage', () => ({}))
 
 const A = '0x' + 'a'.repeat(40)
 const H1 = '0x' + '1'.repeat(64)

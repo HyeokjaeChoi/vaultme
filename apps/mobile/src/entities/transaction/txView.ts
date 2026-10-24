@@ -1,5 +1,7 @@
 import type { ActivityStatus } from '@/shared/ui'
-import type { TxState } from './txState'
+import type { PendingTx } from '@/shared/storage'
+
+type TxState = PendingTx['state']
 
 /** Icon status and i18n label of a send in lists and on S23/S41. Replaced has its own badge (refresh): nothing was executed, nothing went wrong on chain. */
 export function txView(state: TxState): {

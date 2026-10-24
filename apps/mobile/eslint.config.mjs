@@ -1,4 +1,5 @@
 import base from '@vaultme/config/eslint'
+import boundaries from 'eslint-plugin-boundaries'
 import reactHooks from 'eslint-plugin-react-hooks'
 import noEffect from 'eslint-plugin-react-you-might-not-need-an-effect'
 import unicorn from 'eslint-plugin-unicorn'
@@ -83,6 +84,69 @@ const react = [
   },
 ]
 
+// FSD layers (ARCHITECTURE.md#mobile-layers, #92). Imports go down only, and into another slice only through its index file.
+// shared/lib is a set of small independent modules, so each file there is a public entry. expo-router files under app/ only
+// render the shell (FSD app layer) or a page. The app layer is src/shell because Expo Router takes src/app as its route folder. steiger checks the folder structure (see package.json "lint").
+const index = 'index.{ts,tsx}'
+const below = {
+  shell: ['pages', 'widgets', 'features', 'entities', 'shared'],
+  pages: ['widgets', 'features', 'entities', 'shared'],
+  widgets: ['features', 'entities', 'shared'],
+  features: ['entities', 'shared', 'generated'], // licenses reads the generated license list
+  entities: ['shared'],
+  shared: [],
+  route: ['shell', 'pages', 'shared'], // shared/lib only: the crypto polyfill must load first in app/_layout.tsx
+}
+const layers = {
+  files: code,
+  plugins: { boundaries },
+  settings: {
+    'import/resolver': { typescript: { alwaysTryTypes: true, project: './tsconfig.json' } },
+    'boundaries/elements': [
+      { type: 'route', pattern: 'app/**', partialMatch: false },
+      { type: 'shell', pattern: 'src/shell' },
+      { type: 'generated', pattern: 'src/generated' },
+      ...['pages', 'widgets', 'features', 'entities', 'shared'].map((type) => ({
+        type,
+        pattern: `src/${type}/*`,
+        capture: ['slice'],
+      })),
+    ],
+  },
+  rules: {
+    'boundaries/dependencies': [
+      'error',
+      {
+        default: 'disallow',
+        policies: [
+          {
+            from: { element: { type: '*' } },
+            allow: {
+              to: {
+                element: { type: '{{ from.element.type }}', captured: { slice: '{{ from.element.captured.slice }}' } },
+              },
+            },
+          },
+          // shared has segments, not slices: they may use each other's files
+          { from: { element: { type: 'shared' } }, allow: { to: { element: { type: ['shared', 'generated'] } } } },
+          ...Object.entries(below).map(([from, to]) => ({
+            from: { element: { type: from } },
+            allow: [
+              {
+                to: {
+                  element: { type: to.filter((t) => !(from === 'route' && t === 'shared')), fileInternalPath: index },
+                },
+              },
+              ...(to.includes('shared') ? [{ to: { element: { type: 'shared', captured: { slice: 'lib' } } } }] : []),
+              ...(to.includes('generated') ? [{ to: { element: { type: 'generated' } } }] : []),
+            ],
+          })),
+        ],
+      },
+    ],
+  },
+}
+
 export default [
   { ignores: ['.expo', 'dist', 'plugins'] },
   ...base,
@@ -90,4 +154,5 @@ export default [
   restrictedSyntax,
   restrictedImports,
   bottomSheet,
+  layers,
 ]

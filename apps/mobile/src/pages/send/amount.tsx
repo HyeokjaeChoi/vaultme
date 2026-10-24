@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next'
-import { assets } from '@/entities/asset/fixtures'
-import { cleanAmount } from '@/entities/transaction/review'
+import { assets } from '@/entities/asset'
+import { cleanAmount } from '@/entities/transaction'
 import {
   getPreselectedAsset,
   parseSendAsset,
@@ -16,12 +16,12 @@ import {
   useSendBalances,
   useSendable,
 } from '@/features/send'
-import { useDevEthShort } from '@/shared/chain/useDevEthShort'
+import { useDevEthShort } from '@/shared/chain'
 import { type KeypadKey, exceedsBalance, isZeroAmount, pressKey } from '@/shared/lib/amount'
 import { isAddressFormat } from '@/shared/lib/address'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
-import { useShake } from '@/shared/theme/motion'
+import { useShake } from '@/shared/theme'
 import {
   AmountDisplay,
   AssetSelector,
@@ -33,9 +33,9 @@ import {
   StatusNotice,
   Text,
 } from '@/shared/ui'
-import { AssetPickerSheet } from '@/widgets/asset-picker/AssetPickerSheet'
-import { FaucetRow } from '@/widgets/faucet-row/FaucetRow'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { AssetPickerSheet } from '@/widgets/asset-picker'
+import { FaucetRow } from '@/features/faucet'
+import { NetworkChips } from '@/widgets/network-chips'
 
 const CHIP_LABEL = { 25: 'send.chip.p25', 50: 'send.chip.p50', 100: 'send.chip.all' } as const
 

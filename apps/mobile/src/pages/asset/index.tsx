@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { USDC_SEPOLIA } from '@vaultme/contracts'
-import { networkFact } from '@/entities/account/fixtures'
-import { assets } from '@/entities/asset/fixtures'
+import { networkFact } from '@/entities/account'
+import { assets } from '@/entities/asset'
 import { useHistory } from '@/features/history'
 import { useLiveBalances } from '@/features/balances'
 import { useRestored } from '@/features/restore'
@@ -27,8 +27,8 @@ import {
   SummaryRow,
   Text,
 } from '@/shared/ui'
-import { RecentRows, fakeHistoryItems } from '@/widgets/activity-list/ActivityList'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { RecentRows, fakeHistoryItems } from '@/widgets/activity-list'
+import { NetworkChips } from '@/widgets/network-chips'
 
 /** S11 asset detail: the asset's holding, Send / Receive, what is unique to the asset (network, USDC contract address with copy, fee note) and only this asset's activity. Opened from an asset row on Home. */
 export function AssetDetailPage() {

@@ -3,14 +3,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { cleanAmount, resolveReview } from '@/entities/transaction/review'
+import { cleanAmount, resolveReview } from '@/entities/transaction'
 import { diffChars } from '@/shared/lib/address'
 import { haptic } from '@/shared/lib/haptics'
 import { useTheme } from '@/shared/theme'
 import { BottomSheet, Button, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
-import { AddressText } from '@/shared/ui/AddressBlock'
-import { ReviewPanel } from '@/widgets/review-panel/ReviewPanel'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { AddressText } from '@/shared/ui'
+import { ReviewPanel } from '@/widgets/review-panel'
+import { NetworkChips } from '@/widgets/network-chips'
 import { goBack } from '@/shared/lib/nav'
 import {
   feeShortBy,
@@ -28,7 +28,7 @@ import {
 } from '@/features/send'
 import { apiErrorKey } from '@/shared/api'
 import { chain } from '@/shared/chain'
-import { useDevEthShort } from '@/shared/chain/useDevEthShort'
+import { useDevEthShort } from '@/shared/chain'
 import { loadPhrase } from '@/shared/storage'
 
 /** B/Address compare (Figma 477:5145, inside the S22L sheet): Info line, then the previous and the current address (differing chunks marked red + underline), left edge on the sheet's 16 line. */

@@ -39,3 +39,8 @@ jobs:
         run: pnpm turbo run typecheck lint test
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api openapi:check
+      # Package boundaries (undeclared deps, imports outside a package). Experimental in turbo 2.11, so it only reports.
+      # Make it blocking when turbo marks the command stable.
+      - if: hashFiles('package.json') != ''
+        continue-on-error: true
+        run: pnpm turbo boundaries

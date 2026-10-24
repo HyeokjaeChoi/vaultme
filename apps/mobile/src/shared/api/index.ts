@@ -24,3 +24,4 @@ export const api: ApiClient | null = apiUrl
 
 export { createHistory }
 export const historyCache = { get: getHistoryCache, set: setHistoryCache }
+export type { HistoryResult } from './history'

@@ -3,14 +3,14 @@ import Constants from 'expo-constants'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { View } from 'react-native'
-import { account, networkFact } from '@/entities/account/fixtures'
+import { account, networkFact } from '@/entities/account'
 import { useAccountAddress } from '@/features/backup'
 import { usePushSetting, useZeroSetting } from '@/features/settings'
 import { shortAddress } from '@/shared/lib/address'
 import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
 import { AccountBlock, Block, ListItem, Screen, SectionBand, TabHeader } from '@/shared/ui'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { NetworkChips } from '@/widgets/network-chips'
 
 /** B-S60 설정: account block with copy, then grouped rows (보안 / 알림 / 정보) on Section bands, each row with a Solar icon. */
 export function SettingsPage() {
@@ -94,3 +94,8 @@ export function SettingsPage() {
     </Screen>
   )
 }
+export { DeviceWarningPage } from './device'
+export { LicensePage } from './license'
+export { LicensesPage } from './licenses'
+export { PushSettingPage } from './push'
+export { ZeroSettingPage } from './zero'

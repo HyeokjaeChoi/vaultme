@@ -1,5 +1,5 @@
 import { toUnits, txHash, type AssetId, type ChainSnapshot } from '@vaultme/wallet-core'
-import { assets } from '@/entities/asset/fixtures'
+import { assets } from './fixtures'
 import { isEthShort } from './devOverride'
 import type { ChainPort } from './port'
 

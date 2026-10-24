@@ -3,13 +3,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { account } from '@/entities/account/fixtures'
-import { assets } from '@/entities/asset/fixtures'
-import { demoTx } from '@/entities/transaction/fixtures'
-import { useAccountAddress, useBackupDone, useBackupGate } from '@/features/backup'
+import { account } from '@/entities/account'
+import { assets } from '@/entities/asset'
+import { demoTx } from '@/entities/transaction'
+import { useAccountAddress, useBackupDone } from '@/features/backup'
+import { useBackupGate } from '@/widgets/backup-gate'
 import { useLiveBalancesState } from '@/features/balances'
 import { useHistory } from '@/features/history'
-import { PushOptInSheet } from '@/features/push-optin/ui/PushOptInSheet'
+import { PushOptInSheet } from '@/features/push-optin'
 import { useRestored } from '@/features/restore'
 import { setPreselectedAsset, useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
@@ -26,9 +27,9 @@ import {
   SectionHeader,
   Text,
 } from '@/shared/ui'
-import { RecentRows, fakeHistoryItems } from '@/widgets/activity-list/ActivityList'
-import { FaucetAction } from '@/widgets/faucet-row/FaucetRow'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { RecentRows, fakeHistoryItems } from '@/widgets/activity-list'
+import { FaucetAction } from '@/features/faucet'
+import { NetworkChips } from '@/widgets/network-chips'
 
 type SheetName = 'intro' | 'testData' | 'block' | 'push' | 'deposit' | null
 

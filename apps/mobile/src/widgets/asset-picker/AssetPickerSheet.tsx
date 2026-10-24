@@ -2,7 +2,7 @@
 import type { AssetId } from '@vaultme/wallet-core'
 import { Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { assets } from '@/entities/asset/fixtures'
+import { assets } from '@/entities/asset'
 import { useTheme } from '@/shared/theme'
 import { AssetIcon, BottomSheet, Icon, Text } from '@/shared/ui'
 

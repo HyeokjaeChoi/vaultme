@@ -2,14 +2,14 @@ import { Redirect, useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppState, View, type TextInput } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { clearCheck, getCheck, wrongIndexes } from '@/features/backup/model/check'
+import { clearCheck, getCheck, wrongIndexes } from '@/features/backup'
 import { setBackupDone } from '@/shared/storage'
 import { at } from '@/shared/lib/at'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
 import { Button, Input, Screen, ScreenHeader, Text } from '@/shared/ui'
-import { NO_AUTOFILL } from '@/shared/ui/noAutofill'
+import { NO_AUTOFILL } from '@/shared/ui'
 
 /** R-S04 단어 확인. Asks the 3 positions picked by S03. Wrong: only the wrong cells turn Invalid with "N번째 단어가 달라요" (right cells stay), focus moves to the first wrong cell, one error haptic. Right: backup flag set, then Receive (S30) with Home beneath. */
 /** `preset` is a __DEV__ design-capture state: typed answers and which cells are already judged wrong. */

@@ -7,7 +7,7 @@ import { authenticate, type AuthResult } from '@/shared/auth'
 import { biometryType } from '@/shared/storage'
 import { haptic } from '@/shared/lib/haptics'
 import { useTheme } from '@/shared/theme'
-import { BLOOM_MS, EASE_OUT } from '@/shared/theme/motion'
+import { BLOOM_MS, EASE_OUT } from '@/shared/theme'
 import { BrandScreen, Button, Icon, Text } from '@/shared/ui'
 
 const BODY = { FaceID: 'faceId', Face: 'face', TouchID: 'fingerprint', Fingerprint: 'fingerprint' } as const
