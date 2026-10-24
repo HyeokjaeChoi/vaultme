@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AppState, Keyboard, View, type TextInput } from 'react-native'
+import { AppState, Keyboard, View, type TextInputInstance } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import {
   applyCellInput,
@@ -63,7 +63,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const [outcome, setOutcome] = useState<'exists' | 'error' | null>(dev?.outcome ?? null)
   const [submitChecksum, setSubmitChecksum] = useState(false)
 
-  const cells = useRef<(TextInput | null)[]>([])
+  const cells = useRef<(TextInputInstance | null)[]>([])
   const reveal = useRef<((y: number | 'end', height?: number) => void) | null>(null)
   const phraseY = useRef(0)
   const gridY = useRef(0)

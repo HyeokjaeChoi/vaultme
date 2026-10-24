@@ -11,7 +11,7 @@ export function TabsLayout() {
   const th = useTheme()
   return (
     <Tabs
-      tabBar={({ state, descriptors, navigation }) => (
+      tabBar={({ state, descriptors, navigateToTab }) => (
         <ProductNavigation
           items={state.routes
             .filter((r) => r.name !== 'asset')
@@ -23,7 +23,7 @@ export function TabsLayout() {
                 state.routes[state.index]?.name === 'asset'
                   ? r.name === 'home'
                   : state.routes[state.index]?.key === r.key,
-              onPress: () => navigation.navigate(r.name),
+              onPress: () => navigateToTab(r.key),
             }))}
         />
       )}

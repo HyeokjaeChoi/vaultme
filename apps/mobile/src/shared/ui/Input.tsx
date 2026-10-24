@@ -1,6 +1,6 @@
 // Figma: Input 67:231 (B/Input 421:805)
 import { useState, type Ref } from 'react'
-import { Pressable, TextInput, View, type TextInputProps } from 'react-native'
+import { Pressable, TextInput, View, type TextInputInstance, type TextInputProps } from 'react-native'
 import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
 import { Icon, type IconName } from './Icon'
@@ -28,7 +28,7 @@ type Props = Pick<
   error?: string
   editable?: boolean
   /** Ref to the TextInput, e.g. to focus the first invalid field. */
-  inputRef?: Ref<TextInput>
+  inputRef?: Ref<TextInputInstance>
   /** Link actions inside the field under the text, right aligned (B/Input Kind=Address 421:773, e.g. 붙여넣기). The text then uses Address mono. */
   actions?: { label: string; onPress: () => void }[]
   /** Icon button at the right end of the field (B/Input `Show action` 421:805, e.g. the passphrase eye). 44 x 44 touch area, `label` = its accessible name. */

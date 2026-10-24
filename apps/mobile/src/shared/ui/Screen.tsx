@@ -1,6 +1,6 @@
 // Figma: product screen frame (R-S10R 333:113 / R-S22 336:390): screenB.bg (flat white), optional Nav row, body px screen.padding, content pt space-2, section gap 24, Actions pinned below
 import { type ReactNode, type RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, View, type ScrollViewInstance } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
 
@@ -45,7 +45,7 @@ export function Screen({
 }: Props) {
   const t = useTheme()
   const l = t.semantic.layout
-  const scrollRef = useRef<ScrollView>(null)
+  const scrollRef = useRef<ScrollViewInstance>(null)
   const [layoutHeight, setLayoutHeight] = useState(0)
   const [contentHeight, setContentHeight] = useState(0)
   const scrollY = useRef(0)
