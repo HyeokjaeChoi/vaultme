@@ -43,7 +43,7 @@ export function Switch({ value, onValueChange, label, disabled }: Props) {
             width: thumb,
             height: thumb,
             borderRadius: t.component.switch.radius,
-            backgroundColor: t.component.switch.thumb,
+            backgroundColor: disabled && !value ? t.semantic.text.disabled : t.component.switch.thumb, // Off/Disabled thumb (Figma 300:610): light reads dimmed too
           }}
         />
       </View>

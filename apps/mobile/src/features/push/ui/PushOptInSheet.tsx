@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/shared/theme'
-import { BottomSheet, Button, StatusNotice, Text } from '@/shared/ui'
+import { BottomSheet, Button, StatusNotice, Text, useToast } from '@/shared/ui'
 import { pushDeps } from '../api/notifications'
 import { enablePush } from '../model/push'
 
 /**
  * B-S50 Push opt-in sheet (Figma 423:14215, with Receive 652:107697; failed 664:109243): Secondary 나중에 above, Primary 알림 켜기 below.
- * 알림 켜기 asks the OS and registers the address. On (or OS refused): the sheet closes. Failed: it stays open with a danger notice and Primary 다시 시도.
+ * 알림 켜기 asks the OS and registers the address. On: the sheet closes. OS refused: the sheet closes and a toast points to the device settings (736:27408).
+ * Failed: it stays open with a danger notice and Primary 다시 시도.
  * While the request runs no dismissal path (나중에, scrim, back, drag) closes it.
  */
 export function PushOptInSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
@@ -15,6 +16,7 @@ export function PushOptInSheet({ visible, onClose }: { visible: boolean; onClose
   const th = useTheme()
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
+  const toast = useToast()
   const close = () => {
     setFailed(false)
     onClose()
@@ -26,6 +28,7 @@ export function PushOptInSheet({ visible, onClose }: { visible: boolean; onClose
     const failedNow = result === 'error' || result === 'unavailable'
     setFailed(failedNow)
     if (!failedNow) onClose()
+    if (result === 'denied') toast(t('pushSheet.denied'))
   }
   return (
     <BottomSheet
