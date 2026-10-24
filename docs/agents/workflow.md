@@ -24,7 +24,8 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
    Never label a step verified without a run. Set Project Status `In Review`.
 7. Claude reviews the PR once, automatically when it opens (`.github/workflows/claude-code-review.yml`).
    Collect all its findings, fix them together, check the fixes with step 5, and push once.
-   A CodeRabbit PR review (`@coderabbitai review`, about 1 PR per hour on the OSS plan) is optional.
+   Automatic CodeRabbit and Copilot reviews are off. A CodeRabbit PR review on request
+   (`@coderabbitai review`, about 1 PR per hour on the OSS plan) is optional.
    Fork PRs get no Claude review (no secrets), so request the CodeRabbit review there.
 8. Answer each finding with one of: fix the code; fix the design source in the same PR;
    add a check to `scripts/check-repo-rules.sh`; or reject it and cite the design source section.
