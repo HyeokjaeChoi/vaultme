@@ -46,14 +46,8 @@
         }
       ],
       "expo-dev-client",
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "enableSceneSupport": true
-          }
-        }
-      ]
+      "expo-font",
+      "expo-status-bar"
     ],
     "icon": "./assets/icon.png"
   }

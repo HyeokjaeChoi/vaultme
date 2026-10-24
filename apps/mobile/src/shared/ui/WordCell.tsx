@@ -1,6 +1,6 @@
 // Figma: B/Word cell 565:73619 (State Empty 565:73599 / Focus 565:73604 / Filled 565:73609 / Error 565:73614)
 import { type Ref } from 'react'
-import { Platform, TextInput, View, type TextInputKeyPressEvent } from 'react-native'
+import { Platform, TextInput, View, type TextInputInstance, type TextInputKeyPressEvent } from 'react-native'
 import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
 import { NO_AUTOFILL } from './noAutofill'
@@ -19,7 +19,7 @@ type Props = {
   /** Focus look (border + caret color). The page tracks which cell is focused, so a design capture can show it without a keyboard. */
   focused?: boolean
   last?: boolean
-  inputRef?: Ref<TextInput>
+  inputRef?: Ref<TextInputInstance>
   onChangeText: (v: string) => void
   onFocus?: () => void
   onBlur?: () => void
