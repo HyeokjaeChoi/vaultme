@@ -122,17 +122,21 @@ export function syncPush(d: PushDeps): Promise<void> {
 
 export type PushNav = {
   navigate(href: '/activity'): void
-  push(href: { pathname: '/activity/[hash]'; params: { hash: string } }): void
+  push(href: { pathname: '/activity/[hash]'; params: { hash: string; dir: 'in' | 'out' } }): void
 }
 
 /**
  * A tapped push opens S41 of the pushed transaction with the 내역 list below it, at once (owner decision, #171): no fetch, no wait.
- * S41 looks the bare hash up itself (cache, then a fresh page). Anything the server contract does not describe is ignored (returns false).
+ * S41 looks the bare hash up itself (cache, then a fresh page), among the rows of the pushed direction. Anything the server contract does not describe is ignored (returns false).
  */
 export function openPush(data: unknown, nav: PushNav): boolean {
   const p = PushData.safeParse(data)
   if (!p.success) return false
   nav.navigate('/activity')
-  nav.push({ pathname: '/activity/[hash]', params: { hash: p.data.hash } })
+  // `dir`: one tx can have an `in` and an `out` row (and push both kinds); S41 shows the row of the pushed direction.
+  nav.push({
+    pathname: '/activity/[hash]',
+    params: { hash: p.data.hash, dir: p.data.kind === 'deposit' ? 'in' : 'out' },
+  })
   return true
 }

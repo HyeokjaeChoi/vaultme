@@ -173,8 +173,13 @@ describe('openPush', () => {
     const n = nav()
     expect(openPush({ kind: 'deposit', hash: HASH }, n)).toBe(true)
     expect(n.navigate).toHaveBeenCalledExactlyOnceWith('/activity')
-    expect(n.push).toHaveBeenCalledExactlyOnceWith({ pathname: '/activity/[hash]', params: { hash: HASH } })
+    expect(n.push).toHaveBeenCalledExactlyOnceWith({ pathname: '/activity/[hash]', params: { hash: HASH, dir: 'in' } })
     expect(n.navigate.mock.invocationCallOrder[0]).toBeLessThan(n.push.mock.invocationCallOrder[0] ?? 0)
+  })
+  it('passes the pushed direction to S41: deposit -> in, send -> out (one tx can push both)', () => {
+    const n = nav()
+    openPush({ kind: 'send', hash: HASH }, n)
+    expect(n.push).toHaveBeenCalledExactlyOnceWith({ pathname: '/activity/[hash]', params: { hash: HASH, dir: 'out' } })
   })
   it('ignores anything the contract does not describe', () => {
     for (const data of [undefined, { kind: 'other', hash: HASH }, { kind: 'deposit', hash: '../../settings' }]) {
