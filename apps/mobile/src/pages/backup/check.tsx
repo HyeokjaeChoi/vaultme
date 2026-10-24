@@ -1,6 +1,6 @@
 import { Redirect, useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AppState, View, type TextInput } from 'react-native'
+import { AppState, View, type TextInputInstance } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { clearCheck, getCheck, wrongIndexes } from '@/features/backup'
 import { setBackupDone } from '@/shared/storage'
@@ -26,7 +26,7 @@ export function BackupCheckPage({
   const [session] = useState(getCheck) // read once: the hand-off is cleared on leave
   const [answers, setAnswers] = useState<string[]>(preset?.answers ?? ['', '', ''])
   const [wrong, setWrong] = useState<number[]>(preset?.wrong ?? []) // indexes of the cells judged wrong on the last confirm
-  const cells = useRef<(TextInput | null)[]>([])
+  const cells = useRef<(TextInputInstance | null)[]>([])
 
   useFocusEffect(useCallback(() => clearCheck, []))
   useEffect(() => {
