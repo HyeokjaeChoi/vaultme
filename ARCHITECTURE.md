@@ -119,6 +119,7 @@ App side (`features/push`):
 - S50 "알림 켜기" (offered once, after the first copy or share on Receive) and the S62 switch ask the OS, get the Expo token, then `PUT`. The setting turns on only after the `PUT` succeeds.
 - S62 off and wallet removal call `DELETE`. kv `push.unregisterPending` is set before a `DELETE` and before a `PUT` and cleared on success, so an interrupted or unanswered call is undone at the next launch.
 - At launch `syncPush` finishes an owed `DELETE`, or re-sends address and token when the setting is on. Push operations run one at a time.
+- A tap that starts a killed app is held until the route has left `/` (`launchDone`): the start route replaces itself with `/home`, and that replace would otherwise remove the opened S41.
 - A tap (after `PushData` parses) navigates at once, with no fetch and no wait: `/activity` (the 내역 list), then `/activity/<hash>?dir=in|out` (S41, bare hash) on top, so Back shows the list. `dir` follows the push kind (`deposit` = in, `send` = out): one tx can have an `in` and an `out` row and push both kinds (an address that forwards what it receives). S41 looks the hash up (see History). Only a repeated notification identifier is dropped (cold-start read plus listener). Test-data mode (no API) registers nothing.
 - The Expo token uses the EAS `projectId` in `app.json` (`extra.eas.projectId`, project `@gurwo1007/vaultme`).
 

@@ -1,5 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { disablePush, enablePush, openPush, syncPush, type Permission, type PushDeps } from '@/features/push/model/push'
+import {
+  disablePush,
+  enablePush,
+  launchDone,
+  openPush,
+  syncPush,
+  type Permission,
+  type PushDeps,
+} from '@/features/push/model/push'
 
 const ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const HASH = `0x${'ab'.repeat(32)}`
@@ -188,5 +196,15 @@ describe('openPush', () => {
       expect(n.navigate).not.toHaveBeenCalled()
       expect(n.push).not.toHaveBeenCalled()
     }
+  })
+})
+
+describe('launchDone', () => {
+  it('is false on the start route, where the wallet redirect to /home still runs', () => {
+    expect(launchDone('/')).toBe(false)
+  })
+  it('is true on any other route', () => {
+    expect(launchDone('/home')).toBe(true)
+    expect(launchDone('/activity')).toBe(true)
   })
 })
