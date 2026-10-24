@@ -38,7 +38,7 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
 ## Dependency update PRs
 
 Renovate opens them (`.github/renovate.json5`); the Dependency Dashboard issue lists pending and disabled updates.
-They need no issue and skip the `Closes #N` and length rules. Renovate automerges patch and devDependency minor
+They need no issue, skip the `Closes #N` and length rules, and get no Claude review. Renovate automerges npm patch and devDependency minor
 updates when the required checks pass. Review the others with step 10. Expo SDK packages update only through
 `npx expo install --fix`, in a normal PR.
 

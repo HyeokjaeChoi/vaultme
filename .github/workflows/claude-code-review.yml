@@ -13,7 +13,8 @@ concurrency:
 jobs:
   review:
     # Fork PRs get no secrets, so they skip; request a CodeRabbit review there.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # Bot PRs (Renovate, Dependabot) skip too: claude-code-action rejects bot actors, so the check would always fail.
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

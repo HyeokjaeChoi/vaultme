@@ -48,13 +48,10 @@
       matchManagers: ['github-actions'],
       groupName: 'GitHub Actions',
     },
+    // Never automerge. Majors and GitHub Actions (they get repo secrets) never match an automerge rule above.
     {
-      matchManagers: ['github-actions'],
-      matchUpdateTypes: ['patch'],
-      automerge: true,
-    },
-    // Never automerge. Majors never match an automerge rule above.
-    {
+      // Owner rule: nothing in wallet-core automerges. Its own group keeps the shared automerge group mergeable
+      // (a group automerges only if every update may), at the cost of a second branch for deps such as vitest.
       matchFileNames: ['packages/wallet-core/**'],
       matchUpdateTypes: ['minor', 'patch'],
       groupName: 'wallet-core minor and patch',

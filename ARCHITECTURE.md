@@ -163,7 +163,7 @@ The app does not call the push routes yet (#75). `PushOptInSheet` exists, and th
 - A push is only a signal. The payload is parsed with `PushData`; the app must re-read the chain.
 - The API is for the native app only. No CORS headers. A browser `Origin` is refused.
 - Secrets are Worker secrets (`wrangler secret`, `.dev.vars` locally): `TOKEN_SECRET` (32+ chars), `INFURA_KEY`, `ALCHEMY_KEY`, `ETHERSCAN_API_KEY`, `ALCHEMY_*`, `EXPO_ACCESS_TOKEN`. A missing secret makes the route fail closed with `500`. `wrangler.jsonc` holds vars only.
-- Supply chain: pnpm `minimumReleaseAge` 10080 min (7 days), `strictDepBuilds`, an explicit `allowBuilds` list, CI actions pinned by SHA. Renovate (`.github/renovate.json5`) proposes only versions 7 days old or older and automerges only patch and devDependency minor updates.
+- Supply chain: pnpm `minimumReleaseAge` 10080 min (7 days), `strictDepBuilds`, an explicit `allowBuilds` list, CI actions pinned by SHA. Renovate (`.github/renovate.json5`) proposes only versions 7 days old or older and automerges only npm patch and devDependency minor updates.
 - Repo checks block committed keys, `.env` files, recovery phrases (except public test vectors) and `CLAUDE.md` files.
 - Not implemented: root or jailbreak detection, Sentry or other crash reporting, SIWE ownership proof for push. Any install with a valid token can subscribe any address.
 
