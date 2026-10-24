@@ -11,13 +11,13 @@
     "lint": "eslint . --max-warnings=0"
   },
   "dependencies": {
-    "i18next": "^26.0.2",
-    "react-i18next": "^17.0.0"
+    "i18next": "^26.4.7",
+    "react-i18next": "^17.0.20"
   },
   "devDependencies": {
     "@vaultme/config": "workspace:*",
-    "@vitest/coverage-v8": "5.0.3",
-    "eslint": "^10.12.0",
+    "@vitest/coverage-v8": "5.0.5",
+    "eslint": "^10.13.0",
     "react": "19.2.3",
     "typescript": "^6.0.3",
     "vitest": "^5.0.3"
