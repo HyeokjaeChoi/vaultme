@@ -15,8 +15,8 @@
     },
     "apps/mobile": {
       "entry": ["steiger.config.mjs"],
-      // Guessed from app.json: no OTA updates are used; expo-system-ui is a follow-up (Android userInterfaceStyle).
-      "ignoreDependencies": ["expo-updates", "expo-system-ui"],
+      // Guessed from app.json: no OTA updates are used.
+      "ignoreDependencies": ["expo-updates"],
     },
   },
 }
