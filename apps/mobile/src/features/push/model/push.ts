@@ -120,8 +120,10 @@ export function syncPush(d: PushDeps): Promise<void> {
   })
 }
 
-/** A tapped push opens the detail of its transaction. Anything the server contract does not describe is ignored. */
+/**
+ * A tapped push opens the 내역 list (owner decision #163; S41 shows only the app's own last send, so a hash route would redirect anyway).
+ * Anything the server contract does not describe is ignored.
+ */
 export function routeForPush(data: unknown): string | null {
-  const parsed = PushData.safeParse(data)
-  return parsed.success ? `/activity/${parsed.data.hash}` : null
+  return PushData.safeParse(data).success ? '/activity' : null
 }
