@@ -50,6 +50,15 @@ describe('reduce: transaction state table (ARCHITECTURE.md#invariants)', () => {
     expect(reduce(s, { type: 'SAFE', ok: true }).status).toBe('Confirmed')
     expect(reduce(s, { type: 'SAFE', ok: false }).status).toBe('Failed')
     expect(reduce(s, { type: 'REORGED' })).toEqual({ status: 'Pending', hash: H })
+    // Any other event leaves Included unchanged. Only the random-sequence property hit this branch, so coverage flaked (#128).
+    expect(reduce(s, { type: 'RECEIPT', ok: true })).toBe(s)
+  })
+  test('Submitting and Pending: an unlisted event leaves the state unchanged', () => {
+    // Same reason as above: these branches were reached only by the random-sequence property (#128).
+    const submitting: SendState = { status: 'Submitting', requiresAck: false }
+    expect(reduce(submitting, { type: 'EDIT' })).toBe(submitting)
+    const pending: SendState = { status: 'Pending', hash: H }
+    expect(reduce(pending, { type: 'SAFE', ok: true })).toBe(pending)
   })
   test('unknown transition: unchanged, hook called, no throw', () => {
     const hook = vi.fn()
