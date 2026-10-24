@@ -58,6 +58,7 @@ When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a t
 5. Report only what you ran and saw. Say what you could not check.
 6. Code wins over docs. If a doc and the code disagree, follow the code and report the mismatch.
 7. Accepted ADRs in docs/adr bind. If a change conflicts with one, stop and ask; to change a decision, write a new ADR that supersedes it.
+8. Model tiers. Feature design, grilling, architecture decisions and planning use the top tier. Research and implementation use a lower tier. Conversational work needs a top-tier session; one-shot design analysis may go to a top-tier subagent. Tier-to-model mapping: `docs/agents/models.md`.
 
 ## Where things are
 
@@ -67,4 +68,4 @@ When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a t
 - Before you edit an area, read `ARCHITECTURE.md`, the ADRs that touch it and `.claude/skills/vaultme-review-lessons/SKILL.md`.
 - Area rules: `apps/mobile/AGENTS.md`, `packages/tokens/AGENTS.md` (loaded when you open a file there).
 
-Prefer a low-cost model for research and implementation. The main agent splits work, tracks it, and reviews results.
+The main agent splits work, tracks it, and reviews results.
