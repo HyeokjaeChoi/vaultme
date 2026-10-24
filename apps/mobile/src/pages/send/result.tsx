@@ -3,13 +3,13 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef } from 'react'
 import { Redirect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { networkFact } from '@/entities/account/fixtures'
-import { demoTx } from '@/entities/transaction/fixtures'
+import { networkFact } from '@/entities/account'
+import { demoTx } from '@/entities/transaction'
 import type { TxState } from '@/features/send'
 import { isPolled, resultCopy, useTrackedTx } from '@/features/send'
 import { haptic } from '@/shared/lib/haptics'
 import { showAmount } from '@/shared/lib/amount'
-import { useTestMode } from '@/shared/chain/useTestMode'
+import { useTestMode } from '@/shared/chain'
 import { useTheme } from '@/shared/theme'
 import {
   AmountHero,
@@ -23,7 +23,7 @@ import {
   SummaryRow,
 } from '@/shared/ui'
 import { BackHandler, View } from 'react-native'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { NetworkChips } from '@/widgets/network-chips'
 
 /**
  * B-S23 보내기 결과: a centered end moment (asset logo + status badge, headline, Figure amount, sentence), the 보냄 -> 블록 포함 -> 확정 progress for Pending / Included / Confirmed only,

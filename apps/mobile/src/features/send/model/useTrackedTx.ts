@@ -5,7 +5,8 @@ import { chain } from '@/shared/chain'
 import { type PendingTx } from '@/shared/storage'
 import { sendFrom } from './useReviewCore'
 import { checkTx, isPolled, startPolling, type TxState } from './txState'
-import { readPendingTx, usePendingTx, writePendingTx } from './usePendingTx'
+import { readPendingTx, writePendingTx } from '@/entities/transaction'
+import { usePendingTx } from './usePendingTx'
 
 /** ARCHITECTURE.md#send: re-check a Pending or Included send every 15 s while its screen is focused. */
 export const POLL_MS = 15_000

@@ -1,3 +1,3 @@
-import { LicensesPage } from '@/pages/settings/licenses'
+import { LicensesPage } from '@/pages/settings'
 
 export default LicensesPage

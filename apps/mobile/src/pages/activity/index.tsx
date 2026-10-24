@@ -2,15 +2,15 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { transactions } from '@/entities/transaction/fixtures'
+import { transactions } from '@/entities/transaction'
 import { useHistory, type HistoryItem, type HistoryView } from '@/features/history'
 import { txView, usePendingTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { formatUpdated } from '@/shared/lib/time'
 import { useTheme } from '@/shared/theme'
 import { EmptyState, Screen, SkeletonRow, StatusNotice, TabHeader, Text } from '@/shared/ui'
-import { ActivityList as List, fakeHistoryItems } from '@/widgets/activity-list/ActivityList'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { ActivityList as List, fakeHistoryItems } from '@/widgets/activity-list'
+import { NetworkChips } from '@/widgets/network-chips'
 
 function Loading() {
   const { t } = useTranslation()
@@ -162,3 +162,4 @@ export function ActivityPage() {
     </Screen>
   )
 }
+export { TxDetailPage } from './detail'

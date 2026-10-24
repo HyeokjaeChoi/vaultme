@@ -1,1 +1,1 @@
-export { TxDetailPage as default } from '@/pages/activity/detail'
+export { TxDetailPage as default } from '@/pages/activity'

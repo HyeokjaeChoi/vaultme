@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { resultCopy } from '../src/features/send/model/txView'
+import { resultCopy } from '../src/entities/transaction/txView'
 
 it('says "보내는 중이에요" for Pending and Included, "보냈어요" only for Confirmed', () => {
   expect(resultCopy('Pending').title).toBe('result.sending')
@@ -15,7 +15,7 @@ it('warns not to send again while a send may still go through', () => {
   expect(resultCopy('Confirmed').warn).toBeNull()
 })
 
-import { rowTitleKey } from '../src/features/send/model/txView'
+import { rowTitleKey } from '../src/entities/transaction/txView'
 it('names a row by direction and progress (S40)', () => {
   expect(rowTitleKey('send', 'activity.pending')).toBe('activity.row.sending')
   expect(rowTitleKey('send', 'activity.included')).toBe('activity.row.sending')

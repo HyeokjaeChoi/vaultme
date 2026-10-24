@@ -6,7 +6,7 @@ import { haptic } from '@/shared/lib/haptics'
 import { View } from 'react-native'
 import { Button, CheckRow, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
 import { goBack } from '@/shared/lib/nav'
-import { createWallet } from '@/features/backup/model/createWallet'
+import { createWallet } from '@/features/backup'
 
 /** B-S02 시작하기 전에 확인해 주세요 (Figma 423:13478, checked 515:31398): three check rows; "지갑 만들기" stays disabled until all are checked. */
 export function PrecheckPage() {

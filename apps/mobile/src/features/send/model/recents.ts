@@ -1,6 +1,6 @@
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
-import { recentExamples } from '@/entities/transaction/fixtures'
+import { recentExamples } from '@/entities/transaction'
 import { chain } from '@/shared/chain'
 import { addRecent, getRecents, MAX_RECENTS, type RecentRecipient } from '@/shared/storage'
 

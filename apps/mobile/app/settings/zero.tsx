@@ -1,1 +1,1 @@
-export { ZeroSettingPage as default } from '@/pages/settings/zero'
+export { ZeroSettingPage as default } from '@/pages/settings'

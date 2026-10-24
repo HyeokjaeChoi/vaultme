@@ -11,7 +11,7 @@
     "export": "node scripts/generate-licenses.mjs && expo export --platform ios",
     "test": "node scripts/generate-licenses.mjs && vitest run --passWithNoTests",
     "typecheck": "node scripts/generate-licenses.mjs && tsc -p tsconfig.json",
-    "lint": "node scripts/generate-licenses.mjs && eslint . --max-warnings=0"
+    "lint": "node scripts/generate-licenses.mjs && eslint . --max-warnings=0 && steiger ./src"
   },
   "dependencies": {
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
@@ -54,14 +54,18 @@
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
+    "@feature-sliced/steiger-plugin": "0.8.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "~19.2.2",
     "@vaultme/config": "workspace:*",
     "eslint": "^10.12.0",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-boundaries": "7.2.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-you-might-not-need-an-effect": "1.0.2",
     "eslint-plugin-unicorn": "78.0.0",
     "jsqr": "1.4.0",
+    "steiger": "0.7.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.3"

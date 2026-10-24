@@ -1,5 +1,5 @@
 import * as Clipboard from 'expo-clipboard'
-import { useFocusEffect, useRouter } from 'expo-router'
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppState, Keyboard, View, type TextInput } from 'react-native'
 import { useTranslation } from 'react-i18next'
@@ -10,9 +10,9 @@ import {
   joinWords,
   togglePassphrase,
   type WordCount,
-} from '@/features/restore/model/cells'
-import { holdRestore, takeWords } from '@/features/restore/model/handoff'
-import { restoreWallet } from '@/features/restore/model/restoreWallet'
+} from '@/features/restore'
+import { fromPhrase, holdRestore, takeWords } from '@/features/restore'
+import { restoreWallet } from '@/features/restore'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
 import {
@@ -28,7 +28,7 @@ import {
   TextLink,
   WordCell,
 } from '@/shared/ui'
-import { NO_AUTOFILL } from '@/shared/ui/noAutofill'
+import { NO_AUTOFILL } from '@/shared/ui'
 
 /**
  * B-S05 지갑 복구 (Figma 423:15293 + 10 states): title + helper, 12/24 chips + 붙여넣기, numbered word cells in 2 columns
@@ -286,4 +286,31 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
       </View>
     </Screen>
   )
+}
+export { RestoreDonePage } from './done'
+
+// Dev-only fixtures for design comparison (`/restore?demo=<state>`): the public BIP39 test vector and the public Trezor test passphrase, no real phrase.
+const A11 = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon'
+const READY = `${A11} about`
+const TYPING = 'abandon abandon abandon abandon aban'
+const DEMO: Record<string, { phrase: string; dev?: RestoreDev }> = {
+  empty: { phrase: '' },
+  typing: { phrase: TYPING, dev: { focus: 4 } },
+  ready: { phrase: READY },
+  busy: { phrase: READY, dev: { busy: true } },
+  unknown: { phrase: READY.replace('abandon abandon abandon', 'abandon abandon abandn') },
+  checksum: { phrase: `${A11} abandon` },
+  exists: { phrase: READY, dev: { outcome: 'exists' } },
+  saveerror: { phrase: READY, dev: { outcome: 'error' } },
+  'passphrase-masked': { phrase: READY, dev: { passOpen: true, passphrase: 'TREZOR' } },
+  'passphrase-shown': { phrase: READY, dev: { passOpen: true, passphrase: 'TREZOR', showPass: true } },
+  '24words': { phrase: `${'abandon '.repeat(12)}ab`, dev: { focus: 12 } },
+}
+
+/** Route body of /restore, with the dev-only design-comparison fixtures. */
+export function RestoreRoute() {
+  const { demo } = useLocalSearchParams<{ demo?: string }>()
+  const d = __DEV__ && demo ? DEMO[demo === '1' ? 'typing' : demo] : undefined
+  const initial = d ? fromPhrase(d.phrase) : undefined
+  return <RestorePage key={demo ?? ''} {...(initial ? { initial } : {})} {...(d?.dev ? { dev: d.dev } : {})} />
 }

@@ -11,8 +11,8 @@ import { dateLabel } from '@/shared/lib/time'
 import { showAmount } from '@/shared/lib/amount'
 import { useTheme } from '@/shared/theme'
 import { Button, Icon, RecipientField, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
-import { AddressText } from '@/shared/ui/AddressBlock'
-import { NetworkChips } from '@/widgets/network-chips/NetworkChips'
+import { AddressText } from '@/shared/ui'
+import { NetworkChips } from '@/widgets/network-chips'
 
 /**
  * R-S20A 누구에게 보낼까요?. Paste fills the field from the clipboard, 지우기 empties it (shown when it has a value). The scan icon (empty field only) opens B-S21; a valid QR comes back through `takeScanResult`
@@ -136,3 +136,7 @@ export function SendPage() {
     </Screen>
   )
 }
+export { BackupGate } from './BackupGate'
+export { SendAmountPage } from './amount'
+export { SendResultPage } from './result'
+export { ScanPage } from './scan'

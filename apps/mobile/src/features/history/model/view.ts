@@ -1,9 +1,9 @@
 import { HistoryItem as ApiHistoryItem } from '@vaultme/contracts'
 import { fromUnits } from '@vaultme/wallet-core'
-import type { HistoryResult } from '@/shared/api/history'
+import type { HistoryResult } from '@/shared/api'
 import type { PendingTx } from '@/shared/storage'
 import type { ActivityStatus } from '@/shared/ui'
-import { txView } from '@/features/send/model/txView'
+import { txView } from '@/entities/transaction'
 
 export type HistoryItem = {
   hash: string

@@ -9,4 +9,5 @@ strictDepBuilds: true
 # Explicit allow / deny list for dependency build scripts. Empty = deny all.
 allowBuilds:
   esbuild: true # wrangler and vitest-plugin platform binary
+  unrs-resolver: false # eslint-import-resolver-typescript; its platform binary is an optional dependency, the script is only a fallback download
   workerd: true # Workers runtime binary for wrangler dev and tests

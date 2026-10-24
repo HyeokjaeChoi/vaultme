@@ -1,4 +1,4 @@
-import type { ChainPort } from '@/shared/chain/port'
+import type { ChainPort } from '@/shared/chain'
 import type { PendingTx } from '@/shared/storage'
 
 /** Test mode only: clears the fake pending tx so a new send can start (lifts the ADR-0006 block). With a real adapter nothing is cleared. Returns whether it cleared. */

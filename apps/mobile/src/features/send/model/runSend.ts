@@ -1,5 +1,5 @@
 import { fromUnits, signAndSubmit, type Address, type ApprovedSend } from '@vaultme/wallet-core'
-import type { ChainPort } from '@/shared/chain/port'
+import type { ChainPort } from '@/shared/chain'
 import type { AuthPrompt, LoadPhraseResult, PendingTx } from '@/shared/storage'
 
 /** ADR-0006: a Pending or Unknown send blocks a new one. A corrupt record must not lift the block. */

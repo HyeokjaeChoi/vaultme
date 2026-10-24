@@ -1,6 +1,6 @@
 import { prepare, type AssetId, type PrepareError, type Review } from '@vaultme/wallet-core'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { account } from '@/entities/account/fixtures'
+import { account } from '@/entities/account'
 import { chain } from '@/shared/chain'
 import { getAccountAddress } from '@/shared/storage'
 

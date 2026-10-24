@@ -21,7 +21,7 @@ vi.mock('../src/features/send/model/useReviewCore', () => ({
 
 import { blocksNewSend } from '../src/features/send/model/runSend'
 import { checkStored } from '../src/features/send/model/useTrackedTx'
-import { readPendingTx } from '../src/features/send/model/usePendingTx'
+import { readPendingTx } from '../src/entities/transaction/pendingStore'
 
 const tx = {
   hash: '0xabc',

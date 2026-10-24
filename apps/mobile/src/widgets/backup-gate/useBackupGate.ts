@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react'
+import { backupGateState, useBackupDone, type BackupGateState } from '@/features/backup'
 import { useHistory } from '@/features/history'
 import { useRestored } from '@/features/restore'
 import { getDepositPromptShown, setDepositPromptShown } from '@/shared/storage'
-import { backupGateState, type BackupGateState } from './gate'
-import { useBackupDone } from './useBackupDone'
 
 const readShown = () => {
   try {

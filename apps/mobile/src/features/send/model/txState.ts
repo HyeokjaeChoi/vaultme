@@ -1,5 +1,5 @@
 import type { Address, Hash } from '@vaultme/wallet-core'
-import type { ChainPort, Receipt } from '@/shared/chain/port'
+import type { ChainPort, Receipt } from '@/shared/chain'
 import type { PendingTx } from '@/shared/storage'
 
 export type TxState = PendingTx['state']
