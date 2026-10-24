@@ -331,6 +331,11 @@ export const ko = {
     /** Sending account name from the record's derivation index (n = index + 1). */
     accountName: '계정 {{n}}',
     recipientTitle: '받는 주소',
+    // S41 opened by a push (bare hash) before the history page has the row: Figma 749:2800 (not found). Loading and load failed reuse the S40 strings.
+    notFound: {
+      title: '아직 내역에 없어요',
+      body: '방금 일어난 거래는 반영되는 데 시간이 걸려요. 잠시 후 다시 확인해 주세요.',
+    },
     // History rows without a local record (Figma Flow 4 A 742:2487, B 742:2584).
     senderTitle: '보낸 사람',
     recipientWho: '받는 사람',

@@ -1,4 +1,5 @@
 export { useHistory } from './model/useHistory'
 export { toView, failedView, parseItems, type HistoryItem, type HistoryView } from './model/view'
+export { type RowLookup } from './model/detail'
 export { detailRoute, findCachedRow, hashOfId, rowCopy } from './model/detail'
-export { freshRowIdsForHash } from './model/loader'
+export { useRowLookup } from './model/useRowLookup'

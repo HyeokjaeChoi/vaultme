@@ -56,3 +56,54 @@ export function rowCopy(row: Pick<HistoryItem, 'kind' | 'status'>) {
         : ('activity.pending' as const),
   }
 }
+
+export type RowLookup =
+  { status: 'row'; row: HistoryItem } | { status: 'none' } | { status: 'several' } | { status: 'failed' }
+
+const sameHash = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
+
+/**
+ * The row an S41 route param names, from rows already loaded. A row id (`<hash>:<seq>`, from the list) is one exact row. A bare hash (from a push)
+ * is a row only when exactly one row has that hash; with several, the caller must not guess which one the user means.
+ */
+function pick(rows: HistoryItem[], id: string): RowLookup {
+  if (id.includes(':')) {
+    const row = rows.find((i) => i.id === id)
+    return row ? { status: 'row', row } : { status: 'none' }
+  }
+  const same = rows.filter((i) => sameHash(i.hash, id))
+  const [only] = same
+  return same.length === 1 && only ? { status: 'row', row: only } : { status: same.length ? 'several' : 'none' }
+}
+
+/** Cache-only step of `resolveRow`: a row, or null when only a fresh page can tell (no cache, other account, none or several rows). */
+export function rowFromCache(id: string, address: string | null, cache: HistoryCache | null): RowLookup | null {
+  if (!address || cache?.address.toLowerCase() !== address.toLowerCase()) return null
+  let data: unknown
+  try {
+    data = JSON.parse(cache.json)
+  } catch {
+    return null
+  }
+  const r = pick(parseItems(data), id)
+  return r.status === 'row' ? r : null
+}
+
+/**
+ * S41 for a history row without a local record: the cache first, else a fresh first page (`fresh` also writes it to the cache).
+ * The pushed tx is usually newer than the cache. `failed` = no address, a fetch error or `update_required`.
+ */
+export async function resolveRow(
+  id: string,
+  d: { address(): string | null; cache(): HistoryCache | null; fresh(address: string): Promise<unknown> },
+): Promise<RowLookup> {
+  try {
+    const address = d.address()
+    if (!address) return { status: 'failed' }
+    const cached = rowFromCache(id, address, d.cache())
+    if (cached) return cached
+    return pick(parseItems(await d.fresh(address)), id)
+  } catch {
+    return { status: 'failed' }
+  }
+}

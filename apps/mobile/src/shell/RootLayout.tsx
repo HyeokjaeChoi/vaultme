@@ -6,11 +6,10 @@ import { fontAssets, useTheme } from '@/shared/theme'
 import { hasPhrase, openKv } from '@/shared/storage'
 import { LockGate } from './LockGate'
 import { usePushBoot } from '@/features/push'
-import { pushTapDeps } from './pushTap'
 
 function Navigator() {
   const th = useTheme()
-  usePushBoot(pushTapDeps)
+  usePushBoot()
   return (
     <Stack
       screenOptions={{
