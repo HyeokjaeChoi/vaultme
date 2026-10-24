@@ -207,14 +207,17 @@ export function notificationsFor(
     if (!ok || !/^0x[0-9a-fA-F]{64}$/.test(a.hash)) continue
     const from = a.fromAddress?.toLowerCase()
     const to = a.toAddress?.toLowerCase()
-    const ref = `${a.hash.toLowerCase()}:${a.log?.logIndex ?? a.category}`
-    // Received wins over sent: a self-send is a deposit as well, and one tx never pushes twice to an address.
+    const hash = a.hash.toLowerCase()
+    // One notification per (address, tx), and the hash is the push_sent ref, so a later webhook with another leg of the same tx stays silent.
+    // Received wins over sent, whatever the activity order: a self-send is a deposit, and a tx with an incoming and an outgoing leg is a deposit.
+    // Known limit: if the send leg arrives in an earlier webhook than the deposit leg, the push says send.
     for (const [addr, kind] of [
       [to, 'deposit'],
       [from, 'send'],
     ] as const) {
-      if (addr && subscribed.has(addr) && !out.has(`${addr}:${ref}`))
-        out.set(`${addr}:${ref}`, { address: addr, kind, hash: a.hash.toLowerCase(), ref })
+      if (!addr || !subscribed.has(addr)) continue
+      const key = `${addr}:${hash}`
+      if (out.get(key)?.kind !== 'deposit') out.set(key, { address: addr, kind, hash, ref: hash })
     }
   }
   return [...out.values()]
