@@ -1,4 +1,4 @@
-// Figma: B-S62 거래 알림 on 423:15349, off 652:108018, denied 652:108041 (List item Trailing=Switch 300:636)
+// Figma: B-S62 거래 알림 on 423:15349, off 652:108018, denied 652:108041, failed 664:109147 (List item Trailing=Switch 300:636)
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { AppState, Linking, View } from 'react-native'
@@ -12,7 +12,7 @@ import { ListItem, Screen, ScreenHeader, StatusNotice, Switch, Text, TextLink } 
 /**
  * B-S62 거래 알림: one switch row, the privacy line under it, the anti-phishing notice. The switch is on only when the setting is on AND the OS allows notifications.
  * The OS said no: the switch is off and disabled, with a link to the device settings (the app cannot ask again).
- * A failed registration leaves the switch off without a message: the failure state waits for its Figma frames (#81).
+ * A failed registration leaves the switch off with a danger notice under it; turning the switch on again retries.
  */
 export function PushSettingPage() {
   const { t } = useTranslation()
@@ -20,6 +20,7 @@ export function PushSettingPage() {
   const [stored, setStored] = usePushSetting()
   const [permission, setPermission] = useState<Permission>('undetermined')
   const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
   // Re-read on focus and when the app comes back (설정 열기 leaves the app; the screen keeps focus).
   useFocusEffect(
     useCallback(() => {
@@ -37,8 +38,10 @@ export function PushSettingPage() {
     if (next) {
       const result = await enableTxPush()
       setStored(result === 'on')
+      setFailed(result === 'error' || result === 'unavailable')
       if (result === 'denied') setPermission('denied')
     } else {
+      setFailed(false)
       await disableTxPush()
       setStored(false)
     }
@@ -69,6 +72,7 @@ export function PushSettingPage() {
             ),
           }}
         />
+        {failed && !denied ? <StatusNotice tone="danger" title={t('settings.pushScreen.failed')} /> : null}
         {denied ? (
           <View>
             <Text variant="bodySmall">{t('settings.pushScreen.denied')}</Text>
