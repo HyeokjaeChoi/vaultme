@@ -73,6 +73,7 @@ describe('runSend', () => {
       fee: '0.000042',
       createdAt: 1000,
       lastCheckedAt: 1000,
+      accountIndex: 0,
     })
     expect(saved[0]!.hash).toMatch(/^0x[0-9a-f]{64}$/)
   })

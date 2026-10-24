@@ -89,6 +89,8 @@ export type PendingTx = {
   failReason?: 'outOfGas'
   /** Block of the receipt, once the network has one (S41 "블록" Fact row). */
   blockNumber?: number
+  /** Derivation index of the sending account, saved at send time (S23/S41 "보낸 계정" = 계정 index + 1). Records saved before #32 have none, and the row is hidden. */
+  accountIndex?: number
   state: 'Pending' | 'Unknown' | 'Included' | 'Confirmed' | 'Failed' | 'Replaced'
 }
 
@@ -128,6 +130,9 @@ export function parsePendingTx(raw: string): PendingTx | null {
     ...(isStr(o.fee) ? { fee: o.fee } : {}),
     ...(isNum(o.blockNumber) ? { blockNumber: o.blockNumber } : {}),
     ...(o.failReason === 'outOfGas' ? { failReason: 'outOfGas' as const } : {}),
+    ...(Number.isInteger(o.accountIndex) && (o.accountIndex as number) >= 0
+      ? { accountIndex: o.accountIndex as number }
+      : {}),
   }
 }
 
