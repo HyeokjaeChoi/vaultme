@@ -150,14 +150,14 @@ export function TxDetailPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const {
-    id,
+    hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash)
     demo,
     row: devRow,
     real,
     sheet,
     err,
   } = useLocalSearchParams<{
-    id: string
+    hash: string
     row?: string
     demo?: string
     real?: string

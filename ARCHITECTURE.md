@@ -104,7 +104,7 @@ App -> `POST /v1/history {address, cursor}` -> Worker calls Etherscan `txlist`, 
 - Etherscan calls pass through the `EtherscanBucket` Durable Object: 2.5 calls/s, no burst. A wait over 2 s gives `503 unavailable`.
 - A zero-value ERC-20 row is `out` only if the same response shows that the address sent the transaction. Else it is `in`. This stops address poisoning.
 - The app keeps the last result in MMKV and shows it with its update time.
-- Every row opens S41 (`/activity/<id>`, `id` = `<hash>:<seq>`). S41 shows that one movement: the local send record if the hash matches (full detail, fee, recheck), else the row from the cached result (`findCachedRow`): no fee, no recheck, status 성공/실패 only (history has no confirmation state). An unknown id redirects to `/activity`. Etherscan link on all variants, hidden when the adapter does not broadcast.
+- Every row opens S41 (`/activity/<id>`, route param `hash` = row `id` = `<hash>:<seq>`). S41 shows that one movement: the local send record if the hash matches (full detail, fee, recheck), else the row from the cached result (`findCachedRow`): no fee, no recheck, status 성공/실패 only (history has no confirmation state). An unknown id redirects to `/activity`. Etherscan link on all variants, hidden when the adapter does not broadcast.
 
 ### Transaction push
 

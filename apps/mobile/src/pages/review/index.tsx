@@ -195,7 +195,7 @@ export function ReviewPage() {
   const gate = isRisk && !acknowledged // the risk sheet must be confirmed before the blue button
   const goPending = () => {
     const tx = readPendingTx()
-    router.push(tx && tx !== 'corrupt' ? { pathname: '/activity/[id]', params: { id: tx.hash } } : '/activity')
+    router.push(tx && tx !== 'corrupt' ? { pathname: '/activity/[hash]', params: { hash: tx.hash } } : '/activity')
   }
   // Footer by state (Figma): Blocked -> 홈으로, pending block -> 진행 중인 거래 보기, prepare error -> 금액 수정 (all Secondary, no caption);
   // chain error -> 다시 시도, needs review -> 다시 검토 (Primary, no caption); auth error -> 다시 시도 with the caption; risk -> grey 위험 확인하기; else Primary with the caption.

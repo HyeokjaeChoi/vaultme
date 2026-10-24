@@ -72,7 +72,7 @@ export function SendResultPage() {
     router.dismissAll()
     router.replace('/home')
   }
-  const toDetail = () => router.push({ pathname: '/activity/[id]', params: { id: tx.hash } })
+  const toDetail = () => router.push({ pathname: '/activity/[hash]', params: { hash: tx.hash } })
   const resend = () => {
     router.dismissAll()
     router.replace('/home')

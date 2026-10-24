@@ -126,7 +126,7 @@ export function AssetDetailPage() {
               label={t('send.pendingBlock.view')}
               onPress={() => {
                 setSheet(false)
-                router.push(tx ? { pathname: '/activity/[id]', params: { id: tx.hash } } : '/activity')
+                router.push(tx ? { pathname: '/activity/[hash]', params: { hash: tx.hash } } : '/activity')
               }}
             />
           </>

@@ -97,8 +97,8 @@ describe('rowCopy', () => {
 })
 
 describe('routes and links', () => {
-  it('every row id opens /activity/[id]; the hash prefix is recoverable', () => {
-    expect(detailRoute({ id: `${H}:1` })).toEqual({ pathname: '/activity/[id]', params: { id: `${H}:1` } })
+  it('every row id opens /activity/[hash]; the hash prefix is recoverable', () => {
+    expect(detailRoute({ id: `${H}:1` })).toEqual({ pathname: '/activity/[hash]', params: { hash: `${H}:1` } })
     expect(hashOfId(`${H}:1`)).toBe(H)
     expect(hashOfId(H)).toBe(H)
   })

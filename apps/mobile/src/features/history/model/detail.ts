@@ -4,10 +4,10 @@ import { parseItems, type HistoryItem } from './view'
 /** `<hash>:<seq>` -> `<hash>`. The local send's id is its hash. */
 export const hashOfId = (id: string): string => id.split(':')[0] ?? id
 
-/** Route of the S41 screen of a list row. Every row opens it (the route param is the row `id`). */
+/** Route of the S41 screen of a list row. Every row opens it. The `hash` param holds the row `id` (`<hash>:<seq>`; the local send's id is its hash). */
 export const detailRoute = (item: Pick<HistoryItem, 'id'>) => ({
-  pathname: '/activity/[id]' as const,
-  params: { id: item.id },
+  pathname: '/activity/[hash]' as const,
+  params: { hash: item.id },
 })
 
 /** The row `id` in the cached history (ARCHITECTURE.md#history), for this account only. Null = not loaded, other account, or unknown id. */
