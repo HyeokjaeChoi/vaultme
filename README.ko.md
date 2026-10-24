@@ -71,7 +71,7 @@ pre-commit hook은 stage된 파일에 ESLint `--fix`와 Prettier를 실행합니
 
 ## 작업 방식
 
-작업 하나는 GitHub issue 하나, branch 하나, pull request 하나입니다. 각 pull request는 CodeRabbit이 리뷰합니다.
+작업 하나는 GitHub issue 하나, branch 하나, pull request 하나입니다. 각 pull request는 Claude가 리뷰합니다.
 단계는 [docs/agents/workflow.md](docs/agents/workflow.md)에 있습니다.
 
 ## README 동기화
