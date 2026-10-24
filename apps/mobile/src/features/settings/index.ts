@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react'
 import { getPushSetting, getZeroSetting, setPushSetting, setZeroSetting } from '@/shared/storage'
 
 type Setting = readonly [get: () => boolean, set: (v: boolean) => void, fallback: boolean]
-const PUSH: Setting = [getPushSetting, setPushSetting, true]
+const PUSH: Setting = [getPushSetting, setPushSetting, false]
 const ZERO: Setting = [getZeroSetting, setZeroSetting, false]
 
 function read([get, , fallback]: Setting): boolean {
@@ -31,7 +31,7 @@ function useSetting(setting: Setting): [boolean, (v: boolean) => void] {
   ]
 }
 
-/** S62: 거래 알림 받기 (default on). */
+/** S62: 거래 알림 받기 (default off: on only after the opt-in and the OS permission, #67). */
 export const usePushSetting = () => useSetting(PUSH)
 /** S63: 0원 거래 보기 (default off = hidden). */
 export const useZeroSetting = () => useSetting(ZERO)

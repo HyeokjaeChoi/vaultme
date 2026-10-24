@@ -67,6 +67,7 @@ function setup(over: { appVersion?: string } = {}) {
     tokenReply: null as null | { status: number; body: unknown },
     rpcReply: null as null | { status: number; body: unknown },
     nonces: new Set<string>(),
+    pushCalls: [] as { method: string; auth: string | null; body: unknown }[],
   }
   const json = (status: number, body: unknown) =>
     new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
@@ -116,6 +117,10 @@ function setup(over: { appVersion?: string } = {}) {
       }
       if (server.rpcReply) return json(server.rpcReply.status, server.rpcReply.body)
       return json(200, { jsonrpc: '2.0', id: 1, result: '0x1' })
+    }
+    if (path === '/v1/push/subscription') {
+      server.pushCalls.push({ method: init.method ?? '', auth: h.get('Authorization'), body: init.body })
+      return json(200, { ok: true })
     }
     return json(404, { code: 'not_found', message: 'x', retryable: false })
   }) as unknown as typeof fetch
@@ -270,5 +275,20 @@ describe('api client', () => {
     const addr = '0x' + 'a'.repeat(40)
     await s.client().history(addr, 'c1')
     expect(s.server.rpcCalls[0]).toMatchObject({ auth: 'Bearer tok1', body: { address: addr, cursor: 'c1' } })
+  })
+  it('push subscription: PUT {address, expoToken}, DELETE without a body, both with the token', async () => {
+    const s = setup()
+    const addr = '0x' + 'a'.repeat(40)
+    const c = s.client()
+    await c.putPushSubscription(addr, 'ExponentPushToken[abcdefgh12345678]')
+    await c.deletePushSubscription()
+    expect(s.server.pushCalls).toEqual([
+      {
+        method: 'PUT',
+        auth: 'Bearer tok1',
+        body: JSON.stringify({ address: addr, expoToken: 'ExponentPushToken[abcdefgh12345678]' }),
+      },
+      { method: 'DELETE', auth: 'Bearer tok1', body: undefined },
+    ])
   })
 })

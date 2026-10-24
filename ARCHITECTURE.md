@@ -11,7 +11,6 @@ Goals:
 - Show history. Send a push when a watched address gets a deposit or sends a transaction.
 
 Non-goals (not built): other chains, other tokens, swap, multiple accounts, smart accounts, WalletConnect, cloud backup, ENS, address book, speed-up or cancel, a web app, an admin dashboard.
-Planned: transaction push in the app (#75, the server part is done).
 
 ## System map
 
@@ -68,7 +67,7 @@ Expo Router in `app/` has thin route files. They re-export a page from `src/page
 - `shell` (the FSD app layer; Expo Router reserves `src/app` for routes): `RootLayout`, `TabsLayout`, providers, `LockGate` (with pure `reduceLock`), `UpdateGate`, and the send routes wrapped in the backup gate.
 - `pages`: one folder per screen.
 - `widgets`: `review-panel`, `activity-list`, `asset-picker`, `network-chips`, `backup-gate` (`useBackupGate`, `SendGuard`: backup, history and restore together).
-- `features`: `send` (`runSend`, `txState`, `useTrackedTx`), `backup`, `restore`, `history`, `balances`, `faucet` (`FaucetRow`), `push-optin` (UI only), `settings`.
+- `features`: `send` (`runSend`, `txState`, `useTrackedTx`), `backup`, `restore`, `history`, `balances`, `faucet` (`FaucetRow`), `push` (S50 opt-in sheet, subscribe and unsubscribe, launch sync, tap route), `settings`.
 - `entities`: `account`, `asset`, `transaction`. They hold fixtures, the Review view model, `txView` and the pending tx store (`readPendingTx`, `writePendingTx`).
 - `shared`: `api` (client), `chain` (`ChainPort`, the fake adapter and its sample balances), `storage` (`keychain`, `kv`), `auth`, `ui` (primitives), `theme`, `lib`.
 
@@ -106,7 +105,7 @@ App -> `POST /v1/history {address, cursor}` -> Worker calls Etherscan `txlist`, 
 - A zero-value ERC-20 row is `out` only if the same response shows that the address sent the transaction. Else it is `in`. This stops address poisoning.
 - The app keeps the last result in MMKV and shows it with its update time.
 
-### Transaction push (server side)
+### Transaction push
 
 1. `PUT /v1/push/subscription {address, expoToken}`: the Worker adds the address to the Alchemy Notify webhook, then stores one row per install. If Alchemy fails, nothing is kept (`503`).
 2. `DELETE /v1/push/subscription`: the row is deleted first. The address goes to `push_unregister`. Alchemy removal is tried at once and retried by cron.
@@ -115,7 +114,12 @@ App -> `POST /v1/history {address, cursor}` -> Worker calls Etherscan `txlist`, 
 5. `push_sent (install_id, ref)` stops a second push when Alchemy retries. A `DeviceNotRegistered` ticket deletes the subscription.
 6. Cron `17 * * * *` runs `sweep`: delete subscriptions of installs not seen for 30 days, purge `push_sent` older than 7 days, retry `push_unregister`.
 
-The app does not call the push routes yet (#75). `PushOptInSheet` exists, and the settings switch is a local flag.
+App side (`features/push`):
+- S50 "알림 켜기" (offered once, after the first copy or share on Receive) and the S62 switch ask the OS, get the Expo token, then `PUT`. The setting turns on only after the `PUT` succeeds.
+- S62 off and wallet removal call `DELETE`. kv `push.unregisterPending` is set before a `DELETE` and before a `PUT` and cleared on success, so an interrupted or unanswered call is undone at the next launch.
+- At launch `syncPush` finishes an owed `DELETE`, or re-sends address and token when the setting is on. Push operations run one at a time.
+- A tap opens `/activity/<hash>` after `PushData` parses. Test-data mode (no API) registers nothing.
+- The Expo token uses the EAS `projectId` in `app.json` (`extra.eas.projectId`, project `@gurwo1007/vaultme`).
 
 ## Invariants
 

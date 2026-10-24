@@ -229,8 +229,8 @@ describe('POST /webhooks/alchemy', () => {
     const [m] = sentMessages()
     expect(m).toMatchObject({
       to: TOKEN,
-      title: 'VaultMe',
-      body: '입금이 들어왔어요. 앱에서 확인해 주세요.',
+      title: '입금이 들어왔어요',
+      body: '앱에서 확인해 주세요.',
       data: { kind: 'deposit', hash: HASH },
     })
     const text = JSON.stringify([m?.title, m?.body])
