@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications'
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
+import { PUSH_CHANNEL_ID } from '@vaultme/contracts'
 import { ko } from '@vaultme/i18n'
 import { api } from '@/shared/api'
 import {
@@ -18,7 +19,7 @@ const toPermission = (r: Notifications.NotificationPermissionsStatus): Permissio
 // Android 13+: the permission prompt and the push token both need a channel first (expo-notifications 58 docs, Permissions > Android).
 const ensureChannel = () =>
   Platform.OS === 'android'
-    ? Notifications.setNotificationChannelAsync('default', {
+    ? Notifications.setNotificationChannelAsync(PUSH_CHANNEL_ID, {
         name: ko.settings.pushScreen.title,
         importance: Notifications.AndroidImportance.DEFAULT,
       })
