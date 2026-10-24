@@ -33,7 +33,7 @@ export function useFoldIn(offset: number) {
   const p = useSharedValue(reduce ? 1 : 0)
   useEffect(() => {
     if (!reduce) p.set(withTiming(1, { duration: FOLD_MS, easing: EASE_OUT }))
-  }, [])
+  }, [p, reduce])
   return useAnimatedStyle(() => ({ opacity: p.get(), transform: [{ translateY: (1 - p.get()) * offset }] }))
 }
 
@@ -49,7 +49,7 @@ export function useSpin(on: boolean) {
       cancelAnimation(r)
       r.set(0)
     }
-  }, [on, reduce])
+  }, [r, on, reduce])
   return useAnimatedStyle(() => ({ transform: [{ rotate: `${String(r.get())}deg` }] }))
 }
 
@@ -67,13 +67,14 @@ export function useCheckPop(on: boolean) {
   const reduce = useReducedMotion()
   const s = useSharedValue(1)
   useEffect(() => {
+    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- drives a Reanimated value (an external system) when `on` changes
     if (!on || reduce) {
       s.set(1)
       return
     }
     s.set(POP_FROM)
     s.set(withTiming(1, { duration: POP_MS, easing: EASE_OUT }))
-  }, [on, reduce])
+  }, [s, on, reduce])
   return useAnimatedStyle(() => ({ transform: [{ scale: s.get() }] }))
 }
 

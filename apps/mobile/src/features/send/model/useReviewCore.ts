@@ -55,6 +55,7 @@ export function useReviewCore(
     }
   }, [to, amount, key, asset])
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refresh() sets state only after its await, never synchronously
     void refresh()
   }, [refresh])
   return { ...state, refresh }

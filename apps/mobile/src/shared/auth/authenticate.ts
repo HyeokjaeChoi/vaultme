@@ -3,14 +3,14 @@ import { withAuthInProgress } from './inProgress'
 
 export type AuthResult = 'ok' | 'cancelled' | 'error' | 'unavailable'
 
-const CANCEL = ['user_cancel', 'system_cancel', 'app_cancel', 'user_fallback']
-const UNAVAILABLE = ['not_enrolled', 'not_available', 'passcode_not_set']
+const CANCEL = new Set(['user_cancel', 'system_cancel', 'app_cancel', 'user_fallback'])
+const UNAVAILABLE = new Set(['not_enrolled', 'not_available', 'passcode_not_set'])
 
 /** Maps an expo-local-authentication result to the app's four outcomes. Lockout, timeout and failures are `error`. */
 export function mapAuthResult(r: { success: true } | { success: false; error: string }): AuthResult {
   if (r.success) return 'ok'
-  if (CANCEL.includes(r.error)) return 'cancelled'
-  if (UNAVAILABLE.includes(r.error)) return 'unavailable'
+  if (CANCEL.has(r.error)) return 'cancelled'
+  if (UNAVAILABLE.has(r.error)) return 'unavailable'
   return 'error'
 }
 

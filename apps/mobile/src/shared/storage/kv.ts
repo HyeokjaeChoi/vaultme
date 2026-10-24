@@ -92,7 +92,7 @@ export type PendingTx = {
   state: 'Pending' | 'Unknown' | 'Included' | 'Confirmed' | 'Failed' | 'Replaced'
 }
 
-const STATES = ['Pending', 'Unknown', 'Included', 'Confirmed', 'Failed', 'Replaced']
+const STATES = new Set(['Pending', 'Unknown', 'Included', 'Confirmed', 'Failed', 'Replaced'])
 const isStr = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 
@@ -113,7 +113,7 @@ export function parsePendingTx(raw: string): PendingTx | null {
     !isStr(o.amount) ||
     !isNum(o.createdAt) ||
     !isNum(o.lastCheckedAt) ||
-    !STATES.includes(o.state as string)
+    !STATES.has(o.state as string)
   )
     return null
   return {

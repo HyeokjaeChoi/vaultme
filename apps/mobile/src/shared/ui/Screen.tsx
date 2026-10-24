@@ -1,5 +1,5 @@
 // Figma: product screen frame (R-S10R 333:113 / R-S22 336:390): screenB.bg (flat white), optional Nav row, body px screen.padding, content pt space-2, section gap 24, Actions pinned below
-import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react'
+import { type ReactNode, type RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
@@ -63,19 +63,18 @@ export function Screen({
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- overflow comes from two layout events; flash once when it turns on
     if (overflows) scrollRef.current?.flashScrollIndicators()
   }, [overflows])
 
-  if (revealRef) {
-    revealRef.current = (y, h = 0) => {
-      if (y === 'end') return scrollRef.current?.scrollToEnd({ animated: true })
-      const clear = l.screen.padding
-      const top = scrollY.current
-      if (y - clear < top) scrollRef.current?.scrollTo({ y: Math.max(0, y - clear), animated: true })
-      else if (y + h + clear > top + layoutHeight)
-        scrollRef.current?.scrollTo({ y: y + h + clear - layoutHeight, animated: true })
-    }
-  }
+  useImperativeHandle(revealRef, () => (y, h = 0) => {
+    if (y === 'end') return scrollRef.current?.scrollToEnd({ animated: true })
+    const clear = l.screen.padding
+    const top = scrollY.current
+    if (y - clear < top) scrollRef.current?.scrollTo({ y: Math.max(0, y - clear), animated: true })
+    else if (y + h + clear > top + layoutHeight)
+      scrollRef.current?.scrollTo({ y: y + h + clear - layoutHeight, animated: true })
+  })
 
   const body = (
     <>
