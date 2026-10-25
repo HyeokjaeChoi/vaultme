@@ -278,6 +278,22 @@ describe('POST /webhooks/alchemy', () => {
     expect(sentMessages()).toHaveLength(1)
   })
 
+  it.each([
+    ['in then out', false],
+    ['out then in', true],
+  ])('pushes one deposit for a tx with an external-in and an internal-out leg (%s)', async (_n, reversed) => {
+    const legIn = eth()
+    const legOut = eth({ fromAddress: ADDR, toAddress: OTHER, category: 'internal' })
+    await hook(activity(reversed ? [legOut, legIn] : [legIn, legOut]))
+    expect(sentMessages()).toMatchObject([{ data: { kind: 'deposit', hash: HASH } }])
+  })
+
+  it('does not push again when a later webhook carries the other leg of the same tx', async () => {
+    await hook(activity([eth()]))
+    await hook(activity([eth({ fromAddress: ADDR, toAddress: OTHER, category: 'internal' })]))
+    expect(sentMessages()).toHaveLength(1)
+  })
+
   it('answers 503 when Expo is down, then sends on the retry', async () => {
     expoReply = () => new Response('x', { status: 502 })
     expect((await hook(activity([eth()]))).status).toBe(503)
