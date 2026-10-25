@@ -20,7 +20,8 @@ export type TxDetail = {
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/
 const TRANSFER_SELECTOR = '0xa9059cbb'
 // An ABI decoder ignores bytes after the two arguments, so they are not required to end there.
-const TRANSFER_INPUT = new RegExp(`^${TRANSFER_SELECTOR}[0-9a-fA-F]{128}`)
+const TRANSFER_INPUT = new RegExp(`^${TRANSFER_SELECTOR}[0-9a-fA-F]{128}`, 'i')
+const TOPIC_ADDRESS = /^0x0{24}[0-9a-fA-F]{40}$/
 const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
 function object(v: unknown): Record<string, unknown> {
@@ -43,11 +44,14 @@ function usdcLeg(logs: unknown): { from: string; to: string; amount: bigint } | 
         l.address.toLowerCase() === USDC_SEPOLIA.toLowerCase() &&
         Array.isArray(l.topics) &&
         l.topics.length === 3 &&
-        l.topics[0] === TRANSFER_TOPIC,
+        typeof l.topics[0] === 'string' &&
+        l.topics[0].toLowerCase() === TRANSFER_TOPIC,
     )
   const [leg, ...more] = legs
   if (!leg || more.length > 0) return null
-  const [, from = '', to = ''] = leg.topics as string[]
+  const [, from, to] = leg.topics as unknown[]
+  if (typeof from !== 'string' || typeof to !== 'string' || !TOPIC_ADDRESS.test(from) || !TOPIC_ADDRESS.test(to))
+    throw new Error('rpc: bad transfer topic')
   return { from: `0x${from.slice(-40)}`, to: `0x${to.slice(-40)}`, amount: toQuantity(leg.data) }
 }
 
@@ -66,10 +70,20 @@ export async function readTransaction(rpc: RpcCall, hash: string): Promise<TxDet
   if (tx === null || rc === null) return null
   const t = object(tx)
   const r = object(rc)
+  // The three reads may be answered by different nodes (a fallback, a reorg in between): they must describe the same transaction.
+  if (typeof t.hash !== 'string' || t.hash.toLowerCase() !== hash.toLowerCase())
+    throw new Error('rpc: wrong transaction')
+  if (typeof r.transactionHash !== 'string' || r.transactionHash.toLowerCase() !== hash.toLowerCase())
+    throw new Error('rpc: wrong receipt')
+  if (r.status !== '0x1' && r.status !== '0x0') throw new Error('rpc: bad status')
   const block = toQuantity(r.blockNumber)
+  if (toQuantity(t.blockNumber) !== block) throw new Error('rpc: block mismatch')
   const answer = await rpc('eth_getBlockByNumber', [`0x${block.toString(16)}`, false])
   if (answer === null) return null // a node that is behind the one that has the receipt: the same wait as no receipt
   const b = object(answer)
+  if (toQuantity(b.number) !== block) throw new Error('rpc: block mismatch')
+  const at = Number(toQuantity(b.timestamp)) * 1000
+  if (Number.isNaN(new Date(at).getTime())) throw new Error('rpc: bad block time') // a Date outside its range throws when formatted
 
   const to = t.to === null ? null : address(t.to)
   const input = typeof t.input === 'string' ? t.input : ''
@@ -84,6 +98,6 @@ export async function readTransaction(rpc: RpcCall, hash: string): Promise<TxDet
     ok: r.status === '0x1',
     fee: toQuantity(r.gasUsed) * toQuantity(r.effectiveGasPrice),
     block,
-    at: Number(toQuantity(b.timestamp)) * 1000,
+    at,
   }
 }

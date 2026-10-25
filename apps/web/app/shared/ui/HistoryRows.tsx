@@ -73,7 +73,7 @@ export function HistoryTable({ items, now, t, locale, address }: Props) {
             </td>
             <td className="px-1-5">
               <code
-                className="text-address-m text-text-secondary whitespace-nowrap"
+                className="text-address-m text-text-secondary relative z-10 whitespace-nowrap"
                 translate="no"
                 title={i.counterparty}
               >

@@ -110,7 +110,14 @@ export async function fixtureApi(page: Page) {
         body.method === 'eth_getTransactionByHash'
           ? api.tx === 'unknown'
             ? null
-            : { hash: body.params[0], from: SENDER, to, value: api.tx === 'usdc' ? '0x0' : '0xb1a2bc2ec50000', input }
+            : {
+                hash: body.params[0],
+                from: SENDER,
+                to,
+                value: api.tx === 'usdc' ? '0x0' : '0xb1a2bc2ec50000',
+                input,
+                blockNumber: '0x713a27',
+              }
           : body.method === 'eth_getTransactionReceipt'
             ? api.tx === 'unknown' || api.tx === 'pending'
               ? null
@@ -119,8 +126,9 @@ export async function fixtureApi(page: Page) {
                   gasUsed: '0x5208',
                   effectiveGasPrice: '0x3b9aca00',
                   blockNumber: '0x713a27',
+                  transactionHash: body.params[0],
                 }
-            : { timestamp: `0x${(Math.floor(Date.now() / 1000) - 180).toString(16)}` }
+            : { number: '0x713a27', timestamp: `0x${(Math.floor(Date.now() / 1000) - 180).toString(16)}` }
       return json(route, 200, { jsonrpc: '2.0', id: body.id, result })
     }
     if (api.mode === 'down') return json(route, 503, { code: 'unavailable', message: 'x', retryable: true })

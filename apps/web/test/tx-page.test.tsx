@@ -11,8 +11,14 @@ const B = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 const USDC = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 
 type Chain = { tx: unknown; receipt: unknown; down: boolean }
-const eth = { hash: H, from: B, to: A, value: '0xb1a2bc2ec50000', input: '0x' } // 0.05 ETH
-const receipt = { status: '0x1', gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00', blockNumber: '0x713a27' } // fee 0.000021 ETH
+const eth = { hash: H, from: B, to: A, value: '0xb1a2bc2ec50000', input: '0x', blockNumber: '0x713a27' } // 0.05 ETH
+const receipt = {
+  status: '0x1',
+  gasUsed: '0x5208',
+  effectiveGasPrice: '0x3b9aca00',
+  blockNumber: '0x713a27',
+  transactionHash: H,
+} // fee 0.000021 ETH
 let chain: Chain
 
 beforeEach(() => {
@@ -30,7 +36,10 @@ beforeEach(() => {
       const results: Record<string, unknown> = {
         eth_getTransactionByHash: chain.tx,
         eth_getTransactionReceipt: chain.receipt,
-        eth_getBlockByNumber: { timestamp: `0x${Math.floor(Date.now() / 1000 - 210).toString(16)}` }, // 3.5 minutes ago: always "3분 전"
+        eth_getBlockByNumber: {
+          number: '0x713a27',
+          timestamp: `0x${Math.floor(Date.now() / 1000 - 210).toString(16)}`,
+        }, // 3.5 minutes ago: always "3분 전"
       }
       return Promise.resolve(json(200, { jsonrpc: '2.0', id, result: results[method] }))
     }),

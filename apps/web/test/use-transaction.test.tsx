@@ -8,9 +8,15 @@ const H2 = `0x${'22'.repeat(32)}`
 const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const B = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 
-const tx = (hash: string) => ({ hash, from: A, to: B, value: '0xb1a2bc2ec50000', input: '0x' })
-const receipt = { status: '0x1', gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00', blockNumber: '0x713a27' }
-const block = { timestamp: '0x68fc4f00' }
+const tx = (hash: string) => ({ hash, from: A, to: B, value: '0xb1a2bc2ec50000', input: '0x', blockNumber: '0x713a27' })
+const receipt = (transactionHash: unknown) => ({
+  status: '0x1',
+  gasUsed: '0x5208',
+  effectiveGasPrice: '0x3b9aca00',
+  blockNumber: '0x713a27',
+  transactionHash,
+})
+const block = { number: '0x713a27', timestamp: '0x68fc4f00' }
 
 // The API at HTTP level (https://api.test). Each eth_getTransactionByHash waits until the test answers it, so answers can come out of order.
 type Open = { hash: string; answer: (result: unknown, status?: number) => void }
@@ -31,7 +37,7 @@ beforeEach(() => {
         params: unknown[]
       }
       const ok = (result: unknown) => json(200, { jsonrpc: '2.0', id, result })
-      if (method === 'eth_getTransactionReceipt') return Promise.resolve(ok(receipt))
+      if (method === 'eth_getTransactionReceipt') return Promise.resolve(ok(receipt(params[0])))
       if (method === 'eth_getBlockByNumber') return Promise.resolve(ok(block))
       return new Promise<Response>((resolve) => {
         open.push({
