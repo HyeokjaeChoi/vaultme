@@ -1,0 +1,6 @@
+# Staging and preview builds are kept out of search by the X-Robots-Tag header (scripts/finalize.ts), not by Disallow:
+# a crawler that is blocked here could never read that header.
+User-agent: *
+Allow: /
+
+Sitemap: https://vaultme.stack-line.dev/sitemap.xml

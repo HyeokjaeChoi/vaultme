@@ -3,7 +3,12 @@
     "collect": {
       "startServerCommand": "pnpm exec wrangler dev --env staging --port 8799",
       "startServerReadyPattern": "Ready on",
-      "url": ["http://localhost:8799/no-such-page", "http://localhost:8799/en/no-such-page"],
+      "url": [
+        "http://localhost:8799/",
+        "http://localhost:8799/en/",
+        "http://localhost:8799/no-such-page",
+        "http://localhost:8799/en/no-such-page"
+      ],
       "numberOfRuns": 3,
       "settings": {
         "preset": "desktop",
