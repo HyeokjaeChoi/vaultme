@@ -28,12 +28,7 @@ function LanguageSwitch({ locale, t }: { locale: WebLocale; t: WebMessages['head
               {code.toUpperCase()}
             </span>
           ) : (
-            <a
-              href={homeOf(code)}
-              lang={code}
-              hrefLang={code}
-              className={`${item} px-button-b-padding-x-md inline-flex`}
-            >
+            <a href={homeOf(code)} lang={code} hrefLang={code} className={`${item} inline-flex px-3`}>
               {code.toUpperCase()}
             </a>
           )}
@@ -58,7 +53,9 @@ export function SiteHeader({ locale }: { locale: WebLocale }) {
       <ThemeToggle t={t.header} />
       <LanguageSwitch locale={locale} t={t.header} />
       <ButtonLink variant="ghost" href={viewerPath(locale)}>
-        {t.header.viewer}
+        {/* The English label does not fit next to the chip at 375 px (Figma has no English frames): use the short one there. */}
+        <span className="tablet:hidden">{t.header.viewerShort}</span>
+        <span className="tablet:inline hidden">{t.header.viewer}</span>
       </ButtonLink>
     </header>
   )

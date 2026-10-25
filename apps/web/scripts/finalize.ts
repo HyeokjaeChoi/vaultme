@@ -1,6 +1,6 @@
 // Post-build step for build/client (run by `pnpm build`). Static Assets rules this satisfies (ADR-0001):
 // - `not_found_handling: "404-page"` serves the nearest `404.html` with status 404, so the prerendered pages are renamed `x.html`.
-// - the SPA shell React Router writes as index.html is dropped (a prerendered landing page at `/` is kept): until then `/` is a real 404 too.
+// - the SPA shell React Router writes as index.html is dropped (the prerendered landing page at `/` is kept).
 // - _headers gets the CSP script hashes of the built HTML (inline scripts cannot use a nonce on a static site), the API
 //   origin of this build, and X-Robots-Tag: noindex unless WEB_ENV=production.
 import { createHash } from 'node:crypto'
@@ -24,9 +24,12 @@ export interface HeaderOptions {
   noindex: boolean
 }
 
+// JSON-LD blocks are data, not executable: the browser does not apply script-src to them, so they need no hash.
 export function inlineScriptHashes(html: string): string[] {
   const hashes = new Set<string>()
-  for (const m of html.matchAll(/<script(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
+  for (const m of html.matchAll(
+    /<script(?![^>]*\ssrc=)(?![^>]*\stype="application\/ld\+json")[^>]*>([\s\S]*?)<\/script>/g,
+  )) {
     hashes.add(
       `'sha256-${createHash('sha256')
         .update(m[1] ?? '')

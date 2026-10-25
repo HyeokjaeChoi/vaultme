@@ -5,5 +5,5 @@ import { type ButtonVariant, buttonClass } from './ButtonLink'
 type Props = ComponentProps<'button'> & { variant: ButtonVariant }
 
 export function Button({ variant, className, type = 'button', ...props }: Props) {
-  return <button {...props} type={type} className={buttonClass(variant, className)} />
+  return <button {...props} type={type} className={buttonClass(variant, `cursor-pointer ${className ?? ''}`)} />
 }

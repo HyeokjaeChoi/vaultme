@@ -36,7 +36,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="color-scheme" content="light dark" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-        <meta name="description" content={webMessages[locale].footer.testnetOnly} />
         <Meta />
         {/* app.css is imported here, not exported as route `links`, so <Links /> alone would leave hydrated pages unstyled. */}
         <link rel="stylesheet" href={appCss} />

@@ -12,6 +12,11 @@ describe('inlineScriptHashes', () => {
     const html = '<script>a</script><script src="/x.js"></script><script type="module">a</script>'
     expect(inlineScriptHashes(html)).toEqual([HASH_A])
   })
+  it('skips JSON-LD data blocks', () => {
+    expect(inlineScriptHashes('<script type="application/ld+json">{"a":1}</script><script>a</script>')).toEqual([
+      HASH_A,
+    ])
+  })
 })
 
 const TEMPLATE =
