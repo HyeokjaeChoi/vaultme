@@ -1,7 +1,7 @@
 // Figma: Web/Table head 759:258 + Web/Table row 759:269 (768 / 1280), Activity row 36:48 with B/Date header 403:165 (375)
 import type { WebLocale, WebMessages } from '@vaultme/i18n/web'
 import type { HistoryItem } from '@vaultme/history'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { clock, dayHeader, relativeTime, signed } from '../lib/history'
 import { txPath } from '../lib/locale'
 import { AssetIcon } from './AssetIcon'
@@ -23,6 +23,7 @@ const assetKey = (i: HistoryItem) => (i.asset === 'USDC' ? 'USDC' : 'ETH')
 /** 768 px and wider: one real table. Columns as Figma (status 140, direction 80, counterparty rest, amount 140, time 88). */
 export function HistoryTable({ items, now, t, locale, address }: Props) {
   const th = 'text-product-b-caption text-text-tertiary px-1-5 py-2 font-normal'
+  const navigate = useNavigate()
   return (
     <table className="tablet:table hidden w-full table-fixed border-collapse">
       <caption className="sr-only">{t.history.title}</caption>
@@ -76,6 +77,13 @@ export function HistoryTable({ items, now, t, locale, address }: Props) {
                 className="text-address-m text-text-secondary relative z-10 whitespace-nowrap"
                 translate="no"
                 title={i.counterparty}
+                // Above the row link so the tooltip and a text selection work; a plain click still opens the row (the link is the keyboard path).
+                onClick={() => {
+                  if (!window.getSelection()?.toString()) {
+                    const { to, state } = txLink(i, locale, address)
+                    void navigate(to, { state })
+                  }
+                }}
               >
                 {short(i.counterparty)}
               </code>

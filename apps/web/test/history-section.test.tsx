@@ -2,7 +2,7 @@ import { webMessages } from '@vaultme/i18n/web'
 import type { HistoryItem } from '@vaultme/history'
 import { render as rtlRender, screen, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, useLocation } from 'react-router'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { History } from '../app/shared/api'
@@ -38,6 +38,7 @@ const ok = (
 
 // Rows are links (react-router Link): they need a router.
 const render = (ui: ReactElement) => rtlRender(ui, { wrapper: MemoryRouter })
+const Where = () => <p data-testid="where">{useLocation().pathname + useLocation().hash}</p>
 
 function show(history: History, locale: 'ko' | 'en' = 'ko') {
   const actions = { retry: vi.fn(), more: vi.fn() }
@@ -61,6 +62,23 @@ describe('HistorySection', () => {
     ])
     expect(table().getAllByRole('link')[0]).toHaveAccessibleName(/^확정 · /)
   })
+  it('a click on the counterparty address in the table opens the row too (it sits above the row link for its tooltip)', async () => {
+    rtlRender(
+      <MemoryRouter>
+        <HistorySection
+          t={webMessages.ko}
+          locale="ko"
+          address={A}
+          history={ok([item(1)])}
+          actions={{ retry: vi.fn(), more: vi.fn() }}
+        />
+        <Where />
+      </MemoryRouter>,
+    )
+    await userEvent.click(table().getByText('0x7099…79C8'))
+    expect(screen.getByTestId('where')).toHaveTextContent(`/tx#${item(1).hash}`)
+  })
+
   it('en rows link to /en/tx', () => {
     show(ok([item(1)]), 'en')
     expect(screen.getAllByRole('link').some((a) => a.getAttribute('href') === `/en/tx#${item(1).hash}`)).toBe(true)
