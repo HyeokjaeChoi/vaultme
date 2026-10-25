@@ -2,6 +2,7 @@
 
 Status: Accepted (2026-10-14 derived from the removed LLD, see git history)
 Supersedes/Aliases: Q57
+Superseded in part by [0011](0011-web-client-api-access.md): the "no browser client" part (Origin rejection, no CORS, "A browser client cannot use the API"). The rest still binds. The API code still rejects `Origin` until issue #191.
 
 ## Context
 The proxy needs to limit abuse, but the app has no user accounts. Device attestation is out of scope. The only client is a native app.
