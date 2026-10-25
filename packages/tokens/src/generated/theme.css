@@ -373,6 +373,7 @@
   --spacing-layout-field-gap: var(--semantic-layout-field-gap);
   --spacing-layout-review-max-width: var(--semantic-layout-review-max-width);
   --spacing-layout-web-narrow-width: var(--semantic-layout-web-narrow-width);
+  --spacing-layout-web-reading-width: var(--semantic-layout-web-reading-width);
   --spacing-icon-size-inline: var(--semantic-icon-size-inline);
   --spacing-icon-size-control: var(--semantic-icon-size-control);
   --spacing-icon-size-feature: var(--semantic-icon-size-feature);

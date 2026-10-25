@@ -674,7 +674,8 @@ export const dark = {
         "maxWidth": 480
       },
       "web": {
-        "narrowWidth": 560
+        "narrowWidth": 560,
+        "readingWidth": 720
       }
     },
     "iconSize": {

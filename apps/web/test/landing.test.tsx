@@ -81,7 +81,7 @@ describe('landing page', () => {
   it('shows the testnet and no-recovery-phrase notes', () => {
     at('/')
     const t = webMessages.ko.landing
-    expect(screen.getByText(t.hero.note)).toBeInTheDocument()
+    expect(screen.getByText(t.security.items[2].body)).toBeInTheDocument()
     expect(screen.getByText(t.security.items[1].body)).toBeInTheDocument()
   })
 })

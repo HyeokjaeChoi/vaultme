@@ -39,7 +39,7 @@ function Section({
       className={`px-layout-screen-padding tablet:px-8 tablet:py-16 web-desktop:px-20 web-desktop:py-20 py-10 ${className}`}
     >
       <div
-        className={`mx-auto flex w-full flex-col ${narrow ? 'max-w-faq-column gap-6' : 'max-w-layout-content-max-width web-desktop:gap-10 gap-8'}`}
+        className={`mx-auto flex w-full flex-col ${narrow ? 'max-w-layout-web-reading-width gap-6' : 'max-w-layout-content-max-width web-desktop:gap-10 gap-8'}`}
       >
         <h2
           id={id}
@@ -85,8 +85,8 @@ export default function Landing() {
         aria-labelledby="hero-title"
         className="px-layout-screen-padding tablet:px-8 tablet:py-16 web-desktop:p-20 py-10"
       >
-        <div className="max-w-layout-content-max-width tablet:flex-row tablet:items-center web-desktop:gap-20 mx-auto flex w-full flex-col gap-8">
-          <div className="tablet:min-w-px tablet:flex-1 flex flex-col items-start gap-6">
+        <div className="max-w-layout-content-max-width web-desktop:flex-row web-desktop:items-center web-desktop:gap-20 mx-auto flex w-full flex-col gap-8">
+          <div className="web-desktop:min-w-px web-desktop:flex-1 flex flex-col items-start gap-6">
             <h1
               id="hero-title"
               className="text-product-b-title1 tablet:text-product-b-display-m web-desktop:text-product-b-display-l text-text-primary"
@@ -106,16 +106,15 @@ export default function Landing() {
                 {t.hero.googlePlay}
               </StoreButton>
             </div>
-            <p className="text-product-b-body-small text-text-tertiary">{t.hero.note}</p>
           </div>
-          <div className="bg-surface-subtle rounded-card-radius tablet:shrink-0 flex justify-center px-6 py-10">
+          <div className="bg-surface-subtle rounded-card-radius web-desktop:shrink-0 flex justify-center px-6 py-10">
             <AppMockup alt={t.hero.mockupAlt} />
           </div>
         </div>
       </section>
 
       <Section id="features-title" title={t.features.title}>
-        <ul className="tablet:grid-cols-3 web-desktop:gap-6 grid gap-4">
+        <ul className="web-desktop:grid-cols-3 web-desktop:gap-6 grid gap-4">
           {t.features.items.map((item, i) => (
             <FeatureCard key={item.title} icon={featureIcons[i]} title={item.title} body={item.body} />
           ))}

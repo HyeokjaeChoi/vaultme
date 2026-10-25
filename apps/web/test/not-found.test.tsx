@@ -60,10 +60,10 @@ describe('header and footer', () => {
     expect(within(screen.getByRole('banner')).getByRole('link', { name: 'KO' })).toHaveAttribute('href', '/')
   })
 
-  it('states the test-funds and read-only notes in the footer', () => {
+  // ADR-0014: the header chip is the one network statement on every page; the footer has no caption.
+  it('states the network in the header, not in the footer', () => {
     at('/nope')
-    const footer = within(screen.getByRole('contentinfo'))
-    expect(footer.getByText('Sepolia 테스트넷 전용이에요. 테스트 자금만 다뤄요.')).toBeInTheDocument()
-    expect(footer.getByText(/키나 복구 문구를 묻지 않아요/)).toBeInTheDocument()
+    expect(within(screen.getByRole('banner')).getByText('Sepolia 테스트넷')).toBeInTheDocument()
+    expect(within(screen.getByRole('contentinfo')).queryByText(/테스트넷/)).toBeNull()
   })
 })
