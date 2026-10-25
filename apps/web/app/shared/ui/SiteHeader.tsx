@@ -41,22 +41,24 @@ function LanguageSwitch({ locale, t }: { locale: WebLocale; t: WebMessages['head
 export function SiteHeader({ locale }: { locale: WebLocale }) {
   const t = webMessages[locale]
   return (
-    <header className="bg-screen-b-bg px-layout-screen-padding tablet:gap-3 tablet:px-8 web-desktop:px-20 h-web-header-height flex items-center gap-1 py-3">
-      <a href={homeOf(locale)} className="-m-3 flex shrink-0 items-center gap-2 p-3" aria-label={t.siteName}>
-        <BrandMark />
-        <span translate="no" className="text-product-b-headline text-text-primary tablet:inline hidden">
-          {t.siteName}
-        </span>
-      </a>
-      <StatusChip>{t.header.network}</StatusChip>
-      <div className="min-w-px flex-1" />
-      <ThemeToggle t={t.header} />
-      <LanguageSwitch locale={locale} t={t.header} />
-      <ButtonLink variant="ghost" href={viewerPath(locale)}>
-        {/* The English label does not fit next to the chip at 375 px (Figma has no English frames): use the short one there. */}
-        <span className="tablet:hidden">{t.header.viewerShort}</span>
-        <span className="tablet:inline hidden">{t.header.viewer}</span>
-      </ButtonLink>
+    <header className="bg-screen-b-bg px-layout-screen-padding tablet:px-8 web-desktop:px-20 h-web-header-height flex py-3">
+      <div className="max-w-layout-content-max-width tablet:gap-3 mx-auto flex w-full items-center gap-1">
+        <a href={homeOf(locale)} className="-m-3 flex shrink-0 items-center gap-2 p-3" aria-label={t.siteName}>
+          <BrandMark />
+          <span translate="no" className="text-product-b-headline text-text-primary tablet:inline hidden">
+            {t.siteName}
+          </span>
+        </a>
+        <StatusChip>{t.header.network}</StatusChip>
+        <div className="min-w-px flex-1" />
+        <ThemeToggle t={t.header} />
+        <LanguageSwitch locale={locale} t={t.header} />
+        <ButtonLink variant="ghost" href={viewerPath(locale)}>
+          {/* The English label does not fit next to the chip at 375 px (Figma has no English frames): use the short one there. */}
+          <span className="tablet:hidden">{t.header.viewerShort}</span>
+          <span className="tablet:inline hidden">{t.header.viewer}</span>
+        </ButtonLink>
+      </div>
     </header>
   )
 }

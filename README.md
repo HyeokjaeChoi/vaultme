@@ -47,7 +47,7 @@ The product keeps wallet actions readable: it shows the account, network, asset,
 
 ## Run and verify
 
-You need Node 24 or newer and pnpm 11.17.0 (`packageManager` in `package.json`).
+You need Node 24 or newer and pnpm 12.14.0 (`packageManager` in `package.json`).
 
 ```sh
 git config core.hooksPath .githooks   # once per clone

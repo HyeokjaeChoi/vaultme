@@ -13,12 +13,6 @@
   line-gap-override: 0%;
 }
 
-/* Figma: the landing FAQ column is 720 px wide (762:1023). No token has that size, so it is 9 x space/20 (80 px).
-   Remove this when the web design system gets a column-width token. */
-@utility max-w-faq-column {
-  max-width: calc(var(--spacing-20) * 9);
-}
-
 /* Figma: Web/Table row columns are 140 / 80 / rest / 140 / 88 px wide (759:269). No token has these sizes, so they are
    multiples of space/20 (80 px). Remove these when the web design system gets column-width tokens. */
 @utility w-col-status {

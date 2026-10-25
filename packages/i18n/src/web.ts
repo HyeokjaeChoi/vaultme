@@ -14,8 +14,6 @@ export const webKo = {
   },
   footer: {
     viewer: '주소 보기',
-    testnetOnly: 'Sepolia 테스트넷 전용이에요. 테스트 자금만 다뤄요.',
-    readOnly: '학습과 포트폴리오를 위한 프로젝트예요. 조회 전용 페이지는 키나 복구 문구를 묻지 않아요.',
   },
   landing: {
     meta: {
@@ -28,7 +26,6 @@ export const webKo = {
       value: 'Sepolia 테스트넷에서 안전하게 연습하는 셀프 커스터디 지갑이에요.',
       appStore: 'App Store에서 받기',
       googlePlay: 'Google Play에서 받기',
-      note: '테스트넷 전용, 테스트 자금만 다뤄요.',
       mockupAlt: 'VaultMe 앱의 자산 화면. Sepolia ETH 1.2847개와 USDC 12.5개를 보여 줘요.',
     },
     features: {
@@ -169,8 +166,6 @@ export const webEn: WebMessages = {
   },
   footer: {
     viewer: 'View an address',
-    testnetOnly: 'Sepolia testnet only. Test funds only.',
-    readOnly: 'A learning and portfolio project. The read-only pages never ask for keys or a recovery phrase.',
   },
   landing: {
     meta: {
@@ -183,7 +178,6 @@ export const webEn: WebMessages = {
       value: 'A self-custody wallet for safe practice on the Sepolia testnet.',
       appStore: 'Get it on the App Store',
       googlePlay: 'Get it on Google Play',
-      note: 'Testnet only. Test funds only.',
       mockupAlt: 'The VaultMe app assets screen, showing 1.2847 Sepolia ETH and 12.5 USDC.',
     },
     features: {
