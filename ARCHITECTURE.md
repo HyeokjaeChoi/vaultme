@@ -87,7 +87,7 @@ Expo Router in `app/` has thin route files. They re-export a page from `src/page
 4. The server returns a token: `<installId>.<exp>.<HMAC-SHA256(TOKEN_SECRET)>`. It lives 15 minutes. The server keeps no token state.
 5. `/v1/rpc`, `/v1/history`, `/v1/push/*` need `Authorization: Bearer <token>`. The client retries once with a new token on `unauthorized`.
 
-Every `/v1/*` call except `/v1/health` needs `X-App-Version`. A version below `MIN_APP_VERSION` gets `426 update_required`. A request with an `Origin` header gets `403`.
+Every `/v1/*` call except `/v1/health` needs `X-App-Version`. A version below the minimum gets `426 update_required`: `MIN_WEB_VERSION` when the request has `X-Client: web`, else `MIN_APP_VERSION`. An `Origin` header that is not in `WEB_ORIGINS` gets `403`.
 
 ### Send
 
@@ -169,7 +169,7 @@ App side (`features/push`):
 - The Worker cannot move funds. It holds no key and no signing power.
 - The app does not trust server values for safety. The app computes the tx hash and checks the fee cap itself.
 - A push is only a signal. The payload is parsed with `PushData`; the app must re-read the chain.
-- The API is for the native app only. No CORS headers. A browser `Origin` is refused.
+- Browsers: CORS allow-list from the `WEB_ORIGINS` var (comma-separated exact origins; staging `https://vaultme-staging.stack-line.dev`, production `https://vaultme.stack-line.dev`; ADR-0011). Any other `Origin` gets `403 origin_forbidden`. A request without `Origin` (the native app) is unchanged. CORS headers and preflight cover `/v1/*` only, not `/webhooks`. Same install protocol as mobile. Rate limits stay per install ID (and per IP on `/v1/installs`).
 - Secrets are Worker secrets (`wrangler secret`, `.dev.vars` locally): `TOKEN_SECRET` (32+ chars), `INFURA_KEY`, `ALCHEMY_KEY`, `ETHERSCAN_API_KEY`, `ALCHEMY_*`, `EXPO_ACCESS_TOKEN`. A missing secret makes the route fail closed with `500`. `wrangler.jsonc` holds vars only.
 - Supply chain: pnpm `minimumReleaseAge` 10080 min (7 days), `strictDepBuilds`, an explicit `allowBuilds` list, CI actions pinned by SHA. Renovate (`.github/renovate.json5`) proposes only versions 7 days old or older and automerges only npm patch and devDependency minor updates.
 - Repo checks block committed keys, `.env` files, recovery phrases (except public test vectors) and `CLAUDE.md` files.

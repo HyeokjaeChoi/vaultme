@@ -2,7 +2,7 @@
 
 Status: Accepted (2026-10-14 derived from the removed LLD, see git history)
 Supersedes/Aliases: Q57
-Superseded in part by [0011](0011-web-client-api-access.md): the "no browser client" part (Origin rejection, no CORS, "A browser client cannot use the API"). The rest still binds. The API code still rejects `Origin` until issue #191.
+Superseded in part by [0011](0011-web-client-api-access.md): the "no browser client" part (Origin rejection, no CORS, "A browser client cannot use the API"). The rest still binds.
 
 ## Context
 The proxy needs to limit abuse, but the app has no user accounts. Device attestation is out of scope. The only client is a native app.
@@ -13,6 +13,5 @@ On first start the app makes an ECDSA P-256 key pair. It is not the wallet key. 
 ## Consequences
 - This raises the cost of abuse. It is not strong defense: anyone can make a new install.
 - Rate limits use the install ID. The IP limit is coarse because mobile networks share IPs.
-- A browser client cannot use the API (until [0011](0011-web-client-api-access.md) is implemented in issue #191).
 
 <!-- verified: apps/api/src/auth.ts, apps/api/src/app.ts, apps/mobile/src/shared/api/client.ts, apps/mobile/src/shared/api/deviceKey.ts, apps/mobile/src/shared/storage/keychain.ts, apps/api/migrations/0001_installs.sql -->
