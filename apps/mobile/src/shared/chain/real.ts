@@ -7,15 +7,20 @@ import {
   type Hash,
   type Hex,
 } from '@vaultme/wallet-core'
-import { BALANCE_OF_SELECTOR, USDC_SEPOLIA } from '@vaultme/contracts'
-import { RpcError } from '@vaultme/api-client'
+import { USDC_SEPOLIA } from '@vaultme/contracts'
+import {
+  RpcError,
+  abiWord as word,
+  readEthBalance,
+  readUsdcBalance,
+  toQuantity as toBig,
+  type RpcCall,
+} from '@vaultme/api-client'
 import type { ChainPort, Receipt } from './port'
 
-/** `POST /v1/rpc` as a function: returns the JSON-RPC `result`, throws on error. */
-export type RpcCall = (method: string, params: unknown[]) => Promise<unknown>
+export type { RpcCall }
 
 const TRANSFER_SELECTOR = '0xa9059cbb'
-const word = (hex: string) => hex.replace(/^0x/, '').toLowerCase().padStart(64, '0')
 const quantity = (n: bigint) => `0x${n.toString(16)}`
 
 // Used only when the node refuses to estimate (for example the balance is too low): `prepare()` then reports the real reason.
@@ -24,16 +29,11 @@ const FALLBACK_GAS: Record<AssetId, bigint> = { ETH: 21_000n, USDC: 65_000n }
 const ERC20_GAS_NUM = 12n
 const ERC20_GAS_DEN = 10n
 
-function toBig(v: unknown): bigint {
-  if (typeof v !== 'string' || !/^0x[0-9a-fA-F]+$/.test(v)) throw new Error('rpc: bad quantity')
-  return BigInt(v)
-}
-
 /** Real adapter over the API proxy (ARCHITECTURE.md#send). Allowed methods only; see RPC_ALLOWED_METHODS. */
 export function createRpcChain(rpc: RpcCall): ChainPort {
-  const balanceOf = async (address: Address) =>
-    toBig(await rpc('eth_call', [{ to: USDC_SEPOLIA, data: `${BALANCE_OF_SELECTOR}${word(address)}` }, 'latest']))
-  const ethBalance = async (address: Address) => toBig(await rpc('eth_getBalance', [address, 'latest']))
+  // Balance reads are shared with the web viewer (@vaultme/api-client).
+  const balanceOf = (address: Address) => readUsdcBalance(rpc, address)
+  const ethBalance = (address: Address) => readEthBalance(rpc, address)
 
   async function gasLimit(from: Address, to: Address, asset: AssetId, amount: string): Promise<bigint> {
     let units = 0n

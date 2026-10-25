@@ -1,6 +1,6 @@
 // Figma: B/Button 398:247 (Landing "Button App Store에서 받기" 762:243 / "Button Google Play에서 받기" 762:246; plain buttons, no official badges)
 import type { ReactNode } from 'react'
-import { ButtonLink, type ButtonLinkVariant, buttonClass } from './ButtonLink'
+import { ButtonLink, type ButtonVariant, buttonClass } from './ButtonLink'
 
 /** A link to the store page when its URL is set; otherwise an inert button (no store listing yet, see shared/lib/stores.ts). */
 export function StoreButton({
@@ -10,7 +10,7 @@ export function StoreButton({
   children,
 }: {
   href: string | null
-  variant: ButtonLinkVariant
+  variant: ButtonVariant
   className?: string
   children: ReactNode
 }) {

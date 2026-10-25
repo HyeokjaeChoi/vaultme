@@ -5,6 +5,9 @@ import { type RouteConfig, index, route } from '@react-router/dev/routes'
 export default [
   index('routes/landing.tsx'),
   route('en', 'routes/landing.tsx', { id: 'landing-en' }),
+  // The viewer: one prerendered shell per locale; the address is in the URL fragment (ADR-0012).
+  route('address', 'routes/address.tsx', { id: 'address-ko' }),
+  route('en/address', 'routes/address.tsx', { id: 'address-en' }),
   route('en/*', 'routes/not-found.tsx', { id: 'not-found-en' }),
   route('*', 'routes/not-found.tsx', { id: 'not-found-ko' }),
 ] satisfies RouteConfig

@@ -37,7 +37,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <Meta />
-        {hydrate ? <Links /> : <link rel="stylesheet" href={appCss} />}
+        {/* app.css is imported here, not exported as route `links`, so <Links /> alone would leave hydrated pages unstyled. */}
+        <link rel="stylesheet" href={appCss} />
+        {hydrate && <Links />}
         {/* Fonts after first contentful paint (see fonts.css). Without script, <noscript> loads them at once. */}
         <link rel="stylesheet" href={fontsCss} media="print" data-defer />
         <noscript>

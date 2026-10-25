@@ -33,7 +33,7 @@ describe('build with a static index route', () => {
   })
 
   it('hydrates only the route that asks for it', () => {
-    expect(read('hydrated/index.html')).toContain('window.__reactRouterContext')
+    expect(read('hydrated.html')).toContain('window.__reactRouterContext')
     expect(read('404.html')).not.toContain('__reactRouterContext')
   })
 

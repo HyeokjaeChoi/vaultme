@@ -23,13 +23,13 @@ const tokensOnly = {
 
 // FSD layers (#116, ARCHITECTURE.md): the shared preset in packages/config. Layers live in app/, the app layer is app/shell
 // (app/ is React Router's folder, as src/app is Expo Router's). Route files are app/routes (app/root.tsx is not checked: a single-file element needs the deprecated `mode: 'file'`, which prints a warning on every run). shared has no
-// index file: every file in shared/lib and shared/ui is a public entry.
+// index file: every file in shared/api, shared/lib and shared/ui is a public entry.
 const layers = fsdLayers({
   files: ['app/**/*.{ts,tsx}'],
   root: 'app',
   routes: [{ pattern: 'app/routes', partialMatch: false }],
   routeMayImport: ['shell', 'pages', 'widgets', 'features', 'entities', 'shared'],
-  sharedEntries: ['lib', 'ui'],
+  sharedEntries: ['api', 'lib', 'ui'],
 })
 
 export default [

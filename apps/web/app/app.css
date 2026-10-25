@@ -48,3 +48,19 @@
     outline-offset: var(--semantic-focus-offset);
   }
 }
+
+/* B/Address Size M (Figma "Product B/Address M", 16/24, no tracking): IBM Plex Mono at the body size. No type token has
+   this pair yet (mobile AddressText builds it the same way). Remove when @vaultme/tokens adds a product-b-address-m style. */
+@utility text-address-m {
+  font-size: var(--primitive-font-size-base);
+  line-height: var(--primitive-font-line-height-px24);
+  letter-spacing: var(--primitive-font-tracking-normal);
+}
+
+/* Viewer links (/address#0x...) before hydration: the prerendered page holds the form and the viewer skeleton, and the
+   inline script in routes/address.tsx sets data-boot before first paint, so the first paint already has the final layout
+   (CLS 0). Hydration keeps these wrappers, renders only one of them, and sets data-boot to the view it shows. */
+html[data-boot='viewer'] [data-boot-form],
+html:not([data-boot='viewer']) [data-boot-viewer] {
+  display: none;
+}

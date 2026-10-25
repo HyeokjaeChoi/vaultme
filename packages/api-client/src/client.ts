@@ -1,5 +1,6 @@
 import {
   APP_VERSION_HEADER,
+  CLIENT_HEADER,
   ErrorEnvelope,
   HistoryRequest,
   INSTALL_ID_HEADER,
@@ -11,6 +12,7 @@ import {
   SIGNATURE_HEADER,
   TIMESTAMP_HEADER,
   TokenResponse,
+  WEB_CLIENT,
   canonicalString,
 } from '@vaultme/contracts'
 import { ApiError, RpcError } from './errors.ts'
@@ -28,11 +30,19 @@ export type DeviceSigner = {
   sign(text: string): Promise<string>
   getInstallId(): Promise<string | null>
   setInstallId(id: string | null): Promise<void>
+  /**
+   * Runs `fn` while no other tab or process of this app does the same (web: a Web Lock). The key and the installId are
+   * read, made and registered inside it, so two tabs opened together on a fresh browser make one install. Absent where
+   * there is one process (mobile).
+   */
+  exclusive?<T>(fn: () => Promise<T>): Promise<T>
 }
 
 export type ApiDeps = {
   baseUrl: string
   appVersion: string
+  /** `'web'` sends `X-Client: web`, so the API checks `MIN_WEB_VERSION` (ADR-0011). Mobile sends none. */
+  client?: typeof WEB_CLIENT
   signer: DeviceSigner
   fetch?: typeof fetch
   /** ms since epoch */
@@ -89,6 +99,7 @@ export function createApiClient(d: ApiDeps) {
         method,
         headers: {
           [APP_VERSION_HEADER]: d.appVersion,
+          ...(d.client ? { [CLIENT_HEADER]: d.client } : {}),
           ...(body === undefined ? {} : { 'content-type': 'application/json' }),
           ...headers,
         },
@@ -116,7 +127,7 @@ export function createApiClient(d: ApiDeps) {
   let installId: Promise<string> | null = null
 
   function ensureInstall(): Promise<string> {
-    installId ??= (async () => {
+    const identify = async () => {
       let publicKey = await d.signer.publicKey()
       let id = await d.signer.getInstallId()
       if (!publicKey) {
@@ -133,7 +144,8 @@ export function createApiClient(d: ApiDeps) {
         await d.signer.setInstallId(id)
       }
       return id
-    })().catch((e: unknown) => {
+    }
+    installId ??= (d.signer.exclusive ? d.signer.exclusive(identify) : identify()).catch((e: unknown) => {
       installId = null
       throw e
     })

@@ -15,12 +15,14 @@
     "lint": "eslint . --max-warnings=0 && steiger ./app"
   },
   "dependencies": {
+    "@vaultme/api-client": "workspace:*",
     "@vaultme/i18n": "workspace:*",
     "@vaultme/tokens": "workspace:*",
+    "@vaultme/wallet-core": "workspace:*",
+    "isbot": "^5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "react-router": "^8.4.0",
-    "isbot": "^5"
+    "react-router": "^8.4.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
@@ -32,12 +34,15 @@
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
     "@types/node": "^24.19.1",
     "@types/react": "~19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vaultme/config": "workspace:*",
+    "@vaultme/contracts": "workspace:*",
     "@vitest/coverage-v8": "5.0.3",
     "eslint": "^10.12.0",
+    "fake-indexeddb": "6.2.6",
     "jsdom": "^30.1.3",
     "postcss": "^8.5.30",
     "pretendard": "1.3.9",

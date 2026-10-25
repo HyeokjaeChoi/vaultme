@@ -7,7 +7,9 @@
         "http://localhost:8799/",
         "http://localhost:8799/en/",
         "http://localhost:8799/no-such-page",
-        "http://localhost:8799/en/no-such-page"
+        "http://localhost:8799/en/no-such-page",
+        "http://localhost:8799/address",
+        "http://localhost:8799/en/address"
       ],
       "numberOfRuns": 3,
       "settings": {

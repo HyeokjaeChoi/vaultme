@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const PORT = '8799'
+// WEB_E2E_PORT: another checkout's server may hold 8799 locally (reuseExistingServer would test that build).
+const PORT = process.env.WEB_E2E_PORT ?? '8799'
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,

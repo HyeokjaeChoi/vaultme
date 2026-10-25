@@ -73,14 +73,14 @@ describe('token request signing', () => {
 })
 
 // --- a small server stand-in that verifies like apps/api (WebCrypto, canonicalString) ---
-function setup(over: { appVersion?: string } = {}) {
+function setup(over: { appVersion?: string; client?: 'web' } = {}) {
   const t = { ms: 1_760_400_000_000 }
   const server = {
     installs: new Map<string, string>(),
     registers: 0,
     registerDown: false, // POST /v1/installs drops the connection
     tokens: 0,
-    rpcCalls: [] as { auth: string | null; version: string | null; body: unknown }[],
+    rpcCalls: [] as { auth: string | null; version: string | null; client: string | null; body: unknown }[],
     reject401: 0, // next N rpc calls answer 401 unauthorized
     tokenReply: null as null | { status: number; body: unknown },
     rpcReply: null as null | { status: number; body: unknown },
@@ -130,6 +130,7 @@ function setup(over: { appVersion?: string } = {}) {
       server.rpcCalls.push({
         auth: h.get('Authorization'),
         version: h.get('X-App-Version'),
+        client: h.get('X-Client'),
         body: JSON.parse(init.body as string),
       })
       if (server.reject401 > 0) {
@@ -154,6 +155,7 @@ function setup(over: { appVersion?: string } = {}) {
       signer,
       fetch: f,
       now: () => t.ms,
+      ...(over.client ? { client: over.client } : {}),
     })
   return { t, server, client, signer }
 }
@@ -173,6 +175,14 @@ describe('api client', () => {
     expect(s.server.rpcCalls[0]?.body).toMatchObject({ jsonrpc: '2.0', method: 'eth_chainId', params: [] })
     // The server holds the public half of the signer's key.
     expect(s.server.installs.get((await s.signer.getInstallId())!)).toBe(await s.signer.publicKey())
+  })
+  it('mobile sends no X-Client; the web client sends X-Client: web (separate minimum version, ADR-0011)', async () => {
+    const mobile = setup()
+    await mobile.client().rpc('eth_chainId')
+    expect(mobile.server.rpcCalls[0]?.client).toBeNull()
+    const web = setup({ client: 'web' })
+    await web.client().rpc('eth_chainId')
+    expect(web.server.rpcCalls[0]?.client).toBe('web')
   })
   it('a new client with the same signer does not register again', async () => {
     const s = setup()
