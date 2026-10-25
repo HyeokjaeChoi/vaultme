@@ -1,5 +1,5 @@
 import { type WebLocale, type WebMessages, webMessages } from '@vaultme/i18n/web'
-import { type SyntheticEvent, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { type SyntheticEvent, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { type Balances, useBalances } from '../shared/api'
 import { parseAddress } from '../shared/lib/address'
@@ -71,27 +71,26 @@ export default function AddressPage() {
       <meta name="description" content={t.address.lead} />
     </>
   )
-  if (!hydrated)
-    return (
-      <>
-        {title}
-        <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
-        <div data-boot-form>
-          <AddressForm t={t} initial="" headingRef={heading} />
-        </div>
-        <div data-boot-viewer>
-          <Viewer t={t} locale={locale} address={null} headingRef={heading} />
-        </div>
-      </>
-    )
+  // Hydration keeps the prerendered nodes (same wrappers, same slots): a remount painted the page again after the
+  // JS ran, and that later paint became the LCP (mobile Lighthouse /en/address 2.6 s). The boot CSS (app.css) hides
+  // the other wrapper before hydration; after it, data-boot follows the view and only one wrapper is rendered.
+  useLayoutEffect(() => {
+    if (hydrated) document.documentElement.dataset.boot = address ? 'viewer' : 'form'
+  }, [hydrated, address])
   return (
     <>
       {title}
-      {address ? (
-        <Viewer t={t} locale={locale} address={address} headingRef={heading} />
-      ) : (
-        // A shared link with a bad address opens the form with that text and its error.
-        <AddressForm key={fragment} t={t} initial={fragment} headingRef={heading} />
+      {!hydrated && <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />}
+      {(!hydrated || !address) && (
+        <div data-boot-form>
+          {/* A shared link with a bad address opens the form with that text and its error (a new form, after hydration). */}
+          <AddressForm key={hydrated ? fragment : ''} t={t} initial={hydrated ? fragment : ''} headingRef={heading} />
+        </div>
+      )}
+      {(!hydrated || address) && (
+        <div data-boot-viewer>
+          <Viewer t={t} locale={locale} address={address} headingRef={heading} />
+        </div>
       )}
     </>
   )

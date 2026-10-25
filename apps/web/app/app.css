@@ -59,7 +59,7 @@
 
 /* Viewer links (/address#0x...) before hydration: the prerendered page holds the form and the viewer skeleton, and the
    inline script in routes/address.tsx sets data-boot before first paint, so the first paint already has the final layout
-   (CLS 0). After hydration React renders one view and these marked elements are gone. */
+   (CLS 0). Hydration keeps these wrappers, renders only one of them, and sets data-boot to the view it shows. */
 html[data-boot='viewer'] [data-boot-form],
 html:not([data-boot='viewer']) [data-boot-viewer] {
   display: none;

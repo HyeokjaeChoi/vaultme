@@ -69,7 +69,7 @@ test.describe('address input', () => {
     await page.getByLabel('Sepolia 주소').fill(A)
     await page.unroute('**/assets/*.js')
     for (const r of held) await r.continue()
-    await expect(page.locator('[data-boot-viewer]')).toHaveCount(0) // hydrated: one view left
+    await expect(page.locator('html[data-boot="form"]')).toHaveCount(1) // hydrated: data-boot follows the view
     await page.getByRole('button', { name: '주소 보기' }).click()
     await expect(page.getByText('12.5 USDC')).toBeVisible()
   })
