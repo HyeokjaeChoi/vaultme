@@ -28,12 +28,7 @@ function LanguageSwitch({ locale, t }: { locale: WebLocale; t: WebMessages['head
               {code.toUpperCase()}
             </span>
           ) : (
-            <a
-              href={homeOf(code)}
-              lang={code}
-              hrefLang={code}
-              className={`${item} px-button-b-padding-x-md inline-flex`}
-            >
+            <a href={homeOf(code)} lang={code} hrefLang={code} className={`${item} inline-flex px-3`}>
               {code.toUpperCase()}
             </a>
           )}
