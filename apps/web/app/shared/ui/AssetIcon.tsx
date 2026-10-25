@@ -1,7 +1,7 @@
 // Figma: Icon / Asset / ETH 137:402, Icon / Asset / USDC 137:429 (32px)
 // Artwork: spothq/cryptocurrency-icons (CC0-1.0), the same files as apps/mobile/assets/artwork. Brand colors stay as drawn.
-import eth from './artwork/eth.svg'
-import usdc from './artwork/usdc.svg'
+import eth from '../../assets/eth.svg'
+import usdc from '../../assets/usdc.svg'
 
 const src = { ETH: eth, USDC: usdc }
 
