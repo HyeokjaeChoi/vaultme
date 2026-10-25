@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { failedView, parseItems, toView } from '../src/features/history/model/view'
 import { apiErrorKey } from '../src/shared/api/errorCopy'
-import { ApiError } from '../src/shared/api/errors'
+import { ApiError } from '@vaultme/api-client'
 import { createHistory } from '../src/shared/api/history'
 import { dayGroup, formatUpdated } from '../src/shared/lib/time'
 import type { HistoryCache, PendingTx } from '../src/shared/storage/kv'

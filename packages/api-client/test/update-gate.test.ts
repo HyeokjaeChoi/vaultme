@@ -1,24 +1,20 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createApiClient } from '../src/shared/api/client'
-import { createUpdateGate } from '../src/shared/api/updateGate'
+import { createApiClient, createUpdateGate } from '../src/index.ts'
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
 
 function client(reply: Response, onUpdateRequired?: () => void) {
-  let key: string | null = '11'.repeat(32)
-  let id: string | null = null
   return createApiClient({
     baseUrl: 'http://x',
     appVersion: '0.0.0',
-    store: {
-      loadKey: () => Promise.resolve(key),
-      saveKey: (k) => {
-        key = k
-        return Promise.resolve()
-      },
-      getInstallId: () => id,
-      setInstallId: (v) => void (id = v),
+    // The answer comes before any signature is checked, so this signer never needs a real key.
+    signer: {
+      publicKey: () => Promise.resolve('pub'),
+      createKey: () => Promise.resolve('pub'),
+      sign: () => Promise.resolve('sig'),
+      getInstallId: () => Promise.resolve('id'),
+      setInstallId: () => Promise.resolve(),
     },
     fetch: () => Promise.resolve(reply.clone()),
     ...(onUpdateRequired ? { onUpdateRequired } : {}),
@@ -49,5 +45,12 @@ describe('426 gate (S91)', () => {
     g.mark()
     expect(g.get()).toBe(true)
     expect(l).toHaveBeenCalledTimes(1)
+  })
+  it('an unsubscribed listener is not called', () => {
+    const g = createUpdateGate()
+    const l = vi.fn()
+    g.subscribe(l)()
+    g.mark()
+    expect(l).not.toHaveBeenCalled()
   })
 })

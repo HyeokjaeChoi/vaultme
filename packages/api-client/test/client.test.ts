@@ -9,49 +9,66 @@ import {
   canonicalString,
 } from '@vaultme/contracts'
 import { describe, expect, it } from 'vitest'
-import { createApiClient, type DeviceStore } from '../src/shared/api/client'
-import { newPrivateKeyHex, publicKeyB64u, sha256Hex, signCanonical } from '../src/shared/api/deviceKey'
-import { ApiError, RpcError } from '../src/shared/api/errors'
+import { ApiError, RpcError, createApiClient, isApiError, type DeviceSigner } from '../src/index.ts'
 
-// Test key only (not a wallet key, never leaves this file).
-const TEST_KEY = '11'.repeat(32)
 const enc = new TextEncoder()
+const b64u = (b: ArrayBuffer) =>
+  btoa(String.fromCharCode(...new Uint8Array(b)))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replace(/=+$/, '')
 const b64uDecode = (s: string) =>
   Uint8Array.from(atob(s.replaceAll('-', '+').replaceAll('_', '/')), (c) => c.charCodeAt(0))
-const importPub = (b64u: string) =>
-  crypto.subtle.importKey('raw', b64uDecode(b64u), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify'])
+const sha256Hex = async (s: string) =>
+  [...new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(s)))]
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+const importPub = (pub: string) =>
+  crypto.subtle.importKey('raw', b64uDecode(pub), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify'])
 const verify = async (pub: string, sig: string, canonical: string) =>
   crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, await importPub(pub), b64uDecode(sig), enc.encode(canonical))
 
-describe('device key signing', () => {
+/** In-memory test adapter: a non-extractable WebCrypto key, like the browser adapter will hold. */
+function memorySigner(): DeviceSigner & { keys: number } {
+  let pair: CryptoKeyPair | null = null
+  let installId: string | null = null
+  const pub = async (p: CryptoKeyPair) => b64u(await crypto.subtle.exportKey('raw', p.publicKey))
+  return {
+    keys: 0,
+    publicKey: () => (pair ? pub(pair) : Promise.resolve(null)),
+    async createKey() {
+      this.keys++
+      pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify'])
+      return pub(pair)
+    },
+    async sign(text) {
+      if (!pair) throw new Error('no key')
+      return b64u(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, pair.privateKey, enc.encode(text)))
+    },
+    getInstallId: () => Promise.resolve(installId),
+    setInstallId: (id) => {
+      installId = id
+      return Promise.resolve()
+    },
+  }
+}
+
+describe('token request signing', () => {
   // Same vector as packages/contracts/test/contracts.test.ts: the string the server builds.
   const VECTOR =
     'vaultme-v1\nPOST\n/v1/installs/token\n123e4567-e89b-42d3-a456-426614174000\n1760400000\nAAAAAAAAAAAAAAAAAAAAAA\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
 
-  it('canonicalString from the mobile inputs equals the contracts vector (empty body hash)', () => {
-    expect(sha256Hex('')).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
-    expect(
-      canonicalString({
-        method: 'POST',
-        path: '/v1/installs/token',
-        installId: '123e4567-e89b-42d3-a456-426614174000',
-        ts: 1760400000,
-        nonce: 'AAAAAAAAAAAAAAAAAAAAAA',
-        bodySha256Hex: sha256Hex(''),
-      }),
-    ).toBe(VECTOR)
+  it('the empty-body hash in the vector is SHA-256 of ""', async () => {
+    expect(await sha256Hex('')).toBe(VECTOR.split('\n').at(-1))
   })
-  it('a noble-produced r||s signature verifies with WebCrypto, and the key and signature have the contract shapes', async () => {
-    const pub = publicKeyB64u(TEST_KEY)
-    const sig = signCanonical(TEST_KEY, VECTOR)
+  it('the test signer gives the contract shapes and a signature the server check accepts', async () => {
+    const s = memorySigner()
+    const pub = await s.createKey()
+    const sig = await s.sign(VECTOR)
     expect(PublicKey.safeParse(pub).success).toBe(true)
     expect(Signature.safeParse(sig).success).toBe(true)
     expect(await verify(pub, sig, VECTOR)).toBe(true)
     expect(await verify(pub, sig, VECTOR + 'x')).toBe(false)
-  })
-  it('random keys work too', async () => {
-    const k = newPrivateKeyHex()
-    expect(await verify(publicKeyB64u(k), signCanonical(k, VECTOR), VECTOR)).toBe(true)
   })
 })
 
@@ -61,6 +78,7 @@ function setup(over: { appVersion?: string } = {}) {
   const server = {
     installs: new Map<string, string>(),
     registers: 0,
+    registerDown: false, // POST /v1/installs drops the connection
     tokens: 0,
     rpcCalls: [] as { auth: string | null; version: string | null; body: unknown }[],
     reject401: 0, // next N rpc calls answer 401 unauthorized
@@ -70,12 +88,15 @@ function setup(over: { appVersion?: string } = {}) {
     pushCalls: [] as { method: string; auth: string | null; body: unknown }[],
   }
   const json = (status: number, body: unknown) =>
-    new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
+    typeof body === 'string' && body.startsWith('<')
+      ? new Response(body, { status }) // not JSON, e.g. a proxy error page
+      : new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
   const f = (async (url: string, init: RequestInit) => {
     const path = new URL(url).pathname
     const h = new Headers(init.headers)
     const sec = Math.floor(t.ms / 1000)
     if (path === '/v1/installs') {
+      if (server.registerDown) throw new TypeError('offline')
       server.registers++
       const id = crypto.randomUUID()
       server.installs.set(id, (JSON.parse(init.body as string) as { publicKey: string }).publicKey)
@@ -95,7 +116,7 @@ function setup(over: { appVersion?: string } = {}) {
         installId: id,
         ts,
         nonce: h.get(NONCE_HEADER) ?? '',
-        bodySha256Hex: sha256Hex(init.body === undefined ? '' : (init.body as string)),
+        bodySha256Hex: await sha256Hex(init.body === undefined ? '' : (init.body as string)),
       })
       if (!(await verify(pub, h.get(SIGNATURE_HEADER) ?? '', canonical)))
         return json(401, { code: 'signature_invalid', message: 'x', retryable: false })
@@ -125,26 +146,16 @@ function setup(over: { appVersion?: string } = {}) {
     return json(404, { code: 'not_found', message: 'x', retryable: false })
   }) as unknown as typeof fetch
 
-  let key: string | null = null
-  let installId: string | null = null
-  const store: DeviceStore = {
-    loadKey: () => Promise.resolve(key),
-    saveKey: (hex) => {
-      key = hex
-      return Promise.resolve()
-    },
-    getInstallId: () => installId,
-    setInstallId: (id) => void (installId = id),
-  }
+  const signer = memorySigner()
   const client = () =>
     createApiClient({
       baseUrl: 'http://x.test/',
       appVersion: over.appVersion ?? '1.2.3',
-      store,
+      signer,
       fetch: f,
       now: () => t.ms,
     })
-  return { t, server, client, store, state: () => ({ key, installId }) }
+  return { t, server, client, signer }
 }
 
 describe('api client', () => {
@@ -160,10 +171,10 @@ describe('api client', () => {
       ['Bearer tok1', '1.2.3'],
     ])
     expect(s.server.rpcCalls[0]?.body).toMatchObject({ jsonrpc: '2.0', method: 'eth_chainId', params: [] })
-    // The key is stored as hex, the public half is what the server holds.
-    expect(s.server.installs.get(s.state().installId!)).toBe(publicKeyB64u(s.state().key!))
+    // The server holds the public half of the signer's key.
+    expect(s.server.installs.get((await s.signer.getInstallId())!)).toBe(await s.signer.publicKey())
   })
-  it('a new client with the same store does not register again', async () => {
+  it('a new client with the same signer does not register again', async () => {
     const s = setup()
     await s.client().rpc('eth_chainId')
     await s.client().rpc('eth_chainId')
@@ -199,11 +210,12 @@ describe('api client', () => {
   it('registers the same key again when the server does not know the install', async () => {
     const s = setup()
     await s.client().rpc('eth_chainId')
-    const key = s.state().key
+    const key = await s.signer.publicKey()
     s.server.installs.clear() // server database reset
     await s.client().rpc('eth_chainId')
     expect(s.server.registers).toBe(2)
-    expect(s.state().key).toBe(key)
+    expect(await s.signer.publicKey()).toBe(key)
+    expect(s.signer.keys).toBe(1)
   })
   it('426 -> update_required', async () => {
     const s = setup()
@@ -232,6 +244,7 @@ describe('api client', () => {
     const s = setup()
     s.server.rpcReply = { status: 503, body: { code: 'unavailable', message: 'x', retryable: true } }
     await expect(s.client().rpc('x')).rejects.toMatchObject({ code: 'unavailable', retryable: true })
+    expect(s.server.rpcCalls).toHaveLength(1) // only 401 unauthorized is retried
   })
   it('clock_skew from the token endpoint is a typed error', async () => {
     const s = setup()
@@ -246,12 +259,7 @@ describe('api client', () => {
     const c = createApiClient({
       baseUrl: 'http://x.test',
       appVersion: '1.0.0',
-      store: {
-        loadKey: () => Promise.resolve(TEST_KEY),
-        saveKey: () => Promise.resolve(undefined),
-        getInstallId: () => 'i',
-        setInstallId: () => undefined,
-      },
+      signer: memorySigner(),
       fetch: () => Promise.reject(new TypeError('offline')),
     })
     await expect(c.rpc('x')).rejects.toMatchObject({ code: 'network', retryable: true })
@@ -290,5 +298,57 @@ describe('api client', () => {
       },
       { method: 'DELETE', auth: 'Bearer tok1', body: undefined },
     ])
+  })
+  it('parallel first calls register once and share one token request', async () => {
+    const s = setup()
+    const c = s.client()
+    await Promise.all([c.rpc('a'), c.rpc('b'), c.history('0x' + 'a'.repeat(40))])
+    expect(s.server.registers).toBe(1)
+    expect(s.server.tokens).toBe(1)
+  })
+  it('an installId without a key belongs to a lost key: make a new key and register it', async () => {
+    const s = setup()
+    await s.signer.setInstallId('stale-id')
+    await s.client().rpc('eth_chainId')
+    expect(s.signer.keys).toBe(1)
+    expect(s.server.registers).toBe(1)
+    expect(await s.signer.getInstallId()).not.toBe('stale-id')
+  })
+  it('a failed registration is tried again on the next call, with the same key', async () => {
+    const s = setup()
+    const c = s.client()
+    s.server.registerDown = true
+    await expect(c.rpc('x')).rejects.toMatchObject({ code: 'network' })
+    s.server.registerDown = false
+    expect(await c.rpc('x')).toBe('0x1')
+    expect(s.signer.keys).toBe(1)
+    expect(s.server.registers).toBe(1)
+  })
+  it('a body that does not match the contract is an Unknown error', async () => {
+    const s = setup()
+    s.server.rpcReply = { status: 200, body: { jsonrpc: '2.0', id: 1 } }
+    await expect(s.client().rpc('x')).rejects.toMatchObject({ code: 'Unknown', message: 'rpc: no result' })
+    s.server.rpcReply = { status: 200, body: 'not json-rpc' }
+    await expect(s.client().rpc('x')).rejects.toMatchObject({ code: 'Unknown', message: 'unexpected response body' })
+  })
+  it('an error without an envelope keeps its status and a boolean retryable', async () => {
+    const s = setup()
+    s.server.rpcReply = { status: 502, body: { retryable: true } }
+    await expect(s.client().rpc('x')).rejects.toMatchObject({ code: 'Unknown', status: 502, retryable: true })
+  })
+  it('a body that is not JSON is an Unknown error with its status', async () => {
+    const s = setup()
+    s.server.rpcReply = { status: 502, body: '<html>Bad Gateway</html>' }
+    await expect(s.client().rpc('x')).rejects.toMatchObject({ code: 'Unknown', status: 502, retryable: false })
+  })
+})
+
+describe('isApiError', () => {
+  it('matches an ApiError, optionally by code', () => {
+    const e = new ApiError('network', 0, true, 'x')
+    expect(isApiError(e)).toBe(true)
+    expect(isApiError(e, 'network')).toBe(true)
+    expect(isApiError(e, 'clock_skew')).toBe(false)
+    expect(isApiError(new Error('x'))).toBe(false)
   })
 })

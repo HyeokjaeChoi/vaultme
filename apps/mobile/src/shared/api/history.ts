@@ -1,5 +1,5 @@
 import type { HistoryCache, PendingTx } from '../storage/kv'
-import { isApiError, type ApiError } from './errors'
+import { isApiError, type ApiError } from '@vaultme/api-client'
 
 export type HistoryDeps = {
   /** POST /v1/history. */
