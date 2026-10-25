@@ -116,7 +116,7 @@ describe('HistorySection', () => {
 
   it('more loading: the button is disabled and busy; more failed: an alert, the rows stay, the button is the retry', () => {
     const { rerender, actions } = show(ok([item(1)], 'p2', 'loading'))
-    expect(screen.getByRole('button', { name: '더 보기' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '더 보기' })).toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByRole('button', { name: '더 보기' })).toHaveAttribute('aria-busy', 'true')
     rerender(
       <HistorySection
@@ -128,7 +128,7 @@ describe('HistorySection', () => {
       />,
     )
     expect(screen.getByRole('alert')).toHaveTextContent('더 불러오지 못했어요')
-    expect(screen.getByRole('button', { name: '더 보기' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '더 보기' })).toHaveAttribute('aria-disabled', 'false')
     expect(table().getAllByRole('row')).toHaveLength(2)
   })
 

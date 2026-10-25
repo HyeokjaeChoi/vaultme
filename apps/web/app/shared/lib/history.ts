@@ -15,7 +15,9 @@ export function relativeTime(at: number, now: number, locale: WebLocale): string
   if (age < MIN) return rtf.format(0, 'second') // also a clock a little ahead of the server
   if (age < HOUR) return rtf.format(-Math.floor(age / MIN), 'minute')
   if (startOfDay(at) === startOfDay(now)) return rtf.format(-Math.floor(age / HOUR), 'hour')
-  if (startOfDay(at) === startOfDay(now - 24 * HOUR)) return rtf.format(-1, 'day')
+  const yesterday = new Date(now) // calendar day, not 24 h: a day with a clock change is 23 or 25 h long
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (startOfDay(at) === startOfDay(yesterday.getTime())) return rtf.format(-1, 'day')
   const sameYear = new Date(at).getFullYear() === new Date(now).getFullYear()
   return new Intl.DateTimeFormat(locale, {
     ...(sameYear ? {} : { year: 'numeric' }),
@@ -24,9 +26,14 @@ export function relativeTime(at: number, now: number, locale: WebLocale): string
   }).format(at)
 }
 
-/** Date header of the card list: "10월 25일 (일)". */
-export const dayHeader = (at: number, locale: WebLocale) =>
-  new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric', weekday: 'short' }).format(at)
+/** Date header of the card list: "10월 25일 (일)", with the year when it is not this year. */
+export const dayHeader = (at: number, locale: WebLocale, now = Date.now()) =>
+  new Intl.DateTimeFormat(locale, {
+    ...(new Date(at).getFullYear() === new Date(now).getFullYear() ? {} : { year: 'numeric' }),
+    month: 'long',
+    day: 'numeric',
+    weekday: 'short',
+  }).format(at)
 
 /** "09:12", 24 hours in both languages. */
 export const clock = (at: number, locale: WebLocale) =>

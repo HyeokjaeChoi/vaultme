@@ -28,6 +28,10 @@ describe('card parts (Figma Activity row)', () => {
     expect(dayHeader(at(2026, 10, 25, 9, 12), 'ko')).toBe('10월 25일 (일)')
     expect(clock(at(2026, 10, 25, 9, 12), 'ko')).toBe('09:12')
   })
+  it('a header of another year names the year, so the same date of two years is two headers', () => {
+    expect(dayHeader(at(2025, 10, 25, 9), 'ko', NOW)).toBe('2025년 10월 25일 토')
+    expect(dayHeader(at(2026, 10, 25, 9), 'ko', NOW)).toBe('10월 25일 (일)')
+  })
 })
 
 describe('signed (Figma amount: +0.05 ETH, −0.02 ETH)', () => {

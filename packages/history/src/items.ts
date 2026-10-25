@@ -59,7 +59,7 @@ export type LocalSend = {
 /**
  * `POST /v1/history` response (ARCHITECTURE.md#history): `{ items: HistoryItem[], nextCursor, incomplete }`. Each item is checked against the
  * contract and dropped when it does not fit (a newer server may send what this app does not know). Items are always on-chain
- * (`ok` | `failed`); pending sends come from the local record. Incoming zero-value rows are hidden. Paging with `nextCursor` is not used yet.
+ * (`ok` | `failed`); pending sends come from the local record. Incoming zero-value rows are hidden. `nextCursor` is read here; the web viewer pages with `more` (mobile reads the first page only).
  */
 export function parseItems(data: unknown): HistoryItem[] {
   const items = (data as { items?: unknown } | null)?.items

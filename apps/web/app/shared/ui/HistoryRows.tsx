@@ -79,10 +79,10 @@ export function HistoryTable({ items, now, t, locale }: Props) {
 }
 
 /** Below 768 px: Activity rows under date headers. */
-export function HistoryCards({ items, t, locale }: Omit<Props, 'now'>) {
+export function HistoryCards({ items, now, t, locale }: Props) {
   const days: { key: string; at: number; rows: HistoryItem[] }[] = []
   for (const i of items) {
-    const key = dayHeader(i.at, locale)
+    const key = new Date(i.at).toDateString() // the day, not its label: the same date of two years is two groups
     const last = days[days.length - 1]
     if (last?.key === key) last.rows.push(i)
     else days.push({ key, at: i.at, rows: [i] })
@@ -91,7 +91,9 @@ export function HistoryCards({ items, t, locale }: Omit<Props, 'now'>) {
     <div className="tablet:hidden">
       {days.map((d) => (
         <section key={d.key}>
-          <h3 className="text-product-b-label text-text-tertiary px-row-b-padding-x pt-6 pb-2">{d.key}</h3>
+          <h3 className="text-product-b-label text-text-tertiary px-row-b-padding-x pt-6 pb-2">
+            {dayHeader(d.at, locale, now)}
+          </h3>
           <ul>
             {d.rows.map((i) => {
               const title = failed(i)

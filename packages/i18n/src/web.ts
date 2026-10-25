@@ -138,7 +138,7 @@ export const webKo = {
     etherscan: 'Etherscan에서 보기',
     loading: '거래 내역을 불러오고 있어요',
     columns: { status: '상태', direction: '구분', counterparty: '상대 주소', amount: '수량', time: '시간' },
-    status: { confirmed: '확정', failed: '실패', pending: '처리 중', unknown: '확인 못 함', replaced: '실행되지 않음' },
+    status: { confirmed: '확정', failed: '실패' },
     direction: { receive: '받음', send: '보냄' },
     // Card title (Figma Activity row): a failed send has its own words; the receive twin is not in Figma yet.
     cardTitle: { receive: '받음', send: '보냄', sendFailed: '보내기 실패', receiveFailed: '받기 실패' },
@@ -299,13 +299,7 @@ export const webEn: WebMessages = {
     etherscan: 'View on Etherscan',
     loading: 'Loading the transactions',
     columns: { status: 'Status', direction: 'Type', counterparty: 'Counterparty', amount: 'Amount', time: 'Time' },
-    status: {
-      confirmed: 'Confirmed',
-      failed: 'Failed',
-      pending: 'Pending',
-      unknown: 'Not verified',
-      replaced: 'Not executed',
-    },
+    status: { confirmed: 'Confirmed', failed: 'Failed' },
     direction: { receive: 'Received', send: 'Sent' },
     cardTitle: { receive: 'Received', send: 'Sent', sendFailed: 'Send failed', receiveFailed: 'Receive failed' },
     more: 'Show more',

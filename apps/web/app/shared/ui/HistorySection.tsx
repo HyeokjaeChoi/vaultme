@@ -11,7 +11,8 @@ import { HistoryCards, HistoryTable } from './HistoryRows'
 import { HistorySkeleton } from './HistorySkeleton'
 import { Notice } from './Notice'
 
-// The skeleton has 5 rows: the first reveal is 5 too, so the list and its skeleton are the same height. 더 보기 reveals
+// The 768+ skeleton has 5 rows: the first reveal is 5 too, so the list and its skeleton are the same height (at 375 the cards
+// depend on the number of days and the footer is below the fold). 더 보기 reveals
 // more (and asks the API for the next page when the loaded rows run out); that growth follows a click, not a load.
 const FIRST = 5
 const STEP = 10
@@ -38,9 +39,12 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
   // A button that removes itself (Try again, the last 더 보기) must not drop the focus to <body>: it moves to the section.
   const section = useRef<HTMLElement>(null)
   const moveFocus = useRef(false)
+  const loadingMore = history.status === 'ok' && history.more === 'loading'
   useEffect(() => {
-    if (moveFocus.current && !section.current?.contains(document.activeElement)) section.current?.focus()
+    if (!moveFocus.current || loadingMore) return // a request is open: the answer decides whether the button stays
     moveFocus.current = false
+    const active = document.activeElement
+    if (!active || active === document.body || !section.current?.contains(active)) section.current?.focus()
   })
 
   const ok = history.status === 'ok' ? history : null
@@ -49,9 +53,10 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
   const hasMore = ok !== null && (limit < ok.items.length || ok.nextCursor !== null)
 
   function showMore() {
-    if (!ok) return
-    moveFocus.current = limit + STEP >= ok.items.length && ok.nextCursor === null
-    setLimit(limit + STEP)
+    if (!ok || ok.more === 'loading') return
+    moveFocus.current = true // the button may go with the last rows: the effect above moves the focus if it is lost
+    // Not past the rows that exist plus one step, so failed tries do not pile up a big jump for the one that works.
+    setLimit(Math.min(limit, ok.items.length) + STEP)
     if (ok.nextCursor !== null && limit + STEP > ok.items.length) actions.more()
   }
 
@@ -122,7 +127,7 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
         )}
         {ok && !showEmpty && (
           <>
-            <HistoryCards items={rows} t={t} locale={locale} />
+            <HistoryCards items={rows} now={now} t={t} locale={locale} />
             <HistoryTable items={rows} now={now} t={t} locale={locale} />
             {ok.more === 'failed' && (
               <div className="pt-6" role="alert">
@@ -135,9 +140,9 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
               <div className="flex flex-col items-center pt-6">
                 <Button
                   variant="secondary"
-                  disabled={ok.more === 'loading'}
+                  aria-disabled={ok.more === 'loading'}
                   aria-busy={ok.more === 'loading'}
-                  className="tablet:w-auto disabled:text-text-disabled w-full"
+                  className="tablet:w-auto aria-disabled:text-text-disabled w-full"
                   onClick={showMore}
                 >
                   {t.history.more}

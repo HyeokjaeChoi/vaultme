@@ -98,11 +98,15 @@ test.describe('viewer history', () => {
     api.holdHistory = new Promise<void>((resolve) => (release = resolve))
     const more = page.getByRole('button', { name: '더 보기' })
     await more.click()
-    await expect(more).toBeDisabled()
+    await expect(more).toHaveAttribute('aria-disabled', 'true')
+    await more.click({ force: true }) // a click while loading asks for nothing
     await expect(more).toHaveAttribute('aria-busy', 'true')
     release()
     await expect(page.locator('tbody tr')).toHaveCount(14)
     expect(api.historyCursors).toEqual([undefined, 'p2'])
+    // the last page: the button is gone, and the focus is on the section, not lost on <body>
+    await expect(more).toHaveCount(0)
+    await expect(page.getByRole('region', { name: '거래 내역' })).toBeFocused()
   })
 
   test('a stale answer does not replace newer data: A -> B quickly, then back to A', async ({ page }) => {
