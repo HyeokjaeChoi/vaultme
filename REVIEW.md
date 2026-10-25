@@ -63,10 +63,10 @@ Each entry names the check that measures it. A new entry needs its check in the 
 
 | Budget | Measured by |
 |---|---|
-| Web: Lighthouse performance, accessibility, best practices, SEO each ≥ 95, desktop and mobile | [lighthouserc.desktop.json](apps/web/lighthouserc.desktop.json), [lighthouserc.mobile.json](apps/web/lighthouserc.mobile.json), CI `web` |
-| Web: static-page JS ≤ 100 KB gzip | `resource-summary:script:size` in the same files, CI `web` |
+| Web: Lighthouse scores, desktop and mobile (values: [AGENTS.md](AGENTS.md) "Enforced rules") | [lighthouserc.desktop.json](apps/web/lighthouserc.desktop.json), [lighthouserc.mobile.json](apps/web/lighthouserc.mobile.json), CI `web` |
+| Web: static-page JS size | `resource-summary:script:size` in the same files, CI `web` |
 | Mobile: iOS and Android bundle | `export:check` in [apps/mobile/package.json](apps/mobile/package.json), CI `verify` |
-| Mobile: each Hermes bundle ≤ 9 MiB (8.1 MB on 2026-10-25); exactly 2 bundles (iOS, Android) | `export:check` (the `find` steps), CI `verify` |
+| Mobile: Hermes bundle size and count | `export:check` (the `find` steps), CI `verify` |
 
 ## Output
 

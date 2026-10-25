@@ -36,17 +36,22 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           mkdir -p .review-learn
+          trusted='select(.user.login == "claude[bot]" or .user.login == "qodo-code-review[bot]" or (.author_association | test("OWNER|MEMBER|COLLABORATOR")))'
           since=$(date -u -d '30 days ago' +%Y-%m-%d)
-          gh pr list --repo "$REPO" --state merged --search "merged:>=$since" --limit 200 --json number,title,mergedAt > "$RUNNER_TEMP/prs.json"
+          week=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          # No titles: PR text is untrusted input for an agent with write tools.
+          gh pr list --repo "$REPO" --state merged --search "merged:>=$since" --limit 200 --json number,mergedAt > "$RUNNER_TEMP/prs.json"
           for n in $(jq -r '.[].number' "$RUNNER_TEMP/prs.json"); do
             gh api --paginate "repos/$REPO/pulls/$n/comments" \
-              --jq "[.[] | select(.user.login == \"claude[bot]\" or .user.login == \"qodo-code-review[bot]\" or (.author_association | test(\"OWNER|MEMBER|COLLABORATOR\"))) | {pr: $n, id, in_reply_to_id, user: .user.login, path, line, outdated: (.position == null), body}]"
-            gh api --paginate "repos/$REPO/issues/$n/comments" \
-              --jq "[.[] | select(.user.login == \"claude[bot]\") | {pr: $n, user: .user.login, body}]"
+              --jq "[.[] | $trusted | {pr: $n, id, in_reply_to_id, user: .user.login, path, line, outdated: (.position == null), body}]"
+            gh api --paginate "repos/$REPO/issues/$n/comments" --jq "[.[] | $trusted | {pr: $n, user: .user.login, body}]"
+            gh api --paginate "repos/$REPO/pulls/$n/reviews" --jq "[.[] | $trusted | select(.body != \"\") | {pr: $n, user: .user.login, body}]"
           done | jq -s 'add // []' > "$RUNNER_TEMP/comments.json"
           jq -s '{prs: .[0], comments: .[1]}' "$RUNNER_TEMP/prs.json" "$RUNNER_TEMP/comments.json" > .review-learn/findings.json
-          count=$(jq '[.comments[] | select(.path != null and .in_reply_to_id == null)] | length' .review-learn/findings.json)
-          echo "Inline findings: $count"
+          # Run the agent only when a PR merged in the last 7 days has an inline finding (REVIEW.md "Learning loop").
+          count=$(jq --arg week "$week" '[.prs[] | select(.mergedAt >= $week) | .number] as $recent
+            | [.comments[] | select(.path != null and .in_reply_to_id == null and (.pr | IN($recent[])))] | length' .review-learn/findings.json)
+          echo "Inline findings on PRs merged in the last 7 days: $count"
           echo "count=$count" >> "$GITHUB_OUTPUT"
       # The repo's Claude Code hooks (.claude/settings.json) format, lint and typecheck what Claude edits.
       - if: steps.collect.outputs.count != '0'
