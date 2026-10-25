@@ -7,8 +7,8 @@ A self-custody wallet for Ethereum Sepolia testnet, built as a learning and port
 This monorepo holds the wallet logic, a React Native (Expo) app, the design tokens, and the design documents.
 It does not hold a production wallet. Use test funds only.
 
-> **Status: 2026-10-14**
-> C1 (`packages/wallet-core`), C2a (the mobile UI with static screens), Redesign A ("one screen, one question", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)), and C2b (secure storage, backup, restore, app lock, and send) are merged into `main`. C2b uses a fake chain adapter. C3-6 (#43) adds the real chain adapter and API client: when `EXPO_PUBLIC_API_URL` is set the app registers an install and uses `POST /v1/rpc`; when it is not set the fake adapter still runs and no transaction leaves the device. `POST /v1/history` is wired too. [ARCHITECTURE.md](ARCHITECTURE.md) describes what the code does today.
+> **Status: 2026-10-25**
+> C1 (`packages/wallet-core`), C2a (the mobile UI with static screens), Redesign A ("one screen, one question", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)), and C2b (secure storage, backup, restore, app lock, and send) are merged into `main`. C2b uses a fake chain adapter. C3-6 (#43) adds the real chain adapter and API client: when `EXPO_PUBLIC_API_URL` is set the app registers an install and uses `POST /v1/rpc`; when it is not set the fake adapter still runs and no transaction leaves the device. `POST /v1/history` is wired too. The web app (`apps/web`) has the landing page (ko/en), the 404 page, and a read-only address viewer with ETH and USDC balances on staging; the viewer history list is in progress ([#196](https://github.com/HyeokjaeChoi/vaultme/issues/196)). [ARCHITECTURE.md](ARCHITECTURE.md) describes what the code does today.
 
 ## Start here
 
@@ -30,9 +30,13 @@ The product keeps wallet actions readable: it shows the account, network, asset,
 
 | Path | Role |
 | --- | --- |
-| `apps/mobile` | Expo app (`@vaultme/mobile`). Screens built from the Figma design, wired to `wallet-core` and device storage (fake chain until C3) |
-| `apps/web` | Static web app (`@vaultme/web`), React Router prerendered on Cloudflare Workers Static Assets. The 404 page so far; landing and address viewer come next |
+| `apps/mobile` | Expo app (`@vaultme/mobile`). Screens built from the Figma design, wired to `wallet-core`, device storage and the API (a fake chain when `EXPO_PUBLIC_API_URL` is not set) |
+| `apps/api` | Cloudflare Worker (`@vaultme/api`), Hono and D1: RPC proxy, history, push |
+| `apps/web` | Static web app (`@vaultme/web`), React Router prerendered on Cloudflare Workers Static Assets. The landing page (ko/en), the 404 page, and a read-only address viewer with balances; the history list is in progress (#196) |
 | `packages/wallet-core` | Pure TypeScript with viem: key derivation, amounts, risk checks, send state. No IO |
+| `packages/contracts` | zod schemas that the app, the web app and the API share |
+| `packages/api-client` | The install-identity API client (`createApiClient`) |
+| `packages/history` | The history list and row lookup module |
 | `packages/tokens` | Design tokens generated from the token source with Style Dictionary |
 | `packages/i18n` | Typed Korean strings with i18next |
 | `packages/config` | Shared ESLint and TypeScript settings |
@@ -62,7 +66,7 @@ pnpm --filter @vaultme/mobile start   # Expo dev server
 ```
 
 `packages/tokens` generates its TypeScript output on `build`. Its `typecheck`, `lint`, and `test` scripts run `build` first.
-The pre-commit hook runs ESLint `--fix` and Prettier on staged files. CI runs `scripts/check-repo-rules.sh`, `prettier --check .` and `pnpm turbo run typecheck lint test` ([ci.yml](.github/workflows/ci.yml)).
+The pre-commit hook runs ESLint `--fix` and Prettier on staged files. CI runs `scripts/check-repo-rules.sh`, `prettier --check .`, `pnpm turbo run typecheck lint test`, the API `openapi:check`, `pnpm knip`, the mobile bundle check and the web gates ([ci.yml](.github/workflows/ci.yml)).
 
 ## Design system
 

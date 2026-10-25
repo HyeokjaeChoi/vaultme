@@ -1,7 +1,7 @@
 # VaultMe agent guide
 
 VaultMe is a self-custody wallet for the Ethereum Sepolia testnet (learning and portfolio project, test funds only).
-pnpm + Turborepo monorepo: `apps/mobile` (Expo), `apps/api`, `packages/{wallet-core,tokens,i18n,contracts,config}`.
+pnpm + Turborepo monorepo: `apps/mobile` (Expo), `apps/api`, `apps/web`, `packages/{wallet-core,tokens,i18n,contracts,config,api-client,history}`.
 
 ## Communication
 

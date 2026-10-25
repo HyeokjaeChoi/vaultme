@@ -1,6 +1,6 @@
 # 0012. Web app scope and quality bars
 
-Status: Accepted (2026-10-25, spec issue #186, owner grilling Q1-Q13). Started in `apps/web` (issue #192: 404 page, CI gates, staging).
+Status: Accepted (2026-10-25, spec issue #186, owner grilling Q1-Q13). Started in `apps/web` (issue #192: 404 page, CI gates, staging; #194: landing; #195: viewer balances; history #196 in progress).
 Supersedes: the "a web app" non-goal in `ARCHITECTURE.md`. Hosting stays as in [0001](0001-web-hosting-workers-static-assets.md). API access: [0011](0011-web-client-api-access.md).
 
 ## Context
