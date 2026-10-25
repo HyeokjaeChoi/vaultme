@@ -11,6 +11,7 @@ import type { Env } from './env.ts'
 const UPSTREAM_TIMEOUT_MS = 5000
 const ARG_32_BYTES = new RegExp(`^${BALANCE_OF_SELECTOR}[0-9a-fA-F]{64}$`)
 
+const TX_HASH = /^0x[0-9a-fA-F]{64}$/
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
 /** Allow-list check (ARCHITECTURE.md#api-contract). Cheap to be strict: anything unexpected is refused. */
@@ -32,6 +33,9 @@ export function rpcAllowed({ method, params = [] }: RpcRequest): boolean {
     // Full transaction objects would make the response huge.
     case 'eth_getBlockByNumber':
       return params[1] === false
+    // One 32-byte hash and nothing else.
+    case 'eth_getTransactionByHash':
+      return params.length === 1 && typeof params[0] === 'string' && TX_HASH.test(params[0])
     default:
       return true
   }
