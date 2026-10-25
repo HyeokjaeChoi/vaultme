@@ -1,4 +1,5 @@
 import { type WebLocale, webMessages } from '@vaultme/i18n/web'
+import { webLanding } from '@vaultme/i18n/web-landing'
 import { homeOf } from './locale'
 
 /** Canonical origin (ADR-0012). Staging pages also name it: they are noindex, so staging is never indexed under it. */
@@ -9,7 +10,7 @@ export const pageUrl = (locale: WebLocale) => `${SITE_ORIGIN}${homeOf(locale)}`
 /** WebApplication + FAQPage (schema.org). The FAQ text is the visible FAQ copy, as Google requires. */
 export function landingJsonLd(locale: WebLocale) {
   const m = webMessages[locale]
-  const t = m.landing
+  const t = webLanding[locale].landing
   const url = pageUrl(locale)
   return [
     {

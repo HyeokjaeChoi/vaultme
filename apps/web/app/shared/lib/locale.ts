@@ -11,3 +11,4 @@ export const otherLocale = (locale: WebLocale): WebLocale => (locale === 'en' ? 
 
 // The viewer page does not exist yet (#186 later tickets). The path is fixed by ADR-0012 (`/address#0x...`).
 export const viewerPath = (locale: WebLocale) => (locale === 'en' ? '/en/address' : '/address')
+export const txPath = (locale: WebLocale) => (locale === 'en' ? '/en/tx' : '/tx')

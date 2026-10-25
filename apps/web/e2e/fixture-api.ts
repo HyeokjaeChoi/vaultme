@@ -51,12 +51,20 @@ const FIRST_PAGE = [
 ]
 const SECOND_PAGE = [mkTx(13, 30 * DAY), mkTx(14, 31 * DAY), mkTx(15, 32 * DAY)]
 
+/** The transaction answers: `ok` = 0.05 ETH 3 minutes ago, `usdc` = a 12.5 USDC transfer, `failed` = reverted, `unknown` = no such tx, `pending` = no block yet, `down` = 503. */
+export type TxMode = 'ok' | 'usdc' | 'failed' | 'unknown' | 'pending' | 'creation' | 'down'
+export const TX = hex(0x8f3b) // the hash of every fixture transaction answer
+const SENDER = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
+const USDC = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+
 export async function fixtureApi(page: Page) {
   const api = {
     mode: 'ok' as Mode,
     history: 'list' as HistoryMode,
     hold: null as Promise<void> | null,
     holdHistory: null as Promise<void> | null,
+    tx: 'ok' as TxMode,
+    holdTx: null as Promise<void> | null,
     historyCursors: [] as (string | undefined)[],
     registers: 0,
     requests: [] as { path: string; headers: Record<string, string> }[],
@@ -86,9 +94,46 @@ export async function fixtureApi(page: Page) {
         return json(route, 200, page([mkTx(1, 180, { value: '1000000000000000000000000000000' })], null))
       return json(route, 200, cursor === 'p2' ? page(SECOND_PAGE, null) : page(FIRST_PAGE, 'p2'))
     }
+    const body = req.postDataJSON() as { id: number; method: string; params: unknown[] }
+    if (
+      ['eth_getTransactionByHash', 'eth_getTransactionReceipt', 'eth_getBlockByNumber'].includes(body.method) &&
+      body.params[0] !== 'latest'
+    ) {
+      await api.holdTx
+      if (api.tx === 'down') return json(route, 503, { code: 'unavailable', message: 'x', retryable: true })
+      const to = api.tx === 'creation' ? null : api.tx === 'usdc' ? USDC : ME
+      const input =
+        api.tx === 'usdc'
+          ? `0xa9059cbb${SENDER.slice(2).toLowerCase().padStart(64, '0')}${(12_500_000).toString(16).padStart(64, '0')}`
+          : '0x'
+      const result =
+        body.method === 'eth_getTransactionByHash'
+          ? api.tx === 'unknown'
+            ? null
+            : {
+                hash: body.params[0],
+                from: SENDER,
+                to,
+                value: api.tx === 'usdc' ? '0x0' : '0xb1a2bc2ec50000',
+                input,
+                blockNumber: '0x713a27',
+              }
+          : body.method === 'eth_getTransactionReceipt'
+            ? api.tx === 'unknown' || api.tx === 'pending'
+              ? null
+              : {
+                  status: api.tx === 'failed' ? '0x0' : '0x1',
+                  gasUsed: '0x5208',
+                  effectiveGasPrice: '0x3b9aca00',
+                  blockNumber: '0x713a27',
+                  transactionHash: body.params[0],
+                }
+            : { number: '0x713a27', timestamp: `0x${(Math.floor(Date.now() / 1000) - 180).toString(16)}` }
+      return json(route, 200, { jsonrpc: '2.0', id: body.id, result })
+    }
     if (api.mode === 'down') return json(route, 503, { code: 'unavailable', message: 'x', retryable: true })
     await api.hold
-    const { id, method } = req.postDataJSON() as { id: number; method: string }
+    const { id, method } = body
     const big = api.mode === 'big' // 10^24 ETH and 10^24 USDC: far above any supply, wider than the card at 375 px
     const result =
       method === 'eth_getBalance'

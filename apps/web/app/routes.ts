@@ -8,6 +8,9 @@ export default [
   // The viewer: one prerendered shell per locale; the address is in the URL fragment (ADR-0012).
   route('address', 'routes/address.tsx', { id: 'address-ko' }),
   route('en/address', 'routes/address.tsx', { id: 'address-en' }),
+  // The transaction page: same shape, the hash is in the fragment (ADR-0012).
+  route('tx', 'routes/tx.tsx', { id: 'tx-ko' }),
+  route('en/tx', 'routes/tx.tsx', { id: 'tx-en' }),
   route('en/*', 'routes/not-found.tsx', { id: 'not-found-en' }),
   route('*', 'routes/not-found.tsx', { id: 'not-found-ko' }),
 ] satisfies RouteConfig

@@ -61,6 +61,51 @@
   }
 }
 
+/* Figma: Web/Definition row label column 200 px (757:282) and the Tx detail loading frames (768:33109 ..): label bar 100 / 200 x 14,
+   badge 96 x 38, figure 160 x 52, button 210 x 56, and the six row heights (375: 98, 98, 74, 74, 74, 122; 768 and up: 68, 68, 48, 48, 48, 72).
+   No token has these sizes; they are built from space/1 (4 px). Remove when the web design system gets definition-row and skeleton tokens. */
+@utility w-definition-label {
+  width: calc(var(--spacing-1) * 50);
+}
+@utility skeleton-line {
+  height: calc(var(--spacing-1) * 3.5);
+}
+@utility skeleton-label {
+  width: calc(var(--spacing-1) * 25);
+  @media (width >= 48rem) {
+    width: calc(var(--spacing-1) * 50);
+  }
+}
+@utility skeleton-badge {
+  width: calc(var(--spacing-1) * 24);
+  height: calc(var(--spacing-1) * 9.5);
+}
+@utility skeleton-figure {
+  width: calc(var(--spacing-1) * 40);
+  height: calc(var(--spacing-1) * 13);
+}
+@utility skeleton-button {
+  width: calc(var(--spacing-1) * 52.5);
+}
+@utility tx-row-address {
+  height: calc(var(--spacing-1) * 24.5);
+  @media (width >= 48rem) {
+    height: calc(var(--spacing-1) * 17);
+  }
+}
+@utility tx-row-line {
+  height: calc(var(--spacing-1) * 18.5);
+  @media (width >= 48rem) {
+    height: var(--spacing-12);
+  }
+}
+@utility tx-row-hash {
+  height: calc(var(--spacing-1) * 30.5);
+  @media (width >= 48rem) {
+    height: calc(var(--spacing-1) * 18);
+  }
+}
+
 @layer base {
   html {
     font-family: 'Pretendard Variable', 'Pretendard Fallback', system-ui, sans-serif;
@@ -99,7 +144,7 @@
   letter-spacing: var(--primitive-font-tracking-normal);
 }
 
-/* Viewer links (/address#0x...) before hydration: the prerendered page holds the form and the viewer skeleton, and the
+/* Viewer links (/address#0x... and /tx#0x...) before hydration: the prerendered page holds the form and the viewer skeleton, and the
    inline script in routes/address.tsx sets data-boot before first paint, so the first paint already has the final layout
    (CLS 0). Hydration keeps these wrappers, renders only one of them, and sets data-boot to the view it shows. */
 html[data-boot='viewer'] [data-boot-form],

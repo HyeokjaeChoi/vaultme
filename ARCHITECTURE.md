@@ -12,7 +12,7 @@ Goals:
 
 Non-goals (not built): other chains, other tokens, swap, multiple accounts, smart accounts, WalletConnect, cloud backup, ENS, address book, speed-up or cancel, an admin dashboard. In the web app, also no keys, no recovery phrase, no send, no fiat prices (see [ADR-0012](docs/adr/0012-web-scope-and-quality-bars.md)).
 
-The web app (`apps/web`, landing + read-only address viewer) is in scope and partly built (issue #186): the 404 page, the CI gates and the staging deploy (#192), the ko/en landing page (#194) and the address viewer with ETH and USDC balances (#195) exist. The viewer history list (#196) is in progress; the transaction page (#197) and production domains (#198) are not built. See ADR-0011, ADR-0012, ADR-0013 and `apps/web/AGENTS.md`.
+The web app (`apps/web`, landing + read-only address viewer) is in scope and partly built (issue #186): the 404 page, the CI gates and the staging deploy (#192), the ko/en landing page (#194) and the address viewer with ETH and USDC balances (#195) exist. The viewer history list (#196) and the transaction page `/tx#0x…` (#197, read by hash through `eth_getTransactionByHash` and the receipt) exist; production domains (#198) are not built. See ADR-0011, ADR-0012, ADR-0013 and `apps/web/AGENTS.md`.
 
 ## System map
 
@@ -70,7 +70,7 @@ React Router framework mode, prerendered (`ssr: false`), `app/` follows the same
 
 - `routes/landing.tsx`: ko `/` and en `/en` (one component). `routes/address.tsx`: the viewer shell (`/address`, `/en/address`). It reads the address from the URL fragment and loads balances in the browser through `@vaultme/api-client` and `POST /v1/rpc`. `routes/not-found.tsx`: the real 404 (ADR-0013).
 - `shared/api`, `shared/lib`, `shared/ui`: API client wiring, helpers, UI primitives. Copy comes from `@vaultme/i18n/web`.
-- History and transaction views are not built yet (#196, #197).
+- The web viewer's history list (#196) and transaction page (#197) exist; they are web-only and read through the API (no cache, ADR-0011).
 
 ### apps/mobile
 
