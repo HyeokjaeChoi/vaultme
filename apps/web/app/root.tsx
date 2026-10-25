@@ -36,7 +36,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="color-scheme" content="light dark" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-        <meta name="description" content={webMessages[locale].footer.testnetOnly} />
         <Meta />
         {hydrate ? <Links /> : <link rel="stylesheet" href={appCss} />}
         {/* Fonts after first contentful paint (see fonts.css). Without script, <noscript> loads them at once. */}

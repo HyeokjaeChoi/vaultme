@@ -109,7 +109,7 @@ test.describe('theme toggle', () => {
 })
 
 test.describe('redirects', () => {
-  // The home pages answer 404 until the landing page exists; the real 404 files must not answer 200 themselves.
+  // The real 404 files must not answer 200 themselves: they redirect to the landing pages.
   for (const [from, status, to] of [
     ['/404', 302, '/'],
     ['/en/404', 302, '/en/'],

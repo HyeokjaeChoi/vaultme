@@ -16,11 +16,9 @@ export type ButtonLinkVariant = keyof typeof variants
 
 type Props = ComponentProps<'a'> & { variant: ButtonLinkVariant }
 
+export const buttonClass = (variant: ButtonLinkVariant, className = '') =>
+  `text-product-b-headline rounded-button-b-radius inline-flex items-center justify-center gap-2 whitespace-nowrap ${variants[variant]} ${className}`
+
 export function ButtonLink({ variant, className = '', ...props }: Props) {
-  return (
-    <a
-      {...props}
-      className={`text-product-b-headline rounded-button-b-radius inline-flex items-center justify-center gap-2 whitespace-nowrap ${variants[variant]} ${className}`}
-    />
-  )
+  return <a {...props} className={buttonClass(variant, className)} />
 }

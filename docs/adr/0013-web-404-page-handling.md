@@ -7,7 +7,7 @@ ADR-0001 chose `not_found_handling: "single-page-application"` so `/admin/*` cou
 
 ## Decision
 - `wrangler.jsonc` sets `assets.not_found_handling: "404-page"`: an unknown path gets the nearest `404.html` with status 404 (`/en/...` gets the 404.html under en).
-- React Router prerenders `/404` and `/en/404`; `scripts/finalize.ts` renames them to two files named 404.html (root and under en), and drops the SPA shell `index.html` (until the landing page exists, `/` is a 404 too).
+- React Router prerenders `/404` and `/en/404`; `scripts/finalize.ts` renames them to two files named 404.html (root and under en), and drops the SPA shell (`__spa-fallback.html`; a prerendered landing page keeps `index.html`).
 - `public/_redirects` sends `/404` and `/en/404` to the home pages, so the real files never answer 200 (a soft 404).
 - The 404 page is `noindex`.
 - The `/admin` rewrite of ADR-0001 is not built. If an SPA-only path returns, add a `_redirects` rewrite for it (200) and check it together with `404-page`.

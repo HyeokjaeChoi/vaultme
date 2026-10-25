@@ -8,5 +8,5 @@ export default {
   ssr: false,
   appDirectory: fixture ? 'test/fixtures/app' : 'app',
   buildDirectory: fixture ? 'test/fixtures/build' : 'build',
-  prerender: fixture ? ['/', '/hydrated', '/404', '/en/404'] : ['/404', '/en/404'],
+  prerender: fixture ? ['/', '/hydrated', '/404', '/en/404'] : ['/', '/en', '/404', '/en/404'],
 } satisfies Config
