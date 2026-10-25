@@ -180,7 +180,7 @@ App side (`features/push`):
 
 ## Build, test and release
 
-Tooling: pnpm 11, Turborepo, TypeScript 6, Node 24, Vitest. `turbo.json` tasks: `build`, `typecheck`, `lint`, `test`. Each depends on `^build` (tokens generate code).
+Tooling: pnpm 12, Turborepo, TypeScript 6, Node 24, Vitest. `turbo.json` tasks: `build`, `typecheck`, `lint`, `test`. Each depends on `^build` (tokens generate code).
 
 Local:
 - `pnpm turbo run typecheck lint test` and `scripts/check-repo-rules.sh`.
