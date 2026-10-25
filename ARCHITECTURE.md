@@ -51,7 +51,7 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 - `history`: the history module (`createHistory`: `list`, `cachedRow`, `findRow`) over a page-fetch seam and a cache seam. See History.
 - `tokens`: Style Dictionary build of `packages/tokens/tokens.json` into `src/generated` (TS for mobile, `tokens.css` variables and a Tailwind v4 `theme.css` for web). Layers: Primitive, Semantic (light and dark), Component.
 - `i18n`: Korean strings (`ko`) and an i18next instance.
-- `config`: shared ESLint and tsconfig. It holds the no-float rule for amount code.
+- `config`: shared ESLint and tsconfig, and the FSD layer preset (`fsd.js`, `steiger.js`). It holds the no-float rule for amount code.
 
 ### apps/api
 
@@ -75,7 +75,7 @@ Expo Router in `app/` has thin route files. They re-export a page from `src/page
 - `entities`: `account`, `asset`, `transaction`. They hold fixtures, the Review view model, `txView` (re-exported from `@vaultme/history`) and the pending tx store (`readPendingTx`, `writePendingTx`).
 - `shared`: `api` (wires `@vaultme/api-client` to the noble `DeviceSigner`, `nobleSigner`: key in Keychain, installId in kv), `chain` (`ChainPort`, the fake adapter and its sample balances), `storage` (`keychain`, `kv`), `auth`, `ui` (primitives), `theme`, `lib`.
 
-`apps/mobile/eslint.config.mjs` (eslint-plugin-boundaries) enforces the direction, and that another slice is imported only through its `index`. `shared/lib` files are each a public entry. `apps/mobile/steiger.config.mjs` checks the folder structure. Only `wallet-core` is the signing boundary by design.
+The preset `packages/config/fsd.js` (eslint-plugin-boundaries, used by `apps/mobile/eslint.config.mjs` and `apps/web/eslint.config.js`) enforces the direction, and that another slice is imported only through its `index`. `shared/lib` files are each a public entry (web: `shared/ui` too). `packages/config/steiger.js` checks the folder structure. Each app passes its layer folder (mobile `src`, web `app`), route files and app layer (`shell`). Web: routes are `app/routes`, the app layer is `app/shell`. Only `wallet-core` is the signing boundary by design.
 
 `ChainPort` is the one chain interface. The real adapter calls `POST /v1/rpc`. If `EXPO_PUBLIC_API_URL` is not set, a fake adapter runs, nothing is sent, and the UI says so.
 
