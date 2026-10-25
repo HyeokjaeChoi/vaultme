@@ -1,10 +1,20 @@
 # Review guide
 
-Read this before you review a VaultMe PR. It applies to any AI reviewer (Claude in CI today) and to people.
+Read this before you review a VaultMe PR. It applies to any AI reviewer (Claude and Qodo today) and to people.
 It is an index: it names the files to read and the questions to ask. The rules stay in the files it names.
+Claude runs it as the [vaultme-pr-review](.claude/skills/vaultme-pr-review/SKILL.md) skill, in CI and locally.
 
 CI reads this file and every file it names from the PR base branch, not from the PR head
 (`.github/workflows/claude-code-review.yml`). A PR that changes a rule is reviewed against the old rule.
+
+A review answers two questions:
+
+1. **Requirements.** Does the PR do what its linked issue (`Closes #N`) and that issue's parent spec ask?
+   Check each acceptance criterion against the code and tests: met, gap, or not checkable here.
+2. **Quality.** Does the change keep the four axes below?
+
+Read beyond the diff: the callers and callees of each changed symbol, the files that render or run it, and its tests.
+A bug may depend on input, state, concurrency or async order; report it with a concrete failure scenario.
 
 ## Do not flag
 
@@ -60,13 +70,17 @@ Each entry names the check that measures it. A new entry needs its check in the 
 
 ## Output
 
-- Each finding cites its source: the file and section, ADR number, invariant or lesson ID, with a link.
-  A finding without a source is a bug finding (it fails to compile, or gives a wrong result on every input).
-- No finding: say so, and list the files from this guide that you read.
+- Each finding has a severity ([workflow.md](docs/agents/workflow.md) step 10): **Critical** (funds, keys, signing,
+  security or data loss), **Major** (wrong result on a reachable input or state, or an unmet acceptance criterion),
+  **Minor** (other real problems).
+- Each finding gives the failure scenario, the code evidence, and its source: the file and section, ADR number,
+  invariant, lesson ID or acceptance criterion, with a link. A bug with no rule source cites the behavior the code
+  promises (a type, a doc comment, the issue).
+- Drop what the code does not back. A summary lists each acceptance criterion with its status and the files read.
 
 ## Learning loop
 
 `.github/workflows/review-learn.yml` runs once a week. It reads the review findings on PRs merged in the last 30 days
 and the answers to them (fixed, or rejected with a reason). For a repeated finding (2 PRs, or twice in one PR)
 with at least one case in the last 7 days, it proposes a check first ([AGENTS.md](AGENTS.md) "Enforced rules"), and a lesson only if no check can detect it.
-It opens one issue and one draft PR. The owner reviews and merges it; nothing reaches `main` without that.
+It counts Claude, Qodo and write-access reviewers. It opens one issue and one draft PR. The owner reviews and merges it; nothing reaches `main` without that.

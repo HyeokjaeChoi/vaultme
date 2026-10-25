@@ -1,0 +1,7 @@
+# Qodo review settings (trial, issue #212). Remove this file when the Qodo trial ends.
+# The rules stay in REVIEW.md and the files it names; these lines only point there.
+# Keys: https://docs.qodo.ai/code-review/extra-instructions
+
+[review_agent]
+issues_user_guidelines = "Read REVIEW.md in the repository root and the files it names for each changed path. Do not flag rules in the AGENTS.md 'Enforced rules' table: a check already enforces each one."
+compliance_user_guidelines = "Check each acceptance criterion of the linked issue (Closes #N) and its parent spec. Rules: AGENTS.md (root and area), REVIEW.md, ARCHITECTURE.md 'Invariants', docs/adr. Cite the rule or criterion in each finding."
