@@ -40,21 +40,24 @@ export function webSigner(idb: IDBFactory = indexedDB): DeviceSigner {
   }
   const store = async (mode: IDBTransactionMode) => (await open()).transaction(STORE, mode).objectStore(STORE)
 
-  let cached: Device | null = null
+  // No per-tab cache: another tab may have made the key since this tab last looked, and the install sequence
+  // (exclusive, below) must see that. One IndexedDB read per signature is cheap next to the network call it signs.
   async function read(): Promise<Device> {
-    cached ??= ((await request((await store('readonly')).get(KEY))) as Device | undefined) ?? {
-      pair: null,
-      installId: null,
-    }
-    return cached
+    return (
+      ((await request((await store('readonly')).get(KEY))) as Device | undefined) ?? { pair: null, installId: null }
+    )
   }
   async function write(d: Device) {
     await request((await store('readwrite')).put(d, KEY))
-    cached = d
   }
   const exportPublic = async (pair: CryptoKeyPair) => b64u(await crypto.subtle.exportKey('raw', pair.publicKey))
 
   return {
+    // Web Locks (all browsers since 2022): one tab at a time makes the key and registers it. Where the API is missing
+    // (old browsers, an insecure context) the sequence runs unguarded, as before: two tabs opened together may then
+    // each register a key and the later write wins; the other tab's install is left unused on the server.
+    exclusive: (fn) =>
+      typeof navigator !== 'undefined' && 'locks' in navigator ? navigator.locks.request('vaultme-install', fn) : fn(),
     async publicKey() {
       const { pair } = await read()
       return pair ? exportPublic(pair) : null

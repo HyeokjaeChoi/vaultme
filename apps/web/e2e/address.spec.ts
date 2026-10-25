@@ -9,13 +9,18 @@ type LayoutShift = PerformanceEntry & { value: number; sources: { node: Node | n
 const API = 'https://vaultme-api-staging.gurwo1007.workers.dev'
 const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 
-type Mode = 'ok' | 'down'
+type Mode = 'ok' | 'down' | 'big'
 async function fixtureApi(page: Page) {
-  const api = { mode: 'ok' as Mode, registers: 0, requests: [] as { path: string; headers: Record<string, string> }[] }
+  const api = {
+    mode: 'ok' as Mode,
+    hold: null as Promise<void> | null,
+    registers: 0,
+    requests: [] as { path: string; headers: Record<string, string> }[],
+  }
   const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' }
   const json = (route: Route, status: number, body: unknown) =>
     route.fulfill({ status, contentType: 'application/json', headers: cors, body: JSON.stringify(body) })
-  await page.route(`${API}/**`, (route) => {
+  await page.route(`${API}/**`, async (route) => {
     const req = route.request()
     if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
     const path = new URL(req.url()).pathname
@@ -27,8 +32,17 @@ async function fixtureApi(page: Page) {
     if (path === '/v1/installs/token')
       return json(route, 200, { token: 'tok', expiresAt: Math.floor(Date.now() / 1000) + 900 })
     if (api.mode === 'down') return json(route, 503, { code: 'unavailable', message: 'x', retryable: true })
+    await api.hold
     const { id, method } = req.postDataJSON() as { id: number; method: string }
-    const result = method === 'eth_getBalance' ? '0x11d448f27b93c000' : '0xbebc20' // 1.284732 ETH, 12.5 USDC
+    const big = api.mode === 'big' // 10^24 ETH and 10^24 USDC: far above any supply, wider than the card at 375 px
+    const result =
+      method === 'eth_getBalance'
+        ? big
+          ? '0xb7abc627050305adf14a3d9e40000000000'
+          : '0x11d448f27b93c000'
+        : big
+          ? '0xc9f2c9cd04674edea40000000'
+          : '0xbebc20' // 1.284732 ETH, 12.5 USDC
     return json(route, 200, { jsonrpc: '2.0', id, result })
   })
   return api
@@ -102,6 +116,62 @@ test.describe('viewer', () => {
     api.mode = 'ok'
     await page.getByRole('button', { name: '다시 시도' }).click()
     await expect(page.getByText('12.5 USDC')).toBeVisible()
+  })
+
+  // The skeleton card has one line for the amount: a long balance must not wrap to more lines when it arrives.
+  test('a very large balance keeps the card height from the skeleton to the balance (375px)', async ({ page }) => {
+    const api = await fixtureApi(page)
+    api.mode = 'big'
+    let release!: () => void
+    api.hold = new Promise<void>((resolve) => (release = resolve))
+    await page.setViewportSize({ width: 375, height: 900 })
+    await page.goto(`/address#${A}`)
+    const cards = page.getByRole('region', { name: '잔액' }).locator('> div')
+    await expect(cards).toHaveCount(2)
+    const heights = () => cards.evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height))
+    const skeleton = await heights()
+    release()
+    await expect(page.getByText('1000000000000000000000000 ETH')).toBeVisible()
+    expect(await heights()).toEqual(skeleton)
+    // all digits stay reachable: the amount scrolls sideways and takes keyboard focus
+    const amount = page.getByText('1000000000000000000000000 ETH')
+    expect(await amount.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true)
+    await amount.focus()
+    await expect(amount).toBeFocused()
+    const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag22aa']).analyze()
+    expect(violations).toEqual([])
+  })
+
+  // First paint, before any script of the app: only the inline boot script has run (the app's JS is blocked).
+  test.describe('the first paint of a shared link already shows the view the app will settle on', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.route('**/assets/*.js', (route) => route.abort())
+    })
+    test('an encoded or padded valid address paints the viewer', async ({ page }) => {
+      for (const hash of [`%20${A}%20`, `${A.slice(0, 2)}%${A.charCodeAt(2).toString(16)}${A.slice(3)}`]) {
+        await page.goto(`/address#${hash}`)
+        await expect(page.locator('html')).toHaveAttribute('data-boot', 'viewer')
+        await expect(page.getByRole('heading', { level: 1, name: '조회한 주소' })).toBeVisible()
+      }
+    })
+    test('a plain form link paints the form', async ({ page }) => {
+      await page.goto('/address')
+      await expect(page.locator('html')).not.toHaveAttribute('data-boot', 'viewer')
+      await expect(page.getByRole('heading', { level: 1, name: '주소를 넣어 보세요' })).toBeVisible()
+    })
+  })
+
+  // The boot script cannot check an EIP-55 checksum (that needs keccak, ~3 KB, in an inline script): a mixed-case link
+  // with a wrong checksum paints the viewer first and the app then opens the form with its error. No request leaves.
+  test('a mixed-case address with a wrong checksum ends on the form with the error, and no request leaves', async ({
+    page,
+  }) => {
+    const api = await fixtureApi(page)
+    const wrong = `${A.slice(0, 6)}${A[6] === 'E' ? 'e' : 'E'}${A.slice(7)}`
+    await page.goto(`/address#${wrong}`)
+    await expect(page.getByRole('alert')).toHaveText(/올바른 주소가 아니에요/)
+    await expect(page.getByLabel('Sepolia 주소')).toHaveValue(wrong)
+    expect(api.requests).toEqual([])
   })
 
   test('the install key is made once, survives a reload and cannot be read out', async ({ page }) => {

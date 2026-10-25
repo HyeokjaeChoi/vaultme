@@ -1,6 +1,7 @@
+import { createApiClient } from '@vaultme/api-client'
 import { PublicKey, Signature } from '@vaultme/contracts'
 import { IDBFactory } from 'fake-indexeddb'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { webSigner } from '../app/shared/api/webSigner'
 
 const enc = new TextEncoder()
@@ -92,5 +93,62 @@ describe('web device signer (WebCrypto key in IndexedDB)', () => {
 
   it('cannot sign without a key', async () => {
     await expect(webSigner(new IDBFactory()).sign('x')).rejects.toThrow('device key: none stored')
+  })
+})
+
+// Two tabs of one browser share the IndexedDB record and the Web Lock. fake-indexeddb has no tabs, so two API clients
+// (each with its own signer, as each tab has) stand in, and the lock is a queue like navigator.locks.request.
+describe('two tabs opened together on a fresh browser', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  function twoTabs(withLocks: boolean) {
+    const registered: string[] = []
+    if (withLocks) {
+      let tail: Promise<unknown> = Promise.resolve()
+      vi.stubGlobal('navigator', {
+        locks: {
+          request: <T>(_name: string, fn: () => Promise<T>) => {
+            const run = tail.then(fn)
+            tail = run.catch(() => undefined)
+            return run
+          },
+        },
+      })
+    }
+    const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status })
+    const fetchStub = vi.fn((url: string, init: RequestInit) => {
+      const path = new URL(url).pathname
+      if (path === '/v1/installs') {
+        registered.push((JSON.parse(init.body as string) as { publicKey: string }).publicKey)
+        return Promise.resolve(json(201, { installId: crypto.randomUUID() }))
+      }
+      if (path === '/v1/installs/token') return Promise.resolve(json(200, { token: 't', expiresAt: 4_000_000_000 }))
+      return Promise.resolve(json(200, { jsonrpc: '2.0', id: 1, result: '0x0' }))
+    }) as unknown as typeof fetch
+    const idb = new IDBFactory()
+    const tab = () =>
+      createApiClient({
+        baseUrl: 'https://api.test',
+        appVersion: '0.1.0',
+        client: 'web',
+        signer: webSigner(idb),
+        fetch: fetchStub,
+        now: () => 1_000_000_000_000,
+      })
+    return { registered, tabs: [tab(), tab()] as const }
+  }
+
+  it('make one key and register one install, not two', async () => {
+    const { registered, tabs } = twoTabs(true)
+    await Promise.all(tabs.map((t) => t.rpc('eth_blockNumber', [])))
+    expect(registered).toHaveLength(1)
+  })
+
+  it('(control) without the lock both tabs register their own key', async () => {
+    const { registered, tabs } = twoTabs(false)
+    await Promise.all(tabs.map((t) => t.rpc('eth_blockNumber', [])))
+    expect(registered).toHaveLength(2)
   })
 })

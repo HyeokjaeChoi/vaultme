@@ -27,7 +27,10 @@ const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
 // Runs while the page is parsed, before first paint: a viewer link paints the viewer skeleton, not the form (app.css).
 // A submit before hydration would send the form as a GET query (the address in the URL that reaches the server), so it
 // goes to the fragment here; once hydrated, AddressForm handles the submit and this listener sees defaultPrevented.
-const BOOT_SCRIPT = `if(/^#0x[0-9a-fA-F]{40}$/.test(location.hash))document.documentElement.dataset.boot='viewer';addEventListener('submit',function(e){if(e.defaultPrevented)return;e.preventDefault();location.hash=e.target.querySelector('input').value.trim()})`
+// The view is decided as decodeFragment + parseAddress do after hydration (decode percent-encoding, trim, 0x + 40 hex),
+// except the EIP-55 checksum of a mixed-case address: that needs keccak, too big for an inline script. A mixed-case link
+// with a wrong checksum so paints the viewer first and ends on the form with its error (e2e/address.spec.ts).
+const BOOT_SCRIPT = `(function(){var h;try{h=decodeURIComponent(location.hash.slice(1)).trim()}catch(e){h=''}if(/^0x[0-9a-fA-F]{40}$/.test(h))document.documentElement.dataset.boot='viewer';addEventListener('submit',function(e){if(e.defaultPrevented)return;e.preventDefault();location.hash=e.target.querySelector('input').value.trim()})})()`
 
 /** The fragment as typed; one that is not valid percent-encoding stays as is (parseAddress rejects it). */
 function decodeFragment(f: string): string {
@@ -284,7 +287,7 @@ function BalanceSection({ t, balances, retry }: { t: WebMessages; balances: Bala
       tabIndex={-1}
       aria-label={t.viewer.balances}
       aria-busy={!ok}
-      className="tablet:grid-cols-2 web-desktop:flex grid gap-3 web-desktop:flex-col"
+      className="tablet:grid-cols-2 web-desktop:flex grid grid-cols-1 gap-3 web-desktop:flex-col"
     >
       <BalanceCard asset="ETH" name={t.viewer.eth} amount={ok ? balances.ETH : null} />
       <BalanceCard asset="USDC" name={t.viewer.usdc} amount={ok ? balances.USDC : null} />
