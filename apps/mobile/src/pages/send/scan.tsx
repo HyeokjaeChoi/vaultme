@@ -1,6 +1,7 @@
 // Figma: B-S21 QR scan 618:102942 (test QR 618:103021, invalid QR 618:103107, camera denied 618:103195), B-S21+QRX chain mismatch sheet 618:103288
 import { CameraView, PermissionStatus, useCameraPermissions } from 'expo-camera'
 import * as Clipboard from 'expo-clipboard'
+import { NavigationBar } from 'expo-navigation-bar'
 import { useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -173,6 +174,7 @@ export function ScanPage() {
   return (
     <>
       <StatusBar style="light" />
+      <NavigationBar style="light" />
       <Screen
         bleed
         bg={th.component.overlay.scrimBg}
