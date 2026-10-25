@@ -20,7 +20,7 @@ test.describe('viewer history', () => {
       const history = page.getByRole('region', { name: '거래 내역' })
       await expect(history.getByText('+0.05 ETH').locator('visible=true').first()).toBeVisible()
       await expect(history.getByText('−0.02 ETH').locator('visible=true').first()).toBeVisible()
-      await expect(history.getByText('+12.5 USDC').locator('visible=true').first()).toBeVisible()
+      await expect(history.getByText('+7.5 USDC').locator('visible=true').first()).toBeVisible()
       // The failed send: words and icon, and no sign (cards).
       await expect(
         history

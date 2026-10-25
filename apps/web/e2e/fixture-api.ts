@@ -38,7 +38,7 @@ const DAY = 86_400
 const FIRST_PAGE = [
   mkTx(1, 180), // +0.05 ETH, 3 minutes ago
   mkTx(2, 720, { value: '20000000000000000' }), // -0.02 ETH
-  mkTx(3, DAY + 3600, { asset: 'USDC', kind: 'erc20', value: '12500000' }), // +12.5 USDC, yesterday
+  mkTx(3, DAY + 3600, { asset: 'USDC', kind: 'erc20', value: '7500000' }), // +7.5 USDC, yesterday (not the 12.5 of the balance: balance specs match text)
   mkTx(4, 14 * DAY, { asset: 'USDC', kind: 'erc20', value: '1000000', status: 'failed' }), // failed send
   mkTx(5, 16 * DAY, { value: '10000000000000000' }),
   mkTx(6, 17 * DAY),
