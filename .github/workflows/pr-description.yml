@@ -1,4 +1,3 @@
-# CodeRabbit reads only about the first 3,800 characters of a PR description.
 name: pr-description
 
 on:
@@ -19,7 +18,7 @@ jobs:
         run: |
           # Dependency bot PRs have no issue and long generated release notes, so they skip both rules.
           case "$AUTHOR" in renovate\[bot\]|dependabot\[bot\]) echo "Bot PR by $AUTHOR: skipped."; exit 0;; esac
-          body=$(printf '%s' "$BODY" | sed '/<!-- This is an auto-generated comment: release notes by coderabbit.ai -->/,/<!-- end of auto-generated comment: release notes by coderabbit.ai -->/d')
+          body=$BODY
           len=$(printf '%s' "$body" | LC_ALL=C.UTF-8 wc -m)
           echo "PR description: $len characters (limit 3500)"
           [ "$len" -le 3500 ] || { echo "::error::Keep the PR description at 3500 characters or less."; exit 1; }
