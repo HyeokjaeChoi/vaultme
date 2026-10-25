@@ -3,3 +3,5 @@
    Self-hosted, OFL (licenses in public/licenses). Both packages set font-display: swap. */
 @import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 @import '@fontsource/ibm-plex-mono/latin-400.css';
+/* B/Address: the first 6 and last 4 characters are SemiBold. */
+@import '@fontsource/ibm-plex-mono/latin-600.css';

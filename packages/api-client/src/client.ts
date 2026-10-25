@@ -1,5 +1,6 @@
 import {
   APP_VERSION_HEADER,
+  CLIENT_HEADER,
   ErrorEnvelope,
   HistoryRequest,
   INSTALL_ID_HEADER,
@@ -11,6 +12,7 @@ import {
   SIGNATURE_HEADER,
   TIMESTAMP_HEADER,
   TokenResponse,
+  WEB_CLIENT,
   canonicalString,
 } from '@vaultme/contracts'
 import { ApiError, RpcError } from './errors.ts'
@@ -33,6 +35,8 @@ export type DeviceSigner = {
 export type ApiDeps = {
   baseUrl: string
   appVersion: string
+  /** `'web'` sends `X-Client: web`, so the API checks `MIN_WEB_VERSION` (ADR-0011). Mobile sends none. */
+  client?: typeof WEB_CLIENT
   signer: DeviceSigner
   fetch?: typeof fetch
   /** ms since epoch */
@@ -89,6 +93,7 @@ export function createApiClient(d: ApiDeps) {
         method,
         headers: {
           [APP_VERSION_HEADER]: d.appVersion,
+          ...(d.client ? { [CLIENT_HEADER]: d.client } : {}),
           ...(body === undefined ? {} : { 'content-type': 'application/json' }),
           ...headers,
         },

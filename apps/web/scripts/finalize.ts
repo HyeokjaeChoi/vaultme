@@ -1,5 +1,5 @@
 // Post-build step for build/client (run by `pnpm build`). Static Assets rules this satisfies (ADR-0001):
-// - `not_found_handling: "404-page"` serves the nearest `404.html` with status 404, so the prerendered 404 pages are renamed.
+// - `not_found_handling: "404-page"` serves the nearest `404.html` with status 404, so the prerendered pages are renamed `x.html`.
 // - the SPA shell React Router writes as index.html is dropped (a prerendered landing page at `/` is kept): until then `/` is a real 404 too.
 // - _headers gets the CSP script hashes of the built HTML (inline scripts cannot use a nonce on a static site), the API
 //   origin of this build, and X-Robots-Tag: noindex unless WEB_ENV=production.
@@ -10,6 +10,13 @@ import { fileURLToPath } from 'node:url'
 
 const MAX_HEADER_LINE = 2000 // Workers Static Assets limit per _headers line
 const STAGING_API_ORIGIN = 'https://vaultme-api-staging.gurwo1007.workers.dev'
+
+/** The API origin of a build: WEB_API_ORIGIN, default the staging API. The app calls it (vite.config.ts) and the CSP allows it. */
+export function apiOrigin(env: Record<string, string | undefined> = process.env): string {
+  const origin = env.WEB_API_ORIGIN ?? STAGING_API_ORIGIN
+  if (!/^https:\/\/[a-z0-9.-]+$/i.test(origin)) throw new Error(`WEB_API_ORIGIN must be an https origin, got ${origin}`)
+  return origin
+}
 
 export interface HeaderOptions {
   scriptHashes: string[]
@@ -42,6 +49,15 @@ export function fillHeaders(template: string, { scriptHashes, apiOrigin, noindex
   return out
 }
 
+/** Directories (relative to `dir`, deepest first) that hold a prerendered `index.html`. Not the root, not assets. */
+function pageDirs(dir: string, rel = ''): string[] {
+  return readdirSync(join(dir, rel), { withFileTypes: true }).flatMap((e) => {
+    if (!e.isDirectory() || (rel === '' && e.name === 'assets')) return []
+    const sub = join(rel, e.name)
+    return [...pageDirs(dir, sub), ...(existsSync(join(dir, sub, 'index.html')) ? [sub] : [])]
+  })
+}
+
 function htmlFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const p = join(dir, name)
@@ -52,12 +68,15 @@ function htmlFiles(dir: string): string[] {
 
 /** Staging and local builds are noindex; only WEB_ENV=production serves indexable pages. */
 export function finalize(dir: string, env: Record<string, string | undefined> = process.env) {
-  // `/404/index.html` -> `/404.html`, `/en/404/index.html` -> `/en/404.html`
   for (const prefix of ['', 'en']) {
     const from = join(dir, prefix, '404', 'index.html')
     if (!existsSync(from)) throw new Error(`missing prerendered ${from}`)
-    renameSync(from, join(dir, prefix, '404.html'))
-    rmSync(join(dir, prefix, '404'), { recursive: true })
+  }
+  // Every prerendered page `x/index.html` -> `x.html`: `/404.html` is what `404-page` serves, and `/address` is then
+  // served as is, not redirected to `/address/` (Static Assets html_handling auto-trailing-slash).
+  for (const page of pageDirs(dir)) {
+    renameSync(join(dir, page, 'index.html'), join(dir, `${page}.html`))
+    if (readdirSync(join(dir, page)).length === 0) rmSync(join(dir, page), { recursive: true })
   }
   // The SPA shell (written when `/` is prerendered) would be served with status 200 and widens the CSP: drop it.
   rmSync(join(dir, '__spa-fallback.html'), { force: true })
@@ -66,10 +85,7 @@ export function finalize(dir: string, env: Record<string, string | undefined> = 
   if (existsSync(index) && !/<main[\s>]/.test(readFileSync(index, 'utf8'))) rmSync(index)
   const hashes = [...new Set(htmlFiles(dir).flatMap((f) => inlineScriptHashes(readFileSync(f, 'utf8'))))]
   const headers = join(dir, '_headers')
-  const apiOrigin = env.WEB_API_ORIGIN ?? STAGING_API_ORIGIN
-  if (!/^https:\/\/[a-z0-9.-]+$/i.test(apiOrigin))
-    throw new Error(`WEB_API_ORIGIN must be an https origin, got ${apiOrigin}`)
-  const options = { scriptHashes: hashes, apiOrigin, noindex: env.WEB_ENV !== 'production' }
+  const options = { scriptHashes: hashes, apiOrigin: apiOrigin(env), noindex: env.WEB_ENV !== 'production' }
   writeFileSync(headers, fillHeaders(readFileSync(headers, 'utf8'), options))
 }
 

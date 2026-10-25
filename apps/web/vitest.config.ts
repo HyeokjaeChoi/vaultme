@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  // vite.config.ts defines the real values; tests answer this origin with a stub fetch.
+  define: { __API_ORIGIN__: JSON.stringify('https://api.test'), __WEB_VERSION__: JSON.stringify('0.1.0') },
   test: {
     environment: 'jsdom',
     include: ['test/**/*.test.{ts,tsx}'],

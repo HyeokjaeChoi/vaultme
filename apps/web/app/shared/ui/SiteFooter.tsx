@@ -18,7 +18,7 @@ export function SiteFooter({ locale }: { locale: WebLocale }) {
           </a>
           <p className="text-product-b-body-small text-text-secondary">{t.footer.testnetOnly}</p>
         </div>
-        <ButtonLink variant="footer" href={viewerPath(locale)}>
+        <ButtonLink variant="secondaryMd" href={viewerPath(locale)}>
           {t.footer.viewer}
         </ButtonLink>
       </div>
