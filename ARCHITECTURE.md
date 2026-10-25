@@ -10,7 +10,9 @@ Goals:
 - The key and the signature never leave the phone.
 - Show history. Send a push when a watched address gets a deposit or sends a transaction.
 
-Non-goals (not built): other chains, other tokens, swap, multiple accounts, smart accounts, WalletConnect, cloud backup, ENS, address book, speed-up or cancel, a web app, an admin dashboard.
+Non-goals (not built): other chains, other tokens, swap, multiple accounts, smart accounts, WalletConnect, cloud backup, ENS, address book, speed-up or cancel, an admin dashboard. In the web app, also no keys, no recovery phrase, no send, no fiat prices (see [ADR-0012](docs/adr/0012-web-scope-and-quality-bars.md)).
+
+The web app (`apps/web`, landing + read-only address viewer) is in scope but not built yet. It is specified in issue #186 and ADR-0011 and ADR-0012.
 
 ## System map
 
@@ -46,7 +48,7 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
   - State: `reduce` and `canStartDraft` (see Invariants).
 - `contracts`: zod schemas that both sides use. Header names, error codes, `canonicalString`, RPC allow-list, history and push shapes, `USDC_SEPOLIA`. The API OpenAPI file comes from here.
 - `api-client`: the install-identity API client (`createApiClient`): register, signed token, retry on `unauthorized`, `426` (`onUpdateRequired`, `createUpdateGate`), typed `ApiError` and `RpcError`. The platform part is the `DeviceSigner` seam (public key, create key, sign, installId storage). The private key never crosses it. `fetch`, base URL and app version are passed in.
-- `tokens`: Style Dictionary build of `packages/tokens/tokens.json` into `src/generated`. Layers: Primitive, Semantic (light and dark), Component.
+- `tokens`: Style Dictionary build of `packages/tokens/tokens.json` into `src/generated` (TS for mobile, `tokens.css` variables and a Tailwind v4 `theme.css` for web). Layers: Primitive, Semantic (light and dark), Component.
 - `i18n`: Korean strings (`ko`) and an i18next instance.
 - `config`: shared ESLint and tsconfig. It holds the no-float rule for amount code.
 

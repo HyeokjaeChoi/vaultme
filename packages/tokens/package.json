@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/generated/tokens.ts"
+    ".": "./src/generated/tokens.ts",
+    "./tokens.css": "./src/generated/tokens.css",
+    "./theme.css": "./src/generated/theme.css"
   },
   "scripts": {
     "build": "node build.mjs",
