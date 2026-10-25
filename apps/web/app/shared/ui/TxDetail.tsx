@@ -1,28 +1,29 @@
 // Figma: Tx detail columns (Web page, section 768:4422: 768:4443 at 375, 768:4617 at 768, 768:4764 at 1280) and the loading frames (768:33109 ..)
 import type { TxDetail as Tx } from '@vaultme/api-client'
-import type { WebLocale, WebMessages } from '@vaultme/i18n/web'
+import type { WebLocale } from '@vaultme/i18n/web'
+import type { WebTxMessages } from '@vaultme/i18n/web-tx'
 import { fromUnits, toChecksumAddress } from '@vaultme/wallet-core'
 import { etherscanTx, utcTime } from '../lib/tx'
 import { relativeTime } from '../lib/history'
 import { ButtonLink } from './ButtonLink'
 import { DefinitionRow } from './DefinitionRow'
-import { Icon } from './Icon'
+import { TxIcon } from './TxIcon'
 import { StatusBadge } from './StatusBadge'
 
 // The node answers in lower case; the viewer and the app show EIP-55.
 const eip55 = (a: string) => toChecksumAddress(a.toLowerCase())
 
-type Props = { tx: Tx; now: number; t: WebMessages; locale: WebLocale }
+type Props = { tx: Tx; now: number; t: WebTxMessages; locale: WebLocale }
 
 /** Status and amount, the six rows in the S41 order (from, to, time, fee, block, hash) and the Etherscan link. */
 export function TxDetail({ tx, now, t, locale }: Props) {
-  const copy = (text: string, label: string) => ({ text, label, copied: t.tx.copied })
+  const copy = (text: string, label: string) => ({ text, label, copied: t.copied })
   const from = eip55(tx.from)
   const to = tx.to ? eip55(tx.to) : null
   return (
     <>
       <div className="flex flex-col items-start gap-3">
-        <StatusBadge kind={tx.ok ? 'confirmed' : 'failed'} label={tx.ok ? t.tx.status.confirmed : t.tx.status.failed} />
+        <StatusBadge kind={tx.ok ? 'confirmed' : 'failed'} label={tx.ok ? t.status.confirmed : t.status.failed} />
         <p className="flex items-end gap-2 break-all">
           {/* A reverted call moved nothing: the amount it asked for is grey, as in the history rows. */}
           <span className={`text-product-b-figure ${tx.ok ? 'text-text-primary' : 'text-text-tertiary'}`}>
@@ -32,22 +33,22 @@ export function TxDetail({ tx, now, t, locale }: Props) {
         </p>
       </div>
       <dl className="flex flex-col">
-        <DefinitionRow label={t.tx.from} mono copy={copy(from, t.tx.copyFrom)}>
+        <DefinitionRow label={t.from} mono copy={copy(from, t.copyFrom)}>
           {from}
         </DefinitionRow>
         {to ? (
-          <DefinitionRow label={t.tx.to} mono copy={copy(to, t.tx.copyTo)}>
+          <DefinitionRow label={t.to} mono copy={copy(to, t.copyTo)}>
             {to}
           </DefinitionRow>
         ) : (
-          <DefinitionRow label={t.tx.to}>—</DefinitionRow>
+          <DefinitionRow label={t.to}>—</DefinitionRow>
         )}
-        <DefinitionRow label={t.tx.time}>
+        <DefinitionRow label={t.time}>
           {relativeTime(tx.at, now, locale)} · {utcTime(tx.at)}
         </DefinitionRow>
-        <DefinitionRow label={t.tx.fee}>{fromUnits(tx.fee, 'ETH')} ETH</DefinitionRow>
-        <DefinitionRow label={t.tx.block}>#{tx.block.toLocaleString(locale)}</DefinitionRow>
-        <DefinitionRow label={t.tx.hash} mono copy={copy(tx.hash, t.tx.copyHash)}>
+        <DefinitionRow label={t.fee}>{fromUnits(tx.fee, 'ETH')} ETH</DefinitionRow>
+        <DefinitionRow label={t.block}>#{tx.block.toLocaleString(locale)}</DefinitionRow>
+        <DefinitionRow label={t.hash} mono copy={copy(tx.hash, t.copyHash)}>
           {tx.hash}
         </DefinitionRow>
       </dl>
@@ -59,8 +60,8 @@ export function TxDetail({ tx, now, t, locale }: Props) {
           rel="noopener noreferrer"
           className="tablet:w-fit w-full"
         >
-          <Icon name="external" className="size-badge" />
-          {t.tx.etherscan}
+          <TxIcon name="external" className="size-badge" />
+          {t.etherscan}
         </ButtonLink>
       </div>
     </>
@@ -72,7 +73,7 @@ const bar = 'bg-skeleton-bg rounded-skeleton-radius'
 const rows = ['tx-row-address', 'tx-row-address', 'tx-row-line', 'tx-row-line', 'tx-row-line', 'tx-row-hash']
 
 /** The same boxes as the detail (status badge, figure, six rows, button), so the answer moves nothing (CLS 0). */
-export function TxSkeleton({ t }: { t: WebMessages }) {
+export function TxSkeleton({ t }: { t: WebTxMessages }) {
   return (
     <>
       <div aria-hidden="true" className="flex flex-col items-start gap-3">
@@ -91,7 +92,7 @@ export function TxSkeleton({ t }: { t: WebMessages }) {
         <div className={`${bar} h-button-b-height-lg tablet:skeleton-button w-full`} />
       </div>
       <p role="status" className="sr-only">
-        {t.tx.loading}
+        {t.loading}
       </p>
     </>
   )

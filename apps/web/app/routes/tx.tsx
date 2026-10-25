@@ -1,4 +1,5 @@
-import { type WebLocale, type WebMessages, webMessages } from '@vaultme/i18n/web'
+import { type WebLocale, webMessages } from '@vaultme/i18n/web'
+import { type WebTxMessages, webTx } from '@vaultme/i18n/web-tx'
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, NavigationType, useLocation, useNavigationType } from 'react-router'
 import { useTransaction } from '../shared/api'
@@ -8,7 +9,7 @@ import { parseTxHash } from '../shared/lib/tx'
 import { Button } from '../shared/ui/Button'
 import { ButtonLink, buttonClass } from '../shared/ui/ButtonLink'
 import { EmptyState } from '../shared/ui/EmptyState'
-import { Icon } from '../shared/ui/Icon'
+import { TxIcon } from '../shared/ui/TxIcon'
 import { TxDetail, TxSkeleton } from '../shared/ui/TxDetail'
 
 // Figma: Tx detail · 375 / 768 / 1280 · Light + Dark (page "Web", section 768:4422; loading, load failed, not found, invalid hash)
@@ -45,6 +46,7 @@ export default function TxPage() {
   const state: unknown = rest.state
   const locale = localeOf(pathname)
   const t = webMessages[locale]
+  const x = webTx[locale]
   const hydrated = useHydrated()
   const txHash = hydrated ? parseTxHash(decodeFragment(hash.slice(1))) : null
   // A row of the address viewer links here with its address in the router state (kept in memory by the router, never in the URL): the way back.
@@ -61,8 +63,8 @@ export default function TxPage() {
 
   return (
     <>
-      <title>{`${t.tx.pageTitle} · ${t.siteName}`}</title>
-      <meta name="description" content={t.tx.lead} />
+      <title>{`${x.pageTitle} · ${t.siteName}`}</title>
+      <meta name="description" content={x.lead} />
       {!hydrated && <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />}
       <main
         id="main"
@@ -73,26 +75,26 @@ export default function TxPage() {
             to={{ pathname: viewerPath(locale), hash: from ? `#${from}` : '' }}
             className={buttonClass('ghost', 'self-start')}
           >
-            <Icon name="back" className="size-badge" />
-            {t.tx.back}
+            <TxIcon name="back" className="size-badge" />
+            {x.back}
           </Link>
           <h1
             ref={heading}
             tabIndex={-1}
             className="text-product-b-title2 tablet:text-product-b-title1 web-desktop:text-product-b-display-m text-text-primary"
           >
-            {t.tx.title}
+            {x.title}
           </h1>
           {/* Before hydration the boot script shows one of these two (app.css); after it only the one that applies is rendered. */}
           {(!hydrated || !txHash) && (
             <div data-boot-form>
               <EmptyState
-                icon="warning"
-                title={t.tx.invalid.title}
-                body={t.tx.invalid.body}
+                icon={<TxIcon name="warning" className="size-avatar-lg text-icon-tertiary" />}
+                title={x.invalid.title}
+                body={x.invalid.body}
                 action={
                   <ButtonLink variant="secondaryMd" href={viewerPath(locale)}>
-                    {t.tx.invalid.viewer}
+                    {x.invalid.viewer}
                   </ButtonLink>
                 }
               />
@@ -100,7 +102,7 @@ export default function TxPage() {
           )}
           {(!hydrated || txHash) && (
             <div data-boot-viewer className="flex flex-col gap-6">
-              <Detail t={t} locale={locale} hash={txHash} />
+              <Detail x={x} locale={locale} hash={txHash} />
             </div>
           )}
         </div>
@@ -110,7 +112,7 @@ export default function TxPage() {
 }
 
 /** `hash` null = before hydration: the skeleton. */
-function Detail({ t, locale, hash }: { t: WebMessages; locale: WebLocale; hash: string | null }) {
+function Detail({ x, locale, hash }: { x: WebTxMessages; locale: WebLocale; hash: string | null }) {
   const [tx, retry] = useTransaction(hash)
   // "3분 전" stays true while the tab is open: `now` is renewed each minute.
   const [now, setNow] = useState(() => Date.now())
@@ -145,30 +147,20 @@ function Detail({ t, locale, hash }: { t: WebMessages; locale: WebLocale; hash: 
     <section
       ref={section}
       tabIndex={-1}
-      aria-label={t.tx.title}
+      aria-label={x.title}
       aria-busy={tx.status === 'loading'}
       className="flex flex-col gap-6"
     >
-      {tx.status === 'loading' && <TxSkeleton t={t} />}
-      {tx.status === 'ok' && <TxDetail tx={tx.tx} now={now} t={t} locale={locale} />}
+      {tx.status === 'loading' && <TxSkeleton t={x} />}
+      {tx.status === 'ok' && <TxDetail tx={tx.tx} now={now} t={x} locale={locale} />}
       {tx.status === 'notfound' && (
         <div role="status">
-          <EmptyState
-            icon="inbox"
-            title={t.tx.notFound.title}
-            body={t.tx.notFound.body}
-            action={again(t.tx.notFound.retry)}
-          />
+          <EmptyState icon="inbox" title={x.notFound.title} body={x.notFound.body} action={again(x.notFound.retry)} />
         </div>
       )}
       {tx.status === 'failed' && (
         <div role="alert">
-          <EmptyState
-            icon="cloudCross"
-            title={t.tx.failed.title}
-            body={t.tx.failed.body}
-            action={again(t.tx.failed.retry)}
-          />
+          <EmptyState icon="cloudCross" title={x.failed.title} body={x.failed.body} action={again(x.failed.retry)} />
         </div>
       )}
     </section>

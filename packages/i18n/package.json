@@ -4,7 +4,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./web": "./src/web.ts"
+    "./web": "./src/web.ts",
+    "./web-landing": "./src/webLanding.ts",
+    "./web-tx": "./src/webTx.ts"
   },
   "scripts": {
     "test": "vitest run",

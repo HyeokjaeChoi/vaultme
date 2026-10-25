@@ -1,4 +1,5 @@
 import { webMessages } from '@vaultme/i18n/web'
+import { webLanding } from '@vaultme/i18n/web-landing'
 import { useLocation } from 'react-router'
 import { localeOf, homeOf, viewerPath } from '../shared/lib/locale'
 import { ButtonLink } from '../shared/ui/ButtonLink'
@@ -13,7 +14,7 @@ export function meta() {
 
 export default function NotFound() {
   const locale = localeOf(useLocation().pathname)
-  const t = webMessages[locale].notFound
+  const t = webLanding[locale].notFound
   return (
     <main
       id="main"

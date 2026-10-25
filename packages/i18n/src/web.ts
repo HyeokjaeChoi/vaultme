@@ -15,88 +15,6 @@ export const webKo = {
   footer: {
     viewer: '주소 보기',
   },
-  landing: {
-    meta: {
-      title: 'VaultMe · Sepolia 테스트넷 셀프 커스터디 지갑',
-      description:
-        'VaultMe는 Sepolia 테스트넷에서 안전하게 연습하는 셀프 커스터디 지갑이에요. 키는 내 기기에만 있고, 웹에서는 로그인 없이 주소만 넣어 잔액과 거래 내역을 볼 수 있어요.',
-    },
-    hero: {
-      title: ['내 키는', '내 기기에만 있어요'],
-      value: 'Sepolia 테스트넷에서 안전하게 연습하는 셀프 커스터디 지갑이에요.',
-      appStore: 'App Store에서 받기',
-      googlePlay: 'Google Play에서 받기',
-      mockupAlt: 'VaultMe 앱의 자산 화면. Sepolia ETH 1.2847개와 USDC 12.5개를 보여 줘요.',
-    },
-    features: {
-      title: '한 앱으로 지갑과 뷰어를 써요',
-      items: [
-        { title: '셀프 커스터디', body: '키는 내 기기에만 있어요. VaultMe 서버는 키도 복구 구문도 가지지 않아요.' },
-        {
-          title: '보내기·받기',
-          body: 'Sepolia ETH와 USDC를 보내고 받아요. 보내기 전에 받는 주소와 수수료를 보여 드려요.',
-        },
-        { title: '웹 뷰어', body: '주소만 넣으면 잔액과 거래 내역을 볼 수 있어요. 로그인이 없는 조회 전용이에요.' },
-      ],
-    },
-    steps: {
-      title: '이렇게 시작해요',
-      items: [
-        { title: '앱을 설치해요', body: '앱스토어나 구글 플레이에서 VaultMe를 받아요.' },
-        { title: '지갑을 만들어요', body: '복구 구문을 적어 두세요. VaultMe는 되찾아 드릴 수 없어요.' },
-        { title: '테스트 자금을 받아요', body: '받기 주소로 Sepolia 파우셋에서 테스트 ETH를 받아요.' },
-      ],
-    },
-    security: {
-      title: '보안은 이렇게 다뤄요',
-      items: [
-        { title: '키는 앱 안에만 있어요', body: '웹 뷰어는 키를 만들지도, 서명하지도 않아요. 로그인도 없어요.' },
-        {
-          title: '복구 구문은 묻지 않아요',
-          body: 'VaultMe는 어디서도 복구 구문을 묻지 않아요. 누가 물으면 알려 주지 마세요.',
-        },
-        {
-          title: '테스트넷 전용, 테스트 자금만',
-          body: 'Sepolia 테스트넷의 자산은 실제 가치가 없어요. 실제 자금은 넣지 마세요.',
-        },
-      ],
-    },
-    faq: {
-      title: '자주 묻는 질문',
-      items: [
-        {
-          question: '키를 VaultMe가 가지고 있나요?',
-          answer: '아니요. 복구 구문과 키는 내 기기에만 있어요. VaultMe는 되찾아 드릴 수 없어요.',
-        },
-        {
-          question: '실제 돈을 넣어도 되나요?',
-          answer:
-            '아니요. VaultMe는 Sepolia 테스트넷 전용이에요. 테스트넷 자산은 실제 가치가 없으니 실제 자금은 넣지 마세요.',
-        },
-        {
-          question: '웹에서 보내기도 되나요?',
-          answer: '아니요. 웹은 조회 전용이에요. 키를 만들거나 서명하지 않아서, 보내기는 앱에서만 할 수 있어요.',
-        },
-        {
-          question: 'ENS 이름도 되나요?',
-          answer: '아직 지원하지 않아요. 0x로 시작하는 주소를 넣어 주세요.',
-        },
-      ],
-    },
-    closing: {
-      title: '주소부터 확인해 보세요',
-      body: '로그인 없이, 키 없이, 주소만 넣어 잔액과 내역을 볼 수 있어요.',
-      viewer: '주소 보기',
-      app: '앱 받기',
-    },
-  },
-  notFound: {
-    code: '404',
-    title: '페이지를 찾을 수 없어요',
-    help: '주소가 바뀌었거나 없는 페이지예요. 조회할 주소를 넣거나 처음으로 돌아가 보세요.',
-    viewer: '주소 보기',
-    home: '홈으로',
-  },
   address: {
     pageTitle: '주소 보기',
     title: '주소를 넣어 보세요',
@@ -125,36 +43,6 @@ export const webKo = {
     updateTitle: '새로고침해 주세요',
     updateBody: '사이트가 새 버전으로 바뀌었어요.',
     reload: '새로고침',
-  },
-  tx: {
-    pageTitle: '거래 상세',
-    lead: 'Sepolia 테스트넷 거래의 상태, 금액, 수수료를 볼 수 있어요.',
-    title: '거래 상세',
-    back: '주소로 돌아가기',
-    status: { confirmed: '확정', failed: '실패' },
-    from: '보낸 사람',
-    to: '받는 사람',
-    time: '시간',
-    fee: '네트워크 수수료',
-    block: '블록',
-    hash: '거래 해시',
-    copyFrom: '보낸 사람 복사',
-    copyTo: '받는 사람 복사',
-    copyHash: '거래 해시 복사',
-    copied: '복사했어요',
-    etherscan: 'Etherscan에서 보기',
-    loading: '거래를 불러오고 있어요',
-    notFound: {
-      title: '아직 내역에 없어요',
-      body: '방금 일어난 거래는 반영되는 데 시간이 걸려요. 잠시 후 다시 확인해 주세요.',
-      retry: '다시 시도',
-    },
-    failed: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요.', retry: '다시 시도' },
-    invalid: {
-      title: '거래 해시가 올바르지 않아요',
-      body: '0x로 시작하는 66자리 해시를 확인해 주세요.',
-      viewer: '주소 보기',
-    },
   },
   history: {
     title: '거래 내역',
@@ -193,94 +81,6 @@ export const webEn: WebMessages = {
   footer: {
     viewer: 'View an address',
   },
-  landing: {
-    meta: {
-      title: 'VaultMe · A self-custody wallet for the Sepolia testnet',
-      description:
-        'VaultMe is a self-custody wallet for safe practice on the Sepolia testnet. Your keys stay on your device. On the web, enter an address to see balances and history, with no sign-in.',
-    },
-    hero: {
-      title: ['Your keys', 'stay on your device'],
-      value: 'A self-custody wallet for safe practice on the Sepolia testnet.',
-      appStore: 'Get it on the App Store',
-      googlePlay: 'Get it on Google Play',
-      mockupAlt: 'The VaultMe app assets screen, showing 1.2847 Sepolia ETH and 12.5 USDC.',
-    },
-    features: {
-      title: 'One app for your wallet and a viewer',
-      items: [
-        {
-          title: 'Self-custody',
-          body: 'Your keys stay on your device. The VaultMe server has no keys and no recovery phrase.',
-        },
-        {
-          title: 'Send and receive',
-          body: 'Send and receive Sepolia ETH and USDC. Before you send, we show the recipient address and the fee.',
-        },
-        { title: 'Web viewer', body: 'Enter an address to see its balances and history. Read-only, with no sign-in.' },
-      ],
-    },
-    steps: {
-      title: 'How to start',
-      items: [
-        { title: 'Install the app', body: 'Get VaultMe from the App Store or Google Play.' },
-        { title: 'Create a wallet', body: 'Write down your recovery phrase. VaultMe cannot recover it for you.' },
-        { title: 'Get test funds', body: 'Use your receive address to get test ETH from a Sepolia faucet.' },
-      ],
-    },
-    security: {
-      title: 'How we handle security',
-      items: [
-        {
-          title: 'Keys stay in the app',
-          body: 'The web viewer never creates keys and never signs. There is no sign-in.',
-        },
-        {
-          title: 'We never ask for your recovery phrase',
-          body: 'VaultMe never asks for a recovery phrase anywhere. If someone asks, do not share it.',
-        },
-        {
-          title: 'Testnet only, test funds only',
-          body: 'Assets on the Sepolia testnet have no real value. Do not deposit real funds.',
-        },
-      ],
-    },
-    faq: {
-      title: 'Frequently asked questions',
-      items: [
-        {
-          question: 'Does VaultMe hold my keys?',
-          answer: 'No. Your recovery phrase and keys stay on your device. VaultMe cannot recover them for you.',
-        },
-        {
-          question: 'Can I deposit real money?',
-          answer:
-            'No. VaultMe is for the Sepolia testnet only. Testnet assets have no real value, so do not deposit real funds.',
-        },
-        {
-          question: 'Can I send from the web?',
-          answer: 'No. The web is read-only. It creates no keys and signs nothing, so you can send only in the app.',
-        },
-        {
-          question: 'Does it support ENS names?',
-          answer: 'Not yet. Enter an address that starts with 0x.',
-        },
-      ],
-    },
-    closing: {
-      title: 'Start by checking an address',
-      body: 'No sign-in, no keys. Enter an address to see its balances and history.',
-      viewer: 'View an address',
-      app: 'Get the app',
-    },
-  },
-  notFound: {
-    code: '404',
-    title: 'Page not found',
-    help: 'The address changed or the page does not exist. Enter an address to look up, or go back to the start.',
-    viewer: 'View an address',
-    home: 'Home',
-  },
   address: {
     pageTitle: 'View an address',
     title: 'Enter an address',
@@ -309,40 +109,6 @@ export const webEn: WebMessages = {
     updateTitle: 'Refresh the page',
     updateBody: 'The site has a new version.',
     reload: 'Refresh',
-  },
-  tx: {
-    pageTitle: 'Transaction',
-    lead: 'See the status, amount and fee of a Sepolia testnet transaction.',
-    title: 'Transaction',
-    back: 'Back to address',
-    status: { confirmed: 'Confirmed', failed: 'Failed' },
-    from: 'From',
-    to: 'To',
-    time: 'Time',
-    fee: 'Network fee',
-    block: 'Block',
-    hash: 'Transaction hash',
-    copyFrom: 'Copy sender',
-    copyTo: 'Copy recipient',
-    copyHash: 'Copy transaction hash',
-    copied: 'Copied',
-    etherscan: 'View on Etherscan',
-    loading: 'Loading the transaction',
-    notFound: {
-      title: 'Not in the history yet',
-      body: 'A new transaction can take a moment to show up. Check again in a little while.',
-      retry: 'Try again',
-    },
-    failed: {
-      title: "Couldn't load the transaction",
-      body: 'Check your connection and try again.',
-      retry: 'Try again',
-    },
-    invalid: {
-      title: 'The transaction hash is not valid',
-      body: 'Check the 66-character hash that starts with 0x.',
-      viewer: 'View an address',
-    },
   },
   history: {
     title: 'Transactions',

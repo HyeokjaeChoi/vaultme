@@ -1,4 +1,5 @@
 import { webMessages } from '@vaultme/i18n/web'
+import { webLanding } from '@vaultme/i18n/web-landing'
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router'
 import { webLocales } from '@vaultme/i18n/web'
@@ -56,7 +57,7 @@ function Section({
 export default function Landing() {
   const locale = localeOf(useLocation().pathname)
   const m = webMessages[locale]
-  const t = m.landing
+  const t = webLanding[locale].landing
   return (
     <main id="main">
       <title>{t.meta.title}</title>

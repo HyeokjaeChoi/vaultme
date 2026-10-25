@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { webMessages } from '@vaultme/i18n/web'
+import { webLanding } from '@vaultme/i18n/web-landing'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
@@ -22,7 +22,7 @@ describe('landing page', () => {
 
   it('renders every Korean section from the copy', () => {
     at('/')
-    const t = webMessages.ko.landing
+    const t = webLanding.ko.landing
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(t.hero.title.join(''))
     const h2 = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
     expect(h2).toEqual([t.features.title, t.steps.title, t.security.title, t.faq.title, t.closing.title])
@@ -32,7 +32,7 @@ describe('landing page', () => {
 
   it('renders English copy under /en/', () => {
     at('/en/')
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(webMessages.en.landing.hero.title.join(''))
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(webLanding.en.landing.hero.title.join(''))
     expect(screen.getByRole('link', { name: 'View an address' })).toHaveAttribute('href', '/en/address')
   })
 
@@ -44,7 +44,7 @@ describe('landing page', () => {
     expect(img).toHaveAttribute('width', '320')
     expect(img).toHaveAttribute('height', '568')
     expect(img).toHaveAttribute('fetchpriority', 'high')
-    expect(img).toHaveAttribute('alt', webMessages.ko.landing.hero.mockupAlt)
+    expect(img).toHaveAttribute('alt', webLanding.ko.landing.hero.mockupAlt)
     expect(container.querySelectorAll('source[type="image/avif"]').length).toBeGreaterThan(0)
     expect(container.querySelectorAll('img[fetchpriority]')).toHaveLength(1)
   })
@@ -55,32 +55,29 @@ describe('landing page', () => {
     expect(details).toHaveLength(4)
     expect(details[0]).toHaveAttribute('open')
     expect(details[1]).not.toHaveAttribute('open')
-    for (const item of webMessages.ko.landing.faq.items) {
+    for (const item of webLanding.ko.landing.faq.items) {
       expect(within(container).getByText(item.answer)).toBeInTheDocument()
     }
   })
 
   it('has no store link until real store URLs exist, and the buttons are not links to fake pages', () => {
     at('/')
-    const t = webMessages.ko.landing.hero
+    const t = webLanding.ko.landing.hero
     for (const name of [t.appStore, t.googlePlay]) {
       const btn = screen.getByRole('button', { name })
       expect(btn).toHaveAttribute('aria-disabled', 'true')
     }
-    expect(screen.getByRole('link', { name: webMessages.ko.landing.closing.app })).toHaveAttribute('href', '#get-app')
+    expect(screen.getByRole('link', { name: webLanding.ko.landing.closing.app })).toHaveAttribute('href', '#get-app')
   })
 
   it('links the viewer CTA to /address (the viewer is a later ticket)', () => {
     at('/')
-    expect(screen.getByRole('link', { name: webMessages.ko.landing.closing.viewer })).toHaveAttribute(
-      'href',
-      '/address',
-    )
+    expect(screen.getByRole('link', { name: webLanding.ko.landing.closing.viewer })).toHaveAttribute('href', '/address')
   })
 
   it('shows the testnet and no-recovery-phrase notes', () => {
     at('/')
-    const t = webMessages.ko.landing
+    const t = webLanding.ko.landing
     expect(screen.getByText(t.security.items[2].body)).toBeInTheDocument()
     expect(screen.getByText(t.security.items[1].body)).toBeInTheDocument()
   })
@@ -95,7 +92,7 @@ describe('landing SEO data', () => {
   it('WebApplication and FAQPage JSON-LD match the copy', () => {
     for (const locale of ['ko', 'en'] as const) {
       const [app, faq] = landingJsonLd(locale)
-      const t = webMessages[locale].landing
+      const t = webLanding[locale].landing
       expect(app).toMatchObject({
         '@context': 'https://schema.org',
         '@type': 'WebApplication',
