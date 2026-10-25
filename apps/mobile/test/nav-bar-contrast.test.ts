@@ -13,4 +13,7 @@ describe('Android navigation bar has no contrast scrim', () => {
   it('the app mounts NavigationBar so button colour follows the theme', () => {
     expect(read('../src/shell/providers.tsx')).toContain('<NavigationBar style="auto" />')
   })
+  it('the scan screen keeps light buttons over its dark scrim in both themes', () => {
+    expect(read('../src/pages/send/scan.tsx')).toContain('<NavigationBar style="light" />')
+  })
 })
