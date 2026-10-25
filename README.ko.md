@@ -47,7 +47,7 @@ VaultMe는 seed phrase 기반 지갑입니다. Ethereum Sepolia에서 EVM 계정
 
 ## 실행과 검증
 
-Node 24 이상과 pnpm 11.17.0이 필요합니다(`package.json`의 `packageManager`).
+Node 24 이상과 pnpm 12.14.0이 필요합니다(`package.json`의 `packageManager`).
 
 ```sh
 git config core.hooksPath .githooks   # once per clone
