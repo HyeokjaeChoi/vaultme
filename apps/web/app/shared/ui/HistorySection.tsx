@@ -79,72 +79,74 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
           </a>
         )}
       </div>
-      {history.status === 'loading' && (
-        <>
-          <HistorySkeleton t={t} />
-          <p role="status" className="sr-only">
-            {t.history.loading}
-          </p>
-        </>
-      )}
-      {history.status === 'failed' && (
-        <div role="alert">
+      <div className="min-h-history-body">
+        {history.status === 'loading' && (
+          <>
+            <HistorySkeleton t={t} />
+            <p role="status" className="sr-only">
+              {t.history.loading}
+            </p>
+          </>
+        )}
+        {history.status === 'failed' && (
+          <div role="alert">
+            <EmptyState
+              icon="cloudCross"
+              title={t.history.failed.title}
+              body={t.history.failed.body}
+              action={
+                <Button
+                  variant="secondaryMd"
+                  onClick={() => {
+                    moveFocus.current = true
+                    actions.retry()
+                  }}
+                >
+                  {t.history.failed.retry}
+                </Button>
+              }
+            />
+          </div>
+        )}
+        {showEmpty && (
           <EmptyState
-            icon="cloudCross"
-            title={t.history.failed.title}
-            body={t.history.failed.body}
+            icon="inbox"
+            title={t.history.empty.title}
+            body={t.history.empty.body}
             action={
-              <Button
-                variant="secondaryMd"
-                onClick={() => {
-                  moveFocus.current = true
-                  actions.retry()
-                }}
-              >
-                {t.history.failed.retry}
-              </Button>
+              <ButtonLink variant="secondaryMd" href={FAUCET_URL} target="_blank" rel="noopener noreferrer">
+                {t.history.empty.faucet}
+              </ButtonLink>
             }
           />
-        </div>
-      )}
-      {showEmpty && (
-        <EmptyState
-          icon="inbox"
-          title={t.history.empty.title}
-          body={t.history.empty.body}
-          action={
-            <ButtonLink variant="secondaryMd" href={FAUCET_URL} target="_blank" rel="noopener noreferrer">
-              {t.history.empty.faucet}
-            </ButtonLink>
-          }
-        />
-      )}
-      {ok && !showEmpty && (
-        <>
-          <HistoryCards items={rows} t={t} locale={locale} />
-          <HistoryTable items={rows} now={now} t={t} locale={locale} />
-          {ok.more === 'failed' && (
-            <div className="pt-6" role="alert">
-              <Notice tone="danger" tier="banner">
-                {t.history.moreFailed}
-              </Notice>
-            </div>
-          )}
-          {hasMore && (
-            <div className="flex flex-col items-center pt-6">
-              <Button
-                variant="secondary"
-                disabled={ok.more === 'loading'}
-                aria-busy={ok.more === 'loading'}
-                className="tablet:w-auto disabled:text-text-disabled w-full"
-                onClick={showMore}
-              >
-                {t.history.more}
-              </Button>
-            </div>
-          )}
-        </>
-      )}
+        )}
+        {ok && !showEmpty && (
+          <>
+            <HistoryCards items={rows} t={t} locale={locale} />
+            <HistoryTable items={rows} now={now} t={t} locale={locale} />
+            {ok.more === 'failed' && (
+              <div className="pt-6" role="alert">
+                <Notice tone="danger" tier="banner">
+                  {t.history.moreFailed}
+                </Notice>
+              </div>
+            )}
+            {hasMore && (
+              <div className="flex flex-col items-center pt-6">
+                <Button
+                  variant="secondary"
+                  disabled={ok.more === 'loading'}
+                  aria-busy={ok.more === 'loading'}
+                  className="tablet:w-auto disabled:text-text-disabled w-full"
+                  onClick={showMore}
+                >
+                  {t.history.more}
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </section>
   )
 }

@@ -199,6 +199,29 @@ test.describe('viewer history', () => {
     })
   }
 
+  // A shorter state must not pull the footer up into view (CLS): the section keeps the skeleton's height (app.css min-h-history-body).
+  for (const width of widths) {
+    for (const mode of ['empty', 'down'] as const) {
+      test(`${mode === 'empty' ? 'empty' : 'failed'} keeps the height of the skeleton, footer included (${String(width)}px)`, async ({
+        page,
+      }) => {
+        const api = await fixtureApi(page)
+        api.history = mode
+        let release!: () => void
+        api.holdHistory = new Promise<void>((resolve) => (release = resolve))
+        await page.setViewportSize({ width, height: 900 })
+        await page.goto(`/address#${A}`)
+        const footer = page.getByRole('contentinfo')
+        await expect(page.getByText('12.5 USDC').first()).toBeVisible()
+        const top = () => footer.evaluate((el) => el.getBoundingClientRect().top + window.scrollY)
+        const skeleton = await top()
+        release()
+        await expect(page.getByText(mode === 'empty' ? '아직 거래가 없어요' : '내역을 불러오지 못했어요')).toBeVisible()
+        expect(await top()).toBe(skeleton)
+      })
+    }
+  }
+
   test('the history request is a web request through the same install identity', async ({ page }) => {
     const api = await fixtureApi(page)
     await page.goto(`/address#${A}`)
