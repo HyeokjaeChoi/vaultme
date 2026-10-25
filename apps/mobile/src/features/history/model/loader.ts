@@ -1,18 +1,27 @@
-import { api, createHistory, historyCache } from '@/shared/api'
+import { createHistory, type HistoryItem, type PushDir } from '@vaultme/history'
+import { api, historyCache } from '@/shared/api'
+import { getAccountAddress } from '@/shared/storage'
 
 const client = api
-/** The one history loader: it caches the first page in `historyCache`, which the list and S41 read. null = test-data mode (no API). */
-export const history = client
-  ? createHistory({ fetchPage: (a, c) => client.history(a, c), cache: historyCache, local: () => [], now: Date.now })
-  : null
+/** The one history module: the S40 list and the S41 row lookup share its cached first page (`historyCache`). */
+export const history = createHistory({
+  fetchPage: (a) => (client ? client.history(a) : Promise.reject(new Error('no history API'))),
+  cache: historyCache,
+  now: Date.now,
+})
 
-/**
- * A fresh first page (already written to `historyCache` by `history.load`). Rejects when the answer is not fresh (cache fallback, 404 local
- * list, error, `update_required`, no API): the caller must not trust it.
- */
-export async function freshHistoryPage(address: string): Promise<unknown> {
-  if (!history) throw new Error('no history API')
-  const r = await history.load(address)
-  if (r.source !== 'api') throw new Error('history page is not fresh')
-  return r.data
+/** The account address. Null = kv unreadable. */
+export function accountAddress(): string | null {
+  try {
+    return getAccountAddress()
+  } catch {
+    return null
+  }
 }
+
+/** Address for the list: null in test-data mode (no API), so only the local send shows. */
+export const listAddress = (): string | null => (client ? accountAddress() : null)
+
+/** The cached history row an S41 route param names (see `history.cachedRow`), for this account only. Null = only a lookup can tell. */
+export const findCachedRow = (address: string | null, id: string, dir?: PushDir): HistoryItem | null =>
+  history.cachedRow(address, id, dir)

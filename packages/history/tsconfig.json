@@ -1,0 +1,9 @@
+{
+  "extends": "../config/tsconfig.lib.json",
+  "include": ["src", "test", "vitest.config.ts"],
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    // @vaultme/api-client source uses fetch and Response types.
+    "lib": ["ES2023", "DOM"]
+  }
+}

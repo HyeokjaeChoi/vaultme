@@ -17,7 +17,7 @@ import {
 } from '@/features/history'
 import type { TxState } from '@/features/send'
 import { clearTestTx, isFinal, isPolled, resultCopy, txView, useTrackedTx, writePendingTx } from '@/features/send'
-import { ApiError, apiErrorKey, historyCache } from '@/shared/api'
+import { ApiError, apiErrorKey } from '@/shared/api'
 import { chain } from '@/shared/chain'
 import { explorerUrl } from '@/shared/chain'
 import { useTestMode } from '@/shared/chain'
@@ -246,7 +246,7 @@ export function TxDetailPage() {
   const tx = __DEV__ && demo ? demoTx(demo as TxState) : localRecordMatches(stored?.hash, id, dir) ? stored : null
   if (!tx) {
     const address = __DEV__ && devRow ? DEV_ADDRESS : getAccountAddress()
-    const cached = findCachedRow(historyCache.get(), address, id)
+    const cached = findCachedRow(address, id, dir)
     const row =
       (__DEV__ && (devRow === 'in' || devRow === 'out') ? devHistoryRow(devRow) : null) ??
       cached ??

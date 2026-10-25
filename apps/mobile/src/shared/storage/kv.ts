@@ -1,3 +1,4 @@
+import type { HistoryCache } from '@vaultme/history'
 import { createMMKV, type MMKV } from 'react-native-mmkv'
 import { getOrCreateKvKey } from './keychain'
 
@@ -166,7 +167,6 @@ export function setInstallId(id: string | null): void {
 }
 
 // --- last /v1/history result and when it was fetched (ADR-0007) ---
-export type HistoryCache = { address: string; json: string; updatedAt: number }
 export function getHistoryCache(): HistoryCache | null {
   const raw = store().getString('history.cache')
   if (raw === undefined) return null

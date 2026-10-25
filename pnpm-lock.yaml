@@ -91,6 +91,9 @@ importers:
       '@vaultme/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@vaultme/history':
+        specifier: workspace:*
+        version: link:../../packages/history
       '@vaultme/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
@@ -288,6 +291,34 @@ importers:
       zod:
         specifier: ^4.6.0
         version: 4.6.6
+    devDependencies:
+      '@vaultme/config':
+        specifier: workspace:*
+        version: link:../config
+      '@vitest/coverage-v8':
+        specifier: 5.0.3
+        version: 5.0.3(vitest@5.0.3)
+      eslint:
+        specifier: ^10.12.0
+        version: 10.12.0(jiti@2.7.0)(supports-color@10.2.2)
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.3
+        version: 5.0.3(@types/node@26.6.4)(@vitest/coverage-istanbul@5.0.3)(@vitest/coverage-v8@5.0.3)(vite@8.3.2)
+
+  packages/history:
+    dependencies:
+      '@vaultme/api-client':
+        specifier: workspace:*
+        version: link:../api-client
+      '@vaultme/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@vaultme/wallet-core':
+        specifier: workspace:*
+        version: link:../wallet-core
     devDependencies:
       '@vaultme/config':
         specifier: workspace:*
