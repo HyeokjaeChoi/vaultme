@@ -294,6 +294,15 @@ describe('POST /webhooks/alchemy', () => {
     expect(sentMessages()).toHaveLength(1)
   })
 
+  it('pushes once when the two legs of one tx arrive in concurrent webhooks', async () => {
+    const res = await Promise.all([
+      hook(activity([eth()])),
+      hook(activity([eth({ fromAddress: ADDR, toAddress: OTHER, category: 'internal' })])),
+    ])
+    expect(res.map((r) => r.status)).toEqual([200, 200])
+    expect(sentMessages()).toHaveLength(1)
+  })
+
   it('answers 503 when Expo is down, then sends on the retry', async () => {
     expoReply = () => new Response('x', { status: 502 })
     expect((await hook(activity([eth()]))).status).toBe(503)
