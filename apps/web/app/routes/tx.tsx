@@ -52,6 +52,9 @@ export default function TxPage() {
   // A row of the address viewer links here with its address in the router state (kept in memory by the router, never in the URL): the way back.
   const from = parseAddress((state as { from?: unknown } | null)?.from?.toString() ?? '')
 
+  const asked = (state as { row?: unknown } | null)?.row
+  const row = asked === 'ETH' || asked === 'USDC' ? asked : undefined
+
   // A client-side move to this page (from a history row) puts the focus on the heading, so a screen reader starts there.
   const heading = useRef<HTMLHeadingElement>(null)
   useEffect(() => {
@@ -102,7 +105,7 @@ export default function TxPage() {
           )}
           {(!hydrated || txHash) && (
             <div data-boot-viewer className="flex flex-col gap-6">
-              <Detail x={x} locale={locale} hash={txHash} />
+              <Detail x={x} t={t} locale={locale} hash={txHash} row={row} />
             </div>
           )}
         </div>
@@ -112,8 +115,20 @@ export default function TxPage() {
 }
 
 /** `hash` null = before hydration: the skeleton. */
-function Detail({ x, locale, hash }: { x: WebTxMessages; locale: WebLocale; hash: string | null }) {
-  const [tx, retry] = useTransaction(hash)
+function Detail({
+  x,
+  t,
+  locale,
+  hash,
+  row,
+}: {
+  x: WebTxMessages
+  t: (typeof webMessages)[WebLocale]
+  locale: WebLocale
+  hash: string | null
+  row?: 'ETH' | 'USDC' | undefined
+}) {
+  const [tx, retry] = useTransaction(hash, row)
   // "3분 전" stays true while the tab is open: `now` is renewed each minute.
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
@@ -156,6 +171,20 @@ function Detail({ x, locale, hash }: { x: WebTxMessages; locale: WebLocale; hash
       {tx.status === 'notfound' && (
         <div role="status">
           <EmptyState icon="inbox" title={x.notFound.title} body={x.notFound.body} action={again(x.notFound.retry)} />
+        </div>
+      )}
+      {tx.status === 'update' && (
+        <div role="alert">
+          <EmptyState
+            icon="cloudCross"
+            title={t.viewer.updateTitle}
+            body={t.viewer.updateBody}
+            action={
+              <Button variant="secondaryMd" onClick={() => window.location.reload()}>
+                {t.viewer.reload}
+              </Button>
+            }
+          />
         </div>
       )}
       {tx.status === 'failed' && (

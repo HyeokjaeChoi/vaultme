@@ -60,9 +60,10 @@ function usdcLeg(logs: unknown): { from: string; to: string; amount: bigint } | 
  * Null = the chain has no such transaction, or it has no block yet (the page says "not in the history yet"). Throws on an answer
  * that does not fit, so a bad upstream is a failed load, not a wrong page. A call of `transfer(address,uint256)` on the Sepolia
  * USDC contract shows its arguments (a reverted one too: the call data is still there); another call that emits exactly one Sepolia
- * USDC `Transfer` shows that move; anything else shows the call's own ETH value (an ETH move made inside a contract is not shown).
+ * USDC `Transfer` shows that move (unless `row` is 'ETH': the history row that opened the page is the ETH one of that transaction);
+ * anything else shows the call's own ETH value (an ETH move made inside a contract is not shown).
  */
-export async function readTransaction(rpc: RpcCall, hash: string): Promise<TxDetail | null> {
+export async function readTransaction(rpc: RpcCall, hash: string, row?: 'ETH' | 'USDC'): Promise<TxDetail | null> {
   const [tx, rc] = await Promise.all([
     rpc('eth_getTransactionByHash', [hash]),
     rpc('eth_getTransactionReceipt', [hash]),
@@ -88,7 +89,7 @@ export async function readTransaction(rpc: RpcCall, hash: string): Promise<TxDet
   const to = t.to === null ? null : address(t.to)
   const input = typeof t.input === 'string' ? t.input : ''
   const usdc = to?.toLowerCase() === USDC_SEPOLIA.toLowerCase() && TRANSFER_INPUT.test(input)
-  const leg = usdc ? null : usdcLeg(r.logs)
+  const leg = usdc || row === 'ETH' ? null : usdcLeg(r.logs)
   return {
     hash,
     from: leg ? leg.from : address(t.from),
@@ -96,7 +97,10 @@ export async function readTransaction(rpc: RpcCall, hash: string): Promise<TxDet
     asset: usdc || leg ? 'USDC' : 'ETH',
     amount: usdc ? BigInt(`0x${input.slice(74, 138)}`) : leg ? leg.amount : toQuantity(t.value),
     ok: r.status === '0x1',
-    fee: toQuantity(r.gasUsed) * toQuantity(r.effectiveGasPrice),
+    // A blob transaction (type 3) also pays for its blob gas.
+    fee:
+      toQuantity(r.gasUsed) * toQuantity(r.effectiveGasPrice) +
+      (r.blobGasUsed === undefined ? 0n : toQuantity(r.blobGasUsed) * toQuantity(r.blobGasPrice)),
     block,
     at,
   }

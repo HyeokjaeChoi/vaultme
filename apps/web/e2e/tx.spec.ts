@@ -128,9 +128,10 @@ test.describe('transaction page', () => {
 
   // The skeleton has the final sizes: nothing moves from the skeleton to the detail (Figma loading frames = the detail frames).
   // Web fonts are blocked: their swap moves text on every page (see address.spec.ts).
-  for (const width of widths) {
-    test(`no layout shift from the skeleton to the detail (${String(width)}px)`, async ({ page }) => {
+  for (const [width, mode] of widths.flatMap((w) => (['ok', 'creation'] as const).map((m) => [w, m] as const))) {
+    test(`no layout shift from the skeleton to the detail (${mode}, ${String(width)}px)`, async ({ page }) => {
       const api = await fixtureApi(page)
+      api.tx = mode // a contract creation has no recipient: its row is shorter text, not a shorter row
       await page.route('**/*.woff2', (route) => route.abort())
       let release!: () => void
       api.holdTx = new Promise<void>((resolve) => (release = resolve))

@@ -41,7 +41,9 @@ export function TxDetail({ tx, now, t, locale }: Props) {
             {to}
           </DefinitionRow>
         ) : (
-          <DefinitionRow label={t.to}>—</DefinitionRow>
+          <DefinitionRow label={t.to} className="tx-row-address">
+            —
+          </DefinitionRow>
         )}
         <DefinitionRow label={t.time}>
           {relativeTime(tx.at, now, locale)} · {utcTime(tx.at)}

@@ -10,7 +10,7 @@ const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const B = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 const USDC = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 
-type Chain = { tx: unknown; receipt: unknown; down: boolean }
+type Chain = { tx: unknown; receipt: unknown; down: boolean | 'old'; logs?: unknown[] }
 const eth = { hash: H, from: B, to: A, value: '0xb1a2bc2ec50000', input: '0x', blockNumber: '0x713a27' } // 0.05 ETH
 const receipt = {
   status: '0x1',
@@ -31,11 +31,13 @@ beforeEach(() => {
       if (path === '/v1/installs') return Promise.resolve(json(201, { installId: crypto.randomUUID() }))
       if (path === '/v1/installs/token')
         return Promise.resolve(json(200, { token: 'tok', expiresAt: Math.floor(Date.now() / 1000) + 900 }))
+      if (chain.down === 'old')
+        return Promise.resolve(json(426, { code: 'update_required', message: 'x', retryable: false }))
       if (chain.down) return Promise.resolve(json(503, { code: 'unavailable', message: 'x', retryable: true }))
       const { id, method } = JSON.parse(init.body as string) as { id: number; method: string }
       const results: Record<string, unknown> = {
         eth_getTransactionByHash: chain.tx,
-        eth_getTransactionReceipt: chain.receipt,
+        eth_getTransactionReceipt: chain.logs ? { ...(chain.receipt as object), logs: chain.logs } : chain.receipt,
         eth_getBlockByNumber: {
           number: '0x713a27',
           timestamp: `0x${Math.floor(Date.now() / 1000 - 210).toString(16)}`,
@@ -141,6 +143,29 @@ describe('transaction page', () => {
     await waitFor(() => {
       expect(document.body).not.toHaveFocus()
     })
+  })
+
+  it('426 asks for a refresh (a stale cached build), not a retry', async () => {
+    chain.down = 'old'
+    open(`/tx#${H}`)
+    expect(await screen.findByRole('alert')).toHaveTextContent('새로고침해 주세요')
+    expect(screen.getByRole('button', { name: '새로고침' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull()
+  })
+
+  it('a row of the list passes its asset: the ETH row of a transaction with a USDC log shows the ETH move', async () => {
+    const word = (a: string) => `0x${a.slice(2).toLowerCase().padStart(64, '0')}`
+    chain.tx = { ...eth, to: `0x${'11'.repeat(20)}`, input: '0x23b872dd00' }
+    chain.logs = [
+      {
+        address: USDC.toLowerCase(),
+        topics: ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', word(B), word(A)],
+        data: `0x${(7_500_000).toString(16).padStart(64, '0')}`,
+      },
+    ]
+    open(`/tx#${H}`, { row: 'ETH' })
+    expect(await screen.findByText('0.05')).toBeInTheDocument()
+    expect(screen.getByText('ETH', { selector: 'span' })).toBeInTheDocument()
   })
 
   it.each(['', '#0x1234', `#${H}00`])(

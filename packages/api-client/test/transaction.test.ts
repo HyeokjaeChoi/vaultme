@@ -98,6 +98,23 @@ describe('readTransaction', () => {
     expect(await readTransaction(log.rpc, HASH)).toMatchObject({ asset: 'USDC', amount: 7_500_000n })
   })
 
+  it('a blob transaction pays its blob gas too', async () => {
+    const { rpc } = chain({ receipt: { ...receipt, blobGasUsed: '0x20000', blobGasPrice: '0x2' } })
+    expect((await readTransaction(rpc, HASH))?.fee).toBe(21_000_000_000_000n + 0x20000n * 2n)
+  })
+
+  it('the ETH history row of a transaction with a USDC log shows the ETH move, the USDC row the USDC one', async () => {
+    const via = { ...eth, to: `0x${'11'.repeat(20)}`, input: '0x23b872dd00' }
+    const { rpc } = chain({ tx: via, receipt: { ...receipt, logs: [usdcLog()] } })
+    expect(await readTransaction(rpc, HASH, 'ETH')).toMatchObject({
+      asset: 'ETH',
+      amount: 50_000_000_000_000_000n,
+      from: FROM,
+    })
+    expect(await readTransaction(rpc, HASH, 'USDC')).toMatchObject({ asset: 'USDC', amount: 7_500_000n })
+    expect(await readTransaction(rpc, HASH)).toMatchObject({ asset: 'USDC' })
+  })
+
   it('a missing call data field is a plain ETH transfer', async () => {
     const { rpc } = chain({ tx: { ...eth, input: undefined } })
     expect(await readTransaction(rpc, HASH)).toMatchObject({ asset: 'ETH', amount: 50_000_000_000_000_000n })

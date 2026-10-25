@@ -9,10 +9,10 @@ import { RowBadge } from './RowBadge'
 
 type Props = { items: HistoryItem[]; now: number; t: WebMessages; locale: WebLocale; address: string | null }
 
-/** A row opens the transaction page (#197). The viewer's address goes in the router state (memory, not the URL), for the page's back link. */
+/** A row opens the transaction page (#197). The viewer's address goes in the router state (memory, not the URL), for the page's back link, and the asset of the row: one transaction can have an ETH row and a USDC row. */
 const txLink = (i: HistoryItem, locale: WebLocale, address: string | null) => ({
   to: { pathname: txPath(locale), hash: `#${i.hash}` },
-  state: { from: address },
+  state: { from: address, row: assetKey(i) },
 })
 
 // First 6 and last 4 characters, as mobile shortAddress. A contract creation has no counterparty.

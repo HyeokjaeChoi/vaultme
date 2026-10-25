@@ -9,11 +9,13 @@ type Props = {
   /** The text to copy; the copy button shows when it is set. */
   copy?: { text: string; label: string; copied: string }
   children: ReactNode
+  /** Extra classes on the row (the skeleton's height for a row that renders shorter). */
+  className?: string
 }
 
-export function DefinitionRow({ label, mono = false, copy, children }: Props) {
+export function DefinitionRow({ label, mono = false, copy, children, className = '' }: Props) {
   return (
-    <div className="tablet:flex-row tablet:gap-6 flex flex-col gap-1 py-3">
+    <div className={`tablet:flex-row tablet:gap-6 flex flex-col gap-1 py-3 ${className}`}>
       <dt className="text-product-b-body-small text-text-tertiary tablet:w-definition-label shrink-0">{label}</dt>
       <dd className="flex min-w-px flex-1 items-center gap-2">
         {mono ? (
