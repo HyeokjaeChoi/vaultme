@@ -32,6 +32,12 @@ const resolveVar = (vars: Map<string, string>, name: string): string => {
 }
 
 describe('tokens.css', () => {
+  it('declares color-scheme for each theme so browser controls follow', () => {
+    expect(block(tokensCss, ':root {')).toContain('color-scheme: light;')
+    expect(darkMedia).toContain('color-scheme: dark;')
+    expect(darkAttr).toContain('color-scheme: dark;')
+  })
+
   it('has Primitive, Semantic and Component variables', () => {
     for (const layer of ['primitive', 'semantic', 'component'])
       expect([...light$.keys()].some((n) => n.startsWith(`--${layer}-`))).toBe(true)

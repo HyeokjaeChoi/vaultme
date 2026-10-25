@@ -45,7 +45,7 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
   - Send: `prepare` makes a `Review`. `signAndSubmit` signs and submits. `recipientRisk` classifies the recipient.
   - State: `reduce` and `canStartDraft` (see Invariants).
 - `contracts`: zod schemas that both sides use. Header names, error codes, `canonicalString`, RPC allow-list, history and push shapes, `USDC_SEPOLIA`. The API OpenAPI file comes from here.
-- `tokens`: Style Dictionary build of `packages/tokens/tokens.json` into `src/generated`. Layers: Primitive, Semantic (light and dark), Component.
+- `tokens`: Style Dictionary build of `packages/tokens/tokens.json` into `src/generated` (TS for mobile, `tokens.css` variables and a Tailwind v4 `theme.css` for web). Layers: Primitive, Semantic (light and dark), Component.
 - `i18n`: Korean strings (`ko`) and an i18next instance.
 - `config`: shared ESLint and tsconfig. It holds the no-float rule for amount code.
 
