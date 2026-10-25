@@ -1,12 +1,12 @@
+import { createApiClient, type ApiClient } from '@vaultme/api-client'
 import Constants from 'expo-constants'
-import { getHistoryCache, setHistoryCache } from '../storage/kv'
-import { createApiClient, type ApiClient } from './client'
-import { deviceStore } from './deviceStore'
+import { loadDeviceKey, saveDeviceKey } from '../storage/keychain'
+import { getHistoryCache, getInstallId, setHistoryCache, setInstallId } from '../storage/kv'
+import { nobleSigner } from './deviceKey'
 import { createHistory } from './history'
 import { markUpdateRequired } from './updateGate'
 
-export { ApiError, RpcError, isApiError } from './errors'
-export type { ApiClient } from './client'
+export { ApiError, RpcError, isApiError, type ApiClient } from '@vaultme/api-client'
 export { apiErrorKey } from './errorCopy'
 export { useUpdateRequired } from './updateGate'
 
@@ -17,7 +17,8 @@ export const api: ApiClient | null = apiUrl
   ? createApiClient({
       baseUrl: apiUrl,
       appVersion: Constants.expoConfig?.version ?? '0.0.0',
-      store: deviceStore,
+      // Device key in Keychain (no-auth tier), installId in kv.
+      signer: nobleSigner({ loadKey: loadDeviceKey, saveKey: saveDeviceKey, getInstallId, setInstallId }),
       onUpdateRequired: markUpdateRequired,
     })
   : null

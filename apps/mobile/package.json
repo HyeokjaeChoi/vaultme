@@ -20,6 +20,7 @@
     "@noble/curves": "2.4.0",
     "@noble/hashes": "2.4.0",
     "@solar-icons/react-native": "2.3.2",
+    "@vaultme/api-client": "workspace:*",
     "@vaultme/contracts": "workspace:*",
     "@vaultme/i18n": "workspace:*",
     "@vaultme/tokens": "workspace:*",

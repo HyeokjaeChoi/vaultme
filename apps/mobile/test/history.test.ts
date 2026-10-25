@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ApiError } from '../src/shared/api/errors'
+import { ApiError } from '@vaultme/api-client'
 import { createHistory } from '../src/shared/api/history'
 import type { HistoryCache, PendingTx } from '../src/shared/storage/kv'
 

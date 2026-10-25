@@ -1,4 +1,4 @@
-import { isApiError } from './errors'
+import { isApiError } from '@vaultme/api-client'
 
 /**
  * i18n key (title + body) for a failed API call. `update_required` is not here: it blocks the whole app (S91).

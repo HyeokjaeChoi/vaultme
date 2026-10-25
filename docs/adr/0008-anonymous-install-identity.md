@@ -15,4 +15,4 @@ On first start the app makes an ECDSA P-256 key pair. It is not the wallet key. 
 - Rate limits use the install ID. The IP limit is coarse because mobile networks share IPs.
 - A browser client cannot use the API (until [0011](0011-web-client-api-access.md) is implemented in issue #191).
 
-<!-- verified: apps/api/src/auth.ts, apps/api/src/app.ts, apps/mobile/src/shared/api/client.ts, apps/mobile/src/shared/api/deviceKey.ts, apps/mobile/src/shared/storage/keychain.ts, apps/api/migrations/0001_installs.sql -->
+<!-- verified: apps/api/src/auth.ts, apps/api/src/app.ts, packages/api-client/src/client.ts, apps/mobile/src/shared/api/deviceKey.ts, apps/mobile/src/shared/storage/keychain.ts, apps/api/migrations/0001_installs.sql -->
