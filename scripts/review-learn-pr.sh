@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Opens the weekly learning-loop proposal (REVIEW.md "Learning loop", .github/workflows/review-learn.yml):
+# one issue and one draft PR that closes it. Run by Claude inside claude-code-action, which sets GH_TOKEN to the
+# Claude app token (a PR made with GITHUB_TOKEN would not start CI, and this repo does not let Actions open PRs).
+# Input: .review-learn/title.txt (one line) and .review-learn/body.md. Never pushes to main.
+set -euo pipefail
+dir=.review-learn # also holds findings.json from the workflow; removed before the commit
+title=$(head -1 "$dir/title.txt")
+cp "$dir/body.md" "$RUNNER_TEMP/body.md"
+rm -rf "$dir"
+[ -n "$(git status --porcelain)" ] || { echo "No file changes: nothing to propose."; exit 0; }
+# The prompt forbids these paths; this enforces it. CI, hooks and reviewer config (agents, skills) change only through a
+# person's PR. The one allowed .claude path is the lessons skill, which this loop exists to extend.
+blocked=$(git status --porcelain -- .github .githooks .claude ':!.claude/skills/vaultme-review-lessons')
+[ -z "$blocked" ] || { echo "Refusing to propose changes to CI or agent config:"; echo "$blocked"; exit 1; }
+issue=$(gh issue create --title "chore: $title" --body-file "$RUNNER_TEMP/body.md" --label area:ci)
+n=${issue##*/}
+branch="chore/$n-review-lessons"
+# A failed push or PR would leave the issue without a PR: close it with the reason.
+trap 'gh issue close "$n" --reason "not planned" --comment "review-learn could not open the proposal PR; see the workflow run."' ERR
+git switch -c "$branch"
+git add -A
+git -c user.name="claude[bot]" -c user.email="claude[bot]@users.noreply.github.com" commit -qm "chore: $title (#$n)"
+git push "https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git" "HEAD:refs/heads/$branch"
+# The app token cannot write the owner's GitHub Project, so the owner adds the issue (docs/agents/workflow.md step 1).
+{ printf 'Closes #%s\n\nOwner: add #%s to the VaultMe Project.\n\n' "$n" "$n"; cat "$RUNNER_TEMP/body.md"; } > "$RUNNER_TEMP/pr.md"
+gh pr create --draft --head "$branch" --title "chore: $title" --body-file "$RUNNER_TEMP/pr.md"

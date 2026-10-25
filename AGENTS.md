@@ -35,7 +35,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | The web app: real 404 status, security headers, axe = 0, Lighthouse 4 × ≥95 (desktop and mobile), JS ≤ 100 KB gzip | CI `web` (`apps/web/e2e`, `lighthouserc.*.json`; the intentional 404 skips 2 SEO audits: `is-crawlable`, `http-status-code`) |
 | Test coverage stays at or above each package's floor | `coverage.thresholds` in each `vitest.config.ts` |
 | No unused files or dependencies, no unlisted dependencies | `knip.jsonc`, CI `verify` (`pnpm knip`) |
-| The mobile app bundles for iOS and Android | CI `verify` (`export:check`); `expo-doctor` reports only |
+| The mobile app bundles for iOS and Android, each Hermes bundle ≤ 9 MiB | CI `verify` (`export:check`); `expo-doctor` reports only |
 | Claude Code: no `--no-verify`, no force push or push to main; no edits to CLAUDE.md or generated files; edited files are formatted and linted; a turn with code changes ends only when typecheck and lint pass | `.claude/settings.json` hooks in `.claude/hooks/`; R12 tests `guard-bash.sh` |
 | pnpm installs only package versions published at least 7 days (10080 min) ago, security fixes too, no exceptions | `pnpm-workspace.yaml` `minimumReleaseAge`, R13; Renovate waits the same 7 days (`.github/renovate.json5`) |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |
@@ -66,6 +66,7 @@ When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a t
 - Work steps (issue → branch → PR; work that changes no repo file needs no PR): `docs/agents/workflow.md`
 - Architecture: `ARCHITECTURE.md`
 - Decisions: `docs/adr/`
+- Review: what a reviewer reads per path, the four axes, the output format and the learning loop: `REVIEW.md`
 - Before you edit an area, read `ARCHITECTURE.md`, the ADRs that touch it and `.claude/skills/vaultme-review-lessons/SKILL.md`.
 - Area rules: `apps/mobile/AGENTS.md`, `apps/web/AGENTS.md`, `packages/tokens/AGENTS.md` (loaded when you open a file there).
 
