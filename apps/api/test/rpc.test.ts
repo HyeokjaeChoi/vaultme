@@ -98,6 +98,17 @@ describe('POST /v1/rpc', () => {
     expect((await rpc(req('eth_getBlockByNumber', ['latest', false]))).status).toBe(200)
   })
 
+  it('allows eth_getTransactionByHash only with one 32-byte hash', async () => {
+    mock(() => ok(null))
+    const h = `0x${'ab'.repeat(32)}`
+    expect((await rpc(req('eth_getTransactionByHash', [h]))).status).toBe(200)
+    for (const params of [[], ['0x12'], [`${h}00`], [h, h], [1]]) {
+      const f = mock(() => ok())
+      expect((await rpc(req('eth_getTransactionByHash', params))).status).toBe(403)
+      expect(f).not.toHaveBeenCalled()
+    }
+  })
+
   it.each([
     ['5xx', () => new Response('boom', { status: 502 })],
     ['429', () => new Response('slow down', { status: 429 })],

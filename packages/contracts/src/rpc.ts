@@ -13,6 +13,7 @@ export const RPC_ALLOWED_METHODS = [
   'eth_call',
   'eth_sendRawTransaction',
   'eth_getTransactionReceipt',
+  'eth_getTransactionByHash', // the web transaction page (#197) resolves a hash from a shared link
 ] as const
 export const RpcMethod = z.enum(RPC_ALLOWED_METHODS)
 export type RpcMethod = z.infer<typeof RpcMethod>
