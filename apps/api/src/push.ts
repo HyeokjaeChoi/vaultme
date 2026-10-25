@@ -259,71 +259,78 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   if (subs.results.length === 0) return
   const notes = notificationsFor(payload, new Set(subs.results.map((s) => s.address)))
 
-  const jobs: { sub: (typeof subs.results)[number]; note: Notification }[] = []
-  for (const note of notes) {
-    for (const sub of subs.results) {
-      if (sub.address !== note.address) continue
-      const seen = await env.DB.prepare('SELECT 1 AS x FROM push_sent WHERE install_id = ? AND ref = ?')
-        .bind(sub.install_id, note.ref)
-        .first()
-      if (!seen) jobs.push({ sub, note })
-    }
-  }
+  // Claim first, then send: Alchemy can deliver two legs of one tx as separate webhooks at the same moment, and a
+  // check-then-insert let both runs send. INSERT OR IGNORE is atomic, so only the first claimer sends (its kind wins,
+  // which may be send). A claim whose send fails is released below, so Alchemy's retry still works.
+  const pairs = notes.flatMap((note) =>
+    subs.results.filter((s) => s.address === note.address).map((sub) => ({ sub, note })),
+  )
+  if (pairs.length === 0) return
+  const claims = await env.DB.batch(
+    pairs.map(({ sub, note }) =>
+      env.DB.prepare('INSERT OR IGNORE INTO push_sent (install_id, ref, sent_at) VALUES (?, ?, ?)').bind(
+        sub.install_id,
+        note.ref,
+        nowSeconds(),
+      ),
+    ),
+  )
+  const jobs = pairs.filter((_, i) => claims[i]?.meta.changes === 1)
+  const unsettled = new Set(jobs)
   const dead: string[] = []
   let ticketFailed = false
-  for (let i = 0; i < jobs.length; i += EXPO_BATCH) {
-    const batch = jobs.slice(i, i + EXPO_BATCH)
-    let res: Response
-    try {
-      res = await fetch(EXPO_SEND_URL, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          accept: 'application/json',
-          authorization: `Bearer ${expoToken}`,
-        },
-        body: JSON.stringify(
-          batch.map(({ sub, note }) => ({
-            to: sub.expo_token,
-            ...PUSH_COPY[note.kind],
-            channelId: PUSH_CHANNEL_ID,
-            sound: 'default',
-            data: { kind: note.kind, hash: note.hash } satisfies PushData,
-          })),
-        ),
-        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-      })
-    } catch {
-      throw new UpstreamError('expo unreachable')
-    }
-    if (res.status === 429 || res.status >= 500) throw new UpstreamError(`expo ${String(res.status)}`)
-    if (!res.ok) {
-      // Our own request is wrong (400) or the access token is (401): retrying cannot help.
-      console.error('expo rejected push', res.status)
-      continue
-    }
-    const tickets = ExpoTickets.safeParse(await res.json().catch(() => null))
-    if (!tickets.success || tickets.data.data.length !== batch.length) throw new UpstreamError('expo ticket shape')
-    // Only accepted tickets (and dead tokens, which are deleted below) count as sent. Any other ticket error stays retryable.
-    const settled: typeof batch = []
-    for (const [j, t] of tickets.data.data.entries()) {
-      const sent = at(batch, j) // lengths are equal, checked above
-      if (t.status === 'ok') settled.push(sent)
-      else if (t.details?.error === 'DeviceNotRegistered') {
-        dead.push(sent.sub.install_id)
-        settled.push(sent)
-      } else ticketFailed = true
-    }
-    if (settled.length > 0)
-      await env.DB.batch(
-        settled.map(({ sub, note }) =>
-          env.DB.prepare('INSERT OR IGNORE INTO push_sent (install_id, ref, sent_at) VALUES (?, ?, ?)').bind(
-            sub.install_id,
-            note.ref,
-            nowSeconds(),
+  try {
+    for (let i = 0; i < jobs.length; i += EXPO_BATCH) {
+      const batch = jobs.slice(i, i + EXPO_BATCH)
+      let res: Response
+      try {
+        res = await fetch(EXPO_SEND_URL, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            accept: 'application/json',
+            authorization: `Bearer ${expoToken}`,
+          },
+          body: JSON.stringify(
+            batch.map(({ sub, note }) => ({
+              to: sub.expo_token,
+              ...PUSH_COPY[note.kind],
+              channelId: PUSH_CHANNEL_ID,
+              sound: 'default',
+              data: { kind: note.kind, hash: note.hash } satisfies PushData,
+            })),
           ),
-        ),
-      )
+          signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+        })
+      } catch {
+        throw new UpstreamError('expo unreachable')
+      }
+      if (res.status === 429 || res.status >= 500) throw new UpstreamError(`expo ${String(res.status)}`)
+      if (!res.ok) {
+        // Our own request is wrong (400) or the access token is (401): retrying cannot help.
+        console.error('expo rejected push', res.status)
+        continue
+      }
+      const tickets = ExpoTickets.safeParse(await res.json().catch(() => null))
+      if (!tickets.success || tickets.data.data.length !== batch.length) throw new UpstreamError('expo ticket shape')
+      // Only accepted tickets (and dead tokens, which are deleted below) count as sent. Any other ticket error stays retryable.
+      const settled: typeof batch = []
+      for (const [j, t] of tickets.data.data.entries()) {
+        const sent = at(batch, j) // lengths are equal, checked above
+        if (t.status === 'ok') settled.push(sent)
+        else if (t.details?.error === 'DeviceNotRegistered') {
+          dead.push(sent.sub.install_id)
+          settled.push(sent)
+        } else ticketFailed = true
+      }
+      for (const j of settled) unsettled.delete(j)
+    }
+  } finally {
+    // Not sent (Expo failed, rejected, or ticket error): release the claim so the retry can send.
+    const release = [...unsettled].map(({ sub, note }) =>
+      env.DB.prepare('DELETE FROM push_sent WHERE install_id = ? AND ref = ?').bind(sub.install_id, note.ref),
+    )
+    if (release.length > 0) await env.DB.batch(release)
   }
   // The token is invalid: delete the subscription and the address at once (#67 decision 7).
   for (const id of new Set(dead)) await unsubscribe(env, id)

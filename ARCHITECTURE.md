@@ -112,7 +112,7 @@ App -> `POST /v1/history {address, cursor}` -> Worker calls Etherscan `txlist`, 
 2. `DELETE /v1/push/subscription`: the row is deleted first. The address goes to `push_unregister`. Alchemy removal is tried at once and retried by cron.
 3. Alchemy sends `POST /webhooks/alchemy`. The Worker checks the HMAC (`X-Alchemy-Signature`), then `notificationsFor` selects events: ETH, or USDC by contract address; not zero; not a removed log. One notification per address and tx; a received leg wins over a sent leg. Limit: if the send leg comes in an earlier webhook than the deposit leg, the push says send.
 4. The Worker sends to Expo (batches of 100). The payload has `kind` and `hash` only. The text has no amount and no address.
-5. `push_sent (install_id, ref)`, `ref` = tx hash, stops a second push when Alchemy retries or sends another leg of the same tx. A `DeviceNotRegistered` ticket deletes the subscription.
+5. `push_sent (install_id, ref)`, `ref` = tx hash, is claimed (`INSERT OR IGNORE`) before the Expo send and only the claimer sends. So Alchemy retries and parallel webhooks with other legs of the same tx push once; the first claimer's kind wins, so it may be send. A claim is released when its send fails. A `DeviceNotRegistered` ticket deletes the subscription.
 6. Cron `17 * * * *` runs `sweep`: delete subscriptions of installs not seen for 30 days, purge `push_sent` older than 7 days, retry `push_unregister`.
 
 App side (`features/push`):
