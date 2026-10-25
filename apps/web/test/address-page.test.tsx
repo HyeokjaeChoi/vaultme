@@ -75,10 +75,15 @@ describe('address input', () => {
     )
   })
 
-  it('says ENS is not supported and that the page is read-only', () => {
+  // ADR-0014: the header chip states the network, the viewer chip states read-only; the page repeats neither.
+  it('has no trust banner, ENS note or second network chip', async () => {
     open('/address')
-    expect(screen.getByText('ENS는 지원하지 않아요. 0x로 시작하는 주소를 넣어 주세요.')).toBeInTheDocument()
-    expect(screen.getByText('조회 전용이에요')).toBeInTheDocument()
+    expect(screen.queryByText(/ENS|로그인이 없어요/)).toBeNull()
+    await userEvent.type(screen.getByLabelText('Sepolia 주소'), A)
+    await userEvent.click(screen.getByRole('button', { name: '주소 보기' }))
+    expect(await screen.findByText('1.284732 ETH')).toBeInTheDocument()
+    expect(screen.getAllByText('조회 전용')).toHaveLength(1)
+    expect(screen.queryByText(/테스트넷/)).toBeNull()
   })
 
   it('opens the viewer at /address#<EIP-55 address>, never in the path or query', async () => {
