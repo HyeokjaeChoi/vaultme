@@ -52,6 +52,11 @@ describe('HistorySection', () => {
     expect(screen.queryByRole('button')).toBeNull()
   })
 
+  it('a failed row has no sign in the table, as in the cards', () => {
+    show(ok([item(1, { kind: 'send', status: 'failed', asset: 'USDC', amount: '1' })]))
+    expect(within(screen.getAllByRole('row')[1]!).getByText('1 USDC')).toBeInTheDocument()
+  })
+
   it('table: status word, direction, short counterparty, signed amount, time, per row', () => {
     show(
       ok([
@@ -143,7 +148,9 @@ describe('HistorySection', () => {
   })
 
   it('an empty page that still has an older page is a list with 더 보기, not the empty state', () => {
-    show(ok([], 'p2'))
+    const { actions } = show(ok([], 'p2'))
+    expect(actions.more).toHaveBeenCalled() // it follows the cursor by itself (a mock never leaves 'idle': at most 3 times)
+    expect(actions.more.mock.calls.length).toBeLessThanOrEqual(3)
     expect(screen.queryByText('아직 거래가 없어요')).toBeNull()
     expect(screen.getByRole('button', { name: '더 보기' })).toBeInTheDocument()
   })

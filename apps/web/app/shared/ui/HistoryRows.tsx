@@ -67,7 +67,12 @@ export function HistoryTable({ items, now, t, locale }: Props) {
                 {short(i.counterparty)}
               </code>
             </td>
-            <td className="text-product-b-row-title text-text-primary px-1-5 text-right break-all">{signed(i)}</td>
+            <td
+              className={`text-product-b-row-title px-1-5 text-right break-all ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
+            >
+              {/* A failed transaction moved no value: no sign, as the cards and the mobile row. */}
+              {failed(i) ? `${i.amount} ${i.asset}` : signed(i)}
+            </td>
             <td className="text-product-b-body-small text-text-tertiary pr-row-b-padding-x px-1-5 text-right">
               <time dateTime={new Date(i.at).toISOString()}>{relativeTime(i.at, now, locale)}</time>
             </td>

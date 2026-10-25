@@ -27,24 +27,27 @@ type Props = {
 
 export function HistorySection({ t, locale, address, history, actions }: Props) {
   const [limit, setLimit] = useState(FIRST)
+  const moveFocus = useRef(false)
+  const followed = useRef(0)
   // Another address starts again from the first rows.
   const shownFor = useRef(address)
   useEffect(() => {
     if (shownFor.current !== address) {
       shownFor.current = address
+      moveFocus.current = false
+      followed.current = 0
       setLimit(FIRST)
     }
   }, [address])
 
   // A button that removes itself (Try again, the last 더 보기) must not drop the focus to <body>: it moves to the section.
   const section = useRef<HTMLElement>(null)
-  const moveFocus = useRef(false)
   const loadingMore = history.status === 'ok' && history.more === 'loading'
   useEffect(() => {
     if (!moveFocus.current || loadingMore) return // a request is open: the answer decides whether the button stays
     moveFocus.current = false
     const active = document.activeElement
-    if (!active || active === document.body || !section.current?.contains(active)) section.current?.focus()
+    if (active === null || active === document.body) section.current?.focus() // only when it fell to <body>: never take it from where the user went
   })
 
   const ok = history.status === 'ok' ? history : null
@@ -56,6 +59,13 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
     const timer = setInterval(() => setNow(Date.now()), 60_000)
     return () => clearInterval(timer)
   }, [ok?.items, limit])
+  // A first page that the poisoning filter emptied still has older rows: follow its cursor (3 pages at most) instead of showing a bare button.
+  useEffect(() => {
+    if (ok?.items.length === 0 && ok.nextCursor !== null && ok.more === 'idle' && followed.current < 3) {
+      followed.current++
+      actions.more()
+    }
+  })
   const rows = ok?.items.slice(0, limit) ?? []
   const hasMore = ok !== null && (limit < ok.items.length || ok.nextCursor !== null)
 
