@@ -1,7 +1,7 @@
 import { type WebLocale, type WebMessages, webMessages } from '@vaultme/i18n/web'
 import { type SyntheticEvent, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
-import { type Balances, useBalances } from '../shared/api/useBalances'
+import { type Balances, useBalances } from '../shared/api'
 import { parseAddress } from '../shared/lib/address'
 import { localeOf, viewerPath } from '../shared/lib/locale'
 import { AddressField } from '../shared/ui/AddressField'
