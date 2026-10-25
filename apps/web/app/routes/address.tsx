@@ -187,12 +187,6 @@ function AddressForm({ t, initial, headingRef }: { t: WebMessages; initial: stri
             ))}
           </div>
         </div>
-        <Notice tone="info" tier="inline">
-          {t.address.ens}
-        </Notice>
-        <Notice tone="info" tier="banner" title={t.address.trustTitle}>
-          {t.address.trustBody}
-        </Notice>
       </div>
     </main>
   )
@@ -205,42 +199,40 @@ function Viewer({ t, locale, address, headingRef }: ViewerProps) {
   const [balances, retry] = useBalances(address)
   const [history, historyActions] = useHistory(address)
   return (
-    <main
-      id="main"
-      className="px-layout-screen-padding tablet:px-8 tablet:py-10 web-desktop:px-20 flex flex-col gap-6 py-6"
-    >
-      <div className="flex items-center gap-4">
-        <div className="flex min-w-px flex-1 flex-col items-start gap-2">
-          <h1
-            ref={headingRef}
-            tabIndex={-1}
-            className="text-product-b-title2 tablet:text-product-b-title1 web-desktop:text-product-b-display-m text-text-primary"
-          >
-            {t.viewer.title}
-          </h1>
-          <StatusChip>{t.viewer.readOnly}</StatusChip>
-        </div>
-        <Link to={viewerPath(locale)} className={buttonClass('ghost', 'shrink-0')}>
-          {t.viewer.other}
-        </Link>
-      </div>
-      <div className="web-desktop:grid web-desktop:grid-cols-3 web-desktop:gap-8 flex flex-col gap-6">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col items-start gap-3">
-            <p className="text-product-b-caption text-text-tertiary">{t.viewer.addressLabel}</p>
-            <div className="flex w-full items-center gap-2">
-              {/* Before hydration a placeholder of the same length keeps the height. `key`: the address is new text, not the
-                  placeholder's text moved (which Layout Instability would count as a shift). */}
-              <div className={`flex min-w-px flex-1 ${address ? '' : 'invisible'}`} translate="no">
-                <AddressText key={address ?? ''} address={address ?? `0x${'0'.repeat(40)}`} />
-              </div>
-              <CopyButton text={address} label={t.viewer.copy} copied={t.viewer.copied} />
-            </div>
-            <StatusChip>{t.viewer.network}</StatusChip>
+    <main id="main" className="px-layout-screen-padding tablet:px-8 tablet:py-10 web-desktop:px-20 py-6">
+      <div className="max-w-layout-content-max-width mx-auto flex w-full flex-col gap-6">
+        <div className="flex items-center gap-4">
+          <div className="flex min-w-px flex-1 flex-col items-start gap-2">
+            <h1
+              ref={headingRef}
+              tabIndex={-1}
+              className="text-product-b-title2 tablet:text-product-b-title1 web-desktop:text-product-b-display-m text-text-primary"
+            >
+              {t.viewer.title}
+            </h1>
+            <StatusChip>{t.viewer.readOnly}</StatusChip>
           </div>
-          <BalanceSection t={t} balances={balances} retry={retry} />
+          <Link to={viewerPath(locale)} className={buttonClass('ghost', 'shrink-0')}>
+            {t.viewer.other}
+          </Link>
         </div>
-        <HistorySection t={t} locale={locale} address={address} history={history} actions={historyActions} />
+        <div className="web-desktop:grid web-desktop:grid-cols-3 web-desktop:gap-8 flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col items-start gap-3">
+              <p className="text-product-b-caption text-text-tertiary">{t.viewer.addressLabel}</p>
+              <div className="flex w-full items-center gap-2">
+                {/* Before hydration a placeholder of the same length keeps the height. `key`: the address is new text, not the
+                  placeholder's text moved (which Layout Instability would count as a shift). */}
+                <div className={`flex min-w-px flex-1 ${address ? '' : 'invisible'}`} translate="no">
+                  <AddressText key={address ?? ''} address={address ?? `0x${'0'.repeat(40)}`} />
+                </div>
+                <CopyButton text={address} label={t.viewer.copy} copied={t.viewer.copied} />
+              </div>
+            </div>
+            <BalanceSection t={t} balances={balances} retry={retry} />
+          </div>
+          <HistorySection t={t} locale={locale} address={address} history={history} actions={historyActions} />
+        </div>
       </div>
     </main>
   )

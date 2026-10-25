@@ -10,7 +10,7 @@ ADR-0012 asked for a testnet and read-only notice on every page. The web pages e
 - The viewer shows read-only once: the chip under its title (`viewer.readOnly`).
 - "Test funds only", "no sign-in" and "we never ask for keys or a recovery phrase" are explained on the landing page only (security cards, FAQ, closing line).
 - Removed in #223: the two footer sentences and the landing hero note.
-- To remove in #225 (still in the code until then): the address-form trust banner and ENS note, and the network chip in the viewer address block.
+- Removed in #225: the address-form trust banner and ENS note, and the network chip in the viewer address block.
 
 ## Consequences
 - A new web page gets its network statement from the shared header; it adds no network caption of its own.
