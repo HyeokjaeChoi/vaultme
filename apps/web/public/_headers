@@ -1,0 +1,15 @@
+# Cloudflare Workers Static Assets headers (ADR-0001). Applies to every response, the 404 pages included.
+# The script-src hash placeholder is replaced at build time by scripts/finalize.ts with the sha256 of every inline <script> in the built HTML.
+# Placeholders filled by scripts/finalize.ts: the API origin of this build (WEB_API_ORIGIN, default the staging API worker;
+# production sets its own, ADR-0011) and X-Robots-Tag (every build is noindex unless WEB_ENV=production, ADR-0012).
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self' __SCRIPT_HASHES__ https://static.cloudflareinsights.com; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' __API_ORIGIN__ https://cloudflareinsights.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+  __X_ROBOTS_TAG__
+
+# No long Cache-Control rule for /assets/*: _headers also applies to the 404 page that answers a missing asset, so a
+# deploy race (new HTML, asset not uploaded yet) would be cached as a 404 for a year. Static Assets revalidates with ETag.

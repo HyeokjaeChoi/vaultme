@@ -97,6 +97,8 @@
   --primitive-size-product-header: 56px;
   --primitive-size-product-nav: 64px;
   --primitive-size-review-panel: 480px;
+  --primitive-size-web-header: 68px;
+  --primitive-size-web-narrow-column: 560px;
   --primitive-size-pill-lg: 56px;
   --primitive-size-pill-md: 48px;
   --primitive-size-pill-sm: 40px;
@@ -494,11 +496,13 @@
   --semantic-layout-card-gap: var(--primitive-space-6);
   --semantic-layout-content-max-width: var(--primitive-grid-content-max-width);
   --semantic-layout-breakpoint-product-desktop: var(--primitive-grid-content-max-width);
+  --semantic-layout-breakpoint-web-desktop: var(--primitive-grid-desktop-max-width);
   --semantic-layout-screen-padding: var(--primitive-space-4);
   --semantic-layout-group-gap: var(--primitive-space-4);
   --semantic-layout-row-gap: var(--primitive-space-3);
   --semantic-layout-field-gap: var(--primitive-space-2);
   --semantic-layout-review-max-width: var(--primitive-size-review-panel);
+  --semantic-layout-web-narrow-width: var(--primitive-size-web-narrow-column);
   --semantic-icon-size-inline: var(--primitive-size-icon-sm);
   --semantic-icon-size-control: var(--primitive-size-icon-md);
   --semantic-icon-size-feature: var(--primitive-size-icon-lg);
@@ -1177,6 +1181,7 @@
   --component-overlay-shadow: var(--semantic-effect-overlay-shadow);
   --component-overlay-scrim-bg: var(--primitive-color-neutral-950);
   --component-overlay-scrim-opacity: var(--semantic-effect-modal-scrim-opacity);
+  --component-web-header-height: var(--primitive-size-web-header);
   --component-product-header-height-mobile: var(--primitive-size-product-header);
   --component-product-header-height-desktop: var(--primitive-size-product-nav);
   --component-product-header-bg: var(--semantic-surface-default);

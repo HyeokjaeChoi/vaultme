@@ -152,7 +152,17 @@ describe('theme.css (Tailwind v4)', () => {
       '--shadow-md',
       '--breakpoint-tablet',
       '--container-layout-content-max-width',
+      '--breakpoint-web-desktop',
+      '--spacing-web-header-height',
+      '--spacing-layout-web-narrow-width',
     ])
       expect(names.has(n), n).toBe(true)
+  })
+
+  it('maps the web breakpoint to 1280 and the web sizes to the Figma values', () => {
+    const get = (n: string) => themeDecls.find(([k]) => k === n)?.[1]
+    expect(get('--breakpoint-web-desktop')).toBe('1280px')
+    expect(resolveVar(light$, '--component-web-header-height')).toBe('68px')
+    expect(resolveVar(light$, '--semantic-layout-web-narrow-width')).toBe('560px')
   })
 })

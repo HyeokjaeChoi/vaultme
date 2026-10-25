@@ -1,6 +1,6 @@
 # 0001. Host apps/web on Workers Static Assets
 
-Status: Accepted (2026-10-14, issue #36). Not implemented: `apps/web` does not exist yet.
+Status: Accepted (2026-10-14, issue #36). Implemented in `apps/web` (issue #192). The 404 handling is amended by [0013](0013-web-404-page-handling.md).
 Supersedes/Aliases: Q45 and Q52 (Cloudflare Pages deploy)
 
 ## Context
@@ -18,7 +18,7 @@ The docs warn: "the Cloudflare Vite plugin does not support SPA mode and prerend
 - `public/_headers` adds the security headers.
 - Keep Web and API as separate Workers. This separates the security boundary and the deploy coupling.
 - Register both `/admin` and `/admin/*` in Cloudflare Access.
-- CI: previews use Workers Builds or `wrangler versions upload --preview-alias pr-<number>`. Staging uses `wrangler deploy --env staging`. Release is a single 100% version with `wrangler deploy`, and `wrangler rollback`. Web does not use gradual deployment. During a gradual rollout the HTML and the hashed asset requests can go to different versions, so an asset of the new HTML can be missing, and the SPA fallback hides that error as a 200 HTML. To use it, first apply version affinity (`Cloudflare-Workers-Version-Key`).
+- CI: PR previews are off for now (no narrow-scope token yet; see `apps/web/AGENTS.md`). When they return, they use Workers Builds or `wrangler versions upload --preview-alias pr-<number>`. Staging uses `wrangler deploy --env staging`. Release is a single 100% version with `wrangler deploy`, and `wrangler rollback`. Web does not use gradual deployment. During a gradual rollout the HTML and the hashed asset requests can go to different versions, so an asset of the new HTML can be missing, and the SPA fallback hides that error as a 200 HTML. To use it, first apply version affinity (`Cloudflare-Workers-Version-Key`).
 
 ## Spike evidence
 

@@ -1,0 +1,5 @@
+# The prerendered 404 pages are real files, so `/404` would answer 200 (a soft 404). Send them to the home pages,
+# which answer 404 until the landing page exists (issue #186, later ticket) and then 200.
+/404 / 302
+/en/404 /en/ 302
+/en /en/ 301

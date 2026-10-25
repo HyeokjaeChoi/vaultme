@@ -39,6 +39,8 @@
   --spacing-product-header: var(--primitive-size-product-header);
   --spacing-product-nav: var(--primitive-size-product-nav);
   --spacing-review-panel: var(--primitive-size-review-panel);
+  --spacing-web-header: var(--primitive-size-web-header);
+  --spacing-web-narrow-column: var(--primitive-size-web-narrow-column);
   --spacing-pill-lg: var(--primitive-size-pill-lg);
   --spacing-pill-md: var(--primitive-size-pill-md);
   --spacing-pill-sm: var(--primitive-size-pill-sm);
@@ -361,12 +363,16 @@
   --spacing-layout-section-gap-product: var(--semantic-layout-section-gap-product);
   --spacing-layout-card-gap: var(--semantic-layout-card-gap);
   --container-layout-content-max-width: 1200px;
+  --breakpoint-product-desktop: 1200px;
   --container-layout-breakpoint-product-desktop: 1200px;
+  --breakpoint-web-desktop: 1280px;
+  --container-layout-breakpoint-web-desktop: 1280px;
   --spacing-layout-screen-padding: var(--semantic-layout-screen-padding);
   --spacing-layout-group-gap: var(--semantic-layout-group-gap);
   --spacing-layout-row-gap: var(--semantic-layout-row-gap);
   --spacing-layout-field-gap: var(--semantic-layout-field-gap);
   --spacing-layout-review-max-width: var(--semantic-layout-review-max-width);
+  --spacing-layout-web-narrow-width: var(--semantic-layout-web-narrow-width);
   --spacing-icon-size-inline: var(--semantic-icon-size-inline);
   --spacing-icon-size-control: var(--semantic-icon-size-control);
   --spacing-icon-size-feature: var(--semantic-icon-size-feature);
@@ -943,6 +949,7 @@
   --radius-overlay-radius: var(--component-overlay-radius);
   --shadow-overlay-shadow: var(--component-overlay-shadow);
   --color-overlay-scrim-bg: var(--component-overlay-scrim-bg);
+  --spacing-web-header-height: var(--component-web-header-height);
   --spacing-product-header-height-mobile: var(--component-product-header-height-mobile);
   --spacing-product-header-height-desktop: var(--component-product-header-height-desktop);
   --color-product-header-bg: var(--component-product-header-bg);

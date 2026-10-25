@@ -9,3 +9,11 @@ outputs/
 *.md
 apps/mobile/src/shared/ui/artwork.ts
 docs/openapi/
+apps/web/build/
+apps/web/.react-router/
+apps/web/.lighthouseci/
+apps/web/playwright-report/
+apps/web/test-results/
+apps/web/public/_headers
+apps/web/public/_redirects
+apps/web/test/fixtures/build/

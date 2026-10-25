@@ -47,7 +47,7 @@ jobs:
           python3 - <<'PY'
           import json, os, re, subprocess, sys
           files = [json.loads(l) for l in open("files.jsonl") if l.strip()]
-          ui = re.compile(r"^apps/mobile/(app|src/(pages|widgets|shared/ui|features/[^/]+/ui))/.*\.tsx$")
+          ui = re.compile(r"^apps/mobile/(app|src/(pages|widgets|shared/ui|features/[^/]+/ui))/.*\.tsx$|^apps/web/app/((routes|shared/ui)/.*\.tsx|root\.tsx|app\.css)$")
           comment = re.compile(r"^\s*(//|/\*|\*|\*/|\{/\*)|^\s*$")
           base = subprocess.run(["git", "merge-base", os.environ["BASE_SHA"], os.environ["HEAD_SHA"]], capture_output=True, text=True, check=True).stdout.strip()
           show = lambda sha, path: subprocess.run(["git", "show", f"{sha}:{path}"], capture_output=True, text=True, check=True).stdout
@@ -84,7 +84,12 @@ jobs:
           alts = [a.lower() for a in re.findall(r"!\[([^\]]*)\]\([^)]+\)", m.group(1)) + re.findall(r"<img [^>]*alt=\"([^\"]*)\"", m.group(1))]
           # One screen per route path: app/send/amount.tsx and src/pages/send/amount.tsx are "send/amount";
           # route groups such as (tabs) are dropped, and index or a PascalCase component file maps to its folder.
+          # A web screen is a file in apps/web/app/routes ("web/<name>"); it needs 3 breakpoints (375, 768, 1280) per mode.
+          # Web shared UI (header, buttons) changes every screen, so it counts as one screen here: the PR shows at least one.
           def screen(c):
+              w = re.match(r"^apps/web/app/routes/(.+)\.tsx$", c)
+              if w:
+                  return "web/" + w.group(1)
               m = re.match(r"^apps/mobile/(?:app|src/pages)/(.+)\.tsx$", c)
               if not m:
                   return None
@@ -92,9 +97,21 @@ jobs:
               if len(parts) > 1 and (parts[-1] == "index" or parts[-1][:1].isupper()):
                   parts.pop()
               return "/".join(parts)
-          screens = len({screen(c) for c in changed} - {None}) or 1
+          names = {screen(c) for c in changed} - {None}
+          web = {n for n in names if n.startswith("web/")}
+          web_ui = any(c.startswith("apps/web/") for c in changed)
+          # per mode: mobile screens count 1 image each, web screens 3 (one per breakpoint); web UI without a route file needs 3.
+          screens = (len(names) - len(web)) + 3 * (len(web) or (1 if web_ui else 0))
+          screens = screens or 1
           light = sum("light" in a for a in alts); dark = sum("dark" in a for a in alts)
           print(f"screens={screens} light={light} dark={dark}")
+          # Web: every breakpoint (375, 768, 1280) must be named in an alt text, once per mode for each web screen.
+          web_count = len(web) or (1 if web_ui else 0)
+          for bp in ("375", "768", "1280") if web_count else ():
+              for mode in ("light", "dark"):
+                  n = sum(bp in a and mode in a for a in alts)
+                  if n < web_count:
+                      print(f"::error::'## Figma comparison' needs {web_count} {mode} image(s) with {bp} in the alt text; found {n}."); sys.exit(1)
           if light < screens or dark < screens:
               print(f"::error::'## Figma comparison' needs {screens} light and {screens} dark images (mode in the alt text); found {light} light, {dark} dark."); sys.exit(1)
           PY

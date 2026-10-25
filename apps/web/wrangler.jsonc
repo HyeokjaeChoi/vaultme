@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Static site: no Worker code, no `main` (ADR-0001). Config holds no account ID and no secrets (check-repo-rules R8).
+  "name": "vaultme-web",
+  "compatibility_date": "2026-10-13",
+  // `404-page`: an unknown path gets the nearest 404.html with status 404 (en/404.html under /en/). ADR-0013 explains why
+  // this replaces ADR-0001's `single-page-application` for now.
+  "assets": { "directory": "./build/client", "not_found_handling": "404-page" },
+  "env": {
+    // Staging on its own domain (the API allows exactly this origin for CORS). Production domains are issue #198.
+    // workers.dev and preview URLs are off: PR previews are off until a narrow-scope token exists (apps/web/AGENTS.md).
+    "staging": {
+      "name": "vaultme-web-staging",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [{ "pattern": "vaultme-staging.stack-line.dev", "custom_domain": true }],
+      "assets": { "directory": "./build/client", "not_found_handling": "404-page" },
+    },
+    "production": {
+      "name": "vaultme-web-production",
+      "workers_dev": false,
+      "assets": { "directory": "./build/client", "not_found_handling": "404-page" },
+    },
+  },
+}

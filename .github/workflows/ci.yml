@@ -54,3 +54,24 @@ jobs:
       - if: hashFiles('package.json') != ''
         continue-on-error: true
         run: pnpm --filter @vaultme/mobile run doctor
+
+  # apps/web quality gates (ADR-0012): the built site runs on the Workers Static Assets runtime (wrangler dev), then
+  # Playwright (status codes, headers, theme, axe = 0 violations) and Lighthouse CI (4 categories >= 95, JS <= 100 KB gzip,
+  # desktop and mobile profiles) run against it. Chrome comes with ubuntu-latest; Playwright installs its own.
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @vaultme/web...
+      - run: pnpm --filter "@vaultme/web..." run build
+      - run: pnpm --filter @vaultme/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @vaultme/web run test:e2e
+      - run: pnpm --filter @vaultme/web run lhci
