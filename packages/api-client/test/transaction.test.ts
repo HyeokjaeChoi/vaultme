@@ -103,6 +103,11 @@ describe('readTransaction', () => {
     expect((await readTransaction(rpc, HASH))?.fee).toBe(21_000_000_000_000n + 0x20000n * 2n)
   })
 
+  it.each([['blobGasUsed'], ['blobGasPrice']])('a receipt with only %s is a bad receipt', async (only) => {
+    const { rpc } = chain({ receipt: { ...receipt, [only]: '0x1' } })
+    await expect(readTransaction(rpc, HASH)).rejects.toThrow()
+  })
+
   it('the ETH history row of a transaction with a USDC log shows the ETH move, the USDC row the USDC one', async () => {
     const via = { ...eth, to: `0x${'11'.repeat(20)}`, input: '0x23b872dd00' }
     const { rpc } = chain({ tx: via, receipt: { ...receipt, logs: [usdcLog()] } })

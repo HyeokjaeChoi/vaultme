@@ -100,7 +100,9 @@ export async function readTransaction(rpc: RpcCall, hash: string, row?: 'ETH' | 
     // A blob transaction (type 3) also pays for its blob gas.
     fee:
       toQuantity(r.gasUsed) * toQuantity(r.effectiveGasPrice) +
-      (r.blobGasUsed === undefined ? 0n : toQuantity(r.blobGasUsed) * toQuantity(r.blobGasPrice)),
+      (r.blobGasUsed === undefined && r.blobGasPrice === undefined
+        ? 0n
+        : toQuantity(r.blobGasUsed) * toQuantity(r.blobGasPrice)), // one of the two alone is a bad receipt (toQuantity throws)
     block,
     at,
   }
