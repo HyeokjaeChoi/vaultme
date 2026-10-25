@@ -3,7 +3,6 @@ import Constants from 'expo-constants'
 import { loadDeviceKey, saveDeviceKey } from '../storage/keychain'
 import { getHistoryCache, getInstallId, setHistoryCache, setInstallId } from '../storage/kv'
 import { nobleSigner } from './deviceKey'
-import { createHistory } from './history'
 import { markUpdateRequired } from './updateGate'
 
 export { ApiError, RpcError, isApiError, type ApiClient } from '@vaultme/api-client'
@@ -23,6 +22,5 @@ export const api: ApiClient | null = apiUrl
     })
   : null
 
-export { createHistory }
+/** The one history cache slot (MMKV), read by the S40 list and S41. */
 export const historyCache = { get: getHistoryCache, set: setHistoryCache }
-export type { HistoryResult } from './history'
