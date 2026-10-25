@@ -1,9 +1,30 @@
 import { HistoryItem as ApiHistoryItem } from '@vaultme/contracts'
 import { fromUnits } from '@vaultme/wallet-core'
-import type { HistoryResult } from '@/shared/api'
-import type { PendingTx } from '@/shared/storage'
-import type { ActivityStatus } from '@/shared/ui'
-import { txView } from '@/entities/transaction'
+
+/** Send state as the chain shows it (ARCHITECTURE.md#invariants). */
+export type TxState = 'Pending' | 'Included' | 'Confirmed' | 'Failed' | 'Unknown' | 'Replaced'
+export type RowStatus = 'pending' | 'confirmed' | 'failed' | 'unknown' | 'replaced'
+
+/** Icon status and i18n label of a send in lists and on S23/S41. Replaced has its own badge (refresh): nothing was executed, nothing went wrong on chain. */
+export function txView(state: TxState): {
+  status: RowStatus
+  label: `activity.${'pending' | 'included' | 'confirmed' | 'failed' | 'unknown' | 'replaced'}`
+} {
+  switch (state) {
+    case 'Pending':
+      return { status: 'pending', label: 'activity.pending' }
+    case 'Included':
+      return { status: 'pending', label: 'activity.included' }
+    case 'Confirmed':
+      return { status: 'confirmed', label: 'activity.confirmed' }
+    case 'Failed':
+      return { status: 'failed', label: 'activity.failed' }
+    case 'Replaced':
+      return { status: 'replaced', label: 'activity.replaced' }
+    default:
+      return { status: 'unknown', label: 'activity.unknown' }
+  }
+}
 
 export type HistoryItem = {
   /** List key. API rows: `<hash>:<seq>` (one tx can have several rows). The local send: its hash. */
@@ -16,13 +37,23 @@ export type HistoryItem = {
   counterparty: string
   /** ms since epoch */
   at: number
-  status: ActivityStatus
+  status: RowStatus
   /** i18n key of the status words. */
   label: ReturnType<typeof txView>['label']
   /** The send recorded on this device: S41 shows its full record. */
   local: boolean
   /** API rows only (S41 "블록"). */
   blockNumber?: number
+}
+
+/** The send recorded on this device (mobile only). */
+export type LocalSend = {
+  hash: string
+  asset: string
+  to: string
+  amount: string
+  createdAt: number
+  state: TxState
 }
 
 /**
@@ -55,7 +86,7 @@ export function parseItems(data: unknown): HistoryItem[] {
   return out
 }
 
-const fromLocal = (tx: PendingTx): HistoryItem => ({
+const fromLocal = (tx: LocalSend): HistoryItem => ({
   id: tx.hash,
   hash: tx.hash,
   kind: 'send',
@@ -67,32 +98,12 @@ const fromLocal = (tx: PendingTx): HistoryItem => ({
   local: true,
 })
 
-export type HistoryView = {
-  items: HistoryItem[]
-  /** When the shown list was fetched. Null = nothing was ever fetched. */
-  updatedAt: number | null
-  /** The last fetch failed. `items` come from the cache (or are empty). */
-  failed: boolean
-}
+export const sameHash = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 
 /** Newest first. The send recorded on this device wins over an API row with the same hash: its state is the one this app checks. */
-function merge(api: HistoryItem[], local: PendingTx | null): HistoryItem[] {
-  const rest = local ? api.filter((i) => i.hash.toLowerCase() !== local.hash.toLowerCase()) : api
+export function merge(api: HistoryItem[], local: LocalSend | null): HistoryItem[] {
+  const rest = local ? api.filter((i) => !sameHash(i.hash, local.hash)) : api
   const all = local ? [fromLocal(local), ...rest] : [...rest]
   all.sort((a, b) => b.at - a.at)
   return all
 }
-
-/** ADR-0007: fresh result, or the cache with an error, or (404) only what this device sent. */
-export function toView(r: HistoryResult, local: PendingTx | null, now: number): HistoryView {
-  if (r.source === 'api') return { items: merge(parseItems(r.data), local), updatedAt: r.updatedAt, failed: false }
-  if (r.source === 'cache') return { items: merge(parseItems(r.data), local), updatedAt: r.updatedAt, failed: true }
-  return { items: merge([], local), updatedAt: now, failed: false }
-}
-
-/** No answer and no cache: the sent tx of this device is still shown. */
-export const failedView = (local: PendingTx | null): HistoryView => ({
-  items: merge([], local),
-  updatedAt: null,
-  failed: true,
-})

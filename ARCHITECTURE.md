@@ -47,6 +47,8 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
   - Send: `prepare` makes a `Review`. `signAndSubmit` signs and submits. `recipientRisk` classifies the recipient.
   - State: `reduce` and `canStartDraft` (see Invariants).
 - `contracts`: zod schemas that both sides use. Header names, error codes, `canonicalString`, RPC allow-list, history and push shapes, `USDC_SEPOLIA`. The API OpenAPI file comes from here.
+- `api-client`: the install-identity API client (`createApiClient`): register, signed token, retry on `unauthorized`, `426` (`onUpdateRequired`, `createUpdateGate`), typed `ApiError` and `RpcError`. The platform part is the `DeviceSigner` seam (public key, create key, sign, installId storage). The private key never crosses it. `fetch`, base URL and app version are passed in.
+- `history`: the history module (`createHistory`: `list`, `cachedRow`, `findRow`) over a page-fetch seam and a cache seam. See History.
 - `tokens`: Style Dictionary build of `packages/tokens/tokens.json` into `src/generated` (TS for mobile, `tokens.css` variables and a Tailwind v4 `theme.css` for web). Layers: Primitive, Semantic (light and dark), Component.
 - `i18n`: Korean strings (`ko`) and an i18next instance.
 - `config`: shared ESLint and tsconfig. It holds the no-float rule for amount code.
@@ -70,8 +72,8 @@ Expo Router in `app/` has thin route files. They re-export a page from `src/page
 - `pages`: one folder per screen.
 - `widgets`: `review-panel`, `activity-list`, `asset-picker`, `network-chips`, `backup-gate` (`useBackupGate`, `SendGuard`: backup, history and restore together).
 - `features`: `send` (`runSend`, `txState`, `useTrackedTx`), `backup`, `restore`, `history`, `balances`, `faucet` (`FaucetRow`), `push` (S50 opt-in sheet, subscribe and unsubscribe, launch sync, tap route), `settings`.
-- `entities`: `account`, `asset`, `transaction`. They hold fixtures, the Review view model, `txView` and the pending tx store (`readPendingTx`, `writePendingTx`).
-- `shared`: `api` (client), `chain` (`ChainPort`, the fake adapter and its sample balances), `storage` (`keychain`, `kv`), `auth`, `ui` (primitives), `theme`, `lib`.
+- `entities`: `account`, `asset`, `transaction`. They hold fixtures, the Review view model, `txView` (re-exported from `@vaultme/history`) and the pending tx store (`readPendingTx`, `writePendingTx`).
+- `shared`: `api` (wires `@vaultme/api-client` to the noble `DeviceSigner`, `nobleSigner`: key in Keychain, installId in kv), `chain` (`ChainPort`, the fake adapter and its sample balances), `storage` (`keychain`, `kv`), `auth`, `ui` (primitives), `theme`, `lib`.
 
 `apps/mobile/eslint.config.mjs` (eslint-plugin-boundaries) enforces the direction, and that another slice is imported only through its `index`. `shared/lib` files are each a public entry. `apps/mobile/steiger.config.mjs` checks the folder structure. Only `wallet-core` is the signing boundary by design.
 
@@ -87,7 +89,7 @@ Expo Router in `app/` has thin route files. They re-export a page from `src/page
 4. The server returns a token: `<installId>.<exp>.<HMAC-SHA256(TOKEN_SECRET)>`. It lives 15 minutes. The server keeps no token state.
 5. `/v1/rpc`, `/v1/history`, `/v1/push/*` need `Authorization: Bearer <token>`. The client retries once with a new token on `unauthorized`.
 
-Every `/v1/*` call except `/v1/health` needs `X-App-Version`. A version below `MIN_APP_VERSION` gets `426 update_required`. A request with an `Origin` header gets `403`.
+Every `/v1/*` call except `/v1/health` needs `X-App-Version`. A version below the minimum gets `426 update_required`: `MIN_WEB_VERSION` when the request has `X-Client: web`, else `MIN_APP_VERSION`. An `Origin` header that is not in `WEB_ORIGINS` gets `403`.
 
 ### Send
 
@@ -106,7 +108,8 @@ App -> `POST /v1/history {address, cursor}` -> Worker calls Etherscan `txlist`, 
 - Etherscan calls pass through the `EtherscanBucket` Durable Object: 2.5 calls/s, no burst. A wait over 2 s gives `503 unavailable`.
 - A zero-value ERC-20 row is `out` only if the same response shows that the address sent the transaction. Else it is `in`. This stops address poisoning.
 - The app keeps the last result in MMKV and shows it with its update time.
-- Every row opens S41 (`/activity/<id>`, route param `hash` = row `id` = `<hash>:<seq>`). S41 shows that one movement: the local send record if the hash matches (full detail, fee, recheck), else the row from the cached result (`findCachedRow`): no fee, no recheck, status 성공/실패 only (history has no confirmation state). A route param is a row id (`<hash>:<seq>`, from the list) or a bare hash (from a push). Lookup order: the local record (not when `dir` is `in`); the cached page (a row id, or a hash with exactly one row of the pushed direction; without `dir`, exactly one row); else a fresh first page (`resolveRow`, also written to the cache). One row -> S41; none (of that direction) -> "아직 내역에 없어요" with retry; fetch error, `update_required` or no address -> "내역을 불러오지 못했어요" with retry; several rows (of that direction) -> back to the list. Test-data mode keeps the example rows and redirects an unknown id to `/activity`. Limit: the Worker caches a page for 30 s and Etherscan may index late, so a push for a very new tx can show "not found" until the page refreshes; an immediate retry may return the same page. Etherscan link on all variants, hidden when the adapter does not broadcast.
+- `@vaultme/history` (`createHistory`) holds the client side: the list view (contract check, address-poisoning filter, cache fallback, the local send merged in, only the newest load answers) and the S41 row lookup. Seams: page fetch (the API client) and the cache slot. The local send is a mobile-only input.
+- Every row opens S41 (`/activity/<id>`, route param `hash` = row `id` = `<hash>:<seq>`). S41 shows that one movement: the local send record if the hash matches (full detail, fee, recheck), else the row from the cached result (`history.cachedRow`): no fee, no recheck, status 성공/실패 only (history has no confirmation state). A route param is a row id (`<hash>:<seq>`, from the list) or a bare hash (from a push). Lookup order: the local record (not when `dir` is `in`); the cached page (a row id, or a hash with exactly one row of the pushed direction; without `dir`, exactly one row); else a fresh first page (`history.findRow`, also written to the cache). One row -> S41; none (of that direction) -> "아직 내역에 없어요" with retry; fetch error, `update_required` or no address -> "내역을 불러오지 못했어요" with retry; several rows (of that direction) -> back to the list. Test-data mode keeps the example rows and redirects an unknown id to `/activity`. Limit: the Worker caches a page for 30 s and Etherscan may index late, so a push for a very new tx can show "not found" until the page refreshes; an immediate retry may return the same page. Etherscan link on all variants, hidden when the adapter does not broadcast.
 
 ### Transaction push
 
@@ -169,7 +172,7 @@ App side (`features/push`):
 - The Worker cannot move funds. It holds no key and no signing power.
 - The app does not trust server values for safety. The app computes the tx hash and checks the fee cap itself.
 - A push is only a signal. The payload is parsed with `PushData`; the app must re-read the chain.
-- The API is for the native app only. No CORS headers. A browser `Origin` is refused.
+- Browsers: CORS allow-list from the `WEB_ORIGINS` var (comma-separated exact origins; staging `https://vaultme-staging.stack-line.dev`, production `https://vaultme.stack-line.dev`; ADR-0011). Any other `Origin` gets `403 origin_forbidden`. A request without `Origin` (the native app) is unchanged. CORS headers and preflight cover `/v1/*` only, not `/webhooks`. Same install protocol as mobile. Rate limits stay per install ID (and per IP on `/v1/installs`).
 - Secrets are Worker secrets (`wrangler secret`, `.dev.vars` locally): `TOKEN_SECRET` (32+ chars), `INFURA_KEY`, `ALCHEMY_KEY`, `ETHERSCAN_API_KEY`, `ALCHEMY_*`, `EXPO_ACCESS_TOKEN`. A missing secret makes the route fail closed with `500`. `wrangler.jsonc` holds vars only.
 - Supply chain: pnpm `minimumReleaseAge` 10080 min (7 days), `strictDepBuilds`, an explicit `allowBuilds` list, CI actions pinned by SHA. Renovate (`.github/renovate.json5`) proposes only versions 7 days old or older and automerges only npm patch and devDependency minor updates.
 - Repo checks block committed keys, `.env` files, recovery phrases (except public test vectors) and `CLAUDE.md` files.

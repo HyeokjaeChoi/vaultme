@@ -1,6 +1,9 @@
 import { z } from 'zod'
 
 export const APP_VERSION_HEADER = 'X-App-Version'
+// The web client sends `X-Client: web` (ADR-0011). Mobile sends no X-Client.
+export const CLIENT_HEADER = 'X-Client'
+export const WEB_CLIENT = 'web'
 
 // Dotted numeric version, for example 1.2.3.
 export const AppVersion = z.string().regex(/^\d+(\.\d+){0,2}$/)

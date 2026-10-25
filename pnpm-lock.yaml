@@ -85,9 +85,15 @@ importers:
       '@solar-icons/react-native':
         specifier: 2.3.2
         version: 2.3.2(react-native-svg@15.16.0)(react-native@0.88.0)(react@19.3.0)
+      '@vaultme/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
       '@vaultme/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@vaultme/history':
+        specifier: workspace:*
+        version: link:../../packages/history
       '@vaultme/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
@@ -334,6 +340,28 @@ importers:
         specifier: 4.151.1
         version: 4.151.1(@cloudflare/workers-types@5.20261007.1)(@types/node@24.19.1)
 
+  packages/api-client:
+    dependencies:
+      '@vaultme/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+    devDependencies:
+      '@vaultme/config':
+        specifier: workspace:*
+        version: link:../config
+      '@vitest/coverage-v8':
+        specifier: 5.0.3
+        version: 5.0.3(vitest@5.0.3)
+      eslint:
+        specifier: ^10.12.0
+        version: 10.12.0(jiti@2.7.0)(supports-color@10.2.2)
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.3
+        version: 5.0.3(@types/node@26.6.4)(@vitest/coverage-istanbul@5.0.3)(@vitest/coverage-v8@5.0.3)(jsdom@30.1.3)(vite@8.3.4)
+
   packages/config:
     dependencies:
       '@eslint/js':
@@ -354,6 +382,34 @@ importers:
       zod:
         specifier: ^4.6.0
         version: 4.6.6
+    devDependencies:
+      '@vaultme/config':
+        specifier: workspace:*
+        version: link:../config
+      '@vitest/coverage-v8':
+        specifier: 5.0.3
+        version: 5.0.3(vitest@5.0.3)
+      eslint:
+        specifier: ^10.12.0
+        version: 10.12.0(jiti@2.7.0)(supports-color@10.2.2)
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.3
+        version: 5.0.3(@types/node@26.6.4)(@vitest/coverage-istanbul@5.0.3)(@vitest/coverage-v8@5.0.3)(jsdom@30.1.3)(vite@8.3.4)
+
+  packages/history:
+    dependencies:
+      '@vaultme/api-client':
+        specifier: workspace:*
+        version: link:../api-client
+      '@vaultme/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@vaultme/wallet-core':
+        specifier: workspace:*
+        version: link:../wallet-core
     devDependencies:
       '@vaultme/config':
         specifier: workspace:*
@@ -14259,7 +14315,7 @@ snapshots:
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
-      postcss: 8.5.30
+      postcss: 8.5.29
       rolldown: 1.2.12
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -14274,7 +14330,7 @@ snapshots:
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
-      postcss: 8.5.30
+      postcss: 8.5.29
       rolldown: 1.2.12
       tinyglobby: 0.2.17
     optionalDependencies:

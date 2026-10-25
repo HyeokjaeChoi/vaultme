@@ -1,29 +1,23 @@
 import { useCallback, useEffect, useState } from 'react'
-import { historyCache } from '@/shared/api'
+import type { PushDir, RowLookup } from '@vaultme/history'
 import { goBack } from '@/shared/lib/nav'
-import { getAccountAddress } from '@/shared/storage'
-import { freshHistoryPage } from './loader'
-import { resolveRow, rowFromCache, type PushDir, type RowLookup } from './detail'
+import { accountAddress, history } from './loader'
 
-const address = (): string | null => {
-  try {
-    return getAccountAddress()
-  } catch {
-    return null // kv unreadable
-  }
+const cachedLookup = (id: string, dir?: PushDir): RowLookup | null => {
+  const row = history.cachedRow(accountAddress(), id, dir)
+  return row ? { status: 'row', row } : null
 }
-const deps = { address, cache: historyCache.get, fresh: freshHistoryPage }
 
 /**
- * The history row an S41 route param names (see `resolveRow`). `null` = looking it up. A cached row shows on the first render, with no flash.
+ * The history row an S41 route param names (see `history.findRow`). `null` = looking it up. A cached row shows on the first render, with no flash.
  * `retry` asks again; the Worker caches a history page for 30 s, so an immediate retry can get the same page.
  */
 export function useRowLookup(id: string, dir?: PushDir): { lookup: RowLookup | null; retry: () => void } {
-  const [lookup, setLookup] = useState<RowLookup | null>(() => rowFromCache(id, address(), historyCache.get(), dir))
+  const [lookup, setLookup] = useState<RowLookup | null>(() => cachedLookup(id, dir))
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {
     let live = true
-    void resolveRow(id, deps, dir).then((r) => {
+    void history.findRow(accountAddress(), id, dir).then((r) => {
       if (!live) return
       setLookup(r)
       if (r.status === 'several') goBack('/activity') // one hash, several rows: which one is unknown, the list is below

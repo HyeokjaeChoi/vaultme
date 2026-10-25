@@ -2,6 +2,8 @@
 declare namespace Cloudflare {
   interface Env {
     MIN_APP_VERSION: string
+    MIN_WEB_VERSION: string
+    WEB_ORIGINS: string
     DB: D1Database
     TOKEN_SECRET: string
     INSTALL_IP_LIMITER: RateLimit

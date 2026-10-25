@@ -1,28 +1,10 @@
-import type { ActivityStatus } from '@/shared/ui'
+import { txView } from '@vaultme/history'
 import type { PendingTx } from '@/shared/storage'
 
 type TxState = PendingTx['state']
 
-/** Icon status and i18n label of a send in lists and on S23/S41. Replaced has its own badge (refresh): nothing was executed, nothing went wrong on chain. */
-export function txView(state: TxState): {
-  status: ActivityStatus
-  label: `activity.${'pending' | 'included' | 'confirmed' | 'failed' | 'unknown' | 'replaced'}`
-} {
-  switch (state) {
-    case 'Pending':
-      return { status: 'pending', label: 'activity.pending' }
-    case 'Included':
-      return { status: 'pending', label: 'activity.included' }
-    case 'Confirmed':
-      return { status: 'confirmed', label: 'activity.confirmed' }
-    case 'Failed':
-      return { status: 'failed', label: 'activity.failed' }
-    case 'Replaced':
-      return { status: 'replaced', label: 'activity.replaced' }
-    default:
-      return { status: 'unknown', label: 'activity.unknown' }
-  }
-}
+/** Icon status and i18n label of a send in lists and on S23/S41 (the history rows use the same map). */
+export { txView }
 
 /** Notice under the summary on S23/S41, by state. Pending and Unknown are the S23 copy; Unknown is the neutral tone (Figma C3-S41 Unknown 376:1385). */
 const NOTICE = {

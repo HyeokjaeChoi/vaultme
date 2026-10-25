@@ -1,0 +1,25 @@
+{
+  "name": "@vaultme/history",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --max-warnings=0"
+  },
+  "dependencies": {
+    "@vaultme/api-client": "workspace:*",
+    "@vaultme/contracts": "workspace:*",
+    "@vaultme/wallet-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@vaultme/config": "workspace:*",
+    "@vitest/coverage-v8": "5.0.3",
+    "eslint": "^10.12.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
+  }
+}

@@ -1,6 +1,6 @@
 # 0011. The web client reaches the API with an origin allow-list and a WebCrypto install key
 
-Status: Accepted (2026-10-25, spec issue #186, owner grilling Q2, Q12). Target state: the API code is changed in issue #191; until then it still rejects `Origin`.
+Status: Accepted (2026-10-25, spec issue #186, owner grilling Q2, Q12).
 Supersedes: the "no browser client" part of [0008](0008-anonymous-install-identity.md) (Origin rejection, no CORS headers, "A browser client cannot use the API").
 
 ## Context

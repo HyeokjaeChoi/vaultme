@@ -14,4 +14,4 @@ All JSON-RPC and history calls go to our API. The keys exist only as server secr
 - If our API is down, the app cannot send or refresh. It shows cached data.
 - History has no fallback provider.
 
-<!-- verified: apps/api/src/rpc.ts, apps/api/src/etherscan.ts, apps/api/src/app.ts, apps/mobile/src/shared/api/history.ts, apps/mobile/src/shared/chain/real.ts -->
+<!-- verified: apps/api/src/rpc.ts, apps/api/src/etherscan.ts, apps/api/src/app.ts, packages/history/src/history.ts, apps/mobile/src/shared/chain/real.ts -->

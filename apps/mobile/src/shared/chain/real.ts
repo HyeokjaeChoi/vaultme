@@ -8,7 +8,7 @@ import {
   type Hex,
 } from '@vaultme/wallet-core'
 import { BALANCE_OF_SELECTOR, USDC_SEPOLIA } from '@vaultme/contracts'
-import { RpcError } from '../api/errors'
+import { RpcError } from '@vaultme/api-client'
 import type { ChainPort, Receipt } from './port'
 
 /** `POST /v1/rpc` as a function: returns the JSON-RPC `result`, throws on error. */

@@ -5,7 +5,8 @@
   "compatibility_date": "2026-10-13",
   // vars only. No account IDs, no secrets here. Secrets go in `.dev.vars` (local) or `wrangler secret` (deployed).
   // Vars and bindings are not inherited by named environments, so each env repeats them.
-  "vars": { "MIN_APP_VERSION": "0.0.0" },
+  // WEB_ORIGINS: comma-separated browser origins the API allows (ADR-0011). Empty at the top level (local dev, tests): no browser.
+  "vars": { "MIN_APP_VERSION": "0.0.0", "MIN_WEB_VERSION": "0.0.0", "WEB_ORIGINS": "" },
   // ETHERSCAN_API_KEY (history upstream) is a secret too. The EtherscanBucket Durable Object is one global token bucket (ARCHITECTURE.md#history).
   // ALCHEMY_WEBHOOK_ID, ALCHEMY_SIGNING_KEY, ALCHEMY_NOTIFY_TOKEN, EXPO_ACCESS_TOKEN (transaction push, #67) are secrets too.
   // INFURA_KEY and ALCHEMY_KEY (RPC upstreams) are secrets too, set the same way.
@@ -30,7 +31,11 @@
       // Workers Logs (#183): per-request logs and console output, kept by Cloudflare. Staging only.
       "observability": { "enabled": true },
       "triggers": { "crons": ["17 * * * *"] },
-      "vars": { "MIN_APP_VERSION": "0.0.0" },
+      "vars": {
+        "MIN_APP_VERSION": "0.0.0",
+        "MIN_WEB_VERSION": "0.0.0",
+        "WEB_ORIGINS": "https://vaultme-staging.stack-line.dev",
+      },
       "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
       "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api-staging", "migrations_dir": "migrations" }],
@@ -44,7 +49,11 @@
     "production": {
       "name": "vaultme-api-production",
       "triggers": { "crons": ["17 * * * *"] },
-      "vars": { "MIN_APP_VERSION": "0.0.0" },
+      "vars": {
+        "MIN_APP_VERSION": "0.0.0",
+        "MIN_WEB_VERSION": "0.0.0",
+        "WEB_ORIGINS": "https://vaultme.stack-line.dev",
+      },
       "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
       "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api-production", "migrations_dir": "migrations" }],
