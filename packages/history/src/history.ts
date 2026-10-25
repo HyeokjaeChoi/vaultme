@@ -1,12 +1,12 @@
 import { isApiError } from '@vaultme/api-client'
-import { merge, parseItems, sameHash, type HistoryItem, type LocalSend } from './items.ts'
+import { merge, parseItems, parseNextCursor, sameHash, type HistoryItem, type LocalSend } from './items.ts'
 
 /** Last good first page, as stored (ADR-0007). */
 export type HistoryCache = { address: string; json: string; updatedAt: number }
 
 export type HistoryDeps = {
-  /** POST /v1/history, first page (the API client). Paging is not used yet. */
-  fetchPage: (address: string) => Promise<unknown>
+  /** POST /v1/history (the API client). No cursor = the first page. Mobile reads the first page only; the web viewer pages with `more`. */
+  fetchPage: (address: string, cursor?: string) => Promise<unknown>
   /** One slot: the last first page of any address. */
   cache: { get(): HistoryCache | null; set(c: HistoryCache): void }
   now: () => number
@@ -18,6 +18,8 @@ export type HistoryView = {
   updatedAt: number | null
   /** The last fetch failed. `items` come from the cache (or are empty). */
   failed: boolean
+  /** Cursor of the next (older) page for `more`. Null = no older page, or the shown list is not a fresh first page. */
+  nextCursor: string | null
 }
 
 export type RowLookup =
@@ -27,7 +29,7 @@ export type RowLookup =
 export type PushDir = 'in' | 'out'
 export const parseDir = (v: string | undefined): PushDir | undefined => (v === 'in' || v === 'out' ? v : undefined)
 
-type Page = { source: 'api'; items: HistoryItem[]; updatedAt: number } | { source: 'local' }
+type Page = { source: 'api'; items: HistoryItem[]; updatedAt: number; nextCursor: string | null } | { source: 'local' }
 
 /**
  * The row an S41 route param names. A row id (`<hash>:<seq>`, from the list) is one exact row. A bare hash (from a push)
@@ -66,7 +68,7 @@ export function createHistory(d: HistoryDeps) {
       const data = await d.fetchPage(address)
       const updatedAt = d.now()
       d.cache.set({ address, json: JSON.stringify(data ?? null), updatedAt })
-      return { source: 'api', items: parseItems(data), updatedAt }
+      return { source: 'api', items: parseItems(data), updatedAt, nextCursor: parseNextCursor(data) }
     } catch (e) {
       if (isApiError(e, 'not_found')) return { source: 'local' }
       throw e
@@ -75,15 +77,15 @@ export function createHistory(d: HistoryDeps) {
 
   /** ADR-0007: fresh result, or the cache with an error, or (404, no address) only what this device sent. `update_required` never shows the cache (S91). */
   async function view(address: string | null, local: LocalSend | null): Promise<HistoryView> {
-    if (!address) return { items: merge([], local), updatedAt: d.now(), failed: false }
+    if (!address) return { items: merge([], local), updatedAt: d.now(), failed: false, nextCursor: null }
     try {
       const p = await fresh(address)
-      if (p.source === 'local') return { items: merge([], local), updatedAt: d.now(), failed: false }
-      return { items: merge(p.items, local), updatedAt: p.updatedAt, failed: false }
+      if (p.source === 'local') return { items: merge([], local), updatedAt: d.now(), failed: false, nextCursor: null }
+      return { items: merge(p.items, local), updatedAt: p.updatedAt, failed: false, nextCursor: p.nextCursor }
     } catch (e) {
       const c = isApiError(e) && !isApiError(e, 'update_required') ? cached(address) : null
-      if (c) return { items: merge(c.rows, local), updatedAt: c.updatedAt, failed: true }
-      return { items: merge([], local), updatedAt: null, failed: true } // no answer and no cache: the sent tx of this device is still shown
+      if (c) return { items: merge(c.rows, local), updatedAt: c.updatedAt, failed: true, nextCursor: null }
+      return { items: merge([], local), updatedAt: null, failed: true, nextCursor: null } // no answer and no cache: the sent tx of this device is still shown
     }
   }
 
@@ -105,6 +107,18 @@ export function createHistory(d: HistoryDeps) {
         const id = ++seq
         const v = await view(address, local)
         if (id === seq) onView(v)
+      }
+    },
+    /**
+     * An older page (web 더 보기), after the cursor of the page shown. Same contract check and poisoning filter as the first page; not cached.
+     * Null = the fetch failed (also `update_required`): the caller keeps what it shows and offers a retry. The caller drops rows it has (`id`).
+     */
+    async more(address: string, cursor: string): Promise<{ items: HistoryItem[]; nextCursor: string | null } | null> {
+      try {
+        const data = await d.fetchPage(address, cursor)
+        return { items: parseItems(data), nextCursor: parseNextCursor(data) }
+      } catch {
+        return null
       }
     },
     cachedRow,

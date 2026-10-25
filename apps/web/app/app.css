@@ -19,6 +19,39 @@
   max-width: calc(var(--spacing-20) * 9);
 }
 
+/* Figma: Web/Table row columns are 140 / 80 / rest / 140 / 88 px wide (759:269). No token has these sizes, so they are
+   multiples of space/20 (80 px). Remove these when the web design system gets column-width tokens. */
+@utility w-col-status {
+  width: calc(var(--spacing-20) * 1.75);
+}
+@utility w-col-direction {
+  width: var(--spacing-20);
+}
+@utility w-col-amount {
+  width: calc(var(--spacing-20) * 1.75);
+}
+@utility w-col-time {
+  width: calc(var(--spacing-20) * 1.1);
+}
+
+/* Figma: B/Skeleton row boxes (422:668): title 160 x 14, subtitle 100 x 12, value 64 x 14, and the 52 px date band. No token has
+   these sizes; they are built from space tokens. Remove these when the web design system gets skeleton size tokens. */
+@utility skeleton-title {
+  height: calc(var(--spacing-1) * 3.5);
+  width: calc(var(--spacing-20) * 2);
+}
+@utility skeleton-subtitle {
+  height: var(--spacing-3);
+  width: calc(var(--spacing-20) * 1.25);
+}
+@utility skeleton-value {
+  height: calc(var(--spacing-1) * 3.5);
+  width: var(--spacing-16);
+}
+@utility skeleton-date {
+  height: calc(var(--spacing-1) * 13);
+}
+
 @layer base {
   html {
     font-family: 'Pretendard Variable', 'Pretendard Fallback', system-ui, sans-serif;

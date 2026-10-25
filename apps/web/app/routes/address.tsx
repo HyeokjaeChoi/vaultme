@@ -1,7 +1,7 @@
 import { type WebLocale, type WebMessages, webMessages } from '@vaultme/i18n/web'
 import { type SyntheticEvent, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
-import { type Balances, useBalances } from '../shared/api'
+import { type Balances, useBalances, useHistory } from '../shared/api'
 import { parseAddress } from '../shared/lib/address'
 import { localeOf, viewerPath } from '../shared/lib/locale'
 import { AddressField } from '../shared/ui/AddressField'
@@ -10,13 +10,14 @@ import { BalanceCard } from '../shared/ui/BalanceCard'
 import { Button } from '../shared/ui/Button'
 import { buttonClass } from '../shared/ui/ButtonLink'
 import { CopyButton } from '../shared/ui/CopyButton'
+import { HistorySection } from '../shared/ui/HistorySection'
 import { Notice, NoticeAction } from '../shared/ui/Notice'
 import { StatusChip } from '../shared/ui/StatusChip'
 
 // Figma: Address input · 375 / 768 / 1280 · Light + Dark (page "Web", section 765:1340, invalid frames 765:1771..)
 // Figma: Viewer · 375 / 768 / 1280 · Light + Dark (section 765:2183; loading 767:3034.., error 767:4056..)
 // One prerendered page (ADR-0012): the address is in the URL fragment (/address#0x...), so it never reaches the web
-// host, its logs or analytics. The history list (#196) goes in the viewer's second column.
+// host, its logs or analytics. The history list is the viewer's second column.
 export const handle = { hydrate: true }
 
 // Public test addresses: BIP39 "abandon ... about" account 0, and Hardhat account 1. Tests only, no real funds.
@@ -202,6 +203,7 @@ type ViewerProps = { t: WebMessages; locale: WebLocale; address: string | null; 
 /** `address` null = before hydration: the skeleton with the final sizes, the address text hidden (data-boot-viewer). */
 function Viewer({ t, locale, address, headingRef }: ViewerProps) {
   const [balances, retry] = useBalances(address)
+  const [history, historyActions] = useHistory(address)
   return (
     <main
       id="main"
@@ -238,7 +240,7 @@ function Viewer({ t, locale, address, headingRef }: ViewerProps) {
           </div>
           <BalanceSection t={t} balances={balances} retry={retry} />
         </div>
-        {/* #196: the history list, web-desktop:col-span-2 */}
+        <HistorySection t={t} locale={locale} address={address} history={history} actions={historyActions} />
       </div>
     </main>
   )

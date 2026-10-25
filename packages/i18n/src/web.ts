@@ -133,6 +133,24 @@ export const webKo = {
     updateBody: '사이트가 새 버전으로 바뀌었어요.',
     reload: '새로고침',
   },
+  history: {
+    title: '거래 내역',
+    etherscan: 'Etherscan에서 보기',
+    loading: '거래 내역을 불러오고 있어요',
+    columns: { status: '상태', direction: '구분', counterparty: '상대 주소', amount: '수량', time: '시간' },
+    status: { confirmed: '확정', failed: '실패', pending: '처리 중', unknown: '확인 못 함', replaced: '실행되지 않음' },
+    direction: { receive: '받음', send: '보냄' },
+    // Card title (Figma Activity row): a failed send has its own words; the receive twin is not in Figma yet.
+    cardTitle: { receive: '받음', send: '보냄', sendFailed: '보내기 실패', receiveFailed: '받기 실패' },
+    more: '더 보기',
+    moreFailed: '더 불러오지 못했어요. 다시 시도하세요.',
+    empty: {
+      title: '아직 거래가 없어요',
+      body: '이 주소에는 Sepolia 거래가 없어요. 테스트 ETH가 필요하면 파우셋에서 받을 수 있어요.',
+      faucet: 'Sepolia 파우셋 열기',
+    },
+    failed: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요.', retry: '다시 시도' },
+  },
 } as const
 
 type Widen<T> = { [K in keyof T]: T[K] extends string ? string : Widen<T[K]> }
@@ -275,6 +293,33 @@ export const webEn: WebMessages = {
     updateTitle: 'Refresh the page',
     updateBody: 'The site has a new version.',
     reload: 'Refresh',
+  },
+  history: {
+    title: 'Transactions',
+    etherscan: 'View on Etherscan',
+    loading: 'Loading the transactions',
+    columns: { status: 'Status', direction: 'Type', counterparty: 'Counterparty', amount: 'Amount', time: 'Time' },
+    status: {
+      confirmed: 'Confirmed',
+      failed: 'Failed',
+      pending: 'Pending',
+      unknown: 'Not verified',
+      replaced: 'Not executed',
+    },
+    direction: { receive: 'Received', send: 'Sent' },
+    cardTitle: { receive: 'Received', send: 'Sent', sendFailed: 'Send failed', receiveFailed: 'Receive failed' },
+    more: 'Show more',
+    moreFailed: 'Could not load more. Try again.',
+    empty: {
+      title: 'No transactions yet',
+      body: 'This address has no Sepolia transactions. You can get test ETH from a faucet.',
+      faucet: 'Open the Sepolia faucet',
+    },
+    failed: {
+      title: 'Could not load the transactions',
+      body: 'Check your connection and try again.',
+      retry: 'Try again',
+    },
   },
 }
 

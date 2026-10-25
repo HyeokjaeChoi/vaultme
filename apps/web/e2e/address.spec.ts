@@ -1,52 +1,8 @@
 import AxeBuilder from '@axe-core/playwright'
-import { type Page, type Route, expect, test } from '@playwright/test'
+import { type Route, expect, test } from '@playwright/test'
+import { A, fixtureApi } from './fixture-api'
 
 type LayoutShift = PerformanceEntry & { value: number; sources: { node: Node | null }[] }
-
-// The viewer against fixture answers: the default build calls the staging API (scripts/finalize.ts apiOrigin), and
-// every request to it is answered here. Real data only in app code. No test reads balances from the real staging API
-// yet (the web-staging smoke only checks the 404 page).
-const API = 'https://vaultme-api-staging.gurwo1007.workers.dev'
-const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
-
-type Mode = 'ok' | 'down' | 'big'
-async function fixtureApi(page: Page) {
-  const api = {
-    mode: 'ok' as Mode,
-    hold: null as Promise<void> | null,
-    registers: 0,
-    requests: [] as { path: string; headers: Record<string, string> }[],
-  }
-  const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' }
-  const json = (route: Route, status: number, body: unknown) =>
-    route.fulfill({ status, contentType: 'application/json', headers: cors, body: JSON.stringify(body) })
-  await page.route(`${API}/**`, async (route) => {
-    const req = route.request()
-    if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
-    const path = new URL(req.url()).pathname
-    api.requests.push({ path, headers: req.headers() })
-    if (path === '/v1/installs') {
-      api.registers++
-      return json(route, 201, { installId: crypto.randomUUID() })
-    }
-    if (path === '/v1/installs/token')
-      return json(route, 200, { token: 'tok', expiresAt: Math.floor(Date.now() / 1000) + 900 })
-    if (api.mode === 'down') return json(route, 503, { code: 'unavailable', message: 'x', retryable: true })
-    await api.hold
-    const { id, method } = req.postDataJSON() as { id: number; method: string }
-    const big = api.mode === 'big' // 10^24 ETH and 10^24 USDC: far above any supply, wider than the card at 375 px
-    const result =
-      method === 'eth_getBalance'
-        ? big
-          ? '0xb7abc627050305adf14a3d9e40000000000'
-          : '0x11d448f27b93c000'
-        : big
-          ? '0xc9f2c9cd04674edea40000000'
-          : '0xbebc20' // 1.284732 ETH, 12.5 USDC
-    return json(route, 200, { jsonrpc: '2.0', id, result })
-  })
-  return api
-}
 
 test.describe('address input', () => {
   test('input -> viewer with balances; the address stays in the fragment', async ({ page }) => {

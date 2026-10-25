@@ -20,6 +20,7 @@ function stubApi() {
       if (path === '/v1/installs') return Promise.resolve(json(201, { installId: crypto.randomUUID() }))
       if (path === '/v1/installs/token')
         return Promise.resolve(json(200, { token: 'tok', expiresAt: Math.floor(Date.now() / 1000) + 900 }))
+      if (path === '/v1/history') return Promise.resolve(json(200, { items: [], nextCursor: null, incomplete: false })) // the history has its own tests (use-history, history-section)
       if (api.rpc === 'down') return Promise.resolve(json(503, { code: 'unavailable', message: 'x', retryable: true }))
       if (api.rpc === 'old')
         return Promise.resolve(json(426, { code: 'update_required', message: 'x', retryable: false }))

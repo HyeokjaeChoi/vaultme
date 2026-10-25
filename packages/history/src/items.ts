@@ -86,6 +86,12 @@ export function parseItems(data: unknown): HistoryItem[] {
   return out
 }
 
+/** `nextCursor` of a `POST /v1/history` response. Null = last page, or a body that is not a response. */
+export function parseNextCursor(data: unknown): string | null {
+  const c = (data as { nextCursor?: unknown } | null)?.nextCursor
+  return typeof c === 'string' && c !== '' ? c : null
+}
+
 const fromLocal = (tx: LocalSend): HistoryItem => ({
   id: tx.hash,
   hash: tx.hash,

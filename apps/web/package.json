@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@vaultme/api-client": "workspace:*",
+    "@vaultme/history": "workspace:*",
     "@vaultme/i18n": "workspace:*",
     "@vaultme/tokens": "workspace:*",
     "@vaultme/wallet-core": "workspace:*",
