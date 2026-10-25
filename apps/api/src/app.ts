@@ -49,7 +49,11 @@ export const app = new OpenAPIHono<Env>({
 })
 
 // WEB_ORIGINS is a comma-separated var: the exact browser origins allowed (ADR-0011). Empty = no browser.
-const webOrigins = (c: { env: Env['Bindings'] }) => c.env.WEB_ORIGINS.split(',').filter(Boolean)
+const webOrigins = (c: { env: Env['Bindings'] }) =>
+  (c.env.WEB_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
 
 // A browser always sends Origin on cross-origin requests. The native app does not.
 // Only the allow-listed web origins pass; this also covers preflight and /webhooks.

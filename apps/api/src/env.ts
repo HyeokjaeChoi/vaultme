@@ -4,7 +4,7 @@ export type Env = {
   Bindings: {
     MIN_APP_VERSION: string
     MIN_WEB_VERSION: string // X-Client: web minimum (ADR-0011)
-    WEB_ORIGINS: string // comma-separated allowed browser origins (ADR-0011); a var, not a secret
+    WEB_ORIGINS?: string // optional: unset = no browser; comma-separated allowed browser origins (ADR-0011); a var, not a secret
     DB: D1Database
     TOKEN_SECRET: string // wrangler secret; .dev.vars locally
     INSTALL_IP_LIMITER: RateLimit // POST /v1/installs, keyed by IP (coarse)

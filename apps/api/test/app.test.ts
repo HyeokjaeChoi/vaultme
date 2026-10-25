@@ -50,6 +50,16 @@ describe('api', () => {
       expect((await get('/v1/health', { Origin: o }, web)).status).toBe(403)
   })
 
+  it('trims WEB_ORIGINS entries and survives a missing var for non-browser calls', async () => {
+    const r = await get(
+      '/v1/health',
+      { Origin: 'https://other.example' },
+      { ...env, WEB_ORIGINS: `${WEB}, https://other.example` },
+    )
+    expect(r.status).toBe(200)
+    expect((await get('/v1/health', {}, { ...env, WEB_ORIGINS: undefined } as never)).status).toBe(200)
+  })
+
   it('403 on any Origin when WEB_ORIGINS is empty', async () => {
     const r = await get('/v1/health', { Origin: WEB }, { ...env, WEB_ORIGINS: '' })
     expect(r.status).toBe(403)
