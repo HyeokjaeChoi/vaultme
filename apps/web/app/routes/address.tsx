@@ -25,7 +25,9 @@ const EXAMPLES = ['0x9858EfFD232B4033E47d90003D41EC34EcaEda94', '0x70997970C5181
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
 
 // Runs while the page is parsed, before first paint: a viewer link paints the viewer skeleton, not the form (app.css).
-const BOOT_SCRIPT = `if(/^#0x[0-9a-fA-F]{40}$/.test(location.hash))document.documentElement.dataset.boot='viewer'`
+// A submit before hydration would send the form as a GET query (the address in the URL that reaches the server), so it
+// goes to the fragment here; once hydrated, AddressForm handles the submit and this listener sees defaultPrevented.
+const BOOT_SCRIPT = `if(/^#0x[0-9a-fA-F]{40}$/.test(location.hash))document.documentElement.dataset.boot='viewer';addEventListener('submit',function(e){if(e.defaultPrevented)return;e.preventDefault();location.hash=e.target.querySelector('input').value.trim()})`
 
 /** The fragment as typed; one that is not valid percent-encoding stays as is (parseAddress rejects it). */
 function decodeFragment(f: string): string {
@@ -95,7 +97,15 @@ type HeadingRef = React.RefObject<HTMLHeadingElement | null>
 function AddressForm({ t, initial, headingRef }: { t: WebMessages; initial: string; headingRef: HeadingRef }) {
   const navigate = useNavigate()
   const input = useRef<HTMLInputElement>(null)
-  const [value, setValue] = useState(initial)
+  // The hydrated form replaces the prerendered one, so a value typed before hydration is read from the old input,
+  // which is still in the document while this first render runs.
+  const [value, setValue] = useState(
+    () =>
+      initial ||
+      (typeof document === 'undefined'
+        ? ''
+        : (document.querySelector<HTMLInputElement>('[data-boot-form] input')?.value ?? '')),
+  )
   const [error, setError] = useState(initial !== '' && parseAddress(initial) === null)
   const open = (a: string) => void navigate({ hash: a })
 
@@ -139,7 +149,6 @@ function AddressForm({ t, initial, headingRef }: { t: WebMessages; initial: stri
             label={t.address.label}
             helper={t.address.helper}
             error={error ? t.address.invalid : null}
-            name="address"
             placeholder="0x…"
             autoComplete="off"
             autoCapitalize="off"

@@ -51,6 +51,29 @@ test.describe('address input', () => {
     }
   })
 
+  // A slow network: the user submits before the app hydrates. The address must not leave in a query string.
+  test('a submit before hydration puts the address in the fragment', async ({ page }) => {
+    await fixtureApi(page)
+    await page.route('**/assets/*.js', (route) => route.abort())
+    await page.goto('/address', { waitUntil: 'commit' })
+    await page.getByLabel('Sepolia 주소').fill(A)
+    await page.getByRole('button', { name: '주소 보기' }).click()
+    await expect(page).toHaveURL(`/address#${A}`)
+  })
+
+  test('an address typed before hydration is kept', async ({ page }) => {
+    await fixtureApi(page)
+    const held: Route[] = []
+    await page.route('**/assets/*.js', (route) => void held.push(route))
+    await page.goto('/address', { waitUntil: 'commit' })
+    await page.getByLabel('Sepolia 주소').fill(A)
+    await page.unroute('**/assets/*.js')
+    for (const r of held) await r.continue()
+    await expect(page.locator('[data-boot-viewer]')).toHaveCount(0) // hydrated: one view left
+    await page.getByRole('button', { name: '주소 보기' }).click()
+    await expect(page.getByText('12.5 USDC')).toBeVisible()
+  })
+
   test('an invalid address shows the inline error and no request leaves', async ({ page }) => {
     const api = await fixtureApi(page)
     await page.goto('/address')
