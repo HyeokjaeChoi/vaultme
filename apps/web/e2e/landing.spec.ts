@@ -136,7 +136,15 @@ for (const p of pages) {
     test('no horizontal scroll (375px)', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 800 })
       await page.goto(p.path)
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+      const wide = await page.evaluate(() =>
+        [...document.querySelectorAll('body *')]
+          .filter((el) => el.getBoundingClientRect().right > window.innerWidth + 1)
+          .map(
+            (el) =>
+              `${el.tagName}.${(el.getAttribute('class') ?? '').slice(0, 40)} ${String(Math.round(el.getBoundingClientRect().right))}`,
+          ),
+      )
+      expect(wide).toEqual([])
     })
   })
 }
