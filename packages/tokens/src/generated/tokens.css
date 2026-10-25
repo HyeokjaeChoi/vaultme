@@ -503,6 +503,7 @@
   --semantic-layout-field-gap: var(--primitive-space-2);
   --semantic-layout-review-max-width: var(--primitive-size-review-panel);
   --semantic-layout-web-narrow-width: var(--primitive-size-web-narrow-column);
+  --semantic-layout-web-reading-width: var(--primitive-grid-reading-max-width);
   --semantic-icon-size-inline: var(--primitive-size-icon-sm);
   --semantic-icon-size-control: var(--primitive-size-icon-md);
   --semantic-icon-size-feature: var(--primitive-size-icon-lg);
