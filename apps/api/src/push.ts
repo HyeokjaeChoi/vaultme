@@ -237,7 +237,10 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   const expoToken = secret(env.EXPO_ACCESS_TOKEN)
   if (payload.webhookId !== secret(env.ALCHEMY_WEBHOOK_ID)) return
   // One line per delivery (tx hash prefix + category, no address): shows in Workers Logs whether legs of one tx arrive apart (#183).
-  console.log('alchemy activity', payload.event.activity.map((a) => `${a.hash.slice(0, 10)}:${a.category}`).join(' '))
+  console.log(
+    'alchemy activity',
+    payload.event.activity.map((a) => `${a.hash.slice(0, 10)}:${a.category}:${a.toAddress ?? '-'}`).join(' '),
+  )
   const addresses = new Set(
     payload.event.activity
       .flatMap((a) => [a.fromAddress, a.toAddress])
