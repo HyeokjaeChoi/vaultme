@@ -60,7 +60,7 @@ export function HistoryTable({ items, now, t, locale, address }: Props) {
               <Link
                 {...txLink(i, locale, address)}
                 aria-label={`${failed(i) ? t.history.status.failed : t.history.status.confirmed} · ${i.kind === 'send' ? t.history.direction.send : t.history.direction.receive} ${failed(i) ? `${i.amount} ${i.asset}` : signed(i)}`}
-                className="flex items-center gap-2 after:absolute after:inset-0"
+                className="min-h-touch-min flex items-center gap-2 after:absolute after:inset-0"
               >
                 <RowBadge kind={failed(i) ? 'failed' : 'confirmed'} />
                 <span className="text-product-b-label text-text-primary">
