@@ -50,5 +50,9 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
         run: |
           set -o pipefail
-          pnpm --filter @vaultme/web exec wrangler versions upload --env staging --preview-alias "pr-$PR" | tee upload.log
+          if ! pnpm --filter @vaultme/web exec wrangler versions upload --env staging --preview-alias "pr-$PR" 2>&1 | tee upload.log; then
+            # Wrangler cannot upload a version of a Worker that was never deployed. The web-staging workflow creates it on the first merge to main.
+            grep -q 'does not yet exist' upload.log && { echo "::notice::No preview: the staging Worker does not exist yet (first web-staging deploy creates it)."; exit 0; }
+            exit 1
+          fi
           { echo '### Preview'; grep -Eo 'https://[^ ]+workers\.dev' upload.log | sort -u; } >> "$GITHUB_STEP_SUMMARY"
