@@ -65,7 +65,12 @@ export default function AddressPage() {
     shown.current = view
   }, [hydrated, view])
 
-  const title = <title>{`${t.address.pageTitle} · ${t.siteName}`}</title>
+  const title = (
+    <>
+      <title>{`${t.address.pageTitle} · ${t.siteName}`}</title>
+      <meta name="description" content={t.address.lead} />
+    </>
+  )
   if (!hydrated)
     return (
       <>

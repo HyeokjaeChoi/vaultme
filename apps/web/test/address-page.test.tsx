@@ -60,6 +60,14 @@ describe('address input', () => {
     expect(screen.queryByRole('alert')).toBeNull() // editing clears the error
   })
 
+  it('has a meta description (Lighthouse SEO)', () => {
+    open('/address')
+    expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
+      'content',
+      'Sepolia 테스트넷 주소의 잔액과 거래 내역을 볼 수 있어요.',
+    )
+  })
+
   it('says ENS is not supported and that the page is read-only', () => {
     open('/address')
     expect(screen.getByText('ENS는 지원하지 않아요. 0x로 시작하는 주소를 넣어 주세요.')).toBeInTheDocument()
