@@ -20,7 +20,7 @@ const item = {
   zeroValue: false,
 }
 const m = vi.hoisted(() => ({
-  api: null as { history: (a: string, c?: string) => Promise<unknown> } | null,
+  api: null as { history: (a: string) => Promise<unknown> } | null,
   stored: null as HistoryCache | null,
   address: (): string => '',
 }))
@@ -49,7 +49,7 @@ describe('history loader (mobile wiring)', () => {
     expect(l.listAddress()).toBe(ME)
     const views: unknown[] = []
     await l.history.list((v) => views.push(v))(l.listAddress())
-    expect(history).toHaveBeenCalledWith(ME, undefined)
+    expect(history).toHaveBeenCalledWith(ME)
     expect(views).toMatchObject([{ items: [{ id: `${H}:0` }], failed: false }])
     expect(l.findCachedRow(l.accountAddress(), `${H}:0`)).toMatchObject({ kind: 'receive' })
   })

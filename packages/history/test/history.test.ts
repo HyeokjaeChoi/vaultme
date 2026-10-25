@@ -46,7 +46,7 @@ const local: LocalSend = {
 function setup(o: { cache?: HistoryCache | null; answer?: () => Promise<unknown>; now?: number } = {}) {
   let stored = o.cache ?? null
   let t = o.now ?? 42
-  const fetchPage = vi.fn<(address: string, cursor?: string) => Promise<unknown>>(() =>
+  const fetchPage = vi.fn<(address: string) => Promise<unknown>>(() =>
     (o.answer ?? (() => Promise.resolve(page([]))))(),
   )
   const h = createHistory({

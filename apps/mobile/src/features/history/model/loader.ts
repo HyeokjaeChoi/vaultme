@@ -5,7 +5,7 @@ import { getAccountAddress } from '@/shared/storage'
 const client = api
 /** The one history module: the S40 list and the S41 row lookup share its cached first page (`historyCache`). */
 export const history = createHistory({
-  fetchPage: (a, c) => (client ? client.history(a, c) : Promise.reject(new Error('no history API'))),
+  fetchPage: (a) => (client ? client.history(a) : Promise.reject(new Error('no history API'))),
   cache: historyCache,
   now: Date.now,
 })

@@ -72,7 +72,7 @@ Expo Router in `app/` has thin route files. They re-export a page from `src/page
 - `pages`: one folder per screen.
 - `widgets`: `review-panel`, `activity-list`, `asset-picker`, `network-chips`, `backup-gate` (`useBackupGate`, `SendGuard`: backup, history and restore together).
 - `features`: `send` (`runSend`, `txState`, `useTrackedTx`), `backup`, `restore`, `history`, `balances`, `faucet` (`FaucetRow`), `push` (S50 opt-in sheet, subscribe and unsubscribe, launch sync, tap route), `settings`.
-- `entities`: `account`, `asset`, `transaction`. They hold fixtures, the Review view model, `txView` and the pending tx store (`readPendingTx`, `writePendingTx`).
+- `entities`: `account`, `asset`, `transaction`. They hold fixtures, the Review view model, `txView` (re-exported from `@vaultme/history`) and the pending tx store (`readPendingTx`, `writePendingTx`).
 - `shared`: `api` (wires `@vaultme/api-client` to the noble `DeviceSigner`, `nobleSigner`: key in Keychain, installId in kv), `chain` (`ChainPort`, the fake adapter and its sample balances), `storage` (`keychain`, `kv`), `auth`, `ui` (primitives), `theme`, `lib`.
 
 `apps/mobile/eslint.config.mjs` (eslint-plugin-boundaries) enforces the direction, and that another slice is imported only through its `index`. `shared/lib` files are each a public entry. `apps/mobile/steiger.config.mjs` checks the folder structure. Only `wallet-core` is the signing boundary by design.

@@ -5,8 +5,8 @@ import { merge, parseItems, sameHash, type HistoryItem, type LocalSend } from '.
 export type HistoryCache = { address: string; json: string; updatedAt: number }
 
 export type HistoryDeps = {
-  /** POST /v1/history (the API client). */
-  fetchPage: (address: string, cursor?: string) => Promise<unknown>
+  /** POST /v1/history, first page (the API client). Paging is not used yet. */
+  fetchPage: (address: string) => Promise<unknown>
   /** One slot: the last first page of any address. */
   cache: { get(): HistoryCache | null; set(c: HistoryCache): void }
   now: () => number
@@ -49,12 +49,12 @@ function pick(rows: HistoryItem[], id: string, dir?: PushDir): RowLookup {
  * Seams: `fetchPage` and `cache`. No method throws.
  */
 export function createHistory(d: HistoryDeps) {
-  /** Cached rows of this address. Null = no cache, other account, or unreadable. */
-  const cached = (address: string): HistoryItem[] | null => {
+  /** Cached rows of this address and when they were fetched. Null = no cache, other account, or unreadable. */
+  const cached = (address: string): { rows: HistoryItem[]; updatedAt: number } | null => {
     const c = d.cache.get()
     if (!c || !sameHash(c.address, address)) return null
     try {
-      return parseItems(JSON.parse(c.json))
+      return { rows: parseItems(JSON.parse(c.json)), updatedAt: c.updatedAt }
     } catch {
       return null
     }
@@ -81,17 +81,16 @@ export function createHistory(d: HistoryDeps) {
       if (p.source === 'local') return { items: merge([], local), updatedAt: d.now(), failed: false }
       return { items: merge(p.items, local), updatedAt: p.updatedAt, failed: false }
     } catch (e) {
-      const c = isApiError(e) && !isApiError(e, 'update_required') ? d.cache.get() : null
-      const rows = c ? cached(address) : null
-      if (c && rows) return { items: merge(rows, local), updatedAt: c.updatedAt, failed: true }
+      const c = isApiError(e) && !isApiError(e, 'update_required') ? cached(address) : null
+      if (c) return { items: merge(c.rows, local), updatedAt: c.updatedAt, failed: true }
       return { items: merge([], local), updatedAt: null, failed: true } // no answer and no cache: the sent tx of this device is still shown
     }
   }
 
   /** Cache-only step of `findRow`: a row, or null when only a fresh page can tell (no cache, other account, none or several rows). */
   function cachedRow(address: string | null, id: string, dir?: PushDir): HistoryItem | null {
-    const rows = address ? cached(address) : null
-    const r = rows ? pick(rows, id, dir) : null
+    const c = address ? cached(address) : null
+    const r = c ? pick(c.rows, id, dir) : null
     return r?.status === 'row' ? r.row : null
   }
 
