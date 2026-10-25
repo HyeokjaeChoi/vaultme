@@ -172,7 +172,7 @@ App side (`features/push`):
 `docs/openapi/v1.json` is generated from the zod routes (`pnpm --filter @vaultme/api openapi`). CI fails if it is stale (`openapi:check`).
 - Error body: `{code, message, retryable}`. `code` comes from `ERROR_CODES` in `contracts`. The app maps an unknown code to `Unknown`.
 - v1 allows added fields only. A breaking change needs `/v2`.
-- `/v1/rpc` accepts one JSON-RPC request (no batch). Allowed methods are in `RPC_ALLOWED_METHODS`. `eth_call` only for USDC `balanceOf`. `eth_getBlockByNumber` only without full transactions. Upstream order: Infura, Alchemy, 5 s timeout. A JSON-RPC error inside a 200 is returned as is.
+- `/v1/rpc` accepts one JSON-RPC request (no batch). Allowed methods are in `RPC_ALLOWED_METHODS`. `eth_call` only for USDC `balanceOf`. `eth_getBlockByNumber` only without full transactions. `eth_getTransactionByHash` only with one 32-byte hash. Upstream order: Infura, Alchemy, 5 s timeout. A JSON-RPC error inside a 200 is returned as is.
 - `/webhooks/alchemy` is outside `/v1` and is not in the OpenAPI file. It uses an HMAC, not a token.
 
 ## Security model
