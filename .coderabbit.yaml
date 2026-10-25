@@ -6,8 +6,11 @@ language: en-US
 reviews:
   profile: chill
   request_changes_workflow: false
+  # No commit status on PRs while CodeRabbit is not used.
+  review_status: false
   auto_review:
-    # Off: Claude reviews each PR on open (.github/workflows/claude-code-review.yml). `@coderabbitai review` still works.
+    # Off: Claude reviews each PR on open (.github/workflows/claude-code-review.yml). CodeRabbit is not used
+    # (free plan quota, docs/agents/workflow.md step 5); this file stays for an owner-requested `@coderabbitai review`.
     enabled: false
     drafts: true
   path_filters:
