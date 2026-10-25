@@ -100,12 +100,14 @@ test.describe('viewer', () => {
     expect(extractable).toBe(false)
   })
 
-  // The skeleton has the final sizes, so the boxes never move: no shift of an element in <main> or of the footer.
-  // What is left is the font swap (fonts.css loads after first paint, apps/web/AGENTS.md): text inside unmoved
-  // boxes (the address in IBM Plex Mono) and the header link, measured 0.0025 at 375 px. It stays under 0.01.
+  // The skeleton has the final sizes, so no box moves from first paint to the balances. Web fonts are blocked here:
+  // their swap after first paint (fonts.css, apps/web/AGENTS.md) moves text on every page, by how much depends on the
+  // system fallback font (Linux CI has no Apple SD Gothic Neo), and Lighthouse measures it on its own. What is left is
+  // the address text inside its unmoved box (measured 0.0018 at 375 px), reported for its glyphs only.
   for (const width of [375, 768, 1280]) {
     test(`a viewer link paints the final layout (${String(width)}px)`, async ({ page }) => {
       await fixtureApi(page)
+      await page.route('**/*.woff2', (route) => route.abort())
       await page.setViewportSize({ width, height: 900 })
       await page.addInitScript(() => {
         const w = window as unknown as { cls: number; moved: string[] }
@@ -114,9 +116,7 @@ test.describe('viewer', () => {
         new PerformanceObserver((list) => {
           for (const e of list.getEntries() as unknown as LayoutShift[]) {
             w.cls += e.value
-            for (const s of e.sources)
-              if (s.node instanceof Element && s.node.closest('main, footer'))
-                w.moved.push(s.node.outerHTML.slice(0, 80))
+            for (const s of e.sources) if (s.node instanceof Element) w.moved.push(s.node.outerHTML.slice(0, 80))
           }
         }).observe({ type: 'layout-shift', buffered: true })
       })
@@ -128,7 +128,7 @@ test.describe('viewer', () => {
         return { cls: w.cls, moved: w.moved }
       })
       expect(moved).toEqual([])
-      expect(cls).toBeLessThan(0.01)
+      expect(cls).toBeLessThan(0.005)
     })
   }
 
@@ -176,7 +176,9 @@ for (const s of states) {
       await expect(page.getByText(s.ready).first()).toBeVisible()
       const small = await page.evaluate(() =>
         [...document.querySelectorAll<HTMLElement>('a, button')]
-          .filter((el) => !el.matches('a[href="#main"]')) // the skip link is hidden until focused
+          // Not the skip link (hidden until focused), not an element that is not rendered (before hydration the page
+          // holds the form and the viewer skeleton, one of them display: none).
+          .filter((el) => !el.matches('a[href="#main"]') && el.getClientRects().length > 0)
           .flatMap((el) => {
             const { width, height } = el.getBoundingClientRect()
             return width < 44 || height < 44

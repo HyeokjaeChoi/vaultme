@@ -211,9 +211,10 @@ function Viewer({ t, locale, address, headingRef }: ViewerProps) {
           <div className="flex flex-col items-start gap-3">
             <p className="text-product-b-caption text-text-tertiary">{t.viewer.addressLabel}</p>
             <div className="flex w-full items-center gap-2">
-              {/* Before hydration a placeholder of the same length keeps the two-line height. */}
+              {/* Before hydration a placeholder of the same length keeps the height. `key`: the address is new text, not the
+                  placeholder's text moved (which Layout Instability would count as a shift). */}
               <div className={`flex min-w-px flex-1 ${address ? '' : 'invisible'}`} translate="no">
-                <AddressText address={address ?? `0x${'0'.repeat(40)}`} />
+                <AddressText key={address ?? ''} address={address ?? `0x${'0'.repeat(40)}`} />
               </div>
               <CopyButton text={address} label={t.viewer.copy} copied={t.viewer.copied} />
             </div>
