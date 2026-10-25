@@ -1,6 +1,6 @@
 # 0001. Host apps/web on Workers Static Assets
 
-Status: Accepted (2026-10-14, issue #36). Not implemented: `apps/web` does not exist yet.
+Status: Accepted (2026-10-14, issue #36). Implemented in `apps/web` (issue #192). The 404 handling is amended by [0013](0013-web-404-page-handling.md).
 Supersedes/Aliases: Q45 and Q52 (Cloudflare Pages deploy)
 
 ## Context

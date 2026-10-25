@@ -20,18 +20,19 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 
 | Rule | Enforced by |
 |---|---|
-| App UI uses `@vaultme/tokens` only (no raw hex, no numeric spacing/radius/type, no landing-page gaps) | `scripts/check-repo-rules.sh` R2, R4, R5 |
+| App UI (mobile and web) uses `@vaultme/tokens` only (no raw hex, no numeric spacing/radius/type, no Tailwind arbitrary values, no landing-page gaps) | `scripts/check-repo-rules.sh` R2, R4, R5; `apps/web/eslint.config.js` |
 | Each shared UI primitive names its Figma node | R6 |
 | No private keys, `.env` or worker secrets; recovery phrases only as the public test vectors listed in R10 | R1, R3, R8, R10 |
 | No `CLAUDE.md` / `CLAUDE.local.md` anywhere (it stops Claude Code from reading this file) | R9 |
 | README.md and README.ko.md stay in step | R7 |
 | Markdown links and backticked repo paths in tracked `*.md` resolve | R11 |
 | Tokens: raw values only in Primitive; Semantic and Component alias | `packages/tokens/test/hierarchy.test.ts`, `packages/tokens/build.mjs` |
-| A PR that changes app screen code shows one light and one dark app-vs-Figma image per changed screen (mode in the alt text) | `.github/workflows/pr-description.yml` `figma-comparison` |
+| A PR that changes app screen code shows one light and one dark app-vs-Figma image per changed screen (web: per breakpoint 375, 768, 1280; mode in the alt text) | `.github/workflows/pr-description.yml` `figma-comparison` |
 | PR body ≤ 3,500 characters and `Closes #N` (Renovate and Dependabot PRs exempt) | `.github/workflows/pr-description.yml` `check` |
 | Code is Prettier-formatted and ESLint-clean with 0 warnings | pre-commit `lint-staged`, pre-push, CI `verify` |
 | Mobile FSD layers: imports go down only, other slices only through their `index`, route files only re-export `src/shell` or `src/pages` | `apps/mobile/eslint.config.mjs` boundaries, `apps/mobile/steiger.config.mjs` |
 | Typecheck, lint and tests pass | CI `verify`, pre-push hook |
+| The web app: real 404 status, security headers, axe = 0, Lighthouse 4 × ≥95 (desktop and mobile), JS ≤ 100 KB gzip | CI `web` (`apps/web/e2e`, `lighthouserc.*.json`) |
 | Test coverage stays at or above each package's floor | `coverage.thresholds` in each `vitest.config.ts` |
 | No unused files or dependencies, no unlisted dependencies | `knip.jsonc`, CI `verify` (`pnpm knip`) |
 | The mobile app bundles for iOS and Android | CI `verify` (`export:check`); `expo-doctor` reports only |
@@ -66,6 +67,6 @@ When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a t
 - Architecture: `ARCHITECTURE.md`
 - Decisions: `docs/adr/`
 - Before you edit an area, read `ARCHITECTURE.md`, the ADRs that touch it and `.claude/skills/vaultme-review-lessons/SKILL.md`.
-- Area rules: `apps/mobile/AGENTS.md`, `packages/tokens/AGENTS.md` (loaded when you open a file there).
+- Area rules: `apps/mobile/AGENTS.md`, `apps/web/AGENTS.md`, `packages/tokens/AGENTS.md` (loaded when you open a file there).
 
 The main agent splits work, tracks it, and reviews results.

@@ -2,7 +2,7 @@
   "$schema": "https://turborepo.dev/schema.json",
   "agentGuidance": false,
   "tasks": {
-    "build": { "dependsOn": ["^build"], "outputs": ["dist/**", "src/generated/**"] },
+    "build": { "dependsOn": ["^build"], "outputs": ["dist/**", "src/generated/**", "build/**"] },
     "typecheck": { "dependsOn": ["^typecheck", "^build"] },
     "lint": { "dependsOn": ["^build"] },
     "test": { "dependsOn": ["^build"] }

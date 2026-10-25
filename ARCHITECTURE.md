@@ -12,7 +12,7 @@ Goals:
 
 Non-goals (not built): other chains, other tokens, swap, multiple accounts, smart accounts, WalletConnect, cloud backup, ENS, address book, speed-up or cancel, an admin dashboard. In the web app, also no keys, no recovery phrase, no send, no fiat prices (see [ADR-0012](docs/adr/0012-web-scope-and-quality-bars.md)).
 
-The web app (`apps/web`, landing + read-only address viewer) is in scope but not built yet. It is specified in issue #186 and ADR-0011 and ADR-0012.
+The web app (`apps/web`, landing + read-only address viewer) is in scope and started: the 404 page, the CI gates and the staging deploy exist (issue #192); the landing page and the viewer come in later tickets of issue #186. See ADR-0011, ADR-0012, ADR-0013 and `apps/web/AGENTS.md`.
 
 ## System map
 

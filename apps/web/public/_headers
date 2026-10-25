@@ -1,0 +1,14 @@
+# Cloudflare Workers Static Assets headers (ADR-0001). Applies to every response, the 404 pages included.
+# The script-src hash placeholder is replaced at build time by scripts/finalize.ts with the sha256 of every inline <script> in the built HTML.
+# Origins: staging API worker and Cloudflare Web Analytics. The production API origin is added when it exists (ADR-0011).
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self' __SCRIPT_HASHES__ https://static.cloudflareinsights.com; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://vaultme-api-staging.gurwo1007.workers.dev https://cloudflareinsights.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# Hashed build output never changes under the same name.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

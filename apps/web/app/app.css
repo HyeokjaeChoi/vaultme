@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+@import '@vaultme/tokens/theme.css';
+@import '@vaultme/tokens/tokens.css';
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+
+/* Figma web frames are 375 / 768 / 1280. The token breakpoints stop at 375, 768 and 1440 (theme.css), so 1280 has none.
+   Workaround until the tokens add a web breakpoint (Figma Variables first, owner-approved): remove this line then. */
+@theme {
+  --breakpoint-web-desktop: 1280px;
+}
+
+/* Metric-adjusted fallback so the swap from the system font to Pretendard moves text less (size-adjust, #186 fonts).
+   Values: Pretendard hhea ascent 0.92 / descent 0.22 / line gap 0, against Apple SD Gothic Neo. */
+@font-face {
+  font-family: 'Pretendard Fallback';
+  src: local('Apple SD Gothic Neo'), local('Malgun Gothic'), local('Noto Sans CJK KR');
+  size-adjust: 100%;
+  ascent-override: 92%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
+@layer base {
+  html {
+    font-family: 'Pretendard Variable', 'Pretendard Fallback', system-ui, sans-serif;
+    font-feature-settings:
+      'lnum' 1,
+      'tnum' 1;
+    background-color: var(--color-screen-b-bg);
+    color: var(--color-text-primary);
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Addresses and hashes. Tailwind's `font-mono` would use the token family (IBM Plex Mono) without the fallback chain. */
+  code,
+  .font-mono {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  a,
+  button {
+    touch-action: manipulation;
+  }
+  /* WCAG 2.2 focus ring from the focus tokens (tokens.css). */
+  :focus-visible {
+    outline: var(--semantic-focus-width) solid var(--semantic-focus-color);
+    outline-offset: var(--semantic-focus-offset);
+  }
+}
+
+/* Figma web sizes with no token yet (header 68, content column 560). Built from token values, not literals.
+   Remove each when the tokens add them (Figma Variables first, owner-approved); reported in the PR. */
+@utility h-web-header {
+  height: calc(var(--primitive-space-16) + var(--primitive-space-1));
+}
+@utility max-w-web-narrow {
+  max-width: calc(var(--primitive-size-review-panel) + var(--primitive-space-20));
+}

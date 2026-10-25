@@ -31,6 +31,7 @@ The product keeps wallet actions readable: it shows the account, network, asset,
 | Path | Role |
 | --- | --- |
 | `apps/mobile` | Expo app (`@vaultme/mobile`). Screens built from the Figma design, wired to `wallet-core` and device storage (fake chain until C3) |
+| `apps/web` | Static web app (`@vaultme/web`), React Router prerendered on Cloudflare Workers Static Assets. The 404 page so far; landing and address viewer come next |
 | `packages/wallet-core` | Pure TypeScript with viem: key derivation, amounts, risk checks, send state. No IO |
 | `packages/tokens` | Design tokens generated from the token source with Style Dictionary |
 | `packages/i18n` | Typed Korean strings with i18next |

@@ -31,6 +31,7 @@ VaultMe는 seed phrase 기반 지갑입니다. Ethereum Sepolia에서 EVM 계정
 | 경로 | 역할 |
 | --- | --- |
 | `apps/mobile` | Expo 앱(`@vaultme/mobile`). Figma 디자인으로 만든 화면. `wallet-core`와 기기 저장소에 연결됨 (C3 전까지 가짜 체인) |
+| `apps/web` | 정적 웹 앱(`@vaultme/web`). React Router 프리렌더, Cloudflare Workers Static Assets에서 제공. 지금은 404 페이지만 있고, 랜딩과 주소 조회가 이어짐 |
 | `packages/wallet-core` | viem을 쓰는 순수 TypeScript: 키 파생, 금액, 위험 검사, 송신 상태. IO 없음 |
 | `packages/tokens` | Style Dictionary로 token 원본에서 생성하는 디자인 토큰 |
 | `packages/i18n` | i18next 기반의 타입 있는 한국어 문구 |

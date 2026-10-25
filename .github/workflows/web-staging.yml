@@ -1,0 +1,63 @@
+name: web-staging
+
+# Deploys apps/web to the `staging` env in wrangler.jsonc (workers.dev only: custom domains are issue #198).
+# Same GitHub Environment `staging` as api-staging: secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, variable
+# STAGING_API_URL. The web URL is derived from it (same workers.dev account subdomain), so no new variable is needed.
+on:
+  push:
+    branches: [main]
+    paths:
+      [
+        apps/web/**,
+        packages/tokens/**,
+        packages/i18n/**,
+        packages/config/**,
+        pnpm-lock.yaml,
+        .github/workflows/web-staging.yml,
+      ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      # Wrangler from the lockfile (7-day release age), not a separate action.
+      - run: pnpm install --frozen-lockfile --filter @vaultme/web...
+      - run: pnpm --filter "@vaultme/web..." run build
+      # The token is set only on the deploy step, so install and build scripts cannot read it.
+      - run: pnpm --filter @vaultme/web exec wrangler deploy --env staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Smoke test
+        env:
+          STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+        run: |
+          : "${STAGING_API_URL:?set variable STAGING_API_URL in the staging environment}"
+          url="${STAGING_API_URL/vaultme-api-staging/vaultme-web-staging}"
+          # A missing path answers a real 404 with the page and the security headers (acceptance of #192).
+          status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 3 -o body.html -D headers.txt -w '%{http_code}' "$url/smoke-no-such-page")
+          cat headers.txt
+          [ "$status" = 404 ] || { echo "expected 404, got $status"; exit 1; }
+          grep -q '404' body.html
+          for h in content-security-policy strict-transport-security x-content-type-options referrer-policy permissions-policy; do
+            grep -qi "^$h:" headers.txt || { echo "missing header $h"; exit 1; }
+          done

@@ -19,6 +19,9 @@ fi
 if scan "['\"]#[0-9a-fA-F]{3,8}['\"]" 'apps/mobile/src/**/*.ts' 'apps/mobile/src/**/*.tsx' 'apps/mobile/app/**/*.tsx'; then
   err "R2: raw hex color in apps/mobile; use token values"
 fi
+if scan "['\"\`]#[0-9a-fA-F]{3,8}['\"\`]|\\b(rgb|hsl)a?\\(" 'apps/web/app/*.ts' 'apps/web/app/*.tsx'; then
+  err "R2: raw color in apps/web/app; use a token utility (text-text-primary, bg-surface-subtle, ...)"
+fi
 
 # R3. No .env files committed.
 if files | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$'; then
@@ -37,8 +40,21 @@ if scan "\\b(padding|margin)(Horizontal|Vertical|Top|Bottom|Left|Right|Start|End
   err "R5: numeric style literal in apps/mobile; use @vaultme/tokens"
 fi
 
+# R5 for apps/web: Tailwind classes. An arbitrary value (p-[13px], text-[#fff], w-[calc(...)]) bypasses the token theme (ADR-0012:
+# Tailwind v4 theme with no default palette or spacing). Numeric style objects are banned the same way.
+if scan "(^|[^A-Za-z0-9_])[a-z][a-z0-9:-]*-\\[[^]]+\\]" 'apps/web/app/*.tsx' 'apps/web/app/*.ts'; then
+  err "R5: Tailwind arbitrary value in apps/web/app; use a token utility"
+fi
+if scan "\\b(padding|margin|gap|fontSize|lineHeight|letterSpacing|width|height|borderRadius)[A-Za-z]*: *$num" 'apps/web/app/*.tsx'; then
+  err "R5: numeric style literal in apps/web/app; use a token utility"
+fi
+# apps/web section gaps: the landing-page scale is allowed on the landing page only (route files named landing*), never in shared UI or the viewer.
+if scan 'section-gap-(mobile|desktop)' 'apps/web/app/shared/**' 'apps/web/app/routes/address*' 'apps/web/app/routes/tx*' 'apps/web/app/routes/not-found*'; then
+  err "R4: use section-gap-product in apps/web outside the landing page"
+fi
+
 # R6. Each shared UI primitive names its Figma component (retro 2026-10-13).
-for f in $(files 'apps/mobile/src/shared/ui/*.tsx'); do
+for f in $(files 'apps/mobile/src/shared/ui/*.tsx' 'apps/web/app/shared/ui/*.tsx'); do
   head -3 "$f" | grep -q '// Figma: ' || err "R6: $f has no '// Figma: <name> <node id>' header"
 done
 
@@ -96,9 +112,11 @@ fi
 
 # R8. Worker config holds vars only: no account IDs or secret-like keys in wrangler.jsonc, and no
 # tracked .dev.vars (only .dev.vars.example). Secrets go in .dev.vars (local) or `wrangler secret`.
-if [ -f apps/api/wrangler.jsonc ] && grep -niE '"(account_id|[A-Za-z_]*(secret|token|api_?key|password|private_?key)[A-Za-z_]*)" *:' apps/api/wrangler.jsonc; then
-  err "R8: wrangler.jsonc must hold vars only; no account_id or secrets"
-fi
+for w in apps/api/wrangler.jsonc apps/web/wrangler.jsonc; do
+  if [ -f "$w" ] && grep -niE '"(account_id|[A-Za-z_]*(secret|token|api_?key|password|private_?key)[A-Za-z_]*)" *:' "$w"; then
+    err "R8: $w must hold vars only; no account_id or secrets"
+  fi
+done
 if files | grep -E '(^|/)\.dev\.vars($|\.)' | grep -v '\.dev\.vars\.example$'; then
   err "R8: .dev.vars is tracked"
 fi

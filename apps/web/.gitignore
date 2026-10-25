@@ -1,0 +1,6 @@
+build
+.react-router
+.wrangler
+playwright-report
+test-results
+.lighthouseci
