@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import AddressPage, { handle } from '../app/routes/address'
 
 const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
@@ -45,6 +45,12 @@ beforeEach(() => {
 })
 afterEach(() => {
   vi.unstubAllGlobals()
+})
+
+// useBalances imports the API client on first read; the first transform of it takes over a second in CI, longer than
+// a findBy* waits. Load it once here, as the browser has it cached after the first read.
+beforeAll(async () => {
+  await Promise.all([import('../app/shared/api/client'), import('@vaultme/api-client')])
 })
 
 describe('address input', () => {
@@ -145,5 +151,18 @@ describe('viewer', () => {
     await user.click(screen.getByRole('button', { name: '주소 복사' }))
     expect(await navigator.clipboard.readText()).toBe(A)
     expect(await screen.findByText('복사했어요')).toBeInTheDocument()
+  })
+
+  it('a browser with no Clipboard API (http, old browser) does not throw on copy; the address stays on screen', async () => {
+    const errors: unknown[] = []
+    const onError = (e: ErrorEvent) => errors.push(e.error)
+    window.addEventListener('error', onError)
+    open(`/address#${A}`)
+    vi.stubGlobal('navigator', Object.create(navigator, { clipboard: { value: undefined } }))
+    screen.getByRole('button', { name: '주소 복사' }).click()
+    await new Promise((r) => setTimeout(r, 0))
+    window.removeEventListener('error', onError)
+    expect(errors).toEqual([])
+    expect(screen.queryByText('복사했어요')).toBeNull()
   })
 })

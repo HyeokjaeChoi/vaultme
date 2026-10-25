@@ -1,5 +1,5 @@
 import { formatAmount } from '@vaultme/wallet-core'
-import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 /** `update`: the API answered 426, this cached build is too old (ADR-0011: "새로고침해 주세요"). */
 export type Balances =
@@ -24,23 +24,21 @@ async function load(address: string): Promise<Settled> {
 }
 
 /**
- * ETH and Sepolia USDC balances of `address` through the shared API client. The read runs in a Transition: `isPending`
- * is the loading state (the skeleton), first load and retry alike. The viewer state is the URL fragment, and a
+ * ETH and Sepolia USDC balances of `address` through the shared API client. The viewer state is the URL fragment, and a
  * fragment-only navigation runs no route loader in React Router (router.ts isHashChangeOnly), so the read lives here.
+ * Each read gets a number and only the newest one shows: an older read (an address the user left, or the same address
+ * before a retry or A -> B -> A) never replaces it. Not a Transition: React joins running Transitions into one
+ * `isPending`, so a slow read the user left kept the next address on the skeleton.
  */
 export function useBalances(address: string | null): [Balances, retry: () => void] {
-  const [settled, setSettled] = useState<{ address: string; balances: Settled } | null>(null)
-  const [isPending, startTransition] = useTransition()
-  const latest = useRef(address)
-  useEffect(() => {
-    latest.current = address
-  }, [address])
+  const [current, setCurrent] = useState<{ address: string; balances: Settled | null } | null>(null)
+  const newest = useRef(0)
 
   const read = useCallback((a: string) => {
-    startTransition(async () => {
-      const balances = await load(a)
-      // A slower answer for an address the user already left must not show up for the new one.
-      if (latest.current === a) startTransition(() => setSettled({ address: a, balances }))
+    const n = ++newest.current
+    setCurrent({ address: a, balances: null })
+    void load(a).then((balances) => {
+      if (newest.current === n) setCurrent({ address: a, balances })
     })
   }, [])
 
@@ -49,6 +47,6 @@ export function useBalances(address: string | null): [Balances, retry: () => voi
   }, [address, read])
 
   const state: Balances =
-    !address || isPending || settled?.address !== address ? { status: 'loading' } : settled.balances
+    !address || current?.address !== address || !current.balances ? { status: 'loading' } : current.balances
   return [state, () => address && read(address)]
 }

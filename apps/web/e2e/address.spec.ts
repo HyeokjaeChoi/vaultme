@@ -4,7 +4,8 @@ import { type Page, type Route, expect, test } from '@playwright/test'
 type LayoutShift = PerformanceEntry & { value: number; sources: { node: Node | null }[] }
 
 // The viewer against fixture answers: the default build calls the staging API (scripts/finalize.ts apiOrigin), and
-// every request to it is answered here. Real data only in app code; the staging smoke runs against the real API.
+// every request to it is answered here. Real data only in app code. No test reads balances from the real staging API
+// yet (the web-staging smoke only checks the 404 page).
 const API = 'https://vaultme-api-staging.gurwo1007.workers.dev'
 const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 

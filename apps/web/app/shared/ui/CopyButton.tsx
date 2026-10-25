@@ -20,10 +20,13 @@ export function CopyButton({ text, label, copied }: { text: string | null; label
         disabled={text === null}
         onClick={() => {
           if (text === null) return
-          navigator.clipboard.writeText(text).then(
-            () => setDone(true),
-            () => undefined, // no clipboard permission: the address is on screen to select
-          )
+          // In a promise, so a browser with no Clipboard API (http, old browsers) rejects instead of throwing.
+          Promise.resolve()
+            .then(() => navigator.clipboard.writeText(text))
+            .then(
+              () => setDone(true),
+              () => undefined, // no clipboard (permission or API): the address is on screen to select
+            )
         }}
         className="bg-icon-button-bg-default hover:bg-icon-button-bg-hover active:bg-icon-button-bg-pressed text-icon-button-fg rounded-icon-button-radius size-icon-button-hit-target inline-flex shrink-0 cursor-pointer items-center justify-center"
       >
