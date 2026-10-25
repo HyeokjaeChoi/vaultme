@@ -69,6 +69,7 @@ export function parseItems(data: unknown): HistoryItem[] {
     const p = ApiHistoryItem.safeParse(x)
     if (!p.success) continue
     const i = p.data
+    if (Number.isNaN(new Date(i.timestamp * 1000).getTime())) continue // beyond the Date range: a client could not format the row (toISOString throws)
     if (i.zeroValue && i.direction === 'in') continue // Incoming 0-value rows are the address-poisoning vector. Own calls stay.
     out.push({
       id: i.id,

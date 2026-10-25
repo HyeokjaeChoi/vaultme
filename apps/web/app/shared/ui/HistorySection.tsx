@@ -1,7 +1,7 @@
 // Figma: History frames of the Viewer section 765:2183 (list 765:2275 / 765:2877, loading 767:3091 / 767:3383, empty 767:3634,
 // error 767:4123), B/Section header 399:95, Load more 765:2966
 import type { WebLocale, WebMessages } from '@vaultme/i18n/web'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { History } from '../api/useHistory'
 import { etherscanAddress, FAUCET_URL } from '../lib/history'
 import { Button } from './Button'
@@ -48,7 +48,14 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
   })
 
   const ok = history.status === 'ok' ? history : null
-  const now = useMemo(() => Date.now(), [ok?.items])
+  // "3분 전" stays true while the tab is open: `now` is renewed each minute and when rows are revealed.
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!ok) return
+    setNow(Date.now())
+    const timer = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(timer)
+  }, [ok?.items, limit])
   const rows = ok?.items.slice(0, limit) ?? []
   const hasMore = ok !== null && (limit < ok.items.length || ok.nextCursor !== null)
 

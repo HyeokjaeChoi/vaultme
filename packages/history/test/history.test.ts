@@ -230,6 +230,14 @@ describe('list (S40, ADR-0007)', () => {
   })
 })
 
+describe('timestamps that cannot be dates', () => {
+  it('a row whose time is beyond the Date range is dropped, so a client can format every row it gets', async () => {
+    const s = setup({ answer: () => Promise.resolve(page([row(0, 'in', { timestamp: 9e15 }), row(1, 'in')])) })
+    await s.load(ME)
+    expect(s.views[0]?.items.map((i) => i.id)).toEqual([`${H}:1`])
+  })
+})
+
 describe('older pages (web 더 보기)', () => {
   const withCursor = (items: unknown[], nextCursor: string | null) => ({ items, nextCursor, incomplete: false })
 
