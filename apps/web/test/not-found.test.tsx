@@ -1,9 +1,11 @@
+import { webMessages } from '@vaultme/i18n/web'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import NotFound, { handle, meta } from '../app/routes/not-found'
 import { SiteFooter } from '../app/shared/ui/SiteFooter'
 import { SiteHeader } from '../app/shared/ui/SiteHeader'
+import { SkipLink } from '../app/shared/ui/SkipLink'
 
 const at = (path: string) =>
   render(
@@ -34,6 +36,13 @@ describe('404 page', () => {
   it('is not hydrated and not indexed', () => {
     expect(handle).toEqual({ hydrate: false })
     expect(meta()).toEqual([{ name: 'robots', content: 'noindex' }])
+  })
+})
+
+describe('skip link', () => {
+  it('points at the main content in both languages', () => {
+    render(<SkipLink t={webMessages.en.header} />)
+    expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main')
   })
 })
 

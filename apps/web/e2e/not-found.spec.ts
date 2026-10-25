@@ -30,6 +30,7 @@ for (const p of pages) {
       expect(res.status()).toBe(404)
       const h = res.headers()
       expect(h['x-content-type-options']).toBe('nosniff')
+      expect(h['x-robots-tag']).toBe('noindex') // every build but WEB_ENV=production
       expect(h['strict-transport-security']).toContain('max-age=')
       expect(h['referrer-policy']).toBe('strict-origin-when-cross-origin')
       expect(h['permissions-policy']).toContain('camera=()')
@@ -100,19 +101,57 @@ test.describe('theme toggle', () => {
   test('applies the stored theme before first paint', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('vaultme-theme', 'dark'))
     await page.emulateMedia({ colorScheme: 'light' })
-    await page.goto('/x', { waitUntil: 'commit' })
+    await page.goto('/x', { waitUntil: 'domcontentloaded' })
     // Read at DOMContentLoaded start, before any stylesheet-driven paint of the light theme could happen.
     const attr = await page.evaluate(() => document.documentElement.dataset.theme)
     expect(attr).toBe('dark')
   })
 })
 
-test('/404 and /en/404 redirect to the home pages, which answer 404 until the landing page exists', async ({
-  page,
-}) => {
-  const res = await page.request.get('/404', { maxRedirects: 0 })
-  expect(res.status()).toBe(302)
-  expect(res.headers().location).toBe('/')
+test.describe('redirects', () => {
+  // The home pages answer 404 until the landing page exists; the real 404 files must not answer 200 themselves.
+  for (const [from, status, to] of [
+    ['/404', 302, '/'],
+    ['/en/404', 302, '/en/'],
+    ['/en', 301, '/en/'],
+  ] as const) {
+    test(`${from} -> ${to}`, async ({ request }) => {
+      const res = await request.get(from, { maxRedirects: 0 })
+      expect(res.status()).toBe(status)
+      expect(res.headers().location).toBe(to)
+    })
+  }
+})
+
+test.describe('keyboard and touch', () => {
+  for (const width of [375, 768, 1280]) {
+    test(`every link and button is at least 44 x 44 px (${String(width)}px)`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 })
+      await page.goto('/x')
+      const small = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('a, button')]
+          .filter((el) => !el.matches('a[href="#main"]')) // the skip link is hidden until focused
+          .flatMap((el) => {
+            const { width, height } = el.getBoundingClientRect()
+            const name = el.getAttribute('aria-label') ?? el.textContent.trim()
+            return width < 44 || height < 44
+              ? [`${name}: ${String(Math.round(width))} x ${String(Math.round(height))}`]
+              : []
+          }),
+      )
+      expect(small).toEqual([])
+    })
+  }
+
+  test('the skip link is the first tab stop, shows on focus and moves to the main content', async ({ page }) => {
+    await page.goto('/x')
+    await page.keyboard.press('Tab')
+    const skip = page.getByRole('link', { name: '본문으로 건너뛰기' })
+    await expect(skip).toBeFocused()
+    await expect(skip).toBeInViewport()
+    await skip.press('Enter')
+    await expect(page).toHaveURL(/#main$/)
+  })
 })
 
 test('a missing asset answers 404, not a fallback page with 200', async ({ request }) => {

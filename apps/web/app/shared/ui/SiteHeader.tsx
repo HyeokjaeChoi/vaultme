@@ -8,11 +8,13 @@ import { StatusChip } from './StatusChip'
 import { ThemeToggle } from './ThemeToggle'
 
 // 375: only the other language ("EN"). 768 and up: "KO / EN", the current one as plain text.
+// Every link is at least 48 px high and 44 px wide (touch-min); the padding adds up to the Figma spacing.
+const item = 'h-button-b-height-md min-w-touch-min tablet:px-2 items-center justify-center'
 function LanguageSwitch({ locale, t }: { locale: WebLocale; t: WebMessages['header'] }) {
   return (
     <nav
       aria-label={t.languageLabel}
-      className="text-product-b-headline text-text-primary h-button-b-height-md px-button-b-padding-x-md flex items-center gap-2 whitespace-nowrap"
+      className="text-product-b-headline text-text-primary tablet:px-3 flex items-center whitespace-nowrap"
     >
       {webLocales.map((code, i) => (
         <Fragment key={code}>
@@ -22,11 +24,16 @@ function LanguageSwitch({ locale, t }: { locale: WebLocale; t: WebMessages['head
             </span>
           )}
           {code === locale ? (
-            <span aria-current="true" className="tablet:inline hidden">
+            <span aria-current="true" className={`${item} tablet:inline-flex hidden`}>
               {code.toUpperCase()}
             </span>
           ) : (
-            <a href={homeOf(code)} lang={code} hrefLang={code}>
+            <a
+              href={homeOf(code)}
+              lang={code}
+              hrefLang={code}
+              className={`${item} px-button-b-padding-x-md inline-flex`}
+            >
               {code.toUpperCase()}
             </a>
           )}
@@ -40,7 +47,7 @@ export function SiteHeader({ locale }: { locale: WebLocale }) {
   const t = webMessages[locale]
   return (
     <header className="bg-screen-b-bg px-layout-screen-padding tablet:gap-3 tablet:px-8 web-desktop:px-20 h-web-header flex items-center gap-1 py-3">
-      <a href={homeOf(locale)} className="flex shrink-0 items-center gap-2" aria-label={t.siteName}>
+      <a href={homeOf(locale)} className="-m-3 flex shrink-0 items-center gap-2 p-3" aria-label={t.siteName}>
         <BrandMark />
         <span translate="no" className="text-product-b-headline text-text-primary tablet:inline hidden">
           {t.siteName}

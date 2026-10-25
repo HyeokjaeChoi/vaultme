@@ -16,3 +16,4 @@ apps/web/playwright-report/
 apps/web/test-results/
 apps/web/public/_headers
 apps/web/public/_redirects
+apps/web/test/fixtures/build/

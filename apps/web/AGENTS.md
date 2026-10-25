@@ -6,5 +6,9 @@ React Router v8 framework mode, `ssr: false`, prerendered, served by Workers Sta
 - Each file in `app/shared/ui` starts with `// Figma: <component> <node id>` (R6). Screens are route files in `app/routes`; copy comes from `@vaultme/i18n/web` (ko and en).
 - A page ships no app JS unless its route sets `handle = { hydrate: true }` (`app/root.tsx`). The inline theme script (`app/shared/lib/theme.ts`) is the only script on static pages, and `scripts/finalize.ts` puts its sha256 in the CSP. Change the script and the hash follows at build time.
 - Unknown paths answer a real 404 (ADR-0013). Do not add a SPA fallback.
-- Gates: `pnpm --filter @vaultme/web test` (Vitest), `test:e2e` (Playwright + axe, needs `pnpm --filter @vaultme/web build`), `lhci` (Lighthouse CI, needs Chrome). Budgets live in `lighthouserc.desktop.json` and `lighthouserc.mobile.json`.
+- Gates: `pnpm --filter @vaultme/web test` (Vitest), `test:e2e` (Playwright + axe, needs `pnpm --filter @vaultme/web build`), `lhci` (Lighthouse CI, needs Chrome). Budgets live in `lighthouserc.desktop.json` and `lighthouserc.mobile.json`: the 100 KB JS budget covers static pages only (ADR-0012 limits the landing JS); hydrated viewer pages have no JS budget yet, so the viewer ticket decides one.
+- Build env: `WEB_API_ORIGIN` (CSP connect-src, default the staging API) and `WEB_ENV=production` (only then no `X-Robots-Tag: noindex`). Production builds are not set up yet.
+- `test/build.test.ts` builds a fixture app (static index, hydrated route, 404). It guards the hydrate detection in `app/root.tsx`, which uses React Router's `UNSAFE_FrameworkContext`.
+- Links and buttons are at least 44 px (`p-3 -m-3` or `min-w-touch-min`); the e2e spec checks every one.
 - UI work follows the `vaultme-design-to-code` skill: light and dark comparison images at 375, 768 and 1280 in the PR.
+- Fonts: `app/fonts.css` loads after first contentful paint (the inline script turns it on), so the Korean subsets (~270 KB) are not on the critical path. A `font-display: swap` stylesheet that loads before paint dropped mobile Lighthouse for the ko 404 to 92-96. Preloading a subset has the same effect, so there is none.

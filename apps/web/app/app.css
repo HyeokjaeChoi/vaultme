@@ -1,8 +1,6 @@
 @import 'tailwindcss';
 @import '@vaultme/tokens/theme.css';
 @import '@vaultme/tokens/tokens.css';
-@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
-@import '@fontsource/ibm-plex-mono/latin-400.css';
 
 /* Figma web frames are 375 / 768 / 1280. The token breakpoints stop at 375, 768 and 1440 (theme.css), so 1280 has none.
    Workaround until the tokens add a web breakpoint (Figma Variables first, owner-approved): remove this line then. */

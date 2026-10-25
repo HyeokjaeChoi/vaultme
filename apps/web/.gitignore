@@ -4,3 +4,4 @@ build
 playwright-report
 test-results
 .lighthouseci
+test/fixtures/build

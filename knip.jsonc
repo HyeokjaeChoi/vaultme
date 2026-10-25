@@ -13,6 +13,8 @@
       // `cloudflare:workers` is a runtime module, not a package.
       "ignoreDependencies": ["cloudflare"],
     },
+    // Fixture app of test/build.test.ts: built by React Router, imported by nobody.
+    "apps/web": { "ignore": ["test/fixtures/**"] },
     "apps/mobile": {
       "entry": ["steiger.config.mjs"],
       // Guessed from app.json: no OTA updates are used.

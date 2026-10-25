@@ -41,7 +41,10 @@ jobs:
           cache: pnpm
       # Wrangler from the lockfile (7-day release age), not a separate action.
       - run: pnpm install --frozen-lockfile --filter @vaultme/web...
+      # WEB_API_ORIGIN goes into the CSP connect-src; builds stay noindex (WEB_ENV unset), ADR-0012.
       - run: pnpm --filter "@vaultme/web..." run build
+        env:
+          WEB_API_ORIGIN: ${{ vars.STAGING_API_URL }}
       # The token is set only on the deploy step, so install and build scripts cannot read it.
       - run: pnpm --filter @vaultme/web exec wrangler deploy --env staging
         env:

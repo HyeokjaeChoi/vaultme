@@ -28,9 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'renovate[bot]' && github.actor != 'dependabot[bot]'
-    # Not verified on a real account yet (needs the first staging deploy of the Worker, see ADR-0001 "Not verified").
-    # Remove continue-on-error after the first green run.
-    continue-on-error: true
     environment: staging
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -42,7 +39,10 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile --filter @vaultme/web...
+      # WEB_API_ORIGIN goes into the CSP connect-src; builds stay noindex (WEB_ENV unset), ADR-0012.
       - run: pnpm --filter "@vaultme/web..." run build
+        env:
+          WEB_API_ORIGIN: ${{ vars.STAGING_API_URL }}
       - name: Upload version with alias
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -1,0 +1,5 @@
+/* Web fonts, loaded after first contentful paint (THEME_SCRIPT enables this stylesheet): the page paints in the
+   metric-matched fallback (app.css) first, so ~270 KB of Korean subsets are off the critical path.
+   Self-hosted, OFL (licenses in public/licenses). Both packages set font-display: swap. */
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';

@@ -6,6 +6,7 @@ export const webKo = {
   header: {
     network: 'Sepolia 테스트넷',
     viewer: '주소 보기',
+    skip: '본문으로 건너뛰기',
     languageLabel: '언어',
     themeLabel: '화면 테마',
     theme: { auto: '자동', light: '밝게', dark: '어둡게' },
@@ -32,6 +33,7 @@ export const webEn: WebMessages = {
   header: {
     network: 'Sepolia testnet',
     viewer: 'View an address',
+    skip: 'Skip to content',
     languageLabel: 'Language',
     themeLabel: 'Color theme',
     theme: { auto: 'Auto', light: 'Light', dark: 'Dark' },
