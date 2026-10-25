@@ -64,6 +64,7 @@ Print, and with `--comment` post:
   Evidence: <links>
   Source: <link to the rule, ADR, invariant, lesson or acceptance criterion>
   Fix: <files and lines>
+  Unverified: <what to check> (only when the verifier tagged the finding `unverified`)
   ```
 
   Links use the full head SHA: `https://github.com/HyeokjaeChoi/vaultme/blob/<sha>/<path>#L<a>-L<b>`.
