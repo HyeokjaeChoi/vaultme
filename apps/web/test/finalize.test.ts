@@ -48,6 +48,13 @@ describe('finalize', () => {
     expect(readFileSync(join(dir, '_headers'), 'utf8')).toContain(`script-src ${HASH_A}`)
   })
 
+  it('keeps a prerendered landing page at index.html', () => {
+    const dir = build()
+    writeFileSync(join(dir, 'index.html'), '<html><main>landing</main></html>')
+    finalize(dir)
+    expect(existsSync(join(dir, 'index.html'))).toBe(true)
+  })
+
   it('fails when a prerendered 404 is missing', () => {
     const dir = mkdtempSync(join(tmpdir(), 'web-'))
     expect(() => finalize(dir)).toThrow('missing prerendered')

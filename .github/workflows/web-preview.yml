@@ -49,5 +49,6 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PR: ${{ github.event.pull_request.number }}
         run: |
+          set -o pipefail
           pnpm --filter @vaultme/web exec wrangler versions upload --env staging --preview-alias "pr-$PR" | tee upload.log
           { echo '### Preview'; grep -Eo 'https://[^ ]+workers\.dev' upload.log | sort -u; } >> "$GITHUB_STEP_SUMMARY"

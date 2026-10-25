@@ -116,5 +116,8 @@ test('/404 and /en/404 redirect to the home pages, which answer 404 until the la
 })
 
 test('a missing asset answers 404, not a fallback page with 200', async ({ request }) => {
-  expect((await request.get('/assets/none.js')).status()).toBe(404)
+  const res = await request.get('/assets/none.js')
+  expect(res.status()).toBe(404)
+  // A cached 404 for a hashed asset would outlive the deploy that adds the file.
+  expect(res.headers()['cache-control'] ?? '').not.toContain('immutable')
 })

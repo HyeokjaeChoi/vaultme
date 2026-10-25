@@ -1,6 +1,6 @@
 // Post-build step for build/client (run by `pnpm build`). Static Assets rules this satisfies (ADR-0001):
 // - `not_found_handling: "404-page"` serves the nearest `404.html` with status 404, so the prerendered 404 pages are renamed.
-// - the SPA shell React Router writes as index.html is dropped: with no landing page yet, `/` must be a real 404 too.
+// - the SPA shell React Router writes as index.html is dropped (a prerendered landing page at `/` is kept): until then `/` is a real 404 too.
 // - _headers gets the CSP script hashes of the built HTML (inline scripts cannot use a nonce on a static site).
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
@@ -46,7 +46,9 @@ export function finalize(dir: string) {
     renameSync(from, join(dir, prefix, '404.html'))
     rmSync(join(dir, prefix, '404'), { recursive: true })
   }
-  rmSync(join(dir, 'index.html'), { force: true })
+  // The SPA shell has no page content. Once the landing page is prerendered at `/`, index.html is that page: keep it.
+  const index = join(dir, 'index.html')
+  if (existsSync(index) && !/<main[\s>]/.test(readFileSync(index, 'utf8'))) rmSync(index)
   const hashes = [...new Set(htmlFiles(dir).flatMap((f) => inlineScriptHashes(readFileSync(f, 'utf8'))))]
   const headers = join(dir, '_headers')
   writeFileSync(headers, fillHeaders(readFileSync(headers, 'utf8'), hashes))

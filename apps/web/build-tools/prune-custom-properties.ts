@@ -4,7 +4,8 @@ import type { Plugin } from 'vite'
 // tokens.css defines ~1,500 custom properties (Primitive, Semantic, Component, light + dark). A page uses a few dozen.
 // Dropping the unreferenced ones takes the render-blocking stylesheet from ~28 KB to a few KB gzip, which is most of
 // the First Contentful Paint on slow 4G (Lighthouse). A property stays if a normal declaration reads it through var(),
-// directly or through other custom properties. Tailwind's own `--tw-*` properties always stay.
+// directly or through other custom properties. A property read only from a JS style string or getComputedStyle is
+// pruned: write such styles as Tailwind utilities, not var(--...) strings. Tailwind's own `--tw-*` properties always stay.
 const VAR = /var\(\s*(--[\w-]+)/g
 const refs = (value: string) => [...value.matchAll(VAR)].flatMap((m) => (m[1] ? [m[1]] : []))
 

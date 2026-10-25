@@ -9,6 +9,5 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
 
-# Hashed build output never changes under the same name.
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
+# No long Cache-Control rule for /assets/*: _headers also applies to the 404 page that answers a missing asset, so a
+# deploy race (new HTML, asset not uploaded yet) would be cached as a 404 for a year. Static Assets revalidates with ETag.
