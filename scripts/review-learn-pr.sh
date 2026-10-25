@@ -9,8 +9,9 @@ title=$(head -1 "$dir/title.txt")
 cp "$dir/body.md" "$RUNNER_TEMP/body.md"
 rm -rf "$dir"
 [ -n "$(git status --porcelain)" ] || { echo "No file changes: nothing to propose."; exit 0; }
-# The prompt forbids these paths; this enforces it. CI and agent config change only through a person's PR.
-blocked=$(git status --porcelain -- .github .githooks .claude/settings.json .claude/hooks)
+# The prompt forbids these paths; this enforces it. CI, hooks and reviewer config (agents, skills) change only through a
+# person's PR. The one allowed .claude path is the lessons skill, which this loop exists to extend.
+blocked=$(git status --porcelain -- .github .githooks .claude ':!.claude/skills/vaultme-review-lessons')
 [ -z "$blocked" ] || { echo "Refusing to propose changes to CI or agent config:"; echo "$blocked"; exit 1; }
 issue=$(gh issue create --title "chore: $title" --body-file "$RUNNER_TEMP/body.md" --label area:ci)
 n=${issue##*/}

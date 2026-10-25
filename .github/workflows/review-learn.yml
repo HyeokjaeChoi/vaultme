@@ -36,7 +36,7 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           mkdir -p .review-learn
-          trusted='select(.user.login == "claude[bot]" or .user.login == "qodo-code-review[bot]" or (.author_association | test("OWNER|MEMBER|COLLABORATOR")))'
+          trusted='select(.user.login == "claude[bot]" or (.user.login | test("^qodo[a-z-]*\\[bot\\]$")) or (.author_association | test("OWNER|MEMBER|COLLABORATOR")))'
           since=$(date -u -d '30 days ago' +%Y-%m-%d)
           week=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
           # No titles: PR text is untrusted input for an agent with write tools.
