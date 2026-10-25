@@ -7,8 +7,8 @@ Ethereum Sepolia 테스트넷용 self-custody 지갑입니다. 학습과 포트�
 이 모노레포에는 지갑 로직, React Native(Expo) 앱, 디자인 토큰, 설계 문서가 들어 있습니다.
 실서비스 지갑이 아닙니다. 테스트 자금만 사용하세요.
 
-> **상태: 2026-10-14**
-> C1(`packages/wallet-core`), C2a(정적 화면이 있는 모바일 UI), Redesign A("한 화면, 한 질문", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)), C2b(보안 저장소, 백업, 복구, 앱 잠금, 보내기)가 `main`에 merge되었습니다. C2b는 가짜 체인 어댑터를 씁니다. C3-6(#43)이 실제 체인 어댑터와 API client를 더했습니다. `EXPO_PUBLIC_API_URL`이 있으면 앱이 설치를 등록하고 `POST /v1/rpc`를 씁니다. 없으면 가짜 어댑터가 그대로 돌고 어떤 거래도 기기 밖으로 나가지 않습니다. `POST /v1/history`도 연결되어 있습니다. [ARCHITECTURE.md](ARCHITECTURE.md)가 지금 코드가 하는 일을 설명합니다.
+> **상태: 2026-10-25**
+> C1(`packages/wallet-core`), C2a(정적 화면이 있는 모바일 UI), Redesign A("한 화면, 한 질문", [PR #10](https://github.com/HyeokjaeChoi/vaultme/pull/10)), C2b(보안 저장소, 백업, 복구, 앱 잠금, 보내기)가 `main`에 merge되었습니다. C2b는 가짜 체인 어댑터를 씁니다. C3-6(#43)이 실제 체인 어댑터와 API client를 더했습니다. `EXPO_PUBLIC_API_URL`이 있으면 앱이 설치를 등록하고 `POST /v1/rpc`를 씁니다. 없으면 가짜 어댑터가 그대로 돌고 어떤 거래도 기기 밖으로 나가지 않습니다. `POST /v1/history`도 연결되어 있습니다. 웹 앱(`apps/web`)에는 랜딩 페이지(ko/en), 404 페이지, ETH와 USDC 잔액을 보여 주는 읽기 전용 주소 조회가 staging에 있습니다. 조회 내역 목록은 진행 중입니다([#196](https://github.com/HyeokjaeChoi/vaultme/issues/196)). [ARCHITECTURE.md](ARCHITECTURE.md)가 지금 코드가 하는 일을 설명합니다.
 
 ## 여기서 시작
 
@@ -30,9 +30,13 @@ VaultMe는 seed phrase 기반 지갑입니다. Ethereum Sepolia에서 EVM 계정
 
 | 경로 | 역할 |
 | --- | --- |
-| `apps/mobile` | Expo 앱(`@vaultme/mobile`). Figma 디자인으로 만든 화면. `wallet-core`와 기기 저장소에 연결됨 (C3 전까지 가짜 체인) |
-| `apps/web` | 정적 웹 앱(`@vaultme/web`). React Router 프리렌더, Cloudflare Workers Static Assets에서 제공. 지금은 404 페이지만 있고, 랜딩과 주소 조회가 이어짐 |
+| `apps/mobile` | Expo 앱(`@vaultme/mobile`). Figma 디자인으로 만든 화면. `wallet-core`, 기기 저장소, API에 연결됨 (`EXPO_PUBLIC_API_URL`이 없으면 가짜 체인) |
+| `apps/api` | Cloudflare Worker(`@vaultme/api`), Hono와 D1: RPC proxy, 내역, push |
+| `apps/web` | 정적 웹 앱(`@vaultme/web`). React Router 프리렌더, Cloudflare Workers Static Assets에서 제공. 랜딩 페이지(ko/en), 404 페이지, 잔액을 보여 주는 읽기 전용 주소 조회가 있고, 내역 목록은 진행 중(#196) |
 | `packages/wallet-core` | viem을 쓰는 순수 TypeScript: 키 파생, 금액, 위험 검사, 송신 상태. IO 없음 |
+| `packages/contracts` | 앱, 웹 앱, API가 함께 쓰는 zod 스키마 |
+| `packages/api-client` | 설치 신원 API client(`createApiClient`) |
+| `packages/history` | 내역 목록과 행 조회 모듈 |
 | `packages/tokens` | Style Dictionary로 token 원본에서 생성하는 디자인 토큰 |
 | `packages/i18n` | i18next 기반의 타입 있는 한국어 문구 |
 | `packages/config` | 공유 ESLint, TypeScript 설정 |
@@ -62,7 +66,7 @@ pnpm --filter @vaultme/mobile start   # Expo dev server
 ```
 
 `packages/tokens`는 `build`에서 TypeScript 출력을 생성합니다. `typecheck`, `lint`, `test` script가 먼저 `build`를 실행합니다.
-pre-commit hook은 stage된 파일에 ESLint `--fix`와 Prettier를 실행합니다. CI는 `scripts/check-repo-rules.sh`, `prettier --check .`, `pnpm turbo run typecheck lint test`를 실행합니다([ci.yml](.github/workflows/ci.yml)).
+pre-commit hook은 stage된 파일에 ESLint `--fix`와 Prettier를 실행합니다. CI는 `scripts/check-repo-rules.sh`, `prettier --check .`, `pnpm turbo run typecheck lint test`, API `openapi:check`, `pnpm knip`, 모바일 번들 검사, 웹 게이트를 실행합니다([ci.yml](.github/workflows/ci.yml)).
 
 ## 디자인 시스템
 
