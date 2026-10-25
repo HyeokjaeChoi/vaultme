@@ -116,6 +116,8 @@ export const dark = {
       "product_header": 56,
       "product_nav": 64,
       "review_panel": 480,
+      "web_header": 68,
+      "web_narrow_column": 560,
       "pill_lg": 56,
       "pill_md": 48,
       "pill_sm": 40,
@@ -659,7 +661,8 @@ export const dark = {
       "cardGap": 24,
       "contentMaxWidth": 1200,
       "breakpoint": {
-        "productDesktop": 1200
+        "productDesktop": 1200,
+        "webDesktop": 1280
       },
       "screen": {
         "padding": 16
@@ -669,6 +672,9 @@ export const dark = {
       "fieldGap": 8,
       "review": {
         "maxWidth": 480
+      },
+      "web": {
+        "narrowWidth": 560
       }
     },
     "iconSize": {
@@ -1678,6 +1684,9 @@ export const dark = {
       },
       "scrimBg": "#0B0F15",
       "scrimOpacity": 0.4
+    },
+    "webHeader": {
+      "height": 68
     },
     "productHeader": {
       "height": {

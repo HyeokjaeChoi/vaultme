@@ -2,12 +2,6 @@
 @import '@vaultme/tokens/theme.css';
 @import '@vaultme/tokens/tokens.css';
 
-/* Figma web frames are 375 / 768 / 1280. The token breakpoints stop at 375, 768 and 1440 (theme.css), so 1280 has none.
-   Workaround until the tokens add a web breakpoint (Figma Variables first, owner-approved): remove this line then. */
-@theme {
-  --breakpoint-web-desktop: 1280px;
-}
-
 /* Metric-adjusted fallback so the swap from the system font to Pretendard moves text less (size-adjust, #186 fonts).
    Values: Pretendard hhea ascent 0.92 / descent 0.22 / line gap 0, against Apple SD Gothic Neo. */
 @font-face {
@@ -43,13 +37,4 @@
     outline: var(--semantic-focus-width) solid var(--semantic-focus-color);
     outline-offset: var(--semantic-focus-offset);
   }
-}
-
-/* Figma web sizes with no token yet (header 68, content column 560). Built from token values, not literals.
-   Remove each when the tokens add them (Figma Variables first, owner-approved); reported in the PR. */
-@utility h-web-header {
-  height: calc(var(--primitive-space-16) + var(--primitive-space-1));
-}
-@utility max-w-web-narrow {
-  max-width: calc(var(--primitive-size-review-panel) + var(--primitive-space-20));
 }

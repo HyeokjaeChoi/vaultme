@@ -285,6 +285,9 @@ for (const t of cssLight.allTokens) {
   if (!ns || (layer === 'primitive' && (t.type === 'color' || group === 'grid'))) continue // grid: Figma layout source, Semantic layout.* aliases it
   const name = `--${ns}-${twName(t)}`
   const varName = cssName(tokenPath(t))
+  // Semantic layout.breakpoint.* (web desktop 1280, product desktop 1200) also become Tailwind breakpoints (`web-desktop:` variant).
+  if (layer === 'semantic' && t.type === 'dimension' && tokenPath(t).slice(1, 3).join('.') === 'layout.breakpoint')
+    tw(`--breakpoint-${kebab(tokenPath(t).at(-1))}`, t.value, layer)
   if (t.type === 'typography') {
     tw(name, `var(${varName}-font-size)`, layer)
     for (const part of ['lineHeight', 'letterSpacing', 'fontWeight'])

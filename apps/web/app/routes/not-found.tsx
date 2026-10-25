@@ -20,7 +20,7 @@ export default function NotFound() {
       className="px-layout-screen-padding tablet:px-8 tablet:py-20 web-desktop:px-20 web-desktop:py-24 flex flex-col items-center py-16"
     >
       <title>{`${t.title} · ${webMessages[locale].siteName}`}</title>
-      <div className="max-w-web-narrow flex w-full flex-col items-center gap-6 text-center">
+      <div className="max-w-layout-web-narrow-width flex w-full flex-col items-center gap-6 text-center">
         <p className="text-product-b-display-l text-text-tertiary">{t.code}</p>
         <h1 className="text-balance text-product-b-title2 tablet:text-product-b-title1 web-desktop:text-product-b-display-m text-text-primary">
           {t.title}
