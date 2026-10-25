@@ -12,9 +12,12 @@ rm -rf "$dir"
 issue=$(gh issue create --title "chore: $title" --body-file "$RUNNER_TEMP/body.md" --label area:ci)
 n=${issue##*/}
 branch="chore/$n-review-lessons"
+# A failed push would leave the issue without a PR: close it with the reason.
+trap 'gh issue close "$n" --reason "not planned" --comment "review-learn could not push the proposal branch; see the workflow run."' ERR
 git switch -c "$branch"
 git add -A
 git -c user.name="claude[bot]" -c user.email="claude[bot]@users.noreply.github.com" commit -qm "chore: $title (#$n)"
 git push "https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git" "HEAD:refs/heads/$branch"
+trap - ERR
 { printf 'Closes #%s\n\n' "$n"; cat "$RUNNER_TEMP/body.md"; } > "$RUNNER_TEMP/pr.md"
 gh pr create --draft --head "$branch" --title "chore: $title" --body-file "$RUNNER_TEMP/pr.md"

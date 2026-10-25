@@ -28,6 +28,7 @@ jobs:
           persist-credentials: false
       # Inline review comments (findings and the replies that answer them) and Claude summary comments on PRs merged in
       # the last 30 days. 30 days so a finding can repeat across weeks; only kinds seen in the last 7 days get a proposal.
+      # The repo is public: only Claude and people with write access count, so outside comments never steer the agent.
       - name: Collect findings
         id: collect
         env:
@@ -39,7 +40,7 @@ jobs:
           gh pr list --repo "$REPO" --state merged --search "merged:>=$since" --limit 200 --json number,title,mergedAt > "$RUNNER_TEMP/prs.json"
           for n in $(jq -r '.[].number' "$RUNNER_TEMP/prs.json"); do
             gh api --paginate "repos/$REPO/pulls/$n/comments" \
-              --jq "[.[] | {pr: $n, id, in_reply_to_id, user: .user.login, path, line, outdated: (.position == null), body}]"
+              --jq "[.[] | select(.user.login == \"claude[bot]\" or (.author_association | test(\"OWNER|MEMBER|COLLABORATOR\"))) | {pr: $n, id, in_reply_to_id, user: .user.login, path, line, outdated: (.position == null), body}]"
             gh api --paginate "repos/$REPO/issues/$n/comments" \
               --jq "[.[] | select(.user.login == \"claude[bot]\") | {pr: $n, user: .user.login, body}]"
           done | jq -s 'add // []' > "$RUNNER_TEMP/comments.json"

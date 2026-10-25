@@ -12,7 +12,7 @@
     "test": "node scripts/generate-licenses.mjs && vitest run --passWithNoTests",
     "typecheck": "node scripts/generate-licenses.mjs && tsc -p tsconfig.json",
     "lint": "node scripts/generate-licenses.mjs && eslint . --max-warnings=0 && steiger ./src",
-    "export:check": "node scripts/generate-licenses.mjs && expo export --platform ios --platform android --output-dir dist && ! find dist -name '*.hbc' -size +9M | grep .",
+    "export:check": "node scripts/generate-licenses.mjs && expo export --platform ios --platform android --output-dir dist && test $(find dist -name '*.hbc' | wc -l) -eq 2 && ! find dist -name '*.hbc' -size +9M | grep .",
     "doctor": "expo-doctor"
   },
   "dependencies": {
