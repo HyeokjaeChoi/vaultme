@@ -1,7 +1,7 @@
 // Figma: Tx detail columns (Web page, section 768:4422: 768:4443 at 375, 768:4617 at 768, 768:4764 at 1280) and the loading frames (768:33109 ..)
 import type { TxDetail as Tx } from '@vaultme/api-client'
 import type { WebLocale, WebMessages } from '@vaultme/i18n/web'
-import { fromUnits } from '@vaultme/wallet-core'
+import { fromUnits, toChecksumAddress } from '@vaultme/wallet-core'
 import { etherscanTx, utcTime } from '../lib/tx'
 import { relativeTime } from '../lib/history'
 import { ButtonLink } from './ButtonLink'
@@ -9,27 +9,35 @@ import { DefinitionRow } from './DefinitionRow'
 import { Icon } from './Icon'
 import { StatusBadge } from './StatusBadge'
 
+// The node answers in lower case; the viewer and the app show EIP-55.
+const eip55 = (a: string) => toChecksumAddress(a.toLowerCase())
+
 type Props = { tx: Tx; now: number; t: WebMessages; locale: WebLocale }
 
 /** Status and amount, the six rows in the S41 order (from, to, time, fee, block, hash) and the Etherscan link. */
 export function TxDetail({ tx, now, t, locale }: Props) {
   const copy = (text: string, label: string) => ({ text, label, copied: t.tx.copied })
+  const from = eip55(tx.from)
+  const to = tx.to ? eip55(tx.to) : null
   return (
     <>
       <div className="flex flex-col items-start gap-3">
         <StatusBadge kind={tx.ok ? 'confirmed' : 'failed'} label={tx.ok ? t.tx.status.confirmed : t.tx.status.failed} />
         <p className="flex items-end gap-2 break-all">
-          <span className="text-product-b-figure text-text-primary">{fromUnits(tx.amount, tx.asset)}</span>
+          {/* A reverted call moved nothing: the amount it asked for is grey, as in the history rows. */}
+          <span className={`text-product-b-figure ${tx.ok ? 'text-text-primary' : 'text-text-tertiary'}`}>
+            {fromUnits(tx.amount, tx.asset)}
+          </span>
           <span className="text-product-b-figure-unit text-text-secondary">{tx.asset}</span>
         </p>
       </div>
       <dl className="flex flex-col">
-        <DefinitionRow label={t.tx.from} mono copy={copy(tx.from, t.tx.copyFrom)}>
-          {tx.from}
+        <DefinitionRow label={t.tx.from} mono copy={copy(from, t.tx.copyFrom)}>
+          {from}
         </DefinitionRow>
-        {tx.to ? (
-          <DefinitionRow label={t.tx.to} mono copy={copy(tx.to, t.tx.copyTo)}>
-            {tx.to}
+        {to ? (
+          <DefinitionRow label={t.tx.to} mono copy={copy(to, t.tx.copyTo)}>
+            {to}
           </DefinitionRow>
         ) : (
           <DefinitionRow label={t.tx.to}>—</DefinitionRow>

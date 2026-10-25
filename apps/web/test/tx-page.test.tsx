@@ -101,7 +101,7 @@ describe('transaction page', () => {
     expect(screen.getByText('12.5')).toBeInTheDocument()
     expect(screen.getByText('USDC')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'View on Etherscan' })).toBeInTheDocument()
-    expect(screen.getAllByRole('definition')[1]).toHaveTextContent(A.toLowerCase())
+    expect(screen.getAllByRole('definition')[1]).toHaveTextContent(A) // EIP-55, though the node answers in lower case
   })
 
   it('a reverted transaction says failed; a contract creation has no recipient', async () => {

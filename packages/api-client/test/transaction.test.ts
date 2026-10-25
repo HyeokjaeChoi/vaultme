@@ -9,6 +9,7 @@ const USDC = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 const eth = { hash: HASH, from: FROM, to: TO, value: '0xb1a2bc2ec50000', input: '0x' } // 0.05 ETH
 const receipt = { status: '0x1', gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00', blockNumber: '0x713a27' }
 const block = { timestamp: '0x68fc4f00' }
+const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
 /** An rpc that answers the three reads and records the calls. */
 const chain = (o: { tx?: unknown; receipt?: unknown; block?: unknown } = {}) => {
@@ -52,6 +53,33 @@ describe('readTransaction', () => {
     expect(await readTransaction(rpc, HASH)).toMatchObject({ asset: 'USDC', amount: 12_500_000n, to: TO.toLowerCase() })
   })
 
+  it('a USDC transfer with extra call data bytes is still the transfer (an ABI decoder ignores the tail)', async () => {
+    const input = `0xa9059cbb${TO.slice(2).toLowerCase().padStart(64, '0')}${1_000_000n.toString(16).padStart(64, '0')}00ff`
+    const { rpc } = chain({ tx: { ...eth, to: USDC, value: '0x0', input } })
+    expect(await readTransaction(rpc, HASH)).toMatchObject({ asset: 'USDC', amount: 1_000_000n })
+  })
+
+  it('a USDC move through another call (transferFrom, a router) is the one USDC Transfer log of the receipt', async () => {
+    const word = (a: string) => `0x${a.slice(2).toLowerCase().padStart(64, '0')}`
+    const log = (o: Record<string, unknown> = {}) => ({
+      address: USDC.toLowerCase(),
+      topics: [TRANSFER_TOPIC, word(FROM), word(TO)],
+      data: `0x${7_500_000n.toString(16).padStart(64, '0')}`,
+      ...o,
+    })
+    const via = { ...eth, to: `0x${'11'.repeat(20)}`, value: '0x0', input: '0x23b872dd00' }
+    const one = chain({ tx: via, receipt: { ...receipt, logs: [log(), log({ address: `0x${'22'.repeat(20)}` })] } })
+    expect(await readTransaction(one.rpc, HASH)).toMatchObject({
+      asset: 'USDC',
+      amount: 7_500_000n,
+      from: FROM.toLowerCase(),
+      to: TO.toLowerCase(),
+    })
+    // Two USDC legs: which one the page means is unclear, so it shows the call itself (its ETH value).
+    const two = chain({ tx: via, receipt: { ...receipt, logs: [log(), log()] } })
+    expect(await readTransaction(two.rpc, HASH)).toMatchObject({ asset: 'ETH', amount: 0n })
+  })
+
   it('shows a call to another contract as its ETH value', async () => {
     const { rpc } = chain({ tx: { ...eth, to: `0x${'11'.repeat(20)}`, value: '0x0', input: '0xa9059cbb00' } })
     expect(await readTransaction(rpc, HASH)).toMatchObject({ asset: 'ETH', amount: 0n, to: `0x${'11'.repeat(20)}` })
@@ -72,13 +100,14 @@ describe('readTransaction', () => {
     const waiting = chain({ receipt: null })
     expect(await readTransaction(waiting.rpc, HASH)).toBeNull()
     expect(waiting.calls.map((c) => c[0])).not.toContain('eth_getBlockByNumber')
+    // A node that is behind the one that answered the receipt has no such block yet: not "failed", the same wait.
+    expect(await readTransaction(chain({ block: null }).rpc, HASH)).toBeNull()
   })
 
   it.each([
     ['no from', { tx: { ...eth, from: undefined } }],
     ['a bad value', { tx: { ...eth, value: '5' } }],
     ['a bad receipt', { receipt: { ...receipt, gasUsed: 'x' } }],
-    ['no block', { block: null }],
     ['a bad timestamp', { block: { timestamp: 'x' } }],
   ])('throws on %s', async (_n, o) => {
     await expect(readTransaction(chain(o).rpc, HASH)).rejects.toThrow()
