@@ -2,22 +2,29 @@ import { OpenAPIHono, createRoute } from '@hono/zod-openapi'
 import {
   APP_VERSION_HEADER,
   AppVersion,
+  CLIENT_HEADER,
   ErrorEnvelope,
   HealthResponse,
   HistoryRequest,
   HistoryResponse,
+  INSTALL_ID_HEADER,
   InstallMeResponse,
+  NONCE_HEADER,
   PushOkResponse,
   PushSubscribeRequest,
   RegisterRequest,
   RegisterResponse,
   RpcRequest,
   RpcResponse,
+  SIGNATURE_HEADER,
+  TIMESTAMP_HEADER,
   TokenResponse,
+  WEB_CLIENT,
   errorEnvelope,
   isBelow,
 } from '@vaultme/contracts'
 import type { ErrorHandler, MiddlewareHandler } from 'hono'
+import { cors } from 'hono/cors'
 import pkg from '../package.json' with { type: 'json' }
 import {
   importPublicKey,
@@ -34,7 +41,6 @@ import { InvalidCursorError, UpstreamError, fail } from './errors.ts'
 import { AlchemyPayload, handleActivity, subscribe, unsubscribe, verifyAlchemySignature } from './push.ts'
 import { proxyRpc, rpcAllowed } from './rpc.ts'
 
-// No CORS headers on purpose: the only client is the native app (ARCHITECTURE.md#security-model).
 export const app = new OpenAPIHono<Env>({
   defaultHook: (r, c) => {
     if (!r.success) return fail(c, 400, 'invalid_request', 'Invalid request')
@@ -42,19 +48,52 @@ export const app = new OpenAPIHono<Env>({
   },
 })
 
+// WEB_ORIGINS is a comma-separated var: the exact browser origins allowed (ADR-0011). Empty = no browser.
+const webOrigins = (c: { env: Env['Bindings'] }) =>
+  (c.env.WEB_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
+
 // A browser always sends Origin on cross-origin requests. The native app does not.
+// Only the allow-listed web origins pass; this also covers preflight and /webhooks.
 app.use('*', async (c, next) => {
-  if (c.req.header('Origin') !== undefined) return fail(c, 403, 'origin_forbidden', 'Browser requests are not allowed')
+  const origin = c.req.header('Origin')
+  if (origin !== undefined && !webOrigins(c).includes(origin))
+    return fail(c, 403, 'origin_forbidden', 'Origin is not allowed')
   await next()
 })
+
+// CORS only for /v1. cors() answers the preflight itself, before the version check below.
+app.use(
+  '/v1/*',
+  cors({
+    origin: (origin, c) => (webOrigins(c).includes(origin) ? origin : null),
+    allowHeaders: [
+      APP_VERSION_HEADER,
+      CLIENT_HEADER,
+      INSTALL_ID_HEADER,
+      TIMESTAMP_HEADER,
+      NONCE_HEADER,
+      SIGNATURE_HEADER,
+      'Authorization',
+      'Content-Type',
+    ],
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+    exposeHeaders: ['Retry-After'], // the web shows a retry hint on 429
+    maxAge: 600,
+  }),
+)
 
 app.use('/v1/*', async (c, next) => {
   if (c.req.path === '/v1/health') return next()
   const v = AppVersion.safeParse(c.req.header(APP_VERSION_HEADER))
   if (!v.success) return fail(c, 400, 'invalid_request', `${APP_VERSION_HEADER} header is required`)
-  // A bad MIN_APP_VERSION would make every comparison wrong. Fail closed.
-  if (!AppVersion.safeParse(c.env.MIN_APP_VERSION).success) throw new Error('invalid MIN_APP_VERSION')
-  if (isBelow(v.data, c.env.MIN_APP_VERSION)) return fail(c, 426, 'update_required', 'Update the app to continue')
+  // Web and mobile have separate minimums (ADR-0011). A bad minimum would make every comparison wrong. Fail closed.
+  const web = c.req.header(CLIENT_HEADER) === WEB_CLIENT
+  const min = web ? c.env.MIN_WEB_VERSION : c.env.MIN_APP_VERSION
+  if (!AppVersion.safeParse(min).success) throw new Error(web ? 'invalid MIN_WEB_VERSION' : 'invalid MIN_APP_VERSION')
+  if (isBelow(v.data, min)) return fail(c, 426, 'update_required', 'Update the app to continue')
   await next()
 })
 
@@ -69,7 +108,7 @@ app.openapi(
     path: '/v1/health',
     responses: {
       200: { description: 'API is up', content: { 'application/json': { schema: HealthResponse } } },
-      403: errorResponse('Request had an Origin header'),
+      403: errorResponse('Origin header is not an allowed web origin'),
     },
   }),
   (c) => c.json({ ok: true as const, version: pkg.version }, 200),

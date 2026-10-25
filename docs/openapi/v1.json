@@ -379,7 +379,7 @@
             }
           },
           "403": {
-            "description": "Request had an Origin header",
+            "description": "Origin header is not an allowed web origin",
             "content": {
               "application/json": {
                 "schema": {
