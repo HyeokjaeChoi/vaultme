@@ -80,6 +80,11 @@ describe('readTransaction', () => {
     expect(await readTransaction(two.rpc, HASH)).toMatchObject({ asset: 'ETH', amount: 0n })
   })
 
+  it('a missing call data field is a plain ETH transfer', async () => {
+    const { rpc } = chain({ tx: { ...eth, input: undefined } })
+    expect(await readTransaction(rpc, HASH)).toMatchObject({ asset: 'ETH', amount: 50_000_000_000_000_000n })
+  })
+
   it('shows a call to another contract as its ETH value', async () => {
     const { rpc } = chain({ tx: { ...eth, to: `0x${'11'.repeat(20)}`, value: '0x0', input: '0xa9059cbb00' } })
     expect(await readTransaction(rpc, HASH)).toMatchObject({ asset: 'ETH', amount: 0n, to: `0x${'11'.repeat(20)}` })
@@ -106,6 +111,7 @@ describe('readTransaction', () => {
 
   it.each([
     ['no from', { tx: { ...eth, from: undefined } }],
+    ['an array for an object', { tx: [eth] }],
     ['a bad value', { tx: { ...eth, value: '5' } }],
     ['a bad receipt', { receipt: { ...receipt, gasUsed: 'x' } }],
     ['a bad timestamp', { block: { timestamp: 'x' } }],
