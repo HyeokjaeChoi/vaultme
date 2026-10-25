@@ -20,7 +20,10 @@ export function CopyButton({ text, label, copied }: { text: string | null; label
         disabled={text === null}
         onClick={() => {
           if (text === null) return
-          void navigator.clipboard.writeText(text).then(() => setDone(true))
+          navigator.clipboard.writeText(text).then(
+            () => setDone(true),
+            () => undefined, // no clipboard permission: the address is on screen to select
+          )
         }}
         className="bg-icon-button-bg-default hover:bg-icon-button-bg-hover active:bg-icon-button-bg-pressed text-icon-button-fg rounded-icon-button-radius size-icon-button-hit-target inline-flex shrink-0 cursor-pointer items-center justify-center"
       >

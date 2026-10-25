@@ -74,9 +74,11 @@ export function finalize(dir: string, env: Record<string, string | undefined> = 
   }
   // Every prerendered page `x/index.html` -> `x.html`: `/404.html` is what `404-page` serves, and `/address` is then
   // served as is, not redirected to `/address/` (Static Assets html_handling auto-trailing-slash).
+  // Only a leaf page: `en/index.html` (holding en/404.html, en/address.html) stays, since `/en` -> `/en/` (_redirects).
   for (const page of pageDirs(dir)) {
+    if (readdirSync(join(dir, page)).length !== 1) continue
     renameSync(join(dir, page, 'index.html'), join(dir, `${page}.html`))
-    if (readdirSync(join(dir, page)).length === 0) rmSync(join(dir, page), { recursive: true })
+    rmSync(join(dir, page), { recursive: true })
   }
   // The SPA shell (written when `/` is prerendered) would be served with status 200 and widens the CSP: drop it.
   rmSync(join(dir, '__spa-fallback.html'), { force: true })

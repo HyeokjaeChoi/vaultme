@@ -43,6 +43,7 @@ describe('finalize', () => {
       mkdirSync(join(dir, p), { recursive: true })
       writeFileSync(join(dir, p, 'index.html'), '<html><script>a</script></html>')
     }
+    writeFileSync(join(dir, 'en/index.html'), '<main>en home</main>') // a page dir that holds other pages
     writeFileSync(join(dir, 'index.html'), 'spa shell')
     writeFileSync(join(dir, '_headers'), TEMPLATE)
     return dir
@@ -59,6 +60,9 @@ describe('finalize', () => {
     expect(existsSync(join(dir, 'address.html'))).toBe(true)
     expect(existsSync(join(dir, 'en/address.html'))).toBe(true)
     expect(existsSync(join(dir, 'en/address'))).toBe(false)
+    // /en/ stays en/index.html: an en.html would be served at /en, against `/en /en/ 301` in _redirects (a loop).
+    expect(existsSync(join(dir, 'en/index.html'))).toBe(true)
+    expect(existsSync(join(dir, 'en.html'))).toBe(false)
     const headers = readFileSync(join(dir, '_headers'), 'utf8')
     expect(headers).toContain(`script-src ${HASH_A}`)
     expect(headers).toContain('connect-src https://vaultme-api-staging.gurwo1007.workers.dev') // default origin

@@ -30,7 +30,11 @@ export function webSigner(idb: IDBFactory = indexedDB): DeviceSigner {
     if (!db) {
       const r = idb.open(DB, 1)
       r.onupgradeneeded = () => r.result.createObjectStore(STORE)
-      db = request(r)
+      // A failed open is not kept: the next call (Retry) opens again.
+      db = request(r).catch((e: unknown) => {
+        db = null
+        throw e
+      })
     }
     return db
   }

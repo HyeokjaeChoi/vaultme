@@ -81,6 +81,11 @@ describe('address input', () => {
     expect(router.state.location.hash).toBe(`#${A}`)
   })
 
+  it('a fragment that is not valid percent-encoding opens the form with its error, not a crash', () => {
+    open('/address#%E0%A4%A')
+    expect(screen.getByRole('alert')).toHaveTextContent('올바른 주소가 아니에요')
+  })
+
   it('a link with a bad address opens the form with that text and its error', () => {
     open('/address#0x1234')
     expect(screen.getByLabelText('Sepolia 주소')).toHaveValue('0x1234')
@@ -108,6 +113,7 @@ describe('viewer', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('잔액을 불러오지 못했어요')
     api.rpc = 'ok'
     await userEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+    expect(screen.getByRole('region', { name: '잔액' })).toHaveFocus() // focus does not fall back to <body>
     expect(await screen.findByText('12.5 USDC')).toBeInTheDocument()
   })
 

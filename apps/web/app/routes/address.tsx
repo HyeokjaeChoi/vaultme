@@ -27,6 +27,15 @@ const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
 // Runs while the page is parsed, before first paint: a viewer link paints the viewer skeleton, not the form (app.css).
 const BOOT_SCRIPT = `if(/^#0x[0-9a-fA-F]{40}$/.test(location.hash))document.documentElement.dataset.boot='viewer'`
 
+/** The fragment as typed; one that is not valid percent-encoding stays as is (parseAddress rejects it). */
+function decodeFragment(f: string): string {
+  try {
+    return decodeURIComponent(f)
+  } catch {
+    return f
+  }
+}
+
 const subscribeNothing = () => () => undefined
 /** false while the prerendered HTML is hydrated (the server snapshot), true after. */
 const useHydrated = () =>
@@ -41,7 +50,7 @@ export default function AddressPage() {
   const locale = localeOf(pathname)
   const t = webMessages[locale]
   const hydrated = useHydrated()
-  const fragment = decodeURIComponent(hash.slice(1))
+  const fragment = decodeFragment(hash.slice(1))
   const address = hydrated && fragment ? parseAddress(fragment) : null
 
   // A switch between the form and the viewer moves focus to the new heading, so a screen reader starts there.
@@ -219,6 +228,14 @@ function Viewer({ t, locale, address, headingRef }: ViewerProps) {
 }
 
 function BalanceSection({ t, balances, retry }: { t: WebMessages; balances: Balances; retry: () => void }) {
+  // Retry removes the banner and its button: focus moves to the balances, not back to <body>.
+  const section = useRef<HTMLElement>(null)
+  const retried = useRef(false)
+  useEffect(() => {
+    if (!retried.current || !section.current) return
+    retried.current = false
+    section.current.focus()
+  })
   if (balances.status === 'failed' || balances.status === 'update') {
     const update = balances.status === 'update'
     return (
@@ -231,7 +248,14 @@ function BalanceSection({ t, balances, retry }: { t: WebMessages; balances: Bala
           update ? (
             <NoticeAction onClick={() => window.location.reload()}>{t.viewer.reload}</NoticeAction>
           ) : (
-            <NoticeAction onClick={retry}>{t.viewer.retry}</NoticeAction>
+            <NoticeAction
+              onClick={() => {
+                retried.current = true
+                retry()
+              }}
+            >
+              {t.viewer.retry}
+            </NoticeAction>
           )
         }
       >
@@ -242,6 +266,8 @@ function BalanceSection({ t, balances, retry }: { t: WebMessages; balances: Bala
   const ok = balances.status === 'ok'
   return (
     <section
+      ref={section}
+      tabIndex={-1}
       aria-label={t.viewer.balances}
       aria-busy={!ok}
       className="tablet:grid-cols-2 web-desktop:flex grid gap-3 web-desktop:flex-col"

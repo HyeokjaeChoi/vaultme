@@ -78,6 +78,18 @@ describe('web device signer (WebCrypto key in IndexedDB)', () => {
     expect(await webSigner(idb).getInstallId()).toBeNull()
   })
 
+  it('a failed database open is tried again on the next call', async () => {
+    const idb = new IDBFactory()
+    // A newer schema version on disk makes our open fail (VersionError), until the database is gone.
+    const newer = idb.open('vaultme', 2)
+    await new Promise((resolve) => (newer.onsuccess = resolve))
+    newer.result.close()
+    const s = webSigner(idb)
+    await expect(s.publicKey()).rejects.toThrow()
+    await new Promise((resolve) => (idb.deleteDatabase('vaultme').onsuccess = resolve))
+    expect(await s.publicKey()).toBeNull()
+  })
+
   it('cannot sign without a key', async () => {
     await expect(webSigner(new IDBFactory()).sign('x')).rejects.toThrow('device key: none stored')
   })
