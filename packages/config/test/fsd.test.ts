@@ -8,8 +8,7 @@ import { fsdLayers } from '../fsd.js'
 
 // Each case lints one import in a real folder tree, because the rule resolves imports through the file system.
 const leaf = 'export const x = 1\n'
-const tree = (dirs: string[]) =>
-  Object.fromEntries(dirs.flatMap((d) => [[`${d}/index.ts`, leaf]])) as Record<string, string>
+const tree = (dirs: string[]) => Object.fromEntries(dirs.map((d) => [`${d}/index.ts`, leaf]))
 
 let root: string
 beforeAll(() => {
@@ -92,6 +91,10 @@ describe('web layout (app/, routes in app/routes, shared/ui files are entries)',
   it('lets a route use the index of a slice and any shared lib or ui file', async () => {
     const src = "import '../features/send'\nimport '../shared/lib/locale'\nimport '../shared/ui/Button'"
     expect(await check('routes/home.tsx', src)).toHaveLength(0)
+  })
+  it('lets the shell import a page through its index but not past it', async () => {
+    expect(await check('shell/index.ts', "import '../pages/home'")).toHaveLength(0)
+    expect(await check('shell/index.ts', "import '../features/send/model'")).toHaveLength(1)
   })
   it('fails when a lower layer imports a route', async () => {
     expect(await check('shared/lib/locale.ts', "import '../../routes/home'")).toHaveLength(1)
