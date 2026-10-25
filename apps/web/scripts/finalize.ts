@@ -50,7 +50,7 @@ function htmlFiles(dir: string): string[] {
   })
 }
 
-/** Staging, previews and local builds are noindex; only WEB_ENV=production serves indexable pages. */
+/** Staging and local builds are noindex; only WEB_ENV=production serves indexable pages. */
 export function finalize(dir: string, env: Record<string, string | undefined> = process.env) {
   // `/404/index.html` -> `/404.html`, `/en/404/index.html` -> `/en/404.html`
   for (const prefix of ['', 'en']) {

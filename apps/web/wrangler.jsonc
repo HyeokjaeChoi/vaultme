@@ -7,11 +7,13 @@
   // this replaces ADR-0001's `single-page-application` for now.
   "assets": { "directory": "./build/client", "not_found_handling": "404-page" },
   "env": {
-    // Staging and PR previews (`versions upload --preview-alias pr-<n>`). Custom domains are issue #198: do not add routes here.
+    // Staging on its own domain (the API allows exactly this origin for CORS). Production domains are issue #198.
+    // workers.dev and preview URLs are off: PR previews are off until a narrow-scope token exists (apps/web/AGENTS.md).
     "staging": {
       "name": "vaultme-web-staging",
-      "workers_dev": true,
-      "preview_urls": true,
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [{ "pattern": "vaultme-staging.stack-line.dev", "custom_domain": true }],
       "assets": { "directory": "./build/client", "not_found_handling": "404-page" },
     },
     "production": {

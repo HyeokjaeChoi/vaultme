@@ -17,4 +17,4 @@ ADR-0001 chose `not_found_handling: "single-page-application"` so `/admin/*` cou
 
 ## Consequences
 - A missing asset is now a 404 (ADR-0001 cost 1 is gone).
-- Not verified on a real account: the same behavior on `workers.dev` (checked by the `web-staging` smoke test after the first deploy).
+- Not verified on a real account: the same behavior on the real Cloudflare edge (checked by the `web-staging` smoke test after the first deploy, on `vaultme-staging.stack-line.dev`).
