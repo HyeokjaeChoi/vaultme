@@ -12,11 +12,11 @@ Goals:
 
 Non-goals (not built): other chains, other tokens, swap, multiple accounts, smart accounts, WalletConnect, cloud backup, ENS, address book, speed-up or cancel, an admin dashboard. In the web app, also no keys, no recovery phrase, no send, no fiat prices (see [ADR-0012](docs/adr/0012-web-scope-and-quality-bars.md)).
 
-The web app (`apps/web`, landing + read-only address viewer) is in scope and started: the 404 page, the CI gates and the staging deploy exist (issue #192); the landing page and the viewer come in later tickets of issue #186. See ADR-0011, ADR-0012, ADR-0013 and `apps/web/AGENTS.md`.
+The web app (`apps/web`, landing + read-only address viewer) is in scope and partly built (issue #186): the 404 page, the CI gates and the staging deploy (#192), the ko/en landing page (#194) and the address viewer with ETH and USDC balances (#195) exist. The viewer history list (#196) is in progress; the transaction page (#197) and production domains (#198) are not built. See ADR-0011, ADR-0012, ADR-0013 and `apps/web/AGENTS.md`.
 
 ## System map
 
-Three deploy units. Everything else is a library.
+Three deploy units (the app, the Worker, the web site). Everything else is a library.
 
 ```text
  phone (trusted)                      Cloudflare (partly trusted)             outside (untrusted)
@@ -32,6 +32,7 @@ Three deploy units. Everything else is a library.
 
 - `apps/mobile`: Expo dev build (no Expo Go). Holds keys, signs, shows state.
 - `apps/api`: Cloudflare Worker `vaultme-api`, with `staging` and `production` envs in `wrangler.jsonc`. D1 binding `DB`. Durable Object `EtherscanBucket`. Four rate-limit bindings. One hourly cron.
+- `apps/web`: a prerendered static site on Workers Static Assets (`vaultme-web`, `staging` and `production` envs in `wrangler.jsonc`). No Worker code. The viewer calls the API from the browser (ADR-0011).
 - The API is a proxy and a notifier. It stores no history, no balances and no keys.
 
 ## Code map
@@ -62,6 +63,14 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 - `push.ts`: subscribe, unsubscribe, `verifyAlchemySignature`, `notificationsFor` (pure), `handleActivity`, `sweep`.
 - `index.ts`: Worker entry. `fetch` is the app. `scheduled` runs `sweep`.
 - `migrations/`: plain SQL for D1 (no ORM).
+
+### apps/web
+
+React Router framework mode, prerendered (`ssr: false`), `app/` follows the same FSD preset as the mobile app. Details and gates: `apps/web/AGENTS.md`.
+
+- `routes/landing.tsx`: ko `/` and en `/en` (one component). `routes/address.tsx`: the viewer shell (`/address`, `/en/address`). It reads the address from the URL fragment and loads balances in the browser through `@vaultme/api-client` and `POST /v1/rpc`. `routes/not-found.tsx`: the real 404 (ADR-0013).
+- `shared/api`, `shared/lib`, `shared/ui`: API client wiring, helpers, UI primitives. Copy comes from `@vaultme/i18n/web`.
+- History and transaction views are not built yet (#196, #197).
 
 ### apps/mobile
 
@@ -193,12 +202,14 @@ Local:
   - The iOS simulator cannot save the phrase: it has no device passcode. Test wallet creation on a real device, or on an Android emulator with a PIN.
 
 CI (`.github/workflows`):
-- `ci.yml`, on pull request and push to `main`: job `repo-rules` runs `scripts/check-repo-rules.sh` (R1 to R11). Job `verify` runs `pnpm turbo run typecheck lint test` and `openapi:check`.
+- `ci.yml`, on pull request and push to `main`: job `repo-rules` runs `scripts/check-repo-rules.sh` (R1 to R13). Job `verify` runs `prettier --check .`, `pnpm turbo run typecheck lint test`, `openapi:check`, `pnpm knip` and the mobile `export:check` (`turbo boundaries` and `expo-doctor` only report). Job `web` builds `apps/web` and runs Playwright with axe and Lighthouse CI against `wrangler dev` (ADR-0012).
 - `api-staging.yml`, on push to `main` that touches the API (and by hand): in the GitHub Environment `staging`, applies D1 migrations, runs `wrangler deploy --env staging`, then checks `/v1/health`.
+- `web-staging.yml`, on push to `main` that touches `apps/web` or the packages it uses (and by hand): job `gate` repeats the `web` checks, then `deploy` publishes `vaultme-web-staging` at `vaultme-staging.stack-line.dev`.
+- `claude-code-review.yml`: Claude reviews a PR once when it is opened as non-draft or marked ready, and again when the owner adds the `review` label. It uses the `vaultme-pr-review` skill and `REVIEW.md`, read from the PR base. `review-learn.yml` collects review findings weekly (Monday) for the learning loop in `REVIEW.md`.
 - `pr-description.yml`, on pull request: `check` (body 3,500 characters or less, `Closes #N`). `figma-comparison` (light and dark app-vs-Figma images for each changed screen).
 
 Release:
-- Staging API: `api-staging.yml` (above). Production API: by hand, `wrangler d1 migrations apply DB --remote --env production`, then `wrangler deploy --env production`. No EAS config, no store build.
+- Staging API: `api-staging.yml`; staging web: `web-staging.yml` (above). Production web has no workflow yet (#198). Production API: by hand, `wrangler d1 migrations apply DB --remote --env production`, then `wrangler deploy --env production`. No EAS config, no store build.
 - Before the first run in a new env, create its D1 database once by hand (`wrangler d1 create vaultme-api-<env>`; no `database_id` in `wrangler.jsonc`, later runs find it by name). The workflow applies migrations before `wrangler deploy`, and `migrations apply` cannot create the database (staging run #2 failed this way).
 - D1 migrations are forward-only SQL files. Write them so the old Worker still runs: add columns and tables, do not drop or rename in the same release.
 - `MIN_APP_VERSION` (a var) forces old apps to update.
