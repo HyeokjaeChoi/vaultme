@@ -10,5 +10,5 @@ export default {
   buildDirectory: fixture ? 'test/fixtures/build' : 'build',
   prerender: fixture
     ? ['/', '/hydrated', '/404', '/en/404']
-    : ['/', '/en', '/404', '/en/404', '/address', '/en/address'],
+    : ['/', '/en', '/404', '/en/404', '/address', '/en/address', '/tx', '/en/tx'],
 } satisfies Config

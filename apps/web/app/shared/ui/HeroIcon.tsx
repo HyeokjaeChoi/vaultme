@@ -1,6 +1,8 @@
 // Figma: Icon / hero / receive 506:26134 (inbox-in) and Icon / hero / cloud-cross 541:238 (error), Solar Bold Duotone 48
 // Icons by 480 Design, Solar Icon Set (Bold Duotone), CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Paths as in
 // @solar-icons/react-native 2.3.2. The back layer is the same color at 50 %. Decorative: the title beside it says the same.
+import { Icon } from './Icon'
+
 const hero = {
   inbox: {
     color: 'text-icon-tertiary',
@@ -19,7 +21,9 @@ const hero = {
   },
 } as const
 
-export function HeroIcon({ name }: { name: keyof typeof hero }) {
+export function HeroIcon({ name }: { name: keyof typeof hero | 'warning' }) {
+  // The invalid-hash state draws Icon / status / warning (Linear) at 48 px, not a duotone hero (Figma Tx detail · invalid hash).
+  if (name === 'warning') return <Icon name="warning" className="size-avatar-lg text-icon-tertiary" />
   const h = hero[name]
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className={`size-avatar-lg shrink-0 ${h.color}`}>

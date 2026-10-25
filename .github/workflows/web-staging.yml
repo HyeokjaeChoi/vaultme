@@ -91,10 +91,10 @@ jobs:
             grep -qi "^$h:" headers.txt || { echo "missing header $h"; exit 1; }
           done
           grep -qi '^x-robots-tag:.*noindex' headers.txt || { echo "missing X-Robots-Tag noindex"; exit 1; }
-          # The viewer pages are prerendered shells: 200 with no redirect (curl does not follow one), the same headers,
+          # The viewer and transaction pages are prerendered shells: 200 with no redirect (curl does not follow one), the same headers,
           # the app script (they hydrate) and the API origin of this build in the CSP. The balance read needs WebCrypto
           # and IndexedDB, which curl does not have, so a browser checks that after the deploy (e2e uses fixtures).
-          for path in /address /en/address; do
+          for path in /address /en/address /tx /en/tx; do
             status=$(curl -sS -o page.html -D page-headers.txt -w '%{http_code}' "$url$path")
             [ "$status" = 200 ] || { echo "$path: expected 200, got $status"; cat page-headers.txt; exit 1; }
             for h in content-security-policy strict-transport-security x-content-type-options referrer-policy permissions-policy; do

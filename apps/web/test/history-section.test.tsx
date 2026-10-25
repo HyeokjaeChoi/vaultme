@@ -1,6 +1,8 @@
 import { webMessages } from '@vaultme/i18n/web'
 import type { HistoryItem } from '@vaultme/history'
-import { render, screen, within } from '@testing-library/react'
+import { render as rtlRender, screen, within } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { History } from '../app/shared/api'
@@ -34,6 +36,9 @@ const ok = (
   more,
 })
 
+// Rows are links (react-router Link): they need a router.
+const render = (ui: ReactElement) => rtlRender(ui, { wrapper: MemoryRouter })
+
 function show(history: History, locale: 'ko' | 'en' = 'ko') {
   const actions = { retry: vi.fn(), more: vi.fn() }
   const r = render(
@@ -45,6 +50,22 @@ function show(history: History, locale: 'ko' | 'en' = 'ko') {
 const table = () => within(screen.getByRole('table'))
 
 describe('HistorySection', () => {
+  it('every row opens the transaction page by its hash (one link per row in each layout), in the page language', () => {
+    show(ok([item(1), item(2)]))
+    const hrefs = screen.getAllByRole('link').filter((a) => a.getAttribute('href')?.startsWith('/tx'))
+    expect(hrefs.map((a) => a.getAttribute('href'))).toEqual([
+      `/tx#${item(1).hash}`,
+      `/tx#${item(2).hash}`,
+      `/tx#${item(1).hash}`,
+      `/tx#${item(2).hash}`,
+    ])
+    expect(table().getAllByRole('link')[0]).toHaveAccessibleName(/^확정 · /)
+  })
+  it('en rows link to /en/tx', () => {
+    show(ok([item(1)]), 'en')
+    expect(screen.getAllByRole('link').some((a) => a.getAttribute('href') === `/en/tx#${item(1).hash}`)).toBe(true)
+  })
+
   it('loading: a busy region with a status text and no button', () => {
     show({ status: 'loading' })
     expect(screen.getByRole('region', { name: '거래 내역' })).toHaveAttribute('aria-busy', 'true')

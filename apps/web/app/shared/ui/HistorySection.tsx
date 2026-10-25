@@ -144,8 +144,8 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
         )}
         {ok && !showEmpty && (
           <>
-            <HistoryCards items={rows} now={now} t={t} locale={locale} />
-            <HistoryTable items={rows} now={now} t={t} locale={locale} />
+            <HistoryCards items={rows} now={now} t={t} locale={locale} address={address} />
+            <HistoryTable items={rows} now={now} t={t} locale={locale} address={address} />
             {ok.more === 'failed' && (
               <div className="pt-6" role="alert">
                 <Notice tone="danger" tier="banner">
