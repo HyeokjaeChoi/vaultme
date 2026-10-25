@@ -37,8 +37,10 @@ PR title and body, the acceptance criteria, the diff and the context list, and o
 
 - `requirements`: check each acceptance criterion against the code and tests. A criterion that the code or CI does
   not prove is a `gap` (for example, a test that uses fixtures where the criterion asks for the real service).
-- `bugs`: wrong results, crashes, and bugs that depend on input, state, concurrency or async order, with a
-  concrete scenario.
+- `bugs` (start this one with the Agent `model` set to `opus`: on PR #209 a Sonnet finder missed a stale async result
+  and a layout shift): wrong results, crashes, and bugs that depend on input, state, concurrency or async order
+  (an older request that finishes last, two tabs or requests at once, React Transitions that share one pending state,
+  layout that moves when data of unbounded length arrives), with a concrete scenario.
 - `axes`: the four `REVIEW.md` axes and the performance budgets.
 
 ## 3. Verify
