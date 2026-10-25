@@ -46,7 +46,7 @@ const local: LocalSend = {
 function setup(o: { cache?: HistoryCache | null; answer?: () => Promise<unknown>; now?: number } = {}) {
   let stored = o.cache ?? null
   let t = o.now ?? 42
-  const fetchPage = vi.fn<(address: string) => Promise<unknown>>(() =>
+  const fetchPage = vi.fn<(address: string, cursor?: string) => Promise<unknown>>(() =>
     (o.answer ?? (() => Promise.resolve(page([]))))(),
   )
   const h = createHistory({
@@ -91,6 +91,7 @@ describe('list (S40, ADR-0007)', () => {
         ],
         updatedAt: 42,
         failed: false,
+        nextCursor: null,
       },
     ])
     expect(s.cache()).toEqual({ address: ME, json: JSON.stringify(page([row(0, 'in')])), updatedAt: 42 })
@@ -165,24 +166,28 @@ describe('list (S40, ADR-0007)', () => {
   it('failure without a cache of this address: only the local send, no update time', async () => {
     const s = setup({ cache: cacheOf([row(0, 'in')], OTHER), answer: () => Promise.reject(err('network', 0)) })
     await s.load(ME, local)
-    expect(s.views).toEqual([{ items: [expect.objectContaining({ id: H2 })], updatedAt: null, failed: true }])
+    expect(s.views).toEqual([
+      { items: [expect.objectContaining({ id: H2 })], updatedAt: null, failed: true, nextCursor: null },
+    ])
   })
 
   it('update_required, a non-API error or an unreadable cache: failed view, the cache is not shown', async () => {
     for (const e of [err('update_required', 426), new Error('boom')]) {
       const s = setup({ cache: cacheOf([row(0, 'in')]), answer: () => Promise.reject(e) })
       await s.load(ME)
-      expect(s.views).toEqual([{ items: [], updatedAt: null, failed: true }])
+      expect(s.views).toEqual([{ items: [], updatedAt: null, failed: true, nextCursor: null }])
     }
     const bad = setup({ cache: { address: ME, json: '{', updatedAt: 1 }, answer: () => Promise.reject(err('network')) })
     await bad.load(ME)
-    expect(bad.views).toEqual([{ items: [], updatedAt: null, failed: true }])
+    expect(bad.views).toEqual([{ items: [], updatedAt: null, failed: true, nextCursor: null }])
   })
 
   it('404 (an API without /v1/history): only the local send, as fresh', async () => {
     const s = setup({ answer: () => Promise.reject(err('not_found', 404)) })
     await s.load(ME, local)
-    expect(s.views).toEqual([{ items: [expect.objectContaining({ id: H2 })], updatedAt: 42, failed: false }])
+    expect(s.views).toEqual([
+      { items: [expect.objectContaining({ id: H2 })], updatedAt: 42, failed: false, nextCursor: null },
+    ])
   })
 
   it('no address (no API, kv unreadable): only the local send, no fetch', async () => {
@@ -191,8 +196,8 @@ describe('list (S40, ADR-0007)', () => {
     await s.load(null)
     expect(s.fetchPage).not.toHaveBeenCalled()
     expect(s.views).toEqual([
-      { items: [expect.objectContaining({ id: H2, local: true })], updatedAt: 42, failed: false },
-      { items: [], updatedAt: 42, failed: false },
+      { items: [expect.objectContaining({ id: H2, local: true })], updatedAt: 42, failed: false, nextCursor: null },
+      { items: [], updatedAt: 42, failed: false, nextCursor: null },
     ])
   })
 
@@ -222,6 +227,49 @@ describe('list (S40, ADR-0007)', () => {
     await slow
     expect(s.views).toHaveLength(1)
     expect(other).toHaveLength(1)
+  })
+})
+
+describe('timestamps that cannot be dates', () => {
+  it('a row whose time is beyond the Date range is dropped, so a client can format every row it gets', async () => {
+    const s = setup({ answer: () => Promise.resolve(page([row(0, 'in', { timestamp: 9e15 }), row(1, 'in')])) })
+    await s.load(ME)
+    expect(s.views[0]?.items.map((i) => i.id)).toEqual([`${H}:1`])
+  })
+})
+
+describe('older pages (web 더 보기)', () => {
+  const withCursor = (items: unknown[], nextCursor: string | null) => ({ items, nextCursor, incomplete: false })
+
+  it('the first view carries the cursor of the next page; the cache fallback and the local-only view carry none', async () => {
+    const s = setup({ answer: () => Promise.resolve(withCursor([row(0, 'in')], 'c1')) })
+    await s.load(ME)
+    expect(s.views[0]?.nextCursor).toBe('c1')
+    s.answer(() => Promise.reject(err('network')))
+    await s.load(ME)
+    expect(s.views[1]).toMatchObject({ failed: true, nextCursor: null })
+  })
+
+  it('more: asks for that cursor, returns the next rows with the same poisoning filter, and does not touch the cache', async () => {
+    const s = setup({ cache: cacheOf([row(0, 'in')]) })
+    s.fetchPage.mockResolvedValueOnce(
+      withCursor([row(1, 'in', { zeroValue: true, value: '0' }), row(2, 'out', { zeroValue: true, value: '0' })], 'c2'),
+    )
+    const r = await s.h.more(ME, 'c1')
+    expect(s.fetchPage).toHaveBeenCalledWith(ME, 'c1')
+    expect(r?.items.map((i) => i.id)).toEqual([`${H}:2`])
+    expect(r?.nextCursor).toBe('c2')
+    expect(s.cache()).toEqual(cacheOf([row(0, 'in')]))
+  })
+
+  it('more: the last page has no cursor; any error (also update_required) is null, never a throw', async () => {
+    const s = setup()
+    s.fetchPage.mockResolvedValueOnce(withCursor([], null))
+    expect(await s.h.more(ME, 'c1')).toEqual({ items: [], nextCursor: null })
+    s.fetchPage.mockRejectedValueOnce(err('update_required', 426))
+    expect(await s.h.more(ME, 'c1')).toBeNull()
+    s.fetchPage.mockRejectedValueOnce(new Error('offline'))
+    expect(await s.h.more(ME, 'c1')).toBeNull()
   })
 })
 

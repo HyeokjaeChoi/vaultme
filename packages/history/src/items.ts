@@ -59,7 +59,7 @@ export type LocalSend = {
 /**
  * `POST /v1/history` response (ARCHITECTURE.md#history): `{ items: HistoryItem[], nextCursor, incomplete }`. Each item is checked against the
  * contract and dropped when it does not fit (a newer server may send what this app does not know). Items are always on-chain
- * (`ok` | `failed`); pending sends come from the local record. Incoming zero-value rows are hidden. Paging with `nextCursor` is not used yet.
+ * (`ok` | `failed`); pending sends come from the local record. Incoming zero-value rows are hidden. `nextCursor` is read here; the web viewer pages with `more` (mobile reads the first page only).
  */
 export function parseItems(data: unknown): HistoryItem[] {
   const items = (data as { items?: unknown } | null)?.items
@@ -69,6 +69,7 @@ export function parseItems(data: unknown): HistoryItem[] {
     const p = ApiHistoryItem.safeParse(x)
     if (!p.success) continue
     const i = p.data
+    if (Number.isNaN(new Date(i.timestamp * 1000).getTime())) continue // beyond the Date range: a client could not format the row (toISOString throws)
     if (i.zeroValue && i.direction === 'in') continue // Incoming 0-value rows are the address-poisoning vector. Own calls stay.
     out.push({
       id: i.id,
@@ -84,6 +85,12 @@ export function parseItems(data: unknown): HistoryItem[] {
     })
   }
   return out
+}
+
+/** `nextCursor` of a `POST /v1/history` response. Null = last page, or a body that is not a response. */
+export function parseNextCursor(data: unknown): string | null {
+  const c = (data as { nextCursor?: unknown } | null)?.nextCursor
+  return typeof c === 'string' && c !== '' ? c : null
 }
 
 const fromLocal = (tx: LocalSend): HistoryItem => ({

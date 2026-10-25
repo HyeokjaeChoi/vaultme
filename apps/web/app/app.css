@@ -13,6 +13,54 @@
   line-gap-override: 0%;
 }
 
+/* Figma: Web/Table row columns are 140 / 80 / rest / 140 / 88 px wide (759:269). No token has these sizes, so they are
+   multiples of space/20 (80 px). Remove these when the web design system gets column-width tokens. */
+@utility w-col-status {
+  width: calc(var(--spacing-20) * 1.75);
+}
+@utility w-col-direction {
+  width: var(--spacing-20);
+}
+@utility w-col-amount {
+  width: calc(var(--spacing-20) * 1.75);
+}
+@utility w-col-time {
+  width: calc(var(--spacing-20) * 1.1);
+}
+
+/* Figma: B/Skeleton row boxes (422:668): title 160 x 14, subtitle 100 x 12, value 64 x 14, and the 52 px date band. No token has
+   these sizes; they are built from space tokens. Remove these when the web design system gets skeleton size tokens. */
+@utility skeleton-title {
+  height: calc(var(--spacing-1) * 3.5);
+  width: calc(var(--spacing-20) * 2);
+}
+@utility skeleton-subtitle {
+  height: var(--spacing-3);
+  width: calc(var(--spacing-20) * 1.25);
+}
+@utility skeleton-value {
+  height: calc(var(--spacing-1) * 3.5);
+  width: var(--spacing-16);
+}
+@utility skeleton-date {
+  height: calc(var(--spacing-1) * 13);
+}
+
+/* The room the history skeleton takes (Figma History loading frames 767:3091 / 767:3383, below the section title): 375 = 4 rows,
+   2 date bands (52 px), the 24 px gap and the 56 px button; 768 and up = the 33 px table head, 5 rows, the gap and the button.
+   Every state keeps at least this height, so the footer does not move when a shorter state (empty, failed, few rows) replaces
+   the skeleton (CLS 0). Remove when the web design system gets a token for it. */
+@utility min-h-history-body {
+  min-height: calc(
+    var(--spacing-row-b-height) * 4 + var(--spacing-1) * 26 + var(--spacing-6) + var(--spacing-button-b-height-lg)
+  );
+  @media (width >= 48rem) {
+    min-height: calc(
+      var(--spacing-row-b-height) * 5 + var(--spacing-1) * 8.25 + var(--spacing-6) + var(--spacing-button-b-height-lg)
+    );
+  }
+}
+
 @layer base {
   html {
     font-family: 'Pretendard Variable', 'Pretendard Fallback', system-ui, sans-serif;

@@ -99,7 +99,7 @@ function DevState({ state, cache }: { state: string; cache?: string }) {
     return <List items={items} />
   }
   if (state === 'error' && cache === '0')
-    return <Content view={{ items: [], updatedAt: null, failed: true }} reload={() => undefined} />
+    return <Content view={{ items: [], updatedAt: null, failed: true, nextCursor: null }} reload={() => undefined} />
   const cached = transactions.filter((x) => x.id === '2' || x.id === '3')
   const items = cached.map((x): HistoryItem => ({
     id: x.id,
@@ -114,7 +114,7 @@ function DevState({ state, cache }: { state: string; cache?: string }) {
   }))
   return (
     <Content
-      view={{ items, updatedAt: new Date(2026, 9, 13, 9, 12).getTime(), failed: true }}
+      view={{ items, updatedAt: new Date(2026, 9, 13, 9, 12).getTime(), failed: true, nextCursor: null }}
       reload={() => undefined}
     />
   )

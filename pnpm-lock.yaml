@@ -403,6 +403,9 @@ importers:
       '@vaultme/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@vaultme/history':
+        specifier: workspace:*
+        version: link:../../packages/history
       '@vaultme/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
