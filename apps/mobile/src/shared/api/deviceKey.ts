@@ -36,7 +36,7 @@ export function nobleSigner(store: KeyStore): DeviceSigner {
   return {
     publicKey: async () => {
       const k = await key()
-      return k === null ? null : publicKeyB64u(k)
+      return k ? publicKeyB64u(k) : null // '' counts as no key, as before
     },
     createKey: async () => {
       const k = newPrivateKeyHex()
@@ -46,7 +46,7 @@ export function nobleSigner(store: KeyStore): DeviceSigner {
     },
     sign: async (text) => {
       const k = await key()
-      if (k === null) throw new Error('device key: none stored')
+      if (!k) throw new Error('device key: none stored')
       return signCanonical(k, text)
     },
     getInstallId: () => Promise.resolve(store.getInstallId()),

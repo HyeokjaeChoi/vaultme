@@ -50,10 +50,12 @@ describe('noble device key', () => {
 })
 
 describe('nobleSigner (mobile adapter)', () => {
-  it('no stored key: no public key, and sign fails', async () => {
-    const s = nobleSigner(memoryStore())
-    expect(await s.publicKey()).toBeNull()
-    await expect(s.sign('x')).rejects.toThrow()
+  it('no stored key (or an empty one): no public key, and sign fails', async () => {
+    for (const stored of [null, '']) {
+      const s = nobleSigner(memoryStore(stored))
+      expect(await s.publicKey()).toBeNull()
+      await expect(s.sign('x')).rejects.toThrow()
+    }
   })
   it('createKey stores the key as hex and signs with it', async () => {
     const store = memoryStore()
