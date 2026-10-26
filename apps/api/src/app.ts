@@ -19,6 +19,8 @@ import {
   SIGNATURE_HEADER,
   TIMESTAMP_HEADER,
   TokenResponse,
+  TxInternalRequest,
+  TxInternalResponse,
   WEB_CLIENT,
   errorEnvelope,
   isBelow,
@@ -36,7 +38,7 @@ import {
   requireToken,
 } from './auth.ts'
 import type { Env } from './env.ts'
-import { getHistory } from './etherscan.ts'
+import { getHistory, getTxInternal } from './etherscan.ts'
 import { InvalidCursorError, UpstreamError, fail } from './errors.ts'
 import { AlchemyPayload, handleActivity, subscribe, unsubscribe, verifyAlchemySignature } from './push.ts'
 import { proxyRpc, rpcAllowed } from './rpc.ts'
@@ -134,6 +136,7 @@ const ipLimit =
   }
 app.use('/v1/rpc', ipLimit('RPC_IP_LIMITER'), requireToken)
 app.use('/v1/history', ipLimit('HISTORY_IP_LIMITER'), requireToken)
+app.use('/v1/tx/internal', ipLimit('HISTORY_IP_LIMITER'), requireToken) // same limits as history (ADR-0015)
 app.use('/v1/push/*', requireToken)
 
 app.openapi(
@@ -239,6 +242,31 @@ app.openapi(
     } catch (e) {
       if (e instanceof InvalidCursorError) return c.json(errorEnvelope('invalid_cursor', 'Invalid cursor'), 400)
       if (e instanceof UpstreamError) return c.json(errorEnvelope('unavailable', 'History unavailable'), 503)
+      throw e
+    }
+  },
+)
+
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/v1/tx/internal',
+    request: { body: { content: { 'application/json': { schema: TxInternalRequest } }, required: true } },
+    responses: {
+      200: {
+        description: 'Internal ETH transfers of the transaction (empty when there are none or Etherscan lags)',
+        content: { 'application/json': { schema: TxInternalResponse } },
+      },
+      400: errorResponse('Invalid transaction hash'),
+      503: errorResponse('Etherscan failed or was throttled (retryable)'),
+      ...bearer,
+    },
+  }),
+  async (c) => {
+    try {
+      return c.json(await getTxInternal(c.env, c.req.valid('json').hash), 200)
+    } catch (e) {
+      if (e instanceof UpstreamError) return c.json(errorEnvelope('unavailable', 'Internal transfers unavailable'), 503)
       throw e
     }
   },

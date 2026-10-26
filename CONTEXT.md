@@ -28,6 +28,10 @@ _Avoid_: 공개 주소
 One signed action sent to the network. Use the technical word only when a precise term is needed.
 _Avoid_: 트랜잭션 (except as a technical term)
 
+**내부 이동** (internal transfer):
+ETH that a contract moves while a transaction runs, apart from the transaction's own amount. One transaction can have none, one or many. The transaction detail shows every internal transfer of the transaction, the same for every viewer.
+_Avoid_: 내부 거래, 내부 트랜잭션
+
 **네트워크 수수료** (network fee):
 The cost the user pays in ETH to have the network process a transaction. The app shows an estimate before sending and the final amount after.
 _Avoid_: 가스비, 가스

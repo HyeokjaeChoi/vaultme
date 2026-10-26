@@ -330,6 +330,65 @@
           "address"
         ]
       },
+      "TxInternalResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TxInternalItem"
+            },
+            "description": "Etherscan order. Empty: none, or Etherscan has not indexed the block yet."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "TxInternalItem": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "description": "Null for a contract creation."
+          },
+          "value": {
+            "type": "string",
+            "pattern": "^\\d+$",
+            "description": "Wei, decimal string."
+          },
+          "ok": {
+            "type": "boolean",
+            "description": "`false`: the call failed and the value did not move."
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "value",
+          "ok"
+        ]
+      },
+      "TxInternalRequest": {
+        "type": "object",
+        "properties": {
+          "hash": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          }
+        },
+        "required": [
+          "hash"
+        ]
+      },
       "PushOkResponse": {
         "type": "object",
         "properties": {
@@ -610,6 +669,72 @@
           },
           "400": {
             "description": "Invalid address or cursor (`invalid_cursor`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Etherscan failed or was throttled (retryable)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tx/internal": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TxInternalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Internal ETH transfers of the transaction (empty when there are none or Etherscan lags)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxInternalResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid transaction hash",
             "content": {
               "application/json": {
                 "schema": {
