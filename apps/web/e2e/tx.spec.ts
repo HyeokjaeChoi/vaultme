@@ -153,7 +153,12 @@ test.describe('transaction page', () => {
       await page.evaluate(() => document.fonts.ready)
       const before = await page.evaluate(() => (window as unknown as { cls: number }).cls)
       release()
-      await page.waitForTimeout(600)
+      // Wait for the settled section, not a fixed time: rows, no section at all, or the error.
+      if (mode === 'list') await expect(page.getByRole('listitem')).toHaveCount(2)
+      else if (mode === 'none') await expect(page.getByRole('heading', { name: '내부 이동' })).toHaveCount(0)
+      else await expect(page.getByRole('alert')).toContainText('내부 이동을 불러오지 못했어요')
+      await expect(page.getByText('내부 이동을 불러오고 있어요')).toHaveCount(0)
+      await page.waitForTimeout(300) // a shift is reported a frame or two after the layout change
       const { cls, moved } = await page.evaluate(() => {
         const w = window as unknown as { cls: number; moved: string[] }
         return { cls: w.cls, moved: w.moved }
