@@ -8,7 +8,7 @@ The lock gate (S90) and each send ask for OS auth through `authenticate()` in `a
 ## Decision
 - App code has no auth bypass: no env flag, no `__DEV__` shortcut, no test mode in `authenticate()`.
 - Agent tests pass or fail the real OS sheet with the simulator's own biometric simulation, through `scripts/sim-auth.sh match|nomatch [ios|android]`.
-  - iOS Simulator (Face ID): `xcrun simctl spawn booted notifyutil -p com.apple.BiometricKit_Sim.pearl.match` or `.nomatch`.
+  - iOS Simulator (Face ID): `xcrun simctl spawn <udid|booted> notifyutil -p com.apple.BiometricKit_Sim.pearl.match` or `.nomatch`.
   - Android emulator: `adb -e emu finger touch <id>` (an enrolled id matches; an id that is not enrolled fails), then `finger remove`.
 - The owner enrolls the simulator once (steps in `apps/mobile/AGENTS.md`). Agents do not change device security settings.
 
@@ -16,4 +16,4 @@ The lock gate (S90) and each send ask for OS auth through `authenticate()` in `a
 - No release-build risk from test tooling; the tested path is the shipped path.
 - Tests need a booted, enrolled simulator and the sheet on screen; unit tests still mock `expo-local-authentication`.
 - Checked 2026-10-26 (#237): Android emulator (API 37) pass and fail on the create-wallet sheet and on S90. iOS 27.0 Simulator not checked end to end: wallet creation is blocked by #243.
-- The iOS notification names are not in Apple's documentation; the Face ID menu (Features > Face ID > Matching Face / Non-matching Face) is the documented route. If a new Xcode breaks the names, update `scripts/sim-auth.sh` and this ADR.
+- The iOS notification names are not in Apple's documentation; the only source found is an unanswered Apple Developer Forums post (thread 767414). Simulator.app's Features > Face ID menu does the same by hand. If a new Xcode breaks the names, update `scripts/sim-auth.sh` and this ADR.

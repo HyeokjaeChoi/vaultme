@@ -9,7 +9,7 @@ Expo app. Read `ARCHITECTURE.md` (code map) and `DESIGN.md` before you change a 
 
 ## Testing OS auth on a simulator (ADR-0016)
 
-There is no auth bypass in app code. To pass or fail the lock screen (S90) or a send auth sheet, put the sheet on screen, then run:
+There is no auth bypass in app code. To pass or fail the lock screen (S90) or a send auth sheet, put the sheet on screen, then run (set `SIM_UDID` or `ANDROID_SERIAL` when more than one simulator runs):
 
 ```bash
 scripts/sim-auth.sh match [ios|android]    # unlock
