@@ -18,6 +18,13 @@ export function apiOrigin(env: Record<string, string | undefined> = process.env)
   return origin
 }
 
+/** Cloudflare Web Analytics beacon token of a build (WEB_ANALYTICS_TOKEN, ADR-0012). Empty: no beacon (local, CI). It is a public id, not a secret. */
+export function analyticsToken(env: Record<string, string | undefined> = process.env): string {
+  const token = env.WEB_ANALYTICS_TOKEN ?? ''
+  if (token !== '' && !/^[0-9a-f]{32}$/.test(token)) throw new Error('WEB_ANALYTICS_TOKEN must be 32 hex characters')
+  return token
+}
+
 export interface HeaderOptions {
   scriptHashes: string[]
   apiOrigin: string

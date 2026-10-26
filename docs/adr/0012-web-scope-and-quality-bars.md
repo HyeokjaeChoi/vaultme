@@ -13,7 +13,7 @@ VaultMe has only a mobile app. People on the web cannot learn about it or look a
 - Quality bars, enforced in CI: Lighthouse ≥ 95 in all four categories; Core Web Vitals good; landing JS ≤ 100 KB gzip; WCAG 2.2 AA (focus ring, text plus color for status, 44px targets); axe = 0 violations.
 - Languages: ko and en, `hreflang`, per-locale canonical, sitemap, a header language switch, no automatic redirect.
 - Viewer state is in the URL fragment (`/address#0x…`, `/tx#0x…`), so an address never reaches the web host, its logs or analytics. The viewer still sends the address to the API (see ADR-0011, ADR-0007).
-- Analytics: Cloudflare Web Analytics only (no cookies, no consent banner).
+- Analytics: Cloudflare Web Analytics only (no cookies, no consent banner). The beacon is added only when a build sets `WEB_ANALYTICS_TOKEN` (staging, issue #198). It is a third-party script of about 10 KB gzip, so the script budgets above count the app without it (Lighthouse 4 × ≥ 95 was measured with it).
 - Fonts: self-hosted Pretendard Variable (dynamic subset) and IBM Plex Mono (Latin subset) for addresses and hashes; OFL license files shipped.
 - Every page shows a "Sepolia testnet, test funds only" notice. The viewer says: read-only, no sign-in, we never ask for keys or a recovery phrase.
 - Figma first: each web screen has light and dark frames at 375, 768 and 1280, bound to the design system, before implementation.

@@ -48,6 +48,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="bg-screen-b-bg text-text-primary">
         {children}
+        {/* Cloudflare Web Analytics (ADR-0012), staging build only. External script: the CSP already allows it. The beacon drops the URL fragment (measured, AGENTS.md). */}
+        {__ANALYTICS_TOKEN__ && (
+          <script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={JSON.stringify({ token: __ANALYTICS_TOKEN__ })}
+          />
+        )}
         {hydrate && <ScrollRestoration />}
         {hydrate && <Scripts />}
       </body>

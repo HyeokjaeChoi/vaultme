@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import { pruneCustomPropertiesPlugin } from './build-tools/prune-custom-properties.ts'
 import pkg from './package.json' with { type: 'json' }
-import { apiOrigin } from './scripts/finalize.ts'
+import { analyticsToken, apiOrigin } from './scripts/finalize.ts'
 
 // Plain `react-router build`: the Cloudflare Vite plugin does not support prerender (ADR-0001).
 export default defineConfig({
@@ -16,5 +16,9 @@ export default defineConfig({
     },
   },
   // app/env.d.ts. The same origin goes into the CSP connect-src (scripts/finalize.ts).
-  define: { __API_ORIGIN__: JSON.stringify(apiOrigin()), __WEB_VERSION__: JSON.stringify(pkg.version) },
+  define: {
+    __API_ORIGIN__: JSON.stringify(apiOrigin()),
+    __ANALYTICS_TOKEN__: JSON.stringify(analyticsToken()),
+    __WEB_VERSION__: JSON.stringify(pkg.version),
+  },
 })
