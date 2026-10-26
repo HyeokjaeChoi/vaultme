@@ -69,10 +69,16 @@ vi.mock('react-native-mmkv', () => ({
     }
   },
 }))
+const lockLevel = vi.hoisted(() => ({ value: 1 })) // expo-local-authentication SecurityLevel: 0 = no screen lock
+vi.mock('expo-local-authentication', () => ({
+  SecurityLevel: { NONE: 0, SECRET: 1 },
+  getEnrolledLevelAsync: vi.fn(() => Promise.resolve(lockLevel.value)),
+}))
 vi.mock('expo-crypto', () => ({ getRandomBytes: (n: number) => Uint8Array.from({ length: n }, (_, i) => i + 1) }))
 
 beforeEach(() => {
   items.clear()
+  lockLevel.value = 1
   vi.resetModules()
 })
 
@@ -129,10 +135,16 @@ describe('restoreWallet', () => {
     expect(items.get('app.vaultme.phrase')?.password).toBe('kept')
     expect(kv.getRestored()).toBe(false)
   })
-  it('reports an error when the keychain refuses, and keeps nothing', async () => {
+  it('splits a refused save: cancelled (no message), no screen lock, other error; keeps nothing', async () => {
     const { restoreWallet, kv } = await setup()
     const Keychain = await import('react-native-keychain')
-    vi.mocked(Keychain.setGenericPassword).mockRejectedValueOnce(new Error('cancelled'))
+    vi.mocked(Keychain.setGenericPassword).mockRejectedValueOnce(new Error('User canceled the operation.'))
+    expect(await restoreWallet(VECTOR, PROMPT)).toEqual({ status: 'cancelled' })
+    lockLevel.value = 0
+    vi.mocked(Keychain.setGenericPassword).mockRejectedValueOnce(new Error('keystore refused'))
+    expect(await restoreWallet(VECTOR, PROMPT)).toEqual({ status: 'noLock' })
+    lockLevel.value = 1
+    vi.mocked(Keychain.setGenericPassword).mockRejectedValueOnce(new Error('keystore refused'))
     expect(await restoreWallet(VECTOR, PROMPT)).toEqual({ status: 'error' })
     expect(kv.getAccountAddress()).toBeNull()
     expect(kv.getRestored()).toBe(false)

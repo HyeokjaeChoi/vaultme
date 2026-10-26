@@ -1,6 +1,7 @@
 import * as Crypto from 'expo-crypto'
 import * as Keychain from 'react-native-keychain'
 import { Mnemonic } from '@vaultme/wallet-core'
+import { loadFailureStatus } from '../auth/cancel'
 import { withAuthInProgress } from '../auth/inProgress'
 
 // Keychain access for the app (ARCHITECTURE.md#invariants: wallet-core does not know storage).
@@ -48,9 +49,7 @@ export async function savePhrase(m: Mnemonic, prompt: AuthPrompt): Promise<void>
 
 export type LoadPhraseResult = { status: 'ok'; mnemonic: Mnemonic } | { status: 'cancelled' } | { status: 'error' }
 
-/** Cancel vs failure from a keychain rejection. iOS: "User canceled the operation." (errSecUserCanceled); Android surfaces a cancel in its message too. Anything else is an error. */
-export const loadFailureStatus = (e: unknown): 'cancelled' | 'error' =>
-  e instanceof Error && /cancel/i.test(e.message) ? 'cancelled' : 'error'
+export { loadFailureStatus }
 
 /** Asks the OS for auth. Never throws: the UI gets `ok`, `cancelled` (user dismissed auth) or `error` (missing/corrupt item, keychain failure). */
 export async function loadPhrase(prompt: AuthPrompt): Promise<LoadPhraseResult> {
