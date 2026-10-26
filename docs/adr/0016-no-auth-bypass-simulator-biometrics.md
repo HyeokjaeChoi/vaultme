@@ -15,4 +15,5 @@ The lock gate (S90) and each send ask for OS auth through `authenticate()` in `a
 ## Consequences
 - No release-build risk from test tooling; the tested path is the shipped path.
 - Tests need a booted, enrolled simulator and the sheet on screen; unit tests still mock `expo-local-authentication`.
+- Checked 2026-10-26 (#237): Android emulator (API 37) pass and fail on the create-wallet sheet and on S90. iOS 27.0 Simulator not checked end to end: wallet creation is blocked by #243.
 - The iOS notification names are not in Apple's documentation; the Face ID menu (Features > Face ID > Matching Face / Non-matching Face) is the documented route. If a new Xcode breaks the names, update `scripts/sim-auth.sh` and this ADR.
