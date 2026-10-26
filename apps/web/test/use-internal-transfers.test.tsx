@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useInternalTransfers } from '../app/shared/api/useInternalTransfers'
+import { INTERNAL_DEADLINE_MS, useInternalTransfers } from '../app/shared/api/useInternalTransfers'
 
 const H1 = `0x${'11'.repeat(32)}`
 const H2 = `0x${'22'.repeat(32)}`
@@ -88,6 +88,19 @@ describe('useInternalTransfers', () => {
     await waitFor(() => {
       expect(result.current[0]).toEqual({ status: 'failed' })
     })
+  })
+
+  it('a read that never answers is failed after the deadline, so the page is never held', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      const { result } = renderHook(() => useInternalTransfers(H1))
+      await act(() => vi.advanceTimersByTimeAsync(INTERNAL_DEADLINE_MS - 1))
+      expect(result.current[0]).toEqual({ status: 'loading', again: false })
+      await act(() => vi.advanceTimersByTimeAsync(1))
+      expect(result.current[0]).toEqual({ status: 'failed' })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('an older read never replaces a newer one (H1 -> H2 -> H1), and a new hash shows loading', async () => {

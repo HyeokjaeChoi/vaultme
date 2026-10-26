@@ -10,13 +10,26 @@ export type Internal =
 
 type Settled = Exclude<Internal, { status: 'loading' }>
 
+/**
+ * The page waits for this read (see `Detail`), and the API client has no deadline of its own: a read that never answers is a failed
+ * section after this long, so a stuck Etherscan call cannot hold the page.
+ */
+export const INTERNAL_DEADLINE_MS = 10_000
+
 // Loads on first read, like useTransaction. A chunk that fails to load is a failed section too: retry imports it again.
 async function load(hash: string): Promise<Settled> {
+  let timer: ReturnType<typeof setTimeout> | undefined
   try {
     const [{ api }, m] = await Promise.all([import('./client'), import('@vaultme/api-client')])
-    return { status: 'ok', items: await m.readInternalTransfers((h) => api().txInternal(h), hash) }
+    const deadline = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error('internal transfers: no answer')), INTERNAL_DEADLINE_MS)
+    })
+    const items = await Promise.race([m.readInternalTransfers((h) => api().txInternal(h), hash), deadline])
+    return { status: 'ok', items }
   } catch {
     return { status: 'failed' }
+  } finally {
+    clearTimeout(timer)
   }
 }
 
