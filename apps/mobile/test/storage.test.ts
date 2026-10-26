@@ -25,8 +25,14 @@ vi.mock('react-native-keychain', () => ({
     if (failGet && o.service.endsWith('phrase')) return Promise.reject(new Error(failGet))
     return Promise.resolve(items.get(o.service) ?? false)
   }),
-  hasGenericPassword: vi.fn((o: { service: string }) => Promise.resolve(items.has(o.service))),
-  resetGenericPassword: vi.fn((o: { service: string }) => Promise.resolve(items.delete(o.service))),
+  hasGenericPassword: vi.fn((o: { service: string }) => {
+    calls.push({ fn: 'has', service: o.service, opts: o })
+    return Promise.resolve(items.has(o.service))
+  }),
+  resetGenericPassword: vi.fn((o: { service: string }) => {
+    calls.push({ fn: 'reset', service: o.service, opts: o })
+    return Promise.resolve(items.delete(o.service))
+  }),
   getSupportedBiometryType: vi.fn(() => Promise.resolve(null)),
 }))
 
@@ -73,7 +79,6 @@ describe('keychain phrase', () => {
     expect(set.opts).toMatchObject({
       accessControl: 'BiometryAnyOrDevicePasscode',
       accessible: 'AccessibleWhenPasscodeSetThisDeviceOnly',
-      cloudSync: false,
       authenticationPrompt: PROMPT,
     })
     const loaded = await k.loadPhrase(PROMPT)
@@ -110,6 +115,24 @@ describe('keychain phrase', () => {
     const k = await import('../src/shared/storage/keychain')
     items.set('app.vaultme.phrase', { username: 'vaultme', password: 'not a phrase' })
     expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'error' })
+  })
+})
+
+describe('keychain options', () => {
+  // react-native-keychain 10.0.0 (iOS) reads `cloudSync: false` as true (oblador/react-native-keychain#800):
+  // the phrase save fails (-50) and the no-auth items become synchronizable. Omitted = not synced (#243, ADR-0004).
+  it('no call passes cloudSync', async () => {
+    const { Mnemonic } = await import('@vaultme/wallet-core')
+    const k = await import('../src/shared/storage/keychain')
+    await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
+    await k.hasPhrase()
+    await k.loadPhrase(PROMPT)
+    await k.deletePhrase()
+    await k.getOrCreateKvKey()
+    await k.saveDeviceKey('ab')
+    await k.loadDeviceKey()
+    expect(new Set(calls.map((c) => c.fn))).toEqual(new Set(['set', 'get', 'has', 'reset']))
+    for (const c of calls) expect(c.opts, `${c.fn} ${c.service}`).not.toHaveProperty('cloudSync')
   })
 })
 
