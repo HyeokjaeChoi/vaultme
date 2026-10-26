@@ -129,7 +129,9 @@ function RowDetail({
   const explorer =
     explorerUrl(chain, row.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${row.hash}` : null)
   const [figure, unit] = showAmount(row.amount, row.asset, 'exact').split(' ')
-  const [read, retryInternal] = useInternalTransfers(example ? null : row.hash)
+  const testMode = useTestMode()
+  // No read in test-data mode, for an example row, or for a reverted tx (it moved nothing).
+  const [read, retryInternal] = useInternalTransfers(example || testMode || row.status === 'failed' ? null : row.hash)
   const internal = __DEV__ && devInternalState ? devInternal(devInternalState) : read
   return (
     <Screen
@@ -271,9 +273,10 @@ export function TxDetailPage() {
   const dir = parseDir(dirParam)
   // The local record wins over a history row with the same hash (not for the deposit leg of a self-send: `dir` = in).
   const tx = __DEV__ && demo ? demoTx(demo as TxState) : localRecordMatches(stored?.hash, id, dir) ? stored : null
-  const [internal, retryInternal] = useInternalTransfers(
-    tx && !testMode && (tx.state === 'Confirmed' || tx.state === 'Failed') ? tx.hash : null,
+  const [readInternal, retryInternal] = useInternalTransfers(
+    tx && !testMode && tx.state === 'Confirmed' ? tx.hash : null,
   )
+  const internal = __DEV__ && devInternalParam ? devInternal(devInternalParam) : readInternal
   if (!tx) {
     const address = __DEV__ && devRow ? DEV_ADDRESS : getAccountAddress()
     const cached = findCachedRow(address, id, dir)

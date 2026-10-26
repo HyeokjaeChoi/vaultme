@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { INTERNAL_DEADLINE_MS, internalRow, loadInternal, wantsInternal } from '../src/features/history/model/internal'
+import {
+  INTERNAL_DEADLINE_MS,
+  internalRow,
+  loadInternal,
+  retryAnnouncement,
+  shownInternal,
+  wantsInternal,
+} from '../src/features/history/model/internal'
 
 const H = '0x' + '1'.repeat(64)
 const A = '0x70997970c51812dc3a010c7d01b50e0d17dc79c8'
@@ -62,5 +69,26 @@ describe('internalRow', () => {
       detail: '0x7099…79C8 → —',
       ok: false,
     })
+  })
+})
+
+describe('shownInternal', () => {
+  const answer = { hash: H, attempt: 0, state: { status: 'failed' } as const }
+  it('an answer shows for its own hash and attempt only', () => {
+    expect(shownInternal(answer, H, 0)).toEqual({ status: 'failed' })
+    expect(shownInternal(answer, H, 1)).toEqual({ status: 'loading' }) // a retry shows loading again
+    expect(shownInternal(answer, '0x' + '2'.repeat(64), 0)).toEqual({ status: 'loading' }) // another hash
+    expect(shownInternal(null, H, 0)).toEqual({ status: 'loading' })
+  })
+})
+
+describe('retryAnnouncement', () => {
+  it('says the result of a retry; silent for the first read and an empty list', () => {
+    expect(retryAnnouncement({ status: 'failed' }, 1)).toBe('내부 이동을 불러오지 못했어요. 다시 시도하세요.')
+    expect(retryAnnouncement({ status: 'ok', items: [{ from: A, to: B, value: 1n, ok: true }] }, 2)).toBe(
+      '내부 이동 1건을 불러왔어요',
+    )
+    expect(retryAnnouncement({ status: 'failed' }, 0)).toBeNull()
+    expect(retryAnnouncement({ status: 'ok', items: [] }, 1)).toBeNull()
   })
 })

@@ -377,6 +377,7 @@ export const ko = {
       rowFailed: '내부 이동 실패',
       loading: '내부 이동을 불러오고 있어요',
       failed: '내부 이동을 불러오지 못했어요. 다시 시도하세요.',
+      loaded: '내부 이동 {{n}}건을 불러왔어요',
     },
     // Test mode only (fake chain adapter); owner-approved sheet, safe action Primary.
     clearTest: '테스트 거래 지우기',
