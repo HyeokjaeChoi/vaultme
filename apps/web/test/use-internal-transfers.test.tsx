@@ -54,13 +54,13 @@ const take = (o: Open) => void (open = open.filter((x) => x !== o))
 describe('useInternalTransfers', () => {
   it('no hash: loading, and no request', () => {
     const { result } = renderHook(() => useInternalTransfers(null))
-    expect(result.current[0]).toEqual({ status: 'loading', again: false })
+    expect(result.current[0]).toEqual({ status: 'loading' })
     expect(open).toEqual([])
   })
 
   it('loading, then the items with wei as bigint', async () => {
     const { result } = renderHook(() => useInternalTransfers(H1))
-    expect(result.current[0]).toEqual({ status: 'loading', again: false })
+    expect(result.current[0]).toEqual({ status: 'loading' })
     ;(await pending(H1)).answer({ items: [item] })
     await waitFor(() => {
       expect(result.current[0]).toEqual({ status: 'ok', items: [{ ...item, value: 50_000_000_000_000_000n }] })
@@ -75,7 +75,7 @@ describe('useInternalTransfers', () => {
     })
     take(open[0]!)
     act(() => result.current[1]())
-    expect(result.current[0]).toEqual({ status: 'loading', again: true })
+    expect(result.current[0]).toEqual({ status: 'loading' })
     ;(await pending(H1)).answer({ items: [] })
     await waitFor(() => {
       expect(result.current[0]).toEqual({ status: 'ok', items: [] })
@@ -95,7 +95,7 @@ describe('useInternalTransfers', () => {
     try {
       const { result } = renderHook(() => useInternalTransfers(H1))
       await act(() => vi.advanceTimersByTimeAsync(INTERNAL_DEADLINE_MS - 1))
-      expect(result.current[0]).toEqual({ status: 'loading', again: false })
+      expect(result.current[0]).toEqual({ status: 'loading' })
       await act(() => vi.advanceTimersByTimeAsync(1))
       expect(result.current[0]).toEqual({ status: 'failed' })
     } finally {
@@ -108,7 +108,7 @@ describe('useInternalTransfers', () => {
     const first = await pending(H1)
     take(first)
     rerender({ h: H2 })
-    expect(result.current[0]).toEqual({ status: 'loading', again: false })
+    expect(result.current[0]).toEqual({ status: 'loading' })
     const second = await pending(H2)
     take(second)
     rerender({ h: H1 })

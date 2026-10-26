@@ -129,11 +129,8 @@ function Detail({
   row?: 'ETH' | 'USDC' | undefined
 }) {
   const [tx, retry] = useTransaction(hash, row)
-  // Read beside the transaction, not after it: a failure is the section's own retry (the page stays).
+  // Read beside the transaction, not after it: the detail shows when the RPC reads are done; the section has its own loading and error.
   const [internal, retryInternal] = useInternalTransfers(hash)
-  // The page appears when both reads have answered (a failed one counts), so a section that turns out empty moves nothing (CLS 0).
-  // A retry of the section alone shows its own skeleton rows instead (Figma "internal loading").
-  const waiting = tx.status === 'loading' || (tx.status === 'ok' && internal.status === 'loading' && !internal.again)
   // "3분 전" stays true while the tab is open: `now` is renewed each minute.
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
@@ -157,7 +154,7 @@ function Detail({
       onClick={() => {
         retried.current = true
         retry()
-        retryInternal(true) // the section may be stale too (a fresh sweep has no internal transfers indexed yet)
+        retryInternal() // the section may be stale too (a fresh sweep has no internal transfers indexed yet)
       }}
     >
       {label}
@@ -165,9 +162,15 @@ function Detail({
   )
 
   return (
-    <section ref={section} tabIndex={-1} aria-label={x.title} aria-busy={waiting} className="flex flex-col gap-6">
-      {waiting && <TxSkeleton t={x} />}
-      {tx.status === 'ok' && !waiting && (
+    <section
+      ref={section}
+      tabIndex={-1}
+      aria-label={x.title}
+      aria-busy={tx.status === 'loading'}
+      className="flex flex-col gap-6"
+    >
+      {tx.status === 'loading' && <TxSkeleton t={x} />}
+      {tx.status === 'ok' && (
         <TxDetail
           tx={tx.tx}
           now={now}

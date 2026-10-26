@@ -41,6 +41,7 @@ beforeEach(() => {
       if (chain.down === 'old')
         return Promise.resolve(json(426, { code: 'update_required', message: 'x', retryable: false }))
       if (chain.down) return Promise.resolve(json(503, { code: 'unavailable', message: 'x', retryable: true }))
+      if (path === '/v1/tx/internal' && chain.internal === 'hold') return new Promise<Response>(() => undefined)
       if (path === '/v1/tx/internal')
         return Promise.resolve(
           chain.internalDown
@@ -193,6 +194,14 @@ describe('transaction page', () => {
       chain.internal = sweep
       await userEvent.click(retry)
       expect(await screen.findAllByRole('listitem')).toHaveLength(2)
+    })
+
+    it('the detail shows without waiting for a slow internal read; the section has its own loading rows', async () => {
+      chain.internal = 'hold'
+      open(`/tx#${H}`)
+      expect(await screen.findByText('확정')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '내부 이동' })).toBeInTheDocument()
+      expect(screen.getByText('내부 이동을 불러오고 있어요')).toBeInTheDocument()
     })
 
     it('English labels', async () => {

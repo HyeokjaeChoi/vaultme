@@ -129,7 +129,7 @@ test.describe('transaction page', () => {
   })
 
   for (const [width, mode] of widths.flatMap((w) => (['none', 'list', 'down'] as const).map((m) => [w, m] as const))) {
-    test(`no layout shift when the internal read answers last (${mode}, ${String(width)}px)`, async ({ page }) => {
+    test(`small layout shift when the internal read answers last (${mode}, ${String(width)}px)`, async ({ page }) => {
       const api = await fixtureApi(page)
       api.internal = mode satisfies InternalMode
       let release!: () => void
@@ -148,22 +148,21 @@ test.describe('transaction page', () => {
         }).observe({ type: 'layout-shift', buffered: true })
       })
       await page.goto(hash)
-      await expect(page.getByText('거래를 불러오고 있어요')).toBeAttached()
-      await page.waitForTimeout(300) // the transaction has answered: the page still waits for the internal read
-      await expect(page.getByText('확정')).toHaveCount(0)
+      await expect(page.getByText('확정')).toBeVisible() // the detail shows without the internal read
+      await expect(page.getByText('내부 이동을 불러오고 있어요')).toBeAttached() // the section has its own loading state
       await page.evaluate(() => document.fonts.ready)
       const before = await page.evaluate(() => (window as unknown as { cls: number }).cls)
       release()
-      await expect(page.getByText('확정')).toBeVisible()
-      await page.waitForTimeout(300)
+      await page.waitForTimeout(600)
       const { cls, moved } = await page.evaluate(() => {
         const w = window as unknown as { cls: number; moved: string[] }
         return { cls: w.cls, moved: w.moved }
       })
       // No section = the skeleton's height: nothing moves. A section makes the page taller than the skeleton, so only what is
       // below it (the footer) moves down, once; the detail itself never does.
-      if (mode === 'none') expect(cls - before, JSON.stringify(moved)).toBeLessThan(0.001)
-      else expect(moved.filter((n) => !n.startsWith('<footer'))).toEqual([])
+      // The section shows its loading rows first, so a section that turns out empty pulls the Etherscan link and the footer up. Measured
+      // (a 900 px high window): none 0.025 at 768 and 0.010 at 1280, else 0. The limit is well inside the CLS "good" range (0.1).
+      expect(cls - before, `${mode} ${JSON.stringify(moved)}`).toBeLessThan(0.05)
     })
   }
 
