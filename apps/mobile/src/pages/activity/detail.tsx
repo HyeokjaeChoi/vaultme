@@ -10,8 +10,10 @@ import {
   localRecordMatches,
   parseDir,
   rowCopy,
+  useInternalTransfers,
   useRowLookup,
   type HistoryItem,
+  type Internal,
   type PushDir,
   type RowLookup,
 } from '@/features/history'
@@ -43,23 +45,41 @@ import {
 } from '@/shared/ui'
 import { AddressText } from '@/shared/ui'
 import { fakeHistoryItems } from '@/widgets/activity-list'
+import { InternalTransfers } from '@/widgets/internal-transfers'
 import { NetworkChips } from '@/widgets/network-chips'
 import { Loading } from './Loading'
 
 // __DEV__ capture only (`?row=in|out`): a history row as in Figma Flow 4 A 742:2487 / B 742:2584.
 const DEV_ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
-const devHistoryRow = (dir: 'in' | 'out'): HistoryItem => ({
+const devHistoryRow = (dir: 'in' | 'out', amount = '0.05'): HistoryItem => ({
   id: 'dev:0',
   hash: '0xa1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90',
   kind: dir === 'in' ? 'receive' : 'send',
   asset: 'ETH',
-  amount: '0.05',
+  amount,
   counterparty: '0x123456789aBCdef0123456789AbCDEF012345678',
   at: new Date(2026, 9, 16, 9, 41).getTime(),
   ...txView('Confirmed'),
   local: false,
   blockNumber: 5812044,
 })
+
+// __DEV__ capture only (`?internal=list|many|loading|error`): the 내부 이동 states of Figma Flow 4 B-S41 (804:39671 list, 804:39832 many, 804:40085 loading, 804:40202 error).
+const DEV_FROM = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
+const DEV_TO = ['0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC', '0x90F79bf6EB2c4f870365E785982E1f101E93b906']
+const devInternal = (state: string): Internal => {
+  if (state === 'loading' || state === 'error') return { status: state === 'error' ? 'failed' : 'loading' }
+  const n = state === 'many' ? 6 : 2
+  return {
+    status: 'ok',
+    items: Array.from({ length: n }, (_, i) => ({
+      from: DEV_FROM,
+      to: DEV_TO[i % 2] ?? null,
+      value: i % 2 === 0 ? 50_000_000_000_000_000n : 10_000_000_000_000_000n,
+      ok: i % 2 === 0,
+    })),
+  }
+}
 
 const hhmm = (at: number) => new Date(at).toTimeString().slice(0, 5)
 
@@ -96,17 +116,21 @@ function RowDetail({
   address,
   real,
   example,
+  devInternalState,
 }: {
   row: HistoryItem
   address: string | null
   real: string | undefined
   example: boolean
+  devInternalState?: string | undefined
 }) {
   const { t } = useTranslation()
   const copy = rowCopy(row)
   const explorer =
     explorerUrl(chain, row.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${row.hash}` : null)
   const [figure, unit] = showAmount(row.amount, row.asset, 'exact').split(' ')
+  const [read, retryInternal] = useInternalTransfers(example ? null : row.hash)
+  const internal = __DEV__ && devInternalState ? devInternal(devInternalState) : read
   return (
     <Screen
       bleed
@@ -141,6 +165,7 @@ function RowDetail({
           <SummaryRow label={t('detail.block')} fact value={String(row.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} />
         ) : null}
       </Block>
+      {internal ? <InternalTransfers internal={internal} retry={retryInternal} /> : null}
       {explorer ? (
         <>
           <SectionBand />
@@ -212,7 +237,7 @@ function LookupDetail({
  * B-S41 거래 상세 for the send in the kv. State comes from the chain (ARCHITECTURE.md#invariants): receipt + `safe` block = Confirmed or Failed.
  * Hero shares the S23 copy (`resultCopy`); a send the fake adapter never broadcast is a test send ("테스트 거래예요", state "예시", no fee row, 테스트 거래 지우기 with a confirm sheet).
  * Blocks: 받는 주소 / 거래 정보 (시각, 상태, 보낸 계정 from the record — hidden for a record saved before #32, 네트워크, 네트워크 수수료) / 거래 해시 + Etherscan row (real network only). 상태 다시 확인 asks the chain; a Pending or Included send is also re-checked every 15 s while focused.
- * `?demo=<state>` | `?row=in|out` (history row) | `?lookup=loading|failed|none` (S41 lookup states) (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
+ * `?demo=<state>` | `?row=in|out` (history row) | `?internal=list|many|loading|error` (내부 이동 states) | `?lookup=loading|failed|none` (S41 lookup states) (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
  */
 export function TxDetailPage() {
   const { t } = useTranslation()
@@ -223,6 +248,7 @@ export function TxDetailPage() {
     demo,
     row: devRow,
     lookup: devLookup,
+    internal: devInternalParam,
     real,
     sheet,
     err,
@@ -231,6 +257,7 @@ export function TxDetailPage() {
     dir?: string
     row?: string
     lookup?: string
+    internal?: string
     demo?: string
     real?: string
     sheet?: string
@@ -244,14 +271,28 @@ export function TxDetailPage() {
   const dir = parseDir(dirParam)
   // The local record wins over a history row with the same hash (not for the deposit leg of a self-send: `dir` = in).
   const tx = __DEV__ && demo ? demoTx(demo as TxState) : localRecordMatches(stored?.hash, id, dir) ? stored : null
+  const [internal, retryInternal] = useInternalTransfers(
+    tx && !testMode && (tx.state === 'Confirmed' || tx.state === 'Failed') ? tx.hash : null,
+  )
   if (!tx) {
     const address = __DEV__ && devRow ? DEV_ADDRESS : getAccountAddress()
     const cached = findCachedRow(address, id, dir)
     const row =
-      (__DEV__ && (devRow === 'in' || devRow === 'out') ? devHistoryRow(devRow) : null) ??
+      (__DEV__ && (devRow === 'in' || devRow === 'out')
+        ? devHistoryRow(devRow, devInternalParam ? '0' : undefined)
+        : null) ??
       cached ??
       (testMode ? fakeHistoryItems(null).find((i) => i.id === id) : undefined)
-    if (row) return <RowDetail row={row} address={address} real={real} example={testMode && !cached} />
+    if (row)
+      return (
+        <RowDetail
+          row={row}
+          address={address}
+          real={real}
+          example={testMode && !cached}
+          devInternalState={devInternalParam}
+        />
+      )
     // Test-data mode has no API: an unknown id still goes back to the list. Real mode looks the row up.
     return testMode ? (
       <Redirect href="/activity" />
@@ -337,6 +378,7 @@ export function TxDetailPage() {
         ) : null}
         {final || test ? null : <StatusNotice tone="info" title={lastChecked} />}
       </Block>
+      {internal ? <InternalTransfers internal={internal} retry={retryInternal} /> : null}
       {test ? (
         <>
           <SectionBand />

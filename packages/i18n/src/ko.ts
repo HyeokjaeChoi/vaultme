@@ -369,6 +369,15 @@ export const ko = {
     replaced: { title: '실행되지 않았어요', body: '다른 거래가 먼저 처리되어\n이 거래는 실행되지 않았어요.' },
     recheck: '상태 다시 확인',
     etherscan: 'Etherscan에서 보기',
+    // Internal transfers of the transaction (#239, Figma Flow 4 B-S41 내부 이동 804:39671 list / 804:40085 loading / 804:40202 error). ADR-0015, CONTEXT.md "내부 이동".
+    internal: {
+      title: '내부 이동',
+      note: '이 거래의 ETH는 아래 내부 이동으로 옮겨졌어요. 위 금액이 0 ETH여도 정상이에요.',
+      row: '내부 이동',
+      rowFailed: '내부 이동 실패',
+      loading: '내부 이동을 불러오고 있어요',
+      failed: '내부 이동을 불러오지 못했어요. 다시 시도하세요.',
+    },
     // Test mode only (fake chain adapter); owner-approved sheet, safe action Primary.
     clearTest: '테스트 거래 지우기',
     clearTitle: '테스트 거래를 지울까요?',
