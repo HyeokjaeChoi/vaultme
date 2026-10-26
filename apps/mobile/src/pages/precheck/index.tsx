@@ -58,7 +58,7 @@ export function PrecheckPage() {
           label={t('precheck.cta')}
           busy={busy}
           busyLabel={t('busy.create')}
-          disabled={!ack.every(Boolean) || noLock}
+          disabled={!ack.every(Boolean) || noLock || lock.set === null}
           onPress={() => void create()}
         />
       }

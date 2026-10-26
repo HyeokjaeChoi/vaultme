@@ -66,6 +66,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const [outcome, setOutcome] = useState<'exists' | 'error' | null>(dev?.outcome ?? null)
   const lock = useDeviceLock()
   const noLock = lock.set === false || dev?.noLock === true
+  const checking = lock.set === null && !dev // first answer pending: no input yet, so no phrase is typed before the check
   const [submitChecksum, setSubmitChecksum] = useState(false)
 
   const cells = useRef<(TextInputInstance | null)[]>([])
@@ -193,7 +194,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
       footer={
         <Button
           label={t('restore.submit')}
-          disabled={!state.ready || showChecksum || noLock}
+          disabled={!state.ready || showChecksum || noLock || checking}
           busy={busy}
           busyLabel={t('busy.restore')}
           onPress={() => void submit()}
@@ -228,7 +229,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
           />
         ) : null}
       </View>
-      {noLock ? null : (
+      {noLock || checking ? null : (
         <>
           <View style={{ gap: th.semantic.layout.rowGap }} onLayout={(e) => (phraseY.current = e.nativeEvent.layout.y)}>
             <View

@@ -1,5 +1,5 @@
 import * as IntentLauncher from 'expo-intent-launcher'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppState, Platform } from 'react-native'
 import { deviceLockSet } from '../auth'
 
@@ -10,7 +10,13 @@ import { deviceLockSet } from '../auth'
  */
 export function useDeviceLock() {
   const [set, setSet] = useState<boolean | null>(null)
-  const refresh = useCallback(() => deviceLockSet().then(setSet), [])
+  const latest = useRef(0) // only the newest check may write: an older one can finish later
+  const refresh = useCallback(() => {
+    const id = ++latest.current
+    return deviceLockSet().then((v) => {
+      if (id === latest.current) setSet(v)
+    })
+  }, [])
   useEffect(() => {
     void refresh()
     const sub = AppState.addEventListener('change', (s) => {

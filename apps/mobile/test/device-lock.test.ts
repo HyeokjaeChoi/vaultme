@@ -14,6 +14,7 @@ const os = vi.hoisted(() => ({ value: 'android' }))
 vi.mock('react', () => ({
   useState: (init: boolean | null) => [hooks.state ?? init, (v: boolean | null) => (hooks.state = v)],
   useCallback: (fn: unknown) => fn,
+  useRef: (v: unknown) => ({ current: v }),
   useEffect: (fn: () => (() => void) | undefined) => void (hooks.cleanup = fn() ?? null),
 }))
 vi.mock('react-native', () => ({
@@ -83,6 +84,19 @@ describe('useDeviceLock', () => {
     expect(r.canOpenSettings).toBe(true)
     hooks.cleanup?.()
     expect(appState.removed).toBe(true)
+  })
+  it('an older check that finishes late does not replace the newest answer', async () => {
+    const { useDeviceLock } = await import('@/shared/lib/useDeviceLock')
+    hooks.state = null
+    let slow!: (n: number) => void
+    vi.mocked(LA.getEnrolledLevelAsync).mockReturnValueOnce(new Promise<number>((r) => (slow = r)))
+    const r = useDeviceLock() // mount check: pending
+    vi.mocked(LA.getEnrolledLevelAsync).mockResolvedValueOnce(1)
+    await r.refresh() // newer check: lock set
+    expect(hooks.state).toBe(true)
+    slow(0) // the older check answers last
+    await new Promise((res) => setTimeout(res))
+    expect(hooks.state).toBe(true)
   })
   it('opens the Android security settings; a failed launch is ignored; iOS has no settings action', async () => {
     const { useDeviceLock } = await import('@/shared/lib/useDeviceLock')
