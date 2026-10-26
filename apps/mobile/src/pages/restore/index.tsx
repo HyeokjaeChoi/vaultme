@@ -14,6 +14,7 @@ import {
 import { fromPhrase, holdRestore, takeWords } from '@/features/restore'
 import { restoreWallet } from '@/features/restore'
 import { goBack } from '@/shared/lib/nav'
+import { useDeviceLock } from '@/shared/lib/useDeviceLock'
 import { useTheme } from '@/shared/theme'
 import {
   Button,
@@ -35,6 +36,7 @@ import { NO_AUTOFILL } from '@/shared/ui'
  * (column 1 = first half), one error line under the grid, collapsed "고급 · 패스프레이즈 입력" row, 복구 in the footer.
  * Words and passphrase live only in this component's state (and, for "다른 주소예요", in the in-memory hand-off): both are cleared on success,
  * on leaving the screen and when the app goes to the background. Collapsing the passphrase row clears the passphrase too.
+ * No device screen lock (Figma 808:2608 Android, 808:2671 iOS, #241): checked before any word is typed; the grid and passphrase row give way to a warning banner (Android: settings link) and 복구 stays disabled.
  * Nothing is logged. Every cell and the passphrase field turn off auto-capitalize, auto-correct, spell check and autofill.
  */
 /** `dev` is a __DEV__ design-capture preset (focus look without a keyboard, busy, a finished attempt, the passphrase row open). */
@@ -42,6 +44,7 @@ export type RestoreDev = {
   focus?: number
   busy?: boolean
   outcome?: 'exists' | 'error'
+  noLock?: boolean
   passOpen?: boolean
   showPass?: boolean
   passphrase?: string
@@ -61,6 +64,9 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const [showPass, setShowPass] = useState(dev?.showPass ?? false)
   const [busy, setBusy] = useState(dev?.busy ?? false)
   const [outcome, setOutcome] = useState<'exists' | 'error' | null>(dev?.outcome ?? null)
+  const lock = useDeviceLock()
+  const noLock = lock.set === false || dev?.noLock === true
+  const checking = lock.set === null && !dev // first answer pending: no input yet, so no phrase is typed before the check
   const [submitChecksum, setSubmitChecksum] = useState(false)
 
   const cells = useRef<(TextInputInstance | null)[]>([])
@@ -149,7 +155,9 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
     }
     setBusy(false)
     if (r.status === 'invalid') setSubmitChecksum(true)
-    else setOutcome(r.status)
+    else if (r.status === 'noLock')
+      void lock.refresh() // the up-front banner takes over
+    else if (r.status !== 'cancelled') setOutcome(r.status) // a cancelled OS sheet shows nothing
   }
 
   const column = (from: number, to: number) => (
@@ -186,7 +194,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
       footer={
         <Button
           label={t('restore.submit')}
-          disabled={!state.ready || showChecksum}
+          disabled={!state.ready || showChecksum || noLock || checking}
           busy={busy}
           busyLabel={t('busy.restore')}
           onPress={() => void submit()}
@@ -200,6 +208,15 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
         <Text variant="body" color={th.semantic.text.secondary}>
           {t('restore.helper')}
         </Text>
+        {noLock ? (
+          <StatusNotice
+            tone="warning"
+            tier="banner"
+            title={t('deviceLock.title')}
+            body={t(`deviceLock.restore.${lock.canOpenSettings ? 'android' : 'ios'}`)}
+            {...(lock.canOpenSettings ? { link: { label: t('deviceLock.link'), onPress: lock.openSettings } } : {})}
+          />
+        ) : null}
         {outcome === 'exists' ? (
           <StatusNotice tone="danger" tier="banner" title={t('restore.exists.title')} body={t('restore.exists.body')} />
         ) : null}
@@ -212,78 +229,82 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
           />
         ) : null}
       </View>
-      <View style={{ gap: th.semantic.layout.rowGap }} onLayout={(e) => (phraseY.current = e.nativeEvent.layout.y)}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: th.semantic.layout.groupGap,
-          }}
-        >
-          <View style={{ flex: 1, maxWidth: th.primitive.space[10] * 5.5 }}>
-            <Segmented
-              options={[
-                { value: '12', label: t('restore.count12') },
-                { value: '24', label: t('restore.count24') },
-              ]}
-              value={String(count)}
-              onChange={(v) => setCount(v === '24' ? 24 : 12)}
+      {noLock || checking ? null : (
+        <>
+          <View style={{ gap: th.semantic.layout.rowGap }} onLayout={(e) => (phraseY.current = e.nativeEvent.layout.y)}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: th.semantic.layout.groupGap,
+              }}
+            >
+              <View style={{ flex: 1, maxWidth: th.primitive.space[10] * 5.5 }}>
+                <Segmented
+                  options={[
+                    { value: '12', label: t('restore.count12') },
+                    { value: '24', label: t('restore.count24') },
+                  ]}
+                  value={String(count)}
+                  onChange={(v) => setCount(v === '24' ? 24 : 12)}
+                />
+              </View>
+              <TextLink label={t('restore.paste')} onPress={() => void paste()} />
+            </View>
+            <View style={{ gap: th.semantic.layout.rowGap }}>
+              <View
+                style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}
+                onLayout={(e) => (gridY.current = e.nativeEvent.layout.y)}
+              >
+                {column(0, half)}
+                {column(half, count)}
+              </View>
+              {message ? (
+                <Text variant="bodySmall" color={th.component.input.errorText} accessibilityRole="alert">
+                  {message}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+          <View>
+            <ListItem
+              title={t('restore.passphrase.row')}
+              trailing={{
+                kind: 'custom',
+                node: (
+                  <Icon
+                    name={passOpen ? 'collapse' : 'expand'}
+                    size={th.component.icon.size.control}
+                    color={th.component.listItem.icon}
+                  />
+                ),
+              }}
+              onPress={toggleRow}
             />
-          </View>
-          <TextLink label={t('restore.paste')} onPress={() => void paste()} />
-        </View>
-        <View style={{ gap: th.semantic.layout.rowGap }}>
-          <View
-            style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}
-            onLayout={(e) => (gridY.current = e.nativeEvent.layout.y)}
-          >
-            {column(0, half)}
-            {column(half, count)}
-          </View>
-          {message ? (
-            <Text variant="bodySmall" color={th.component.input.errorText} accessibilityRole="alert">
-              {message}
-            </Text>
-          ) : null}
-        </View>
-      </View>
-      <View>
-        <ListItem
-          title={t('restore.passphrase.row')}
-          trailing={{
-            kind: 'custom',
-            node: (
-              <Icon
-                name={passOpen ? 'collapse' : 'expand'}
-                size={th.component.icon.size.control}
-                color={th.component.listItem.icon}
+            {passOpen ? (
+              <Input
+                label={t('restore.passphrase.label')}
+                value={passphrase}
+                onChangeText={setPassphrase}
+                helper={t('restore.passphrase.helper')}
+                secureTextEntry={!showPass}
+                action={{
+                  icon: showPass ? 'eyeClosed' : 'eye',
+                  label: showPass ? t('restore.passphrase.hide') : t('restore.passphrase.show'),
+                  onPress: () => setShowPass(!showPass),
+                }}
+                {...NO_AUTOFILL}
               />
-            ),
-          }}
-          onPress={toggleRow}
-        />
-        {passOpen ? (
-          <Input
-            label={t('restore.passphrase.label')}
-            value={passphrase}
-            onChangeText={setPassphrase}
-            helper={t('restore.passphrase.helper')}
-            secureTextEntry={!showPass}
-            action={{
-              icon: showPass ? 'eyeClosed' : 'eye',
-              label: showPass ? t('restore.passphrase.hide') : t('restore.passphrase.show'),
-              onPress: () => setShowPass(!showPass),
-            }}
-            {...NO_AUTOFILL}
-          />
-        ) : null}
-        {passOpen ? (
-          <Text variant="caption" color={th.semantic.text.tertiary} style={{ paddingTop: th.primitive.space[2] }}>
-            {t('restore.passphrase.clearNote')}
-          </Text>
-        ) : null}
-      </View>
+            ) : null}
+            {passOpen ? (
+              <Text variant="caption" color={th.semantic.text.tertiary} style={{ paddingTop: th.primitive.space[2] }}>
+                {t('restore.passphrase.clearNote')}
+              </Text>
+            ) : null}
+          </View>
+        </>
+      )}
     </Screen>
   )
 }
@@ -302,6 +323,7 @@ const DEMO: Record<string, { phrase: string; dev?: RestoreDev }> = {
   checksum: { phrase: `${A11} abandon` },
   exists: { phrase: READY, dev: { outcome: 'exists' } },
   saveerror: { phrase: READY, dev: { outcome: 'error' } },
+  nolock: { phrase: '', dev: { noLock: true } },
   'passphrase-masked': { phrase: READY, dev: { passOpen: true, passphrase: 'TREZOR' } },
   'passphrase-shown': { phrase: READY, dev: { passOpen: true, passphrase: 'TREZOR', showPass: true } },
   '24words': { phrase: `${'abandon '.repeat(12)}ab`, dev: { focus: 12 } },
