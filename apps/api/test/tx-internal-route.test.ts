@@ -71,7 +71,7 @@ describe('POST /v1/tx/internal', () => {
       chainid: '11155111',
       module: 'account',
       action: 'txlistinternal',
-      txhash: HASH,
+      txhash: HASH.toLowerCase(),
     })
   })
 
@@ -150,5 +150,16 @@ describe('POST /v1/tx/internal', () => {
     const r = await post({ hash: HASH })
     expect(r.status).toBe(200)
     expect(f).toHaveBeenCalledTimes(2)
+  })
+
+  it('rate limit message twice -> 503', async () => {
+    const f = mock(() => notok('Max calls per sec rate limit reached (3/sec)'))
+    expect((await post({ hash: HASH })).status).toBe(503)
+    expect(f).toHaveBeenCalledTimes(2)
+  })
+
+  it('a contract creation row has no recipient', async () => {
+    mock(() => ok([row({ to: '' })]))
+    expect(TxInternalResponse.parse(await (await post({ hash: HASH })).json()).items[0]?.to).toBeNull()
   })
 })

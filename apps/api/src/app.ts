@@ -182,7 +182,7 @@ app.openapi(
   },
 )
 
-// Token check. Also the template for /v1/rpc and /v1/history, which mount requireToken the same way.
+// Token check. Also the template for /v1/rpc, /v1/history and /v1/tx/internal, which mount requireToken the same way.
 app.openapi(
   createRoute({
     method: 'get',

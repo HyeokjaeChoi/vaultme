@@ -22,14 +22,20 @@ async function acquire(env: Bindings): Promise<void> {
   if (wait > 0) await sleep(wait)
 }
 
+// Fail closed (500). Callers check it up front, so a bad cursor or a cache hit cannot hide a missing key.
+function apiKey(env: Bindings): string {
+  const key = env.ETHERSCAN_API_KEY
+  if (typeof key !== 'string' || key.length === 0) throw new Error('invalid ETHERSCAN_API_KEY')
+  return key
+}
+
 /**
  * One Etherscan call. HTTP is always 200: the answer is in `status`/`message`/`result`.
  * Empty -> []. Rate limit -> one more try through the bucket, then 503. Query Timeout and the rest -> 503.
  * Never log or throw the URL, the key or the body: they can carry the key.
  */
 async function etherscanRows(env: Bindings, params: Record<string, string>): Promise<unknown[]> {
-  const key = env.ETHERSCAN_API_KEY
-  if (typeof key !== 'string' || key.length === 0) throw new Error('invalid ETHERSCAN_API_KEY') // fail closed (500)
+  const key = apiKey(env)
   const url = new URL(BASE)
   url.search = new URLSearchParams({ chainid: SEPOLIA, module: 'account', ...params, apikey: key }).toString()
   const list = params.action ?? '?'
@@ -65,6 +71,7 @@ async function etherscanRows(env: Bindings, params: Record<string, string>): Pro
 }
 
 function etherscanList(env: Bindings, address: string): FetchList {
+  apiKey(env)
   return (list, q) => {
     const params: Record<string, string> = {
       action: list,
@@ -81,7 +88,7 @@ function etherscanList(env: Bindings, address: string): FetchList {
 
 /** Internal ETH transfers of one transaction (ADR-0015). No cache: a fresh block must show up as soon as Etherscan has it. */
 export async function getTxInternal(env: Bindings, hash: string): Promise<TxInternalResponse> {
-  return parseInternalRows(await etherscanRows(env, { action: 'txlistinternal', txhash: hash }))
+  return parseInternalRows(await etherscanRows(env, { action: 'txlistinternal', txhash: hash.toLowerCase() }))
 }
 
 /** Cache API, 30 s per (address hash, cursor). The raw address is never part of the key. */

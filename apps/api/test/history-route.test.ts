@@ -184,6 +184,13 @@ describe('POST /v1/history', () => {
     expect(f).not.toHaveBeenCalled()
   })
 
+  it('a missing key is 500 even with a bad cursor (checked before the cursor and the cache)', async () => {
+    const f = mock({})
+    const r = await post({ address: newAddress(), cursor: 'garbage' }, { ...E, ETHERSCAN_API_KEY: '' })
+    expect(r.status).toBe(500)
+    expect(f).not.toHaveBeenCalled()
+  })
+
   it('empty history is a 200 with no items', async () => {
     mock({})
     const r = await post({ address: newAddress() })

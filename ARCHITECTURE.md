@@ -113,9 +113,9 @@ Every `/v1/*` call except `/v1/health` needs `X-App-Version`. A version below th
 
 App -> `POST /v1/history {address, cursor}` -> Worker calls Etherscan `txlist`, `txlistinternal`, `tokentx` -> merge, dedupe, sort -> up to 50 items, `nextCursor`, `incomplete`.
 - Cache API caches a page for 30 s. The key uses a hash of the address, never the address.
-- `POST /v1/tx/internal {hash}` -> Etherscan `txlistinternal&txhash=` -> `{items: [{from, to, value, ok}]}` (internal ETH transfers of one transaction, no cache, ADR-0015).
 - The cursor holds an 8-hex address hash, so a cursor from another address is refused (`400 invalid_cursor`).
 - Etherscan calls pass through the `EtherscanBucket` Durable Object: 2.5 calls/s, no burst. A wait over 2 s gives `503 unavailable`.
+- `POST /v1/tx/internal {hash}` -> Etherscan `txlistinternal&txhash=` -> `{items: [{from, to, value, ok}]}` (internal ETH transfers of one transaction, no cache, ADR-0015).
 - A zero-value ERC-20 row is `out` only if the same response shows that the address sent the transaction. Else it is `in`. This stops address poisoning.
 - The app keeps the last result in MMKV and shows it with its update time.
 - `@vaultme/history` (`createHistory`) holds the client side: the list view (contract check, address-poisoning filter, cache fallback, the local send merged in, only the newest load answers) and the S41 row lookup. Seams: page fetch (the API client) and the cache slot. The local send is a mobile-only input. `HistoryView.nextCursor` and `more(address, cursor)` give the web viewer older pages (same contract check and poisoning filter, not cached); the web keeps no cache (the cache slot is empty), so a failed read has no rows to fall back on.
@@ -163,7 +163,7 @@ App side (`features/push`):
 - Addresses show in 4-character groups (`shared/lib/address.ts`). The `0x` prefix stays with the first group.
 - Rate limits (Cloudflare binding, per location, approximate):
   - `POST /v1/installs`: 3 per 60 s per IP.
-  - `/v1/rpc`, `/v1/history`, `/v1/tx/internal`: 300 per 60 s per IP, and 60 per 60 s per install.
+  - `/v1/rpc`, and `/v1/history` together with `/v1/tx/internal` (one shared budget): 300 per 60 s per IP, and 60 per 60 s per install.
   - `/v1/installs/token`, `/v1/push/*`: 60 per 60 s per install.
   - Over the limit: `429 rate_limited` with `Retry-After: 60`.
 - Logs and responses never hold upstream URLs, API keys, upstream error bodies or addresses.
