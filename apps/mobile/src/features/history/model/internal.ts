@@ -45,10 +45,12 @@ export function internalRow(i: InternalTransfer) {
   }
 }
 
-/** What a screen reader hears when a retry (attempt > 0) is answered; null = nothing (the first read, or an empty list that hides the section). */
+/** What a screen reader hears when a retry (attempt > 0) is answered; null = nothing (the first read). */
 export const retryAnnouncement = (state: Settled, attempt: number): string | null =>
-  attempt === 0 || (state.status === 'ok' && state.items.length === 0)
+  attempt === 0
     ? null
     : state.status === 'failed'
       ? i18n.t('detail.internal.failed')
-      : i18n.t('detail.internal.loaded', { n: state.items.length })
+      : state.items.length === 0
+        ? i18n.t('detail.internal.none')
+        : i18n.t('detail.internal.loaded', { n: state.items.length })

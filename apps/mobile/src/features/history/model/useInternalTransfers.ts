@@ -34,6 +34,7 @@ export function useInternalTransfers(hash: string | null): [Internal | null, ret
     })
     return () => {
       live = false
+      setCurrent(null) // a re-enabled read (same hash, same attempt) must not show the answer of the run before
     }
   }, [enabled, client, hash, attempt])
 
