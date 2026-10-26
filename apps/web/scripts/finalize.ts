@@ -25,6 +25,11 @@ export function analyticsToken(env: Record<string, string | undefined> = process
   return token
 }
 
+/** The beacon tag (Cloudflare manual setup). Added to the built HTML here, not in a route, so no screen code changes; an external script needs no CSP hash. */
+export function beaconTag(token: string): string {
+  return `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='${JSON.stringify({ token })}'></script>`
+}
+
 export interface HeaderOptions {
   scriptHashes: string[]
   apiOrigin: string
@@ -95,6 +100,13 @@ export function finalize(dir: string, env: Record<string, string | undefined> = 
   // The SPA shell has no page content. Once the landing page is prerendered at `/`, index.html is that page: keep it.
   const index = join(dir, 'index.html')
   if (existsSync(index) && !/<main[\s>]/.test(readFileSync(index, 'utf8'))) rmSync(index)
+  const token = analyticsToken(env)
+  if (token)
+    for (const f of htmlFiles(dir)) {
+      const html = readFileSync(f, 'utf8')
+      if (!html.includes('</head>')) throw new Error(`${f} has no </head>`)
+      writeFileSync(f, html.replace('</head>', `${beaconTag(token)}</head>`))
+    }
   const hashes = [...new Set(htmlFiles(dir).flatMap((f) => inlineScriptHashes(readFileSync(f, 'utf8'))))]
   const headers = join(dir, '_headers')
   const options = { scriptHashes: hashes, apiOrigin: apiOrigin(env), noindex: env.WEB_ENV !== 'production' }
