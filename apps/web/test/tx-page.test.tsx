@@ -10,7 +10,14 @@ const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const B = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 const USDC = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 
-type Chain = { tx: unknown; receipt: unknown; down: boolean | 'old'; logs?: unknown[] }
+type Chain = {
+  tx: unknown
+  receipt: unknown
+  down: boolean | 'old'
+  logs?: unknown[]
+  internal: unknown
+  internalDown: boolean
+}
 const eth = { hash: H, from: B, to: A, value: '0xb1a2bc2ec50000', input: '0x', blockNumber: '0x713a27' } // 0.05 ETH
 const receipt = {
   status: '0x1',
@@ -22,7 +29,7 @@ const receipt = {
 let chain: Chain
 
 beforeEach(() => {
-  chain = { tx: eth, receipt, down: false }
+  chain = { tx: eth, receipt, down: false, internal: { items: [] }, internalDown: false }
   const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status })
   vi.stubGlobal(
     'fetch',
@@ -34,6 +41,12 @@ beforeEach(() => {
       if (chain.down === 'old')
         return Promise.resolve(json(426, { code: 'update_required', message: 'x', retryable: false }))
       if (chain.down) return Promise.resolve(json(503, { code: 'unavailable', message: 'x', retryable: true }))
+      if (path === '/v1/tx/internal')
+        return Promise.resolve(
+          chain.internalDown
+            ? json(503, { code: 'unavailable', message: 'x', retryable: true })
+            : json(200, chain.internal),
+        )
       const { id, method } = JSON.parse(init.body as string) as { id: number; method: string }
       const results: Record<string, unknown> = {
         eth_getTransactionByHash: chain.tx,
@@ -89,6 +102,74 @@ describe('transaction page', () => {
       'href',
       `https://sepolia.etherscan.io/tx/${H}`,
     )
+  })
+
+  describe('internal transfers (#238)', () => {
+    const lower = (a: string) => a.toLowerCase()
+    const sweep = {
+      items: [
+        { from: lower(B), to: lower(A), value: '50000000000000000', ok: true },
+        { from: lower(B), to: lower(USDC), value: '10000000000000000', ok: false },
+      ],
+    }
+
+    it('a transaction of 0 ETH shows its internal transfers below the rows; the headline stays', async () => {
+      chain.tx = { ...eth, value: '0x0' }
+      chain.internal = sweep
+      open(`/tx#${H}`)
+      const heading = await screen.findByRole('heading', { name: '내부 이동' })
+      const section = heading.closest('section')!
+      expect(screen.getByText('0')).toBeInTheDocument() // the headline: the transaction's own amount
+      const rows = within(section).getAllByRole('listitem')
+      expect(rows).toHaveLength(2)
+      expect(rows[0]).toHaveTextContent('0x7099…79C8 → 0x9858…da94')
+      expect(rows[0]).toHaveTextContent('0.05 ETH')
+      // a failed one stays in the list: its title says it, its amount is grey
+      expect(rows[1]).toHaveTextContent('내부 이동 실패')
+      expect(within(rows[1]!).getByText('0.01 ETH')).toHaveClass('text-text-tertiary')
+      expect(within(rows[0]!).getByText('0.05 ETH')).toHaveClass('text-text-primary')
+      expect(section).toHaveTextContent('위 금액이 0 ETH여도 정상이에요')
+      // below the six rows, above the Etherscan link
+      const etherscan = screen.getByRole('link', { name: 'Etherscan에서 보기' })
+      expect(section.compareDocumentPosition(etherscan) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    it('no internal transfers: no section', async () => {
+      open(`/tx#${H}`)
+      await screen.findByText('확정')
+      await waitFor(() => {
+        expect(screen.queryByText('내부 이동을 불러오고 있어요')).toBeNull() // read and answered: empty
+      })
+      expect(screen.queryByRole('heading', { name: '내부 이동' })).toBeNull()
+    })
+
+    it('a failed internal read: the page stays, the section shows an error, and Try again recovers', async () => {
+      chain.internalDown = true
+      open(`/tx#${H}`)
+      expect(await screen.findByText('확정')).toBeInTheDocument()
+      expect(await screen.findByRole('alert')).toHaveTextContent('내부 이동을 불러오지 못했어요')
+      expect(screen.getByText('0.05')).toBeInTheDocument() // the rest is there
+      chain.internalDown = false
+      chain.internal = sweep
+      await userEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+      expect(await screen.findAllByRole('listitem')).toHaveLength(2)
+      expect(screen.queryByRole('alert')).toBeNull()
+      expect(document.activeElement).not.toBe(document.body)
+    })
+
+    it('English labels', async () => {
+      chain.internal = sweep
+      open(`/en/tx#${H}`)
+      expect(await screen.findByRole('heading', { name: 'Internal transfers' })).toBeInTheDocument()
+      expect(screen.getByText('Internal transfer')).toBeInTheDocument()
+      expect(screen.getByText('Internal transfer failed')).toBeInTheDocument()
+    })
+
+    it('a contract creation has no recipient: a dash', async () => {
+      chain.internal = { items: [{ from: lower(B), to: null, value: '1', ok: true }] }
+      open(`/tx#${H}`)
+      expect(await screen.findByText('0x7099…79C8 → —')).toBeInTheDocument()
+    })
   })
 
   it('copies an address and the hash', async () => {

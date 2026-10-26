@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readTransaction } from '../src/index.ts'
+import { readInternalTransfers, readTransaction } from '../src/index.ts'
 
 const HASH = `0x${'8f'.repeat(32)}`
 const FROM = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
@@ -177,5 +177,39 @@ describe('readTransaction', () => {
     ],
   ])('throws on %s', async (_n, o) => {
     await expect(readTransaction(chain(o).rpc, HASH)).rejects.toThrow()
+  })
+})
+
+describe('readInternalTransfers', () => {
+  const item = { from: FROM.toLowerCase(), to: TO.toLowerCase(), value: '50000000000000000', ok: true }
+
+  it('asks by hash and returns the items with wei as bigint, in order', async () => {
+    const calls: string[] = []
+    const items = await readInternalTransfers((h) => {
+      calls.push(h)
+      return Promise.resolve({ items: [item, { ...item, to: null, value: '0', ok: false }] })
+    }, HASH)
+    expect(calls).toEqual([HASH])
+    expect(items).toEqual([
+      { ...item, value: 50_000_000_000_000_000n },
+      { ...item, to: null, value: 0n, ok: false },
+    ])
+  })
+
+  it('no items is an empty list', async () => {
+    expect(await readInternalTransfers(() => Promise.resolve({ items: [] }), HASH)).toEqual([])
+  })
+
+  it.each([
+    ['no items', {}],
+    ['a bad value', { items: [{ ...item, value: '0x5' }] }],
+    ['a bad address', { items: [{ ...item, from: 'x' }] }],
+    ['no ok', { items: [{ ...item, ok: undefined }] }],
+  ])('throws on %s', async (_n, answer) => {
+    await expect(readInternalTransfers(() => Promise.resolve(answer), HASH)).rejects.toThrow()
+  })
+
+  it('passes a failed call on', async () => {
+    await expect(readInternalTransfers(() => Promise.reject(new Error('503')), HASH)).rejects.toThrow('503')
   })
 })

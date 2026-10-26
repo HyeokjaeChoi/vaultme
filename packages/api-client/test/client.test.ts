@@ -126,7 +126,7 @@ function setup(over: { appVersion?: string; client?: 'web' } = {}) {
       server.tokens++
       return json(200, { token: `tok${String(server.tokens)}`, expiresAt: sec + 900 })
     }
-    if (path === '/v1/rpc' || path === '/v1/history') {
+    if (path === '/v1/rpc' || path === '/v1/history' || path === '/v1/tx/internal') {
       server.rpcCalls.push({
         auth: h.get('Authorization'),
         version: h.get('X-App-Version'),
@@ -293,6 +293,13 @@ describe('api client', () => {
     const addr = '0x' + 'a'.repeat(40)
     await s.client().history(addr, 'c1')
     expect(s.server.rpcCalls[0]).toMatchObject({ auth: 'Bearer tok1', body: { address: addr, cursor: 'c1' } })
+  })
+  it('txInternal posts {hash} to /v1/tx/internal with the token', async () => {
+    const s = setup()
+    s.server.rpcReply = { status: 200, body: { items: [] } }
+    const hash = `0x${'8f'.repeat(32)}`
+    expect(await s.client().txInternal(hash)).toEqual({ items: [] })
+    expect(s.server.rpcCalls[0]).toMatchObject({ auth: 'Bearer tok1', body: { hash } })
   })
   it('push subscription: PUT {address, expoToken}, DELETE without a body, both with the token', async () => {
     const s = setup()
