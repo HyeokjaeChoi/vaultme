@@ -147,7 +147,7 @@ function Detail({
   const section = useRef<HTMLElement>(null)
   const retried = useRef(false)
   useEffect(() => {
-    if (!retried.current || tx.status === 'loading') return
+    if (!retried.current || tx.status === 'loading' || internal.status === 'loading') return
     retried.current = false
     if (document.activeElement === null || document.activeElement === document.body) section.current?.focus()
   })
@@ -157,6 +157,7 @@ function Detail({
       onClick={() => {
         retried.current = true
         retry()
+        retryInternal(true) // the section may be stale too (a fresh sweep has no internal transfers indexed yet)
       }}
     >
       {label}
@@ -167,7 +168,17 @@ function Detail({
     <section ref={section} tabIndex={-1} aria-label={x.title} aria-busy={waiting} className="flex flex-col gap-6">
       {waiting && <TxSkeleton t={x} />}
       {tx.status === 'ok' && !waiting && (
-        <TxDetail tx={tx.tx} now={now} t={x} locale={locale} internal={internal} retryInternal={retryInternal} />
+        <TxDetail
+          tx={tx.tx}
+          now={now}
+          t={x}
+          locale={locale}
+          internal={internal}
+          retryInternal={() => {
+            retried.current = true // the button leaves with the error: the focus goes to the section once the answer is there
+            retryInternal()
+          }}
+        />
       )}
       {tx.status === 'notfound' && (
         <div role="status">

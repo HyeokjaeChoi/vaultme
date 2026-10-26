@@ -1,6 +1,5 @@
 // Figma: Tx detail · internal transfers (Web page, section 768:4422, #238): list 804:35707 (375) / 804:36265 (768) / 804:36827 (1280),
 // loading 804:36075 / 804:36635 / 804:37197, error 804:36169 / 804:36730 / 804:37292; rows are Activity row 36:48, header B/Section header
-import { useRef } from 'react'
 import type { InternalTransfer } from '@vaultme/api-client'
 import type { WebTxMessages } from '@vaultme/i18n/web-tx'
 import { fromUnits, toChecksumAddress } from '@vaultme/wallet-core'
@@ -11,10 +10,10 @@ import { Notice } from './Notice'
 import { RowBadge } from './RowBadge'
 
 // First 6 and last 4 characters, as the history rows. A contract creation has no recipient.
+const full = (a: string | null) => (a ? toChecksumAddress(a.toLowerCase()) : '—')
 const short = (a: string | null) => {
-  if (!a) return '—'
-  const c = toChecksumAddress(a.toLowerCase())
-  return `${c.slice(0, 6)}…${c.slice(-4)}`
+  const c = full(a)
+  return a ? `${c.slice(0, 6)}…${c.slice(-4)}` : c
 }
 
 type Props = { internal: Internal; retry: () => void; t: WebTxMessages }
@@ -23,7 +22,7 @@ const bar = 'bg-skeleton-bg rounded-skeleton-radius'
 
 function Row({ i, t }: { i: InternalTransfer; t: WebTxMessages }) {
   return (
-    <li className="gap-layout-row-gap flex h-16 items-center">
+    <li className="gap-layout-row-gap flex min-h-16 items-center">
       <div className="relative shrink-0">
         <AssetIcon asset="ETH" large />
         {!i.ok && (
@@ -34,12 +33,18 @@ function Row({ i, t }: { i: InternalTransfer; t: WebTxMessages }) {
       </div>
       <div className="flex min-w-px flex-1 flex-col">
         <p className="text-product-b-row-title text-text-primary">{i.ok ? t.internal.row : t.internal.rowFailed}</p>
-        <p className="text-product-b-caption text-text-tertiary" translate="no">
+        <p
+          className="text-product-b-caption text-text-tertiary"
+          translate="no"
+          title={`${full(i.from)} → ${full(i.to)}`}
+        >
           {short(i.from)} → {short(i.to)}
         </p>
       </div>
       {/* A failed call moved nothing: the amount it named is grey, as in the history rows. */}
-      <p className={`text-product-b-headline shrink-0 text-right ${i.ok ? 'text-text-primary' : 'text-text-tertiary'}`}>
+      <p
+        className={`text-product-b-headline max-w-1/2 text-right break-all ${i.ok ? 'text-text-primary' : 'text-text-tertiary'}`}
+      >
         {fromUnits(i.value, 'ETH')} ETH
       </p>
     </li>
@@ -51,15 +56,9 @@ function Row({ i, t }: { i: InternalTransfer; t: WebTxMessages }) {
  * none (Etherscan can lag a fresh block). A failed read affects only this section: a notice and a retry button.
  */
 export function InternalTransfers({ internal, retry, t }: Props) {
-  const section = useRef<HTMLElement>(null)
   if (internal.status === 'ok' && internal.items.length === 0) return null
   return (
-    <section
-      ref={section}
-      tabIndex={-1}
-      aria-labelledby="internal-title"
-      className="gap-layout-field-gap flex flex-col"
-    >
+    <section aria-labelledby="internal-title" className="gap-layout-field-gap flex flex-col">
       <h2 id="internal-title" className="text-product-b-title2 text-text-primary pt-4 pb-2">
         {t.internal.title}
       </h2>
@@ -84,14 +83,8 @@ export function InternalTransfers({ internal, retry, t }: Props) {
             {t.internal.failed}
           </Notice>
           <div className="flex">
-            {/* The button leaves with the error: the focus moves to the section, not to <body>. */}
-            <Button
-              variant="secondaryMd"
-              onClick={() => {
-                retry()
-                section.current?.focus()
-              }}
-            >
+            {/* The button leaves with the error: `Detail` moves the focus to the page section once the answer is there. */}
+            <Button variant="secondaryMd" onClick={retry}>
               {t.internal.retry}
             </Button>
           </div>
@@ -99,7 +92,10 @@ export function InternalTransfers({ internal, retry, t }: Props) {
       )}
       {internal.status === 'ok' && (
         <>
-          <p className="text-product-b-body-small text-text-tertiary">{t.internal.note}</p>
+          {/* "The ETH moved here" is true only if one of them went through. */}
+          {internal.items.some((i) => i.ok) && (
+            <p className="text-product-b-body-small text-text-tertiary">{t.internal.note}</p>
+          )}
           <ul className="flex flex-col">
             {internal.items.map((i, n) => (
               <Row key={n} i={i} t={t} />

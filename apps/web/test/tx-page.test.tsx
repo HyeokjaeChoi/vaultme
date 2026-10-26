@@ -157,6 +157,44 @@ describe('transaction page', () => {
       expect(document.activeElement).not.toBe(document.body)
     })
 
+    it('the note says the ETH moved only if one transfer went through; a row shows both full addresses on hover', async () => {
+      chain.internal = { items: [{ from: lower(B), to: lower(A), value: '1', ok: false }] }
+      open(`/tx#${H}`)
+      expect(await screen.findByText('내부 이동 실패')).toBeInTheDocument()
+      expect(screen.queryByText(/옮겨졌어요/)).toBeNull()
+      expect(screen.getByTitle(`${B} → ${A}`)).toBeInTheDocument()
+    })
+
+    it('a long amount wraps in its own column, not past the row', async () => {
+      chain.internal = { items: [{ from: lower(B), to: lower(A), value: '49873451234567891', ok: true }] }
+      open(`/tx#${H}`)
+      expect(await screen.findByText('0.049873451234567891 ETH')).toHaveClass('break-all', 'max-w-1/2')
+    })
+
+    it('a retry that answers with no transfers keeps the focus in the page', async () => {
+      chain.internalDown = true
+      open(`/tx#${H}`)
+      const retry = await screen.findByRole('button', { name: '다시 시도' })
+      chain.internalDown = false
+      await userEvent.click(retry)
+      await waitFor(() => {
+        expect(screen.queryByRole('heading', { name: '내부 이동' })).toBeNull()
+      })
+      await waitFor(() => {
+        expect(document.activeElement).not.toBe(document.body)
+      })
+    })
+
+    it('Try again on a transaction that was not found reads the internal transfers again too', async () => {
+      chain.tx = null // a fresh sweep: no block yet, and Etherscan has nothing yet
+      open(`/tx#${H}`)
+      const retry = await screen.findByRole('button', { name: '다시 시도' })
+      chain.tx = eth
+      chain.internal = sweep
+      await userEvent.click(retry)
+      expect(await screen.findAllByRole('listitem')).toHaveLength(2)
+    })
+
     it('English labels', async () => {
       chain.internal = sweep
       open(`/en/tx#${H}`)

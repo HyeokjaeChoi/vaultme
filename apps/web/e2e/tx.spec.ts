@@ -97,6 +97,20 @@ test.describe('transaction page', () => {
     })
   }
 
+  test('internal transfers: a long amount wraps in its column, nothing runs past the row (375px)', async ({ page }) => {
+    const api = await fixtureApi(page)
+    api.internal = 'long'
+    await page.setViewportSize({ width: 375, height: 900 })
+    await page.goto(hash)
+    await expect(page.getByText('0.049873451234567891 ETH')).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    const [amount, caption] = await Promise.all([
+      page.getByText('0.049873451234567891 ETH').boundingBox(),
+      page.getByText(/0x7099…79C8 →/).boundingBox(),
+    ])
+    expect((caption?.x ?? 0) + (caption?.width ?? 0)).toBeLessThanOrEqual(amount?.x ?? 0)
+  })
+
   test('internal transfers: none hides the section; a failed read shows an error and Try again, the page stays', async ({
     page,
   }) => {

@@ -53,8 +53,8 @@ const SECOND_PAGE = [mkTx(13, 30 * DAY), mkTx(14, 31 * DAY), mkTx(15, 32 * DAY)]
 
 /** The transaction answers: `ok` = 0.05 ETH 3 minutes ago, `usdc` = a 12.5 USDC transfer, `failed` = reverted, `unknown` = no such tx, `pending` = no block yet, `down` = 503. */
 export type TxMode = 'ok' | 'usdc' | 'failed' | 'unknown' | 'pending' | 'creation' | 'down'
-/** The internal transfers answers: `none`, `list` = one done and one failed transfer, `many` = 6, `down` = 503. */
-export type InternalMode = 'none' | 'list' | 'many' | 'down'
+/** The internal transfers answers: `none`, `list` = one done and one failed transfer, `many` = 6, `long` = one with 18 decimals, `down` = 503. */
+export type InternalMode = 'none' | 'list' | 'many' | 'long' | 'down'
 export const TX = hex(0x8f3b) // the hash of every fixture transaction answer
 const SENDER = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 const USDC = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
@@ -111,9 +111,11 @@ export async function fixtureApi(page: Page) {
       const items =
         api.internal === 'list'
           ? [move(5), move(1, { ok: false })]
-          : api.internal === 'many'
-            ? [1, 2, 3, 4, 5, 6].map((i) => move(i))
-            : []
+          : api.internal === 'long'
+            ? [move(1, { value: '49873451234567891' })]
+            : api.internal === 'many'
+              ? [1, 2, 3, 4, 5, 6].map((i) => move(i))
+              : []
       return json(route, 200, { items })
     }
     const body = req.postDataJSON() as { id: number; method: string; params: unknown[] }
