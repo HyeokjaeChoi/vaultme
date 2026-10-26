@@ -18,6 +18,18 @@ export function apiOrigin(env: Record<string, string | undefined> = process.env)
   return origin
 }
 
+/** Cloudflare Web Analytics beacon token of a build (WEB_ANALYTICS_TOKEN, ADR-0012). Empty: no beacon (local, CI). It is a public id, not a secret. */
+export function analyticsToken(env: Record<string, string | undefined> = process.env): string {
+  const token = env.WEB_ANALYTICS_TOKEN ?? ''
+  if (token !== '' && !/^[0-9a-f]{32}$/.test(token)) throw new Error('WEB_ANALYTICS_TOKEN must be 32 hex characters')
+  return token
+}
+
+/** The beacon tag (Cloudflare manual setup). Added to the built HTML here, not in a route, so no screen code changes; an external script needs no CSP hash. */
+export function beaconTag(token: string): string {
+  return `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='${JSON.stringify({ token })}'></script>`
+}
+
 export interface HeaderOptions {
   scriptHashes: string[]
   apiOrigin: string
@@ -88,6 +100,14 @@ export function finalize(dir: string, env: Record<string, string | undefined> = 
   // The SPA shell has no page content. Once the landing page is prerendered at `/`, index.html is that page: keep it.
   const index = join(dir, 'index.html')
   if (existsSync(index) && !/<main[\s>]/.test(readFileSync(index, 'utf8'))) rmSync(index)
+  // Staging only: a production build never carries the beacon, even if the token is set (ADR-0012, #254).
+  const token = env.WEB_ENV === 'production' ? '' : analyticsToken(env)
+  if (token)
+    for (const f of htmlFiles(dir)) {
+      const html = readFileSync(f, 'utf8')
+      if (!html.includes('</head>')) throw new Error(`${f} has no </head>`)
+      writeFileSync(f, html.replace('</head>', `${beaconTag(token)}</head>`))
+    }
   const hashes = [...new Set(htmlFiles(dir).flatMap((f) => inlineScriptHashes(readFileSync(f, 'utf8'))))]
   const headers = join(dir, '_headers')
   const options = { scriptHashes: hashes, apiOrigin: apiOrigin(env), noindex: env.WEB_ENV !== 'production' }

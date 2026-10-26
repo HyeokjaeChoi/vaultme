@@ -48,6 +48,13 @@ jobs:
           WEB_API_ORIGIN: ${{ vars.STAGING_API_URL }}
       - run: pnpm --filter @vaultme/web exec playwright install --only-shell chromium
       - run: pnpm --filter @vaultme/web run test:e2e
+      # The staging build adds the Web Analytics beacon: check its tag and CSP with a stub beacon (e2e/analytics.spec.ts).
+      # The lhci jobs below run on the build without it: the JS budget counts the app's own JS (ADR-0012).
+      - run: pnpm --filter "@vaultme/web..." run build
+        env:
+          WEB_API_ORIGIN: ${{ vars.STAGING_API_URL }}
+          WEB_ANALYTICS_TOKEN: 833254677ed141c3aad48ed2f87f05d9
+      - run: pnpm --filter @vaultme/web exec playwright test e2e/analytics.spec.ts
 
   lhci:
     name: lhci (${{ matrix.profile }})
@@ -91,10 +98,12 @@ jobs:
           cache: pnpm
       # Wrangler from the lockfile (7-day release age), not a separate action.
       - run: pnpm install --frozen-lockfile --filter @vaultme/web...
-      # WEB_API_ORIGIN goes into the CSP connect-src; builds stay noindex (WEB_ENV unset), ADR-0012.
+      # WEB_API_ORIGIN goes into the CSP connect-src; WEB_ANALYTICS_TOKEN adds the beacon; builds stay noindex (WEB_ENV unset), ADR-0012.
       - run: pnpm --filter "@vaultme/web..." run build
         env:
           WEB_API_ORIGIN: ${{ vars.STAGING_API_URL }}
+          # Cloudflare Web Analytics site vaultme-staging.stack-line.dev (ADR-0012). A public beacon id, not a secret.
+          WEB_ANALYTICS_TOKEN: 833254677ed141c3aad48ed2f87f05d9
       # The token is set only on the deploy step, so install and build scripts cannot read it.
       - run: pnpm --filter @vaultme/web exec wrangler deploy --env staging
         env:
@@ -103,6 +112,7 @@ jobs:
       - name: Smoke test
         env:
           STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+          WEB_ANALYTICS_TOKEN: 833254677ed141c3aad48ed2f87f05d9
         run: |
           url=https://vaultme-staging.stack-line.dev
           # A new custom domain needs a moment for DNS and the certificate: retry the connection.
@@ -115,6 +125,10 @@ jobs:
             grep -qi "^$h:" headers.txt || { echo "missing header $h"; exit 1; }
           done
           grep -qi '^x-robots-tag:.*noindex' headers.txt || { echo "missing X-Robots-Tag noindex"; exit 1; }
+          # Web Analytics (ADR-0012): the beacon script is in the page and the CSP allows its script and RUM endpoint.
+          grep -q "static.cloudflareinsights.com/beacon.min.js.*$WEB_ANALYTICS_TOKEN" body.html || { echo "404 page: no Web Analytics beacon"; exit 1; }
+          grep -qi '^content-security-policy:.*script-src[^;]*static.cloudflareinsights.com' headers.txt || { echo "CSP lacks static.cloudflareinsights.com"; exit 1; }
+          grep -qi '^content-security-policy:.*connect-src[^;]*cloudflareinsights.com' headers.txt || { echo "CSP lacks cloudflareinsights.com"; exit 1; }
           # The viewer and transaction pages are prerendered shells: 200 with no redirect (curl does not follow one), the same headers,
           # the app script (they hydrate) and the API origin of this build in the CSP. The balance read needs WebCrypto
           # and IndexedDB, which curl does not have, so a browser checks that after the deploy (e2e uses fixtures).
@@ -126,5 +140,6 @@ jobs:
             done
             grep -qi '^x-robots-tag:.*noindex' page-headers.txt || { echo "$path: missing X-Robots-Tag noindex"; exit 1; }
             grep -qi "^content-security-policy:.*connect-src[^;]*${STAGING_API_URL}" page-headers.txt || { echo "$path: CSP connect-src lacks $STAGING_API_URL"; exit 1; }
+            grep -q "src=\"https://static.cloudflareinsights.com/beacon.min.js\"[^>]*$WEB_ANALYTICS_TOKEN" page.html || { echo "$path: no Web Analytics beacon"; exit 1; }
             grep -q '__reactRouterContext' page.html || { echo "$path: not the hydrated viewer page"; exit 1; }
           done

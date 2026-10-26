@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { fillHeaders, finalize, inlineScriptHashes } from '../scripts/finalize.ts'
+import { analyticsToken, fillHeaders, finalize, inlineScriptHashes } from '../scripts/finalize.ts'
 
 // sha256 of "a", base64
 const HASH_A = "'sha256-ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs='"
@@ -46,9 +46,9 @@ describe('finalize', () => {
     const dir = mkdtempSync(join(tmpdir(), 'web-'))
     for (const p of ['404', 'en/404', 'address', 'en/address']) {
       mkdirSync(join(dir, p), { recursive: true })
-      writeFileSync(join(dir, p, 'index.html'), '<html><script>a</script></html>')
+      writeFileSync(join(dir, p, 'index.html'), '<html><head></head><script>a</script></html>')
     }
-    writeFileSync(join(dir, 'en/index.html'), '<main>en home</main>') // a page dir that holds other pages
+    writeFileSync(join(dir, 'en/index.html'), '<head></head><main>en home</main>') // a page dir that holds other pages
     writeFileSync(join(dir, 'index.html'), 'spa shell')
     writeFileSync(join(dir, '_headers'), TEMPLATE)
     return dir
@@ -81,6 +81,32 @@ describe('finalize', () => {
     expect(headers).toContain('connect-src https://api.vaultme.stack-line.dev')
     expect(headers).not.toContain('X-Robots-Tag')
     expect(() => finalize(build(), { WEB_API_ORIGIN: "http://x; script-src 'unsafe-inline'" })).toThrow('https origin')
+  })
+
+  it('accepts no analytics token or a 32-hex one, and rejects anything else', () => {
+    expect(analyticsToken({})).toBe('')
+    expect(analyticsToken({ WEB_ANALYTICS_TOKEN: 'a'.repeat(32) })).toBe('a'.repeat(32))
+    expect(() => analyticsToken({ WEB_ANALYTICS_TOKEN: `x"} onload=1` })).toThrow('32 hex')
+  })
+
+  it('adds the beacon to every page only when a token is set, with an unchanged script-src hash set', () => {
+    const token = 'a'.repeat(32)
+    const dir = build()
+    finalize(dir, { WEB_ANALYTICS_TOKEN: token })
+    for (const f of ['404.html', 'en/404.html'])
+      expect(readFileSync(join(dir, f), 'utf8')).toContain(
+        `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${token}"}'></script></head>`,
+      )
+    const plain = build()
+    finalize(plain, {})
+    expect(readFileSync(join(plain, '404.html'), 'utf8')).not.toContain('cloudflareinsights')
+    expect(readFileSync(join(dir, '_headers'), 'utf8')).toBe(readFileSync(join(plain, '_headers'), 'utf8'))
+  })
+
+  it('never adds the beacon to a production build', () => {
+    const dir = build()
+    finalize(dir, { WEB_ENV: 'production', WEB_ANALYTICS_TOKEN: 'a'.repeat(32) })
+    expect(readFileSync(join(dir, '404.html'), 'utf8')).not.toContain('cloudflareinsights')
   })
 
   it('keeps a prerendered landing page at index.html', () => {
