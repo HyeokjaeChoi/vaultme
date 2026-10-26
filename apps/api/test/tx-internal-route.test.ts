@@ -121,6 +121,8 @@ describe('POST /v1/tx/internal', () => {
   it.each([
     ['bad row', () => ok([{ from: 'x' }])],
     ['bad value', () => ok([row({ value: '-1' })])],
+    ['unknown isError', () => ok([row({ isError: '2' })])],
+    ['missing isError', () => ok([{ from: A, to: B, value: '1' }])],
     ['Query Timeout', () => notok(null, 'Query Timeout occured')],
     ['invalid key', () => notok('Invalid API Key (#err2)')],
     ['http 500', () => new Response('boom ' + KEY, { status: 500 })],
