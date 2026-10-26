@@ -13,7 +13,7 @@ export type Env = {
     RPC_IP_LIMITER: RateLimit // /v1/rpc, keyed by IP (coarse, 300/60s)
     ETHERSCAN_API_KEY: string // wrangler secret; Etherscan V2 (history)
     ETHERSCAN_BUCKET: DurableObjectNamespace<EtherscanBucket> // global 2.5 calls/s (ARCHITECTURE.md#history)
-    HISTORY_IP_LIMITER: RateLimit // /v1/history, keyed by IP (coarse, 300/60s)
+    HISTORY_IP_LIMITER: RateLimit // /v1/history and /v1/tx/internal share it, keyed by IP (coarse, 300/60s)
     INSTALL_LIMITER: RateLimit // authenticated routes, keyed by install id
     ALCHEMY_WEBHOOK_ID: string // wrangler secret; Notify address-activity webhook (Sepolia)
     ALCHEMY_SIGNING_KEY: string // wrangler secret; verifies X-Alchemy-Signature

@@ -1,7 +1,8 @@
-import { USDC_SEPOLIA, type HistoryResponse } from '@vaultme/contracts'
+import { USDC_SEPOLIA, type HistoryResponse, type TxInternalResponse } from '@vaultme/contracts'
 import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
 import { addressHash, checkCursor, loadHistory, type FetchList } from './history.ts'
+import { parseInternalRows } from './tx-internal.ts'
 
 const BASE = 'https://api.etherscan.io/v2/api'
 const SEPOLIA = '11155111'
@@ -21,59 +22,73 @@ async function acquire(env: Bindings): Promise<void> {
   if (wait > 0) await sleep(wait)
 }
 
+// Fail closed (500). Callers check it up front, so a bad cursor or a cache hit cannot hide a missing key.
+function apiKey(env: Bindings): string {
+  const key = env.ETHERSCAN_API_KEY
+  if (typeof key !== 'string' || key.length === 0) throw new Error('invalid ETHERSCAN_API_KEY')
+  return key
+}
+
 /**
- * One Etherscan list call. HTTP is always 200: the answer is in `status`/`message`/`result`.
+ * One Etherscan call. HTTP is always 200: the answer is in `status`/`message`/`result`.
  * Empty -> []. Rate limit -> one more try through the bucket, then 503. Query Timeout and the rest -> 503.
  * Never log or throw the URL, the key or the body: they can carry the key.
  */
+async function etherscanRows(env: Bindings, params: Record<string, string>): Promise<unknown[]> {
+  const key = apiKey(env)
+  const url = new URL(BASE)
+  url.search = new URLSearchParams({ chainid: SEPOLIA, module: 'account', ...params, apikey: key }).toString()
+  const list = params.action ?? '?'
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await acquire(env)
+    const t0 = Date.now()
+    let body: { status?: unknown; message?: unknown; result?: unknown }
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) })
+      if (!res.ok) throw new Error(`http ${String(res.status)}`)
+      const json: unknown = await res.json()
+      if (typeof json !== 'object' || json === null || Array.isArray(json)) throw new Error('not an object')
+      body = json
+    } catch (e) {
+      console.error('etherscan request failed', list, e instanceof Error ? e.name : 'error')
+      throw new UpstreamError('request failed')
+    }
+    if (body.status === '1' && Array.isArray(body.result)) {
+      console.log('etherscan ok', list, Date.now() - t0) // latency of successful calls only
+      const rows: unknown[] = body.result
+      return rows
+    }
+    if (body.message === 'No transactions found') return []
+    if (typeof body.result === 'string' && /rate limit/i.test(body.result)) {
+      console.warn('metric etherscan_429_total')
+      continue
+    }
+    // Query Timeout, bad key, window too large, ...: only the message, never the body.
+    console.error('etherscan error', list, typeof body.message === 'string' ? body.message.slice(0, 60) : '?')
+    throw new UpstreamError('upstream error')
+  }
+  throw new UpstreamError('rate limited')
+}
+
 function etherscanList(env: Bindings, address: string): FetchList {
-  const key = env.ETHERSCAN_API_KEY
-  if (typeof key !== 'string' || key.length === 0) throw new Error('invalid ETHERSCAN_API_KEY') // fail closed (500)
-  return async (list, q) => {
-    const url = new URL(BASE)
+  apiKey(env)
+  return (list, q) => {
     const params: Record<string, string> = {
-      chainid: SEPOLIA,
-      module: 'account',
       action: list,
       address,
       sort: 'desc',
       page: String(q.page),
       offset: String(q.offset),
-      apikey: key,
     }
     if (q.endblock !== undefined) params.endblock = String(q.endblock)
     if (list === 'tokentx') params.contractaddress = USDC_SEPOLIA
-    url.search = new URLSearchParams(params).toString()
-    for (let attempt = 0; attempt < 2; attempt++) {
-      await acquire(env)
-      const t0 = Date.now()
-      let body: { status?: unknown; message?: unknown; result?: unknown }
-      try {
-        const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) })
-        if (!res.ok) throw new Error(`http ${String(res.status)}`)
-        const json: unknown = await res.json()
-        if (typeof json !== 'object' || json === null || Array.isArray(json)) throw new Error('not an object')
-        body = json
-      } catch (e) {
-        console.error('etherscan request failed', list, e instanceof Error ? e.name : 'error')
-        throw new UpstreamError('request failed')
-      }
-      if (body.status === '1' && Array.isArray(body.result)) {
-        console.log('etherscan ok', list, Date.now() - t0) // latency of successful calls only
-        const rows: unknown[] = body.result
-        return rows
-      }
-      if (body.message === 'No transactions found') return []
-      if (typeof body.result === 'string' && /rate limit/i.test(body.result)) {
-        console.warn('metric etherscan_429_total')
-        continue
-      }
-      // Query Timeout, bad key, window too large, ...: only the message, never the body.
-      console.error('etherscan error', list, typeof body.message === 'string' ? body.message.slice(0, 60) : '?')
-      throw new UpstreamError('upstream error')
-    }
-    throw new UpstreamError('rate limited')
+    return etherscanRows(env, params)
   }
+}
+
+/** Internal ETH transfers of one transaction (ADR-0015). No cache: a fresh block must show up as soon as Etherscan has it. */
+export async function getTxInternal(env: Bindings, hash: string): Promise<TxInternalResponse> {
+  return parseInternalRows(await etherscanRows(env, { action: 'txlistinternal', txhash: hash.toLowerCase() }))
 }
 
 /** Cache API, 30 s per (address hash, cursor). The raw address is never part of the key. */
