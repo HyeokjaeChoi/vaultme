@@ -100,7 +100,8 @@ export function finalize(dir: string, env: Record<string, string | undefined> = 
   // The SPA shell has no page content. Once the landing page is prerendered at `/`, index.html is that page: keep it.
   const index = join(dir, 'index.html')
   if (existsSync(index) && !/<main[\s>]/.test(readFileSync(index, 'utf8'))) rmSync(index)
-  const token = analyticsToken(env)
+  // Staging only: a production build never carries the beacon, even if the token is set (ADR-0012, #254).
+  const token = env.WEB_ENV === 'production' ? '' : analyticsToken(env)
   if (token)
     for (const f of htmlFiles(dir)) {
       const html = readFileSync(f, 'utf8')

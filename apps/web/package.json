@@ -10,7 +10,9 @@
     "typegen": "react-router typegen",
     "test": "react-router typegen && vitest run",
     "test:e2e": "playwright test",
-    "lhci": "lhci autorun --config=lighthouserc.desktop.json && lhci autorun --config=lighthouserc.mobile.json",
+    "lhci": "pnpm lhci:desktop && pnpm lhci:mobile",
+    "lhci:desktop": "lhci autorun --config=lighthouserc.desktop.json",
+    "lhci:mobile": "lhci autorun --config=lighthouserc.mobile.json",
     "typecheck": "react-router typegen && tsc -p tsconfig.json",
     "lint": "eslint . --max-warnings=0 && steiger ./app"
   },

@@ -103,6 +103,12 @@ describe('finalize', () => {
     expect(readFileSync(join(dir, '_headers'), 'utf8')).toBe(readFileSync(join(plain, '_headers'), 'utf8'))
   })
 
+  it('never adds the beacon to a production build', () => {
+    const dir = build()
+    finalize(dir, { WEB_ENV: 'production', WEB_ANALYTICS_TOKEN: 'a'.repeat(32) })
+    expect(readFileSync(join(dir, '404.html'), 'utf8')).not.toContain('cloudflareinsights')
+  })
+
   it('keeps a prerendered landing page at index.html', () => {
     const dir = build()
     writeFileSync(join(dir, 'index.html'), '<html><main>landing</main></html>')
