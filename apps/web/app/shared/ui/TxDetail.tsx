@@ -4,19 +4,28 @@ import type { WebLocale } from '@vaultme/i18n/web'
 import type { WebTxMessages } from '@vaultme/i18n/web-tx'
 import { fromUnits, toChecksumAddress } from '@vaultme/wallet-core'
 import { etherscanTx, utcTime } from '../lib/tx'
+import type { Internal } from '../api'
 import { relativeTime } from '../lib/history'
 import { ButtonLink } from './ButtonLink'
 import { DefinitionRow } from './DefinitionRow'
+import { InternalTransfers } from './InternalTransfers'
 import { TxIcon } from './TxIcon'
 import { StatusBadge } from './StatusBadge'
 
 // The node answers in lower case; the viewer and the app show EIP-55.
 const eip55 = (a: string) => toChecksumAddress(a.toLowerCase())
 
-type Props = { tx: Tx; now: number; t: WebTxMessages; locale: WebLocale }
+type Props = {
+  tx: Tx
+  now: number
+  t: WebTxMessages
+  locale: WebLocale
+  internal: Internal
+  retryInternal: () => void
+}
 
-/** Status and amount, the six rows in the S41 order (from, to, time, fee, block, hash) and the Etherscan link. */
-export function TxDetail({ tx, now, t, locale }: Props) {
+/** Status and amount, the six rows in the S41 order (from, to, time, fee, block, hash), the internal transfers and the Etherscan link. */
+export function TxDetail({ tx, now, t, locale, internal, retryInternal }: Props) {
   const copy = (text: string, label: string) => ({ text, label, copied: t.copied })
   const from = eip55(tx.from)
   const to = tx.to ? eip55(tx.to) : null
@@ -54,6 +63,7 @@ export function TxDetail({ tx, now, t, locale }: Props) {
           {tx.hash}
         </DefinitionRow>
       </dl>
+      <InternalTransfers internal={internal} retry={retryInternal} t={t} />
       <div className="pt-2">
         <ButtonLink
           variant="secondary"

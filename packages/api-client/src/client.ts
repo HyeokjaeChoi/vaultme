@@ -9,6 +9,7 @@ import {
   PushSubscribeRequest,
   RegisterResponse,
   RpcResponse,
+  TxInternalRequest,
   SIGNATURE_HEADER,
   TIMESTAMP_HEADER,
   TokenResponse,
@@ -234,6 +235,10 @@ export function createApiClient(d: ApiDeps) {
         HistoryRequest.parse({ address, ...(cursor === undefined ? {} : { cursor }) }),
         (v) => v,
       )
+    },
+    /** POST /v1/tx/internal: the internal ETH transfers of one transaction (ADR-0015). Returned as is; `readInternalTransfers` checks it. */
+    txInternal(hash: string): Promise<unknown> {
+      return post('/v1/tx/internal', TxInternalRequest.parse({ hash }), (v) => v)
     },
     /** PUT /v1/push/subscription: registers this install's address and Expo push token (#67). Replaces any earlier one. */
     async putPushSubscription(address: string, expoToken: string): Promise<void> {

@@ -53,6 +53,8 @@ const SECOND_PAGE = [mkTx(13, 30 * DAY), mkTx(14, 31 * DAY), mkTx(15, 32 * DAY)]
 
 /** The transaction answers: `ok` = 0.05 ETH 3 minutes ago, `usdc` = a 12.5 USDC transfer, `failed` = reverted, `unknown` = no such tx, `pending` = no block yet, `down` = 503. */
 export type TxMode = 'ok' | 'usdc' | 'failed' | 'unknown' | 'pending' | 'creation' | 'down'
+/** The internal transfers answers: `none`, `list` = one done and one failed transfer, `many` = 6, `long` = one with 18 decimals, `down` = 503. */
+export type InternalMode = 'none' | 'list' | 'many' | 'long' | 'down'
 export const TX = hex(0x8f3b) // the hash of every fixture transaction answer
 const SENDER = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 const USDC = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
@@ -65,6 +67,8 @@ export async function fixtureApi(page: Page) {
     holdHistory: null as Promise<void> | null,
     tx: 'ok' as TxMode,
     holdTx: null as Promise<void> | null,
+    internal: 'none' as InternalMode,
+    holdInternal: null as Promise<void> | null,
     historyCursors: [] as (string | undefined)[],
     registers: 0,
     requests: [] as { path: string; headers: Record<string, string> }[],
@@ -93,6 +97,26 @@ export async function fixtureApi(page: Page) {
       if (api.history === 'big')
         return json(route, 200, page([mkTx(1, 180, { value: '1000000000000000000000000000000' })], null))
       return json(route, 200, cursor === 'p2' ? page(SECOND_PAGE, null) : page(FIRST_PAGE, 'p2'))
+    }
+    if (path === '/v1/tx/internal') {
+      await api.holdInternal
+      if (api.internal === 'down') return json(route, 503, { code: 'unavailable', message: 'x', retryable: true })
+      const move = (i: number, o: Record<string, unknown> = {}) => ({
+        from: SENDER.toLowerCase(),
+        to: (PEER[i % 3] ?? ME).toLowerCase(),
+        value: `${String(i * 10)}000000000000000`,
+        ok: true,
+        ...o,
+      })
+      const items =
+        api.internal === 'list'
+          ? [move(5), move(1, { ok: false })]
+          : api.internal === 'long'
+            ? [move(1, { value: '49873451234567891' })]
+            : api.internal === 'many'
+              ? [1, 2, 3, 4, 5, 6].map((i) => move(i))
+              : []
+      return json(route, 200, { items })
     }
     const body = req.postDataJSON() as { id: number; method: string; params: unknown[] }
     if (

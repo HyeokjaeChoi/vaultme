@@ -27,6 +27,15 @@ const ko = {
       retry: '다시 시도',
     },
     failed: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요.', retry: '다시 시도' },
+    internal: {
+      title: '내부 이동',
+      note: '이 거래의 ETH는 아래 내부 이동으로 옮겨졌어요. 위 금액이 0 ETH여도 정상이에요.',
+      row: '내부 이동',
+      rowFailed: '내부 이동 실패',
+      loading: '내부 이동을 불러오고 있어요',
+      failed: '내부 이동을 불러오지 못했어요. 다시 시도하세요.',
+      retry: '다시 시도',
+    },
     invalid: {
       title: '거래 해시가 올바르지 않아요',
       body: '0x로 시작하는 66자리 해시를 확인해 주세요.',
@@ -65,6 +74,15 @@ const en: { tx: WebTxMessages } = {
     failed: {
       title: "Couldn't load the transaction",
       body: 'Check your connection and try again.',
+      retry: 'Try again',
+    },
+    internal: {
+      title: 'Internal transfers',
+      note: "This transaction's ETH moved in the internal transfers below. The amount above can be 0 ETH and that is normal.",
+      row: 'Internal transfer',
+      rowFailed: 'Internal transfer failed',
+      loading: 'Loading the internal transfers',
+      failed: "Couldn't load the internal transfers. Try again.",
       retry: 'Try again',
     },
     invalid: {

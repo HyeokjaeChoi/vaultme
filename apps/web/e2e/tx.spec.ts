@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
-import { A, fixtureApi, TX, type TxMode } from './fixture-api'
+import { A, fixtureApi, TX, type InternalMode, type TxMode } from './fixture-api'
 
 type LayoutShift = PerformanceEntry & { value: number; sources: { node: Node | null }[] }
 
@@ -73,6 +73,101 @@ test.describe('transaction page', () => {
         .toBeFocused({ timeout: 1 })
         .catch(() => undefined) // the focus is not on <body>
       expect(await page.evaluate(() => document.activeElement === document.body)).toBe(false)
+    })
+  }
+
+  // The internal transfers section (#238, Figma "Tx detail · internal list / loading / error").
+  for (const width of widths) {
+    test(`internal transfers: the list below the rows, a failed one marked (${String(width)}px)`, async ({ page }) => {
+      const api = await fixtureApi(page)
+      api.internal = 'list'
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto(hash)
+      await expect(page.getByRole('heading', { name: '내부 이동' })).toBeVisible()
+      const rows = page.getByRole('listitem')
+      await expect(rows).toHaveCount(2)
+      await expect(rows.nth(0)).toContainText('0.05 ETH')
+      await expect(rows.nth(1)).toContainText('내부 이동 실패')
+      await expect(page.getByText('0.05', { exact: true })).toBeVisible() // the headline stays the transaction's own amount
+      const [section, button] = await Promise.all([
+        page.getByRole('region', { name: '내부 이동' }).boundingBox(),
+        page.getByRole('link', { name: 'Etherscan에서 보기' }).boundingBox(),
+      ])
+      expect((section?.y ?? Infinity) + (section?.height ?? 0)).toBeLessThanOrEqual(button?.y ?? 0)
+    })
+  }
+
+  test('internal transfers: a long amount wraps in its column, nothing runs past the row (375px)', async ({ page }) => {
+    const api = await fixtureApi(page)
+    api.internal = 'long'
+    await page.setViewportSize({ width: 375, height: 900 })
+    await page.goto(hash)
+    await expect(page.getByText('0.049873451234567891 ETH')).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    const [amount, caption] = await Promise.all([
+      page.getByText('0.049873451234567891 ETH').boundingBox(),
+      page.getByText(/0x7099…79C8 →/).boundingBox(),
+    ])
+    expect((caption?.x ?? 0) + (caption?.width ?? 0)).toBeLessThanOrEqual(amount?.x ?? 0)
+  })
+
+  test('internal transfers: none hides the section; a failed read shows an error and Try again, the page stays', async ({
+    page,
+  }) => {
+    const api = await fixtureApi(page)
+    await page.goto(hash)
+    await expect(page.getByText('확정')).toBeVisible()
+    await expect(page.getByRole('heading', { name: '내부 이동' })).toHaveCount(0)
+    api.internal = 'down'
+    await page.reload()
+    await expect(page.getByRole('alert')).toContainText('내부 이동을 불러오지 못했어요')
+    await expect(page.getByText('0.05', { exact: true })).toBeVisible()
+    api.internal = 'list'
+    await page.getByRole('button', { name: '다시 시도' }).click()
+    await expect(page.getByRole('listitem')).toHaveCount(2)
+    expect(await page.evaluate(() => document.activeElement === document.body)).toBe(false)
+  })
+
+  for (const [width, mode] of widths.flatMap((w) => (['none', 'list', 'down'] as const).map((m) => [w, m] as const))) {
+    test(`small layout shift when the internal read answers last (${mode}, ${String(width)}px)`, async ({ page }) => {
+      const api = await fixtureApi(page)
+      api.internal = mode satisfies InternalMode
+      let release!: () => void
+      api.holdInternal = new Promise<void>((resolve) => (release = resolve))
+      await page.route('**/*.woff2', (route) => route.abort())
+      await page.setViewportSize({ width, height: 900 })
+      await page.addInitScript(() => {
+        const w = window as unknown as { cls: number; moved: string[] }
+        w.cls = 0
+        w.moved = []
+        new PerformanceObserver((l) => {
+          for (const e of l.getEntries() as unknown as LayoutShift[]) {
+            w.cls += e.value
+            for (const s of e.sources) if (s.node instanceof Element) w.moved.push(s.node.outerHTML.slice(0, 80))
+          }
+        }).observe({ type: 'layout-shift', buffered: true })
+      })
+      await page.goto(hash)
+      await expect(page.getByText('확정')).toBeVisible() // the detail shows without the internal read
+      await expect(page.getByText('내부 이동을 불러오고 있어요')).toBeAttached() // the section has its own loading state
+      await page.evaluate(() => document.fonts.ready)
+      const before = await page.evaluate(() => (window as unknown as { cls: number }).cls)
+      release()
+      // Wait for the settled section, not a fixed time: rows, no section at all, or the error.
+      if (mode === 'list') await expect(page.getByRole('listitem')).toHaveCount(2)
+      else if (mode === 'none') await expect(page.getByRole('heading', { name: '내부 이동' })).toHaveCount(0)
+      else await expect(page.getByRole('alert')).toContainText('내부 이동을 불러오지 못했어요')
+      await expect(page.getByText('내부 이동을 불러오고 있어요')).toHaveCount(0)
+      await page.waitForTimeout(300) // a shift is reported a frame or two after the layout change
+      const { cls, moved } = await page.evaluate(() => {
+        const w = window as unknown as { cls: number; moved: string[] }
+        return { cls: w.cls, moved: w.moved }
+      })
+      // No section = the skeleton's height: nothing moves. A section makes the page taller than the skeleton, so only what is
+      // below it (the footer) moves down, once; the detail itself never does.
+      // The section shows its loading rows first, so a section that turns out empty pulls the Etherscan link and the footer up. Measured
+      // (a 900 px high window): none 0.025 at 768 and 0.010 at 1280, else 0. The limit is well inside the CLS "good" range (0.1).
+      expect(cls - before, `${mode} ${JSON.stringify(moved)}`).toBeLessThan(0.05)
     })
   }
 
@@ -196,12 +291,14 @@ test.describe('transaction page', () => {
     }
   }
 
-  const axeStates: [string, TxMode | 'loading' | 'invalid', string][] = [
+  const axeStates: [string, TxMode | 'loading' | 'invalid' | 'list' | 'internal-down', string][] = [
     ['detail', 'ok', '확정'],
     ['failed transaction', 'failed', '실패'],
     ['loading', 'loading', '거래를 불러오고 있어요'],
     ['load failed', 'down', '내역을 불러오지 못했어요'],
     ['not found', 'unknown', '아직 내역에 없어요'],
+    ['internal list', 'list', '내부 이동 실패'],
+    ['internal read failed', 'internal-down', '내부 이동을 불러오지 못했어요'],
     ['invalid hash', 'invalid', '거래 해시가 올바르지 않아요'],
   ]
   for (const [name, mode, ready] of axeStates) {
@@ -210,6 +307,8 @@ test.describe('transaction page', () => {
         test(`axe finds no violation: ${name} (${scheme}, ${String(width)}px)`, async ({ page }) => {
           const api = await fixtureApi(page)
           if (mode === 'loading') api.holdTx = new Promise<void>(() => undefined)
+          else if (mode === 'list') api.internal = 'list'
+          else if (mode === 'internal-down') api.internal = 'down'
           else if (mode !== 'invalid') api.tx = mode
           await page.setViewportSize({ width, height: 900 })
           await page.emulateMedia({ colorScheme: scheme })

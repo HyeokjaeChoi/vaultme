@@ -1,4 +1,4 @@
-import { USDC_SEPOLIA } from '@vaultme/contracts'
+import { TxInternalResponse, USDC_SEPOLIA } from '@vaultme/contracts'
 import { toQuantity, type RpcCall } from './balances.ts'
 
 /** One transaction as the web detail page shows it. Amounts are base units (wei, USDC 6 decimals). */
@@ -106,4 +106,20 @@ export async function readTransaction(rpc: RpcCall, hash: string, row?: 'ETH' | 
     block,
     at,
   }
+}
+
+/** One internal ETH transfer of a transaction (ADR-0015). Addresses are lower case, `value` is wei. */
+export type InternalTransfer = { from: string; to: string | null; value: bigint; ok: boolean }
+
+/**
+ * The internal ETH transfers of a transaction by hash, in Etherscan order, from `POST /v1/tx/internal` (`txInternal`). Empty = none, or
+ * Etherscan has not indexed the block yet. Throws on an answer that does not fit the contract, so the page shows an error for the
+ * section, not a wrong list.
+ */
+export async function readInternalTransfers(
+  txInternal: (hash: string) => Promise<unknown>,
+  hash: string,
+): Promise<InternalTransfer[]> {
+  const { items } = TxInternalResponse.parse(await txInternal(hash))
+  return items.map((i) => ({ ...i, value: BigInt(i.value) }))
 }
