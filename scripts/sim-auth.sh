@@ -23,8 +23,10 @@ case "$platform" in
     [ -n "${ANDROID_SERIAL:-}" ] && target=(-s "$ANDROID_SERIAL")
     id=1
     [ "$result" = nomatch ] && id=9
-    adb "${target[@]}" emu finger touch "$id" >/dev/null
-    adb "${target[@]}" emu finger remove >/dev/null
+    # `adb emu` exits 0 even when the console answers "KO: <reason>"; fail on that instead.
+    emu() { local out; out=$(adb "${target[@]}" emu "$@"); [[ $out != *KO* ]] || { echo "sim-auth: $out" >&2; exit 1; }; }
+    emu finger touch "$id"
+    emu finger remove
     ;;
   *) echo "unknown platform: $platform" >&2; exit 2 ;;
 esac

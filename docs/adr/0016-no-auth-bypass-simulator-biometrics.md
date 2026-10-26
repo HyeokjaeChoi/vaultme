@@ -3,7 +3,7 @@
 Status: Accepted (2026-10-26, issue #237, owner grilling Q8).
 
 ## Context
-The lock gate (S90) and each send ask for OS auth through `authenticate()` in `apps/mobile/src/shared/auth/authenticate.ts` ([ADR-0004](0004-two-tier-secret-storage.md)). An agent that tests a mobile flow on a simulator hits this prompt on every cold start and every send, and nobody is there to touch the sensor. A bypass in app code (an env flag or a debug branch) would solve it, but this is a wallet: a bypass that reaches a release build lets anyone skip OS auth. `EXPO_PUBLIC_*` values are inlined into the JS bundle, so a flag is readable and cannot be a secret switch.
+The lock gate (S90) asks for OS auth through `authenticate()` in `apps/mobile/src/shared/auth/authenticate.ts`; each send asks for it when `loadPhrase()` reads the protected Keychain item ([ADR-0004](0004-two-tier-secret-storage.md)). An agent that tests a mobile flow on a simulator hits this prompt on every cold start and every send, and nobody is there to touch the sensor. A bypass in app code (an env flag or a debug branch) would solve it, but this is a wallet: a bypass that reaches a release build lets anyone skip OS auth. `EXPO_PUBLIC_*` values are inlined into the JS bundle, so a flag is readable and cannot be a secret switch.
 
 ## Decision
 - App code has no auth bypass: no env flag, no `__DEV__` shortcut, no test mode in `authenticate()`.
