@@ -1,4 +1,5 @@
 import { deriveAddress, toMnemonic } from '@vaultme/wallet-core'
+import { classifySaveFailure } from '@/shared/auth'
 import {
   clearAccountAddress,
   deletePhrase,
@@ -16,7 +17,9 @@ export type RestoreResult =
   | { status: 'ok'; address: string }
   | { status: 'invalid'; issue: PhraseIssue }
   | { status: 'exists' } // a phrase is already stored on this install: never overwritten (one wallet per install)
-  | { status: 'error' } // the OS refused to store it (auth cancelled, no screen lock)
+  | { status: 'cancelled' } // the user dismissed the OS auth sheet: no message
+  | { status: 'noLock' } // the OS refused to store it and the device has no screen lock
+  | { status: 'error' } // the OS refused to store it for another reason
 
 /**
  * S05 -> S06. Validates the typed phrase, refuses to overwrite a stored one, stores it behind OS auth and keeps the
@@ -39,8 +42,8 @@ export async function restoreWallet(text: string, prompt: AuthPrompt, passphrase
     setDepositPromptShown(false)
     setRestored(true)
     return { status: 'ok', address }
-  } catch {
-    return { status: 'error' }
+  } catch (e) {
+    return { status: await classifySaveFailure(e) }
   }
 }
 

@@ -41,6 +41,19 @@ export const ko = {
     error: { title: '잠금을 풀지 못했어요', body: '다시 시도하세요.' },
     unavailable: { title: '기기 인증을 쓸 수 없어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도하세요.' },
   },
+  // #241 (Figma 808:2460 B-S02, 808:2608 B-S05, owner-approved 2026-10-26): no device screen lock. Android has a settings link, iOS has no public deep link, so the body gives the path.
+  deviceLock: {
+    title: '화면 잠금이 필요해요',
+    link: '설정 열기',
+    create: {
+      android: '지갑을 만들려면 기기에 화면 잠금(PIN, 패턴, 암호)이 있어야 해요. 설정한 뒤 돌아오세요.',
+      ios: '지갑을 만들려면 기기 암호가 있어야 해요. 설정 > Face ID 및 암호에서 켠 뒤 돌아오세요.',
+    },
+    restore: {
+      android: '지갑을 복구하려면 기기에 화면 잠금(PIN, 패턴, 암호)이 있어야 해요. 설정한 뒤 돌아오세요.',
+      ios: '지갑을 복구하려면 기기 암호가 있어야 해요. 설정 > Face ID 및 암호에서 켠 뒤 돌아오세요.',
+    },
+  },
   precheck: {
     title: '시작하기 전에 확인해 주세요',
     subtitle: '모두 확인해야 지갑을 만들 수 있어요.',
@@ -51,8 +64,8 @@ export const ko = {
     scam: { title: '알림으로 복구 구문을 묻지 않아요', body: '복구 구문을 묻는 메시지는 모두 사기예요.' },
     testnet: { title: '테스트넷 전용이에요', body: 'Sepolia 자산만 다뤄요. 실제 가치는 없어요.' },
     cta: '지갑 만들기',
-    // PR #20 open question: shown when the OS refuses to store the phrase (e.g. no screen lock).
-    createError: { title: '지갑을 만들지 못했어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도하세요.' },
+    // Shown when the OS refuses to store the phrase for a reason other than a cancel or a missing screen lock (those have their own state).
+    createError: { title: '지갑을 만들지 못했어요', body: '다시 시도해 주세요.' },
   },
   home: {
     account: '계정 1',
@@ -153,7 +166,7 @@ export const ko = {
     submit: '복구',
     authPrompt: '지갑을 복구하려면 인증하세요',
     exists: { title: '이 기기에 이미 지갑이 있어요', body: '한 기기에는 지갑 하나만 둘 수 있어요.' },
-    saveError: { title: '지갑을 복구하지 못했어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도하세요.' },
+    saveError: { title: '지갑을 복구하지 못했어요', body: '다시 시도해 주세요.' },
     done: {
       title: '복구 완료',
       addressLabel: '첫 계정 주소',
