@@ -1,9 +1,10 @@
-// Figma: B-S41 내부 이동 (Flow 4 · Activity, #239): list 804:39671 / many 804:39832 / loading 804:40085 / error 804:40202 (dark 805:3260 / 805:3421 / 805:3674 / 805:3791); rows are Activity row 36:48
-import { View } from 'react-native'
+// Figma: B-S41 내부 이동 (Flow 4 · Activity, #239): list 804:39671 / many 804:39832 / many capped 833:334 (dark 833:651) / loading 804:40085 / error 804:40202 (dark 805:3260 / 805:3421 / 805:3674 / 805:3791); rows are Activity row 36:48
+import { Linking, Pressable, View } from 'react-native'
+import { capInternal } from '@vaultme/api-client'
 import { useTranslation } from 'react-i18next'
 import { internalRow, type Internal } from '@/features/history'
 import { useTheme } from '@/shared/theme'
-import { AssetIcon, Block, Button, RowBadge, SectionBand, StatusNotice, Text } from '@/shared/ui'
+import { AssetIcon, Block, Button, Icon, RowBadge, SectionBand, StatusNotice, Text } from '@/shared/ui'
 
 function Row({ i }: { i: ReturnType<typeof internalRow> }) {
   const { t } = useTranslation()
@@ -78,13 +79,24 @@ function Skeleton() {
 }
 
 /**
- * Every internal ETH transfer of the transaction (ADR-0015, CONTEXT.md "내부 이동"), a Block below the detail rows. Hidden when there are none
+ * The first `INTERNAL_CAP` internal ETH transfers of the transaction, then one row to the Etherscan tab for the rest (#255)
+ * (ADR-0015, CONTEXT.md "내부 이동"), a Block below the detail rows. Hidden when there are none
  * (Etherscan can lag a fresh block). A failed read affects only this block: a banner and a retry button (owner decision Q4, #239).
  */
-export function InternalTransfers({ internal, retry }: { internal: Internal; retry: () => void }) {
+export function InternalTransfers({
+  internal,
+  retry,
+  moreUrl,
+}: {
+  internal: Internal
+  retry: () => void
+  /** The transaction's internal transactions tab on Etherscan; no row for the rest without it. */
+  moreUrl: string | null
+}) {
   const { t } = useTranslation()
   const th = useTheme()
   if (internal.status === 'ok' && internal.items.length === 0) return null
+  const { shown, more } = capInternal(internal.status === 'ok' ? internal.items : [])
   return (
     <>
       <SectionBand />
@@ -106,9 +118,25 @@ export function InternalTransfers({ internal, retry }: { internal: Internal; ret
                 {t('detail.internal.note')}
               </Text>
             ) : null}
-            {internal.items.map((i, n) => (
+            {shown.map((i, n) => (
               <Row key={n} i={internalRow(i)} />
             ))}
+            {more > 0 && moreUrl ? (
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={t('detail.internal.more', { n: more })}
+                onPress={() => void Linking.openURL(moreUrl)}
+                style={{
+                  minHeight: th.primitive.size.touch_min,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <Text variant="headline">{t('detail.internal.more', { n: more })}</Text>
+                <Icon name="external" size={th.component.icon.size.control} color={th.component.icon.action.fg} />
+              </Pressable>
+            ) : null}
           </>
         )}
       </Block>

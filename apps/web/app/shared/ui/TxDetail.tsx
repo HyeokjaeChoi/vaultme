@@ -3,7 +3,7 @@ import type { TxDetail as Tx } from '@vaultme/api-client'
 import type { WebLocale } from '@vaultme/i18n/web'
 import type { WebTxMessages } from '@vaultme/i18n/web-tx'
 import { fromUnits, toChecksumAddress } from '@vaultme/wallet-core'
-import { etherscanTx, utcTime } from '../lib/tx'
+import { etherscanInternal, etherscanTx, utcTime } from '../lib/tx'
 import type { Internal } from '../api'
 import { relativeTime } from '../lib/history'
 import { ButtonLink } from './ButtonLink'
@@ -63,7 +63,7 @@ export function TxDetail({ tx, now, t, locale, internal, retryInternal }: Props)
           {tx.hash}
         </DefinitionRow>
       </dl>
-      <InternalTransfers internal={internal} retry={retryInternal} t={t} />
+      <InternalTransfers internal={internal} retry={retryInternal} t={t} moreHref={etherscanInternal(tx.hash)} />
       <div className="pt-2">
         <ButtonLink
           variant="secondary"

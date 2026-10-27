@@ -379,6 +379,8 @@ export const ko = {
       failed: '내부 이동을 불러오지 못했어요. 다시 시도하세요.',
       loaded: '내부 이동 {{n}}건을 불러왔어요',
       none: '내부 이동이 없어요',
+      // Capped list (#255, Figma B-S41 내부 이동 · many capped 833:334): the rest are on Etherscan's internal transactions tab.
+      more: '외 {{n}}건 · Etherscan에서 보기',
     },
     // Test mode only (fake chain adapter); owner-approved sheet, safe action Primary.
     clearTest: '테스트 거래 지우기',

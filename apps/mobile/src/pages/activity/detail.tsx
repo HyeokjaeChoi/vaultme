@@ -64,12 +64,12 @@ const devHistoryRow = (dir: 'in' | 'out', amount = '0.05'): HistoryItem => ({
   blockNumber: 5812044,
 })
 
-// __DEV__ capture only (`?internal=list|many|loading|error`): the 내부 이동 states of Figma Flow 4 B-S41 (804:39671 list, 804:39832 many, 804:40085 loading, 804:40202 error).
+// __DEV__ capture only (`?internal=list|many|capped|loading|error`): the 내부 이동 states of Figma Flow 4 B-S41 (804:39671 list, 804:39832 many, 804:40085 loading, 804:40202 error).
 const DEV_FROM = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 const DEV_TO = ['0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC', '0x90F79bf6EB2c4f870365E785982E1f101E93b906']
 const devInternal = (state: string): Internal => {
   if (state === 'loading' || state === 'error') return { status: state === 'error' ? 'failed' : 'loading' }
-  const n = state === 'many' ? 6 : 2
+  const n = state === 'many' ? 6 : state === 'capped' ? 24 : 2
   return {
     status: 'ok',
     items: Array.from({ length: n }, (_, i) => ({
@@ -167,7 +167,13 @@ function RowDetail({
           <SummaryRow label={t('detail.block')} fact value={String(row.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} />
         ) : null}
       </Block>
-      {internal ? <InternalTransfers internal={internal} retry={retryInternal} /> : null}
+      {internal ? (
+        <InternalTransfers
+          internal={internal}
+          retry={retryInternal}
+          moreUrl={explorer ? `${explorer}#internal` : null}
+        />
+      ) : null}
       {explorer ? (
         <>
           <SectionBand />
@@ -381,7 +387,13 @@ export function TxDetailPage() {
         ) : null}
         {final || test ? null : <StatusNotice tone="info" title={lastChecked} />}
       </Block>
-      {internal ? <InternalTransfers internal={internal} retry={retryInternal} /> : null}
+      {internal ? (
+        <InternalTransfers
+          internal={internal}
+          retry={retryInternal}
+          moreUrl={explorer ? `${explorer}#internal` : null}
+        />
+      ) : null}
       {test ? (
         <>
           <SectionBand />

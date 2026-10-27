@@ -97,6 +97,26 @@ test.describe('transaction page', () => {
     })
   }
 
+  // #255, Figma "Tx detail · internal many capped": 10 rows, then one link row for the rest.
+  for (const width of widths) {
+    test(`internal transfers: 24 are capped at 10 rows and a link to Etherscan (${String(width)}px)`, async ({
+      page,
+    }) => {
+      const api = await fixtureApi(page)
+      api.internal = 'capped'
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto(hash)
+      await expect(page.getByRole('heading', { name: '내부 이동' })).toBeVisible()
+      await expect(page.getByRole('listitem')).toHaveCount(10)
+      const more = page.getByRole('link', { name: '외 14건 · Etherscan에서 보기' })
+      await expect(more).toHaveAttribute('href', `https://sepolia.etherscan.io/tx/${TX}#internal`)
+      const [list, link] = await Promise.all([page.getByRole('listitem').last().boundingBox(), more.boundingBox()])
+      expect(link?.y ?? 0).toBeGreaterThan((list?.y ?? Infinity) + (list?.height ?? 0)) // below the last row
+      expect(link?.height ?? 0).toBeGreaterThanOrEqual(44)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    })
+  }
+
   test('internal transfers: a long amount wraps in its column, nothing runs past the row (375px)', async ({ page }) => {
     const api = await fixtureApi(page)
     api.internal = 'long'

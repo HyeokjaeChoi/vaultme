@@ -2,4 +2,11 @@ export { createApiClient, type ApiClient, type DeviceSigner } from './client.ts'
 export { ApiError, RpcError, isApiError, type ApiErrorCode } from './errors.ts'
 export { createUpdateGate } from './updateGate.ts'
 export { abiWord, readBalances, readEthBalance, readUsdcBalance, toQuantity, type RpcCall } from './balances.ts'
-export { readInternalTransfers, readTransaction, type InternalTransfer, type TxDetail } from './transaction.ts'
+export {
+  capInternal,
+  INTERNAL_CAP,
+  readInternalTransfers,
+  readTransaction,
+  type InternalTransfer,
+  type TxDetail,
+} from './transaction.ts'

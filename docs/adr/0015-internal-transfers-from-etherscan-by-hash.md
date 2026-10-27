@@ -16,6 +16,7 @@ A contract can move ETH while a transaction runs (for example an EIP-7702 sweep)
 - Etherscan can lag a fresh block. An empty list means "none" or "not indexed yet"; the client hides the section.
 - Etherscan returns only non-zero value internal transfers (Etherscan V2 docs, "Get Internal Transactions by Transaction Hash"; not checked against live data in this ADR).
 - A row that cannot be read fails the whole answer with 503 (fail closed). A changed Etherscan format would then fail every retry for that transaction.
+- The API returns every item with no cap. The apps draw the first 10 and one link row to `https://sepolia.etherscan.io/tx/<hash>#internal` for the rest (`INTERNAL_CAP` in `packages/api-client`, #255); a disperse or airdrop can have hundreds. The `#internal` anchor was not checked on Etherscan.
 - Considered and accepted: every call takes a token of the global Etherscan bucket and nothing is cached, so a fresh block shows as soon as Etherscan has it.
 
 <!-- verified: apps/api/src/etherscan.ts, apps/api/src/tx-internal.ts, apps/api/src/app.ts, packages/contracts/src/tx.ts -->
