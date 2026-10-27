@@ -27,6 +27,7 @@ export function BackupCheckPage({
   const [answers, setAnswers] = useState<string[]>(preset?.answers ?? ['', '', ''])
   const [wrong, setWrong] = useState<number[]>(preset?.wrong ?? []) // indexes of the cells judged wrong on the last confirm
   const cells = useRef<(TextInputInstance | null)[]>([])
+  const reveal = useRef<((y: number | 'end', height?: number) => void) | null>(null) // form screen: keeps the footer above the keyboard
 
   useFocusEffect(useCallback(() => clearCheck, []))
   useEffect(() => {
@@ -58,6 +59,7 @@ export function BackupCheckPage({
 
   return (
     <Screen
+      revealRef={reveal}
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/backup')} />}
       footer={<Button label={t('backup.check.confirm')} disabled={!filled} onPress={confirm} />}
     >
