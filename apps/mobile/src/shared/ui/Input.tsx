@@ -20,6 +20,7 @@ type Props = Pick<
   | 'textContentType'
   | 'importantForAutofill'
   | 'onBlur'
+  | 'onFocus'
   | 'testID'
   | 'secureTextEntry'
 > & {
@@ -53,7 +54,10 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
       editable={editable}
       accessibilityLabel={label}
       placeholderTextColor={c.placeholder}
-      onFocus={() => setFocused(true)}
+      onFocus={(e) => {
+        setFocused(true)
+        field.onFocus?.(e)
+      }}
       onBlur={(e) => {
         setFocused(false)
         onBlur?.(e)

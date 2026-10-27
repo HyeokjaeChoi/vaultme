@@ -2,6 +2,7 @@
 import { type ReactNode, type RefObject, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import {
   AccessibilityInfo,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   RefreshControl,
@@ -58,6 +59,21 @@ export function Screen({
   const l = t.semantic.layout
   const scrollRef = useRef<ScrollViewInstance>(null)
   const [layoutHeight, setLayoutHeight] = useState(0)
+  // Form screens: with the keyboard up the safe-area inset is gone, so the footer keeps its top padding (12) below the button too, not 4 (#261).
+  const [keyboardUp, setKeyboardUp] = useState(false)
+  useEffect(() => {
+    if (!revealRef) return
+    const shown = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () =>
+      setKeyboardUp(true),
+    )
+    const hidden = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () =>
+      setKeyboardUp(false),
+    )
+    return () => {
+      shown.remove()
+      hidden.remove()
+    }
+  }, [revealRef])
   const [contentHeight, setContentHeight] = useState(0)
   const scrollY = useRef(0)
   const overflows = contentHeight > layoutHeight + 1
@@ -151,7 +167,7 @@ export function Screen({
             style={{
               paddingHorizontal: l.screen.padding,
               paddingTop: t.primitive.space[3],
-              paddingBottom: t.primitive.space[1],
+              paddingBottom: keyboardUp ? t.primitive.space[3] : t.primitive.space[1],
               gap: l.fieldGap,
             }}
           >
