@@ -1,6 +1,6 @@
 import { Redirect, useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AppState, View, type TextInputInstance } from 'react-native'
+import { AppState, Platform, View, type TextInputInstance } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { clearCheck, getCheck, wrongIndexes } from '@/features/backup'
 import { setBackupDone } from '@/shared/storage'
@@ -88,6 +88,7 @@ export function BackupCheckPage({
               setAnswers((a) => a.map((x, j) => (j === i ? v : x)))
             }}
             {...NO_AUTOFILL}
+            keyboardType={Platform.OS === 'android' ? 'visible-password' : 'ascii-capable'} // English words only, like the restore grid (WordCell)
           />
         ))}
       </View>
