@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:852781815455:android:161ef3a52942eea5bab4aa",
+        "mobilesdk_app_id": "1:852781815455:android:36069bb5e848801bbab4aa",
         "android_client_info": {
-          "package_name": "app.vaultme.mobile"
+          "package_name": "dev.stackline.vaultme"
         }
       },
       "oauth_client": [],
