@@ -41,17 +41,17 @@ export const ko = {
     error: { title: '잠금을 풀지 못했어요', body: '다시 시도하세요.' },
     unavailable: { title: '기기 인증을 쓸 수 없어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도하세요.' },
   },
-  // #241 (Figma 808:2460 B-S02, 808:2608 B-S05, owner-approved 2026-10-26): no device screen lock. Android has a settings link, iOS has no public deep link, so the body gives the path.
+  // #241 (Figma 808:2460 B-S02, 808:2608 B-S05, owner-approved 2026-10-26): no device screen lock. Android has a settings link, iOS has no public deep link and its menu name differs per device (Face ID, Touch ID, passcode only), so the body names no path (#250, Figma 808:2536, 808:2671, 808:2806, 808:2941).
   deviceLock: {
     title: '화면 잠금이 필요해요',
     link: '설정 열기',
     create: {
       android: '지갑을 만들려면 기기에 화면 잠금(PIN, 패턴, 암호)이 있어야 해요. 설정한 뒤 돌아오세요.',
-      ios: '지갑을 만들려면 기기 암호가 있어야 해요. 설정 > Face ID 및 암호에서 켠 뒤 돌아오세요.',
+      ios: '지갑을 만들려면 기기 암호가 있어야 해요. 설정에서 기기 암호를 켠 뒤 돌아오세요.',
     },
     restore: {
       android: '지갑을 복구하려면 기기에 화면 잠금(PIN, 패턴, 암호)이 있어야 해요. 설정한 뒤 돌아오세요.',
-      ios: '지갑을 복구하려면 기기 암호가 있어야 해요. 설정 > Face ID 및 암호에서 켠 뒤 돌아오세요.',
+      ios: '지갑을 복구하려면 기기 암호가 있어야 해요. 설정에서 기기 암호를 켠 뒤 돌아오세요.',
     },
   },
   precheck: {

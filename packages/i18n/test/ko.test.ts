@@ -11,6 +11,13 @@ it('has no banned terms (CONTEXT.md)', () => {
   for (const bad of ['전송', '송신', '가스비', '시드', '니모닉', 'Testnet']) expect(all).not.toContain(bad)
 })
 
+it('iOS no-lock copy names no device-specific settings path (#250)', () => {
+  for (const s of [ko.deviceLock.create.ios, ko.deviceLock.restore.ios]) {
+    expect(s).toContain('설정에서 기기 암호를 켠 뒤 돌아오세요.')
+    expect(s).not.toMatch(/Face ID|Touch ID|>/)
+  }
+})
+
 it('has the Redesign A send and review copy', () => {
   expect(i18n.t('send.recipientQuestion')).toBe('누구에게 보낼까요?')
   expect(i18n.t('send.amountQuestion')).toBe('얼마를 보낼까요?')
