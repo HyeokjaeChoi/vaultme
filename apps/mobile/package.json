@@ -8,6 +8,7 @@
     "start": "node scripts/generate-licenses.mjs && expo start",
     "ios": "node scripts/generate-licenses.mjs && expo run:ios",
     "android": "node scripts/generate-licenses.mjs && expo run:android",
+    "staging": "EXPO_PUBLIC_API_URL=https://vaultme-api-staging.gurwo1007.workers.dev pnpm",
     "export": "node scripts/generate-licenses.mjs && expo export --platform ios",
     "test": "node scripts/generate-licenses.mjs && vitest run --passWithNoTests",
     "typecheck": "node scripts/generate-licenses.mjs && tsc -p tsconfig.json",
