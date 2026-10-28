@@ -34,10 +34,11 @@ export const expoPort: PushPort = {
   },
   token: async (projectId) => {
     await ensureChannel()
-    // The APNs environment is null only on the iOS Simulator (expo-application 58 docs), whose token is always sandbox. Without
-    // `development: true` expo-notifications falls back to production APNs, which answers BadDeviceToken (#265).
+    // The simulator's token is always sandbox, but its APNs environment reads as null (no provisioning profile), so expo-notifications
+    // falls back to production APNs, which answers BadDeviceToken (#265). Not the null itself: an App Store build has no profile either.
     const sandbox =
-      Platform.OS === 'ios' && (await Application.getIosPushNotificationServiceEnvironmentAsync()) === null
+      Platform.OS === 'ios' &&
+      (await Application.getIosApplicationReleaseTypeAsync()) === Application.ApplicationReleaseType.SIMULATOR
     return (await Notifications.getExpoPushTokenAsync(sandbox ? { projectId, development: true } : { projectId })).data
   },
 }

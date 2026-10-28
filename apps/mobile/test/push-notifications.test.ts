@@ -12,7 +12,10 @@ const N = vi.hoisted(() => ({
   AndroidImportance: { DEFAULT: 3 },
 }))
 const os = vi.hoisted(() => ({ OS: 'android' }))
-const A = vi.hoisted(() => ({ getIosPushNotificationServiceEnvironmentAsync: vi.fn() }))
+const A = vi.hoisted(() => ({
+  getIosApplicationReleaseTypeAsync: vi.fn(),
+  ApplicationReleaseType: { UNKNOWN: 0, SIMULATOR: 1, APP_STORE: 5 },
+}))
 vi.mock('expo-notifications', () => N)
 vi.mock('expo-application', () => A)
 vi.mock('expo-constants', () => ({ default: { expoConfig: { extra: { eas: { projectId: 'proj' } } } } }))
@@ -51,12 +54,12 @@ describe('expo-notifications adapter', () => {
     expect(N.setNotificationChannelAsync).toHaveBeenCalledTimes(2)
     expect(N.getExpoPushTokenAsync).toHaveBeenCalledWith({ projectId: 'proj' })
   })
-  it('iOS Simulator (no APNs environment): registers the token for sandbox APNs; a device keeps the default (#265)', async () => {
+  it('iOS Simulator: registers the token for sandbox APNs; an App Store build keeps the default (#265)', async () => {
     os.OS = 'ios'
-    A.getIosPushNotificationServiceEnvironmentAsync.mockResolvedValueOnce(null)
+    A.getIosApplicationReleaseTypeAsync.mockResolvedValueOnce(A.ApplicationReleaseType.SIMULATOR)
     await expoPort.token('proj')
     expect(N.getExpoPushTokenAsync).toHaveBeenLastCalledWith({ projectId: 'proj', development: true })
-    A.getIosPushNotificationServiceEnvironmentAsync.mockResolvedValueOnce('production')
+    A.getIosApplicationReleaseTypeAsync.mockResolvedValueOnce(A.ApplicationReleaseType.APP_STORE)
     await expoPort.token('proj')
     expect(N.getExpoPushTokenAsync).toHaveBeenLastCalledWith({ projectId: 'proj' })
     os.OS = 'android'
