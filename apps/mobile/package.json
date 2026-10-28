@@ -27,6 +27,7 @@
     "@vaultme/tokens": "workspace:*",
     "@vaultme/wallet-core": "workspace:*",
     "expo": "~58.0.14",
+    "expo-application": "~58.1.2",
     "expo-camera": "~58.0.10",
     "expo-clipboard": "~58.0.3",
     "expo-constants": "~58.0.12",
