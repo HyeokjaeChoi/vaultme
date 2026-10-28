@@ -180,7 +180,8 @@ export function Screen({
   return (
     <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: bg ?? t.component.screenB.bg }}>
       {revealRef ? (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        // Both platforms (RN 0.88 docs: "setting behavior is recommended"): with Android 15+ edge-to-edge the window no longer resizes for the keyboard.
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
           {body}
         </KeyboardAvoidingView>
       ) : (
