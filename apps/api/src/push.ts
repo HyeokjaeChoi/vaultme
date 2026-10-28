@@ -264,7 +264,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   }
   // Counts only (no address or token): shows in Workers Logs where a delivery stopped before Expo (#263).
   if (subs.results.length === 0) {
-    console.log('push subs=0')
+    console.log('push subs=0 notes=0 jobs=0')
     return
   }
   const notes = notificationsFor(payload, new Set(subs.results.map((s) => s.address)))
