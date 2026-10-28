@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Passes or fails the OS auth sheet on a simulator, so agent tests need no finger (ADR-0016).
 # Usage: scripts/sim-auth.sh match|nomatch [ios|android]   (platform default: ios)
-# Target: SIM_UDID (iOS, default "booted") or ANDROID_SERIAL (Android, default the only emulator).
+# Target: SIM_UDID (iOS, default the only booted simulator) or ANDROID_SERIAL (Android, default the only emulator).
 # The sheet must be on screen first. It only sends the event: check the result in the app.
 # Setup the owner does once: see apps/mobile/AGENTS.md.
 set -euo pipefail
@@ -14,6 +14,15 @@ case "$platform" in
   ios)
     # Face ID only (Touch ID devices use ...fingerTouch.*). The names are not in Apple docs; source: an
     # Apple Developer Forums post (developer.apple.com/forums/thread/767414). See ADR-0016.
+    # "booted" picks one of several booted simulators, so the event can miss the sheet (#267): ask for SIM_UDID then.
+    if [ -z "${SIM_UDID:-}" ]; then
+      booted=$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' || true)
+      if [ "$(printf '%s\n' "$booted" | grep -c .)" -gt 1 ]; then
+        echo "sim-auth: several simulators are booted; set SIM_UDID to one of:" >&2
+        echo "$booted" >&2
+        exit 2
+      fi
+    fi
     xcrun simctl spawn "${SIM_UDID:-booted}" notifyutil -p "com.apple.BiometricKit_Sim.pearl.$result"
     ;;
   android)
