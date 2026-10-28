@@ -7,7 +7,7 @@ import { BrandScreen, Button } from '@/shared/ui'
 // TODO(release): VaultMe has no store listing yet. Put the real App Store id and Play package page here before the first store build.
 const STORE_URL = Platform.select({
   ios: 'https://apps.apple.com/app/vaultme/id0000000000',
-  default: 'https://play.google.com/store/apps/details?id=app.vaultme.mobile',
+  default: 'https://play.google.com/store/apps/details?id=dev.stackline.vaultme',
 })
 
 /** B-S91 앱 업데이트 필요 (API said 426). Replaces the whole app: no back, no tabs, one button. */

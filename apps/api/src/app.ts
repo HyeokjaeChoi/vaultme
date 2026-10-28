@@ -331,7 +331,11 @@ app.post('/webhooks/alchemy', async (c) => {
     await handleActivity(c.env, payload.data)
   } catch (e) {
     // Non-200 makes Alchemy retry with backoff. push_sent stops a retry from notifying twice.
-    if (e instanceof UpstreamError) return fail(c, 503, 'unavailable', 'Push unavailable')
+    if (e instanceof UpstreamError) {
+      // Fixed messages only (expo unreachable / <status> / ticket shape / ticket error): a failed batch shows in Workers Logs (#263).
+      console.error('push upstream', e.message)
+      return fail(c, 503, 'unavailable', 'Push unavailable')
+    }
     throw e
   }
   return c.json({ ok: true }, 200)
