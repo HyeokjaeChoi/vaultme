@@ -49,3 +49,9 @@ Use this format. Keep it short. Link the PRs.
 - Do: seed a bound paint with the resolved value (`fillR` in `work/figma-local-plugin/tasks/final-fixes.js`), and run its repaint pass after text tasks. After INSTANCE_SWAP, rebind the icon color (Foundation 13).
 - Check: `.claude/skills/vaultme-figma-screen/audit.js` `unboundPaint` = 0 and `stalePaint` = 0 on all five flow pages; then check PNG pixels of the exported screens.
 - Source: work/review/pd-review-final-2026-10-17.md P0-1, P1-2
+
+### L04. An OS auth sheet is not "the user left"
+- Why: iOS makes the app `inactive` while the Face ID sheet is up, and the auth promise can resolve before `active` comes back. Code that dropped the result on `!== 'active'` hid the phrase after a successful Face ID on a real iPhone (#260); an earlier S03 fix had already hit the same trap. The Android device-credential screen sends the app to `background` during auth.
+- Do: cancel on a real leave only: `background` while no OS auth is in progress (`isAuthInProgress()`), or screen blur. Never on `inactive`, and never on `AppState.currentState` read right after an auth call. See `leavesReveal` in `features/backup/model/reveal.ts`.
+- Check: manual (unit test `backup-reveal.test.ts` covers the S03 rule; confirm on a real iPhone, the simulator resolves in another order)
+- Source: #260, #28
