@@ -111,15 +111,6 @@ export async function readTransaction(rpc: RpcCall, hash: string, row?: 'ETH' | 
 /** One internal ETH transfer of a transaction (ADR-0015). Addresses are lower case, `value` is wei. */
 export type InternalTransfer = { from: string; to: string | null; value: bigint; ok: boolean }
 
-/** A disperse or airdrop can have hundreds of internal transfers: the apps show the first ones and point to Etherscan for the rest (#255). */
-export const INTERNAL_CAP = 10
-
-/** The rows to draw and how many are left out. */
-export const capInternal = <T>(items: readonly T[]): { shown: T[]; more: number } => ({
-  shown: items.slice(0, INTERNAL_CAP),
-  more: Math.max(0, items.length - INTERNAL_CAP),
-})
-
 /**
  * The internal ETH transfers of a transaction by hash, in Etherscan order, from `POST /v1/tx/internal` (`txInternal`). Empty = none, or
  * Etherscan has not indexed the block yet. Throws on an answer that does not fit the contract, so the page shows an error for the
