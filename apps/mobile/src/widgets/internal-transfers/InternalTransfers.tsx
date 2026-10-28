@@ -1,6 +1,6 @@
 // Figma: B-S41 내부 이동 (Flow 4 · Activity, #239): list 804:39671 / many 804:39832 / many capped 833:334 (dark 833:651) / loading 804:40085 / error 804:40202 (dark 805:3260 / 805:3421 / 805:3674 / 805:3791); rows are Activity row 36:48
 import { Linking, Pressable, View } from 'react-native'
-import { capInternal } from '@vaultme/api-client'
+import { capInternal } from '@vaultme/api-client/cap'
 import { useTranslation } from 'react-i18next'
 import { internalRow, type Internal } from '@/features/history'
 import { useTheme } from '@/shared/theme'

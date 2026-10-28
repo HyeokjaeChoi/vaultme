@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { capInternal, INTERNAL_CAP, readInternalTransfers, readTransaction } from '../src/index.ts'
+import { capInternal, INTERNAL_CAP } from '../src/cap.ts'
+import { readInternalTransfers, readTransaction } from '../src/index.ts'
 
 const HASH = `0x${'8f'.repeat(32)}`
 const FROM = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
