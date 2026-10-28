@@ -3,6 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // Home and the send gates use useTrackedTx; its poll step is checkStored. Hooks and the kv are mocked, the chain is a stub.
 let stored: unknown = null
 vi.mock('expo-router', () => ({ useFocusEffect: () => undefined }))
+// A minimal hook runner for useTrackedTx: no re-render, callbacks run as written.
+vi.mock('react', () => ({
+  useState: (init: unknown) => [typeof init === 'function' ? (init as () => unknown)() : init, () => undefined],
+  useCallback: (fn: unknown) => fn,
+  useEffect: () => undefined,
+}))
 vi.mock('react-native', () => ({
   AppState: { currentState: 'active', addEventListener: () => ({ remove: () => undefined }) },
 }))
@@ -20,7 +26,7 @@ vi.mock('../src/features/send/model/useReviewCore', () => ({
 }))
 
 import { blocksNewSend } from '../src/features/send/model/runSend'
-import { checkStored, stateChanged } from '../src/features/send/model/useTrackedTx'
+import { checkStored, stateChanged, useTrackedTx } from '../src/features/send/model/useTrackedTx'
 import { readPendingTx } from '../src/entities/transaction/pendingStore'
 
 const tx = {
@@ -59,5 +65,18 @@ describe('stateChanged (Home reloads its list, #269)', () => {
     expect(stateChanged({ ...tx, state: 'Pending' } as never, null)).toBe(false)
     expect(stateChanged(null, 'Confirmed')).toBe(false)
     expect(stateChanged('corrupt', 'Confirmed')).toBe(false)
+  })
+})
+
+describe('useTrackedTx calls onStateChange once per state move (#269)', () => {
+  beforeEach(() => void (stored = { ...tx }))
+
+  it('Pending -> Confirmed calls it; a later check with no move does not', async () => {
+    const onStateChange = vi.fn()
+    const { recheck } = useTrackedTx(onStateChange)
+    await recheck()
+    expect(onStateChange).toHaveBeenCalledTimes(1)
+    await recheck()
+    expect(onStateChange).toHaveBeenCalledTimes(1)
   })
 })
