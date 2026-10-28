@@ -103,14 +103,26 @@ export function Screen({
     if (overflows) scrollRef.current?.flashScrollIndicators()
   }, [overflows])
 
-  useImperativeHandle(revealRef, () => (y, h = 0) => {
-    if (y === 'end') return scrollRef.current?.scrollToEnd({ animated: true })
+  // The last box asked for while the keyboard is up. Android can send keyboardDidShow before the body shrinks, so the box is shown
+  // again once layoutHeight changes (#262 review).
+  const lastReveal = useRef<{ y: number; h: number } | null>(null)
+  const scrollIntoView = (y: number, h: number) => {
     const clear = l.screen.padding
     const top = scrollY.current
     if (y - clear < top) scrollRef.current?.scrollTo({ y: Math.max(0, y - clear), animated: true })
     else if (y + h + clear > top + layoutHeight)
       scrollRef.current?.scrollTo({ y: y + h + clear - layoutHeight, animated: true })
+  }
+  useImperativeHandle(revealRef, () => (y, h = 0) => {
+    if (y === 'end') return scrollRef.current?.scrollToEnd({ animated: true })
+    lastReveal.current = { y, h }
+    scrollIntoView(y, h)
   })
+  useEffect(() => {
+    if (!keyboardUp) lastReveal.current = null
+    else if (lastReveal.current) scrollIntoView(lastReveal.current.y, lastReveal.current.h)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs on a new body height only; scrollIntoView reads it
+  }, [layoutHeight, keyboardUp])
 
   const body = (
     <>
