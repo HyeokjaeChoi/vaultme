@@ -2,6 +2,7 @@
 import { type ReactNode, type RefObject, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import {
   AccessibilityInfo,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   RefreshControl,
@@ -58,6 +59,21 @@ export function Screen({
   const l = t.semantic.layout
   const scrollRef = useRef<ScrollViewInstance>(null)
   const [layoutHeight, setLayoutHeight] = useState(0)
+  // Form screens: with the keyboard up the safe-area inset is gone, so the footer keeps its top padding (12) below the button too, not 4 (#261).
+  const [keyboardUp, setKeyboardUp] = useState(false)
+  useEffect(() => {
+    if (!revealRef) return
+    const shown = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () =>
+      setKeyboardUp(true),
+    )
+    const hidden = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () =>
+      setKeyboardUp(false),
+    )
+    return () => {
+      shown.remove()
+      hidden.remove()
+    }
+  }, [revealRef])
   const [contentHeight, setContentHeight] = useState(0)
   const scrollY = useRef(0)
   const overflows = contentHeight > layoutHeight + 1
@@ -87,14 +103,26 @@ export function Screen({
     if (overflows) scrollRef.current?.flashScrollIndicators()
   }, [overflows])
 
-  useImperativeHandle(revealRef, () => (y, h = 0) => {
-    if (y === 'end') return scrollRef.current?.scrollToEnd({ animated: true })
+  // The last box asked for while the keyboard is up. Android can send keyboardDidShow before the body shrinks, so the box is shown
+  // again once layoutHeight changes (#262 review).
+  const lastReveal = useRef<{ y: number; h: number } | null>(null)
+  const scrollIntoView = (y: number, h: number) => {
     const clear = l.screen.padding
     const top = scrollY.current
     if (y - clear < top) scrollRef.current?.scrollTo({ y: Math.max(0, y - clear), animated: true })
     else if (y + h + clear > top + layoutHeight)
       scrollRef.current?.scrollTo({ y: y + h + clear - layoutHeight, animated: true })
+  }
+  useImperativeHandle(revealRef, () => (y, h = 0) => {
+    if (y === 'end') return scrollRef.current?.scrollToEnd({ animated: true })
+    lastReveal.current = { y, h }
+    scrollIntoView(y, h)
   })
+  useEffect(() => {
+    if (!keyboardUp) lastReveal.current = null
+    else if (lastReveal.current) scrollIntoView(lastReveal.current.y, lastReveal.current.h)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs on a new body height only; scrollIntoView reads it
+  }, [layoutHeight, keyboardUp])
 
   const body = (
     <>
@@ -151,7 +179,7 @@ export function Screen({
             style={{
               paddingHorizontal: l.screen.padding,
               paddingTop: t.primitive.space[3],
-              paddingBottom: t.primitive.space[1],
+              paddingBottom: keyboardUp ? t.primitive.space[3] : t.primitive.space[1],
               gap: l.fieldGap,
             }}
           >
@@ -164,7 +192,8 @@ export function Screen({
   return (
     <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: bg ?? t.component.screenB.bg }}>
       {revealRef ? (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        // Both platforms (RN 0.88 docs: "setting behavior is recommended"): with Android 15+ edge-to-edge the window no longer resizes for the keyboard.
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
           {body}
         </KeyboardAvoidingView>
       ) : (
