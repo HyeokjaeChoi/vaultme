@@ -12,7 +12,12 @@ const N = vi.hoisted(() => ({
   AndroidImportance: { DEFAULT: 3 },
 }))
 const os = vi.hoisted(() => ({ OS: 'android' }))
+const A = vi.hoisted(() => ({
+  getIosApplicationReleaseTypeAsync: vi.fn(),
+  ApplicationReleaseType: { UNKNOWN: 0, SIMULATOR: 1, APP_STORE: 5 },
+}))
 vi.mock('expo-notifications', () => N)
+vi.mock('expo-application', () => A)
 vi.mock('expo-constants', () => ({ default: { expoConfig: { extra: { eas: { projectId: 'proj' } } } } }))
 vi.mock('react-native', () => ({ Platform: os }))
 vi.mock('@/shared/api', () => ({ api: null }))
@@ -48,6 +53,16 @@ describe('expo-notifications adapter', () => {
     expect(await expoPort.token('proj')).toBe('ExponentPushToken[abcdefgh12345678]')
     expect(N.setNotificationChannelAsync).toHaveBeenCalledTimes(2)
     expect(N.getExpoPushTokenAsync).toHaveBeenCalledWith({ projectId: 'proj' })
+  })
+  it('iOS Simulator: registers the token for sandbox APNs; an App Store build keeps the default (#265)', async () => {
+    os.OS = 'ios'
+    A.getIosApplicationReleaseTypeAsync.mockResolvedValueOnce(A.ApplicationReleaseType.SIMULATOR)
+    await expoPort.token('proj')
+    expect(N.getExpoPushTokenAsync).toHaveBeenLastCalledWith({ projectId: 'proj', development: true })
+    A.getIosApplicationReleaseTypeAsync.mockResolvedValueOnce(A.ApplicationReleaseType.APP_STORE)
+    await expoPort.token('proj')
+    expect(N.getExpoPushTokenAsync).toHaveBeenLastCalledWith({ projectId: 'proj' })
+    os.OS = 'android'
   })
   it('reads the EAS project id from the app config; no API = test-data mode', () => {
     expect(pushDeps.projectId).toBe('proj')

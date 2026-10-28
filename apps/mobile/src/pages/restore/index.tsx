@@ -252,11 +252,9 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
               </View>
               <TextLink label={t('restore.paste')} onPress={() => void paste()} />
             </View>
-            <View style={{ gap: th.semantic.layout.rowGap }}>
-              <View
-                style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}
-                onLayout={(e) => (gridY.current = e.nativeEvent.layout.y)}
-              >
+            {/* Measured here, not on the grid row: the row's y is relative to this wrapper (0), which hid the 12/24 row's offset from revealCell. */}
+            <View style={{ gap: th.semantic.layout.rowGap }} onLayout={(e) => (gridY.current = e.nativeEvent.layout.y)}>
+              <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
                 {column(0, half)}
                 {column(half, count)}
               </View>

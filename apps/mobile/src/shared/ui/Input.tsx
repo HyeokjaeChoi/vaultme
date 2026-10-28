@@ -1,6 +1,6 @@
 // Figma: Input 67:231 (B/Input 421:805)
 import { useState, type Ref } from 'react'
-import { Pressable, TextInput, View, type TextInputInstance, type TextInputProps } from 'react-native'
+import { Platform, Pressable, TextInput, View, type TextInputInstance, type TextInputProps } from 'react-native'
 import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
 import { Icon, type IconName } from './Icon'
@@ -20,6 +20,7 @@ type Props = Pick<
   | 'textContentType'
   | 'importantForAutofill'
   | 'onBlur'
+  | 'onFocus'
   | 'testID'
   | 'secureTextEntry'
 > & {
@@ -42,6 +43,10 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
   const [focused, setFocused] = useState(false)
   const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
   const textFont = textStyle(actions ? t.primitive.type.productB.address : t.primitive.type.productB.body)
+  // iOS draws a single-line TextInput's text off center when lineHeight is set (#261): the field's height centers it instead.
+  const { lineHeight, ...noLineHeight } = textFont
+  const fieldFont =
+    Platform.OS === 'ios' && !field.multiline && !actions ? noLineHeight : { ...noLineHeight, lineHeight }
   const input = (
     <TextInput
       {...field}
@@ -49,7 +54,10 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
       editable={editable}
       accessibilityLabel={label}
       placeholderTextColor={c.placeholder}
-      onFocus={() => setFocused(true)}
+      onFocus={(e) => {
+        setFocused(true)
+        field.onFocus?.(e)
+      }}
       onBlur={(e) => {
         setFocused(false)
         onBlur?.(e)
@@ -73,7 +81,7 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
               borderColor: border,
               backgroundColor: editable ? c.bg.default : c.bg.disabled,
               color: editable ? c.fg : t.semantic.text.disabled,
-              ...textFont,
+              ...fieldFont,
             }
       }
     />

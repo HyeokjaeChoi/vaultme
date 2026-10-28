@@ -304,8 +304,11 @@ describe('POST /webhooks/alchemy', () => {
   })
 
   it('answers 503 when Expo is down, then sends on the retry', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     expoReply = () => new Response('x', { status: 502 })
     expect((await hook(activity([eth()]))).status).toBe(503)
+    expect(err).toHaveBeenCalledWith('push upstream', 'expo 502') // a failed batch leaves a log line (#263)
+    err.mockRestore()
     expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
     expect((await hook(activity([eth()]))).status).toBe(200)
     expect(await E.DB.prepare('SELECT COUNT(*) AS n FROM push_sent').first<{ n: number }>()).toEqual({ n: 1 })
@@ -331,6 +334,28 @@ describe('POST /webhooks/alchemy', () => {
     await hook(activity([eth()]))
     expect(await subs()).toHaveLength(0)
     expect(calls.some((c) => c.url === addrPatch && body(c).addresses_to_remove[0] === ADDR)).toBe(true)
+  })
+
+  it('logs the push outcome and Expo ticket ids, never an address or token (#263)', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
+    expoReply = () =>
+      new Response(
+        JSON.stringify({
+          data: [{ status: 'error', message: 'x', details: { error: 'MessageRateExceeded' } }],
+        }),
+      )
+    await hook(activity([eth()]))
+    expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
+    await hook(activity([eth()]))
+    await hook(activity([eth({ toAddress: '0x' + '77'.repeat(20) })]))
+    const lines = log.mock.calls.map((c) => c.join(' '))
+    expect(lines).toContain('push subs=1 notes=1 jobs=1')
+    expect(lines).toContain('expo tickets error:MessageRateExceeded')
+    expect(lines).toContain('expo tickets ok:r1')
+    expect(lines).toContain('push subs=0 notes=0 jobs=0')
+    expect(lines.join('\n')).not.toContain(ADDR.slice(2, 12))
+    expect(lines.join('\n')).not.toContain(TOKEN)
+    log.mockRestore()
   })
 
   it('does nothing for addresses nobody subscribed', async () => {

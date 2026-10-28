@@ -1,3 +1,4 @@
+import * as Application from 'expo-application'
 import * as Notifications from 'expo-notifications'
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
@@ -33,7 +34,12 @@ export const expoPort: PushPort = {
   },
   token: async (projectId) => {
     await ensureChannel()
-    return (await Notifications.getExpoPushTokenAsync({ projectId })).data
+    // The simulator's token is always sandbox, but its APNs environment reads as null (no provisioning profile), so expo-notifications
+    // falls back to production APNs, which answers BadDeviceToken (#265). Not the null itself: an App Store build has no profile either.
+    const sandbox =
+      Platform.OS === 'ios' &&
+      (await Application.getIosApplicationReleaseTypeAsync()) === Application.ApplicationReleaseType.SIMULATOR
+    return (await Notifications.getExpoPushTokenAsync(sandbox ? { projectId, development: true } : { projectId })).data
   },
 }
 

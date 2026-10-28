@@ -198,7 +198,7 @@ Local:
 - API: `wrangler dev`, `pnpm --filter @vaultme/api db:migrate:local`. Tests run in the Workers runtime (`@cloudflare/vitest-plugin`) with D1 migrations applied.
 - Mobile dev build (Expo Go does not work: it needs Keychain and MMKV):
   - From `apps/mobile`: `npx expo prebuild --clean`, then `npx expo run:ios` or `npx expo run:android`. The URL scheme is `vaultme`.
-  - Set `EXPO_PUBLIC_API_URL` for the real API. Without it the fake chain is used.
+  - Set `EXPO_PUBLIC_API_URL` for the real API. Without it the fake chain is used. `pnpm staging <script>` (for example `pnpm staging ios`) sets the staging API; the EAS `development` profile in `apps/mobile/eas.json` sets it too.
   - Set `LANG` and `LC_ALL` to `en_US.UTF-8` for CocoaPods. Use JDK 17 to 21 for Android (not 26).
   - The iOS simulator cannot save the phrase: it has no device passcode. Test wallet creation on a real device, or on an Android emulator with a PIN.
 
