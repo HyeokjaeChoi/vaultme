@@ -20,7 +20,7 @@ vi.mock('../src/features/send/model/useReviewCore', () => ({
 }))
 
 import { blocksNewSend } from '../src/features/send/model/runSend'
-import { checkStored } from '../src/features/send/model/useTrackedTx'
+import { checkStored, stateChanged } from '../src/features/send/model/useTrackedTx'
 import { readPendingTx } from '../src/entities/transaction/pendingStore'
 
 const tx = {
@@ -46,5 +46,18 @@ describe('checkStored (Home poll step)', () => {
   it('does nothing when no send is stored', async () => {
     stored = null
     expect(await checkStored()).toBeNull()
+  })
+})
+
+describe('stateChanged (Home reloads its list, #269)', () => {
+  it('a check that moves the stored send to a new state counts', () => {
+    expect(stateChanged({ ...tx, state: 'Pending' } as never, 'Confirmed')).toBe(true)
+    expect(stateChanged({ ...tx, state: 'Pending' } as never, 'Included')).toBe(true)
+  })
+  it('the same state, no check, or no record before does not', () => {
+    expect(stateChanged({ ...tx, state: 'Included' } as never, 'Included')).toBe(false)
+    expect(stateChanged({ ...tx, state: 'Pending' } as never, null)).toBe(false)
+    expect(stateChanged(null, 'Confirmed')).toBe(false)
+    expect(stateChanged('corrupt', 'Confirmed')).toBe(false)
   })
 })
