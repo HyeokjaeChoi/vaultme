@@ -225,7 +225,11 @@ export function notificationsFor(
 
 const ExpoTickets = z.object({
   data: z.array(
-    z.object({ status: z.string(), details: z.object({ error: z.string().optional() }).partial().nullish() }),
+    z.object({
+      status: z.string(),
+      id: z.string().optional(),
+      details: z.object({ error: z.string().optional() }).partial().nullish(),
+    }),
   ),
 })
 
@@ -258,7 +262,11 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
       .all<Subscription>()
     subs.results.push(...rows.results)
   }
-  if (subs.results.length === 0) return
+  // Counts only (no address or token): shows in Workers Logs where a delivery stopped before Expo (#263).
+  if (subs.results.length === 0) {
+    console.log('push subs=0')
+    return
+  }
   const notes = notificationsFor(payload, new Set(subs.results.map((s) => s.address)))
 
   // Claim first, then send: Alchemy can deliver two legs of one tx as separate webhooks at the same moment, and a
@@ -267,7 +275,12 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   const pairs = notes.flatMap((note) =>
     subs.results.filter((s) => s.address === note.address).map((sub) => ({ sub, note })),
   )
-  if (pairs.length === 0) return
+  const outcome = (jobs: number) =>
+    console.log(`push subs=${String(subs.results.length)} notes=${String(notes.length)} jobs=${String(jobs)}`)
+  if (pairs.length === 0) {
+    outcome(0)
+    return
+  }
   const claims = await env.DB.batch(
     pairs.map(({ sub, note }) =>
       env.DB.prepare('INSERT OR IGNORE INTO push_sent (install_id, ref, sent_at) VALUES (?, ?, ?)').bind(
@@ -278,6 +291,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     ),
   )
   const jobs = pairs.filter((_, i) => claims[i]?.meta.changes === 1)
+  outcome(jobs.length) // jobs=0 with notes>0: already claimed (sent before)
   const unsettled = new Set(jobs)
   const dead: string[] = []
   let ticketFailed = false
@@ -315,6 +329,13 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
       }
       const tickets = ExpoTickets.safeParse(await res.json().catch(() => null))
       if (!tickets.success || tickets.data.data.length !== batch.length) throw new UpstreamError('expo ticket shape')
+      // Receipt ids (ok) or error codes: an accepted push that never arrives is then looked up in Expo's receipts (#263).
+      console.log(
+        'expo tickets',
+        tickets.data.data
+          .map((t) => (t.status === 'ok' ? `ok:${t.id ?? '?'}` : `${t.status}:${t.details?.error ?? '?'}`))
+          .join(' '),
+      )
       // Only accepted tickets (and dead tokens, which are deleted below) count as sent. Any other ticket error stays retryable.
       const settled: typeof batch = []
       for (const [j, t] of tickets.data.data.entries()) {
