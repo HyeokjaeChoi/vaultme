@@ -82,7 +82,8 @@ export function BackupPage({
       return
     }
     const r = await loadPhrase({ title: t('backup.authPrompt'), cancel: t('common.cancel') })
-    if (g !== gen.current || leavesReveal(AppState.currentState, false)) {
+    // Only gen says the user left: AppState.currentState right after auth can still be the auth sheet's state (L04).
+    if (g !== gen.current) {
       setLoad('idle') // left the screen or app meanwhile: never show it
       return
     }
