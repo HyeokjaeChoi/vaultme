@@ -14,11 +14,12 @@ const USER = 'vaultme'
 // Phrase (ADR-0004): "BIOMETRY_ANY_OR_DEVICE_PASSCODE, this device only, no cloud backup".
 // OS enforces auth; survives biometric changes; device passcode is the fallback.
 // WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: needs a device passcode, never migrates, never in backups.
+// No `cloudSync` key on any item: react-native-keychain 10.0.0 (iOS) reads `cloudSync: false` as true
+// (oblador/react-native-keychain#800). Omitted = not synchronizable (#243).
 const PHRASE_OPTIONS = {
   service: PHRASE_SERVICE,
   accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
   accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-  cloudSync: false,
 } as const
 
 // MMKV encryption key (ADR-0004): "keychain tier without authentication" so the lock gate can read
@@ -26,7 +27,6 @@ const PHRASE_OPTIONS = {
 const KV_KEY_OPTIONS = {
   service: KV_KEY_SERVICE,
   accessible: Keychain.ACCESSIBLE.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
-  cloudSync: false,
 } as const
 
 /** OS auth sheet text, shown by BiometricPrompt on Android (the OS default is English). */

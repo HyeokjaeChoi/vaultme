@@ -18,7 +18,7 @@ scripts/sim-auth.sh nomatch [ios|android]  # failed attempt
 
 Setup the owner does once (agents must not change device security settings; if it is missing, stop and ask):
 
-- iOS Simulator: menu Features > Face ID > Enrolled. Without Simulator.app (Xcode 27.1): `xcrun simctl spawn <udid> notifyutil -s com.apple.BiometricKit.enrollmentChanged 1` then `xcrun simctl spawn <udid> notifyutil -p com.apple.BiometricKit.enrollmentChanged`. On iOS 27.0 wallet creation is blocked by #243 until that fix lands.
+- iOS Simulator: menu Features > Face ID > Enrolled. Without Simulator.app (Xcode 27.1): `xcrun simctl spawn <udid> notifyutil -s com.apple.BiometricKit.enrollmentChanged 1` then `xcrun simctl spawn <udid> notifyutil -p com.apple.BiometricKit.enrollmentChanged`.
 - Android emulator: Settings > Security > Screen lock = PIN, then add a fingerprint; when enrollment asks for a touch, run `adb -e emu finger touch 1` (repeat until done). `sim-auth.sh` uses finger id 1 for `match` and id 9 (not enrolled) for `nomatch`. Several failed touches in a row lock biometrics; the PIN unlocks them.
 
 Check the result in the app, not in a screenshot of the sheet: Android draws the BiometricPrompt as a secure window, so `screencap` is black. `adb -e logcat` shows `onAuthenticationFailed` / `onAuthenticationSucceeded`; `adb -e shell dumpsys window | grep mCurrentFocus` shows whether the sheet is still open (with several emulators, use `adb -s "$ANDROID_SERIAL"` instead of `-e` in these commands). The simulators are shared: tell other sessions before you drive one.

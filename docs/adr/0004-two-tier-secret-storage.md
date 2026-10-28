@@ -13,5 +13,6 @@ The phrase is stored with `react-native-keychain`: `BIOMETRY_ANY_OR_DEVICE_PASSC
 - The phrase survives a biometric change. The device passcode is the fallback.
 - Anyone who can read the second tier can read the MMKV data, but not the phrase.
 - Android behavior after a biometric change is not checked on a real device.
+- "No cloud sync" means no `cloudSync` option at all: react-native-keychain 10.0.0 on iOS reads `cloudSync: false` as true (oblador/react-native-keychain#800), and iOS rejects the phrase item (#243). `apps/mobile/test/storage.test.ts` checks it.
 
 <!-- verified: apps/mobile/src/shared/storage/keychain.ts, apps/mobile/src/shared/storage/kv.ts, apps/mobile/src/features/send/model/runSend.ts, apps/mobile/src/shared/auth/authenticate.ts -->
