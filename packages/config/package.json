@@ -16,7 +16,7 @@
     "@feature-sliced/steiger-plugin": "0.8.0",
     "eslint-import-resolver-typescript": "4.4.5",
     "eslint-plugin-boundaries": "7.2.0",
-    "steiger": "0.7.0"
+    "steiger": "0.8.0"
   },
   "scripts": {
     "test": "vitest run",
