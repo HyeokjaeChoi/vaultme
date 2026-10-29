@@ -2,7 +2,7 @@
 
 Status: Accepted (2026-10-25, spec issue #186, owner grilling Q1-Q13). Started in `apps/web` (issue #192: 404 page, CI gates, staging; #194: landing; #195: viewer balances; history #196; transaction page #197).
 Supersedes: the "a web app" non-goal in `ARCHITECTURE.md`. Hosting stays as in [0001](0001-web-hosting-workers-static-assets.md). API access: [0011](0011-web-client-api-access.md).
-Superseded in part by [0014](0014-web-network-and-read-only-statements.md): the notice line (network and read-only statements). Superseded in part by [0017](0017-web-analytics-beacon-and-js-budgets.md): how the JS budgets are measured. The rest still binds.
+Superseded in part by [0014](0014-web-network-and-read-only-statements.md): the notice line (network and read-only statements). Superseded in part by [0017](0017-web-analytics-beacon-and-js-budgets.md) and [0018](0018-js-budgets-count-compressed-body.md): how the JS budgets are measured. The rest still binds.
 
 ## Context
 VaultMe has only a mobile app. People on the web cannot learn about it or look at a Sepolia address without installing it.
