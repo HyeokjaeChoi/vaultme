@@ -3,7 +3,8 @@ import { allowScreenCaptureAsync, preventScreenCaptureAsync } from 'expo-screen-
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppState, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { startCheck } from '@/features/backup'
+import { leavesReveal, startCheck } from '@/features/backup'
+import { isAuthInProgress } from '@/shared/auth'
 import { loadPhrase } from '@/shared/storage'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
@@ -58,7 +59,7 @@ export function BackupPage({
   )
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'background') gen.current++ // 'inactive' is also the OS auth sheet: it must not cancel the reveal
+      if (leavesReveal(s, isAuthInProgress())) gen.current++
       if (s !== 'active') {
         setWords(null) // re-hide whenever the app leaves the foreground (owner 2026-10-17)
         setAck(false)
@@ -81,7 +82,8 @@ export function BackupPage({
       return
     }
     const r = await loadPhrase({ title: t('backup.authPrompt'), cancel: t('common.cancel') })
-    if (g !== gen.current || AppState.currentState !== 'active') {
+    // Only gen says the user left: AppState.currentState right after auth can still be the auth sheet's state (L04).
+    if (g !== gen.current) {
       setLoad('idle') // left the screen or app meanwhile: never show it
       return
     }
