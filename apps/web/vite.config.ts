@@ -8,8 +8,8 @@ import { apiOrigin } from './scripts/finalize.ts'
 // Plain `react-router build`: the Cloudflare Vite plugin does not support prerender (ADR-0001).
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), pruneCustomPropertiesPlugin()],
-  // react-router is shared by the entry, the root and both viewer routes: one chunk, not two (each JS response carries the full
-  // _headers, ~1.5 KB, and counts against the viewer's Lighthouse script budget).
+  // react-router is shared by the entry, the root and both viewer routes: one chunk, not two (one request less, and no copy of
+  // it in a second chunk; the JS budget counts compressed bodies, scripts/js-budget.ts, ADR-0018).
   build: {
     rolldownOptions: {
       output: { codeSplitting: { groups: [{ name: 'router', test: /node_modules[\\/]react-router[\\/]/ }] } },

@@ -68,12 +68,6 @@
               {
                 "maxNumericValue": 200
               }
-            ],
-            "resource-summary:script:size": [
-              "error",
-              {
-                "maxNumericValue": 102400
-              }
             ]
           }
         },
@@ -121,12 +115,6 @@
               "error",
               {
                 "maxNumericValue": 200
-              }
-            ],
-            "resource-summary:script:size": [
-              "error",
-              {
-                "maxNumericValue": 153600
               }
             ]
           }

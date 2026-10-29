@@ -11,8 +11,8 @@
     "test": "react-router typegen && vitest run",
     "test:e2e": "playwright test",
     "lhci": "pnpm lhci:desktop && pnpm lhci:mobile",
-    "lhci:desktop": "lhci autorun --config=lighthouserc.desktop.json",
-    "lhci:mobile": "lhci autorun --config=lighthouserc.mobile.json",
+    "lhci:desktop": "lhci autorun --config=lighthouserc.desktop.json; a=$?; node scripts/js-budget.ts; b=$?; test $a -eq 0 -a $b -eq 0",
+    "lhci:mobile": "lhci autorun --config=lighthouserc.mobile.json; a=$?; node scripts/js-budget.ts; b=$?; test $a -eq 0 -a $b -eq 0",
     "typecheck": "react-router typegen && tsc -p tsconfig.json",
     "lint": "eslint . --max-warnings=0 && steiger ./app"
   },
