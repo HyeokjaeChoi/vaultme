@@ -25,11 +25,16 @@ export async function checkStored(): Promise<TxState | null> {
   return next.state
 }
 
+/** Whether a check moved the stored send to a new state (`prev` = the record read before the check). */
+export const stateChanged = (prev: PendingTx | 'corrupt' | null, next: TxState | null): boolean =>
+  next !== null && prev !== null && prev !== 'corrupt' && prev.state !== next
+
 /**
  * The pending send for S23/S41, Home and the send gates, with its re-check: `recheck` is the manual button; while the screen is focused and the app is
- * active, a Pending or Included send is re-checked on its own. `error` = the last check could not reach the network.
+ * active, a Pending or Included send is re-checked on its own. `error` = the last check could not reach the network. `onStateChange` runs when a check
+ * moves the send to a new state.
  */
-export function useTrackedTx(): {
+export function useTrackedTx(onStateChange?: () => void): {
   tx: PendingTx | null
   blocked: boolean
   checking: boolean
@@ -47,8 +52,11 @@ export function useTrackedTx(): {
 
   const run = useCallback(async () => {
     try {
+      const prev = readPendingTx()
       const s = await checkStored()
       setError(null)
+      // Home's list merges the local record at load time, so it shows "보내는 중" until it loads again (#269).
+      if (stateChanged(prev, s)) onStateChange?.()
       return s
     } catch (e) {
       setError(e)
@@ -56,7 +64,7 @@ export function useTrackedTx(): {
     } finally {
       reload()
     }
-  }, [reload])
+  }, [reload, onStateChange])
 
   const recheck = useCallback(async () => {
     setChecking(true)
