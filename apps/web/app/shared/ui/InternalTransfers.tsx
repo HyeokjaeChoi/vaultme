@@ -1,13 +1,17 @@
-// Figma: Tx detail · internal transfers (Web page, section 768:4422, #238): list 804:35707 (375) / 804:36265 (768) / 804:36827 (1280),
+// Figma: Tx detail · internal transfers (Web page, section 768:4422, #238): capped many 833:968 (375) / 833:1297 (768) / 833:1623 (1280), list 804:35707 (375) / 804:36265 (768) / 804:36827 (1280),
 // loading 804:36075 / 804:36635 / 804:37197, error 804:36169 / 804:36730 / 804:37292; rows are Activity row 36:48, header B/Section header
 import type { InternalTransfer } from '@vaultme/api-client'
+// Own entry: a value import from the main entry pulls zod into the /tx page and breaks its 150 KB budget (#255).
+import { capInternal } from '@vaultme/api-client/cap'
 import type { WebTxMessages } from '@vaultme/i18n/web-tx'
 import { fromUnits, toChecksumAddress } from '@vaultme/wallet-core'
 import type { Internal } from '../api'
 import { AssetIcon } from './AssetIcon'
 import { Button } from './Button'
+import { ButtonLink } from './ButtonLink'
 import { Notice } from './Notice'
 import { RowBadge } from './RowBadge'
+import { TxIcon } from './TxIcon'
 
 // First 6 and last 4 characters, as the history rows. A contract creation has no recipient.
 const full = (a: string | null) => (a ? toChecksumAddress(a.toLowerCase()) : '—')
@@ -16,7 +20,7 @@ const short = (a: string | null) => {
   return a ? `${c.slice(0, 6)}…${c.slice(-4)}` : c
 }
 
-type Props = { internal: Internal; retry: () => void; t: WebTxMessages }
+type Props = { internal: Internal; retry: () => void; t: WebTxMessages; moreHref: string }
 
 const bar = 'bg-skeleton-bg rounded-skeleton-radius'
 
@@ -52,11 +56,13 @@ function Row({ i, t }: { i: InternalTransfer; t: WebTxMessages }) {
 }
 
 /**
- * Every internal ETH transfer of the transaction (ADR-0015, `CONTEXT.md` "내부 이동"), below the detail rows. Hidden when there are
+ * The first `INTERNAL_CAP` internal ETH transfers of the transaction (ADR-0015, `CONTEXT.md` "내부 이동"), below the detail rows, then one
+ * link row to Etherscan for the rest (#255). Hidden when there are
  * none (Etherscan can lag a fresh block). A failed read affects only this section: a notice and a retry button.
  */
-export function InternalTransfers({ internal, retry, t }: Props) {
+export function InternalTransfers({ internal, retry, t, moreHref }: Props) {
   if (internal.status === 'ok' && internal.items.length === 0) return null
+  const { shown, more } = capInternal(internal.status === 'ok' ? internal.items : [])
   return (
     <section aria-labelledby="internal-title" className="gap-layout-field-gap flex flex-col">
       <h2 id="internal-title" className="text-product-b-title2 text-text-primary pt-4 pb-2">
@@ -97,10 +103,24 @@ export function InternalTransfers({ internal, retry, t }: Props) {
             <p className="text-product-b-body-small text-text-tertiary">{t.internal.note}</p>
           )}
           <ul className="flex flex-col">
-            {internal.items.map((i, n) => (
+            {shown.map((i, n) => (
               <Row key={n} i={i} t={t} />
             ))}
           </ul>
+          {more > 0 && (
+            <div className="flex">
+              <ButtonLink
+                variant="secondary"
+                href={moreHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="tablet:w-fit w-full"
+              >
+                <TxIcon name="external" className="size-badge" />
+                {t.internal.more.replace('{n}', String(more))}
+              </ButtonLink>
+            </div>
+          )}
         </>
       )}
     </section>

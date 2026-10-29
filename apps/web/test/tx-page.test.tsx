@@ -135,6 +135,44 @@ describe('transaction page', () => {
       expect(section.compareDocumentPosition(etherscan) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     })
 
+    describe('capped list (#255)', () => {
+      const many = (n: number) => ({
+        items: Array.from({ length: n }, (_, i) => ({
+          from: lower(B),
+          to: lower(A),
+          value: String(i + 1),
+          ok: i !== 1, // the second one failed
+        })),
+      })
+
+      it('exactly 10: all rows, no link to the rest', async () => {
+        chain.internal = many(10)
+        open(`/tx#${H}`)
+        const section = (await screen.findByRole('heading', { name: '내부 이동' })).closest('section')!
+        expect(within(section).getAllByRole('listitem')).toHaveLength(10)
+        expect(within(section).queryByRole('link')).toBeNull()
+      })
+
+      it('11: the first 10 rows, then 외 1건 linking to the internal tab of Etherscan; a failed row stays grey', async () => {
+        chain.internal = many(11)
+        open(`/tx#${H}`)
+        const section = (await screen.findByRole('heading', { name: '내부 이동' })).closest('section')!
+        const rows = within(section).getAllByRole('listitem')
+        expect(rows).toHaveLength(10)
+        expect(rows[1]).toHaveTextContent('내부 이동 실패')
+        expect(within(rows[1]!).getByText('0.000000000000000002 ETH')).toHaveClass('text-text-tertiary')
+        const more = within(section).getByRole('link', { name: '외 1건 · Etherscan에서 보기' })
+        expect(more).toHaveAttribute('href', `https://sepolia.etherscan.io/tx/${H}#internal`)
+        expect(more).toHaveAttribute('target', '_blank')
+      })
+
+      it('24: 외 14건, in English too', async () => {
+        chain.internal = many(24)
+        open(`/en/tx#${H}`)
+        expect(await screen.findByRole('link', { name: '14 more · View on Etherscan' })).toBeInTheDocument()
+      })
+    })
+
     it('no internal transfers: no section', async () => {
       open(`/tx#${H}`)
       await screen.findByText('확정')

@@ -35,6 +35,7 @@ const ko = {
       loading: '내부 이동을 불러오고 있어요',
       failed: '내부 이동을 불러오지 못했어요. 다시 시도하세요.',
       retry: '다시 시도',
+      more: '외 {n}건 · Etherscan에서 보기', // {n}: the rows left out (#255)
     },
     invalid: {
       title: '거래 해시가 올바르지 않아요',
@@ -84,6 +85,7 @@ const en: { tx: WebTxMessages } = {
       loading: 'Loading the internal transfers',
       failed: "Couldn't load the internal transfers. Try again.",
       retry: 'Try again',
+      more: '{n} more · View on Etherscan',
     },
     invalid: {
       title: 'The transaction hash is not valid',

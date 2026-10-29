@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { capInternal, INTERNAL_CAP } from '../src/cap.ts'
 import { readInternalTransfers, readTransaction } from '../src/index.ts'
 
 const HASH = `0x${'8f'.repeat(32)}`
@@ -211,5 +212,16 @@ describe('readInternalTransfers', () => {
 
   it('passes a failed call on', async () => {
     await expect(readInternalTransfers(() => Promise.reject(new Error('503')), HASH)).rejects.toThrow('503')
+  })
+})
+
+describe('capInternal (#255)', () => {
+  const list = (n: number) => Array.from({ length: n }, (_, i) => i)
+  it('shows the first INTERNAL_CAP and counts the rest', () => {
+    expect(INTERNAL_CAP).toBe(10)
+    expect(capInternal(list(0))).toEqual({ shown: [], more: 0 })
+    expect(capInternal(list(10))).toEqual({ shown: list(10), more: 0 })
+    expect(capInternal(list(11))).toEqual({ shown: list(10), more: 1 })
+    expect(capInternal(list(300)).more).toBe(290)
   })
 })

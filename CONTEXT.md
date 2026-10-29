@@ -29,7 +29,7 @@ One signed action sent to the network. Use the technical word only when a precis
 _Avoid_: 트랜잭션 (except as a technical term)
 
 **내부 이동** (internal transfer):
-ETH that a contract moves while a transaction runs, apart from the transaction's own amount. One transaction can have none, one or many. The transaction detail shows every internal transfer of the transaction, the same for every viewer.
+ETH that a contract moves while a transaction runs, apart from the transaction's own amount. One transaction can have none, one or many. The transaction detail shows the first 10 internal transfers of the transaction, then one row "외 N건 · Etherscan에서 보기" to Etherscan's internal transactions tab for the rest (#255), the same for every viewer.
 _Avoid_: 내부 거래, 내부 트랜잭션
 
 **네트워크 수수료** (network fee):
