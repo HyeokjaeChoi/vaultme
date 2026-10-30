@@ -11,9 +11,13 @@ on:
     paths:
       [
         apps/web/**,
-        packages/tokens/**,
-        packages/i18n/**,
+        packages/api-client/**,
         packages/config/**,
+        packages/contracts/**,
+        packages/history/**,
+        packages/i18n/**,
+        packages/tokens/**,
+        packages/wallet-core/**,
         pnpm-lock.yaml,
         .github/workflows/web-staging.yml,
       ]
