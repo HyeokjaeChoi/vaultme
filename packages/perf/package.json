@@ -1,0 +1,24 @@
+{
+  "name": "@vaultme/perf",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --max-warnings=0",
+    "hermes": "node src/cli.ts hermes",
+    "latency": "node --experimental-transform-types src/cli.ts latency",
+    "baseline": "node src/cli.ts baseline"
+  },
+  "dependencies": {
+    "@vaultme/api-client": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "@vaultme/config": "workspace:*",
+    "@vitest/coverage-v8": "5.0.5",
+    "eslint": "^10.12.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
+  }
+}

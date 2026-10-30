@@ -49,6 +49,15 @@ jobs:
       # Bundles both platforms, so a broken import or asset fails here, not on a device.
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/mobile run export:check
+      # Performance numbers per run (ADR-0019): the Hermes bundle sizes.
+      - if: hashFiles('package.json') != ''
+        run: node packages/perf/src/cli.ts hermes apps/mobile/dist perf-hermes.json
+      - if: hashFiles('package.json') != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: perf-hermes
+          path: perf-hermes.json
+          retention-days: 90
       # Report-only: expo-doctor wants the newest SDK 58 patches (expo 58.0.19, expo-router 58.0.26, published 2026-10-23),
       # which pass the 7-day rule on 2026-10-30. Then run `npx expo install --fix` and remove continue-on-error.
       - if: hashFiles('package.json') != ''
@@ -97,3 +106,12 @@ jobs:
       - run: pnpm install --frozen-lockfile --filter @vaultme/web...
       - run: pnpm --filter "@vaultme/web..." run build
       - run: pnpm --filter @vaultme/web run lhci:${{ matrix.profile }}
+      # Performance numbers per run (ADR-0019): the Lighthouse reports and js-budget.json, also when a gate fails.
+      # `.lighthouseci` is a hidden folder; the *.json filter leaves out the HTML reports.
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: perf-lhci-${{ matrix.profile }}
+          path: apps/web/.lighthouseci/*.json
+          include-hidden-files: true
+          retention-days: 90

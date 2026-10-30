@@ -52,6 +52,7 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 - `history`: the history module (`createHistory`: `list`, `more`, `cachedRow`, `findRow`) over a page-fetch seam and a cache seam. See History.
 - `tokens`: Style Dictionary build of `packages/tokens/tokens.json` into `src/generated` (TS for mobile, `tokens.css` variables and a Tailwind v4 `theme.css` for web). Layers: Primitive, Semantic (light and dark), Component.
 - `i18n`: Korean strings (`ko`) and an i18next instance.
+- `perf`: performance measurements (ADR-0019). `cli.ts` has three commands: `hermes` (bundle sizes), `latency` (API p50 and p95 on staging with a throw-away install, run weekly by `.github/workflows/api-latency.yml`) and `baseline` (writes `docs/perf/baseline.json` and `baseline.md` from CI artifacts).
 - `config`: shared ESLint and tsconfig, and the FSD layer preset (`fsd.js`, `steiger.js`). It holds the no-float rule for amount code.
 
 ### apps/api

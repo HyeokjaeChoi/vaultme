@@ -1,0 +1,264 @@
+{
+  "measuredAt": "2026-10-30",
+  "commit": "f559bff",
+  "origin": "local macOS run, not a CI runner",
+  "web": {
+    "desktop": [
+      {
+        "url": "/",
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 292,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/address",
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 474,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/en/",
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 286,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/en/address",
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 471,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/en/no-such-page",
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 96,
+        "seo": 100,
+        "lcpMs": 286,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/en/tx",
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 453,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/no-such-page",
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 96,
+        "seo": 100,
+        "lcpMs": 288,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/tx",
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 455,
+        "cls": 0,
+        "tbtMs": 0
+      }
+    ],
+    "mobile": [
+      {
+        "url": "/",
+        "runs": 5,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 1210,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/address",
+        "runs": 5,
+        "performance": 97,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 2113,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/en/",
+        "runs": 5,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 1207,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/en/address",
+        "runs": 5,
+        "performance": 97,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 2116,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/en/no-such-page",
+        "runs": 5,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 96,
+        "seo": 100,
+        "lcpMs": 1056,
+        "cls": 0.001,
+        "tbtMs": 0
+      },
+      {
+        "url": "/en/tx",
+        "runs": 5,
+        "performance": 97,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 2112,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/no-such-page",
+        "runs": 5,
+        "performance": 100,
+        "accessibility": 100,
+        "bestPractices": 96,
+        "seo": 100,
+        "lcpMs": 1058,
+        "cls": 0,
+        "tbtMs": 0
+      },
+      {
+        "url": "/tx",
+        "runs": 5,
+        "performance": 97,
+        "accessibility": 100,
+        "bestPractices": 100,
+        "seo": 100,
+        "lcpMs": 2114,
+        "cls": 0,
+        "tbtMs": 0
+      }
+    ],
+    "jsBudget": [
+      {
+        "url": "/",
+        "bytes": 0,
+        "limit": 102400,
+        "files": 0
+      },
+      {
+        "url": "/address",
+        "bytes": 141639,
+        "limit": 153600,
+        "files": 9
+      },
+      {
+        "url": "/en/",
+        "bytes": 0,
+        "limit": 102400,
+        "files": 0
+      },
+      {
+        "url": "/en/address",
+        "bytes": 141639,
+        "limit": 153600,
+        "files": 9
+      },
+      {
+        "url": "/en/no-such-page",
+        "bytes": 0,
+        "limit": 102400,
+        "files": 0
+      },
+      {
+        "url": "/en/tx",
+        "bytes": 141673,
+        "limit": 153600,
+        "files": 9
+      },
+      {
+        "url": "/no-such-page",
+        "bytes": 0,
+        "limit": 102400,
+        "files": 0
+      },
+      {
+        "url": "/tx",
+        "bytes": 141673,
+        "limit": 153600,
+        "files": 9
+      }
+    ]
+  },
+  "hermes": {
+    "ios": 8123911,
+    "android": 8117373,
+    "limit": 9437184
+  },
+  "api": {
+    "health": {
+      "n": 20,
+      "ok": 20,
+      "p50Ms": 70,
+      "p95Ms": 109
+    },
+    "rpc": {
+      "n": 20,
+      "ok": 20,
+      "p50Ms": 310,
+      "p95Ms": 809
+    },
+    "history": {
+      "n": 5,
+      "ok": 5,
+      "p50Ms": 1791,
+      "p95Ms": 2320
+    },
+    "address": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
+    "historyGapMs": 31000
+  }
+}
