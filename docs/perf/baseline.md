@@ -66,3 +66,20 @@ History reads the public test address `0x9858EfFD232B4033E47d90003D41EC34EcaEda9
 | `POST /v1/rpc` (`eth_blockNumber`) | 20 / 20 | 310 | 809 |
 | `POST /v1/history` | 5 / 5 | 1791 | 2320 |
 
+## API benchmark (staging, k6, CI runner)
+
+Measured 2026-10-30 on commit `5827dde` (GitHub Actions ubuntu-latest, k6 2.3.0), 5 runs of `api-bench` ([README](../../packages/perf/README.md)). Times in ms, total = DNS + TCP + TLS + request + response (HTTP 200 only).
+p50 and p95 are the median over the runs; the range columns are the lowest and highest run value (the spread). TCP, TLS and TTFB are medians of the run p50 (0 TCP and TLS in the warm mode: the connection is reused).
+The p95 limit is the k6 threshold of `api.js`: 1.5 times the median p95, rounded up to 2 significant digits (ADR-0019). It fails the `api-bench` job only.
+The `history_hit` case has no cache marker in the response; a cold-mode hit that reached another Cloudflare server shows up as a slow outlier.
+
+| Endpoint | Mode | ok / sent | p50 | p50 range | p95 | p95 range | TCP p50 | TLS p50 | TTFB p50 | p95 limit |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `GET /v1/health` | warm | 150 / 150 | 25.9 | 14.81-38.65 | 48.6 | 41.97-87.56 | 0 | 0 | 25.6 | 73 |
+| `POST /v1/rpc` (`eth_blockNumber`) | warm | 150 / 150 | 66.8 | 28.66-81.76 | 140.3 | 67.54-186.41 | 0 | 0 | 66.6 | 220 |
+| `POST /v1/history`, cache hit | warm | 75 / 75 | 32.1 | 19.5-47.14 | 33 | 27.97-72.96 | 0 | 0 | 30.1 | 50 |
+| `POST /v1/history`, cache miss (Etherscan) | warm | 25 / 25 | 1165 | 1110.84-1176.15 | 1284.1 | 1206.06-1694.5 | 0 | 0 | 1164.7 | 2000 |
+| `GET /v1/health` | cold | 150 / 150 | 90.4 | 51.16-99.31 | 141.6 | 104.97-222.38 | 18.2 | 29.2 | 34.4 | 220 |
+| `POST /v1/rpc` (`eth_blockNumber`) | cold | 150 / 150 | 136.6 | 112-210.24 | 271 | 183.22-657.76 | 18.2 | 24.1 | 95.1 | 410 |
+| `POST /v1/history`, cache hit | cold | 75 / 75 | 92.4 | 64.56-96.75 | 115.3 | 98.21-440.05 | 18.2 | 24.6 | 42.8 | 180 |
+| `POST /v1/history`, cache miss (Etherscan) | cold | 25 / 25 | 1223.6 | 1159.91-1322.5 | 1351.7 | 1271.38-1856.1 | 18.1 | 26.3 | 1159 | 2100 |

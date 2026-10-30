@@ -1,3 +1,4 @@
+import { benchTable, type ApiBench } from './bench.ts'
 import type { ApiLatency, Endpoint } from './latency.ts'
 import type { HermesSizes, PageScores } from './summarize.ts'
 
@@ -15,6 +16,8 @@ export type Baseline = {
   web: { desktop: PageScores[]; mobile: PageScores[]; jsBudget: JsBudgetRow[] }
   hermes: HermesSizes & { limit: number }
   api: ApiLatency & { address: string; historyGapMs: number }
+  /** k6 runs on a CI runner (`packages/perf/k6/api.js`); set by `cli.ts bench`. */
+  apiBench?: ApiBench
 }
 
 export type BaselineInput = Omit<Baseline, 'hermes' | 'web'> & {
@@ -119,6 +122,18 @@ Timed from one machine, so it includes the network path to Cloudflare. Calls: ${
 History reads the public test address \`${b.api.address}\`, ${String(b.api.historyGapMs / 1000)} s apart, so each call is newer than the 30 s page cache.
 
 ${latencyTable(b.api)}
+${b.apiBench ? benchSection(b.apiBench) : ''}`
+}
 
+function benchSection(a: ApiBench): string {
+  return `
+## API benchmark (staging, k6, CI runner)
+
+Measured ${a.measuredAt} on commit \`${a.commit}\` (${a.origin}), ${String(a.runs)} runs of \`api-bench\` ([README](../../packages/perf/README.md)). Times in ms, total = DNS + TCP + TLS + request + response (HTTP 200 only).
+p50 and p95 are the median over the runs; the range columns are the lowest and highest run value (the spread). TCP, TLS and TTFB are medians of the run p50 (0 TCP and TLS in the warm mode: the connection is reused).
+The p95 limit is the k6 threshold of \`api.js\`: 1.5 times the median p95, rounded up to 2 significant digits (ADR-0019). It fails the \`api-bench\` job only.
+The \`history_hit\` case has no cache marker in the response; a cold-mode hit that reached another Cloudflare server shows up as a slow outlier.
+
+${benchTable(a.results)}
 `
 }

@@ -1,10 +1,12 @@
 // Usage (from the repo root, node 24):
 //   node packages/perf/src/cli.ts hermes <expo export dir> <out.json>
 //   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts latency <out.json>    (prints the table; CI adds it to the job summary)
+//   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the p95 limits for api.js)
 //   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text>
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseArgs } from 'node:util'
+import { aggregate, benchTable, limitsJs, MODES, type K6Result } from './bench.ts'
 import { buildBaseline, latencyTable, renderBaseline, type Baseline, type JsBudgetRow } from './baseline.ts'
 import { hermesSizes, readLhrDir, type HermesSizes } from './summarize.ts'
 
@@ -76,6 +78,27 @@ if (cmd === 'hermes') {
   })
   writeFileSync(join(out, 'baseline.json'), `${JSON.stringify(baseline, null, 2)}\n`)
   writeFileSync(join(out, 'baseline.md'), renderBaseline(baseline))
+} else if (cmd === 'bench') {
+  const { values: v } = parseArgs({
+    args: rest,
+    options: { runs: { type: 'string' }, out: { type: 'string' }, commit: { type: 'string' } },
+  })
+  if (!v.runs || !v.out || !v.commit) throw new Error('bench: --runs, --out and --commit are required')
+  const runsDir = v.runs
+  const dirs = readdirSync(runsDir).sort()
+  const results = dirs.flatMap((d) => MODES.map((m) => readJson(join(runsDir, d, `k6-api-${m}.json`)) as K6Result))
+  const apiBench = {
+    measuredAt: new Date().toISOString().slice(0, 10),
+    commit: v.commit,
+    origin: 'GitHub Actions ubuntu-latest, k6 2.3.0',
+    runs: dirs.length,
+    results: aggregate(results),
+  }
+  const file = join(v.out, 'baseline.json')
+  const baseline = { ...(readJson(file) as Baseline), apiBench }
+  writeFileSync(file, `${JSON.stringify(baseline, null, 2)}\n`)
+  writeFileSync(join(v.out, 'baseline.md'), renderBaseline(baseline))
+  console.log(`${benchTable(apiBench.results)}\n\n${limitsJs(apiBench.results)}`)
 } else {
-  throw new Error('usage: cli.ts hermes | latency | baseline')
+  throw new Error('usage: cli.ts hermes | latency | baseline | bench')
 }
