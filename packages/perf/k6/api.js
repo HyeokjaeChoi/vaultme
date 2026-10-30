@@ -38,11 +38,19 @@ export const options = {
 }
 
 const ENDPOINTS = ['health', 'rpc', 'history_hit', 'history_miss']
-// k6 keeps a sub-metric only when a threshold names it, so every case gets one that always passes (collect only, no limit).
+// p95 limit of the total time in ms: 1.5 times the median p95 of 5 CI runs, rounded up to 2 significant digits (ADR-0019).
+// These fail the api-bench job only: this script runs nowhere else (never in PR CI).
+const P95_LIMIT_MS = {
+  warm: { health: 73, rpc: 220, history_hit: 50, history_miss: 2000 },
+  cold: { health: 220, rpc: 410, history_hit: 180, history_miss: 2100 },
+}
+// k6 keeps a sub-metric only when a threshold names it, so every case gets one; the parts have one that always passes (collect only).
 for (const e of ENDPOINTS) {
-  for (const m of ['total', 'duration', 'dns', 'connecting', 'tls', 'waiting'])
+  for (const m of ['duration', 'dns', 'connecting', 'tls', 'waiting'])
     options.thresholds[`ok_${m}{endpoint:${e}}`] = ['max>=0']
-  options.thresholds[`call_ok{endpoint:${e}}`] = ['rate>=0']
+  options.thresholds[`ok_total{endpoint:${e}}`] = [`p(95)<${P95_LIMIT_MS[MODE][e]}`]
+  // At least one 200 per case: a case that never answered is a failed run, not a fast one.
+  options.thresholds[`call_ok{endpoint:${e}}`] = ['rate>0']
 }
 
 // total = DNS + TCP + TLS + request + response: what a client waits. k6 `http_req_duration` leaves out DNS, TCP and TLS, so
