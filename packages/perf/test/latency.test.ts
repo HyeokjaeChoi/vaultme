@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { measureApi, memorySigner } from '../src/latency.ts'
 
 const ID = '11111111-1111-4111-8111-111111111111'
@@ -64,6 +64,30 @@ describe('measureApi', () => {
     expect(r.history).toEqual({ n: 2, ok: 0, p50Ms: null, p95Ms: null })
     const health = fakeApi('/v1/health')
     expect((await measureApi(opts(health.f).o)).health.ok).toBe(0)
+  })
+})
+
+describe('measureApi failures', () => {
+  it('logs the cause of a failed call without a URL', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    await measureApi(opts(fakeApi('/v1/history').f).o)
+    expect(log).toHaveBeenCalledWith('history call 1 of 2 failed: unavailable (HTTP 503)')
+    log.mockRestore()
+  })
+
+  it('ends a request that does not answer, as a failed call', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const api = fakeApi()
+    const hanging: typeof fetch = (input, init) =>
+      new URL(input).pathname === '/v1/health'
+        ? new Promise((_, reject) => init?.signal?.addEventListener('abort', () => reject(new Error('timed out'))))
+        : api.f(input, init)
+    const { o } = opts(hanging)
+    const r = await measureApi({ ...o, timeoutMs: 5 })
+    expect(r.health.ok).toBe(0)
+    expect(r.rpc.ok).toBe(3)
+    expect(log).toHaveBeenCalledWith('health call 1 of 3 failed: timed out')
+    log.mockRestore()
   })
 })
 
