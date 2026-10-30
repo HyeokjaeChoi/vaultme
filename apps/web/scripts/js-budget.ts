@@ -1,7 +1,7 @@
 // JS budget check (ADR-0018): runs after `lhci autorun`, reads the saved Lighthouse reports and counts the compressed
 // body of the app's own JS per page. Response headers are not counted (they are a server setting, not code weight).
 // Usage: node scripts/js-budget.ts [lhci dir = .lighthouseci] [build dir = build/client]
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
@@ -86,7 +86,10 @@ export function readLhrs(dir: string): Lhr[] {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [dir = '.lighthouseci', build = 'build/client'] = process.argv.slice(2)
-  const { text, failed } = report(measure(readLhrs(dir), build))
+  const rows = measure(readLhrs(dir), build)
+  const { text, failed } = report(rows)
+  // Kept with the reports as a build artifact and read by packages/perf (ADR-0019).
+  writeFileSync(join(dir, 'js-budget.json'), JSON.stringify(rows))
   console.log(text)
   if (failed) {
     console.error('JS budget exceeded (ADR-0018).')
