@@ -20,3 +20,10 @@ CI already measures the web Lighthouse scores and the JS budgets, and `export:ch
 - A baseline from a laptop and one from a runner differ; `baseline.md` names where the numbers came from. Weekly runner numbers replace the first laptop numbers when the baseline is next updated.
 - The baseline file is not checked by CI: it says what was measured on a date, and a PR updates it on purpose.
 - Scheduled workflows run on the default branch only and GitHub disables them after 60 days without repository activity (public repositories).
+
+## Amendment: k6 benchmark (2026-10-30, issue #281)
+- Owner decision: a widely used tool, several runs, and separate cases for a new connection and a reused one. Tool: Grafana k6, pinned to 2.3.0 in `.github/workflows/api-bench.yml` (action `grafana/setup-k6-action`). Script: `packages/perf/k6/api.js`; how to run it: `packages/perf/README.md`.
+- Cases: health, rpc, history cache hit, history cache miss; each warm (`MODE=warm`, connection reuse) and cold (`MODE=cold`, k6 `noConnectionReuse`, a new TCP and TLS connection per request). k6 sets `noConnectionReuse` per run, so a mode is a run. Each case has 1 untimed warm-up request.
+- Counts: 30 health, 30 rpc, 15 history hits, 5 history misses per mode. Per install: 1 token + 31 rpc + 21 history = 53, under 60 per 60 s. Etherscan: 6 history calls reach it per mode (1 warm-up, 5 misses, 31 s apart, longer than the 30 s cache), 3 Etherscan calls each, so 36 per run for both modes.
+- `api-bench` runs weekly and on `workflow_dispatch`, in the concurrency group of `api-latency`. Artifact `api-bench` (90 days) and job summary. No secret, no k6 Cloud. The Node `latency` command stays the source of `docs/perf/baseline.json` until a later PR moves the baseline to k6.
+- Only HTTP 200 responses are timed; the report has p50, p90, p95, p99, max, error rate and the parts DNS, TCP, TLS and TTFB. No threshold yet.

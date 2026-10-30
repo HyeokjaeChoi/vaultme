@@ -1,0 +1,58 @@
+name: api-bench
+
+# Weekly k6 benchmark of the staging API (ADR-0019): warm (connection reuse) and cold (new TCP + TLS per request) runs.
+# The script registers its own temporary install, so it needs no secret. The GitHub Environment `staging` is used only for
+# the variable STAGING_API_URL (the Worker URL, no trailing slash). Results stay in GitHub (artifact + job summary), no k6 Cloud.
+on:
+  schedule:
+    # Monday 04:17 UTC, after api-latency (03:23). Not at the start of an hour: GitHub delays or drops scheduled runs at :00.
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# The same group as api-latency: both read the history of one address (30 s Worker cache) and use the same API limits.
+concurrency:
+  group: api-latency
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    # Two runs of about 5 minutes each (history cases wait 31 s between calls).
+    timeout-minutes: 25
+    environment: staging
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: grafana/setup-k6-action@43b9fc21641a76002687994433dd586f56e791b1 # v1.2.2
+        with:
+          k6-version: '2.3.0'
+      - name: Run k6 (warm, then cold)
+        env:
+          BASE_URL: ${{ vars.STAGING_API_URL }}
+          OUT_DIR: k6-out
+        run: |
+          : "${BASE_URL:?set variable STAGING_API_URL in the staging environment}"
+          mkdir k6-out
+          APP_VERSION="$(jq -r .version apps/web/package.json)"
+          rc=0
+          # Warm first: the cold run waits for the 30 s history cache to expire anyway.
+          for mode in warm cold; do
+            k6 run --quiet -e MODE="$mode" -e APP_VERSION="$APP_VERSION" packages/perf/k6/api.js || rc=$?
+          done
+          # A mode that failed in setup() may have written no file: the other mode still goes to the summary.
+          echo '### API benchmark (staging, k6)' >> "$GITHUB_STEP_SUMMARY"
+          for mode in warm cold; do
+            if [ -f "k6-out/k6-api-$mode.md" ]; then { echo; cat "k6-out/k6-api-$mode.md"; } >> "$GITHUB_STEP_SUMMARY"; else echo "No result for mode $mode (the k6 run failed)." >> "$GITHUB_STEP_SUMMARY"; fi
+          done
+          exit "$rc"
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: api-bench
+          path: k6-out
+          retention-days: 90
+          if-no-files-found: warn
