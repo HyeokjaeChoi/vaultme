@@ -7,7 +7,7 @@ name: api-staging
 on:
   push:
     branches: [main]
-    paths: [apps/api/**, packages/contracts/**, pnpm-lock.yaml, .github/workflows/api-staging.yml]
+    paths: [apps/api/**, packages/config/**, packages/contracts/**, pnpm-lock.yaml, .github/workflows/api-staging.yml]
   workflow_dispatch:
 
 permissions:
