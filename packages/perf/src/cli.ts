@@ -1,9 +1,9 @@
 // Usage (from the repo root, node 24):
 //   node packages/perf/src/cli.ts hermes <expo export dir> <out.json>
 //   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts latency <out.json>    (prints the table; CI adds it to the job summary)
-//   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the p95 limits for api.js)
+//   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha> --origin <text>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the p95 limits for api.js)
 //   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text>
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseArgs } from 'node:util'
 import { aggregate, benchTable, limitsJs, MODES, type K6Result } from './bench.ts'
@@ -76,21 +76,41 @@ if (cmd === 'hermes') {
     hermes: readJson(hermes) as HermesSizes,
     api: readJson(api) as Baseline['api'],
   })
+  // The k6 numbers come from `bench`, not from these inputs: keep them when the other numbers are replaced.
+  const old = join(out, 'baseline.json')
+  const apiBench = existsSync(old) ? (readJson(old) as Baseline).apiBench : undefined
+  if (apiBench) baseline.apiBench = apiBench
   writeFileSync(join(out, 'baseline.json'), `${JSON.stringify(baseline, null, 2)}\n`)
   writeFileSync(join(out, 'baseline.md'), renderBaseline(baseline))
 } else if (cmd === 'bench') {
   const { values: v } = parseArgs({
     args: rest,
-    options: { runs: { type: 'string' }, out: { type: 'string' }, commit: { type: 'string' } },
+    options: {
+      runs: { type: 'string' },
+      out: { type: 'string' },
+      commit: { type: 'string' },
+      origin: { type: 'string' },
+    },
   })
-  if (!v.runs || !v.out || !v.commit) throw new Error('bench: --runs, --out and --commit are required')
+  if (!v.runs || !v.out || !v.commit || !v.origin)
+    throw new Error('bench: --runs, --out, --commit and --origin are required')
   const runsDir = v.runs
-  const dirs = readdirSync(runsDir).sort()
-  const results = dirs.flatMap((d) => MODES.map((m) => readJson(join(runsDir, d, `k6-api-${m}.json`)) as K6Result))
+  const dirs = readdirSync(runsDir, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
+    .sort()
+  const results = dirs.flatMap((d) =>
+    MODES.map((m) => {
+      const file = join(runsDir, d, `k6-api-${m}.json`)
+      if (!existsSync(file)) throw new Error(`bench: run folder ${d} has no k6-api-${m}.json`)
+      return readJson(file) as K6Result
+    }),
+  )
   const apiBench = {
-    measuredAt: new Date().toISOString().slice(0, 10),
+    // The day of the newest run, from the k6 results, not the day this command runs.
+    measuredAt: results.map((r) => r.measuredAt.slice(0, 10)).sort()[results.length - 1] ?? '',
     commit: v.commit,
-    origin: 'GitHub Actions ubuntu-latest, k6 2.3.0',
+    origin: v.origin,
     runs: dirs.length,
     results: aggregate(results),
   }

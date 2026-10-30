@@ -8,6 +8,8 @@ type Trend = { p50: number; p95: number } | null
 /** The part of `k6-api-<mode>.json` that is read here. */
 export type K6Result = {
   mode: Mode
+  /** ISO time of the run (`api.js` handleSummary). */
+  measuredAt: string
   endpoints: Record<Case, { calls: number; ok: number; total: Trend; connecting: Trend; tls: Trend; waiting: Trend }>
 }
 

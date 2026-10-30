@@ -15,6 +15,7 @@ import { buildBaseline, renderBaseline } from '../src/baseline.ts'
 const trend = (p50: number, p95: number) => ({ p50, p95 })
 const run = (mode: Mode, p95: number, ok = 5): K6Result => ({
   mode,
+  measuredAt: '2026-10-30T12:00:00.000Z',
   endpoints: Object.fromEntries(
     CASES.map((c) => [
       c,
