@@ -5,14 +5,14 @@ Performance measurements ([ADR-0019](../../docs/adr/0019-performance-measurement
 ## API benchmark (k6)
 
 `k6/api.js` measures the staging API with [Grafana k6](https://grafana.com/docs/k6/latest/) (pinned to 2.3.0 in CI).
-It registers one temporary install and gets a token, as the app does (a key made in memory, nothing stored), then runs three scenarios one after the other:
+It registers one temporary install and gets a token, as the app does (a key made in memory, nothing stored), then runs the cases below strictly one after the other (one VU, one scenario, so a slow response cannot overlap the next case):
 
-| Case (`endpoint` tag) | What it calls | Calls timed |
-| --- | --- | --- |
-| `health` | `GET /v1/health` | 30 |
-| `rpc` | `POST /v1/rpc`, `eth_blockNumber` | 30 |
-| `history_hit` | `POST /v1/history` for the public test address, answered by the 30 s Worker cache | 15 |
-| `history_miss` | the same call 31 s after the last one, so it reaches Etherscan | 5 |
+| Case (`endpoint` tag) | What it calls                                                                     | Calls timed |
+| --------------------- | --------------------------------------------------------------------------------- | ----------- |
+| `health`              | `GET /v1/health`                                                                  | 30          |
+| `rpc`                 | `POST /v1/rpc`, `eth_blockNumber`                                                 | 30          |
+| `history_hit`         | `POST /v1/history` for the public test address, answered by the 30 s Worker cache | 15          |
+| `history_miss`        | the same call 31 s after the last one, so it reaches Etherscan                    | 5           |
 
 Each case has 1 untimed warm-up request first. A run has one mode:
 

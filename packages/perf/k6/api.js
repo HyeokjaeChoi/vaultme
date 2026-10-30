@@ -31,19 +31,8 @@ const HISTORY_MISS_GAP_S = 31
 export const options = {
   noConnectionReuse: MODE === 'cold',
   tags: { mode: MODE },
-  // Sequential: each scenario starts after the earlier one is done (with slack for a slow network).
-  scenarios: {
-    health: { executor: 'per-vu-iterations', vus: 1, iterations: N_HEALTH + 1, exec: 'health', startTime: '0s' },
-    rpc: { executor: 'per-vu-iterations', vus: 1, iterations: N_RPC + 1, exec: 'rpc', startTime: '45s' },
-    history: {
-      executor: 'per-vu-iterations',
-      vus: 1,
-      iterations: 1,
-      exec: 'history',
-      startTime: '110s',
-      maxDuration: '10m',
-    },
-  },
+  // One scenario with one iteration, so the cases run strictly one after the other (a slow response cannot overlap the next case).
+  scenarios: { bench: { executor: 'per-vu-iterations', vus: 1, iterations: 1, exec: 'bench', maxDuration: '15m' } },
   summaryTrendStats: ['min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
   thresholds: {},
 }
@@ -133,26 +122,49 @@ function call(name, timed, method, path, token, body) {
   return res
 }
 
-export function health() {
-  // The first iteration (__ITER 0) is the warm-up.
-  call('health', __ITER > 0, 'GET', '/v1/health')
+// Cache window of the hit requests: all start well inside the 30 s Worker cache after the request that filled it.
+const HIT_WINDOW_MS = 25_000
+
+// The first request of a case is the warm-up (sent, not recorded).
+function health() {
+  call('health', false, 'GET', '/v1/health')
+  for (let i = 0; i < N_HEALTH; i++) call('health', true, 'GET', '/v1/health')
 }
 
-export function rpc(data) {
-  const body = JSON.stringify({ jsonrpc: '2.0', id: __ITER + 1, method: 'eth_blockNumber', params: [] })
-  call('rpc', __ITER > 0, 'POST', '/v1/rpc', data.token, body)
+function rpc(token) {
+  const one = (id, timed) =>
+    call(
+      'rpc',
+      timed,
+      'POST',
+      '/v1/rpc',
+      token,
+      JSON.stringify({ jsonrpc: '2.0', id, method: 'eth_blockNumber', params: [] }),
+    )
+  one(1, false)
+  for (let i = 0; i < N_RPC; i++) one(i + 2, true)
 }
 
-// One iteration holds the whole sequence, so the cache state is known at every request:
-// the warm-up misses (and fills the cache), the next requests hit it, then each later request waits out the 30 s cache and misses.
-export function history(data) {
+// The warm-up misses and fills the cache, the next requests hit it, then each later request waits out the 30 s cache and misses.
+// There is no cache marker in the response, so a hit is known only by timing: a hit is recorded only while it is inside the
+// window of the fill. A new connection can still reach a Cloudflare server with no cached page; that shows as an outlier.
+function history(token) {
   const body = JSON.stringify({ address: ADDRESS })
-  call('history_miss', false, 'POST', '/v1/history', data.token, body)
-  for (let i = 0; i < N_HISTORY_HIT; i++) call('history_hit', true, 'POST', '/v1/history', data.token, body)
+  const filledAt = Date.now()
+  const fill = call('history_miss', false, 'POST', '/v1/history', token, body)
+  if (fill.status !== 200) console.error('history: the cache fill failed, the hit cases are skipped')
+  for (let i = 0; i < N_HISTORY_HIT && fill.status === 200 && Date.now() - filledAt < HIT_WINDOW_MS; i++)
+    call('history_hit', true, 'POST', '/v1/history', token, body)
   for (let i = 0; i < N_HISTORY_MISS; i++) {
     sleep(HISTORY_MISS_GAP_S)
-    call('history_miss', true, 'POST', '/v1/history', data.token, body)
+    call('history_miss', true, 'POST', '/v1/history', token, body)
   }
+}
+
+export function bench(data) {
+  health()
+  rpc(data.token)
+  history(data.token)
 }
 
 const v = (data, name) => {

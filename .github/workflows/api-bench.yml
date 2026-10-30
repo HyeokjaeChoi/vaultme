@@ -43,7 +43,11 @@ jobs:
           for mode in warm cold; do
             k6 run --quiet -e MODE="$mode" -e APP_VERSION="$APP_VERSION" packages/perf/k6/api.js || rc=$?
           done
-          { echo '### API benchmark (staging, k6)'; echo; cat k6-out/k6-api-warm.md; echo; cat k6-out/k6-api-cold.md; } >> "$GITHUB_STEP_SUMMARY"
+          # A mode that failed in setup() may have written no file: the other mode still goes to the summary.
+          echo '### API benchmark (staging, k6)' >> "$GITHUB_STEP_SUMMARY"
+          for mode in warm cold; do
+            if [ -f "k6-out/k6-api-$mode.md" ]; then { echo; cat "k6-out/k6-api-$mode.md"; } >> "$GITHUB_STEP_SUMMARY"; else echo "No result for mode $mode (the k6 run failed)." >> "$GITHUB_STEP_SUMMARY"; fi
+          done
           exit "$rc"
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
