@@ -8,7 +8,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 ## Status
 
 - **IMPLEMENTED**: the code does what the decision says.
-- **SUPERSEDED**: a later owner decision replaced it. Record: an ADR, an issue or PR, or a commit.
+- **SUPERSEDED**: a later owner decision replaced it, in whole or in part. Record: an ADR, an issue or PR, or a commit; the notes say which part still holds.
 - **GAP**: approved, but the code does not do it. The issue asks the owner to implement it or supersede it with an ADR. A gap is never a stale doc claim.
 - **NOT-APPROVED**: a proposal that was never approved.
 
@@ -57,11 +57,11 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q33 | Expo dev build + EAS Build, no Expo Go | IMPLEMENTED | `apps/mobile/eas.json` |
 | Q34 | Keychain `BIOMETRY_ANY_OR_DEVICE_PASSCODE`, this device only | IMPLEMENTED | ADR-0004 |
 | Q35 | Sepolia | IMPLEMENTED | `packages/wallet-core/src/constants.ts` |
-| Q36 | Etherscan V2 for history; Infura/QuickNode for RPC | IMPLEMENTED | ADR-0007; Etherscan rate: rolling window (#290) |
-| Q37 | Confirmed = `safe` for push, send result and UI | IMPLEMENTED | ADR-0006 (push part: Q25) |
+| Q36 | Etherscan V2 for history; Infura/QuickNode for RPC | SUPERSEDED | RPC fallback is Alchemy, not QuickNode (Q78, ADR-0007). Etherscan history still used; rate: rolling window (#290) |
+| Q37 | Confirmed = `safe` for push, send result and UI | SUPERSEDED | Push part: ADR-0010 (push before `safe`). Send result and UI still follow ADR-0006 |
 | Q38 | Workers + Hono + 1-min cron watcher + Queues + D1 | SUPERSEDED | ADR-0009, ADR-0010 |
 | Q39 | Expo Push ticket and receipt check; `DeviceNotRegistered` deletes | GAP | #314: receipts are not polled |
-| Q40 | 12 words new, 12/24 restore, one path, no passphrase | IMPLEMENTED | ADR-0002; passphrase part ADR-0003 |
+| Q40 | 12 words new, 12/24 restore, one path, no passphrase | SUPERSEDED | Optional restore passphrase: ADR-0003. Words and path still follow ADR-0002 |
 | Q41 | Circle Sepolia USDC, 6 decimals | IMPLEMENTED | `packages/wallet-core/src/constants.ts` |
 | Q42 | QR = address only; EIP-681 accepted; other chain stops | IMPLEMENTED | `shared/lib/qrAddress.ts` |
 | Q43 | Phrase screen: no copy, capture block, switcher blur, screenshot fallback | GAP | #318: no screenshot fallback; no rooted-device warning |
