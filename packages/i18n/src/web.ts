@@ -25,6 +25,8 @@ export const webKo = {
     paste: '붙여넣기',
     submit: '주소 보기',
     examples: '예시 주소',
+    // Owner-approved copy, #311 comment 2026-11-01 (ADR-0007, ADR-0011). Figma: Privacy note in Address input frames 765:1341..
+    privacy: '조회한 주소는 VaultMe 서버를 거쳐요. 서버는 주소를 저장하지 않아요.',
   },
   viewer: {
     title: '조회한 주소',
@@ -91,6 +93,8 @@ export const webEn: WebMessages = {
     paste: 'Paste',
     submit: 'View address',
     examples: 'Example addresses',
+    // English of the approved ko line (#311); the owner approved the ko copy only.
+    privacy: 'Addresses you look up pass through the VaultMe server. The server does not store them.',
   },
   viewer: {
     title: 'Address',

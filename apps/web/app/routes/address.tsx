@@ -168,6 +168,7 @@ function AddressForm({ t, initial, headingRef }: { t: WebMessages; initial: stri
               setError(false)
             }}
           />
+          <p className="px-row-b-padding-x text-product-b-caption text-text-secondary">{t.address.privacy}</p>
           <div className="flex gap-3">
             <Button variant="secondary" onClick={() => void paste()}>
               {t.address.paste}

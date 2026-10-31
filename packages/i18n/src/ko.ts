@@ -490,6 +490,7 @@ export const ko = {
     device: '기기 보안 상태',
     group: { security: '보안', notify: '알림', info: '정보' },
     licenses: '오픈소스 라이선스',
+    privacy: '데이터와 개인정보',
     copied: '복사했어요',
     network: '네트워크',
     version: '버전',
@@ -536,6 +537,19 @@ export const ko = {
       title: '수량 0 거래 표시',
       row: '수량 0 거래 보기',
       body: '수량 0 거래는 주소 오염 공격에 자주 쓰여요.\n기본으로 숨겨요.',
+    },
+    // B-S66 (Figma 871:1455). Owner-approved copy, #311 comment 2026-11-01 (ADR-0007, ADR-0011).
+    privacyScreen: {
+      title: '데이터와 개인정보',
+      lookup: {
+        title: '조회',
+        body: '잔액과 거래 내역은 VaultMe 서버를 거쳐 조회해요. 서버는 지갑 주소를 저장하거나 기록하지 않아요.',
+      },
+      push: {
+        title: '알림',
+        body: '알림을 켜면 알림을 보내려고 지갑 주소와 이 기기의 알림 토큰을 서버에 저장해요. 알림을 끄면 지워요.',
+      },
+      keys: { title: '키', body: '키와 복구 구문은 이 기기에만 있어요. 서버로 보내지 않아요.' },
     },
   },
   pushSheet: {
