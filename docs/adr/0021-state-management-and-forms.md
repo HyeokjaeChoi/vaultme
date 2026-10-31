@@ -7,7 +7,7 @@ Supersedes/Aliases: Q62, Q65
 Q62 split app state into three kinds, and Q65 chose the form library. Neither was implemented: the app has no TanStack Query, Zustand or react-hook-form, and the `wallet-core` reducer (`reduce`, `canStartDraft`) was used only by its tests. PR #106 moved the design docs into `ARCHITECTURE.md` and ADRs and dropped both decisions as "stale claims (code wins)". No record says that anyone chose to drop them.
 
 ## Decision
-- Server state (balance, history, fee estimate, transaction receipt facts): TanStack Query, with the cache persisted to MMKV (Q63, ADR-0004). The web app uses TanStack Query too.
+- Server state (balance, history, fee estimate, transaction receipt facts): TanStack Query. Data that is JSON-safe and not already stored by its own seam is persisted to MMKV (Q63, ADR-0004; today: balances). The web app uses TanStack Query too.
 - Send status: a pure derivation from chain facts, `deriveState` in `wallet-core`, not an event reducer. This is the change to Q62 ②. Reasons:
   - Status follows chain facts (ADR-0006). A function of the facts cannot drift. An event reducer drifts when a poll is missed or the app restarts.
   - State holds ground truth, and derived values are computed (vercel-react-native-skills `state-ground-truth`, `react-state-minimize`; vercel-react-best-practices `rerender-derived-state-no-effect`).

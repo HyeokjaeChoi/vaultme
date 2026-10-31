@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient, QueryObserver } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { persistOptions } from '../src/shared/query/persist'
 
@@ -58,11 +58,33 @@ describe('history reads', () => {
     m.view.mockResolvedValue(failed)
     expect(await qc().query(historyQuery(ME))).toBe(failed)
   })
-  it('each account has its own view, and row lookups sit under it (one reset clears both)', () => {
+  it('each account has its own list view; a row lookup is keyed by account, id and direction', () => {
     expect(historyQuery(ME).queryKey).toEqual(['history', ME])
-    expect(historyQuery(null).queryKey).toEqual(['history', null])
-    expect(rowLookupQuery('0xh:0', undefined).queryKey).toEqual(['history', ME, 'row', '0xh:0', null])
-    expect(rowLookupQuery('0xh', 'in').queryKey).toEqual([...historyKey(ME), 'row', '0xh', 'in'])
+    expect(historyKey(null)).toEqual(['history', null])
+    expect(rowLookupQuery('0xh:0', undefined).queryKey).toEqual(['historyRow', ME, '0xh:0', null])
+    expect(rowLookupQuery('0xh', 'in').queryKey).toEqual(['historyRow', ME, '0xh', 'in'])
+  })
+  it('a send that settled while the page was fetched is merged again (the list never keeps "보내는 중")', async () => {
+    m.pending = { hash: '0x1', state: 'Pending' }
+    m.view.mockImplementationOnce((_a: unknown, local: unknown) => {
+      m.pending = { hash: '0x1', state: 'Confirmed' } // a check wrote the new state during the fetch
+      return Promise.resolve({ local, failed: false })
+    })
+    m.view.mockImplementationOnce((_a: unknown, local: unknown) => Promise.resolve({ local, failed: false }))
+    const v = (await qc().query(historyQuery(ME))) as unknown as { local: { state: string } }
+    expect(m.view).toHaveBeenCalledTimes(2)
+    expect(v.local.state).toBe('Confirmed')
+  })
+  it('a send that did not change is merged once', async () => {
+    m.pending = { hash: '0x1', state: 'Pending' }
+    m.view.mockResolvedValue({ items: [], updatedAt: 1, failed: false, nextCursor: null })
+    await qc().query(historyQuery(ME))
+    expect(m.view).toHaveBeenCalledTimes(1)
+  })
+  it('a row lookup is read on mount and retry only (no app-return refetch)', () => {
+    const q = rowLookupQuery('0xh', undefined)
+    expect(q.refetchOnWindowFocus).toBe(false)
+    expect(q.refetchOnReconnect).toBe(false)
   })
   it('a row lookup goes through findRow (seam cache first, else a fresh page)', async () => {
     m.findRow.mockResolvedValue({ status: 'none' })
@@ -98,13 +120,38 @@ describe('send review read', () => {
       cause: boom,
     })
   })
-  it('a failed re-read replaces the old review (a signed tx must match the reviewed one)', async () => {
+  it('a failed re-read replaces the old review on screen (a signed tx must match the reviewed one)', async () => {
     const c = qc()
-    const q = reviewQuery(FROM, TO, '0.1', 'ETH', [])
     m.getSnapshot.mockResolvedValue(snap)
-    expect((await c.query(q)).review).not.toBeNull()
+    const o = new QueryObserver(c, reviewQuery(FROM, TO, '0.1', 'ETH', [])) // the screen holds the query, as useQuery does
+    const stop = o.subscribe(() => undefined)
+    expect((await o.refetch()).data?.review).not.toBeNull()
     m.getSnapshot.mockRejectedValue(new Error('offline'))
-    expect(await c.query(q)).toMatchObject({ review: null, error: 'chain' })
+    expect((await o.refetch()).data).toMatchObject({ review: null, error: 'chain' })
+    stop()
+  })
+  it('two refreshes that overlap share one read, and both get its answer (no old review as result)', async () => {
+    const c = qc()
+    m.getSnapshot.mockResolvedValue(snap) // the mount read
+    const o = new QueryObserver(c, reviewQuery(FROM, TO, '0.1', 'ETH', []))
+    const stop = o.subscribe(() => undefined)
+    await o.refetch()
+    let release: () => void = () => undefined
+    m.getSnapshot.mockClear()
+    m.getSnapshot.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          release = () => resolve({ ...snap, nativeBalance: 1n })
+        }),
+    )
+    const a = o.refetch({ cancelRefetch: false }) // what useReviewCore.refresh does
+    const b = o.refetch({ cancelRefetch: false })
+    release()
+    const [ra, rb] = await Promise.all([a, b])
+    expect(m.getSnapshot).toHaveBeenCalledTimes(1)
+    expect(ra.data?.review).toBeNull() // the new read answered (amount over the balance), not the old review
+    expect(rb.data?.review).toBeNull()
+    stop()
   })
   it('a prepare error (amount over the balance) shows as the error, with no review', async () => {
     m.getSnapshot.mockResolvedValue({ ...snap, nativeBalance: 1n })

@@ -8,9 +8,9 @@ import { listAddress } from './loader'
 /**
  * `null` until the first answer (loading); then the list state of S40. Real mode only (the fake adapter shows example rows). Read with TanStack Query
  * (ADR-0021): Home, Activity and Asset share one view per account, and a returning screen shows the last view while it reloads. Reloads when the
- * screen regains focus (the first focus is the mount read) and when the app returns to the foreground. `reload` resets to loading; `refresh`
- * (pull-to-refresh, a state move on Home) keeps the current view until the new answer and drops a read already running, so the answer includes the
- * newest local send.
+ * screen regains focus (the first focus is the mount read) and when the app returns to the foreground; a read already running is shared
+ * (`historyQuery` rebuilds its view when the local send changed meanwhile). `reload` resets to loading; `refresh` (pull-to-refresh, a state move on
+ * Home) keeps the current view until the new answer.
  */
 export function useHistory(): { view: HistoryView | null; reload: () => void; refresh: () => Promise<void> } {
   const qc = useQueryClient()
@@ -18,7 +18,14 @@ export function useHistory(): { view: HistoryView | null; reload: () => void; re
   const first = useRef(true)
   const { data } = useQuery(historyQuery(address))
   // queryClient.query, not refetchQueries: after an address change the new query does not exist yet (same as the balances read).
-  const read = useCallback((a: string | null) => qc.query(historyQuery(a)).then(() => undefined), [qc])
+  const read = useCallback(
+    (a: string | null) =>
+      qc.query(historyQuery(a)).then(
+        () => undefined,
+        () => undefined,
+      ),
+    [qc],
+  ) // a failed read keeps the last view
   useFocusEffect(
     useCallback(() => {
       const a = listAddress()
@@ -30,9 +37,8 @@ export function useHistory(): { view: HistoryView | null; reload: () => void; re
   const refresh = useCallback(async () => {
     const a = listAddress()
     setAddress(a)
-    await qc.cancelQueries({ queryKey: historyKey(a), exact: true })
     await read(a)
-  }, [qc, read])
+  }, [read])
   const reload = useCallback(() => {
     const a = listAddress()
     setAddress(a)

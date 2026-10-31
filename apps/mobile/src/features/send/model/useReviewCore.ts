@@ -59,7 +59,8 @@ export function useReviewCore(
 ): ReviewCore {
   const [openedAt] = useState(hhmm)
   const { data, refetch } = useQuery(reviewQuery(sendFrom(), to, amount, asset, recentAddresses))
-  // `refetch` drops a read already running, so only the newest read answers (two quick refreshes, app returned twice).
-  const refresh = useCallback(async () => (await refetch()).data?.review ?? null, [refetch])
+  // `cancelRefetch: false`: a refresh that finds a read running waits for that read and returns its answer (two quick refreshes, app returned twice).
+  // The default would cancel the first read and let its caller get the old review as the result.
+  const refresh = useCallback(async () => (await refetch({ cancelRefetch: false })).data?.review ?? null, [refetch])
   return { review: null, error: null, cause: null, checkedAt: openedAt, ...data, refresh }
 }
