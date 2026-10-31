@@ -27,7 +27,7 @@ const secret = (v: unknown): string => {
 // ---- Alchemy webhook address list ----
 
 /** Adds or removes addresses on the Notify webhook. Idempotent on Alchemy's side. Throws UpstreamError on failure. */
-export async function updateWebhookAddresses(env: Bindings, add: string[], remove: string[]): Promise<void> {
+async function updateWebhookAddresses(env: Bindings, add: string[], remove: string[]): Promise<void> {
   const token = secret(env.ALCHEMY_NOTIFY_TOKEN)
   const webhookId = secret(env.ALCHEMY_WEBHOOK_ID)
   let res: Response
@@ -45,7 +45,7 @@ export async function updateWebhookAddresses(env: Bindings, add: string[], remov
 }
 
 /** Removes addresses that no subscription uses any more. Rows in push_unregister stay until Alchemy confirms. */
-export async function flushUnregister(env: Bindings): Promise<void> {
+async function flushUnregister(env: Bindings): Promise<void> {
   const rows = await env.DB.prepare(
     'SELECT address FROM push_unregister WHERE address NOT IN (SELECT address FROM push_subscriptions) LIMIT 100',
   ).all<{ address: string }>()
@@ -59,7 +59,7 @@ export async function flushUnregister(env: Bindings): Promise<void> {
 }
 
 /** Queue removal first (so a failed Alchemy call is retried by cron), then try it now. Returns false when Alchemy failed. */
-export async function unregisterAddresses(env: Bindings, addresses: string[]): Promise<boolean> {
+async function unregisterAddresses(env: Bindings, addresses: string[]): Promise<boolean> {
   if (addresses.length === 0) return true
   await env.DB.batch(
     addresses.map((a) =>
@@ -172,7 +172,7 @@ export const AlchemyPayload = z.object({
   event: z.object({ network: z.string(), activity: z.array(Activity) }),
 })
 
-export type Notification = { address: string; kind: PushData['kind']; hash: string; ref: string }
+type Notification = { address: string; kind: PushData['kind']; hash: string; ref: string }
 
 const isZero = (rawValue: string | null | undefined, value: number | null | undefined): boolean => {
   if (rawValue) {
@@ -190,10 +190,7 @@ const isZero = (rawValue: string | null | undefined, value: number | null | unde
  * Skips removed (reorged) logs, zero-value transfers, and anything other than ETH or USDC (#67 decision 6).
  * Token symbols are chosen by the token contract, so USDC is matched by contract address, never by symbol.
  */
-export function notificationsFor(
-  payload: z.infer<typeof AlchemyPayload>,
-  subscribed: ReadonlySet<string>,
-): Notification[] {
+function notificationsFor(payload: z.infer<typeof AlchemyPayload>, subscribed: ReadonlySet<string>): Notification[] {
   if (payload.type !== 'ADDRESS_ACTIVITY' || payload.event.network !== NETWORK) return []
   const out = new Map<string, Notification>()
   for (const a of payload.event.activity) {

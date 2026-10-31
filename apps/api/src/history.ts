@@ -5,7 +5,7 @@ import { at } from './util.ts'
 
 // Merge and paging of the three Etherscan lists. Pure: the caller injects the fetch (ARCHITECTURE.md#history).
 export type List = 'txlist' | 'txlistinternal' | 'tokentx'
-export const LISTS: readonly List[] = ['txlist', 'txlistinternal', 'tokentx']
+const LISTS: readonly List[] = ['txlist', 'txlistinternal', 'tokentx']
 export type Query = { endblock?: number; page: number; offset: number }
 export type FetchList = (list: List, q: Query) => Promise<unknown[]>
 

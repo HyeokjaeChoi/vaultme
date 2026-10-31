@@ -144,5 +144,3 @@ export function createHistory(d: HistoryDeps) {
     },
   }
 }
-
-export type History = ReturnType<typeof createHistory>
