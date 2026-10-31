@@ -3,7 +3,6 @@ import {
   applyCellInput,
   emptyWords,
   fromPhrase,
-  inspectCells,
   joinWords,
   togglePassphrase,
 } from '../src/features/restore/model/cells'
@@ -56,36 +55,12 @@ describe('applyCellInput: typing', () => {
   })
 })
 
-describe('inspectCells: word validation', () => {
-  const ready = fromPhrase(VECTOR).words
-  it('names only the wrong cell (index), the focused cell is still being typed', () => {
-    const w = set(ready, 2, 'abandn')
-    expect(inspectCells(w, 12, null).unknown).toEqual([2])
-    expect(inspectCells(w, 12, 2).unknown).toEqual([])
-    expect(inspectCells(w, 12, null).ready).toBe(false)
-    expect(inspectCells(set(ready, 9, 'zzzz'), 12).unknown).toEqual([9])
-  })
-  it('several wrong cells are all listed, first one gives the message index', () => {
-    expect(inspectCells(set(set(ready, 8, 'qqq'), 1, 'xx'), 12).unknown).toEqual([1, 8])
-  })
-  it('ready needs every shown cell filled with a listed word; a bad checksum is not an unknown word', () => {
-    expect(inspectCells(ready, 12)).toEqual({ unknown: [], ready: true, badChecksum: false })
-    expect(inspectCells(set(ready, 11, ''), 12).ready).toBe(false)
-    expect(inspectCells(set(ready, 11, 'abandon'), 12)).toEqual({ unknown: [], ready: true, badChecksum: true })
-  })
-})
-
 describe('12 / 24 switch', () => {
   it('keeps every word: 12 hides cells 13-24, 24 shows them again', () => {
     const w = fromPhrase(VECTOR_24).words
     expect(joinWords(w, 12)).toBe(VECTOR_24.split(' ').slice(0, 12).join(' '))
     expect(joinWords(w, 24)).toBe(VECTOR_24)
     expect(w[23]).toBe('art') // still held while hidden
-  })
-  it('hidden cells do not block 12 words: ready ignores cells 13-24', () => {
-    const w = set(fromPhrase(VECTOR).words, 20, 'zzzz')
-    expect(inspectCells(w, 12).ready).toBe(true)
-    expect(inspectCells(w, 24).unknown).toEqual([20])
   })
 })
 

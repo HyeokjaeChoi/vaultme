@@ -1,14 +1,17 @@
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { AppState, Keyboard, View, type TextInputInstance } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import {
+  RESTORE_ISSUE,
   applyCellInput,
   emptyWords,
-  inspectCells,
   joinWords,
+  restoreResolver,
   togglePassphrase,
+  type RestoreForm,
   type WordCount,
 } from '@/features/restore'
 import { fromPhrase, holdRestore, takeWords } from '@/features/restore'
@@ -56,11 +59,23 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const [start] = useState<{ words: string[]; count: WordCount }>(
     () => initial ?? takeWords() ?? { words: emptyWords(), count: 12 },
   ) // read once: the hand-off is consumed
-  const [words, setWords] = useState(start.words)
-  const [count, setCount] = useState<WordCount>(start.count)
+  // react-hook-form owns the typed values (words, 12/24, passphrase) and their checks: word shape from contracts, list and checksum from wallet-core, through restoreResolver.
+  // Focus, the passphrase row state and the busy/outcome state stay local: cells are focused by ref, in the same order as before.
+  const form = useForm<RestoreForm>({
+    defaultValues: { words: start.words, count: start.count, passphrase: dev?.passphrase ?? '' },
+    resolver: restoreResolver,
+    mode: 'onChange',
+  })
+  const { getValues, reset, setValue, trigger } = form
+  const [words, count, passphrase] = useWatch({ control: form.control, name: ['words', 'count', 'passphrase'] })
+  // One edit, then one judgment of the whole form: the checksum depends on every word and on 12/24.
+  const commit = (patch: { words?: string[]; count?: WordCount }) => {
+    if (patch.words) setValue('words', patch.words)
+    if (patch.count) setValue('count', patch.count)
+    void trigger()
+  }
   const [focus, setFocus] = useState<number | null>(dev?.focus ?? null)
   const [passOpen, setPassOpen] = useState(dev?.passOpen ?? false)
-  const [passphrase, setPassphrase] = useState(dev?.passphrase ?? '')
   const [showPass, setShowPass] = useState(dev?.showPass ?? false)
   const [busy, setBusy] = useState(dev?.busy ?? false)
   const [outcome, setOutcome] = useState<'exists' | 'error' | null>(dev?.outcome ?? null)
@@ -78,13 +93,12 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
 
   const clearAll = useCallback(() => {
     pasteId.current++
-    setWords(emptyWords())
-    setPassphrase('')
+    reset({ words: emptyWords(), count: getValues('count'), passphrase: '' }) // also replaces the form's defaults: no copy of the phrase or passphrase stays in the form
     setPassOpen(false)
     setShowPass(false)
     setSubmitChecksum(false)
     setFocus(null)
-  }, [])
+  }, [getValues, reset])
   useFocusEffect(useCallback(() => clearAll, [clearAll]))
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
@@ -98,6 +112,10 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const revealCell = (i: number) =>
     reveal.current?.(phraseY.current + gridY.current + (i % half) * (cellH + th.semantic.layout.fieldGap), cellH)
   useEffect(() => {
+    // judge the starting words (hand-off or dev preset) once, so a wrong word shows on arrival as before
+    void trigger()
+  }, [trigger])
+  useEffect(() => {
     // Opened passphrase row: bring the field and its helper above the footer (after the content has grown).
     // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- also runs on mount for the dev passphrase capture; scrolls after the row has grown
     if (passOpen) setTimeout(() => reveal.current?.('end'), 300)
@@ -108,9 +126,15 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
     cells.current[focusReq.i]?.focus()
   }, [focusReq])
 
-  const state = inspectCells(words, count, focus)
-  const showChecksum = state.badChecksum && (focus === null || submitChecksum)
-  const firstUnknown = state.unknown[0]
+  const { errors, isValid } = form.formState
+  const cellIssues = errors.words as Record<number, { message?: string } | undefined> | undefined
+  const unknown = Array.from({ length: count }, (_, i) => i).filter(
+    (i) => cellIssues?.[i]?.message === RESTORE_ISSUE.unknown && i !== focus, // the focused cell is still being typed
+  )
+  const badChecksum = errors.words?.message === RESTORE_ISSUE.checksum
+  const ready = isValid || badChecksum // a bad checksum is not an unknown word: 복구 stays on until it is shown
+  const showChecksum = badChecksum && (focus === null || submitChecksum)
+  const firstUnknown = unknown[0]
   const message =
     firstUnknown !== undefined
       ? t('restore.unknownWord', { n: firstUnknown + 1 })
@@ -120,8 +144,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
 
   const apply = (index: number, value: string) => {
     const r = applyCellInput(words, count, index, value)
-    setWords(r.words)
-    setCount(r.count)
+    commit({ words: r.words, count: r.count })
     setSubmitChecksum(false)
     setOutcome(null)
     if (r.focus === null) Keyboard.dismiss()
@@ -136,7 +159,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const toggleRow = () => {
     const r = togglePassphrase(passOpen, passphrase)
     setPassOpen(r.open)
-    setPassphrase(r.passphrase)
+    setValue('passphrase', r.passphrase)
     if (!r.open) setShowPass(false)
   }
   const submit = async () => {
@@ -169,7 +192,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
           label={t('restore.word', { n: i + 1 })}
           value={words[i] ?? ''}
           focused={focus === i}
-          error={state.unknown.includes(i)}
+          error={unknown.includes(i)}
           last={i === count - 1}
           inputRef={(r) => {
             cells.current[i] = r
@@ -194,7 +217,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
       footer={
         <Button
           label={t('restore.submit')}
-          disabled={!state.ready || showChecksum || noLock || checking}
+          disabled={!ready || showChecksum || noLock || checking}
           busy={busy}
           busyLabel={t('busy.restore')}
           onPress={() => void submit()}
@@ -247,7 +270,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
                     { value: '24', label: t('restore.count24') },
                   ]}
                   value={String(count)}
-                  onChange={(v) => setCount(v === '24' ? 24 : 12)}
+                  onChange={(v) => commit({ count: v === '24' ? 24 : 12 })}
                 />
               </View>
               <TextLink label={t('restore.paste')} onPress={() => void paste()} />
@@ -284,7 +307,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
               <Input
                 label={t('restore.passphrase.label')}
                 value={passphrase}
-                onChangeText={setPassphrase}
+                onChangeText={(v) => setValue('passphrase', v)}
                 helper={t('restore.passphrase.helper')}
                 secureTextEntry={!showPass}
                 action={{

@@ -1,12 +1,16 @@
 import { formatDecimal, type AssetId } from '@vaultme/wallet-core'
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next'
 import { assets } from '@/entities/asset'
 import { cleanAmount } from '@/entities/transaction'
 import {
+  AMOUNT_ISSUE,
+  amountResolver,
+  isFeeShortOnly,
   getPreselectedAsset,
   parseSendAsset,
   sendFrom,
@@ -15,9 +19,10 @@ import {
   useOnForeground,
   useSendBalances,
   useSendable,
+  type AmountForm,
 } from '@/features/send'
 import { useDevEthShort } from '@/shared/chain'
-import { type KeypadKey, exceedsBalance, isZeroAmount, pressKey } from '@/shared/lib/amount'
+import { type KeypadKey, pressKey } from '@/shared/lib/amount'
 import { isAddressFormat } from '@/shared/lib/address'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
@@ -58,24 +63,38 @@ export function SendAmountPage() {
   } = useLocalSearchParams<{ to?: string; amount?: string; asset?: string; sheet?: string }>()
   useDevEthShort()
   const [asset, setAsset] = useState<AssetId>(assetParam ? parseSendAsset(assetParam) : getPreselectedAsset())
-  const [amount, setAmount] = useState(initial === undefined ? '0' : (cleanAmount(initial, asset) ?? '0'))
   const [picker, setPicker] = useState(__DEV__ && sheet === '1') // `?sheet=1` opens the asset sheet on arrival (__DEV__ capture override)
   const { sendable: snap, refresh } = useSendable(to ?? '', asset)
+  const { sendable, feeShort, chips } = sendLimits(asset, snap)
+  // react-hook-form owns the amount string and its checks: shape from contracts (AmountInput), zero and "more than sendable" from wallet-core through amountResolver. The keypad, chips and Max only set the value.
+  const form = useForm<AmountForm>({
+    defaultValues: { amount: initial === undefined ? '0' : (cleanAmount(initial, asset) ?? '0') },
+    resolver: amountResolver(asset, sendable, feeShort),
+    mode: 'onChange',
+  })
+  const { getValues, setValue, trigger } = form
+  const amount = useWatch({ control: form.control, name: 'amount' })
+  const setAmount = (a: string) => setValue('amount', a, { shouldValidate: true })
+  // The balance arrives (or the asset changes) after the value was set: judge the same value again against the new limit.
+  useEffect(() => {
+    void trigger()
+  }, [sendable, feeShort, asset, trigger])
   const balances = useSendBalances()
   const { style: shakeStyle, shake } = useShake(th.primitive.space[2])
   // After "테스트 ETH 받기" the user comes back from the browser: read the ETH balance again while the fee shortage shows.
-  useOnForeground(refresh, sendLimits(asset, snap).feeShort)
+  useOnForeground(refresh, feeShort)
+  const { errors, isValid } = form.formState
   if (!to || !isAddressFormat(to)) return <Redirect href="/send" />
   const info = assets.find((a) => a.symbol === asset) ?? assets[0]
-  const { sendable, feeShort, chips } = sendLimits(asset, snap)
-  const tooMuch = sendable !== null && exceedsBalance(amount, sendable, asset)
+  const tooMuch = errors.amount?.message === AMOUNT_ISSUE.insufficient
   const onKey = (k: KeypadKey) => {
-    const r = pressKey(amount, k, sendable, asset)
+    const r = pressKey(getValues('amount'), k, sendable, asset)
     if (r.overMax)
       shake() // the key is rejected; the Keypad gives the warning haptic for `false`
     else setAmount(r.amount)
     return r.accepted
   }
+  const review = () => router.push({ pathname: '/review', params: { to, amount: getValues('amount'), asset } })
   const pick = (a: AssetId) => {
     setPicker(false)
     if (a !== asset) {
@@ -95,8 +114,14 @@ export function SendAmountPage() {
       footer={
         <Button
           label={t('send.review')}
-          disabled={isZeroAmount(amount) || tooMuch}
-          onPress={() => router.push({ pathname: '/review', params: { to, amount, asset } })}
+          disabled={!isValid && !isFeeShortOnly(errors.amount?.message)}
+          // judged again on press: a validity answer that is a frame old must not open Review with a bad amount
+          onPress={() =>
+            void form.handleSubmit(
+              () => review(),
+              (e) => isFeeShortOnly(e.amount?.message) && review(),
+            )()
+          }
         />
       }
     >

@@ -2,10 +2,10 @@
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { AccessibilityInfo, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { takeScanResult, useRecents } from '@/features/send'
-import { isAddressFormat } from '@/shared/lib/address'
+import { recipientResolver, takeScanResult, useRecents, type RecipientForm } from '@/features/send'
 import { goBack } from '@/shared/lib/nav'
 import { dateLabel } from '@/shared/lib/time'
 import { showAmount } from '@/shared/lib/amount'
@@ -26,7 +26,15 @@ export function SendPage() {
   const router = useRouter()
   const { to: initial } = useLocalSearchParams<{ to?: string }>()
   const { qr: devQr } = useLocalSearchParams<{ qr?: string }>()
-  const [to, setTo] = useState(initial ?? '')
+  // react-hook-form owns the field value and its check (contracts AddressInput through recipientResolver). `qr` stays local: it says where the text came from, not what it is.
+  const form = useForm<RecipientForm>({
+    defaultValues: { to: initial ?? '' },
+    resolver: recipientResolver,
+    mode: 'onChange',
+  })
+  const { setValue } = form
+  const to = useWatch({ control: form.control, name: 'to' })
+  const setTo = useCallback((v: string) => setValue('to', v, { shouldValidate: true }), [setValue])
   // Address that came from a QR (and whether the QR carried an amount). The label stays only while the field still holds exactly that address.
   const [qr, setQr] = useState<{ address: string; hadAmount: boolean } | null>(
     __DEV__ && devQr && initial ? { address: initial, hadAmount: devQr === 'amount' } : null,
@@ -38,10 +46,10 @@ export function SendPage() {
       setTo(r.to)
       setQr(r.fromQr ? { address: r.to, hadAmount: r.hadAmount } : null)
       if (r.fromQr) AccessibilityInfo.announceForAccessibility(t('send.qr.announce')) // VoiceOver: the scan screen closes with no other cue
-    }, [t]),
+    }, [t, setTo]),
   )
   const recents = useRecents()
-  const valid = isAddressFormat(to)
+  const valid = form.formState.isValid
   const fromQr = qr !== null && to === qr.address
   const paste = async () => {
     try {
