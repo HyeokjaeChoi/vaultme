@@ -1,5 +1,13 @@
+import { AddressInput } from '@vaultme/contracts'
 import { expect, it } from 'vitest'
-import { addressA11yLabel, diffGroups, displayGroups, groupAddress, shortAddress } from '../src/shared/lib/address'
+import {
+  addressA11yLabel,
+  diffGroups,
+  displayGroups,
+  groupAddress,
+  isAddressFormat,
+  shortAddress,
+} from '../src/shared/lib/address'
 
 const A = '0x1111222233334444555566667777888899990000'
 it('groups into 4 chars with the 0x prefix on the first group', () => {
@@ -41,4 +49,8 @@ it('fixture recipients are valid EIP-55 addresses, so captures match the checksu
   // Checksum from the lowercase form: a wrongly mixed-case fixture would not round-trip.
   for (const a of [review.recipient, ...recentExamples.map((r) => r.address)])
     expect(toChecksumAddress(a.toLowerCase())).toBe(a)
+})
+it('isAddressFormat has one source: contracts AddressInput', () => {
+  for (const a of ['0x' + 'a'.repeat(40), '0x' + 'a'.repeat(39), '', 'a'.repeat(42)])
+    expect(isAddressFormat(a)).toBe(AddressInput.safeParse(a).success)
 })
