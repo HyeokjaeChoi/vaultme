@@ -7,7 +7,7 @@ import { account, networkFact } from '@/entities/account'
 import { useAccountAddress } from '@/features/backup'
 import { useBackupGate } from '@/widgets/backup-gate'
 import { PushOptInSheet } from '@/features/push'
-import { getPushOptinShown, getPushSetting, setPushOptinShown } from '@/shared/storage'
+import { appStore } from '@/shared/app-store'
 import { goBack } from '@/shared/lib/nav'
 import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
@@ -35,8 +35,9 @@ export function ReceivePage() {
   // #67: the push opt-in is offered once, right after the first copy or share of the address (Figma 652:107697 shows it over the Copied state).
   const offerPush = () => {
     try {
-      if (getPushOptinShown() || getPushSetting()) return
-      setPushOptinShown(true)
+      const s = appStore().getState()
+      if (s.pushOptinShown || s.pushSetting) return
+      s.setPushOptinShown(true)
       setOpen(true)
     } catch {
       // kv not open: no offer

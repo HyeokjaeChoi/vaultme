@@ -1,4 +1,4 @@
-import type { LockState } from '@/shared/storage'
+import type { LockState } from '../storage'
 
 // Lock after >= graceSeconds in the background. `inactive` is never an exit (it is also the OS auth dialog, the app switcher peek, and iOS's step before background).
 export type LockEvent =
