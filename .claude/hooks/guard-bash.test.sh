@@ -67,4 +67,8 @@ case_ 2 "$tmp/feat" "$tmp/feat" 'git -C a\ b push origin main' "escaped space in
 case_ 2 "$tmp/main" "$tmp/main" 'git "push"' "quoted subcommand on main"
 case_ 0 "$tmp/main" "$tmp/main" "git push-all" "push-all is not push"
 case_ 2 "$tmp/main" "$tmp/main" 'echo $(git push)' "push inside command substitution on main"
+case_ 0 "$tmp/main" "$tmp/main" "git checkout -b fix/297-send-push-copy" "branch name from the #306 report on main"
+case_ 2 "$tmp/feat" "$tmp/feat" "git -c core.x=y -C $tmp/feat -C $tmp/main push" "the last -C wins"
+mkdir "$tmp/main push-target" && git init -q -b main "$tmp/main push-target/r" && git -C "$tmp/main push-target/r" commit -q --allow-empty -m x
+case_ 2 "$tmp/feat" "$tmp/feat" "git -C '$tmp/main push-target/r' push" "-C folder whose name contains push, on main"
 exit $fail

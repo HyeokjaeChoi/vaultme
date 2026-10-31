@@ -38,8 +38,8 @@ if [ -n "$push" ]; then
   cwd=$(jq -r '.cwd // empty' <<<"$input")
   cwd=${cwd:-${CLAUDE_PROJECT_DIR:-.}}
   dir=$cwd
-  pre=${push%%[[:space:]]push*} pre=${pre%%[[:space:]]\"push*} pre=${pre%%[[:space:]]\'push*} # the options before push
-  c=$(grep -oE "[[:space:]]-C[[:space:]]+$path" <<<"$pre" | head -1 | sed -E 's/^[[:space:]]//')
+  # The last -C wins, as in git. ponytail: a relative -C after another -C is resolved from cwd, not chained.
+  c=$(grep -oE "[[:space:]]-C[[:space:]]+$path" <<<"$push" | tail -1 | sed -E 's/^[[:space:]]//')
   if [ -n "$c" ]; then
     dir=$(resolve "$c")
     git -C "$dir" rev-parse --git-dir >/dev/null 2>&1 || block "cannot read the branch of $dir. Run the push from a feature-branch folder."
