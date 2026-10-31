@@ -1,5 +1,5 @@
 export { demoTx, recentExamples, transactions } from './fixtures'
 export { cleanAmount, resolveReview } from './review'
 export { readPendingTx, writePendingTx } from './pendingStore'
-export { resultCopy, rowTitleKey, txNotice, txView } from './txView'
+export { resultCopy, rowTitleKey, txView } from './txView'
 export type { ReviewValues } from './review'

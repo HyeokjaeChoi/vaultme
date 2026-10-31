@@ -6,7 +6,7 @@ import { useTheme } from '@/shared/theme'
 import { Icon, ListItem, Text } from '@/shared/ui'
 
 // Chosen from the official pages on 2026-10-17: no account, no mainnet balance. VaultMe does not run it.
-export const FAUCET_URL = 'https://faucet.quicknode.com/ethereum/sepolia'
+const FAUCET_URL = 'https://faucet.quicknode.com/ethereum/sepolia'
 
 /** Empty Home: one tappable block (icon tile, title, Body Small reason, external icon), left aligned. Same action as the row below. */
 export function FaucetAction({ address }: { address: string }) {

@@ -20,8 +20,6 @@ import {
 } from '../storage'
 import { reduceLock, type LockEvent } from './lock'
 
-export { reduceLock, type LockEvent } from './lock'
-
 /**
  * The one store for global UI state (ADR-0021, Q62 ③): lock state and the flags the screens read (backup, opt-in notices).
  * Only booleans, numbers and timestamps. The phrase stays in Keychain (ADR-0004).

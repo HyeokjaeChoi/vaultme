@@ -11,6 +11,5 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 }
 
 export const useTheme = () => useContext(ThemeContext)
-export const useIsDark = () => useColorScheme() === 'dark'
 export { fontAssets } from './fonts'
 export { BLOOM_MS, EASE_OUT, useShake } from './motion'

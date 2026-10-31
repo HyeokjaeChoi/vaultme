@@ -5,7 +5,7 @@ import { AssetIcon } from './AssetIcon'
 import { RowBadge, type RowBadgeKind } from './RowBadge'
 import { Text } from './Text'
 
-export type ActivityStatus = 'pending' | 'confirmed' | 'failed' | 'unknown' | 'replaced'
+type ActivityStatus = 'pending' | 'confirmed' | 'failed' | 'unknown' | 'replaced'
 type Props = {
   title: string
   detail?: string

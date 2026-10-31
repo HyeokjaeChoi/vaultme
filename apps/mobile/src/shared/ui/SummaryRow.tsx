@@ -23,7 +23,7 @@ type Props = {
   onEdit?: () => void
 }
 
-/** C35 Summary row (Redesign B detail row, center aligned): label Body Small tertiary, value Body right; address stacks under its label. Flat, no divider: group rows in <Group>. */
+/** C35 Summary row (Redesign B detail row, center aligned): label Body Small tertiary, value Body right; address stacks under its label. Flat, no divider. */
 export function SummaryRow({
   label,
   value,
