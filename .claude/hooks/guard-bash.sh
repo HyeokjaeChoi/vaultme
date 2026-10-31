@@ -11,16 +11,17 @@ chk=$(perl -0pe 's/(<<-?[ \t]*([\x27"]?)(\w+)\2[^\n]*\n).*?\n[ \t]*\3(?=\n|$)/$1
 grep -Eq '(^|[[:space:];&|(])(bash|sh|zsh|eval)([[:space:]]|$)' <<<"$chk" && chk=$cmd
 block() { echo "Blocked by .claude/hooks/guard-bash.sh: $1" >&2; exit 2; }
 path='("[^"]+"|'"'"'[^'"'"']+'"'"'|[^[:space:];&|)]+)'
-# A push = `push` as the git subcommand, after global options (-C <dir>, -c k=v, --no-pager). `git show x:push.ts` and
-# a branch named fix/1-send-push-copy are not pushes (#306).
-gp="git([[:space:]]+(-[Cc][[:space:]]+$path|--?[a-zA-Z][^[:space:];&|]*))*[[:space:]]+push\\b"
+# A push = a git command with `push` as a whole word (#306): `git show x:push.ts`, a branch named fix/1-send-push-copy
+# and `git push-all` are not pushes. Any word may come before it, so options with a separate value (`--work-tree .`)
+# cannot hide a push. ponytail: `git commit -m push` on main is a false positive; aliases are not covered.
+gp="git([[:space:]]+[^[:space:];&|]+)*[[:space:]]+[\"']?push[\"']?([^[:alnum:]_./-]|\$)"
 if grep -Eq 'git[^|;&]*\b(commit|push|merge|rebase)\b[^|;&]*--no-verify' <<<"$chk" || grep -Eq 'git[^|;&]*\bcommit\b[^|;&]*[[:space:]]-[a-zA-Z]*n' <<<"$chk"; then
   block "do not skip git hooks (--no-verify). Fix what the hook reports."
 fi
-if grep -Eq "$gp"'[^|;&]*([[:space:]]--force([[:space:]")]|$)|[[:space:]]-[a-zA-Z]*f|[[:space:]]\+[^[:space:]])' <<<"$chk"; then
+if grep -Eq "$gp"'([^|;&]*[[:space:]])?(--force([[:space:]")]|$)|-[a-zA-Z]*f|\+[^[:space:]])' <<<"$chk"; then
   block "no plain force push (--force, -f, +refspec). Use --force-with-lease on your own feature branch."
 fi
-if grep -Eq "$gp"'[^|;&]*[[:space:]](origin[[:space:]]+)?([^[:space:]]*:)?(refs/heads/)?(main|master)([[:space:]")]|$)' <<<"$chk"; then
+if grep -Eq "$gp"'([^|;&]*[[:space:]])?(origin[[:space:]]+)?([^[:space:]]*:)?(refs/heads/)?(main|master)([[:space:]")]|$)' <<<"$chk"; then
   block "do not push to main. Open a PR."
 fi
 # Check the folder the push runs in, not the project folder: a worktree session has its own branch.
@@ -37,7 +38,8 @@ if [ -n "$push" ]; then
   cwd=$(jq -r '.cwd // empty' <<<"$input")
   cwd=${cwd:-${CLAUDE_PROJECT_DIR:-.}}
   dir=$cwd
-  c=$(grep -oE "[[:space:]]-C[[:space:]]+$path" <<<"${push%%[[:space:]]push*}" | head -1 | sed -E 's/^[[:space:]]//')
+  pre=${push%%[[:space:]]push*} pre=${pre%%[[:space:]]\"push*} pre=${pre%%[[:space:]]\'push*} # the options before push
+  c=$(grep -oE "[[:space:]]-C[[:space:]]+$path" <<<"$pre" | head -1 | sed -E 's/^[[:space:]]//')
   if [ -n "$c" ]; then
     dir=$(resolve "$c")
     git -C "$dir" rev-parse --git-dir >/dev/null 2>&1 || block "cannot read the branch of $dir. Run the push from a feature-branch folder."

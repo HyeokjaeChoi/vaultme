@@ -60,4 +60,11 @@ case_ 2 "$tmp/main" "$tmp/main" "git --no-pager push -u origin feat" "--no-pager
 case_ 2 "$tmp/main" "$tmp/main" "rtk git push" "rtk git push on main"
 case_ 2 "$tmp/feat" "$tmp/feat" "git -c core.x=y -C $tmp/main push" "-c then -C <folder on main>"
 case_ 2 "$tmp/feat" "$tmp/feat" "git -c core.x=y push --force" "force push after -c"
+case_ 2 "$tmp/feat" "$tmp/feat" "git --work-tree . push --force" "option with a separate value, then force push"
+case_ 2 "$tmp/feat" "$tmp/feat" "git --namespace foo push origin main" "option with a separate value, then push to main"
+case_ 2 "$tmp/main" "$tmp/main" "git --work-tree . push" "option with a separate value, push on main"
+case_ 2 "$tmp/feat" "$tmp/feat" 'git -C a\ b push origin main' "escaped space in -C, push to main"
+case_ 2 "$tmp/main" "$tmp/main" 'git "push"' "quoted subcommand on main"
+case_ 0 "$tmp/main" "$tmp/main" "git push-all" "push-all is not push"
+case_ 2 "$tmp/main" "$tmp/main" 'echo $(git push)' "push inside command substitution on main"
 exit $fail
