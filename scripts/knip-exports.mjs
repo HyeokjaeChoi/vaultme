@@ -1,6 +1,7 @@
 // Unused-export ratchet. Reason: 121 findings existed when exports were first checked (#305); fixing all at once is too big.
 // Removal condition: scripts/knip-exports.baseline.json is empty, then run plain `knip --production --include exports,types` and delete this file.
-// Run `node scripts/knip-exports.mjs --update` after you fix findings, to shrink the baseline.
+// `--update` is shrink-only: it drops fixed entries, never adds new ones, and still exits 1 on new findings.
+// A real false positive must be added to the baseline by hand, so it shows in the diff.
 import { spawnSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 
@@ -23,15 +24,21 @@ for (const f of report.issues)
   for (const kind of ['exports', 'types']) for (const e of f[kind] ?? []) found.add(`${f.file}:${e.name}`)
 const current = [...found].sort()
 
-if (process.argv.includes('--update')) {
-  writeFileSync(baselinePath, JSON.stringify(current, null, 2) + '\n')
-  console.log(`Baseline written: ${current.length} entries.`)
-  process.exit(0)
-}
-
 const baseline = new Set(JSON.parse(readFileSync(baselinePath, 'utf8')))
 const added = current.filter((k) => !baseline.has(k))
 const gone = [...baseline].filter((k) => !found.has(k))
+if (process.argv.includes('--update') && gone.length) {
+  writeFileSync(
+    baselinePath,
+    JSON.stringify(
+      current.filter((k) => baseline.has(k)),
+      null,
+      2,
+    ) + '\n',
+  )
+  console.log(`Baseline shrunk: removed ${gone.length} fixed entries.`)
+  gone.length = 0
+}
 if (added.length) console.error(`New unused exports (remove the export or the dead code):\n  ${added.join('\n  ')}`)
 if (gone.length)
   console.error(
