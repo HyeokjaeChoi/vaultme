@@ -1,10 +1,11 @@
 import { QueryClient } from '@tanstack/react-query'
 import { persistQueryClientRestore, persistQueryClientSave } from '@tanstack/react-query-persist-client'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { balancesKey, fromRaw, toRaw } from '../src/shared/chain/balancesData'
 import { persistOptions } from '../src/shared/query/persist'
 
 const ADDR = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
+const OTHER = '0x9C32F71D4DB8Fb9e1A58B0a80dF79935e7256FA6'
 const mem = (init: Record<string, string> = {}) => {
   const m = new Map(Object.entries(init))
   return {
@@ -67,5 +68,34 @@ describe('query cache persister (MMKV adapter shape)', () => {
     await expect(persistQueryClientRestore({ queryClient: c, ...persistOptions(bad, 0) })).rejects.toThrow()
     expect(c.getQueryData(balancesKey(ADDR))).toBeUndefined()
     expect(bad.m.has('queryCache')).toBe(false)
+  })
+  it('keeps a query out of storage when it opts out with meta.persist=false (fake-chain balances)', async () => {
+    const storage = mem()
+    const a = client()
+    a.setQueryDefaults(balancesKey(ADDR), { meta: { persist: false } })
+    a.setQueryData(balancesKey(ADDR), toRaw({ ETH: 1n, USDC: 2n }))
+    a.setQueryData(balancesKey(OTHER), toRaw({ ETH: 3n, USDC: 4n }))
+    await persistQueryClientSave({ queryClient: a, ...persistOptions(storage, 0) })
+    expect(storage.m.get('queryCache')).not.toContain('"1"')
+    expect(storage.m.get('queryCache')).toContain('"3"')
+  })
+  it('drops a restored query older than 24 h by its own dataUpdatedAt, though the blob is young', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+      const storage = mem()
+      const a = client()
+      a.setQueryData(balancesKey(ADDR), toRaw({ ETH: 1n, USDC: 2n })) // read at t0
+      vi.setSystemTime(new Date('2026-01-01T23:00:00Z'))
+      a.setQueryData(balancesKey(OTHER), toRaw({ ETH: 3n, USDC: 4n })) // read at t0 + 23 h
+      await persistQueryClientSave({ queryClient: a, ...persistOptions(storage, 0) }) // blob saved at t0 + 23 h (a failed read does this)
+      vi.setSystemTime(new Date('2026-01-02T22:00:00Z')) // blob is 23 h old; ADDR data is 46 h old
+      const b = client()
+      await persistQueryClientRestore({ queryClient: b, ...persistOptions(storage, 0) })
+      expect(b.getQueryData(balancesKey(ADDR))).toBeUndefined()
+      expect(fromRaw(b.getQueryData(balancesKey(OTHER)))).toEqual({ ETH: 3n, USDC: 4n })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

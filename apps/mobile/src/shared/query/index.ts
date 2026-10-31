@@ -1,2 +1,2 @@
 export { queryClient } from './client'
-export { persistOptions } from './persist'
+export { persistOptions, QUERY_CACHE_KEY } from './persist'

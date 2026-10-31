@@ -1,6 +1,6 @@
 import { deriveAddress, toMnemonic } from '@vaultme/wallet-core'
 import { classifySaveFailure } from '@/shared/auth'
-import { queryClient } from '@/shared/query'
+import { QUERY_CACHE_KEY, queryClient } from '@/shared/query'
 import {
   clearAccountAddress,
   deletePhrase,
@@ -10,6 +10,7 @@ import {
   setBackupDone,
   setDepositPromptShown,
   setRestored,
+  queryStorage,
   type AuthPrompt,
 } from '@/shared/storage'
 import { inspectPhrase, type PhraseIssue } from './phrase'
@@ -60,7 +61,8 @@ export async function removeRestoredWallet(): Promise<boolean> {
     return false
   }
   clearAccountAddress()
-  queryClient.clear() // the removed wallet's balances leave memory and (the persister follows) MMKV
+  queryClient.clear() // the removed wallet's balances leave memory; the persister would write the empty cache after its 1 s throttle
+  queryStorage.removeItem(QUERY_CACHE_KEY) // ...so remove the stored copy now, in case the app stops before that
   setRestored(false)
   setBackupDone(false)
   setDepositPromptShown(false)

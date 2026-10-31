@@ -2,7 +2,7 @@ import { formatAmount, type AssetId } from '@vaultme/wallet-core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
-import { balancesKey, balancesQuery, chain, fromRaw, type BalancesRaw } from '@/shared/chain'
+import { balancesQuery, chain, fromRaw, type BalancesRaw } from '@/shared/chain'
 import { getAccountAddress } from '@/shared/storage'
 
 function readAddress(): `0x${string}` | null {
@@ -29,9 +29,12 @@ export function useLiveBalancesState(): { balances: Record<AssetId, string> | nu
   const qc = useQueryClient()
   const [address, setAddress] = useState(readAddress)
   const first = useRef(true)
+  // queryClient.query (replaces the deprecated fetchQuery in 5.104.5), not refetchQueries: after an address change the new query does not exist yet, and refetchQueries skips missing queries (pull-to-refresh would end early).
+  // staleTime is 0, so it always reads; a read already in flight is shared. A failure keeps the last value (`query` rejects, the screen does not).
   const reread = useCallback(
-    (a: `0x${string}` | null) =>
-      chain.broadcasts && a ? qc.refetchQueries({ queryKey: balancesKey(a) }) : Promise.resolve(),
+    async (a: `0x${string}` | null) => {
+      if (chain.broadcasts && a) await qc.query(balancesQuery(a)).catch(() => undefined)
+    },
     [qc],
   )
   const { data } = useQuery({
