@@ -11,9 +11,9 @@ import { readPendingTx, writePendingTx } from '@/entities/transaction'
 import { usePendingTx } from './usePendingTx'
 
 /** ARCHITECTURE.md#send: re-check a Pending or Included send every 15 s while its screen is focused. */
-export const POLL_MS = 15_000
+const POLL_MS = 15_000
 /** Test-data mode polls faster, so a fake send is seen settling (fakeSettle). */
-export const FAKE_POLL_MS = 3_000
+const FAKE_POLL_MS = 3_000
 
 /**
  * Re-reads the kv record and checks it against the chain. Returns the new state, or null when there was nothing to check. Throws when the network

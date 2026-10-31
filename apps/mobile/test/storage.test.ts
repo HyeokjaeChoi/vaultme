@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { loadFailureStatus } from '../src/shared/auth/cancel'
 
 // Published BIP39 test vector (all-zero entropy). Not a wallet phrase.
 const VECTOR = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
@@ -108,16 +109,15 @@ describe('keychain phrase', () => {
     expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'cancelled' })
     failGet = 'keychain exploded'
     expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'error' })
-    expect(k.loadFailureStatus('not an Error')).toBe('error')
+    expect(loadFailureStatus('not an Error')).toBe('error')
   })
 
-  it('Android BiometricPrompt cancels are read by code, not by the localized text (#241)', async () => {
+  it('Android BiometricPrompt cancels are read by code, not by the localized text (#241)', () => {
     // Seen on a Korean-locale emulator: "code: 10, msg: 인증이 취소되었습니다." Codes 5 (canceled), 10 (user canceled), 13 (negative button) are cancels.
-    const k = await import('../src/shared/storage/keychain')
     for (const code of ['5', '10', '13'])
-      expect(k.loadFailureStatus(new Error(`code: ${code}, msg: 인증이 취소되었습니다.`))).toBe('cancelled')
-    expect(k.loadFailureStatus(new Error('code: 7, msg: 너무 많은 시도'))).toBe('error') // 7 = lockout
-    expect(k.loadFailureStatus(new Error('code: 110, msg: x'))).toBe('error') // only whole codes
+      expect(loadFailureStatus(new Error(`code: ${code}, msg: 인증이 취소되었습니다.`))).toBe('cancelled')
+    expect(loadFailureStatus(new Error('code: 7, msg: 너무 많은 시도'))).toBe('error') // 7 = lockout
+    expect(loadFailureStatus(new Error('code: 110, msg: x'))).toBe('error') // only whole codes
   })
 
   it('returns error for a stored value that is not a valid phrase', async () => {

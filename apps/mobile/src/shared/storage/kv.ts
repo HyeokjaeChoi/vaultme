@@ -61,7 +61,7 @@ export const clearAccountAddress = (): void => void store().remove('account.addr
 export type LockSettings = { graceSeconds: number }
 export type LockState = { locked: boolean; backgroundedAt: number | null }
 
-export const DEFAULT_LOCK_SETTINGS: LockSettings = { graceSeconds: 30 }
+const DEFAULT_LOCK_SETTINGS: LockSettings = { graceSeconds: 30 }
 const DEFAULT_LOCK_STATE: LockState = { locked: true, backgroundedAt: null }
 
 export function getLockSettings(): LockSettings {
@@ -188,7 +188,7 @@ export const setFakeNonce = (n: number): void => store().set('fakeChain.nonce', 
 // --- recent recipients (S20a): addresses this device sent to, newest first, at most 3. Local only: never uploaded, never read from the network. ---
 export type RecentRecipient = { address: string; at: number; asset: string; amount: string }
 export const MAX_RECENTS = 3
-export function parseRecents(raw: string | undefined): RecentRecipient[] {
+function parseRecents(raw: string | undefined): RecentRecipient[] {
   if (raw === undefined) return []
   try {
     const v = JSON.parse(raw) as unknown
