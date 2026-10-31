@@ -35,7 +35,7 @@ export const importPublicKey = (b64u: string) => {
 }
 
 // Cloudflare limiters count per location and do not report a reset time. Retry-After = the period.
-export const RETRY_AFTER_SECONDS = 60
+const RETRY_AFTER_SECONDS = 60
 export const rateLimited = <P extends string, I extends Input>(c: Context<Env, P, I>) => {
   c.header('Retry-After', String(RETRY_AFTER_SECONDS))
   return fail(c, 429, 'rate_limited', 'Too many requests')

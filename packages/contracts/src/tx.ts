@@ -8,7 +8,7 @@ export const TxInternalRequest = z
 export type TxInternalRequest = z.infer<typeof TxInternalRequest>
 
 // One ETH move that a contract made while the transaction ran. Addresses are lowercase.
-export const TxInternalItem = z
+const TxInternalItem = z
   .object({
     from: Address,
     to: Address.nullable().describe('Null for a contract creation.'),
@@ -16,7 +16,7 @@ export const TxInternalItem = z
     ok: z.boolean().describe('`false`: the call failed and the value did not move.'),
   })
   .meta({ id: 'TxInternalItem' })
-export type TxInternalItem = z.infer<typeof TxInternalItem>
+type TxInternalItem = z.infer<typeof TxInternalItem>
 
 export const TxInternalResponse = z
   .object({
