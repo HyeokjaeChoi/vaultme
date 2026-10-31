@@ -1,4 +1,3 @@
-import { isMnemonicWord, validateMnemonic } from '@vaultme/wallet-core'
 import { toWords } from './phrase'
 
 // S05 per-word cells (Figma B/Word cell 565:73619). Pure helpers: the words only live in the page state, never stored or logged.
@@ -30,22 +29,6 @@ export function applyCellInput(words: string[], count: WordCount, index: number,
 
 /** Switching 12 <-> 24 keeps every word (12 only hides 13-24). */
 export const visibleWords = (words: string[], count: WordCount): string[] => words.slice(0, count)
-
-export type CellsState = {
-  /** Cells holding a word outside the BIP39 English list, except the focused one (still being typed). */
-  unknown: number[]
-  /** Every shown cell holds a listed word. */
-  ready: boolean
-  /** All words listed but the checksum (or order) fails. */
-  badChecksum: boolean
-}
-
-export function inspectCells(words: string[], count: WordCount, focus: number | null = null): CellsState {
-  const shown = visibleWords(words, count)
-  const unknown = shown.flatMap((w, i) => (w !== '' && i !== focus && !isMnemonicWord(w) ? [i] : []))
-  const ready = shown.every((w) => w !== '' && isMnemonicWord(w))
-  return { unknown, ready, badChecksum: ready && validateMnemonic(shown.join(' ')).kind === 'badChecksum' }
-}
 
 /** Phrase text for restoreWallet. */
 export const joinWords = (words: string[], count: WordCount): string => visibleWords(words, count).join(' ')
