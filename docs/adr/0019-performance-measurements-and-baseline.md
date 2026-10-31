@@ -1,6 +1,6 @@
 # 0019. Performance measurements are recorded, and a baseline is kept in the repo
 
-Status: Accepted (2026-10-30, issue #276, owner decision of 2026-10-30: "record performance measurements and keep a baseline"). It adds to [0012](0012-web-scope-and-quality-bars.md), [0017](0017-web-analytics-beacon-and-js-budgets.md) and [0018](0018-js-budgets-count-compressed-body.md); it changes no limit.
+Status: Accepted (2026-10-30, issue #276, owner decision of 2026-10-30: "record performance measurements and keep a baseline"). Superseded in part by [0020](0020-api-ux-slo-and-regression-watch.md): the thresholds of the k6 benchmark (second amendment); the rest still binds. It adds to [0012](0012-web-scope-and-quality-bars.md), [0017](0017-web-analytics-beacon-and-js-budgets.md) and [0018](0018-js-budgets-count-compressed-body.md); it changes no limit.
 
 ## Context
 CI already measures the web Lighthouse scores and the JS budgets, and `export:check` measures the Hermes bundles, but every run throws the numbers away. Nobody can say if a PR made a page slower or the bundle bigger, or how fast staging answers.

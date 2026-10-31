@@ -3,6 +3,7 @@ name: api-bench
 # Weekly k6 benchmark of the staging API (ADR-0019): warm (connection reuse) and cold (new TCP + TLS per request) runs.
 # The script registers its own temporary install, so it needs no secret. The GitHub Environment `staging` is used only for
 # the variable STAGING_API_URL (the Worker URL, no trailing slash). Results stay in GitHub (artifact + job summary), no k6 Cloud.
+# Tier 1 (UX SLO, ADR-0020) fails this job; tier 2 (regression watch) only writes a warning line in the job summary.
 on:
   schedule:
     # Monday 04:17 UTC, after api-latency (03:23). Not at the start of an hour: GitHub delays or drops scheduled runs at :00.
