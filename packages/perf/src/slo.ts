@@ -53,13 +53,14 @@ export function warnings(mode: Mode, rows: Row[]): string[] {
       out.push(`❌ tier 1 (UX SLO): ${mode} ${r.case} p95 ${cell(r.p95)} ms is over ${String(r.slo)} ms`)
     if (r.watchExceeded)
       out.push(
-        `⚠️ tier 2 (regression watch, does not fail the job): ${mode} ${r.case} p95 ${String(r.p95)} ms is over ${String(r.watch)} ms (1.5 x the highest p95 of the calibration runs)`,
+        `⚠️ tier 2 (regression watch, does not fail the job): ${mode} ${r.case} p95 ${cell(r.p95)} ms is over ${String(r.watch)} ms (1.5 x the highest p95 of the calibration runs)`,
       )
     return out
   })
 }
 
-const cell = (x: number | null) => (x === null ? 'n/a' : String(x))
+// Shown with 2 decimals; the verdict uses the raw value, so a p95 of 200.004 shows as 200 and still fails a limit of 200.
+const cell = (x: number | null) => (x === null ? 'n/a' : String(Math.round(x * 100) / 100))
 
 /** Markdown of both tiers for one mode, with the warning lines under the table. */
 export function tierMarkdown(mode: Mode, rows: Row[]): string {

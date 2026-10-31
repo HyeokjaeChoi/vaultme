@@ -11,7 +11,7 @@ The thresholds of ADR-0019 were 1.5 times the median p95 of 5 runs. They were ou
   - User-action reads (`rpc`, `history_hit`): 200 ms warm (INP "good"), 500 ms cold (the INP "needs improvement" upper edge).
   - Screen-load data (`history_miss`): 1000 ms, warm and cold. Derivation and why not 2.5 s minus the page part: [docs/perf/slo.md](../perf/slo.md).
   - `health` is not user-facing: no SLO.
-- Tier 2, the regression watch: 1.5 times the highest run p95 of the 5 calibration runs, per case and mode (`WATCH_P95_MS` in `api.js`; `node packages/perf/src/cli.ts bench` prints it from `baseline.json`). It is computed in `handleSummary`, not as a k6 threshold (a threshold sets the exit code). An exceeded limit writes a `⚠️` line to the job summary and the Markdown, and never fails the job.
+- Tier 2, the regression watch: 1.5 times the highest run p95 of the 5 calibration runs, per case and mode (`WATCH_P95_MS` in `api.js`; `node packages/perf/src/cli.ts bench` prints it from the downloaded `api-bench` run folders, `--runs`, like the baseline). It is computed in `handleSummary`, not as a k6 threshold (a threshold sets the exit code). An exceeded limit writes a `⚠️` line to the job summary and the Markdown, and never fails the job.
 - CWV use the 75th percentile of field data. We use p95 of synthetic runs: stricter, and with 30 samples per run it is close to the maximum.
 - Change a tier-1 limit only with a source. Change a tier-2 limit by repeating the calibration runs and `cli.ts bench`.
 

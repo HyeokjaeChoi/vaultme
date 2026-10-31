@@ -227,17 +227,17 @@ function markdown(r) {
   ].join('\n')
 }
 
-/** Pure: the tier-1 and tier-2 rows of one result. */
-function tiers(r) {
+/** Pure: the tier-1 and tier-2 rows of one result. They use the raw p95 of k6, the value its threshold checks, not the rounded one of `r`. */
+function tiers(r, data) {
   const p95 = Object.fromEntries(
-    ENDPOINTS.map((e) => [e, r.endpoints[e].ok === 0 ? null : (r.endpoints[e].total?.p95 ?? null)]),
+    ENDPOINTS.map((e) => [e, r.endpoints[e].ok === 0 ? null : (v(data, `ok_total{endpoint:${e}}`)?.['p(95)'] ?? null)]),
   )
   return evaluate(r.mode, p95, { warm: WATCH_P95_MS.warm, cold: WATCH_P95_MS.cold })
 }
 
 export function handleSummary(data) {
   const r = summarize(data)
-  const rows = tiers(r)
+  const rows = tiers(r, data)
   for (const line of warnings(r.mode, rows)) console.warn(line)
   const md = `${markdown(r)}\n${tierMarkdown(r.mode, rows)}`
   return {

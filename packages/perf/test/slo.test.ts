@@ -59,6 +59,11 @@ describe('warnings and markdown', () => {
     expect(md).toContain('| `rpc` | warm | 250 | 200 | FAIL | 100 | ⚠️ over |')
     expect(md).toContain('| `health` | warm | 130 | n/a | no SLO | 100 | ⚠️ over |')
   })
+  it('judges the raw p95: 200.004 fails 200 although it is shown as 200', () => {
+    const rows = evaluate('warm', p95({ rpc: 200.004 }), watch)
+    expect(rows.find((r) => r.case === 'rpc')?.sloOk).toBe(false)
+    expect(tierMarkdown('warm', rows)).toContain('| `rpc` | warm | 200 | 200 | FAIL |')
+  })
   it('prints n/a for a case with no response', () => {
     expect(warnings('cold', evaluate('cold', p95({ rpc: null }), watch))[0]).toContain('p95 n/a ms is over 500 ms')
   })

@@ -36,10 +36,12 @@ Two gaps: `history_miss` misses its SLO in every run (the API makes 3 Etherscan 
 | Endpoint | Called by | Class | SLO used |
 | --- | --- | --- | --- |
 | `POST /v1/rpc` | Mobile Home balances on focus and pull-to-refresh (`apps/mobile/src/features/balances/useLiveBalances.ts`, `chain.getBalances`); send review and the re-check before send (`apps/mobile/src/features/send/model/useReviewCore.ts`, `runSend.ts`, `chain.getSnapshot`, 6 parallel calls); submit | user action | 200 / 500 ms |
-| `POST /v1/rpc` | Web viewer balances and transaction page (`apps/web/app/shared/api/useBalances.ts`, `useTransaction.ts`) | page load | covered: an endpoint that fits 200 ms fits 1 s |
+| `POST /v1/rpc` | Web viewer balances and transaction page (`apps/web/app/shared/api/useBalances.ts`, `useTransaction.ts`) | page load | proxy only (see below) |
 | `POST /v1/history` cache hit (30 s Worker cache) | Mobile Activity on focus (`apps/mobile/src/features/history/model/useHistory.ts`); web viewer history (`apps/web/app/shared/api/useHistory.ts`) when the same address was read shortly before | user action (navigation) | 200 / 500 ms |
 | `POST /v1/history` cache miss | the same callers when no read is in the cache; first read of an address | screen load | 1000 ms |
 | `GET /v1/health` | no app code; only the post-deploy check of `.github/workflows/api-staging.yml` | not user-facing | none |
+
+The `rpc` benchmark calls only `eth_blockNumber`. It is a proxy, not proof, for the other methods: `eth_getBalance`, `eth_call`, `eth_estimateGas`, `eth_feeHistory`, `eth_getTransactionCount` (balances and send review), and `eth_getTransactionByHash`, `eth_getTransactionReceipt`, `eth_getBlockByNumber` (web transaction page, several calls). Their own latency and the end-to-end page load with a fragment are not measured.
 
 Not benchmarked: `POST /v1/installs` and `/v1/installs/token` (a new install pays both before its first read), `/v1/tx/internal`, `/v1/push/subscription`.
 
