@@ -238,6 +238,17 @@ describe('timestamps that cannot be dates', () => {
   })
 })
 
+describe('view (one fresh view, for a caller that orders its own loads)', () => {
+  it('returns the same view `list` would pass on: fresh, cache with failed, or only the local send', async () => {
+    const ok = setup({ answer: () => Promise.resolve(page([row(0, 'in')])) })
+    expect(await ok.h.view(ME, local)).toMatchObject({ failed: false, items: [{ id: local.hash }, { id: `${H}:0` }] })
+    const bad = setup({ cache: cacheOf([row(0, 'in')]), answer: () => Promise.reject(err('network', 0)) })
+    expect(await bad.h.view(ME, null)).toMatchObject({ failed: true, items: [{ id: `${H}:0` }] })
+    const none = setup({ answer: () => Promise.reject(err('network', 0)) })
+    expect(await none.h.view(ME, local)).toMatchObject({ failed: true, updatedAt: null, items: [{ id: local.hash }] })
+  })
+})
+
 describe('older pages (web 더 보기)', () => {
   const withCursor = (items: unknown[], nextCursor: string | null) => ({ items, nextCursor, incomplete: false })
 

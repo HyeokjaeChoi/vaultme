@@ -1,37 +1,23 @@
-import { useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
-import { getPushSetting, getZeroSetting, setPushSetting, setZeroSetting } from '@/shared/storage'
+import { appStore, useAppStore } from '@/shared/app-store'
 
-type Setting = readonly [get: () => boolean, set: (v: boolean) => void, fallback: boolean]
-const PUSH: Setting = [getPushSetting, setPushSetting, false]
-const ZERO: Setting = [getZeroSetting, setZeroSetting, false]
+type Key = 'pushSetting' | 'zeroSetting'
+const SET = { pushSetting: 'setPushSetting', zeroSetting: 'setZeroSetting' } as const
 
-function read([get, , fallback]: Setting): boolean {
-  try {
-    return get()
-  } catch {
-    return fallback // kv not open (tests, early render): the default
-  }
-}
-
-function useSetting(setting: Setting): [boolean, (v: boolean) => void] {
-  const [, set] = setting
-  const [value, setValue] = useState(() => read(setting))
-  useFocusEffect(useCallback(() => setValue(read(setting)), [setting]))
+function useSetting(key: Key): [boolean, (v: boolean) => void] {
+  const value = useAppStore((s) => s[key])
   return [
     value,
     (v) => {
       try {
-        set(v)
-        setValue(v) // shown only once stored: a failed write leaves the previous value on screen
+        appStore().getState()[SET[key]](v) // the store changes only once the value is stored: a failed write leaves the previous value on screen
       } catch {
-        // kv unavailable: nothing was saved, so the switch keeps showing what the next read returns
+        // kv unavailable: nothing was saved, so the switch keeps showing the stored value
       }
     },
   ]
 }
 
 /** S62: 거래 알림 받기 (default off: on only after the opt-in and the OS permission, #67). */
-export const usePushSetting = () => useSetting(PUSH)
+export const usePushSetting = () => useSetting('pushSetting')
 /** S63: 0원 거래 보기 (default off = hidden). */
-export const useZeroSetting = () => useSetting(ZERO)
+export const useZeroSetting = () => useSetting('zeroSetting')

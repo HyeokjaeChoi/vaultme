@@ -1,10 +1,12 @@
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { AppState } from 'react-native'
 import { chain } from '@/shared/chain'
 import { type PendingTx } from '@/shared/storage'
 import { sendFrom } from './useReviewCore'
-import { checkTx, isPolled, startPolling, type TxState } from './txState'
+import { needsFacts, isPolled, settleTx, startPolling, type TxState } from './txState'
+import { txFactsQuery } from './txQuery'
 import { readPendingTx, writePendingTx } from '@/entities/transaction'
 import { usePendingTx } from './usePendingTx'
 
@@ -13,11 +15,17 @@ export const POLL_MS = 15_000
 /** Test-data mode polls faster, so a fake send is seen settling (fakeSettle). */
 export const FAKE_POLL_MS = 3_000
 
-/** Re-reads the kv record and checks it against the chain. Returns the new state, or null when there was nothing to check. Throws when the network could not be asked. */
-export async function checkStored(): Promise<TxState | null> {
+/**
+ * Re-reads the kv record and checks it against the chain. Returns the new state, or null when there was nothing to check. Throws when the network
+ * could not be asked. The reads go through the query client (`txFactsQuery`: Home, S23 and S41 share a read in flight); the record is still the
+ * only place the state is written.
+ */
+export async function checkStored(qc: QueryClient): Promise<TxState | null> {
   const cur = readPendingTx()
   if (cur === 'corrupt' || cur === null) return null
-  const next = await checkTx(cur, chain, sendFrom(), Date.now)
+  const from = sendFrom()
+  const facts = needsFacts(cur, chain.broadcasts) ? await qc.query(txFactsQuery(cur, from)) : null
+  const next = settleTx(cur, facts, chain.broadcasts, Date.now)
   // A new send may have replaced the record while the chain was asked: never write an old tx over it.
   const latest = readPendingTx()
   if (latest === 'corrupt' || latest?.hash !== cur.hash) return null
@@ -41,6 +49,7 @@ export function useTrackedTx(onStateChange?: () => void): {
   error: unknown
   recheck: () => Promise<void>
 } {
+  const qc = useQueryClient()
   const { tx, blocked, reload } = usePendingTx()
   const [checking, setChecking] = useState(false)
   const [error, setError] = useState<unknown>(null)
@@ -53,7 +62,7 @@ export function useTrackedTx(onStateChange?: () => void): {
   const run = useCallback(async () => {
     try {
       const prev = readPendingTx()
-      const s = await checkStored()
+      const s = await checkStored(qc)
       setError(null)
       // Home's list merges the local record at load time, so it shows "보내는 중" until it loads again (#269).
       if (stateChanged(prev, s)) onStateChange?.()
@@ -64,7 +73,7 @@ export function useTrackedTx(onStateChange?: () => void): {
     } finally {
       reload()
     }
-  }, [reload, onStateChange])
+  }, [qc, reload, onStateChange])
 
   const recheck = useCallback(async () => {
     setChecking(true)
