@@ -9,8 +9,10 @@ on:
   pull_request:
     types: [opened, ready_for_review, labeled]
 
+# A label other than `review` gets its own group: `gh pr create --label` sends `opened` and `labeled` together, and the
+# skipped `labeled` run cancelled the real review (#307, seen on #308).
 concurrency:
-  group: claude-code-review-${{ github.event.pull_request.number }}
+  group: claude-code-review-${{ github.event.pull_request.number }}${{ github.event.action == 'labeled' && github.event.label.name != 'review' && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: true
 
 jobs:
