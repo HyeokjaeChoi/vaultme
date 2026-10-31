@@ -2,11 +2,12 @@ name: pr-description
 
 on:
   pull_request:
-    types: [opened, edited, reopened, synchronize]
+    types: [opened, edited, reopened, synchronize, ready_for_review, labeled]
 
 permissions:
   contents: read
   pull-requests: read
+  actions: read # list claude-code-review runs
 
 jobs:
   check:
@@ -23,6 +24,36 @@ jobs:
           echo "PR description: $len characters (limit 3500)"
           [ "$len" -le 3500 ] || { echo "::error::Keep the PR description at 3500 characters or less."; exit 1; }
           printf '%s' "$body" | grep -Eiq '(closes|fixes|resolves) #[0-9]+' || { echo "::error::Link the issue with 'Closes #N'."; exit 1; }
+      # The Claude review runs once per PR, so it cannot be a required check itself (the next push would wait for it).
+      # This step fails when it never started (#307: no run on #302). Same skips as the review job: bot, fork, draft.
+      # `labeled` is a trigger so adding the `review` label re-runs this check while the new review runs.
+      - name: Claude review ran
+        if: >-
+          github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot' &&
+          !github.event.pull_request.draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          CREATED: ${{ github.event.pull_request.created_at }}
+        run: |
+          # Both workflows start on the same event; give the review run a moment to be recorded. Runs older than this PR
+          # belong to an earlier PR on a reused branch name. A failed query counts as "none yet" and is retried.
+          # A running workflow counts only when its `review` job is not skipped (a non-review label skips it).
+          for _ in 1 2 3; do
+            runs=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow claude-code-review.yml --branch "$BRANCH" --event pull_request \
+              --limit 100 --json databaseId,status,conclusion,createdAt -q ".[] | select(.createdAt >= \"$CREATED\") |
+                select(.status != \"completed\" or .conclusion == \"success\") | \"\\(.databaseId) \\(.status)\"") || runs=
+            while read -r id status; do
+              [ -n "$id" ] || continue
+              [ "$status" = completed ] && { echo "Claude review run $id succeeded"; exit 0; }
+              live=$(gh run view "$id" --repo "$GITHUB_REPOSITORY" --json jobs \
+                -q '[.jobs[] | select(.name == "review" and .conclusion != "skipped")] | length') || live=0
+              [ "$live" -gt 0 ] && { echo "Claude review run $id is running"; exit 0; }
+            done <<<"$runs"
+            sleep 20
+          done
+          echo "::error::No claude-code-review run for this PR. Add the 'review' label to start one (docs/agents/workflow.md step 7)."
+          exit 1
 
   # A changed app screen needs app-vs-Figma comparison images in the PR body: one light and one dark per
   # changed screen file. Name each image by mode in its alt text (e.g. ![S50 light](...), ![S50 dark](...)).
