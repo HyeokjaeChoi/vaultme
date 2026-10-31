@@ -1,4 +1,5 @@
 import 'fake-indexeddb/auto'
+import { onlineManager } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useBalances } from '../app/shared/api/useBalances'
@@ -50,6 +51,18 @@ async function answer(address: string, hex: string) {
 }
 
 describe('useBalances', () => {
+  it('reads when the browser says offline: the read fails and shows retry, it does not wait on the skeleton', async () => {
+    onlineManager.setOnline(false)
+    try {
+      renderHook(() => useBalances(A))
+      await waitFor(() => {
+        expect(open).toHaveLength(2)
+      })
+    } finally {
+      onlineManager.setOnline(true)
+    }
+  })
+
   it('shows the new address as soon as its read ends, while the one the user left is still open', async () => {
     const { result, rerender } = renderHook(({ a }) => useBalances(a), {
       initialProps: { a: A },

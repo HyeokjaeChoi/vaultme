@@ -10,7 +10,11 @@ export class UpdateRequiredError extends Error {}
  * reads on its own.
  */
 export const queryClient = new QueryClient({
-  defaultOptions: { queries: { gcTime: 0, retry: false, refetchOnWindowFocus: false } },
+  // networkMode 'always': the read runs even when the browser says offline, so it fails and shows its retry button (as before)
+  // instead of pausing on the skeleton. No refetch on focus or reconnect: the viewer never reads on its own.
+  defaultOptions: {
+    queries: { gcTime: 0, retry: false, refetchOnWindowFocus: false, refetchOnReconnect: false, networkMode: 'always' },
+  },
 })
 
 // Notify at once instead of one timer tick later: a click that starts a read (더 보기) then shows its loading state in the same

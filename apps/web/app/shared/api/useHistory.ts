@@ -1,5 +1,6 @@
 import type { HistoryItem, HistoryView } from '@vaultme/history'
 import { useInfiniteQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { queryClient, retryOf } from './query'
 
 /** `more`: the state of the 더 보기 request. `failed` keeps the rows and the cursor, so a second try asks for the same page. */
@@ -53,10 +54,13 @@ export function useHistory(address: string | null): [History, { retry: () => voi
     },
     queryClient,
   )
+  // Same array while the pages are the same: HistorySection restarts its minute clock when `items` changes.
+  const items = useMemo(() => {
+    const seen = new Set<string>()
+    return (q.data?.pages ?? []).flatMap((p) => p.items).filter((i) => !seen.has(i.id) && seen.add(i.id))
+  }, [q.data])
   let shown: History = q.isError ? { status: 'failed' } : { status: 'loading' }
   if (q.data) {
-    const seen = new Set<string>()
-    const items = q.data.pages.flatMap((p) => p.items).filter((i) => !seen.has(i.id) && seen.add(i.id))
     shown = {
       status: 'ok',
       items,

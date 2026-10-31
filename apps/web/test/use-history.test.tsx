@@ -69,6 +69,19 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const take = (o: Open) => void (open = open.filter((x) => x !== o))
 
 describe('useHistory', () => {
+  it('the rows keep their array identity while the pages are the same (the section restarts its clock on a new one)', async () => {
+    const { result, rerender } = renderHook(() => useHistory(A))
+    ;(await pending(A)).answer(page([row(1)]))
+    await waitFor(() => {
+      expect(result.current[0]).toMatchObject({ status: 'ok' })
+    })
+    const before = result.current[0]
+    rerender()
+    expect(before.status === 'ok' && result.current[0].status === 'ok' && result.current[0].items).toBe(
+      before.status === 'ok' && before.items,
+    )
+  })
+
   it('first page: loading, then the rows through the shared module (poisoning filter included); the request is a web request', async () => {
     const { result } = renderHook(() => useHistory(A))
     expect(result.current[0]).toEqual({ status: 'loading' })
