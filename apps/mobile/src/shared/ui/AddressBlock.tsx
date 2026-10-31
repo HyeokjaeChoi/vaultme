@@ -1,8 +1,10 @@
 // Figma: Address block 68:197 (Icon / action / copy 137:144); B/Address 494:1090
-import { Text as RNText } from 'react-native'
+import { Pressable, Text as RNText, View } from 'react-native'
 import { ADDRESS_HEAD, ADDRESS_TAIL, addressA11yLabel, displayAddress } from '../lib/address'
 import { textStyle } from '../theme/fonts'
 import { useTheme } from '../theme'
+import { Icon } from './Icon'
+import { Text } from './Text'
 
 type TextProps = {
   address: string
@@ -70,5 +72,38 @@ export function AddressText({ address, highlight = [], color, markColor, size = 
         ),
       )}
     </RNText>
+  )
+}
+
+type Props = { address: string; label?: string; highlight?: number[]; copyLabel?: string; onCopy?: () => void }
+
+/** C26 Address block. Label (Label, secondary) over the full address; optional 44 px copy action with a visible label. */
+export function AddressBlock({ address, label, highlight, copyLabel, onCopy }: Props) {
+  const t = useTheme()
+  const c = t.component.addressBlock
+  return (
+    <View style={{ gap: c.gap }}>
+      {label ? (
+        <Text variant="label" color={t.semantic.text.secondary}>
+          {label}
+        </Text>
+      ) : null}
+      <AddressText address={address} {...(highlight ? { highlight } : {})} />
+      {copyLabel ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={copyLabel}
+          onPress={onCopy}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: c.gap, minHeight: c.copyTarget }}
+        >
+          <View style={{ width: c.copyTarget, height: c.copyTarget, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="copy" size={t.component.icon.size.control} color={t.component.icon.action.fg} />
+          </View>
+          <Text variant="body" color={t.semantic.text.secondary}>
+            {copyLabel}
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
   )
 }

@@ -3,7 +3,7 @@ import { View } from 'react-native'
 import { useTheme } from '../theme'
 import { Text } from './Text'
 
-type ProgressState = 'Pending' | 'Included' | 'Confirmed'
+export type ProgressState = 'Pending' | 'Included' | 'Confirmed'
 type Props = { state: ProgressState; labels: [string, string, string] }
 
 /**

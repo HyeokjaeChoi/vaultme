@@ -5,7 +5,7 @@ import { useTheme } from '../theme'
 import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
 
-type Tone = 'info' | 'warning' | 'danger' | 'unknown' | 'confirmed' | 'clear'
+export type Tone = 'info' | 'warning' | 'danger' | 'unknown' | 'confirmed' | 'clear'
 const ICON: Record<Tone, IconName> = {
   info: 'info',
   warning: 'warning',

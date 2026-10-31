@@ -14,7 +14,7 @@ const LEGACY = {
   section: 'title2',
   meta: 'caption',
 } as const satisfies Record<string, BVariant>
-type TextVariant = BVariant | keyof typeof LEGACY
+export type TextVariant = BVariant | keyof typeof LEGACY
 
 /** Accent rule: a link is Ink + underline, never blue. */
 const UNDERLINE = { textDecorationLine: 'underline' as const }
