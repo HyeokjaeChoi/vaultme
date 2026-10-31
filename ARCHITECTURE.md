@@ -115,7 +115,7 @@ Every `/v1/*` call except `/v1/health` needs `X-App-Version`. A version below th
 App -> `POST /v1/history {address, cursor}` -> Worker calls Etherscan `txlist`, `txlistinternal`, `tokentx` -> merge, dedupe, sort -> up to 50 items, `nextCursor`, `incomplete`.
 - Cache API caches a page for 30 s. The key uses a hash of the address, never the address.
 - The cursor holds an 8-hex address hash, so a cursor from another address is refused (`400 invalid_cursor`).
-- Etherscan calls pass through the `EtherscanBucket` Durable Object: 2.5 calls/s, no burst. A wait over 2 s gives `503 unavailable`.
+- Etherscan calls pass through the `EtherscanBucket` Durable Object: at most 3 calls in any 1.2 s (2.5/s on average, a rolling window, not a refilling bucket: Etherscan free tier is 3 calls/s). One history page starts its 3 calls at once. A wait over 2 s gives `503 unavailable`.
 - `POST /v1/tx/internal {hash}` -> Etherscan `txlistinternal&txhash=` -> `{items: [{from, to, value, ok}]}` (internal ETH transfers of one transaction, no cache, ADR-0015).
 - A zero-value ERC-20 row is `out` only if the same response shows that the address sent the transaction. Else it is `in`. This stops address poisoning.
 - The app keeps the last result in MMKV and shows it with its update time.

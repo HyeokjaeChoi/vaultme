@@ -1,34 +1,32 @@
 import { DurableObject } from 'cloudflare:workers'
 
-// Etherscan free tier: 3 calls/s per key. We use 2.5/s (ARCHITECTURE.md#history). No burst: a bucket of B tokens lets B + rate calls
-// through in one second, so any B > 0.5 can break the limit (seen live: B = 3 got `rate limit` answers). With B = 1
-// calls are at least 400 ms apart, so at most 3 fall in any second. A 3-call history page therefore takes ~0.8 s.
-export const RATE_PER_SEC = 2.5
-export const BURST = 1
+// Etherscan free tier: 3 calls/s per key (https://docs.etherscan.io/rate-limits). We allow BURST calls in any WINDOW_MS:
+// 3 per 1200 ms = 2.5/s on average, and never more than 3 in any second. A 3-call history page starts all its calls at once.
+// A continuous token bucket with 3 tokens is NOT the same: it refills while the burst is in flight and let 5 calls fall in
+// one second (seen live as `rate limit` answers). A rolling window frees a slot only after the window has passed.
+// The 200 ms above 1 s covers network jitter between our send time and Etherscan's receive time.
+export const BURST = 3
+export const WINDOW_MS = 1200
 export const MAX_WAIT_MS = 2000
 
-export type Bucket = { tokens: number; at: number }
+/** Start times (ms) of the last BURST reserved calls, oldest first. A reserved start may be in the future. */
+export type Bucket = { starts: number[] }
 
 /**
- * Takes one token. Returns the ms the caller must wait before calling Etherscan (0 = now), or null when the wait
- * would exceed `maxWaitMs`. A waiting caller reserves its token now (balance goes negative), so waits queue up.
+ * Reserves one call slot. Returns the ms the caller must wait before calling Etherscan (0 = now), or null when the wait
+ * would exceed `maxWaitMs`. A waiting caller reserves its slot now, so waits queue up.
  */
 export function take(b: Bucket, now: number, maxWaitMs = MAX_WAIT_MS): number | null {
-  b.tokens = Math.min(BURST, b.tokens + ((now - b.at) * RATE_PER_SEC) / 1000)
-  b.at = now
-  if (b.tokens >= 1) {
-    b.tokens -= 1
-    return 0
-  }
-  const wait = Math.ceil(((1 - b.tokens) / RATE_PER_SEC) * 1000)
-  if (wait > maxWaitMs) return null
-  b.tokens -= 1
-  return wait
+  const oldest = b.starts.length < BURST ? -Infinity : (b.starts[0] ?? -Infinity)
+  const start = Math.max(now, oldest + WINDOW_MS)
+  if (start - now > maxWaitMs) return null
+  b.starts = [...b.starts, start].slice(-BURST)
+  return start - now
 }
 
-/** One global instance. In-memory on purpose: it is evicted only after being idle, when the bucket is full anyway. */
+/** One global instance. In-memory on purpose: it is evicted only after being idle, when the window is empty anyway. */
 export class EtherscanBucket extends DurableObject {
-  private b: Bucket = { tokens: BURST, at: Date.now() }
+  private b: Bucket = { starts: [] }
   acquire(maxWaitMs = MAX_WAIT_MS): number | null {
     return take(this.b, Date.now(), maxWaitMs)
   }
