@@ -11,7 +11,7 @@
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "format": "prettier --write .",
-    "knip": "knip --include files,dependencies,unlisted,unresolved,binaries",
+    "knip": "knip --include files,dependencies,unlisted,unresolved,binaries && node scripts/knip-exports.mjs",
     "format:check": "prettier --check ."
   },
   "devDependencies": {
