@@ -3,7 +3,7 @@ import { USDC_SEPOLIA } from '@vaultme/contracts'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { app } from '../src/app.ts'
 import { b64uEncode, issueToken, nowSeconds } from '../src/auth.ts'
-import { PUSH_INACTIVE_SECONDS, sweep } from '../src/push.ts'
+import { INSTALL_KEEP_SECONDS, PUSH_INACTIVE_SECONDS, sweep } from '../src/push.ts'
 
 const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
@@ -152,6 +152,21 @@ describe('push subscription routes', () => {
     await sweep(E)
     expect((await subs()).map((s) => s.install_id)).toEqual([fresh])
     expect(body(calls[0]!).addresses_to_remove).toEqual([ADDR])
+  })
+
+  it('deletes installs idle for 90 days with their nonces and subscription (Q31)', async () => {
+    const old = await newInstall(nowSeconds() - INSTALL_KEEP_SECONDS - 10)
+    const idle = await newInstall(nowSeconds() - INSTALL_KEEP_SECONDS + 3600)
+    await E.DB.prepare('INSERT INTO nonces (install_id, nonce, expires_at) VALUES (?, ?, ?)')
+      .bind(old, 'n', nowSeconds() + 60)
+      .run()
+    await put(old, { address: ADDR, expoToken: TOKEN })
+    await sweep(E)
+    const ids = (await E.DB.prepare('SELECT id FROM installs').all<{ id: string }>()).results.map((r) => r.id)
+    expect(ids).toContain(idle)
+    expect(ids).not.toContain(old)
+    expect(await E.DB.prepare('SELECT 1 FROM nonces WHERE install_id = ?').bind(old).first()).toBeNull()
+    expect(await subs()).toEqual([])
   })
 })
 
