@@ -1,5 +1,6 @@
-import { prepare, type AssetId, type PrepareError, type Review } from '@vaultme/wallet-core'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { queryOptions, useQuery } from '@tanstack/react-query'
+import { prepare, type Address, type AssetId, type PrepareError, type Review } from '@vaultme/wallet-core'
+import { useCallback, useState } from 'react'
 import { account } from '@/entities/account'
 import { chain } from '@/shared/chain'
 import { getAccountAddress } from '@/shared/storage'
@@ -23,6 +24,32 @@ export type ReviewCore = {
   refresh: () => Promise<Review | null>
 }
 
+type Core = Pick<ReviewCore, 'review' | 'error' | 'cause' | 'checkedAt'>
+
+/**
+ * One review read: fresh snapshot -> wallet-core prepare(). A failed snapshot is data (`error: 'chain'`, no review), not a query error: the old review
+ * must never stay on screen after a failed re-read (a signed tx must match the reviewed one), and the notice stays while the next read runs.
+ * Never persisted; `gcTime: 0` drops it with its screen, so a returning Review starts with no review (fee, cap and nonce are never old). Re-read only
+ * by `refresh`, mount and key change (no focus or reconnect refetch: `useOnForeground` re-reads while ETH is short).
+ */
+export const reviewQuery = (from: Address, to: string, amount: string, asset: AssetId, previous: readonly string[]) =>
+  queryOptions({
+    queryKey: ['review', from, asset, to, amount, previous.join(',')] as const, // by value: a new array of the same addresses does not re-read
+    queryFn: async (): Promise<Core> => {
+      try {
+        const snap = await chain.getSnapshot(from, asset, to as Address, amount)
+        const r = prepare({ asset, to: to as Address, amount, previous: previous as Address[] }, snap)
+        return { review: r.ok ? r.review : null, error: r.ok ? null : r.error, cause: null, checkedAt: hhmm() }
+      } catch (cause) {
+        return { review: null, error: 'chain', cause, checkedAt: hhmm() }
+      }
+    },
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    meta: { persist: false },
+  })
+
 /** Fresh chain snapshot -> wallet-core prepare(). Fee, cap and nonce on Review come from here, never from fixtures. `recentAddresses` = recipients this device sent to (look-alike check). `refresh` re-fetches (다시 계산, and after NeedsReview). */
 export function useReviewCore(
   to: string,
@@ -30,33 +57,9 @@ export function useReviewCore(
   recentAddresses: readonly string[],
   asset: AssetId = 'ETH',
 ): ReviewCore {
-  const [state, setState] = useState<{
-    review: Review | null
-    error: PrepareError | 'chain' | null
-    cause: unknown
-    checkedAt: string
-  }>({ review: null, error: null, cause: null, checkedAt: hhmm() })
-  const key = recentAddresses.join(',') // compared by value, so a new array of the same addresses does not re-fetch
-  const latest = useRef(0) // only the newest request may set the state: two quick refreshes (app returned twice) can finish out of order
-  const refresh = useCallback(async () => {
-    const mine = ++latest.current
-    try {
-      const snap = await chain.getSnapshot(sendFrom(), asset, to as `0x${string}`, amount)
-      const r = prepare(
-        { asset, to: to as `0x${string}`, amount, previous: (key ? key.split(',') : []) as `0x${string}`[] },
-        snap,
-      )
-      if (mine === latest.current)
-        setState({ review: r.ok ? r.review : null, error: r.ok ? null : r.error, cause: null, checkedAt: hhmm() })
-      return r.ok ? r.review : null
-    } catch (cause) {
-      if (mine === latest.current) setState({ review: null, error: 'chain', cause, checkedAt: hhmm() })
-      return null
-    }
-  }, [to, amount, key, asset])
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- refresh() sets state only after its await, never synchronously
-    void refresh()
-  }, [refresh])
-  return { ...state, refresh }
+  const [openedAt] = useState(hhmm)
+  const { data, refetch } = useQuery(reviewQuery(sendFrom(), to, amount, asset, recentAddresses))
+  // `refetch` drops a read already running, so only the newest read answers (two quick refreshes, app returned twice).
+  const refresh = useCallback(async () => (await refetch()).data?.review ?? null, [refetch])
+  return { review: null, error: null, cause: null, checkedAt: openedAt, ...data, refresh }
 }
