@@ -1,4 +1,5 @@
 import { deriveAddress, toMnemonic } from '@vaultme/wallet-core'
+import { appStore } from '@/shared/app-store'
 import { classifySaveFailure } from '@/shared/auth'
 import { QUERY_CACHE_KEY, queryClient } from '@/shared/query'
 import {
@@ -7,9 +8,6 @@ import {
   hasPhrase,
   savePhrase,
   setAccountAddress,
-  setBackupDone,
-  setDepositPromptShown,
-  setRestored,
   queryStorage,
   type AuthPrompt,
 } from '@/shared/storage'
@@ -40,9 +38,9 @@ export async function restoreWallet(text: string, prompt: AuthPrompt, passphrase
     await savePhrase(m, prompt)
     const address = deriveAddress(m)
     setAccountAddress(address)
-    setBackupDone(false)
-    setDepositPromptShown(false)
-    setRestored(true)
+    appStore().getState().setBackupDone(false)
+    appStore().getState().setDepositPromptShown(false)
+    appStore().getState().setRestored(true)
     return { status: 'ok', address }
   } catch (e) {
     return { status: await classifySaveFailure(e) }
@@ -67,8 +65,8 @@ export async function removeRestoredWallet(): Promise<boolean> {
   } catch {
     // best effort: the wallet removal below must finish (the stored cache is public balances, keyed by the old address, and the persister overwrites it)
   }
-  setRestored(false)
-  setBackupDone(false)
-  setDepositPromptShown(false)
+  appStore().getState().setRestored(false)
+  appStore().getState().setBackupDone(false)
+  appStore().getState().setDepositPromptShown(false)
   return true
 }

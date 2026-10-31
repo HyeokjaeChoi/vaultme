@@ -86,6 +86,7 @@ async function setup() {
   const { restoreWallet } = await import('../src/features/restore/model/restoreWallet')
   const kv = await import('../src/shared/storage/kv')
   await kv.openKv()
+  ;(await import('../src/shared/app-store')).initAppStore({ phraseStored: false })
   return { restoreWallet, kv }
 }
 

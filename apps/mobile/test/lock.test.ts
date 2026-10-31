@@ -8,7 +8,7 @@ vi.mock('expo-local-authentication', () => ({
 
 import * as LA from 'expo-local-authentication'
 import { authenticate, isAuthInProgress, mapAuthResult } from '@/shared/auth'
-import { reduceLock, type LockEvent } from '@/shell/lockTimer'
+import { reduceLock, type LockEvent } from '@/shared/app-store/lock'
 
 const T0 = 1_000_000
 const ev = (

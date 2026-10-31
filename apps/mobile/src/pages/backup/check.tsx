@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppState, Keyboard, Platform, View, type TextInputInstance } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { clearCheck, getCheck, wrongIndexes } from '@/features/backup'
-import { setBackupDone } from '@/shared/storage'
+import { appStore } from '@/shared/app-store'
 import { at } from '@/shared/lib/at'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
@@ -63,7 +63,7 @@ export function BackupCheckPage({
       cells.current[at(bad, 0)]?.focus()
       return
     }
-    if (!demo) setBackupDone(true) // the dev fixture never records a real backup
+    if (!demo) appStore().getState().setBackupDone(true) // the dev fixture never records a real backup
     clearCheck()
     router.dismissTo('/home')
     router.push('/receive') // S04 ok -> S30; back from Receive lands on Home
