@@ -5,13 +5,8 @@ import { Platform } from 'react-native'
 import { PUSH_CHANNEL_ID } from '@vaultme/contracts'
 import { ko } from '@vaultme/i18n'
 import { api } from '@/shared/api'
-import {
-  getAccountAddress,
-  getPushSetting,
-  getPushUnregisterPending,
-  setPushSetting,
-  setPushUnregisterPending,
-} from '@/shared/storage'
+import { appStore } from '@/shared/app-store'
+import { getAccountAddress, getPushUnregisterPending, setPushUnregisterPending } from '@/shared/storage'
 import type { Permission, PushDeps, PushPort } from '../model/push'
 
 const toPermission = (r: Notifications.NotificationPermissionsStatus): Permission =>
@@ -50,8 +45,8 @@ export const pushDeps: PushDeps = {
   port: expoPort,
   projectId: extra?.eas?.projectId ?? null,
   address: getAccountAddress,
-  getSetting: getPushSetting,
-  setSetting: setPushSetting,
+  getSetting: () => appStore().getState().pushSetting,
+  setSetting: (v) => appStore().getState().setPushSetting(v),
   getUnregisterPending: getPushUnregisterPending,
   setUnregisterPending: setPushUnregisterPending,
 }

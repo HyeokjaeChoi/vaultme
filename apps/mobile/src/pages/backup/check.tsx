@@ -4,7 +4,7 @@ import { useForm, useWatch, type SubmitErrorHandler } from 'react-hook-form'
 import { AppState, Keyboard, Platform, View, type TextInputInstance } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { WRONG_ANSWER, answersFilled, checkResolver, clearCheck, getCheck, type CheckForm } from '@/features/backup'
-import { setBackupDone } from '@/shared/storage'
+import { appStore } from '@/shared/app-store'
 import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
@@ -71,7 +71,7 @@ export function BackupCheckPage({
 
   const filled = answersFilled(answers)
   const onRight = () => {
-    if (!demo) setBackupDone(true) // the dev fixture never records a real backup
+    if (!demo) appStore().getState().setBackupDone(true) // the dev fixture never records a real backup
     clearCheck()
     router.dismissTo('/home')
     router.push('/receive') // S04 ok -> S30; back from Receive lands on Home

@@ -1,13 +1,11 @@
 import { deriveAddress, generateMnemonic } from '@vaultme/wallet-core'
+import { appStore } from '@/shared/app-store'
 import {
   getAccountAddress,
   hasPhrase,
   loadPhrase,
   savePhrase,
   setAccountAddress,
-  setBackupDone,
-  setDepositPromptShown,
-  setRestored,
   type AuthPrompt,
 } from '@/shared/storage'
 
@@ -28,7 +26,7 @@ export async function createWallet(prompt: AuthPrompt): Promise<void> {
   const m = generateMnemonic()
   await savePhrase(m, prompt)
   setAccountAddress(deriveAddress(m))
-  setBackupDone(false)
-  setDepositPromptShown(false)
-  setRestored(false)
+  appStore().getState().setBackupDone(false)
+  appStore().getState().setDepositPromptShown(false)
+  appStore().getState().setRestored(false)
 }
