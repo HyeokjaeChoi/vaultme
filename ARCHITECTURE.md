@@ -6,6 +6,7 @@ This file describes what the code does today. Read `AGENTS.md` for rules and `do
 ## Goals and non-goals
 
 Goals:
+
 - One EOA account (`m/44'/60'/0'/0/0`) from a BIP39 phrase. Send and receive ETH and Circle Sepolia USDC.
 - The key and the signature never leave the phone.
 - Show history. Send a push when a watched address gets a deposit or sends a transaction.
@@ -113,6 +114,7 @@ Every `/v1/*` call except `/v1/health` needs `X-App-Version`. A version below th
 ### History
 
 App -> `POST /v1/history {address, cursor}` -> Worker calls Etherscan `txlist`, `txlistinternal`, `tokentx` -> merge, dedupe, sort -> up to 50 items, `nextCursor`, `incomplete`.
+
 - Cache API caches a page for 30 s. The key uses a hash of the address, never the address.
 - The cursor holds an 8-hex address hash, so a cursor from another address is refused (`400 invalid_cursor`).
 - Etherscan calls pass through the `EtherscanBucket` Durable Object: at most 3 calls in any 1.2 s (2.5/s on average, a rolling window, not a refilling bucket: Etherscan free tier is 3 calls/s). One history page starts its 3 calls at once. A wait over 2 s gives `503 unavailable`.
@@ -132,6 +134,7 @@ App -> `POST /v1/history {address, cursor}` -> Worker calls Etherscan `txlist`, 
 6. Cron `17 * * * *` runs `sweep`: delete subscriptions of installs not seen for 30 days, purge `push_sent` older than 7 days, retry `push_unregister`.
 
 App side (`features/push`):
+
 - S50 "알림 켜기" (offered once, after the first copy or share on Receive) and the S62 switch ask the OS, get the Expo token, then `PUT`. The setting turns on only after the `PUT` succeeds.
 - S62 off and wallet removal call `DELETE`. kv `push.unregisterPending` is set before a `DELETE` and before a `PUT` and cleared on success, so an interrupted or unanswered call is undone at the next launch.
 - At launch `syncPush` finishes an owed `DELETE`, or re-sends address and token when the setting is on. Push operations run one at a time.
@@ -150,7 +153,7 @@ App side (`features/push`):
   - MMKV encryption key: Keychain, `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`, no auth. The lock gate can then read MMKV before the first render.
   - Device key for install auth: Keychain, separate from the wallet key.
   - MMKV (AES-256): lock state, pending tx, history cache, flags, recent recipients, TanStack Query cache (balances, with the wallet's public address in the key). No phrase.
-- App state kinds (ADR-0021): server state in TanStack Query, send status derived by `wallet-core` `deriveState`, global UI state in one Zustand store, forms in react-hook-form. Done so far: the derivation in `wallet-core`; TanStack Query provider in `shell` with the cache persisted to MMKV (whitelist in `shared/query/persist.ts`), and the balance reads on it; the history reads (list and S41 row lookup), the amount-step snapshot and the review read, and the receipt reads of `useTrackedTx` (the query fetches facts only; the `PendingTx` record in MMKV stays the send status, written through `settleTx`). Only balances are persisted; the Zustand store in `shared/app-store` holds lock, backup and opt-in flags (hydrated synchronously from MMKV by `initAppStore` before the first render, same MMKV keys as before, `persist` middleware not used because it keeps one JSON key). The four forms (send recipient, send amount, restore, backup word check) run on react-hook-form: shapes in `packages/contracts` `forms.ts`, rules inside the resolvers in `features/*/model`: restore word list and checksum from `wallet-core`, amount balance and zero through `shared/lib/amount` over `wallet-core` `toUnits`, Max and the USDC fee shortfall from `sendLimits` (the shortfall only warns, Review blocks), word check through `wrongIndexes`. Not yet: the web viewer.
+- App state kinds (ADR-0021): server state in TanStack Query, send status derived by `wallet-core` `deriveState`, global UI state in one Zustand store, forms in react-hook-form. Done so far: the derivation in `wallet-core`; TanStack Query provider in `shell` with the cache persisted to MMKV (whitelist in `shared/query/persist.ts`), and the balance reads on it; the history reads (list and S41 row lookup), the amount-step snapshot and the review read, and the receipt reads of `useTrackedTx` (the query fetches facts only; the `PendingTx` record in MMKV stays the send status, written through `settleTx`). Only balances are persisted; the Zustand store in `shared/app-store` holds lock, backup and opt-in flags (hydrated synchronously from MMKV by `initAppStore` before the first render, same MMKV keys as before, `persist` middleware not used because it keeps one JSON key). The four forms (send recipient, send amount, restore, backup word check) run on react-hook-form: shapes in `packages/contracts` `forms.ts`, rules inside the resolvers in `features/*/model`: restore word list and checksum from `wallet-core`, amount balance and zero through `shared/lib/amount` over `wallet-core` `toUnits`, Max and the USDC fee shortfall from `sendLimits` (the shortfall only warns, Review blocks), word check through `wrongIndexes`. The web viewer reads (balance, history pages, tx detail, internal transfers) are TanStack Query too, in memory only (`apps/web/app/shared/api/query.tsx`, #291). Not yet: nothing of ADR-0021.
 - Transaction state, from receipt facts only (`deriveState` in `wallet-core`):
   - Receipt at or below the `safe` block: `Confirmed` (success) or `Failed` (reverted).
   - Receipt above `safe`: `Included`. If the receipt disappears: back to `Pending`.
@@ -172,6 +175,7 @@ App side (`features/push`):
 ## API contract
 
 `docs/openapi/v1.json` is generated from the zod routes (`pnpm --filter @vaultme/api openapi`). CI fails if it is stale (`openapi:check`).
+
 - Error body: `{code, message, retryable}`. `code` comes from `ERROR_CODES` in `contracts`. The app maps an unknown code to `Unknown`.
 - v1 allows added fields only. A breaking change needs `/v2`.
 - `/v1/rpc` accepts one JSON-RPC request (no batch). Allowed methods are in `RPC_ALLOWED_METHODS`. `eth_call` only for USDC `balanceOf`. `eth_getBlockByNumber` only without full transactions. `eth_getTransactionByHash` only with one 32-byte hash. Upstream order: Infura, Alchemy, 5 s timeout. A JSON-RPC error inside a 200 is returned as is.
@@ -194,6 +198,7 @@ App side (`features/push`):
 Tooling: pnpm 12, Turborepo, TypeScript 6, Node 24, Vitest. `turbo.json` tasks: `build`, `typecheck`, `lint`, `test`. Each depends on `^build` (tokens generate code).
 
 Local:
+
 - `pnpm turbo run typecheck lint test` and `scripts/check-repo-rules.sh`.
 - Run `git config core.hooksPath .githooks` once. Pre-commit runs the repo rules. Pre-push adds typecheck, lint and test when code changed.
 - API: `wrangler dev`, `pnpm --filter @vaultme/api db:migrate:local`. Tests run in the Workers runtime (`@cloudflare/vitest-plugin`) with D1 migrations applied.
@@ -204,6 +209,7 @@ Local:
   - The iOS simulator cannot save the phrase: it has no device passcode. Test wallet creation on a real device, or on an Android emulator with a PIN.
 
 CI (`.github/workflows`):
+
 - `ci.yml`, on pull request and push to `main`: job `repo-rules` runs `scripts/check-repo-rules.sh` (R1 to R13). Job `verify` runs `prettier --check .`, `pnpm turbo run typecheck lint test`, `openapi:check`, `pnpm knip` and the mobile `export:check` (`turbo boundaries` and `expo-doctor` only report). Job `web` builds `apps/web` and runs Playwright with axe and Lighthouse CI against `wrangler dev` (ADR-0012).
 - `api-staging.yml`, on push to `main` that touches the API (and by hand): in the GitHub Environment `staging`, applies D1 migrations, runs `wrangler deploy --env staging`, then checks `/v1/health`.
 - `web-staging.yml`, on push to `main` that touches `apps/web` or the packages it uses (and by hand): job `gate` repeats the `web` checks, then `deploy` publishes `vaultme-web-staging` at `vaultme-staging.stack-line.dev`.
@@ -211,6 +217,7 @@ CI (`.github/workflows`):
 - `pr-description.yml`, on pull request: `check` (body 3,500 characters or less, `Closes #N`). `figma-comparison` (light and dark app-vs-Figma images for each changed screen).
 
 Release:
+
 - Staging API: `api-staging.yml`; staging web: `web-staging.yml` (above). Production web has no workflow yet (#198). Production API: by hand, `wrangler d1 migrations apply DB --remote --env production`, then `wrangler deploy --env production`. No EAS config, no store build.
 - Before the first run in a new env, create its D1 database once by hand (`wrangler d1 create vaultme-api-<env>`; no `database_id` in `wrangler.jsonc`, later runs find it by name). The workflow applies migrations before `wrangler deploy`, and `migrations apply` cannot create the database (staging run #2 failed this way).
 - D1 migrations are forward-only SQL files. Write them so the old Worker still runs: add columns and tables, do not drop or rename in the same release.

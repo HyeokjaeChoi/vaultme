@@ -1,7 +1,9 @@
 import 'fake-indexeddb/auto'
+import { onlineManager } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useBalances } from '../app/shared/api/useBalances'
+import { queryClient } from '../app/shared/api/query'
 
 const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const B = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
@@ -11,6 +13,7 @@ const B = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 type Open = { body: string; answer: (hex: string) => void }
 let open: Open[] = []
 beforeEach(() => {
+  queryClient.clear() // one client for the app: a read of one test must not answer the next
   open = []
   const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status })
   vi.stubGlobal(
@@ -48,8 +51,22 @@ async function answer(address: string, hex: string) {
 }
 
 describe('useBalances', () => {
+  it('reads when the browser says offline: the read fails and shows retry, it does not wait on the skeleton', async () => {
+    onlineManager.setOnline(false)
+    try {
+      renderHook(() => useBalances(A))
+      await waitFor(() => {
+        expect(open).toHaveLength(2)
+      })
+    } finally {
+      onlineManager.setOnline(true)
+    }
+  })
+
   it('shows the new address as soon as its read ends, while the one the user left is still open', async () => {
-    const { result, rerender } = renderHook(({ a }) => useBalances(a), { initialProps: { a: A } })
+    const { result, rerender } = renderHook(({ a }) => useBalances(a), {
+      initialProps: { a: A },
+    })
     rerender({ a: B })
     await answer(B, '0xde0b6b3a7640000') // 1 ETH
     await waitFor(() => {
@@ -57,20 +74,22 @@ describe('useBalances', () => {
     })
   })
 
-  it('an older read of the same address does not replace a newer one (A -> B -> A)', async () => {
-    const { result, rerender } = renderHook(({ a }) => useBalances(a), { initialProps: { a: A } })
+  it('an answer belongs to its own address: a read the user left and came back to shows its own result (A -> B -> A)', async () => {
+    const { result, rerender } = renderHook(({ a }) => useBalances(a), {
+      initialProps: { a: A },
+    })
     await waitFor(() => {
       expect(open).toHaveLength(2)
     })
-    const first = open.splice(0) // the first read of A, answered last
     rerender({ a: B })
-    rerender({ a: A })
-    await answer(A, '0x1bc16d674ec80000') // 2 ETH, the newer read
+    expect(result.current[0]).toEqual({ status: 'loading' })
+    rerender({ a: A }) // the read of A is still open: it is the same query, not a second request
+    await answer(B, '0xde0b6b3a7640000') // 1 ETH, the address the user left
+    await new Promise((r) => setTimeout(r, 50))
+    expect(result.current[0]).toEqual({ status: 'loading' })
+    await answer(A, '0x1bc16d674ec80000') // 2 ETH
     await waitFor(() => {
       expect(result.current[0]).toMatchObject({ status: 'ok', ETH: '2' })
     })
-    for (const o of first) o.answer('0xde0b6b3a7640000') // 1 ETH, the older read
-    await new Promise((r) => setTimeout(r, 50))
-    expect(result.current[0]).toMatchObject({ status: 'ok', ETH: '2' })
   })
 })

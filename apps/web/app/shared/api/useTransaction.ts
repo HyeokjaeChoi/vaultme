@@ -1,5 +1,6 @@
 import type { TxDetail } from '@vaultme/api-client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { UpdateRequiredError, queryClient, retryOf } from './query'
 
 /**
  * `notfound`: the chain has no such transaction or no block for it yet. `failed`: the read did not work (network, API, a bad answer).
@@ -15,7 +16,7 @@ export type Tx =
 /** The asset of the history row that opened the page: one transaction can have an ETH row and a USDC row. */
 export type Row = 'ETH' | 'USDC'
 
-type Settled = Exclude<Tx, { status: 'loading' }>
+type Settled = Exclude<Tx, { status: 'loading' | 'failed' | 'update' }>
 
 // The API client loads on first read, not with the page (same reason as useBalances).
 async function load(hash: string, row?: Row): Promise<Settled> {
@@ -26,34 +27,21 @@ async function load(hash: string, row?: Row): Promise<Settled> {
     const tx = await m.readTransaction((method, params) => api().rpc(method, params), hash, row)
     return tx ? { status: 'ok', tx } : { status: 'notfound' }
   } catch (e) {
-    if (apiClient?.isApiError(e, 'update_required')) return { status: 'update' }
-    return { status: 'failed' } // also a chunk that fails to load (offline, a newer deploy): retry imports it again
+    // Also a chunk that fails to load (offline, a newer deploy): retry imports it again.
+    throw apiClient?.isApiError(e, 'update_required') ? new UpdateRequiredError() : e
   }
 }
 
 /**
- * The transaction `hash` through the shared API client (`readTransaction`). Like useBalances: the read lives in a hook because a
- * fragment-only navigation runs no loader, each read gets a number and only the newest shows (a hash the user left, or an older
- * retry, never replaces newer data), and the state belongs to the hash it was read for.
+ * The transaction `hash` through the shared API client (`readTransaction`). Like useBalances: a query in a hook (a fragment-only
+ * navigation runs no loader), keyed by hash and row, so an answer never shows for another hash or row.
  */
 export function useTransaction(hash: string | null, row?: Row): [Tx, retry: () => void] {
-  const [current, setCurrent] = useState<{ key: string; state: Settled | null } | null>(null)
-  const newest = useRef(0)
-
-  const key = hash && `${hash}|${row ?? ''}`
-  const read = useCallback((h: string, r: Row | undefined) => {
-    const n = ++newest.current
-    const k = `${h}|${r ?? ''}`
-    setCurrent({ key: k, state: null })
-    void load(h, r).then((state) => {
-      if (newest.current === n) setCurrent({ key: k, state })
-    })
-  }, [])
-
-  useEffect(() => {
-    if (hash) read(hash, row)
-  }, [hash, row, read])
-
-  const shown: Tx = !key || current?.key !== key || !current.state ? { status: 'loading' } : current.state
-  return [shown, () => hash && read(hash, row)]
+  const queryKey = ['tx', hash, row ?? null]
+  const retry = retryOf(queryKey)
+  const q = useQuery({ queryKey, queryFn: () => load(hash ?? '', row), enabled: !!hash }, queryClient)
+  const state: Tx =
+    q.data ??
+    (q.isError ? { status: q.error instanceof UpdateRequiredError ? 'update' : 'failed' } : { status: 'loading' })
+  return [state, retry]
 }

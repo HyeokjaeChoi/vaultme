@@ -1,14 +1,13 @@
 import type { HistoryItem, HistoryView } from '@vaultme/history'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
+import { queryClient, retryOf } from './query'
 
 /** `more`: the state of the 더 보기 request. `failed` keeps the rows and the cursor, so a second try asks for the same page. */
 export type History =
   | { status: 'loading' }
   | { status: 'failed' }
   | { status: 'ok'; items: HistoryItem[]; nextCursor: string | null; more: 'idle' | 'loading' | 'failed' }
-
-type Ok = Extract<History, { status: 'ok' }>
-type Settled = Exclude<History, { status: 'loading' }>
 
 // The history module and the API client load on first read, not with the page (same reason as useBalances).
 async function historyModule() {
@@ -21,71 +20,56 @@ async function historyModule() {
   })
 }
 
-async function first(address: string): Promise<Settled> {
-  try {
-    const h = await historyModule()
-    const v = await new Promise<HistoryView>((resolve) => void h.list(resolve)(address))
-    // No cache: a failed view has no rows. A 426 shows as failed here; the balances section already asks for a reload.
-    return v.failed ? { status: 'failed' } : { status: 'ok', items: v.items, nextCursor: v.nextCursor, more: 'idle' }
-  } catch {
-    return { status: 'failed' } // a chunk that fails to load (offline, a newer deploy): retry imports it again
-  }
-}
+type Page = { items: HistoryItem[]; nextCursor: string | null }
 
-async function older(address: string, cursor: string) {
-  try {
-    return await (await historyModule()).more(address, cursor)
-  } catch {
-    return null
+/** One page: the first (`cursor` null, through `list`) or an older one. A failed read throws, so the query keeps the rows it has. */
+async function page(address: string, cursor: string | null): Promise<Page> {
+  const h = await historyModule() // a chunk that fails to load (offline, a newer deploy) throws too: retry imports it again
+  if (cursor) {
+    const r = await h.more(address, cursor)
+    if (!r) throw new Error('history: older page failed')
+    return r
   }
+  const v = await new Promise<HistoryView>((resolve) => void h.list(resolve)(address))
+  // No cache: a failed view has no rows. A 426 shows as failed here; the balances section already asks for a reload.
+  if (v.failed) throw new Error('history: first page failed')
+  return { items: v.items, nextCursor: v.nextCursor }
 }
 
 /**
- * The history of `address` through the shared module (`@vaultme/history`: contract check, poisoning filter, newest first).
- * Like useBalances, the read lives in a hook (a fragment-only navigation runs no loader) and each request gets a number:
- * only the newest one shows, so an answer for an address the user left, or an older retry, never replaces newer data.
- * The state is per request, not a Transition (React joins running Transitions into one `isPending`).
+ * The history of `address` through the shared module (`@vaultme/history`: contract check, poisoning filter, newest first) as an
+ * infinite query (TanStack Query, ADR-0021) keyed by address: an answer never shows for an address the user left, and 더 보기
+ * (`more`) asks for the cursor of the last page. A failed `more` keeps the rows and the cursor, so a second try asks for the same page.
  */
 export function useHistory(address: string | null): [History, { retry: () => void; more: () => void }] {
-  const [current, setCurrent] = useState<{ address: string; state: Settled | null } | null>(null)
-  const newest = useRef(0)
-
-  const read = useCallback((a: string) => {
-    const n = ++newest.current
-    setCurrent({ address: a, state: null })
-    void first(a).then((state) => {
-      if (newest.current === n) setCurrent({ address: a, state })
-    })
-  }, [])
-
-  useEffect(() => {
-    if (address) read(address)
-  }, [address, read])
-
-  const shown: History =
-    !address || current?.address !== address || !current.state ? { status: 'loading' } : current.state
-
-  const more = () => {
-    if (!address || shown.status !== 'ok' || !shown.nextCursor || shown.more === 'loading') return
-    const n = ++newest.current // a new first read (read) takes a later number, so this answer is dropped then
-    const before: Ok = shown
-    setCurrent({ address, state: { ...before, more: 'loading' } })
-    void older(address, shown.nextCursor).then((r) => {
-      if (newest.current !== n) return
-      const have = new Set(before.items.map((i) => i.id))
-      setCurrent({
-        address,
-        state: r
-          ? {
-              status: 'ok',
-              items: [...before.items, ...r.items.filter((i) => !have.has(i.id))],
-              nextCursor: r.nextCursor,
-              more: 'idle',
-            }
-          : { ...before, more: 'failed' },
-      })
-    })
+  const queryKey = ['history', address]
+  const retry = retryOf(queryKey)
+  const q = useInfiniteQuery(
+    {
+      queryKey,
+      queryFn: ({ pageParam }) => page(address ?? '', pageParam),
+      initialPageParam: null as string | null,
+      getNextPageParam: (last) => last.nextCursor,
+      enabled: !!address,
+    },
+    queryClient,
+  )
+  // Same array while the pages are the same: HistorySection restarts its minute clock when `items` changes.
+  const items = useMemo(() => {
+    const seen = new Set<string>()
+    return (q.data?.pages ?? []).flatMap((p) => p.items).filter((i) => !seen.has(i.id) && seen.add(i.id))
+  }, [q.data])
+  let shown: History = q.isError ? { status: 'failed' } : { status: 'loading' }
+  if (q.data) {
+    shown = {
+      status: 'ok',
+      items,
+      nextCursor: q.data.pages.at(-1)?.nextCursor ?? null,
+      more: q.isFetchingNextPage ? 'loading' : q.isFetchNextPageError ? 'failed' : 'idle',
+    }
   }
-
-  return [shown, { retry: () => address && read(address), more }]
+  const more = () => {
+    if (q.hasNextPage && !q.isFetchingNextPage) void q.fetchNextPage()
+  }
+  return [shown, { retry, more }]
 }
