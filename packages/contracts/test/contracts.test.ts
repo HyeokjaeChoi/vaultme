@@ -5,6 +5,7 @@ import {
   ErrorEnvelope,
   HistoryRequest,
   HistoryResponse,
+  PUSH_COPY,
   errorEnvelope,
   isBelow,
 } from '../src/index.ts'
@@ -43,5 +44,12 @@ describe('contracts', () => {
     ).toBe(
       'vaultme-v1\nPOST\n/v1/installs/token\n123e4567-e89b-42d3-a456-426614174000\n1760400000\nAAAAAAAAAAAAAAAAAAAAAA\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
     )
+  })
+})
+
+describe('PUSH_COPY', () => {
+  it('the send push never says confirmed: it goes out before the safe block (ADR-0006, ADR-0010, #297)', () => {
+    expect(PUSH_COPY.send.title).not.toMatch(/확정됐/)
+    expect(PUSH_COPY.send.title).toBe('보낸 거래가 블록에 담겼어요')
   })
 })
