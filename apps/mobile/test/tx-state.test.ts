@@ -1,5 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { FAKE_SETTLE_MS, checkTx, fakeSettle, startPolling, type PollTimers } from '../src/features/send/model/txState'
+import {
+  FAKE_SETTLE_MS,
+  checkTx,
+  fakeSettle,
+  needsFacts,
+  settleTx,
+  startPolling,
+  type PollTimers,
+} from '../src/features/send/model/txState'
 import { txNotice, txView } from '../src/entities/transaction/txView'
 import type { Receipt } from '../src/shared/chain/port'
 import type { PendingTx } from '../src/shared/storage/kv'
@@ -50,6 +58,31 @@ describe('checkTx', () => {
     const c = chain(ok(1n))
     expect((await checkTx(tx('Failed'), c, FROM, () => 9)).state).toBe('Failed')
     expect(c.getReceipt).not.toHaveBeenCalled()
+  })
+})
+
+describe('settleTx (facts -> record, ADR-0006)', () => {
+  const none = { hash: '0x', receipt: null, safeBlock: null, safeNonce: 0n }
+  it('time alone moves nothing: no facts keeps every state, only lastCheckedAt moves', () => {
+    for (const s of ['Pending', 'Included', 'Unknown', 'Confirmed', 'Failed', 'Replaced'] as const)
+      expect(settleTx(tx(s), null, true, () => 9)).toMatchObject({ state: s, lastCheckedAt: 9 })
+  })
+  it('Unknown with the same facts as a poll moves only because a check asked (the caller decides when)', () => {
+    expect(settleTx(tx('Unknown'), { ...none, receipt: ok(90n), safeBlock: 100n }, true, () => 9).state).toBe(
+      'Confirmed',
+    )
+  })
+  it('a receipt sets blockNumber; no receipt keeps the old one', () => {
+    expect(settleTx(tx('Pending'), { ...none, receipt: ok(90n), safeBlock: 10n }, true, () => 9)).toMatchObject({
+      state: 'Included',
+      blockNumber: 90,
+    })
+    expect(settleTx({ ...tx('Included'), blockNumber: 7 }, none, true, () => 9).blockNumber).toBe(7)
+  })
+  it('only a polled, broadcast send asks the network', () => {
+    expect(needsFacts(tx('Pending'), true)).toBe(true)
+    expect(needsFacts(tx('Pending'), false)).toBe(false)
+    expect(needsFacts(tx('Confirmed'), true)).toBe(false)
   })
 })
 

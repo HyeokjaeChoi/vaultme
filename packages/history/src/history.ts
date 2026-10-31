@@ -98,6 +98,11 @@ export function createHistory(d: HistoryDeps) {
 
   return {
     /**
+     * One fresh list view (ADR-0007: fresh, or cache with `failed`, or only the local send). Never throws. For a caller that dedupes and orders
+     * its own loads (TanStack Query on mobile); `list` is for a caller that does not.
+     */
+    view,
+    /**
      * One list consumer (a screen). `load(address, local)` asks for a fresh view; only the newest load's answer reaches `onView`.
      * `address` null = no API or no account: only the local send. `local` = the send recorded on this device (mobile).
      */

@@ -1,34 +1,31 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useEffect, useMemo } from 'react'
 import type { PushDir, RowLookup } from '@vaultme/history'
 import { goBack } from '@/shared/lib/nav'
 import { accountAddress, history } from './loader'
+import { rowLookupQuery } from './historyQuery'
 
-const cachedLookup = (id: string, dir?: PushDir): RowLookup | null => {
+const cachedLookup = (id: string, dir?: PushDir): RowLookup | undefined => {
   const row = history.cachedRow(accountAddress(), id, dir)
-  return row ? { status: 'row', row } : null
+  return row ? { status: 'row', row } : undefined
 }
 
 /**
- * The history row an S41 route param names (see `history.findRow`). `null` = looking it up. A cached row shows on the first render, with no flash.
- * `retry` asks again; the Worker caches a history page for 30 s, so an immediate retry can get the same page.
+ * The history row an S41 route param names (see `history.findRow`). `null` = looking it up. A row in the seam cache shows on the first render, with
+ * no flash, and is always the current one; any other answer (none, several, failed) shows only once this visit's lookup has finished, never an
+ * older one. `retry` asks again; the Worker caches a history page for 30 s, so an immediate retry can get the same page.
  */
 export function useRowLookup(id: string, dir?: PushDir): { lookup: RowLookup | null; retry: () => void } {
-  const [lookup, setLookup] = useState<RowLookup | null>(() => cachedLookup(id, dir))
-  const [attempt, setAttempt] = useState(0)
+  const qc = useQueryClient()
+  const q = rowLookupQuery(id, dir)
+  const { data, isFetching, dataUpdatedAt } = useQuery(q)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- re-read the seam cache when a lookup finished (it may have stored a page)
+  const cached = useMemo(() => cachedLookup(id, dir), [id, dir, dataUpdatedAt])
+  const done = isFetching ? null : (data ?? null)
   useEffect(() => {
-    let live = true
-    void history.findRow(accountAddress(), id, dir).then((r) => {
-      if (!live) return
-      setLookup(r)
-      if (r.status === 'several') goBack('/activity') // one hash, several rows: which one is unknown, the list is below
-    })
-    return () => {
-      live = false
-    }
-  }, [id, dir, attempt])
-  const retry = useCallback(() => {
-    setLookup(null)
-    setAttempt((n) => n + 1)
-  }, [])
-  return { lookup, retry }
+    if (done?.status === 'several') goBack('/activity') // one hash, several rows: which one is unknown, the list is below
+  }, [done])
+  const key = q.queryKey
+  const retry = useCallback(() => void qc.resetQueries({ queryKey: key, exact: true }), [qc, key])
+  return { lookup: cached ?? done, retry }
 }

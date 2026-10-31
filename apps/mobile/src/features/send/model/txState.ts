@@ -1,5 +1,5 @@
 import { deriveState, isFinal, isPolled, type Address, type Hash } from '@vaultme/wallet-core'
-import type { ChainPort } from '@/shared/chain'
+import type { ChainPort, Receipt } from '@/shared/chain'
 import type { PendingTx } from '@/shared/storage'
 
 // The derivation lives in wallet-core (Q59, ADR-0021); the app keeps the network check and the fake adapter.
@@ -20,22 +20,45 @@ export function fakeSettle(tx: PendingTx, now: number): PendingTx {
     : { ...tx, lastCheckedAt: now }
 }
 
+/** What the network said about one send (ADR-0006 inputs of `deriveState`). Facts only: the stored record is not touched. */
+export type TxFacts = { hash: string; receipt: Receipt | null; safeBlock: bigint | null; safeNonce: bigint | null }
+
+type FactsChain = Pick<ChainPort, 'getReceipt' | 'getSafeBlock' | 'getSafeNonce'>
+
+/** Whether a check of this send asks the network: not in test-data mode (nothing was sent), not once final. */
+export const needsFacts = (tx: PendingTx, broadcasts: boolean): boolean => broadcasts && !isFinal(tx.state)
+
+/** The network reads of one status check. Throws when the network could not be asked. */
+export async function fetchTxFacts(tx: Pick<PendingTx, 'hash'>, chain: FactsChain, from: Address): Promise<TxFacts> {
+  const receipt = await chain.getReceipt(tx.hash as Hash)
+  const [safeBlock, safeNonce] = receipt ? [await chain.getSafeBlock(), null] : [null, await chain.getSafeNonce(from)]
+  return { hash: tx.hash, receipt, safeBlock, safeNonce }
+}
+
+/**
+ * The new record of a check: `deriveState` over the facts (wallet-core), nothing else, so time alone never moves a state (ADR-0006).
+ * `facts` null = nothing was asked (test-data mode, or a final send): only `lastCheckedAt` moves, and the fake adapter settles a Pending send (`fakeSettle`).
+ */
+export function settleTx(tx: PendingTx, facts: TxFacts | null, broadcasts: boolean, now: () => number): PendingTx {
+  if (!broadcasts) return fakeSettle(tx, now())
+  if (!facts) return { ...tx, lastCheckedAt: now() }
+  const { receipt, safeBlock, safeNonce } = facts
+  const state = deriveState({ current: tx.state, nonce: tx.nonce, receipt, safeBlock, safeNonce })
+  return { ...tx, state, lastCheckedAt: now(), ...(receipt ? { blockNumber: Number(receipt.blockNumber) } : {}) }
+}
+
 /**
  * One status check (S41 "상태 다시 확인", the 15 s poll). Throws when the network could not be asked: the caller keeps the old record.
  * The fake adapter sent nothing: it settles a Pending send after `FAKE_SETTLE_MS` (`fakeSettle`).
  */
 export async function checkTx(
   tx: PendingTx,
-  chain: Pick<ChainPort, 'broadcasts' | 'getReceipt' | 'getSafeBlock' | 'getSafeNonce'>,
+  chain: Pick<ChainPort, 'broadcasts'> & FactsChain,
   from: Address,
   now: () => number,
 ): Promise<PendingTx> {
-  if (!chain.broadcasts) return fakeSettle(tx, now())
-  if (isFinal(tx.state)) return { ...tx, lastCheckedAt: now() }
-  const receipt = await chain.getReceipt(tx.hash as Hash)
-  const [safeBlock, safeNonce] = receipt ? [await chain.getSafeBlock(), null] : [null, await chain.getSafeNonce(from)]
-  const state = deriveState({ current: tx.state, nonce: tx.nonce, receipt, safeBlock, safeNonce })
-  return { ...tx, state, lastCheckedAt: now(), ...(receipt ? { blockNumber: Number(receipt.blockNumber) } : {}) }
+  const facts = needsFacts(tx, chain.broadcasts) ? await fetchTxFacts(tx, chain, from) : null
+  return settleTx(tx, facts, chain.broadcasts, now)
 }
 
 export type PollTimers = { set: (fn: () => void, ms: number) => unknown; clear: (h: unknown) => void }
