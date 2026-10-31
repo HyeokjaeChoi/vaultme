@@ -1,5 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
+  // Private monorepo, nothing is published: an entry export that no workspace imports is dead too (the unused reduce() in wallet-core was one).
+  "includeEntryExports": true,
   // work/ and spikes are design and research scratch, .claude/ is agent tooling, design-md.d.mts types a .mjs script.
   "ignore": ["work/**", "scripts/spikes/**", ".claude/**", "packages/tokens/design-md.d.mts"],
   // Run as binaries from .githooks/ and lint-staged.config.mjs, which knip does not read.
