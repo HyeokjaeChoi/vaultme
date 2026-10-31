@@ -46,7 +46,7 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
   - `Mnemonic`: private fields. `toString` and `toJSON` return a mask.
   - Amounts: `toUnits`, `fromUnits`, `maxSendable`, `formatAmount`.
   - Send: `prepare` makes a `Review`. `signAndSubmit` signs and submits. `recipientRisk` classifies the recipient.
-  - State: `reduce` and `canStartDraft` (see Invariants).
+  - Send status: `deriveState`, `isFinal`, `isPolled` (see Invariants, ADR-0021).
 - `contracts`: zod schemas that both sides use. Header names, error codes, `canonicalString`, RPC allow-list, history and push shapes, `USDC_SEPOLIA`. The API OpenAPI file comes from here.
 - `api-client`: the install-identity API client (`createApiClient`): register, signed token, retry on `unauthorized`, `426` (`onUpdateRequired`, `createUpdateGate`), typed `ApiError` and `RpcError`. The platform part is the `DeviceSigner` seam (public key, create key, sign, installId storage). The private key never crosses it. `fetch`, base URL and app version are passed in.
 - `history`: the history module (`createHistory`: `list`, `more`, `cachedRow`, `findRow`) over a page-fetch seam and a cache seam. See History.
@@ -150,14 +150,14 @@ App side (`features/push`):
   - MMKV encryption key: Keychain, `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`, no auth. The lock gate can then read MMKV before the first render.
   - Device key for install auth: Keychain, separate from the wallet key.
   - MMKV (AES-256): lock state, pending tx, history cache, flags, recent recipients. No phrase.
-- Transaction state, from receipt facts only (`deriveState`):
+- App state kinds (ADR-0021): server state in TanStack Query, send status derived by `wallet-core` `deriveState`, global UI state in one Zustand store, forms in react-hook-form. Done so far: the derivation in `wallet-core`. Not yet: TanStack Query, Zustand, react-hook-form (the hooks still fetch and keep state with `useState` and MMKV).
+- Transaction state, from receipt facts only (`deriveState` in `wallet-core`):
   - Receipt at or below the `safe` block: `Confirmed` (success) or `Failed` (reverted).
   - Receipt above `safe`: `Included`. If the receipt disappears: back to `Pending`.
   - No receipt and the `safe` nonce is above ours: `Replaced`.
   - `Unknown` means the result is not known. Only a check moves it.
   - Time alone never changes a state. The app never resends.
   - `Pending` or `Unknown` blocks a new send (`blocksNewSend`). A corrupt record also blocks.
-  - `reduce` and `canStartDraft` in `wallet-core` model the same table. The app does not call them today. It uses `deriveState` and `blocksNewSend`.
 - Recipient risk order: burn, token contract, look-alike (first 4 and last 4 hex), first-time, known.
 - App lock: cold start is locked. Lock after 30 s in the background. `inactive` never starts the timer. A clock set back counts as locked.
 - The phrase screen blocks screen capture while mounted.

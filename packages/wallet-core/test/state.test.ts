@@ -1,116 +1,56 @@
-import fc from 'fast-check'
-import { describe, expect, test, vi } from 'vitest'
-import { canStartDraft, reduce, type SendEvent, type SendState } from '../src'
+import { describe, expect, test } from 'vitest'
+import { deriveState, isFinal, isPolled, type TxFacts, type TxReceipt, type TxStatus } from '../src'
 
-const H = `0x${'ab'.repeat(32)}` as const
-const run = (s: SendState, ...es: SendEvent[]) => es.reduce<SendState>((st, e) => reduce(st, e), s)
-const draft: SendState = { status: 'Draft' }
-const submitting = run(
-  draft,
-  { type: 'REVIEW', requiresAck: false },
-  { type: 'CONFIRM', ack: false },
-  { type: 'AUTH_OK' },
-)
+const ok = (n: bigint): TxReceipt => ({ status: 'success', blockNumber: n })
+const bad = (n: bigint): TxReceipt => ({ status: 'reverted', blockNumber: n })
+const f = (over: Partial<TxFacts>) =>
+  deriveState({ current: 'Pending', nonce: 5, receipt: null, safeBlock: null, safeNonce: null, ...over })
 
-describe('reduce: transaction state table (ARCHITECTURE.md#invariants)', () => {
-  test('happy path to Confirmed', () => {
-    const s = run(submitting, { type: 'SUBMITTED', hash: H }, { type: 'RECEIPT', ok: true }, { type: 'SAFE', ok: true })
-    expect(s).toEqual({ status: 'Confirmed', hash: H })
+describe('deriveState (ARCHITECTURE.md#invariants, ADR-0006)', () => {
+  test('receipt above the safe block = Included, success or reverted', () => {
+    expect(f({ receipt: ok(101n), safeBlock: 100n })).toBe('Included')
+    expect(f({ receipt: bad(101n), safeBlock: 100n })).toBe('Included')
   })
-  test('rows', () => {
-    const rev: SendState = { status: 'Reviewing', blocked: false, requiresAck: false }
-    expect(reduce(draft, { type: 'INPUT_VALID' }).status).toBe('Draft')
-    expect(reduce(rev, { type: 'EDIT' }).status).toBe('Draft')
-    expect(reduce(rev, { type: 'CONFIRM', ack: false }).status).toBe('Authenticating')
-    const auth = reduce(rev, { type: 'CONFIRM', ack: false })
-    expect(reduce(auth, { type: 'AUTH_FAIL' }).status).toBe('Reviewing')
-    expect(reduce(auth, { type: 'AUTH_CANCEL' }).status).toBe('Reviewing')
-    expect(reduce(submitting, { type: 'FEE_CAP_EXCEEDED' })).toMatchObject({ status: 'Reviewing', blocked: false })
-    expect(reduce(submitting, { type: 'ABS_CAP_EXCEEDED' })).toMatchObject({ status: 'Reviewing', blocked: true })
-    expect(reduce(submitting, { type: 'SUBMIT_UNKNOWN', hash: H })).toEqual({ status: 'Unknown', hash: H })
+  test('receipt at or below the safe block: success = Confirmed, reverted = Failed', () => {
+    expect(f({ receipt: ok(100n), safeBlock: 100n })).toBe('Confirmed')
+    expect(f({ receipt: ok(7n), safeBlock: 100n })).toBe('Confirmed')
+    expect(f({ receipt: bad(100n), safeBlock: 100n })).toBe('Failed')
   })
-  test('lookalike needs explicit ack; blocked Reviewing cannot confirm', () => {
-    const rev: SendState = { status: 'Reviewing', blocked: false, requiresAck: true }
-    expect(reduce(rev, { type: 'CONFIRM', ack: false })).toBe(rev)
-    expect(reduce(rev, { type: 'CONFIRM', ack: true }).status).toBe('Authenticating')
-    const blocked = reduce(submitting, { type: 'ABS_CAP_EXCEEDED' })
-    expect(reduce(blocked, { type: 'CONFIRM', ack: true })).toBe(blocked)
+  test('no safe block known = never final', () => {
+    expect(f({ receipt: ok(1n), safeBlock: null })).toBe('Included')
   })
-  test.each(['Pending', 'Unknown'] as const)('%s: receipt, replaced, timeout', (status) => {
-    const s: SendState = { status, hash: H }
-    expect(reduce(s, { type: 'RECEIPT', ok: true }).status).toBe('Included')
-    expect(reduce(s, { type: 'RECEIPT', ok: false }).status).toBe('Included')
-    expect(reduce(s, { type: 'NONCE_PASSED_NO_RECEIPT' }).status).toBe('Replaced')
-    const hook = vi.fn()
-    expect(reduce(s, { type: 'TIMEOUT' }, hook)).toBe(s)
-    expect(hook).not.toHaveBeenCalled() // listed no-op, not an error
+  test('a reverted receipt is not Failed before safe', () => {
+    expect(f({ current: 'Included', receipt: bad(101n), safeBlock: 100n })).toBe('Included')
   })
-  test('Included: SAFE ok/reverted, REORGED', () => {
-    const s: SendState = { status: 'Included', hash: H }
-    expect(reduce(s, { type: 'SAFE', ok: true }).status).toBe('Confirmed')
-    expect(reduce(s, { type: 'SAFE', ok: false }).status).toBe('Failed')
-    expect(reduce(s, { type: 'REORGED' })).toEqual({ status: 'Pending', hash: H })
-    // Any other event leaves Included unchanged. Only the random-sequence property hit this branch, so coverage flaked (#128).
-    expect(reduce(s, { type: 'RECEIPT', ok: true })).toBe(s)
+  test('Unknown becomes Included/Confirmed when a receipt shows up', () => {
+    expect(f({ current: 'Unknown', receipt: ok(101n), safeBlock: 100n })).toBe('Included')
+    expect(f({ current: 'Unknown', receipt: ok(90n), safeBlock: 100n })).toBe('Confirmed')
   })
-  test('Submitting and Pending: an unlisted event leaves the state unchanged', () => {
-    // Same reason as above: these branches were reached only by the random-sequence property (#128).
-    const submitting: SendState = { status: 'Submitting', requiresAck: false }
-    expect(reduce(submitting, { type: 'EDIT' })).toBe(submitting)
-    const pending: SendState = { status: 'Pending', hash: H }
-    expect(reduce(pending, { type: 'SAFE', ok: true })).toBe(pending)
+  test('no receipt: time alone changes nothing, Pending and Unknown stay', () => {
+    expect(f({})).toBe('Pending')
+    expect(f({ current: 'Unknown' })).toBe('Unknown')
   })
-  test('unknown transition: unchanged, hook called, no throw', () => {
-    const hook = vi.fn()
-    expect(reduce(draft, { type: 'AUTH_OK' }, hook)).toBe(draft)
-    expect(hook).toHaveBeenCalledWith(draft, { type: 'AUTH_OK' })
-    const done: SendState = { status: 'Confirmed', hash: H }
-    expect(reduce(done, { type: 'REORGED' })).toBe(done)
-    expect(() => reduce(done, { type: 'EDIT' })).not.toThrow()
+  test('no receipt: safe nonce beyond ours = Replaced (ADR-0006); equal or below is not', () => {
+    expect(f({ safeNonce: 6n })).toBe('Replaced')
+    expect(f({ current: 'Unknown', safeNonce: 9n })).toBe('Replaced')
+    expect(f({ safeNonce: 5n })).toBe('Pending')
+    expect(f({ safeNonce: 4n })).toBe('Pending')
+  })
+  test('Included whose receipt is gone (reorg) goes back to Pending', () => {
+    expect(f({ current: 'Included' })).toBe('Pending')
+  })
+  test('final states never move', () => {
+    for (const s of ['Confirmed', 'Failed', 'Replaced'] as const)
+      expect(f({ current: s, receipt: bad(1n), safeBlock: 100n, safeNonce: 99n })).toBe(s)
   })
 })
 
-describe('canStartDraft', () => {
-  test('blocked only by Pending / Unknown', () => {
-    expect(canStartDraft([])).toBe(true)
-    expect(canStartDraft([{ status: 'Pending', hash: H }])).toBe(false)
-    expect(canStartDraft([{ status: 'Unknown', hash: H }])).toBe(false)
-    expect(canStartDraft([{ status: 'Included', hash: H }, { status: 'Confirmed', hash: H }, draft])).toBe(true)
+describe('isPolled / isFinal', () => {
+  const all: TxStatus[] = ['Pending', 'Included', 'Unknown', 'Confirmed', 'Failed', 'Replaced']
+  test('only Pending and Included are polled', () => {
+    expect(all.map(isPolled)).toEqual([true, true, false, false, false, false])
   })
-  const event: fc.Arbitrary<SendEvent> = fc.oneof(
-    fc.constantFrom<SendEvent>(
-      { type: 'INPUT_VALID' },
-      { type: 'EDIT' },
-      { type: 'AUTH_OK' },
-      { type: 'AUTH_FAIL' },
-      { type: 'AUTH_CANCEL' },
-      { type: 'FEE_CAP_EXCEEDED' },
-      { type: 'ABS_CAP_EXCEEDED' },
-      { type: 'REORGED' },
-      { type: 'NONCE_PASSED_NO_RECEIPT' },
-      { type: 'TIMEOUT' },
-      { type: 'SUBMITTED', hash: H },
-      { type: 'SUBMIT_UNKNOWN', hash: H },
-    ),
-    fc.boolean().map<SendEvent>((requiresAck) => ({ type: 'REVIEW', requiresAck })),
-    fc.boolean().map<SendEvent>((ack) => ({ type: 'CONFIRM', ack })),
-    fc.boolean().map<SendEvent>((ok) => ({ type: 'RECEIPT', ok })),
-    fc.boolean().map<SendEvent>((ok) => ({ type: 'SAFE', ok })),
-  )
-  test('random event sequences: Pending/Unknown always block, and only exit via receipt/replaced (property)', () => {
-    fc.assert(
-      fc.property(fc.array(event, { maxLength: 60 }), (events) => {
-        let s: SendState = draft
-        for (const e of events) {
-          const next = reduce(s, e)
-          if (s.status === 'Pending' || s.status === 'Unknown') {
-            expect(['Pending', 'Unknown', 'Included', 'Replaced']).toContain(next.status)
-          }
-          s = next
-          expect(canStartDraft([s])).toBe(s.status !== 'Pending' && s.status !== 'Unknown')
-        }
-      }),
-      { numRuns: 500 },
-    )
+  test('Confirmed, Failed, Replaced are final', () => {
+    expect(all.map(isFinal)).toEqual([false, false, false, true, true, true])
   })
 })

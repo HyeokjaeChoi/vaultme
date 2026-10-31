@@ -1,96 +1,34 @@
-import type { Hash } from 'viem'
+/** Status of a sent transaction (ARCHITECTURE.md#invariants, ADR-0006). Derived from chain facts, never stored as events (ADR-0021). */
+export type TxStatus = 'Pending' | 'Unknown' | 'Included' | 'Confirmed' | 'Failed' | 'Replaced'
 
-export type SendState =
-  | { status: 'Draft' }
-  | { status: 'Reviewing'; blocked: boolean; requiresAck: boolean }
-  | { status: 'Authenticating'; requiresAck: boolean }
-  | { status: 'Submitting'; requiresAck: boolean }
-  | { status: 'Pending'; hash: Hash }
-  | { status: 'Unknown'; hash: Hash }
-  | { status: 'Included'; hash: Hash }
-  | { status: 'Confirmed'; hash: Hash }
-  | { status: 'Failed'; hash: Hash }
-  | { status: 'Replaced'; hash: Hash }
+export type TxReceipt = { status: 'success' | 'reverted'; blockNumber: bigint }
 
-export type SendEvent =
-  | { type: 'INPUT_VALID' }
-  | { type: 'REVIEW'; requiresAck: boolean }
-  | { type: 'EDIT' }
-  | { type: 'CONFIRM'; ack: boolean }
-  | { type: 'AUTH_OK' }
-  | { type: 'AUTH_FAIL' }
-  | { type: 'AUTH_CANCEL' }
-  | { type: 'FEE_CAP_EXCEEDED' }
-  | { type: 'ABS_CAP_EXCEEDED' }
-  | { type: 'SUBMITTED'; hash: Hash }
-  | { type: 'SUBMIT_UNKNOWN'; hash: Hash }
-  | { type: 'RECEIPT'; ok: boolean }
-  | { type: 'SAFE'; ok: boolean }
-  | { type: 'REORGED' }
-  | { type: 'NONCE_PASSED_NO_RECEIPT' }
-  | { type: 'TIMEOUT' }
-
-export type InvalidTransitionHook = (state: SendState, event: SendEvent) => void
-
-const hashOf = (s: SendState): Hash | undefined => ('hash' in s ? s.hash : undefined)
-
-/** ARCHITECTURE.md#invariants (transaction state). Unknown transitions return `state` unchanged and call `onInvalid` (never throw). */
-export function reduce(state: SendState, event: SendEvent, onInvalid?: InvalidTransitionHook): SendState {
-  const next = step(state, event)
-  if (next === undefined) {
-    onInvalid?.(state, event)
-    return state
-  }
-  return next
+export type TxFacts = {
+  current: TxStatus
+  nonce: number
+  /** null = no receipt for our hash. */
+  receipt: TxReceipt | null
+  safeBlock: bigint | null
+  safeNonce: bigint | null
 }
 
-function step(s: SendState, e: SendEvent): SendState | undefined {
-  switch (s.status) {
-    case 'Draft':
-      if (e.type === 'INPUT_VALID') return s
-      if (e.type === 'REVIEW') return { status: 'Reviewing', blocked: false, requiresAck: e.requiresAck }
-      return undefined
-    case 'Reviewing':
-      if (e.type === 'EDIT') return { status: 'Draft' }
-      if (e.type === 'CONFIRM' && !s.blocked && (!s.requiresAck || e.ack))
-        return { status: 'Authenticating', requiresAck: s.requiresAck }
-      return undefined
-    case 'Authenticating':
-      if (e.type === 'AUTH_OK') return { status: 'Submitting', requiresAck: s.requiresAck }
-      if (e.type === 'AUTH_FAIL' || e.type === 'AUTH_CANCEL') return reviewing(s.requiresAck)
-      return undefined
-    case 'Submitting':
-      if (e.type === 'FEE_CAP_EXCEEDED') return reviewing(s.requiresAck)
-      if (e.type === 'ABS_CAP_EXCEEDED') return { ...reviewing(s.requiresAck), blocked: true }
-      if (e.type === 'SUBMITTED') return { status: 'Pending', hash: e.hash }
-      if (e.type === 'SUBMIT_UNKNOWN') return { status: 'Unknown', hash: e.hash }
-      return undefined
-    case 'Pending':
-    case 'Unknown': {
-      if (e.type === 'TIMEOUT') return s // no time-based verdict (ADR-0006)
-      const hash = hashOf(s)
-      if (!hash) return undefined
-      // RECEIPT(reverted) is also Included; Failed is decided at `safe`.
-      if (e.type === 'RECEIPT') return { status: 'Included', hash }
-      if (e.type === 'NONCE_PASSED_NO_RECEIPT') return { status: 'Replaced', hash }
-      return undefined
-    }
-    case 'Included':
-      if (e.type === 'SAFE') return { status: e.ok ? 'Confirmed' : 'Failed', hash: s.hash }
-      if (e.type === 'REORGED') return { status: 'Pending', hash: s.hash }
-      return undefined
-    default:
-      return undefined // Confirmed, Failed, Replaced are final
+/** Final states: nothing changes them, so nothing re-checks them. */
+export const isFinal = (s: TxStatus): boolean => s === 'Confirmed' || s === 'Failed' || s === 'Replaced'
+/** States that can still move on their own (ARCHITECTURE.md#invariants). Unknown only moves on a manual re-check. */
+export const isPolled = (s: TxStatus): boolean => s === 'Pending' || s === 'Included'
+
+/**
+ * ARCHITECTURE.md#invariants (transaction state). A receipt at or below the `safe` block is final: success = Confirmed, reverted = Failed (ADR-0006).
+ * A receipt above it is Included, whether it succeeded or not. No receipt: Included falls back to Pending (reorg);
+ * an account nonce at `safe` beyond ours means another tx took the nonce = Replaced (ADR-0006). Nothing else changes the state,
+ * and never the passing of time (ADR-0006).
+ */
+export function deriveState(f: TxFacts): TxStatus {
+  if (isFinal(f.current)) return f.current
+  if (f.receipt) {
+    if (f.safeBlock === null || f.receipt.blockNumber > f.safeBlock) return 'Included'
+    return f.receipt.status === 'success' ? 'Confirmed' : 'Failed'
   }
-}
-
-const reviewing = (requiresAck: boolean): Extract<SendState, { status: 'Reviewing' }> => ({
-  status: 'Reviewing',
-  blocked: false,
-  requiresAck,
-})
-
-/** ADR-0006: no new Draft while any send is Pending or Unknown. */
-export function canStartDraft(sends: readonly SendState[]): boolean {
-  return !sends.some((s) => s.status === 'Pending' || s.status === 'Unknown')
+  if (f.safeNonce !== null && f.safeNonce > BigInt(f.nonce)) return 'Replaced'
+  return f.current === 'Included' ? 'Pending' : f.current
 }

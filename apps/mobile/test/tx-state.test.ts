@@ -1,14 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  FAKE_SETTLE_MS,
-  checkTx,
-  deriveState,
-  fakeSettle,
-  isFinal,
-  isPolled,
-  startPolling,
-  type PollTimers,
-} from '../src/features/send/model/txState'
+import { FAKE_SETTLE_MS, checkTx, fakeSettle, startPolling, type PollTimers } from '../src/features/send/model/txState'
 import { txNotice, txView } from '../src/entities/transaction/txView'
 import type { Receipt } from '../src/shared/chain/port'
 import type { PendingTx } from '../src/shared/storage/kv'
@@ -24,61 +15,6 @@ const tx = (state: PendingTx['state'], nonce = 5): PendingTx => ({
   state,
 })
 const ok = (n: bigint): Receipt => ({ status: 'success', blockNumber: n })
-const bad = (n: bigint): Receipt => ({ status: 'reverted', blockNumber: n })
-
-describe('deriveState (ARCHITECTURE.md#invariants, ADR-0006)', () => {
-  const f = (over: Partial<Parameters<typeof deriveState>[0]>) =>
-    deriveState({ current: 'Pending', nonce: 5, receipt: null, safeBlock: null, safeNonce: null, ...over })
-  it('receipt above the safe block = Included, success or reverted', () => {
-    expect(f({ receipt: ok(101n), safeBlock: 100n })).toBe('Included')
-    expect(f({ receipt: bad(101n), safeBlock: 100n })).toBe('Included')
-  })
-  it('receipt at or below the safe block: success = Confirmed, reverted = Failed', () => {
-    expect(f({ receipt: ok(100n), safeBlock: 100n })).toBe('Confirmed')
-    expect(f({ receipt: ok(7n), safeBlock: 100n })).toBe('Confirmed')
-    expect(f({ receipt: bad(100n), safeBlock: 100n })).toBe('Failed')
-  })
-  it('no safe block known = never final', () => {
-    expect(f({ receipt: ok(1n), safeBlock: null })).toBe('Included')
-  })
-  it('a reverted receipt is not Failed before safe', () => {
-    expect(f({ current: 'Included', receipt: bad(101n), safeBlock: 100n })).toBe('Included')
-  })
-  it('Unknown becomes Included/Confirmed when a receipt shows up', () => {
-    expect(f({ current: 'Unknown', receipt: ok(101n), safeBlock: 100n })).toBe('Included')
-    expect(f({ current: 'Unknown', receipt: ok(90n), safeBlock: 100n })).toBe('Confirmed')
-  })
-  it('no receipt: time alone changes nothing, Pending and Unknown stay', () => {
-    expect(f({})).toBe('Pending')
-    expect(f({ current: 'Unknown' })).toBe('Unknown')
-  })
-  it('no receipt: safe nonce beyond ours = Replaced (ADR-0006); equal or below is not', () => {
-    expect(f({ safeNonce: 6n })).toBe('Replaced')
-    expect(f({ current: 'Unknown', safeNonce: 9n })).toBe('Replaced')
-    expect(f({ safeNonce: 5n })).toBe('Pending')
-    expect(f({ safeNonce: 4n })).toBe('Pending')
-  })
-  it('Included whose receipt is gone (reorg) goes back to Pending', () => {
-    expect(f({ current: 'Included' })).toBe('Pending')
-  })
-  it('final states never move', () => {
-    for (const s of ['Confirmed', 'Failed', 'Replaced'] as const)
-      expect(f({ current: s, receipt: bad(1n), safeBlock: 100n, safeNonce: 99n })).toBe(s)
-  })
-  it('only Pending and Included are polled; Confirmed, Failed, Replaced are final', () => {
-    expect(
-      ['Pending', 'Included', 'Unknown', 'Confirmed', 'Failed', 'Replaced'].map((s) =>
-        isPolled(s as PendingTx['state']),
-      ),
-    ).toEqual([true, true, false, false, false, false])
-    expect(['Confirmed', 'Failed', 'Replaced', 'Pending'].map((s) => isFinal(s as PendingTx['state']))).toEqual([
-      true,
-      true,
-      true,
-      false,
-    ])
-  })
-})
 
 describe('checkTx', () => {
   const chain = (receipt: Receipt | null, safe = 100n, safeNonce = 0n, broadcasts = true) => ({
