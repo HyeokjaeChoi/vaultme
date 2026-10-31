@@ -152,4 +152,5 @@ export function BackupPage({
     </Screen>
   )
 }
+export { BackupCheckPage } from './check'
 export { BackupCheckRoute } from './checkRoute'

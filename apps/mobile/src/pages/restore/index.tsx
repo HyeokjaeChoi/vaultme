@@ -43,7 +43,7 @@ import { NO_AUTOFILL } from '@/shared/ui'
  * Nothing is logged. Every cell and the passphrase field turn off auto-capitalize, auto-correct, spell check and autofill.
  */
 /** `dev` is a __DEV__ design-capture preset (focus look without a keyboard, busy, a finished attempt, the passphrase row open). */
-type RestoreDev = {
+export type RestoreDev = {
   focus?: number
   busy?: boolean
   outcome?: 'exists' | 'error'
@@ -52,7 +52,7 @@ type RestoreDev = {
   showPass?: boolean
   passphrase?: string
 }
-function RestorePage({ initial, dev }: { initial?: { words: string[]; count: WordCount }; dev?: RestoreDev }) {
+export function RestorePage({ initial, dev }: { initial?: { words: string[]; count: WordCount }; dev?: RestoreDev }) {
   const { t } = useTranslation()
   const router = useRouter()
   const th = useTheme()
