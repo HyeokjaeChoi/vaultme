@@ -71,4 +71,9 @@ case_ 0 "$tmp/main" "$tmp/main" "git checkout -b fix/297-send-push-copy" "branch
 case_ 2 "$tmp/feat" "$tmp/feat" "git -c core.x=y -C $tmp/feat -C $tmp/main push" "the last -C wins"
 mkdir "$tmp/main push-target" && git init -q -b main "$tmp/main push-target/r" && git -C "$tmp/main push-target/r" commit -q --allow-empty -m x
 case_ 2 "$tmp/feat" "$tmp/feat" "git -C '$tmp/main push-target/r' push" "-C folder whose name contains push, on main"
+case_ 2 "$tmp/main" "$tmp/main" "git push -o 'review -C $tmp/feat'" "-C inside a push argument is not a folder"
+git init -q -b feat "$tmp/feat/nested" && git -C "$tmp/feat/nested" commit -q --allow-empty -m x
+git init -q -b main "$tmp/main/nested" && git -C "$tmp/main/nested" commit -q --allow-empty -m x
+case_ 2 "$tmp/feat" "$tmp/feat" "git -C $tmp/main -C nested push" "relative -C chains from the previous -C"
+case_ 0 "$tmp/main" "$tmp/main" "git -C $tmp/feat -C nested push" "chained -C into a feature-branch folder"
 exit $fail

@@ -25,12 +25,13 @@ if grep -Eq "$gp"'([^|;&]*[[:space:]])?(origin[[:space:]]+)?([^[:space:]]*:)?(re
   block "do not push to main. Open a PR."
 fi
 # Check the folder the push runs in, not the project folder: a worktree session has its own branch.
-# Folder = `-C <dir>` of the push, else the last `cd <dir>` into a git folder, else the hook input cwd.
-# A `-C` folder that does not resolve blocks (fail closed). ponytail: first push only; no $VAR expansion except $HOME.
-resolve() { # resolve <cd|-C match>: print the folder, quotes stripped, ~ and $HOME expanded, relative to cwd
+# Folder = the hook input cwd, moved by each `cd <dir>` into a git folder, then by each `-C <dir>` before `push`
+# (chained, as in git). A `-C` folder that does not resolve blocks (fail closed).
+# ponytail: first push only; no $VAR expansion except $HOME.
+resolve() { # resolve <cd|-C match> <base>: print the folder, quotes stripped, ~ and $HOME expanded, relative to base
   local d; d=$(sed -E 's/^(cd|-C)[[:space:]]+//' <<<"$1")
   d=${d#[\"\']} d=${d%[\"\']} d=${d/#\~/$HOME} d=${d//\$HOME/$HOME}
-  if [[ $d == /* ]]; then echo "$d"; else echo "$cwd/$d"; fi
+  if [[ $d == /* ]]; then echo "$d"; else echo "$2/$d"; fi
 }
 push=$(grep -oE "$gp"'[^|;&]*' <<<"$chk" | head -1) # is there a push? the folder logic below reads the original text (quoted -C paths)
 [ -n "$push" ] && push=$(grep -oE "$gp"'[^|;&]*' <<<"$cmd" | head -1)
@@ -38,17 +39,19 @@ if [ -n "$push" ]; then
   cwd=$(jq -r '.cwd // empty' <<<"$input")
   cwd=${cwd:-${CLAUDE_PROJECT_DIR:-.}}
   dir=$cwd
-  # The last -C wins, as in git. ponytail: a relative -C after another -C is resolved from cwd, not chained.
-  c=$(grep -oE "[[:space:]]-C[[:space:]]+$path" <<<"$push" | tail -1 | sed -E 's/^[[:space:]]//')
-  if [ -n "$c" ]; then
-    dir=$(resolve "$c")
-    git -C "$dir" rev-parse --git-dir >/dev/null 2>&1 || block "cannot read the branch of $dir. Run the push from a feature-branch folder."
-  else
-    while IFS= read -r m; do
-      d=$(resolve "$m")
-      git -C "$d" rev-parse --git-dir >/dev/null 2>&1 && dir=$d # a cd outside git (e.g. /tmp) does not move the push
-    done < <(grep -oE "(^|[[:space:];&|(])cd[[:space:]]+$path" <<<"${cmd%%"$push"*}" | sed -E 's/^[[:space:];&|(]//')
-  fi
+  while IFS= read -r m; do
+    d=$(resolve "$m" "$cwd")
+    git -C "$d" rev-parse --git-dir >/dev/null 2>&1 && dir=$d # a cd outside git (e.g. /tmp) does not move the push
+  done < <(grep -oE "(^|[[:space:];&|(])cd[[:space:]]+$path" <<<"${cmd%%"$push"*}" | sed -E 's/^[[:space:];&|(]//')
+  # Walk the words between `git` and `push`; only those are git options (a quoted push argument is not).
+  prev= first=1 moved=
+  while IFS= read -r tok; do
+    [ -n "$first" ] && { first=; continue; } # `git` itself
+    [[ $tok =~ ^[\"\']?push[\"\']?$ ]] && break
+    [ "$prev" = -C ] && { dir=$(resolve "-C $tok" "$dir"); moved=1; }
+    prev=$tok
+  done < <(grep -oE "$path" <<<"$push")
+  [ -n "$moved" ] && { git -C "$dir" rev-parse --git-dir >/dev/null 2>&1 || block "cannot read the branch of $dir. Run the push from a feature-branch folder."; }
   [ "$(git -C "$dir" branch --show-current 2>/dev/null)" = main ] && block "you are on main ($dir). Create a branch and open a PR."
 fi
 exit 0
