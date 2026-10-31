@@ -19,10 +19,11 @@ Q62 split app state into three kinds, and Q65 chose the form library. Neither wa
 - Not used: XState, Redux.
 
 ## Consequences
-- The work lands in 5 PRs:
+- The work lands in 6 PRs:
   1. This ADR, the move of `deriveState`, and removal of the unused reducer.
   2. The TanStack Query provider and MMKV persister, starting with the balance.
   3. History, fee estimate and receipt polling (`useTrackedTx`).
   4. The Zustand store.
   5. Forms.
-- Until PR 5 merges, the code and this ADR differ on purpose. `ARCHITECTURE.md` says which parts are done.
+  6. Web viewer server state with TanStack Query (#291).
+- Until PR 6 merges, the code and this ADR differ on purpose. `ARCHITECTURE.md` says which parts are done.

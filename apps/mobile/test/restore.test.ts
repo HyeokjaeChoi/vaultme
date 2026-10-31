@@ -153,11 +153,13 @@ describe('restoreWallet', () => {
     const { restoreWallet, kv } = await setup()
     const { removeRestoredWallet } = await import('../src/features/restore/model/restoreWallet')
     await restoreWallet(VECTOR, PROMPT) // no passphrase: wrong address for the user
+    kv.queryStorage.setItem('queryCache', '{"stored":"balances of the wrong wallet"}')
     expect(items.has('app.vaultme.phrase')).toBe(true)
     expect(await removeRestoredWallet()).toBe(true)
     expect(items.has('app.vaultme.phrase')).toBe(false)
     expect(kv.getAccountAddress()).toBeNull()
     expect(kv.getRestored()).toBe(false)
+    expect(kv.queryStorage.getItem('queryCache')).toBeNull() // gone now, not after the persister throttle
     expect(kv.getBackupDone()).toBe(false)
     const again = await restoreWallet(VECTOR, PROMPT, 'TREZOR') // words kept, passphrase now given
     expect(again.status === 'ok' && again.address.toLowerCase()).toBe('0x9c32f71d4db8fb9e1a58b0a80df79935e7256fa6')

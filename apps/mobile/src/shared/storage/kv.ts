@@ -216,3 +216,10 @@ export function addRecent(r: RecentRecipient): void {
   const rest = getRecents().filter((x) => x.address.toLowerCase() !== r.address.toLowerCase())
   store().set('send.recents', JSON.stringify([r, ...rest].slice(0, MAX_RECENTS)))
 }
+
+// --- TanStack Query cache (ADR-0021): the persister reads and writes one JSON string here. Public chain data only (balances), never the phrase. ---
+export const queryStorage = {
+  getItem: (key: string): string | null => store().getString(`query.${key}`) ?? null,
+  setItem: (key: string, value: string): void => store().set(`query.${key}`, value),
+  removeItem: (key: string): void => void store().remove(`query.${key}`),
+}

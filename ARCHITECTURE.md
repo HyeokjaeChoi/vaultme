@@ -149,8 +149,8 @@ App side (`features/push`):
   - Phrase: Keychain. `BIOMETRY_ANY_OR_DEVICE_PASSCODE`, `WHEN_PASSCODE_SET_THIS_DEVICE_ONLY`, no cloud sync.
   - MMKV encryption key: Keychain, `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`, no auth. The lock gate can then read MMKV before the first render.
   - Device key for install auth: Keychain, separate from the wallet key.
-  - MMKV (AES-256): lock state, pending tx, history cache, flags, recent recipients. No phrase.
-- App state kinds (ADR-0021): server state in TanStack Query, send status derived by `wallet-core` `deriveState`, global UI state in one Zustand store, forms in react-hook-form. Done so far: the derivation in `wallet-core`. Not yet: TanStack Query, Zustand, react-hook-form (the hooks still fetch and keep state with `useState` and MMKV).
+  - MMKV (AES-256): lock state, pending tx, history cache, flags, recent recipients, TanStack Query cache (balances, with the wallet's public address in the key). No phrase.
+- App state kinds (ADR-0021): server state in TanStack Query, send status derived by `wallet-core` `deriveState`, global UI state in one Zustand store, forms in react-hook-form. Done so far: the derivation in `wallet-core`; TanStack Query provider in `shell` with the cache persisted to MMKV (whitelist in `shared/query/persist.ts`), and the balance reads on it. Not yet: history, fee estimate and receipt polling on TanStack Query (the hooks still fetch and keep state with `useState` and MMKV), Zustand, react-hook-form, the web viewer.
 - Transaction state, from receipt facts only (`deriveState` in `wallet-core`):
   - Receipt at or below the `safe` block: `Confirmed` (success) or `Failed` (reverted).
   - Receipt above `safe`: `Included`. If the receipt disappears: back to `Pending`.
