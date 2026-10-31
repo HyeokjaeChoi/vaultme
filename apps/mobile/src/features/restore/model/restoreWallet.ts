@@ -1,5 +1,6 @@
 import { deriveAddress, toMnemonic } from '@vaultme/wallet-core'
 import { classifySaveFailure } from '@/shared/auth'
+import { queryClient } from '@/shared/query'
 import {
   clearAccountAddress,
   deletePhrase,
@@ -59,6 +60,7 @@ export async function removeRestoredWallet(): Promise<boolean> {
     return false
   }
   clearAccountAddress()
+  queryClient.clear() // the removed wallet's balances leave memory and (the persister follows) MMKV
   setRestored(false)
   setBackupDone(false)
   setDepositPromptShown(false)
