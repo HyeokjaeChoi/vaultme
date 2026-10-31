@@ -39,6 +39,12 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
 10. Merge when no Critical or Major finding is open and all checks pass. Record open Minor findings
     as new issues and link them. Squash merge. Project Status moves to `Done` when the issue closes.
 
+## Delegating to a subagent
+
+Create the worktree yourself (`git worktree add -b <branch> <folder> origin/main`) and give the subagent that folder.
+Tell it to start each command with `cd <folder> &&` and to run one git command per call.
+An agent started with worktree isolation cannot run git here: the rtk hook rewrites git commands and the worktree guard then refuses them.
+
 ## Dependency update PRs
 
 Renovate opens them (`.github/renovate.json5`); the Dependency Dashboard issue lists pending and disabled updates.

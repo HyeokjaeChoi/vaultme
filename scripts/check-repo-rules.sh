@@ -235,4 +235,35 @@ if grep -nE '^[[:space:]]*minimumReleaseAgeExclude' pnpm-workspace.yaml; then
   err "R13: no minimumReleaseAgeExclude in pnpm-workspace.yaml; wait 7 days instead"
 fi
 
+# R14. The decision ledger covers every requirements decision (#304): docs/decisions.md has one row per Q1-Q81 with a
+# valid status; a GAP row links an issue; a SUPERSEDED row names its record (ADR, issue/PR or commit). The ADR-0021
+# libraries stay installed, so the state decision cannot silently drop again (Q62 and Q65 were lost this way).
+if ! python3 - <<'PY'
+import json, re, sys
+bad = []
+rows = {}
+for line in open("docs/decisions.md", encoding="utf-8"):
+    m = re.match(r"\| Q(\d+) \|[^|]*\| ([A-Z-]+) \|([^|]*)\|", line)
+    if m:
+        q, status, record = int(m[1]), m[2], m[3]
+        if q in rows: bad.append(f"Q{q}: more than one row")
+        rows[q] = status
+        if status not in ("IMPLEMENTED", "SUPERSEDED", "GAP", "NOT-APPROVED"): bad.append(f"Q{q}: unknown status {status}")
+        if status == "GAP" and not re.search(r"#\d+", record): bad.append(f"Q{q}: GAP needs an issue (#N)")
+        if status == "SUPERSEDED" and not re.search(r"ADR-\d{4}|#\d+|\b[0-9a-f]{7,40}\b|\bQ\d+\b", record): bad.append(f"Q{q}: SUPERSEDED needs its record")
+bad += [f"Q{q}: no row" for q in range(1, 82) if q not in rows]
+deps = {
+    "apps/mobile/package.json": ["@tanstack/react-query", "zustand", "react-hook-form", "zod"],
+    "apps/web/package.json": ["@tanstack/react-query"],
+}
+for f, names in deps.items():
+    d = json.load(open(f)).get("dependencies", {})
+    bad += [f"{f}: ADR-0021 needs {n} in dependencies" for n in names if n not in d]
+for b in bad: print(b, file=sys.stderr)
+sys.exit(1 if bad else 0)
+PY
+then
+  err "R14: docs/decisions.md or ADR-0021 libraries (see above)"
+fi
+
 exit "$fail"
