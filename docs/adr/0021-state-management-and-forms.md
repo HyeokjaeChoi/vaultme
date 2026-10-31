@@ -24,7 +24,7 @@ Q62 split app state into three kinds, and Q65 chose the form library. Neither wa
   2. The TanStack Query provider and MMKV persister, starting with the balance.
   3. History, fee estimate and receipt polling (`useTrackedTx`).
   4. The Zustand store.
-  5. Forms.
+  5. Forms (done, #300: send recipient, send amount, restore, backup word check).
   6. Web viewer server state with TanStack Query (#291).
   PR 3 notes: the receipt poll keeps `startPolling` (15 s, focused screen, stops when final or Unknown) and fetches each check through the query client, not `refetchInterval`. With `refetchInterval` the state would be written when data arrives, and a query shared by several screens could move an Unknown send without a manual re-check (ADR-0006). History, snapshot, review and receipt reads are not persisted (the history seam already stores its page; the others hold bigint or must be fresh).
 - Until PR 6 merges, the code and this ADR differ on purpose. `ARCHITECTURE.md` says which parts are done.

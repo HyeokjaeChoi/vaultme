@@ -1,3 +1,4 @@
+import { AddressInput } from '@vaultme/contracts'
 import { toChecksumAddress } from '@vaultme/wallet-core'
 
 /** Splits an address into 4-char groups (ARCHITECTURE.md#invariants). The "0x" prefix stays attached to the first group, as drawn in Figma ("0x9F3c 7A21 ..."). */
@@ -29,7 +30,7 @@ export const shortAddress = (address: string) => {
 export const displayGroups = (address: string): string[] => groupAddress(toChecksumAddress(address))
 
 /** Format check only (0x + 40 hex). It does not establish ownership or safety. */
-export const isAddressFormat = (address: string) => /^0x[0-9a-fA-F]{40}$/.test(address)
+export const isAddressFormat = (address: string) => AddressInput.safeParse(address).success
 
 /** The address as shown: EIP-55 form, one contiguous run (no group spaces; the wrap is natural). A hash stays as it is. */
 export const displayAddress = (address: string): string => toChecksumAddress(address)

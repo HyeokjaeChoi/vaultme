@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { WRONG_ANSWER, answersFilled, checkResolver } from '../src/features/backup/model/form'
 import { emptyWords, fromPhrase } from '../src/features/restore/model/cells'
 import { RESTORE_ISSUE, restoreResolver, type RestoreForm } from '../src/features/restore/model/form'
-import { AMOUNT_ISSUE, amountResolver, recipientResolver } from '../src/features/send/model/forms'
+import { AMOUNT_ISSUE, amountResolver, isFeeShortOnly, recipientResolver } from '../src/features/send/model/forms'
 
 // Published BIP39 test vectors only (all-zero entropy) and the zero address. Not wallet phrases.
 const VECTOR = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
@@ -115,3 +115,20 @@ describe('secrets: react-hook-form keeps no copy after reset (restore screen cle
   })
 })
 const set12 = (w: string) => emptyWords().map((_, i) => (i === 0 ? w : 'abandon'))
+
+describe('amount resolver: USDC fee shortfall (wallet-core sendLimits result)', () => {
+  const code = async (r: ReturnType<typeof amountResolver>, amount: string) =>
+    msg((await run(r, { amount })).errors, 'amount')
+  it('feeShort is judged for a valid amount, after zero and insufficient', async () => {
+    const r = amountResolver('USDC', '25.5', true)
+    expect(await code(r, '5')).toBe(AMOUNT_ISSUE.feeShort)
+    expect(await code(r, '0')).toBe(AMOUNT_ISSUE.zero)
+    expect(await code(r, '99')).toBe(AMOUNT_ISSUE.insufficient)
+    expect(await code(amountResolver('USDC', '25.5', false), '5')).toBeUndefined()
+  })
+  it('only the fee shortfall leaves 검토 on', () => {
+    expect(isFeeShortOnly(AMOUNT_ISSUE.feeShort)).toBe(true)
+    expect(isFeeShortOnly(AMOUNT_ISSUE.zero)).toBe(false)
+    expect(isFeeShortOnly(undefined)).toBe(false)
+  })
+})

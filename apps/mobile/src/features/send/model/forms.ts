@@ -12,18 +12,25 @@ export type AmountForm = { amount: string }
 export const recipientResolver = zodResolver(z.object({ to: AddressInput }), undefined, { mode: 'sync' })
 
 /** Issue codes (`message` of the `amount` error). */
-export const AMOUNT_ISSUE = { zero: 'zero', insufficient: 'insufficient' } as const
+export const AMOUNT_ISSUE = { zero: 'zero', insufficient: 'insufficient', feeShort: 'feeShort' } as const
 
-/** `sendable` null = not known yet: no balance check (the keypad works, Review blocks). A USDC fee shortfall is a warning on the screen, not an input error. */
-export const amountResolver = (asset: AssetId, sendable: string | null) =>
+/**
+ * `sendable` null = not known yet: no balance check (the keypad works, Review blocks). `feeShort` (USDC only, from `sendLimits`: the ETH balance does not cover the fee cap) is judged here too,
+ * but the screen shows it as a warning and keeps 검토 on: Review blocks it. Only `zero`, `insufficient` and format issues disable 검토.
+ */
+export const amountResolver = (asset: AssetId, sendable: string | null, feeShort = false) =>
   zodResolver(
     z.object({
       amount: AmountInput.superRefine((a, ctx) => {
         if (isZeroAmount(a)) ctx.addIssue({ code: 'custom', message: AMOUNT_ISSUE.zero })
         else if (sendable !== null && exceedsBalance(a, sendable, asset))
           ctx.addIssue({ code: 'custom', message: AMOUNT_ISSUE.insufficient })
+        else if (feeShort) ctx.addIssue({ code: 'custom', message: AMOUNT_ISSUE.feeShort })
       }),
     }),
     undefined,
     { mode: 'sync' },
   )
+
+/** True when the only amount issue is the fee shortfall: it warns, 검토 stays on and Review blocks. */
+export const isFeeShortOnly = (message: string | undefined): boolean => message === AMOUNT_ISSUE.feeShort

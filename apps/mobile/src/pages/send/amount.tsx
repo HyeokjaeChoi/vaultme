@@ -10,6 +10,7 @@ import { cleanAmount } from '@/entities/transaction'
 import {
   AMOUNT_ISSUE,
   amountResolver,
+  isFeeShortOnly,
   getPreselectedAsset,
   parseSendAsset,
   sendFrom,
@@ -68,7 +69,7 @@ export function SendAmountPage() {
   // react-hook-form owns the amount string and its checks: shape from contracts (AmountInput), zero and "more than sendable" from wallet-core through amountResolver. The keypad, chips and Max only set the value.
   const form = useForm<AmountForm>({
     defaultValues: { amount: initial === undefined ? '0' : (cleanAmount(initial, asset) ?? '0') },
-    resolver: amountResolver(asset, sendable),
+    resolver: amountResolver(asset, sendable, feeShort),
     mode: 'onChange',
   })
   const { getValues, setValue, trigger } = form
@@ -77,7 +78,7 @@ export function SendAmountPage() {
   // The balance arrives (or the asset changes) after the value was set: judge the same value again against the new limit.
   useEffect(() => {
     void trigger()
-  }, [sendable, asset, trigger])
+  }, [sendable, feeShort, asset, trigger])
   const balances = useSendBalances()
   const { style: shakeStyle, shake } = useShake(th.primitive.space[2])
   // After "테스트 ETH 받기" the user comes back from the browser: read the ETH balance again while the fee shortage shows.
@@ -93,6 +94,7 @@ export function SendAmountPage() {
     else setAmount(r.amount)
     return r.accepted
   }
+  const review = () => router.push({ pathname: '/review', params: { to, amount: getValues('amount'), asset } })
   const pick = (a: AssetId) => {
     setPicker(false)
     if (a !== asset) {
@@ -112,8 +114,14 @@ export function SendAmountPage() {
       footer={
         <Button
           label={t('send.review')}
-          disabled={!isValid}
-          onPress={() => router.push({ pathname: '/review', params: { to, amount, asset } })}
+          disabled={!isValid && !isFeeShortOnly(errors.amount?.message)}
+          // judged again on press: a validity answer that is a frame old must not open Review with a bad amount
+          onPress={() =>
+            void form.handleSubmit(
+              () => review(),
+              (e) => isFeeShortOnly(e.amount?.message) && review(),
+            )()
+          }
         />
       }
     >
