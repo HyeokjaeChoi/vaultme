@@ -62,7 +62,11 @@ export async function removeRestoredWallet(): Promise<boolean> {
   }
   clearAccountAddress()
   queryClient.clear() // the removed wallet's balances leave memory; the persister would write the empty cache after its 1 s throttle
-  queryStorage.removeItem(QUERY_CACHE_KEY) // ...so remove the stored copy now, in case the app stops before that
+  try {
+    queryStorage.removeItem(QUERY_CACHE_KEY) // ...so remove the stored copy now, in case the app stops before that
+  } catch {
+    // best effort: the wallet removal below must finish (the stored cache is public balances, keyed by the old address, and the persister overwrites it)
+  }
   setRestored(false)
   setBackupDone(false)
   setDepositPromptShown(false)

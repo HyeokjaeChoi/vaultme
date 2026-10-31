@@ -98,4 +98,18 @@ describe('query cache persister (MMKV adapter shape)', () => {
       vi.useRealTimers()
     }
   })
+  it('keeps storing the last value after a failed refetch (status error, data kept)', async () => {
+    const storage = mem()
+    const opts = persistOptions(storage, 0)
+    const a = client()
+    a.setQueryData(balancesKey(ADDR), toRaw({ ETH: 9n, USDC: 8n }))
+    await a
+      .query({ queryKey: balancesKey(ADDR), queryFn: () => Promise.reject(new Error('offline')), staleTime: 0 })
+      .catch(() => undefined)
+    expect(a.getQueryState(balancesKey(ADDR))?.status).toBe('error')
+    await persistQueryClientSave({ queryClient: a, ...opts })
+    const b = client()
+    await persistQueryClientRestore({ queryClient: b, ...opts })
+    expect(fromRaw(b.getQueryData(balancesKey(ADDR)))).toEqual({ ETH: 9n, USDC: 8n })
+  })
 })

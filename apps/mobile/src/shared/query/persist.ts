@@ -1,5 +1,4 @@
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'
-import { defaultShouldDehydrateQuery } from '@tanstack/react-query'
 import type { Persister, PersistQueryClientOptions } from '@tanstack/react-query-persist-client'
 import { CACHE_MAX_AGE_MS } from './client'
 
@@ -44,7 +43,7 @@ export function persistOptions(
     buster: BUSTER,
     dehydrateOptions: {
       shouldDehydrateQuery: (q) =>
-        defaultShouldDehydrateQuery(q) &&
+        q.state.data !== undefined && // not `defaultShouldDehydrateQuery`: it needs status success, and a failed refetch (status error) keeps the old data we must keep storing
         PERSISTED_QUERY_ROOTS.includes(String(q.queryKey[0])) &&
         q.meta?.persist !== false,
     },
