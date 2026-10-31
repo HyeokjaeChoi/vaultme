@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import TxPage, { handle } from '../app/routes/tx'
+import { queryClient } from '../app/shared/api/query'
 
 const H = `0x${'8f'.repeat(32)}`
 const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
@@ -29,6 +30,7 @@ const receipt = {
 let chain: Chain
 
 beforeEach(() => {
+  queryClient.clear() // one client for the app: a read of one test must not answer the next
   chain = { tx: eth, receipt, down: false, internal: { items: [] }, internalDown: false }
   const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status })
   vi.stubGlobal(

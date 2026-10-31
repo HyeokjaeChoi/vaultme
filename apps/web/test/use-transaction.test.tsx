@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTransaction } from '../app/shared/api/useTransaction'
+import { queryClient } from '../app/shared/api/query'
 
 const H1 = `0x${'11'.repeat(32)}`
 const H2 = `0x${'22'.repeat(32)}`
@@ -22,6 +23,7 @@ const block = { number: '0x713a27', timestamp: '0x68fc4f00' }
 type Open = { hash: string; answer: (result: unknown, status?: number) => void }
 let open: Open[] = []
 beforeEach(() => {
+  queryClient.clear() // one client for the app: a read of one test must not answer the next
   open = []
   const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status })
   vi.stubGlobal(
@@ -62,6 +64,7 @@ const pending = (hash: string) =>
     expect(o).toBeDefined()
     return o!
   })
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const take = (o: Open) => void (open = open.filter((x) => x !== o))
 
 describe('useTransaction', () => {
@@ -91,33 +94,42 @@ describe('useTransaction', () => {
     })
     take(open[0]!)
     act(() => result.current[1]())
-    expect(result.current[0]).toEqual({ status: 'loading' })
+    await waitFor(() => {
+      expect(result.current[0]).toEqual({ status: 'loading' })
+    })
     ;(await pending(H1)).answer(null, 503)
     await waitFor(() => {
       expect(result.current[0]).toEqual({ status: 'failed' })
     })
   })
 
-  it('a hash the user left does not replace the new one, and an older retry of the same hash does not either (H1 -> H2 -> H1)', async () => {
-    const { result, rerender } = renderHook(({ h }) => useTransaction(h), { initialProps: { h: H1 } })
+  it('an answer belongs to its own hash (H1 -> H2 -> H1), and a retry replaces the read it answers for', async () => {
+    const { result, rerender } = renderHook(({ h }) => useTransaction(h), {
+      initialProps: { h: H1 },
+    })
     const first = await pending(H1)
     take(first)
     rerender({ h: H2 })
     const second = await pending(H2)
     take(second)
-    rerender({ h: H1 })
+    rerender({ h: H1 }) // the read of H1 is still open: the same query, not a second request
+    second.answer(tx(H2)) // the hash the user left
+    await sleep(50)
+    expect(result.current[0]).toEqual({ status: 'loading' })
+    act(() => result.current[1]()) // retry: the open read is replaced
     ;(await pending(H1)).answer(tx(H1))
     await waitFor(() => {
       expect(result.current[0]).toMatchObject({ status: 'ok', tx: { hash: H1 } })
     })
-    first.answer(null) // the old read of H1 answers last
-    second.answer(tx(H2))
-    await act(() => Promise.resolve())
+    first.answer(null) // the replaced read answers last
+    await sleep(50)
     expect(result.current[0]).toMatchObject({ status: 'ok', tx: { hash: H1 } })
   })
 
   it('shows loading, not the old transaction, for a new hash', async () => {
-    const { result, rerender } = renderHook(({ h }) => useTransaction(h), { initialProps: { h: H1 } })
+    const { result, rerender } = renderHook(({ h }) => useTransaction(h), {
+      initialProps: { h: H1 },
+    })
     ;(await pending(H1)).answer(tx(H1))
     await waitFor(() => {
       expect(result.current[0].status).toBe('ok')

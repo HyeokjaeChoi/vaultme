@@ -415,6 +415,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@tanstack/react-query':
+        specifier: 5.104.5
+        version: 5.104.5(@types/react@19.3.0)(react@19.3.0)
       '@vaultme/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client

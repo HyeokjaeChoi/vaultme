@@ -25,5 +25,5 @@ Q62 split app state into three kinds, and Q65 chose the form library. Neither wa
   3. History, fee estimate and receipt polling (`useTrackedTx`).
   4. The Zustand store.
   5. Forms.
-  6. Web viewer server state with TanStack Query (#291).
+  6. Web viewer server state with TanStack Query, in memory only (#291, done).
 - Until PR 6 merges, the code and this ADR differ on purpose. `ARCHITECTURE.md` says which parts are done.

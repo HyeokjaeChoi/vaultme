@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { INTERNAL_DEADLINE_MS, useInternalTransfers } from '../app/shared/api/useInternalTransfers'
+import { queryClient } from '../app/shared/api/query'
 
 const H1 = `0x${'11'.repeat(32)}`
 const H2 = `0x${'22'.repeat(32)}`
@@ -16,6 +17,7 @@ const item = {
 type Open = { hash: string; answer: (body: unknown, status?: number) => void }
 let open: Open[] = []
 beforeEach(() => {
+  queryClient.clear() // one client for the app: a read of one test must not answer the next
   open = []
   const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status })
   vi.stubGlobal(
@@ -49,6 +51,7 @@ const pending = (hash: string) =>
     expect(o).toBeDefined()
     return o!
   })
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const take = (o: Open) => void (open = open.filter((x) => x !== o))
 
 describe('useInternalTransfers', () => {
@@ -75,7 +78,9 @@ describe('useInternalTransfers', () => {
     })
     take(open[0]!)
     act(() => result.current[1]())
-    expect(result.current[0]).toEqual({ status: 'loading' })
+    await waitFor(() => {
+      expect(result.current[0]).toEqual({ status: 'loading' })
+    })
     ;(await pending(H1)).answer({ items: [] })
     await waitFor(() => {
       expect(result.current[0]).toEqual({ status: 'ok', items: [] })
@@ -97,28 +102,30 @@ describe('useInternalTransfers', () => {
       await act(() => vi.advanceTimersByTimeAsync(INTERNAL_DEADLINE_MS - 1))
       expect(result.current[0]).toEqual({ status: 'loading' })
       await act(() => vi.advanceTimersByTimeAsync(1))
+      await act(() => vi.advanceTimersByTimeAsync(1)) // the query notifies on the next tick
       expect(result.current[0]).toEqual({ status: 'failed' })
     } finally {
       vi.useRealTimers()
     }
   })
 
-  it('an older read never replaces a newer one (H1 -> H2 -> H1), and a new hash shows loading', async () => {
-    const { result, rerender } = renderHook(({ h }) => useInternalTransfers(h), { initialProps: { h: H1 } })
+  it('an answer belongs to its own hash (H1 -> H2 -> H1), and a new hash shows loading', async () => {
+    const { result, rerender } = renderHook(({ h }) => useInternalTransfers(h), {
+      initialProps: { h: H1 },
+    })
     const first = await pending(H1)
     take(first)
     rerender({ h: H2 })
     expect(result.current[0]).toEqual({ status: 'loading' })
     const second = await pending(H2)
     take(second)
-    rerender({ h: H1 })
-    ;(await pending(H1)).answer({ items: [item] })
-    await waitFor(() => {
-      expect(result.current[0].status).toBe('ok')
-    })
-    first.answer({ items: [] })
+    rerender({ h: H1 }) // the read of H1 is still open: the same query, not a second request
     second.answer({ items: [] })
-    await act(() => Promise.resolve())
-    expect(result.current[0]).toMatchObject({ status: 'ok', items: [{ value: 50_000_000_000_000_000n }] })
+    await sleep(50)
+    expect(result.current[0]).toEqual({ status: 'loading' })
+    first.answer({ items: [item] })
+    await waitFor(() => {
+      expect(result.current[0]).toMatchObject({ status: 'ok', items: [{ value: 50_000_000_000_000_000n }] })
+    })
   })
 })

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import AddressPage, { handle } from '../app/routes/address'
+import { queryClient } from '../app/shared/api/query'
 
 const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 
@@ -42,6 +43,7 @@ function open(url: string) {
 
 let api: ReturnType<typeof stubApi>
 beforeEach(() => {
+  queryClient.clear() // one client for the app: a read of one test must not answer the next
   api = stubApi()
 })
 afterEach(() => {

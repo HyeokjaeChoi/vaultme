@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useHistory } from '../app/shared/api/useHistory'
+import { queryClient } from '../app/shared/api/query'
 
 const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const B = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
@@ -32,6 +33,7 @@ type Open = { address: string; cursor?: string; answer: (body: unknown, status?:
 let open: Open[] = []
 let last: Headers | null = null
 beforeEach(() => {
+  queryClient.clear() // one client for the app: a read of one test must not answer the next
   open = []
   const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status })
   vi.stubGlobal(
@@ -63,6 +65,7 @@ const pending = (address: string, cursor?: string) =>
     expect(o).toBeDefined()
     return o!
   })
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const take = (o: Open) => void (open = open.filter((x) => x !== o))
 
 describe('useHistory', () => {
@@ -92,34 +95,55 @@ describe('useHistory', () => {
     })
     take(open[0]!)
     act(() => result.current[1].retry())
-    expect(result.current[0]).toEqual({ status: 'loading' })
+    await waitFor(() => {
+      expect(result.current[0]).toEqual({ status: 'loading' })
+    })
     ;(await pending(A)).answer(page([]))
     await waitFor(() => {
       expect(result.current[0]).toMatchObject({ status: 'ok', items: [] })
     })
   })
 
-  it('an older read of the same address does not replace a newer one (A -> B -> A)', async () => {
-    const { result, rerender } = renderHook(({ a }) => useHistory(a), { initialProps: { a: A } })
+  it('an answer belongs to its own address (A -> B -> A), and a retry replaces the read it answers for', async () => {
+    const { result, rerender } = renderHook(({ a }) => useHistory(a), {
+      initialProps: { a: A },
+    })
     const first = await pending(A)
     take(first)
     rerender({ a: B })
     const second = await pending(B)
     take(second)
-    rerender({ a: A })
-    ;(await pending(A)).answer(page([row(1), row(2)]))
+    rerender({ a: A }) // the read of A is still open: the same query, not a second request
+    second.answer(page([row(8)])) // the address the user left
+    await sleep(50)
+    expect(result.current[0]).toEqual({ status: 'loading' })
+    first.answer(page([row(1), row(2)]))
     await waitFor(() => {
       expect(result.current[0]).toMatchObject({ status: 'ok' })
     })
-    first.answer(page([row(9)]))
-    second.answer(page([row(8)]))
-    await new Promise((r) => setTimeout(r, 50))
     const s = result.current[0]
     expect(s.status === 'ok' && s.items).toHaveLength(2)
   })
 
+  it('retry while a read is open: only the new read answers', async () => {
+    const { result } = renderHook(() => useHistory(A))
+    const old = await pending(A)
+    take(old)
+    act(() => result.current[1].retry())
+    ;(await pending(A)).answer(page([row(1)]))
+    await waitFor(() => {
+      expect(result.current[0]).toMatchObject({ status: 'ok' })
+    })
+    old.answer(page([row(9), row(8)]))
+    await sleep(50)
+    const s = result.current[0]
+    expect(s.status === 'ok' && s.items).toHaveLength(1)
+  })
+
   it('loading is per request: the next address shows loading while a read the user left is still open', async () => {
-    const { result, rerender } = renderHook(({ a }) => useHistory(a), { initialProps: { a: A } })
+    const { result, rerender } = renderHook(({ a }) => useHistory(a), {
+      initialProps: { a: A },
+    })
     take(await pending(A)) // never answered
     rerender({ a: B })
     expect(result.current[0]).toEqual({ status: 'loading' })
@@ -137,7 +161,9 @@ describe('useHistory', () => {
     })
     take(open[0]!)
     act(() => result.current[1].more())
-    expect(result.current[0]).toMatchObject({ status: 'ok', more: 'loading' })
+    await waitFor(() => {
+      expect(result.current[0]).toMatchObject({ status: 'ok', more: 'loading' })
+    })
     act(() => result.current[1].more()) // a second click while loading asks for nothing
     const o = await pending(A, 'c1')
     expect(open.filter((x) => x.cursor === 'c1')).toHaveLength(1)
@@ -169,7 +195,9 @@ describe('useHistory', () => {
   })
 
   it('a more answer that comes after the user left the address is dropped', async () => {
-    const { result, rerender } = renderHook(({ a }) => useHistory(a), { initialProps: { a: A } })
+    const { result, rerender } = renderHook(({ a }) => useHistory(a), {
+      initialProps: { a: A },
+    })
     ;(await pending(A)).answer(page([row(1)], 'c1'))
     await waitFor(() => {
       expect(result.current[0]).toMatchObject({ status: 'ok' })
