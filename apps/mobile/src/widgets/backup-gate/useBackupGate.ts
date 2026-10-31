@@ -14,7 +14,8 @@ export function useBackupGate(): BackupGateState & { markPromptShown: () => void
     try {
       appStore().getState().setDepositPromptShown(true)
     } catch {
-      // kv write failed: the prompt may show again next launch, never block the sheet
+      // kv write failed: keep the prompt off for this session in memory only (as before), so the sheet does not reopen each time; it may show again next launch
+      appStore().setState({ depositPromptShown: true })
     }
   }, [])
   const hasIncoming = !!view?.items.some((i) => i.kind === 'receive')
