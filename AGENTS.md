@@ -31,6 +31,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | PR body ≤ 3,500 characters and `Closes #N` (Renovate and Dependabot PRs exempt) | `.github/workflows/pr-description.yml` `check` |
 | Code is Prettier-formatted and ESLint-clean with 0 warnings | pre-commit `lint-staged`, pre-push, CI `verify` |
 | Mobile FSD layers: imports go down only, other slices only through their `index`, route files only re-export `src/shell` or `src/pages` | `apps/mobile/eslint.config.mjs` boundaries, `apps/mobile/steiger.config.mjs` |
+| Every requirements decision Q1–Q81 has a ledger row; a gap links an issue; ADR-0021 libraries stay installed | R14 |
 | Typecheck, lint and tests pass | CI `verify`, pre-push hook |
 | The web app: real 404 status, security headers, axe = 0, Lighthouse 4 × ≥95 (desktop and mobile), JS: static pages ≤ 100 KB, viewer (`/address`, `/tx`) ≤ 150 KB (153,600 B), counted as the gzip body of the app's own JS without response headers (ADR-0018; the lhci jobs run on the build without the third-party Web Analytics beacon, ADR-0017) | CI `web` (`apps/web/e2e`) and `lhci (desktop)` / `lhci (mobile)` (`lighthouserc.*.json`, JS size: `apps/web/scripts/js-budget.ts`; the intentional 404 skips 2 SEO audits: `is-crawlable`, `http-status-code`) |
 | Test coverage stays at or above each package's floor | `coverage.thresholds` in each `vitest.config.ts` |
@@ -57,7 +58,7 @@ When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a t
 3. Wallet actions show account, network, asset, recipient or spender, amount or allowance, estimated fee and status. Never claim a security check, network or feature that is not implemented and checked.
 4. When the owner did not choose a library, version, API, config or workaround: read the official docs first (ctx7), check the installed and latest stable version and deprecations, and prefer the official solution. A workaround gets a code comment with its reason and removal condition. Cite each source and version in the report and PR, and say what you could not check. Put these steps in delegated instructions too.
 5. Report only what you ran and saw. Say what you could not check.
-6. Code wins over docs. If a doc and the code disagree, follow the code and report the mismatch.
+6. Code wins over docs that describe current behavior. If such a doc and the code disagree, follow the code and report the mismatch. An approved decision the code does not follow is a gap, not a stale doc: keep it, mark it GAP in `docs/decisions.md` with an issue, and ask the owner.
 7. Accepted ADRs in docs/adr bind. If a change conflicts with one, stop and ask; to change a decision, write a new ADR that supersedes it.
 8. Model tiers. Feature design, grilling, architecture decisions and planning use the top tier. Research and implementation use a lower tier. Conversational work needs a top-tier session; one-shot design analysis may go to a top-tier subagent. Tier-to-model mapping: `docs/agents/models.md`.
 
@@ -65,7 +66,7 @@ When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a t
 
 - Work steps (issue → branch → PR; work that changes no repo file needs no PR): `docs/agents/workflow.md`
 - Architecture: `ARCHITECTURE.md`
-- Decisions: `docs/adr/`
+- Decisions: `docs/adr/`; every approved requirements decision (Q1–Q81) and its status: `docs/decisions.md`
 - Review: what a reviewer reads per path, the four axes, the output format and the learning loop: `REVIEW.md`
 - Before you edit an area, read `ARCHITECTURE.md`, the ADRs that touch it and `.claude/skills/vaultme-review-lessons/SKILL.md`.
 - Area rules: `apps/mobile/AGENTS.md`, `apps/web/AGENTS.md`, `packages/tokens/AGENTS.md` (loaded when you open a file there).
