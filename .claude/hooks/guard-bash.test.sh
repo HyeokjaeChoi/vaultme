@@ -51,4 +51,13 @@ case_ 2 "$tmp/feat" "$tmp/feat" 'git commit "--no-verify" -m x' "quoted --no-ver
 case_ 2 "$tmp/feat" "$tmp/feat" 'bash -c "git push --force"' "bash -c wrapper"
 case_ 2 "$tmp/feat" "$tmp/feat" 'echo "$(git push origin main)"' "command substitution in double quotes"
 case_ 2 "$tmp/main" "$tmp/main" 'echo "x" && git push' "real push on main after a quoted string"
+# `push` counts only as the git subcommand (#306).
+case_ 0 "$tmp/main" "$tmp/main" "git show origin/main:packages/contracts/src/push.ts" "file named push.ts in a read-only command on main"
+case_ 0 "$tmp/main" "$tmp/main" "git checkout -b fix/306-guard-push-word" "branch name with push on main"
+case_ 0 "$tmp/main" "$tmp/main" "git log --oneline -- push.ts" "path argument named push.ts on main"
+case_ 2 "$tmp/main" "$tmp/main" "git -c core.x=y push" "-c option before push on main"
+case_ 2 "$tmp/main" "$tmp/main" "git --no-pager push -u origin feat" "--no-pager before push on main"
+case_ 2 "$tmp/main" "$tmp/main" "rtk git push" "rtk git push on main"
+case_ 2 "$tmp/feat" "$tmp/feat" "git -c core.x=y -C $tmp/main push" "-c then -C <folder on main>"
+case_ 2 "$tmp/feat" "$tmp/feat" "git -c core.x=y push --force" "force push after -c"
 exit $fail
