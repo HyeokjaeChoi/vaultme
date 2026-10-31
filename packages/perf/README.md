@@ -49,4 +49,6 @@ The reasons for the counts are in the amendment of ADR-0019.
 It uses the variable `STAGING_API_URL` of the `staging` environment and no secret. Results are not uploaded anywhere else (no k6 Cloud).
 Start it by hand: `gh workflow run api-bench.yml`.
 
+Two tiers ([ADR-0020](../../docs/adr/0020-api-ux-slo-and-regression-watch.md), [docs/perf/slo.md](../../docs/perf/slo.md)), both in `src/slo.ts`: tier 1 is the UX SLO, a k6 threshold that fails the job; tier 2 is the regression watch (1.5 x the highest calibration p95, `WATCH_P95_MS` in `k6/api.js`), which only adds a warning line to the job summary.
+
 The older `latency` command (`pnpm --filter @vaultme/perf latency`) stays as the Node measurement behind the baseline until the baseline moves to k6.

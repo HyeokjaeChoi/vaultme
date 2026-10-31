@@ -8,6 +8,7 @@ import { check, sleep } from 'k6'
 import { b64encode } from 'k6/encoding'
 import http from 'k6/http'
 import { Rate, Trend } from 'k6/metrics'
+import { CASES, evaluate, SLO_MS, tierMarkdown, warnings } from '../src/slo.ts'
 
 const BASE_URL = (__ENV.BASE_URL || '').replace(/\/+$/, '')
 const MODE = __ENV.MODE
@@ -37,18 +38,21 @@ export const options = {
   thresholds: {},
 }
 
-const ENDPOINTS = ['health', 'rpc', 'history_hit', 'history_miss']
-// p95 limit of the total time in ms: 1.5 times the median p95 of 5 CI runs, rounded up to 2 significant digits (ADR-0019).
-// These fail the api-bench job only: this script runs nowhere else (never in PR CI).
-const P95_LIMIT_MS = {
-  warm: { health: 73, rpc: 220, history_hit: 50, history_miss: 2000 },
-  cold: { health: 220, rpc: 410, history_hit: 180, history_miss: 2100 },
+const ENDPOINTS = CASES
+// Tier 2, the regression watch (ADR-0020): 1.5 times the highest run p95 of the 5 calibration runs, in ms. Warning only, never a
+// k6 threshold (a threshold sets the exit code). `node packages/perf/src/cli.ts bench` prints this constant.
+const WATCH_P95_MS = {
+  warm: { health: 132, rpc: 280, history_hit: 110, history_miss: 2542 },
+  cold: { health: 334, rpc: 987, history_hit: 661, history_miss: 2785 },
 }
 // k6 keeps a sub-metric only when a threshold names it, so every case gets one; the parts have one that always passes (collect only).
 for (const e of ENDPOINTS) {
   for (const m of ['duration', 'dns', 'connecting', 'tls', 'waiting'])
     options.thresholds[`ok_${m}{endpoint:${e}}`] = ['max>=0']
-  options.thresholds[`ok_total{endpoint:${e}}`] = [`p(95)<${P95_LIMIT_MS[MODE][e]}`]
+  // Tier 1, the UX SLO (ADR-0020): it fails the api-bench job only, this script runs nowhere else (never in PR CI).
+  // A case with no SLO (health) only collects.
+  const slo = SLO_MS[MODE][e]
+  options.thresholds[`ok_total{endpoint:${e}}`] = [slo === undefined ? 'max>=0' : `p(95)<=${slo}`]
   // At least one 200 per case: a case that never answered is a failed run, not a fast one.
   options.thresholds[`call_ok{endpoint:${e}}`] = ['rate>0']
 }
@@ -223,9 +227,19 @@ function markdown(r) {
   ].join('\n')
 }
 
+/** Pure: the tier-1 and tier-2 rows of one result. */
+function tiers(r) {
+  const p95 = Object.fromEntries(
+    ENDPOINTS.map((e) => [e, r.endpoints[e].ok === 0 ? null : (r.endpoints[e].total?.p95 ?? null)]),
+  )
+  return evaluate(r.mode, p95, { warm: WATCH_P95_MS.warm, cold: WATCH_P95_MS.cold })
+}
+
 export function handleSummary(data) {
   const r = summarize(data)
-  const md = markdown(r)
+  const rows = tiers(r)
+  for (const line of warnings(r.mode, rows)) console.warn(line)
+  const md = `${markdown(r)}\n${tierMarkdown(r.mode, rows)}`
   return {
     [`${OUT_DIR}/k6-api-${MODE}.json`]: JSON.stringify(r, null, 2),
     [`${OUT_DIR}/k6-api-${MODE}.md`]: md,

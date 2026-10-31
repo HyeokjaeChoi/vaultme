@@ -86,7 +86,7 @@ export function renderBaseline(b: Baseline): string {
   return `# Performance baseline
 
 Measured ${b.measuredAt} on commit \`${b.commit}\` (${b.origin}). Source of truth for the numbers: \`baseline.json\` (this file is generated from it).
-Storage and procedure: [ADR-0019](../adr/0019-performance-measurements-and-baseline.md). These are measurements, not limits: the limits stay in \`apps/web/lighthouserc.*.json\`, \`apps/web/scripts/js-budget.ts\` and \`apps/mobile/package.json\`.
+Storage and procedure: [ADR-0019](../adr/0019-performance-measurements-and-baseline.md). These are measurements, not limits; the SLOs are in [slo.md](slo.md) and the limits stay in \`apps/web/lighthouserc.*.json\`, \`apps/web/scripts/js-budget.ts\` and \`apps/mobile/package.json\`.
 
 ## Web: Lighthouse
 
@@ -131,7 +131,7 @@ function benchSection(a: ApiBench): string {
 
 Measured ${a.measuredAt} on commit \`${a.commit}\` (${a.origin}), ${String(a.runs)} runs of \`api-bench\` ([README](../../packages/perf/README.md)). Times in ms, total = DNS + TCP + TLS + request + response (HTTP 200 only).
 p50 and p95 are the median over the runs; the range columns are the lowest and highest run value (the spread). TCP, TLS and TTFB are medians of the run p50 (0 TCP and TLS in the warm mode: the connection is reused).
-The p95 limit is the k6 threshold of \`api.js\`: 1.5 times the median p95, rounded up to 2 significant digits (ADR-0019). It fails the \`api-bench\` job only.
+Tier 1 SLO: absolute UX limit on the p95, from web.dev and Nielsen ([slo.md](slo.md), [ADR-0020](../adr/0020-api-ux-slo-and-regression-watch.md)); it fails the \`api-bench\` job only. Tier 2 limit: 1.5 times the highest run p95 of the range column, rounded up; it only warns.
 The \`history_hit\` case has no cache marker in the response; a cold-mode hit that reached another Cloudflare server shows up as a slow outlier.
 
 ${benchTable(a.results)}

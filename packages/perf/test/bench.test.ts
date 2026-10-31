@@ -1,15 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  aggregate,
-  benchTable,
-  CASES,
-  limitsJs,
-  median,
-  MODES,
-  thresholdMs,
-  type K6Result,
-  type Mode,
-} from '../src/bench.ts'
+import { aggregate, benchTable, CASES, limitsJs, median, MODES, type K6Result, type Mode } from '../src/bench.ts'
 import { buildBaseline, renderBaseline } from '../src/baseline.ts'
 
 const trend = (p50: number, p95: number) => ({ p50, p95 })
@@ -61,25 +51,21 @@ describe('aggregate', () => {
   })
 })
 
-describe('thresholdMs', () => {
-  it('is 1.5 times the p95, rounded up to 2 significant digits', () => {
-    expect(thresholdMs(193)).toBe(290)
-    expect(thresholdMs(110)).toBe(170)
-    expect(thresholdMs(1856)).toBe(2800)
-    expect(thresholdMs(80)).toBe(120)
-  })
-})
-
 describe('tables', () => {
   const r = aggregate(runs)
-  it('lists every case and mode with its limit', () => {
+  it('lists every case and mode with its tier-1 SLO and tier-2 limit', () => {
     const t = benchTable(r)
-    expect(t).toContain('| `GET /v1/health` | warm | 15 / 15 | 55 | 50-60 | 110 | 100-120 | 0 | 0 | 27.5 | 170 |')
+    expect(t).toContain(
+      '| `GET /v1/health` | warm | 15 / 15 | 55 | 50-60 | 110 | 100-120 | 0 | 0 | 27.5 | none | 180 |',
+    )
+    expect(t).toContain(
+      '| `POST /v1/rpc` (`eth_blockNumber`) | cold | 15 / 15 | 55 | 50-60 | 110 | 100-120 | 30 | 40 | 27.5 | 500 | 180 |',
+    )
     expect(t.split('\n')).toHaveLength(2 + MODES.length * CASES.length)
   })
-  it('prints the limits as the constant of api.js', () => {
+  it('prints the tier-2 limits (1.5 x the highest run p95) as the constant of api.js', () => {
     expect(limitsJs(r)).toBe(
-      'const P95_LIMIT_MS = {\n  warm: { health: 170, rpc: 170, history_hit: 170, history_miss: 170 },\n  cold: { health: 170, rpc: 170, history_hit: 170, history_miss: 170 },\n}',
+      'const WATCH_P95_MS = {\n  warm: { health: 180, rpc: 180, history_hit: 180, history_miss: 180 },\n  cold: { health: 180, rpc: 180, history_hit: 180, history_miss: 180 },\n}',
     )
   })
   it('adds the section to the baseline text only when the benchmark is set', () => {

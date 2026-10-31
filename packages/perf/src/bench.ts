@@ -1,8 +1,7 @@
 // Aggregation of the k6 API benchmark (packages/perf/k6/api.js, ADR-0019): several CI runs to one baseline.
-export const MODES = ['warm', 'cold'] as const
-export type Mode = (typeof MODES)[number]
-export const CASES = ['health', 'rpc', 'history_hit', 'history_miss'] as const
-export type Case = (typeof CASES)[number]
+import { CASES, MODES, SLO_MS, watchMs, type Case, type Mode } from './slo.ts'
+
+export { CASES, MODES, type Case, type Mode }
 
 type Trend = { p50: number; p95: number } | null
 /** The part of `k6-api-<mode>.json` that is read here. */
@@ -79,13 +78,6 @@ export function aggregate(runs: K6Result[]): Record<Mode, Record<Case, BenchCase
   return { warm: mode('warm'), cold: mode('cold') }
 }
 
-/** Threshold rule (ADR-0019): 1.5 times the observed p95, rounded up to 2 significant digits (p95 193 gives 290). */
-export function thresholdMs(p95Ms: number): number {
-  const x = p95Ms * 1.5
-  const step = 10 ** (Math.floor(Math.log10(x)) - 1)
-  return Math.ceil(x / step) * step
-}
-
 const NAMES: Record<Case, string> = {
   health: '`GET /v1/health`',
   rpc: '`POST /v1/rpc` (`eth_blockNumber`)',
@@ -104,7 +96,8 @@ const row = (mode: Mode, c: Case, b: BenchCase) => [
   String(b.parts.connectMs),
   String(b.parts.tlsMs),
   String(b.parts.ttfbMs),
-  String(thresholdMs(b.p95Ms)),
+  String(SLO_MS[mode][c] ?? 'none'),
+  String(watchMs(b.p95Range[1])),
 ]
 
 /** Markdown table of the aggregated benchmark. */
@@ -120,14 +113,16 @@ export function benchTable(r: ApiBench['results']): string {
     'TCP p50',
     'TLS p50',
     'TTFB p50',
-    'p95 limit',
+    'Tier 1 SLO',
+    'Tier 2 limit',
   ]
   const rows = MODES.flatMap((m) => CASES.map((c) => row(m, c, r[m][c])))
   return [head, head.map(() => '---'), ...rows].map((x) => `| ${x.join(' | ')} |`).join('\n')
 }
 
-/** The limits of `packages/perf/k6/api.js`, in the shape of its `P95_LIMIT_MS` constant. */
+/** The tier-2 limits of `packages/perf/k6/api.js`, in the shape of its `WATCH_P95_MS` constant. */
 export function limitsJs(r: ApiBench['results']): string {
-  const mode = (m: Mode) => `  ${m}: { ${CASES.map((c) => `${c}: ${String(thresholdMs(r[m][c].p95Ms))}`).join(', ')} },`
-  return ['const P95_LIMIT_MS = {', ...MODES.map(mode), '}'].join('\n')
+  const mode = (m: Mode) =>
+    `  ${m}: { ${CASES.map((c) => `${c}: ${String(watchMs(r[m][c].p95Range[1]))}`).join(', ')} },`
+  return ['const WATCH_P95_MS = {', ...MODES.map(mode), '}'].join('\n')
 }
