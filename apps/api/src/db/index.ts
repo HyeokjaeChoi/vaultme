@@ -9,3 +9,9 @@ export type Db = ReturnType<typeof getDb>
 export const runBatch = (db: Db, statements: BatchItem<'sqlite'>[]): Promise<D1Result[]> =>
   db.batch(statements as [BatchItem<'sqlite'>, ...BatchItem<'sqlite'>[]])
 export type { BatchItem }
+
+/**
+ * drizzle wraps a failed query as `Failed query: <sql>\nparams: <values>` (DrizzleQueryError). The values are install ids, nonces and keys, which
+ * a raw D1 error never held: drop them before a message goes to a log line or Sentry.
+ */
+export const withoutParams = (message: string): string => message.replace(/\nparams:[\s\S]*$/, '')

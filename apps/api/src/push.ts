@@ -2,7 +2,7 @@ import { PUSH_CHANNEL_ID, PUSH_COPY, USDC_SEPOLIA, type PushData } from '@vaultm
 import { and, desc, eq, inArray, lt, notInArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { nowSeconds } from './auth.ts'
-import { getDb, runBatch, type BatchItem } from './db/index.ts'
+import { getDb, runBatch, withoutParams, type BatchItem } from './db/index.ts'
 import { installs, pushReceipts, pushSent, pushSubscriptions, pushUnregister } from './db/schema.ts'
 import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
@@ -255,7 +255,7 @@ async function checkReceipts(env: Bindings, now: number): Promise<void> {
           checked.map((r) => db.delete(pushReceipts).where(eq(pushReceipts.receiptId, r.receiptId))),
         )
     } catch (e) {
-      logEvent('error', 'expo_receipts_failed', { reason: e instanceof Error ? e.message : 'error' }) // retried by the next run
+      logEvent('error', 'expo_receipts_failed', { reason: e instanceof Error ? withoutParams(e.message) : 'error' }) // retried by the next run
       return
     }
   }
