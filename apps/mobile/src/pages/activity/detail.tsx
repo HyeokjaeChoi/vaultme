@@ -8,13 +8,11 @@ import { demoTx } from '@/entities/transaction'
 import {
   findCachedRow,
   localRecordMatches,
-  parseDir,
   rowCopy,
   useInternalTransfers,
   useRowLookup,
   type HistoryItem,
   type Internal,
-  type PushDir,
   type RowLookup,
 } from '@/features/history'
 import type { TxState } from '@/features/send'
@@ -186,24 +184,22 @@ function RowDetail({
 
 /**
  * S41 for a route param with no local record, no cached row and not an example row: looks the row up (cache, then a fresh history page).
- * Loading = Figma 749:2651, load failed 749:2738, not found 749:2800. Several rows with one hash: back to the list, which a push tap has below S41.
+ * Loading = Figma 749:2651, load failed 749:2738, not found 749:2800. Several rows with one hash: back to the list, which a deep link has below S41.
  * `?lookup=loading|failed|none` is a __DEV__ capture override of the three states.
  */
 function LookupDetail({
   id,
   address,
   real,
-  dir,
   dev,
 }: {
   id: string
   address: string | null
   real: string | undefined
-  dir: PushDir | undefined
   dev?: string
 }) {
   const { t } = useTranslation()
-  const { lookup, retry } = useRowLookup(id, dir)
+  const { lookup, retry } = useRowLookup(id)
   const state: RowLookup | null =
     __DEV__ && dev ? (dev === 'loading' ? null : { status: dev === 'failed' ? 'failed' : 'none' }) : lookup
   if (state?.status === 'row') return <RowDetail row={state.row} address={address} real={real} example={false} />
@@ -251,8 +247,7 @@ export function TxDetailPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const {
-    hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash), or a bare hash from a push
-    dir: dirParam, // `in` | `out`: the direction a push named (a tx can have a row of each)
+    hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash), or a bare hash
     demo,
     row: devRow,
     lookup: devLookup,
@@ -262,7 +257,6 @@ export function TxDetailPage() {
     err,
   } = useLocalSearchParams<{
     hash: string
-    dir?: string
     row?: string
     lookup?: string
     internal?: string
@@ -276,16 +270,15 @@ export function TxDetailPage() {
   const { tx: stored, checking, error: trackedError, recheck } = useTrackedTx()
   const testMode = useTestMode()
   const error = __DEV__ && err === '1' ? new ApiError('network', 0, true, 'offline') : trackedError // `?err=1` is a __DEV__ capture override (Figma 457:17668)
-  const dir = parseDir(dirParam)
-  // The local record wins over a history row with the same hash (not for the deposit leg of a self-send: `dir` = in).
-  const tx = __DEV__ && demo ? demoTx(demo as TxState) : localRecordMatches(stored?.hash, id, dir) ? stored : null
+  // The local record wins over a history row with the same hash.
+  const tx = __DEV__ && demo ? demoTx(demo as TxState) : localRecordMatches(stored?.hash, id) ? stored : null
   const [readInternal, retryInternal] = useInternalTransfers(
     tx && !testMode && tx.state === 'Confirmed' ? tx.hash : null,
   )
   const internal = __DEV__ && devInternalParam ? devInternal(devInternalParam) : readInternal
   if (!tx) {
     const address = __DEV__ && devRow ? DEV_ADDRESS : getAccountAddress()
-    const cached = findCachedRow(address, id, dir)
+    const cached = findCachedRow(address, id)
     const row =
       (__DEV__ && (devRow === 'in' || devRow === 'out')
         ? devHistoryRow(devRow, devInternalParam ? '0' : undefined)
@@ -306,13 +299,7 @@ export function TxDetailPage() {
     return testMode ? (
       <Redirect href="/activity" />
     ) : (
-      <LookupDetail
-        id={id}
-        address={address}
-        real={real}
-        dir={dir}
-        {...(__DEV__ && devLookup ? { dev: devLookup } : {})}
-      />
+      <LookupDetail id={id} address={address} real={real} {...(__DEV__ && devLookup ? { dev: devLookup } : {})} />
     )
   }
   const explorer =

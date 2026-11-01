@@ -17,6 +17,8 @@ const E = {
   ALCHEMY_SIGNING_KEY: rand(),
   ALCHEMY_NOTIFY_TOKEN: rand(),
   EXPO_ACCESS_TOKEN: rand(),
+  INFURA_KEY: rand(),
+  ALCHEMY_KEY: rand(),
 }
 const ADDR = '0x' + 'ab'.repeat(20)
 const OTHER = '0x' + 'cd'.repeat(20)
@@ -24,6 +26,9 @@ const HASH = '0x' + '11'.repeat(32)
 const TOKEN = 'ExponentPushToken[abcdefghijklmnop]'
 const addrPatch = 'https://dashboard.alchemy.com/api/update-webhook-addresses'
 const expoSend = 'https://exp.host/--/api/v2/push/send'
+const expoReceipts = 'https://exp.host/--/api/v2/push/getReceipts'
+const PUSH_RECEIPT_DELAY_SECONDS = 15 * 60 // Expo: read receipts 15 minutes after the send
+const rpcUrl = (u: string) => u.startsWith('https://sepolia.infura.io/')
 
 const newInstall = async (lastSeen = nowSeconds()) => {
   const id = crypto.randomUUID()
@@ -52,21 +57,33 @@ type Call = { url: string; init: RequestInit }
 let calls: Call[]
 let alchemyOk = true
 let expoReply: () => Response
+let receiptStatus: string | null // eth_getTransactionReceipt status of the tx; null = no receipt yet
+let receiptsReply: (ids: string[]) => Response
 type AddressPatch = { addresses_to_add: string[]; addresses_to_remove: string[] }
-type PushMessage = { title: string; body: string }
+type PushMessage = { title: string; body: string; data?: unknown }
 const body = (c: Call) => JSON.parse(c.init.body as string) as AddressPatch
 const messagesOf = (c: Call) => JSON.parse(c.init.body as string) as PushMessage[]
 beforeEach(async () => {
   calls = []
   alchemyOk = true
   expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
+  receiptStatus = '0x1'
+  receiptsReply = () => new Response(JSON.stringify({ data: {} }))
   vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
     calls.push({ url, init })
     if (url === addrPatch) return Promise.resolve(alchemyOk ? new Response('{}') : new Response('no', { status: 500 }))
     if (url === expoSend) return Promise.resolve(expoReply())
+    if (url === expoReceipts)
+      return Promise.resolve(receiptsReply((JSON.parse(init.body as string) as { ids: string[] }).ids))
+    if (rpcUrl(url))
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({ jsonrpc: '2.0', id: 1, result: receiptStatus === null ? null : { status: receiptStatus } }),
+        ),
+      )
     return Promise.reject(new Error('unexpected fetch'))
   })
-  for (const t of ['push_sent', 'push_unregister', 'push_subscriptions', 'installs'])
+  for (const t of ['push_sent', 'push_receipts', 'push_unregister', 'push_subscriptions', 'installs'])
     await E.DB.prepare(`DELETE FROM ${t}`).run()
 })
 afterEach(() => vi.unstubAllGlobals())
@@ -252,8 +269,8 @@ describe('POST /webhooks/alchemy', () => {
       title: '입금이 들어왔어요',
       body: '앱에서 확인해 주세요.',
       channelId: 'default', // the channel the app creates; without it Android uses the FCM fallback channel (#161)
-      data: { kind: 'deposit', hash: HASH },
     })
+    expect(m?.data).toEqual({ kind: 'deposit' }) // no tx hash in the payload (#314, Q29)
     const text = JSON.stringify([m?.title, m?.body])
     expect(text).not.toMatch(/0x|ETH|USDC|0\.5/)
     expect((calls.find((c) => c.url === expoSend)!.init.headers as Record<string, string>).authorization).toBe(
@@ -263,7 +280,127 @@ describe('POST /webhooks/alchemy', () => {
 
   it('pushes a confirmed send', async () => {
     await hook(activity([eth({ fromAddress: ADDR, toAddress: OTHER })]))
-    expect(sentMessages()).toMatchObject([{ channelId: 'default', data: { kind: 'send', hash: HASH } }])
+    expect(sentMessages()).toMatchObject([{ channelId: 'default', data: { kind: 'send' } }])
+  })
+
+  describe('failed (own tx mined with receipt status 0, #314)', () => {
+    const ownSend = (o: Record<string, unknown> = {}) => eth({ fromAddress: ADDR, toAddress: OTHER, ...o })
+    const rpcCalls = () => calls.filter((c) => rpcUrl(c.url))
+
+    it('pushes failed with the approved copy instead of send when the receipt status is 0x0', async () => {
+      receiptStatus = '0x0'
+      await hook(activity([ownSend()]))
+      expect(sentMessages()).toMatchObject([
+        {
+          title: '보낸 거래가 실패했어요',
+          body: '자산은 보내지지 않았고 수수료만 나갔어요. 앱에서 확인해 주세요.',
+          data: { kind: 'failed' },
+        },
+      ])
+      expect(sentMessages()[0]?.data).toEqual({ kind: 'failed' })
+      expect(JSON.parse(rpcCalls()[0]!.init.body as string)).toMatchObject({
+        method: 'eth_getTransactionReceipt',
+        params: [HASH],
+      })
+    })
+
+    it('pushes send when the receipt status is 0x1', async () => {
+      await hook(activity([ownSend()]))
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'send' }])
+    })
+
+    it.each([
+      ['no receipt yet', 'none'],
+      ['an in-band RPC error', 'error'],
+    ])('answers 503 and claims nothing on %s, so a retry can still push failed', async (_n, mode) => {
+      const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      const f = globalThis.fetch
+      if (mode === 'error')
+        vi.stubGlobal('fetch', (url: string, init: RequestInit) =>
+          rpcUrl(url)
+            ? Promise.resolve(
+                new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, error: { code: -32000, message: 'x' } })),
+              )
+            : f(url, init),
+        )
+      else receiptStatus = null
+      for (const tx of [
+        ownSend(),
+        ownSend({ value: 0, rawContract: { rawValue: '0x0' }, hash: '0x' + '55'.repeat(32) }),
+      ])
+        expect((await hook(activity([tx]))).status).toBe(503)
+      expect(sentMessages()).toHaveLength(0)
+      expect(await E.DB.prepare('SELECT COUNT(*) AS n FROM push_sent').first<{ n: number }>()).toEqual({ n: 0 })
+      vi.stubGlobal('fetch', f)
+      receiptStatus = '0x0'
+      expect((await hook(activity([ownSend()]))).status).toBe(200)
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'failed' }])
+      err.mockRestore()
+    })
+
+    it('catches a reverted contract call: a zero-value outgoing tx is pushed only when it failed', async () => {
+      const zero = ownSend({ value: 0, rawContract: { rawValue: '0x0' } })
+      await hook(activity([zero])) // status 0x1 and nothing moved (a token leg would carry its own push)
+      expect(sentMessages()).toHaveLength(0)
+      receiptStatus = '0x0'
+      await hook(activity([zero, { ...zero, hash: '0x' + '33'.repeat(32) }]))
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'failed' }, { kind: 'failed' }])
+    })
+
+    it('asks the chain only for own outgoing txs, once per hash', async () => {
+      await hook(activity([eth()])) // deposit: no receipt lookup
+      expect(rpcCalls()).toHaveLength(0)
+      await hook(activity([ownSend(), usdc({ fromAddress: ADDR, toAddress: OTHER }), ownSend({ value: 0 })]))
+      expect(rpcCalls()).toHaveLength(1)
+    })
+
+    it('answers 503 and sends nothing when the receipt cannot be read, then sends on the retry', async () => {
+      const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      const f = globalThis.fetch
+      vi.stubGlobal('fetch', (url: string, init: RequestInit) =>
+        rpcUrl(url) || url.startsWith('https://eth-sepolia.g.alchemy.com/')
+          ? Promise.reject(new Error('down'))
+          : f(url, init),
+      )
+      expect((await hook(activity([ownSend()]))).status).toBe(503)
+      expect(sentMessages()).toHaveLength(0)
+      expect(await E.DB.prepare('SELECT COUNT(*) AS n FROM push_sent').first<{ n: number }>()).toEqual({ n: 0 })
+      vi.stubGlobal('fetch', f)
+      receiptStatus = '0x0'
+      expect((await hook(activity([ownSend()]))).status).toBe(200)
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'failed' }])
+      err.mockRestore()
+    })
+
+    it('pushes failed for a self-send whose received leg won the kind', async () => {
+      receiptStatus = '0x0'
+      await hook(activity([ownSend({ toAddress: ADDR })]))
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'failed' }])
+    })
+
+    it('treats an unknown receipt status as unreadable (503, nothing claimed)', async () => {
+      receiptStatus = '0x2'
+      expect((await hook(activity([ownSend()]))).status).toBe(503)
+      expect(sentMessages()).toHaveLength(0)
+      expect(await E.DB.prepare('SELECT COUNT(*) AS n FROM push_sent').first<{ n: number }>()).toEqual({ n: 0 })
+    })
+
+    it('one unreadable receipt does not hold back the other pushes of the payload, but still answers 503', async () => {
+      receiptStatus = null
+      const dep = eth({ hash: '0x' + '66'.repeat(32) })
+      expect((await hook(activity([ownSend(), dep]))).status).toBe(503)
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'deposit' }])
+      receiptStatus = '0x0'
+      expect((await hook(activity([ownSend(), dep]))).status).toBe(200)
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'deposit' }, { kind: 'failed' }])
+    })
+
+    it('keeps the claim semantics: one push per install and tx', async () => {
+      receiptStatus = '0x0'
+      await hook(activity([ownSend()]))
+      await hook(activity([ownSend()]))
+      expect(sentMessages()).toHaveLength(1)
+    })
   })
 
   it('pushes an ERC-20 USDC deposit matched by contract address', async () => {
@@ -305,7 +442,7 @@ describe('POST /webhooks/alchemy', () => {
     const legIn = eth()
     const legOut = eth({ fromAddress: ADDR, toAddress: OTHER, category: 'internal' })
     await hook(activity(reversed ? [legOut, legIn] : [legIn, legOut]))
-    expect(sentMessages()).toMatchObject([{ data: { kind: 'deposit', hash: HASH } }])
+    expect(sentMessages()).toMatchObject([{ data: { kind: 'deposit' } }])
   })
 
   it('does not push again when a later webhook carries the other leg of the same tx', async () => {
@@ -402,5 +539,159 @@ describe('POST /webhooks/alchemy', () => {
       E,
     )
     expect(r.status).toBe(400)
+  })
+})
+
+describe('Expo receipts (Q39, #314)', () => {
+  const ids = async () =>
+    (
+      await E.DB.prepare('SELECT receipt_id FROM push_receipts ORDER BY receipt_id').all<{ receipt_id: string }>()
+    ).results.map((r) => r.receipt_id)
+  const age = (seconds: number) =>
+    E.DB.prepare('UPDATE push_receipts SET created_at = created_at - ?').bind(seconds).run()
+  const getReceiptCalls = () => calls.filter((c) => c.url === expoReceipts)
+  let install: string
+  beforeEach(async () => {
+    install = await newInstall()
+    await put(install, { address: ADDR, expoToken: TOKEN })
+    calls.length = 0
+  })
+
+  it('stores the receipt id of an ok ticket with the install and token, and not those of error tickets', async () => {
+    await hook(activity([eth()]))
+    expect(await ids()).toEqual(['r1'])
+    expect(await E.DB.prepare('SELECT install_id, expo_token FROM push_receipts').first()).toEqual({
+      install_id: install,
+      expo_token: TOKEN,
+    })
+    expoReply = () =>
+      new Response(
+        JSON.stringify({ data: [{ status: 'error', message: 'x', details: { error: 'MessageRateExceeded' } }] }),
+      )
+    await hook(activity([eth({ hash: '0x' + '44'.repeat(32) })]))
+    expect(await ids()).toEqual(['r1'])
+  })
+
+  it('does not fetch receipts younger than the delay', async () => {
+    await hook(activity([eth()]))
+    await age(PUSH_RECEIPT_DELAY_SECONDS - 60)
+    await sweep(E)
+    expect(getReceiptCalls()).toHaveLength(0)
+    expect(await ids()).toEqual(['r1'])
+  })
+
+  it('fetches old receipts, deletes the subscription on DeviceNotRegistered, then deletes the checked ids', async () => {
+    await hook(activity([eth()]))
+    await age(PUSH_RECEIPT_DELAY_SECONDS + 1)
+    receiptsReply = () =>
+      new Response(
+        JSON.stringify({ data: { r1: { status: 'error', message: 'x', details: { error: 'DeviceNotRegistered' } } } }),
+      )
+    calls.length = 0
+    await sweep(E)
+    expect(JSON.parse(getReceiptCalls()[0]!.init.body as string)).toEqual({ ids: ['r1'] })
+    expect((getReceiptCalls()[0]!.init.headers as Record<string, string>).authorization).toBe(
+      `Bearer ${E.EXPO_ACCESS_TOKEN}`,
+    )
+    expect(await subs()).toHaveLength(0)
+    expect(calls.some((c) => c.url === addrPatch && body(c).addresses_to_remove[0] === ADDR)).toBe(true)
+    expect(await ids()).toEqual([])
+  })
+
+  it('keeps the subscription on an ok receipt, and keeps ids Expo has no receipt for yet', async () => {
+    await hook(activity([eth()]))
+    await age(PUSH_RECEIPT_DELAY_SECONDS + 1)
+    await sweep(E) // no receipt in the answer
+    expect(await ids()).toEqual(['r1'])
+    receiptsReply = () => new Response(JSON.stringify({ data: { r1: { status: 'ok' } } }))
+    await sweep(E)
+    expect(await subs()).toHaveLength(1)
+    expect(await ids()).toEqual([])
+  })
+
+  it('does not delete a subscription that got a new token since the push', async () => {
+    await hook(activity([eth()]))
+    await age(PUSH_RECEIPT_DELAY_SECONDS + 1)
+    await put(install, { address: ADDR, expoToken: 'ExponentPushToken[zzzzzzzzzzzz]' })
+    receiptsReply = () =>
+      new Response(JSON.stringify({ data: { r1: { status: 'error', details: { error: 'DeviceNotRegistered' } } } }))
+    await sweep(E)
+    expect(await subs()).toHaveLength(1)
+    expect(await ids()).toEqual([])
+  })
+
+  it('keeps the ids when Expo is down, and purges ids older than 7 days regardless', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    await hook(activity([eth()]))
+    await age(PUSH_RECEIPT_DELAY_SECONDS + 1)
+    receiptsReply = () => new Response('x', { status: 502 })
+    await sweep(E)
+    expect(await ids()).toEqual(['r1'])
+    await age(7 * 24 * 3600)
+    await sweep(E)
+    expect(await ids()).toEqual([])
+    err.mockRestore()
+  })
+
+  it('asks for at most 300 ids per request', async () => {
+    const t = nowSeconds() - PUSH_RECEIPT_DELAY_SECONDS - 5
+    await E.DB.batch(
+      Array.from({ length: 301 }, (_, i) =>
+        E.DB.prepare(
+          'INSERT INTO push_receipts (receipt_id, install_id, expo_token, created_at) VALUES (?, ?, ?, ?)',
+        ).bind(`id${String(i)}`, install, TOKEN, t),
+      ),
+    )
+    receiptsReply = (got) =>
+      new Response(JSON.stringify({ data: Object.fromEntries(got.map((i) => [i, { status: 'ok' }])) }))
+    await sweep(E)
+    expect(getReceiptCalls().map((c) => (JSON.parse(c.init.body as string) as { ids: string[] }).ids.length)).toEqual([
+      300, 1,
+    ])
+    expect(await ids()).toEqual([])
+  })
+
+  it('still answers 200 and keeps the claim when the receipt ids cannot be stored', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    await E.DB.prepare('ALTER TABLE push_receipts RENAME TO push_receipts_off').run()
+    try {
+      expect((await hook(activity([eth()]))).status).toBe(200)
+    } finally {
+      await E.DB.prepare('ALTER TABLE push_receipts_off RENAME TO push_receipts').run()
+    }
+    expect(err).toHaveBeenCalledWith('push receipt ids not stored')
+    expect(sentMessages()).toHaveLength(1)
+    err.mockRestore()
+  })
+
+  it('removes the receipt ids of an install whose subscription expired by inactivity', async () => {
+    await hook(activity([eth()]))
+    await E.DB.prepare('UPDATE installs SET last_seen_at = ? WHERE id = ?')
+      .bind(nowSeconds() - PUSH_INACTIVE_SECONDS - 10, install)
+      .run()
+    await sweep(E)
+    expect(await ids()).toEqual([])
+  })
+
+  it('removes the install receipt ids when the subscription is deleted', async () => {
+    await hook(activity([eth()]))
+    expect(await ids()).toEqual(['r1'])
+    await del(install)
+    expect(await ids()).toEqual([])
+  })
+
+  it('reads the newest ids first when 1000 older ones are waiting', async () => {
+    const ins = (id: string, t: number) =>
+      E.DB.prepare(
+        'INSERT INTO push_receipts (receipt_id, install_id, expo_token, created_at) VALUES (?, ?, ?, ?)',
+      ).bind(id, install, TOKEN, t)
+    await E.DB.batch([
+      ...Array.from({ length: 1000 }, (_, i) => ins(`old${String(i)}`, nowSeconds() - 3 * 24 * 3600)),
+      ins('fresh', nowSeconds() - PUSH_RECEIPT_DELAY_SECONDS - 5),
+    ])
+    receiptsReply = () =>
+      new Response(JSON.stringify({ data: { fresh: { status: 'error', details: { error: 'DeviceNotRegistered' } } } }))
+    await sweep(E)
+    expect(await subs()).toHaveLength(0) // the fresh id was read although 1000 older ones are unanswered
   })
 })
