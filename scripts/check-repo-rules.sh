@@ -276,4 +276,13 @@ if (d !== "@scure/bip39,viem") { console.error("packages/wallet-core dependencie
   err "R15: packages/wallet-core dependencies must be exactly viem and @scure/bip39"
 fi
 
+# R16. D1 migrations do not break the old Worker (Q53, #316): no DROP COLUMN, DROP TABLE or RENAME without `-- contract-ok: <reason>`.
+# The test file holds the negative cases.
+if ! bash scripts/check-migrations.test.sh; then
+  err "R16: scripts/check-migrations.test.sh failed"
+fi
+if ! bash scripts/check-migrations.sh; then
+  err "R16: a migration drops or renames without '-- contract-ok: <reason>' (see above)"
+fi
+
 exit "$fail"
