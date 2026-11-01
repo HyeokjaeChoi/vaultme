@@ -4,9 +4,12 @@ import { useFonts } from 'expo-font'
 import { Providers } from './providers'
 import { fontAssets, useTheme } from '@/shared/theme'
 import { initAppStore } from '@/shared/app-store'
+import { initSentry, wrapRoot } from '@/shared/lib/sentry'
 import { hasPhrase, openKv } from '@/shared/storage'
 import { LockGate } from './LockGate'
 import { usePushBoot } from '@/features/push'
+
+initSentry() // before the first render, so a crash while the app starts is collected (Q50)
 
 function Navigator() {
   const th = useTheme()
@@ -25,8 +28,7 @@ function Navigator() {
   )
 }
 
-/** Root layout of the expo-router tree (app/_layout.tsx renders it). */
-export function RootLayout() {
+function Root() {
   const [loaded, error] = useFonts(fontAssets)
   const [kvReady, setKvReady] = useState(false)
   useEffect(() => {
@@ -51,3 +53,6 @@ export function RootLayout() {
     </Providers>
   )
 }
+
+/** Root layout of the expo-router tree (app/_layout.tsx renders it), wrapped for Sentry. */
+export const RootLayout = wrapRoot(Root)

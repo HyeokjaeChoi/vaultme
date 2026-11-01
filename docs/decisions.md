@@ -47,7 +47,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q23 | Push when an own transaction completes or fails | IMPLEMENTED | #314: `failed` push from the receipt status (`apps/api/src/push.ts` `withFailures`). Not verified: that Alchemy reports every reverted tx |
 | Q24 | Push for own results and deposits, by address | IMPLEMENTED | ADR-0010 address webhook; failures added in #314 |
 | Q25 | Deposit push once, after `safe` | SUPERSEDED | ADR-0010: push at Alchemy report, before `safe` |
-| Q26 | Detection p95 ≤ 2 min, reported only after measuring | GAP | #315: not measured |
+| Q26 | Detection p95 ≤ 2 min, reported only after measuring | GAP | #335: measured since #315 (`push_latency` log line and data point, `recordLatencies` in `apps/api/src/push.ts`), p95 not read yet (needs the owner's Cloudflare token). #315 counts from the block timestamp of the event, not from the finality rule |
 | Q27 | Push off by default; explainer; Settings toggle; off deletes the link | SUPERSEDED | #67 decision 5: explainer after first copy or share on Receive |
 | Q28 | SIWE ownership proof + device session | SUPERSEDED | ADR-0010: no proof, accepted risk |
 | Q29 | Push text names only the event; no tx hash in the payload | SUPERSEDED | ADR-0023, #314 (owner chose B): payload is `kind` only, no opaque id; a tap opens the 내역 list, no per-tx link. Copy fixed in #298 |
@@ -71,13 +71,13 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q47 | Pending or Unknown blocks a new send | IMPLEMENTED | ADR-0006 |
 | Q48 | No fiat value | IMPLEMENTED | `shared/ui/PortfolioBalance.tsx` |
 | Q49 | Korean only; strings in i18n | IMPLEMENTED | `packages/i18n/src/ko.ts` |
-| Q50 | Sentry crash and performance, PII scrubbed | GAP | #315 |
+| Q50 | Sentry crash and performance, PII scrubbed | IMPLEMENTED | #315: errors and crashes, mobile `apps/mobile/src/shared/lib/sentry.ts` and API `apps/api/src/sentry.ts`, one scrubber `packages/contracts/src/scrub.ts`. Not built: performance tracing (owner: small bundle), source maps (#337) |
 | Q51 | pnpm + Turborepo monorepo | IMPLEMENTED | `turbo.json` |
 | Q52 | local/staging/prod; separate D1, secrets, EAS channel; web previews | GAP | #316: no EAS channels. Web previews off (`apps/web/AGENTS.md`) |
 | Q53 | Zero-downtime release rules | GAP | #316: v1 add-only is done; EAS Update, gradual deploy, migration lint are not |
 | Q54 | Risk-based tests; mobile E2E; device checklist | GAP | #316 |
 | Q55 | CI/CD gates and release pipeline | GAP | #316 |
-| Q56 | 3 SLOs, alerts, JSON logs with request id, Analytics Engine | GAP | #315. SLO targets: ADR-0020 |
+| Q56 | 3 SLOs, alerts, JSON logs with request id, Analytics Engine | IMPLEMENTED | #315: JSON logs with a request id (`apps/api/src/log.ts`), data points (`apps/api/src/metrics.ts`). SLO targets: ADR-0020. Reading the dataset: #335. Alert conditions: Q69 |
 | Q57 | Anonymous install id; never linked to an address | SUPERSEDED | ADR-0022: the link exists only while push is on |
 | Q58 | All RPC via the proxy with failover; history cached on device | IMPLEMENTED | ADR-0007 |
 | Q59 | `wallet-core` signing boundary; lint limits its importers | SUPERSEDED | #312: scope widened by the owner (2026-11-01) from send and backup to send, backup, restore and `shared/storage/keychain.ts`. The rest holds: `@vaultme/wallet-core/signer`, lint in `apps/mobile/eslint.config.mjs` and `apps/web/eslint.config.js`, test `apps/mobile/test/signer-import.test.ts` |
@@ -90,7 +90,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | GAP | #319 |
 | Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | GAP | #316: no oasdiff, anvil, Maestro |
 | Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | GAP | #319: no Stylelint |
-| Q69 | Slack alerts with dedupe and recovery | GAP | #315 |
+| Q69 | Slack alerts with dedupe and recovery | GAP | #336: owner chose Sentry email instead of Slack (#315). Built: the 5xx spike (`apps/api/src/alerts.ts`). Not built: watcher stall, dead-letter, recovery message |
 | Q70 | Library list | SUPERSEDED | #63: Solar icons. Sentry part: Q50 |
 | Q71 | Address poisoning defenses; zero-value switch | GAP | #313: switch not wired |
 | Q72 | Paste shows a compare notice | IMPLEMENTED | `packages/i18n/src/ko.ts` |

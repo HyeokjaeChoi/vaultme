@@ -1,6 +1,7 @@
 import { USDC_SEPOLIA, type HistoryResponse, type TxInternalResponse } from '@vaultme/contracts'
 import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
+import { logEvent } from './log.ts'
 import { addressHash, checkCursor, loadHistory, type FetchList } from './history.ts'
 import { parseInternalRows } from './tx-internal.ts'
 
@@ -16,7 +17,7 @@ type Bindings = Env['Bindings']
 async function acquire(env: Bindings): Promise<void> {
   const wait = await env.ETHERSCAN_BUCKET.getByName('global').acquire()
   if (wait === null) {
-    console.warn('metric etherscan_throttled_total')
+    logEvent('warn', 'etherscan_throttled')
     throw new UpstreamError('throttled')
   }
   if (wait > 0) await sleep(wait)
@@ -50,21 +51,24 @@ async function etherscanRows(env: Bindings, params: Record<string, string>): Pro
       if (typeof json !== 'object' || json === null || Array.isArray(json)) throw new Error('not an object')
       body = json
     } catch (e) {
-      console.error('etherscan request failed', list, e instanceof Error ? e.name : 'error')
+      logEvent('error', 'etherscan_request_failed', { list, error: e instanceof Error ? e.name : 'error' })
       throw new UpstreamError('request failed')
     }
     if (body.status === '1' && Array.isArray(body.result)) {
-      console.log('etherscan ok', list, Date.now() - t0) // latency of successful calls only
+      logEvent('info', 'etherscan_ok', { list, duration_ms: Date.now() - t0 }) // latency of successful calls only
       const rows: unknown[] = body.result
       return rows
     }
     if (body.message === 'No transactions found') return []
     if (typeof body.result === 'string' && /rate limit/i.test(body.result)) {
-      console.warn('metric etherscan_429_total')
+      logEvent('warn', 'etherscan_rate_limited')
       continue
     }
     // Query Timeout, bad key, window too large, ...: only the message, never the body.
-    console.error('etherscan error', list, typeof body.message === 'string' ? body.message.slice(0, 60) : '?')
+    logEvent('error', 'etherscan_error', {
+      list,
+      message: typeof body.message === 'string' ? body.message.slice(0, 60) : '?',
+    })
     throw new UpstreamError('upstream error')
   }
   throw new UpstreamError('rate limited')

@@ -8,8 +8,11 @@ import { PUSH_INACTIVE_SECONDS, sweep } from '../src/push.ts'
 const INSTALL_KEEP_SECONDS = 90 * 24 * 3600
 const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
+type Point = { indexes?: string[]; blobs?: string[]; doubles?: number[] }
+let points: Point[] // Analytics Engine data points written during a test
 const E = {
   ...env,
+  ANALYTICS: { writeDataPoint: (p: Point) => void points.push(p) } as AnalyticsEngineDataset,
   TOKEN_SECRET: rand() + rand(),
   INSTALL_LIMITER: open,
   INSTALL_IP_LIMITER: open,
@@ -28,6 +31,9 @@ const addrPatch = 'https://dashboard.alchemy.com/api/update-webhook-addresses'
 const expoSend = 'https://exp.host/--/api/v2/push/send'
 const expoReceipts = 'https://exp.host/--/api/v2/push/getReceipts'
 const PUSH_RECEIPT_DELAY_SECONDS = 15 * 60 // Expo: read receipts 15 minutes after the send
+/** The JSON lines a console spy received. */
+const logged = (spy: { mock: { calls: unknown[][] } }) =>
+  spy.mock.calls.map((c) => JSON.parse(String(c[0])) as Record<string, unknown>)
 const rpcUrl = (u: string) => u.startsWith('https://sepolia.infura.io/')
 
 const newInstall = async (lastSeen = nowSeconds()) => {
@@ -59,13 +65,19 @@ let alchemyOk = true
 let expoReply: () => Response
 let receiptStatus: string | null // eth_getTransactionReceipt status of the tx; null = no receipt yet
 let receiptsReply: (ids: string[]) => Response
+let blockReply: () => Response // eth_getBlockByNumber (the canonical time of a push, Q26)
 type AddressPatch = { addresses_to_add: string[]; addresses_to_remove: string[] }
 type PushMessage = { title: string; body: string; data?: unknown }
 const body = (c: Call) => JSON.parse(c.init.body as string) as AddressPatch
 const messagesOf = (c: Call) => JSON.parse(c.init.body as string) as PushMessage[]
 beforeEach(async () => {
   calls = []
+  points = []
   alchemyOk = true
+  blockReply = () =>
+    new Response(
+      JSON.stringify({ jsonrpc: '2.0', id: 1, result: { timestamp: `0x${(nowSeconds() - 20).toString(16)}` } }),
+    )
   expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
   receiptStatus = '0x1'
   receiptsReply = () => new Response(JSON.stringify({ data: {} }))
@@ -75,6 +87,8 @@ beforeEach(async () => {
     if (url === expoSend) return Promise.resolve(expoReply())
     if (url === expoReceipts)
       return Promise.resolve(receiptsReply((JSON.parse(init.body as string) as { ids: string[] }).ids))
+    if (rpcUrl(url) && (JSON.parse(init.body as string) as { method: string }).method === 'eth_getBlockByNumber')
+      return Promise.resolve(blockReply())
     if (rpcUrl(url))
       return Promise.resolve(
         new Response(
@@ -464,7 +478,7 @@ describe('POST /webhooks/alchemy', () => {
     const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     expoReply = () => new Response('x', { status: 502 })
     expect((await hook(activity([eth()]))).status).toBe(503)
-    expect(err).toHaveBeenCalledWith('push upstream', 'expo 502') // a failed batch leaves a log line (#263)
+    expect(logged(err)).toContainEqual(expect.objectContaining({ event: 'push_upstream', reason: 'expo 502' })) // a failed batch leaves a log line (#263)
     err.mockRestore()
     expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
     expect((await hook(activity([eth()]))).status).toBe(200)
@@ -505,13 +519,20 @@ describe('POST /webhooks/alchemy', () => {
     expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
     await hook(activity([eth()]))
     await hook(activity([eth({ toAddress: '0x' + '77'.repeat(20) })]))
-    const lines = log.mock.calls.map((c) => c.join(' '))
-    expect(lines).toContain('push subs=1 notes=1 jobs=1')
-    expect(lines).toContain('expo tickets error:MessageRateExceeded')
-    expect(lines).toContain('expo tickets ok:r1')
-    expect(lines).toContain('push subs=0 notes=0 jobs=0')
-    expect(lines.join('\n')).not.toContain(ADDR.slice(2, 12))
-    expect(lines.join('\n')).not.toContain(TOKEN)
+    const lines = logged(log)
+    expect(lines).toContainEqual(expect.objectContaining({ event: 'push_outcome', subs: 1, notes: 1, jobs: 1 }))
+    expect(lines).toContainEqual(
+      expect.objectContaining({ event: 'expo_tickets', ok: 0, errors: 'MessageRateExceeded' }),
+    )
+    expect(lines).toContainEqual(
+      expect.objectContaining({ event: 'expo_tickets', ok: 1, errors: '', receipt_ids: 'r1' }),
+    )
+    expect(lines).toContainEqual(expect.objectContaining({ event: 'push_outcome', subs: 0, notes: 0, jobs: 0 }))
+    const text = JSON.stringify(lines)
+    expect(text).not.toContain(ADDR.slice(2, 12))
+    expect(text).not.toContain(HASH.slice(2, 12))
+    expect(text).not.toContain(TOKEN)
+    expect(lines.every((l) => typeof l.requestId === 'string')).toBe(true) // one request id per webhook delivery
     log.mockRestore()
   })
 
@@ -659,7 +680,7 @@ describe('Expo receipts (Q39, #314)', () => {
     } finally {
       await E.DB.prepare('ALTER TABLE push_receipts_off RENAME TO push_receipts').run()
     }
-    expect(err).toHaveBeenCalledWith('push receipt ids not stored')
+    expect(logged(err)).toContainEqual(expect.objectContaining({ event: 'push_receipt_ids_not_stored' }))
     expect(sentMessages()).toHaveLength(1)
     err.mockRestore()
   })
@@ -693,5 +714,83 @@ describe('Expo receipts (Q39, #314)', () => {
       new Response(JSON.stringify({ data: { fresh: { status: 'error', details: { error: 'DeviceNotRegistered' } } } }))
     await sweep(E)
     expect(await subs()).toHaveLength(0) // the fresh id was read although 1000 older ones are unanswered
+  })
+})
+
+describe('observability (#315)', () => {
+  const blockCalls = () =>
+    calls.filter((c) => rpcUrl(c.url) && (c.init.body as string).includes('eth_getBlockByNumber'))
+  const pointsOf = (event: string) => points.filter((p) => p.indexes?.[0] === event)
+  beforeEach(async () => {
+    const install = await newInstall()
+    await put(install, { address: ADDR, expoToken: TOKEN })
+    calls.length = 0
+    points = []
+  })
+
+  it('Q26: logs and records the seconds from the block timestamp to the Expo hand-off, after the send', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
+    expect((await hook(activity([eth({ blockNum: '0x10' })]))).status).toBe(200)
+    expect(blockCalls()).toHaveLength(1)
+    expect(calls.findIndex((c) => c.url === expoSend)).toBeLessThan(calls.indexOf(blockCalls()[0]!)) // the lookup never delays the push
+    const line = logged(log).find((l) => l.event === 'push_latency')
+    expect(line).toMatchObject({ kind: 'deposit' })
+    expect(line?.seconds).toBeGreaterThanOrEqual(20)
+    expect(line?.seconds).toBeLessThan(30)
+    expect(pointsOf('push_latency')).toHaveLength(1)
+    expect(pointsOf('push_latency')[0]).toMatchObject({ blobs: ['deposit'] })
+    expect(pointsOf('push_latency')[0]?.doubles?.[0]).toBeGreaterThanOrEqual(20)
+    expect(JSON.stringify(points)).not.toContain(ADDR.slice(2, 12))
+  })
+
+  it('a block time in the future (clock skew) is 0 seconds, not negative', async () => {
+    blockReply = () =>
+      new Response(
+        JSON.stringify({ jsonrpc: '2.0', id: 1, result: { timestamp: `0x${(nowSeconds() + 60).toString(16)}` } }),
+      )
+    await hook(activity([eth({ blockNum: '0x10' })]))
+    expect(pointsOf('push_latency')[0]?.doubles).toEqual([0])
+  })
+
+  it.each([
+    ['no block number in the activity', () => undefined],
+    ['the block cannot be read', () => (blockReply = () => new Response('x', { status: 500 }))],
+    [
+      'the block has no timestamp',
+      () => (blockReply = () => new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result: null }))),
+    ],
+  ])('logs a warning and records nothing when %s, and still answers 200', async (_n, setup) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    setup()
+    const act = eth(_n === 'no block number in the activity' ? {} : { blockNum: '0x10' })
+    expect((await hook(activity([act]))).status).toBe(200)
+    expect(logged(warn)).toContainEqual(expect.objectContaining({ event: 'push_latency_unavailable', kind: 'deposit' }))
+    expect(pointsOf('push_latency')).toHaveLength(0)
+  })
+
+  it('records the Expo ticket outcome of each message, without address or token', async () => {
+    expoReply = () =>
+      new Response(JSON.stringify({ data: [{ status: 'error', details: { error: 'MessageRateExceeded' } }] }))
+    await hook(activity([eth()]))
+    expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
+    await hook(activity([eth()]))
+    expect(pointsOf('push_ticket')).toEqual([
+      { indexes: ['push_ticket'], blobs: ['MessageRateExceeded'], doubles: [1] },
+      { indexes: ['push_ticket'], blobs: ['ok'], doubles: [1] },
+    ])
+  })
+
+  it('records the Expo receipt outcome of each checked id', async () => {
+    await hook(activity([eth()]))
+    await E.DB.prepare('UPDATE push_receipts SET created_at = created_at - ?')
+      .bind(PUSH_RECEIPT_DELAY_SECONDS + 1)
+      .run()
+    receiptsReply = () =>
+      new Response(JSON.stringify({ data: { r1: { status: 'error', details: { error: 'DeviceNotRegistered' } } } }))
+    await sweep(E)
+    expect(pointsOf('push_receipt')).toEqual([
+      { indexes: ['push_receipt'], blobs: ['DeviceNotRegistered'], doubles: [1] },
+    ])
   })
 })

@@ -5,7 +5,9 @@ export default defineConfig({
   plugins: [
     cloudflareTest({
       wrangler: { configPath: './wrangler.jsonc' },
-      miniflare: { bindings: { TEST_MIGRATIONS: await readD1Migrations('./migrations') } },
+      miniflare: {
+        bindings: { TEST_MIGRATIONS: await readD1Migrations('./migrations'), SENTRY_DSN: '' }, // an empty DSN turns Sentry off in tests
+      },
     }),
   ],
   test: {

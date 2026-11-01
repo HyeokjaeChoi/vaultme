@@ -48,7 +48,7 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
   - Amounts: `toUnits`, `fromUnits`, `maxSendable`, `formatAmount`.
   - Send: `prepare` makes a `Review`. `signAndSubmit` signs and submits. `recipientRisk` classifies the recipient.
   - Send status: `deriveState`, `isFinal`, `isPolled` (see Invariants, ADR-0021).
-- `contracts`: zod schemas that both sides use. Header names, error codes, `canonicalString`, RPC allow-list, history and push shapes, `USDC_SEPOLIA`. The API OpenAPI file comes from here.
+- `contracts`: zod schemas that both sides use. Header names, error codes, `canonicalString`, RPC allow-list, history and push shapes, `USDC_SEPOLIA`. The API OpenAPI file comes from here. `scrub.ts` removes wallet data from text (Observability).
 - `api-client`: the install-identity API client (`createApiClient`): register, signed token, retry on `unauthorized`, `426` (`onUpdateRequired`, `createUpdateGate`), typed `ApiError` and `RpcError`. The platform part is the `DeviceSigner` seam (public key, create key, sign, installId storage). The private key never crosses it. `fetch`, base URL and app version are passed in.
 - `history`: the history module (`createHistory`: `list`, `more`, `cachedRow`, `findRow`) over a page-fetch seam and a cache seam. See History.
 - `tokens`: Style Dictionary build of `packages/tokens/tokens.json` into `src/generated` (TS for mobile, `tokens.css` variables and a Tailwind v4 `theme.css` for web). Layers: Primitive, Semantic (light and dark), Component.
@@ -63,7 +63,8 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 - `rpc.ts`: `rpcAllowed` (allow-list) and `proxyRpc` (Infura, then Alchemy).
 - `etherscan.ts`, `history.ts`, `bucket.ts`: `getHistory` calls Etherscan through the `EtherscanBucket` token bucket. `history.ts` is pure: merge, dedupe, order, cursor.
 - `push.ts`: subscribe, unsubscribe, `verifyAlchemySignature`, `notificationsFor` (pure), `handleActivity`, `sweep`.
-- `index.ts`: Worker entry. `fetch` is the app. `scheduled` runs `sweep`.
+- `log.ts`, `metrics.ts`, `sentry.ts`, `alerts.ts`: observability (see Observability).
+- `index.ts`: Worker entry inside `Sentry.withSentry`. `fetch` is the app. `scheduled` runs `sweep`, then `checkAlerts`.
 - `migrations/`: plain SQL for D1 (no ORM).
 
 ### apps/web
@@ -142,6 +143,21 @@ App side (`features/push`):
 - A tap that starts a killed app is held until the route has left `/` (`launchDone`): the start route replaces itself with `/home`, and that replace would otherwise remove the opened list.
 - A tap (after `PushData` parses) opens `/activity` (the 내역 list) at once, with no fetch and no wait. The payload has no hash, so there is no per-tx link (#314, Q29, ADR-0023). Older app builds still parse the old payload (`hash` required): they open nothing on a tap until the user updates. Only a repeated notification identifier is dropped (cold-start read plus listener). Test-data mode (no API) registers nothing.
 - The Expo token uses the EAS `projectId` in `app.json` (`extra.eas.projectId`, project `@gurwo1007/vaultme`).
+
+## Observability
+
+Decisions Q26, Q50, Q56, Q69 (#315). One rule for all of it: no address, tx hash, key, push token or phrase leaves the device or the Worker.
+
+- Scrubber: `packages/contracts/src/scrub.ts`. `scrubString` replaces an address, a tx hash (or longer hex), a bare 64-hex key, an Expo push token and a run of 12 or more lowercase words of 3 to 8 letters (a 12 or 24 word phrase; ordinary prose with short words is cut too, on purpose). `scrubEvent` (Sentry `beforeSend`) also drops the user and the request body, query, cookies and headers. `scrubBreadcrumb` keeps only the path of a network breadcrumb. Both apps use it. It is tested with fake values.
+- API logs: `log.ts` `logEvent(level, event, fields)` writes one JSON line `{level, event, requestId, ...fields}`. The first middleware in `app.ts` gives each request a `crypto.randomUUID()` (kept across awaits with `AsyncLocalStorage`, compatibility flag `nodejs_als`; the cron run gets one too) and logs `request` with method, route pattern (`not_found` for an unmatched path), status and `duration_ms`. Every string field goes through `scrubString` as a last guard.
+- Analytics Engine: binding `ANALYTICS`, dataset `vaultme_api` (local), `vaultme_api_staging`, `vaultme_api_production` (`wrangler.jsonc`; created at the first write). `metrics.ts` writes `indexes[0]` = event and low-cardinality `blobs`: `request` (route, status; ms), `push_latency` (push kind; seconds), `push_ticket` and `push_receipt` (`ok` or the Expo error; 1). Reading it needs a Cloudflare token with Account Analytics read (owner, #335).
+- Push latency (Q26): `recordLatencies` in `push.ts`. Per accepted Expo ticket: seconds from the block timestamp (`eth_getBlockByNumber` for the activity's `blockNum`, through the RPC proxy) to the moment Expo answered the batch. The block is read after the send, so it never delays a push. A block that cannot be read logs `push_latency_unavailable`. The canonical time is the block timestamp, not the finality rule of the approved Q26 text.
+- Sentry API: `@sentry/cloudflare` wraps the Worker (`index.ts`, options in `sentry.ts`). `SENTRY_DSN` is a plain var (a DSN only allows sending events), `ENVIRONMENT` is `dev`, `staging` or `production`. Errors only, no tracing. `dataCollection` is all off (the SDK 11 replacement of `sendDefaultPii`). Outgoing fetch breadcrumbs are dropped (the upstream URLs hold API keys). `handleError` sends the error to Sentry. Tests set `SENTRY_DSN` empty.
+- Sentry mobile: `@sentry/react-native` with its Expo plugin and `metro.config.js` (`apps/mobile`). `initSentry` runs before the first render in `shell/RootLayout.tsx`; DSN in `app.json` `extra.sentryDsn`; `environment` from `EXPO_PUBLIC_ENV` (`staging` in the `development` EAS profile and `pnpm staging`), else `dev` in `__DEV__`. `sendDefaultPii` off, no tracing, no replay. Source-map upload is off (`disableAutoUpload`, #337).
+- Alerts (Q69): the hourly cron `checkAlerts` counts the rows of D1 `server_errors` (one row per 5xx answer, only the time) of the last hour. 10 or more send `Sentry.captureMessage('API 5xx spike')` at level `error` with fingerprint `['alert', 'api-5xx-spike']`; a Sentry alert rule on that issue emails the owner (rule set in Sentry, not in code). The watcher-stall and dead-letter conditions have no source (push comes from a webhook, there is no queue): #336.
+- Proving collection, with no secret and no open door:
+  - API: `GET /v1/debug/sentry` throws only when `ENVIRONMENT` is `dev` (local `wrangler dev`); staging and production answer 404 like any unknown path. Run it with `pnpm --filter @vaultme/api exec wrangler dev`, then `curl -i -H 'X-App-Version: 1.0.0' localhost:8787/v1/debug/sentry`.
+  - Mobile: a long press (1.5 s) on the version row in Settings sends a JS test error, flushes, then calls `Sentry.nativeCrash()`. The row exists in the app only when `__DEV__` or `EXPO_PUBLIC_ENV=staging` (`testCrashEnabled`); a release build has no way in. There is no visible change. Relaunch the app: the native crash report is sent at the next start. It needs a dev client built with the Sentry native module (`expo run:ios`).
 
 ## Invariants
 

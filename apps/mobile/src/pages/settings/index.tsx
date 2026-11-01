@@ -2,11 +2,12 @@
 import Constants from 'expo-constants'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { account, networkFact } from '@/entities/account'
 import { useAccountAddress } from '@/features/backup'
 import { usePushSetting, useZeroSetting } from '@/features/settings'
 import { shortAddress } from '@/shared/lib/address'
+import { testCrashEnabled, triggerTestCrash } from '@/shared/lib/sentry'
 import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
 import { AccountBlock, Block, ListItem, Screen, SectionBand, TabHeader } from '@/shared/ui'
@@ -24,6 +25,15 @@ export function SettingsPage() {
   const { copied, copy } = useCopy(t('settings.copied'))
   const pad = th.semantic.layout.screen.padding
   const tight = th.primitive.space[1]
+  const version = (
+    <ListItem
+      icon="info"
+      iconColor={th.component.icon.status.info}
+      title={t('settings.version')}
+      factValue
+      trailing={{ kind: 'value', text: `v${Constants.expoConfig?.version ?? ''}` }}
+    />
+  )
   return (
     <Screen edges={['top']} bleed gap="none" topGap="none">
       <View style={{ paddingHorizontal: pad }}>
@@ -83,13 +93,14 @@ export function SettingsPage() {
           trailing={{ kind: 'disclosure' }}
           onPress={() => router.push('/settings/licenses')}
         />
-        <ListItem
-          icon="info"
-          iconColor={th.component.icon.status.info}
-          title={t('settings.version')}
-          factValue
-          trailing={{ kind: 'value', text: `v${Constants.expoConfig?.version ?? ''}` }}
-        />
+        {/* Hidden test action (Q50): a long press on the version row sends a test error and crashes the app. Only in a dev build or staging; no visible change. */}
+        {testCrashEnabled() ? (
+          <Pressable onLongPress={() => void triggerTestCrash()} delayLongPress={1500} accessible={false}>
+            {version}
+          </Pressable>
+        ) : (
+          version
+        )}
       </Block>
     </Screen>
   )

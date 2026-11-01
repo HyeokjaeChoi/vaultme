@@ -52,6 +52,15 @@
           "enableBackgroundRemoteNotifications": false
         }
       ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "stackline-i7",
+          "project": "vaultme-mobile",
+          "url": "https://sentry.io/",
+          "disableAutoUpload": true
+        }
+      ],
       "expo-dev-client",
       "expo-font",
       "expo-status-bar",
@@ -60,6 +69,7 @@
     ],
     "icon": "./assets/icon.png",
     "extra": {
+      "sentryDsn": "https://829cd162f8ca5ed48b82a1148baa75d4@o4512355457433600.ingest.us.sentry.io/4512355516940288",
       "eas": {
         "projectId": "ebb84cd1-35eb-4aca-9702-cf1a03faa4b5"
       }
