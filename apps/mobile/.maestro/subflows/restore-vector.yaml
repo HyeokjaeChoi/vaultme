@@ -1,0 +1,12 @@
+# Restores the public BIP39 test vector (R10), address 0x9858EfFD232B4033E47d90003D41EC34EcaEda94, and lands on Home.
+appId: dev.stackline.vaultme
+---
+- tapOn: '기존 지갑 복구'
+- tapOn: '1번째 단어'
+- inputText: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+- hideKeyboard
+- tapOn: '복구'
+- assertVisible: '복구 완료'
+- assertVisible: '.*0x9858.*'
+- tapOn: '지갑 열기'
+- assertVisible: 'Sepolia ETH'

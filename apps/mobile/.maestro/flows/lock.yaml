@@ -1,0 +1,9 @@
+appId: dev.stackline.vaultme
+name: cold start asks OS auth, then opens Home
+tags: [full]
+---
+- runFlow: ../subflows/start-fresh.yaml
+- runFlow: ../subflows/restore-vector.yaml
+# Relaunch without clearing: the lock gate (S90) shows, run.sh sends the Face ID match.
+- launchApp
+- assertVisible: 'Sepolia ETH'

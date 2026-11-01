@@ -1,0 +1,12 @@
+# On the word check screen (S04): if it asks for word N, type that word. The 3 asked positions are random, so the flow tries all 12.
+appId: dev.stackline.vaultme
+---
+- runFlow:
+    when:
+      visible: '${N}번째 단어'
+    commands:
+      - tapOn:
+          below: '${N}번째 단어'
+      - inputText: ${output.words[N]}
+      - hideKeyboard:
+          optional: true

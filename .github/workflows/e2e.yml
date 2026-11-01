@@ -1,0 +1,91 @@
+# Mobile E2E with Maestro on the iOS simulator (#316, Q54). docs/testing/e2e.md explains the gate.
+# PR: the smoke flows (create, restore, send up to the amount screen) when the PR touches the app or a package it uses.
+# Nightly on main + manual run: every flow. It becomes the release hard gate once a production environment exists (ADR-0025).
+# Required check = the job `e2e`. It is always created, so it always reports: on a PR that touches no app file it is skipped,
+# and GitHub counts a skipped job as passed for branch protection (a workflow-level `paths:` filter would leave the check missing and block the merge).
+name: e2e
+
+on:
+  pull_request:
+  schedule:
+    - cron: '0 18 * * *' # 03:00 Asia/Seoul
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  MAESTRO_VERSION: 2.11.0 # published 2026-09-29; 2.12.0 (2026-10-26) waits for the 7-day rule used for dependencies
+  MAESTRO_ZIP_SHA256: 5384593cb4e7a106489e75a821d157dd43f4e438df6bc308b72e82c685e1283a # GitHub release asset digest of cli-2.11.0 maestro.zip
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.diff.outputs.run }}
+    steps:
+      - id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          # The app, the packages it imports (apps/mobile/package.json), the lockfile, and this gate itself.
+          files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename')
+          if printf '%s\n' "$files" | grep -qE '^(apps/mobile/|packages/(wallet-core|history|i18n|tokens|contracts|api-client)/|pnpm-lock\.yaml$|\.github/workflows/e2e\.yml$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  e2e:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    runs-on: macos-26
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21 # Maestro needs Java 17 or newer
+      - run: pnpm install --frozen-lockfile --filter @vaultme/mobile...
+      - name: Install Maestro ${{ env.MAESTRO_VERSION }}
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/maestro.zip" "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
+          echo "${MAESTRO_ZIP_SHA256}  $RUNNER_TEMP/maestro.zip" | shasum -a 256 -c -
+          unzip -q "$RUNNER_TEMP/maestro.zip" -d "$RUNNER_TEMP/maestro"
+          echo "$RUNNER_TEMP/maestro/maestro/bin" >> "$GITHUB_PATH"
+      - name: Build the simulator app (Release, staging API)
+        run: apps/mobile/.maestro/build-ios.sh
+      - name: Boot a simulator
+        run: |
+          runtime=$(xcrun simctl list runtimes available -j | jq -r '[.runtimes[] | select(.platform == "iOS")] | last | .identifier')
+          type=$(xcrun simctl list devicetypes -j | jq -r '[.devicetypes[] | select(.name | test("^iPhone [0-9]+ Pro$"))] | last | .identifier')
+          udid=$(xcrun simctl create vaultme-e2e "$type" "$runtime")
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+          echo "SIM_UDID=$udid" >> "$GITHUB_ENV"
+      - name: Run flows (${{ github.event_name == 'pull_request' && 'smoke' || 'full' }})
+        run: apps/mobile/.maestro/run.sh ${{ github.event_name == 'pull_request' && 'smoke' || 'full' }}
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-report
+          path: |
+            apps/mobile/e2e-report.xml
+            apps/mobile/e2e-artifacts
+          retention-days: 14
+          if-no-files-found: warn

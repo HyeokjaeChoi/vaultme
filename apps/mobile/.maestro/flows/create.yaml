@@ -1,0 +1,45 @@
+appId: dev.stackline.vaultme
+name: create wallet through backup
+tags: [smoke]
+---
+- runFlow: ../subflows/start-fresh.yaml
+- tapOn: '새 지갑 만들기'
+- tapOn: '복구 구문을 잃으면.*'
+- tapOn: '알림으로 복구 구문을.*'
+- tapOn: '테스트넷 전용이에요.*'
+- tapOn: '지갑 만들기'
+# Wallet saved behind the OS auth sheet (Face ID match comes from run.sh), then Home.
+- assertVisible: 'Sepolia ETH'
+- tapOn: '복구 구문을 아직 백업하지 않았어요'
+- tapOn: '탭해서 보기'
+- evalScript: ${output.words = {}}
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '1' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '2' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '3' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '4' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '5' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '6' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '7' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '8' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '9' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '10' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '11' } }
+- runFlow: { file: ../subflows/read-word.yaml, env: { N: '12' } }
+- tapOn: '12단어를 순서대로 종이에 적었어요'
+- tapOn: '다 적었어요'
+- assertVisible: '단어 확인'
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '1' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '2' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '3' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '4' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '5' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '6' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '7' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '8' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '9' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '10' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '11' } }
+- runFlow: { file: ../subflows/answer-word.yaml, env: { N: '12' } }
+- tapOn: '확인'
+# Right words: backup done, Receive opens (S30) with the wallet address.
+- assertVisible: '받기 주소'

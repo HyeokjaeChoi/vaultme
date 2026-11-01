@@ -1,0 +1,13 @@
+appId: dev.stackline.vaultme
+name: send flow up to the amount screen (never broadcasts)
+tags: [smoke]
+---
+- runFlow: ../subflows/start-fresh.yaml
+- runFlow: ../subflows/restore-vector.yaml
+- tapOn: '보내기'
+- assertVisible: '누구에게 보낼까요?'
+- tapOn: '받는 주소 0x.*'
+- inputText: '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
+- hideKeyboard
+- tapOn: '다음'
+- assertVisible: '얼마를 보낼까요?'
