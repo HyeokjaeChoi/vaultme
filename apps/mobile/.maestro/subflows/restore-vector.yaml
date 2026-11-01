@@ -3,7 +3,19 @@ appId: dev.stackline.vaultme
 ---
 - tapOn: '기존 지갑 복구'
 - tapOn: '1번째 단어'
-- inputText: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+# One word per command: typing all 12 at once lost characters on the slow CI runner (a space moves focus to the next cell).
+- inputText: 'abandon '
+- inputText: 'abandon '
+- inputText: 'abandon '
+- inputText: 'abandon '
+- inputText: 'abandon '
+- inputText: 'abandon '
+- inputText: 'abandon '
+- inputText: 'abandon '
+- inputText: 'abandon '
+- inputText: 'abandon '
+- inputText: 'abandon '
+- inputText: 'about'
 - hideKeyboard
 - tapOn: '복구'
 - assertVisible: '복구 완료'
