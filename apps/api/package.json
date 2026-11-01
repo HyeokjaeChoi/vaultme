@@ -7,6 +7,7 @@
     "dev": "wrangler dev",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "test": "vitest run",
+    "test:reorg": "vitest run --config vitest.reorg.config.ts",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint . --max-warnings=0",
     "openapi": "node scripts/openapi.ts",

@@ -11,9 +11,18 @@
     "apps/api": {
       // The vitest plugin cannot load this config from the repo root (readD1Migrations reads ./migrations).
       "vitest": false,
-      "entry": ["vitest.config.ts", "test/**/*.test.ts", "test/setup.ts"],
+      "entry": [
+        "vitest.config.ts",
+        "vitest.reorg.config.ts",
+        "reorg-setup.ts",
+        "test/**/*.test.ts",
+        "test-reorg/**/*.test.ts",
+        "test/setup.ts",
+      ],
       // `cloudflare:workers` is a runtime module, not a package.
       "ignoreDependencies": ["cloudflare"],
+      // `anvil` (Foundry) is spawned by reorg-setup.ts; CI installs it (ci.yml).
+      "ignoreBinaries": ["anvil"],
     },
     // Run by k6 (api-bench.yml), not by Node: its `k6/*` imports are k6 built-in modules.
     "packages/perf": { "entry": ["k6/api.js"], "ignoreDependencies": ["k6"] },
