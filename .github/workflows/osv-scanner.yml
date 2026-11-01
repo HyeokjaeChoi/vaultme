@@ -1,0 +1,37 @@
+name: osv-scanner
+
+# Q74 (#312): a known vulnerability in a lockfile dependency fails the job.
+# PR: fails only on vulnerabilities the PR adds (compares with the base branch). Weekly: full scan of main.
+# Official reusable workflows of google/osv-scanner-action v2.7.0 (docs: https://google.github.io/osv-scanner/github-action/).
+on:
+  pull_request:
+  schedule:
+    # Monday 05:41 UTC. Not at the start of an hour: GitHub delays or drops scheduled runs at :00.
+    - cron: '41 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan-pr:
+    if: github.event_name == 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    with:
+      scan-args: |-
+        --lockfile=pnpm-lock.yaml
+
+  scan-full:
+    if: github.event_name != 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    with:
+      scan-args: |-
+        --lockfile=pnpm-lock.yaml

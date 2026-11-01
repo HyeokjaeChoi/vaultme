@@ -95,7 +95,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q71 | Address poisoning defenses; zero-value switch | GAP | #313: switch not wired |
 | Q72 | Paste shows a compare notice | IMPLEMENTED | `packages/i18n/src/ko.ts` |
 | Q73 | Safety values compiled in; hash on device; fee cap | IMPLEMENTED | ADR-0005 |
-| Q74 | Supply chain: release age, scripts, `wallet-core` allow-list, osv-scanner, pinned actions | GAP | #312: no allow-list, no osv-scanner |
+| Q74 | Supply chain: release age, scripts, `wallet-core` allow-list, osv-scanner, pinned actions | IMPLEMENTED | `pnpm-workspace.yaml`; `scripts/check-repo-rules.sh` R15; `.github/workflows/osv-scanner.yml` |
 | Q75 | Push hardening: token enforcement, payload check, re-read on tap | IMPLEMENTED | `packages/contracts/src/push.ts` |
 | Q76 | WCAG 2.2 AA, address a11y label, text size, motion | IMPLEMENTED | `shared/lib/address.ts`; screen reader run not recorded |
 | Q77 | Replaced state unblocks send; push notifies | GAP | #314: no replaced push. State: ADR-0006 |

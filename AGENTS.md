@@ -38,6 +38,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | No unused files, exports or dependencies, no unlisted dependencies (existing unused exports are frozen in a shrink-only baseline) | `knip.jsonc`, `scripts/knip-exports.mjs` + `scripts/knip-exports.baseline.json`, CI `verify` (`pnpm knip`) |
 | The mobile app bundles for iOS and Android, each Hermes bundle ≤ 9 MiB | CI `verify` (`export:check`); `expo-doctor` reports only |
 | Claude Code: no `--no-verify`, no force push or push to main; no edits to CLAUDE.md or generated files; edited files are formatted and linted; a turn with code changes ends only when typecheck and lint pass | `.claude/settings.json` hooks in `.claude/hooks/`; R12 tests `guard-bash.sh` |
+| `packages/wallet-core` `dependencies`, `optionalDependencies` and `peerDependencies` together are exactly `viem` and `@scure/bip39`; a known vulnerability in `pnpm-lock.yaml` fails the `osv-scanner` job (PR and weekly; whether it blocks merge is a repo ruleset setting, not checked here) | `scripts/check-repo-rules.sh` R15; `.github/workflows/osv-scanner.yml` (`google/osv-scanner-action`, PR and weekly) |
 | pnpm installs only package versions published at least 7 days (10080 min) ago, security fixes too, no exceptions | `pnpm-workspace.yaml` `minimumReleaseAge`, R13; Renovate waits the same 7 days (`.github/renovate.json5`) |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |
 
