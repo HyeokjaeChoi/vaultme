@@ -8,12 +8,14 @@ import { initSentry, wrapRoot } from '@/shared/lib/sentry'
 import { hasPhrase, openKv } from '@/shared/storage'
 import { LockGate } from './LockGate'
 import { usePushBoot } from '@/features/push'
+import { useDeviceCheckBoot } from '@/features/device-check'
 
 initSentry() // before the first render, so a crash while the app starts is collected (Q50)
 
 function Navigator() {
   const th = useTheme()
   usePushBoot()
+  useDeviceCheckBoot()
   return (
     <Stack
       screenOptions={{

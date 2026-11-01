@@ -38,6 +38,9 @@ export const setPushOptinShown = (v: boolean): void => store().set('push.optinSh
 /** The server may still hold this install's address and token (a DELETE failed or was cut off, or a PUT got no answer). The DELETE is retried at the next launch (#67 decision 7). */
 export const getPushUnregisterPending = (): boolean => store().getBoolean('push.unregisterPending') ?? false
 export const setPushUnregisterPending = (v: boolean): void => store().set('push.unregisterPending', v)
+/** ADR-0028: the B-S92 device warning is shown once (set when it opens; the rooted check itself is experimental). */
+export const getDeviceWarningShown = (): boolean => store().getBoolean('device.warningShown') ?? false
+export const setDeviceWarningShown = (v: boolean): void => store().set('device.warningShown', v)
 export const getZeroSetting = (): boolean => store().getBoolean('settings.zero') ?? false
 export const setZeroSetting = (v: boolean): void => store().set('settings.zero', v)
 
