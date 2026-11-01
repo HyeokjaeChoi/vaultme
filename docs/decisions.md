@@ -80,7 +80,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q56 | 3 SLOs, alerts, JSON logs with request id, Analytics Engine | GAP | #315. SLO targets: ADR-0020 |
 | Q57 | Anonymous install id; never linked to an address | GAP | #317: push subscriptions link them. ADR-0008 |
 | Q58 | All RPC via the proxy with failover; history cached on device | IMPLEMENTED | ADR-0007 |
-| Q59 | `wallet-core` signing boundary; lint limits its importers | GAP | #312: no import lint |
+| Q59 | `wallet-core` signing boundary; lint limits its importers | SUPERSEDED | #312: scope widened by the owner (2026-11-01) from send and backup to send, backup, restore and `shared/storage/keychain.ts`. The rest holds: `@vaultme/wallet-core/signer`, lint in `apps/mobile/eslint.config.mjs` and `apps/web/eslint.config.js`, test `apps/mobile/test/signer-import.test.ts` |
 | Q60 | viem in `wallet-core`; explicit path; bigint units | IMPLEMENTED | `packages/wallet-core/package.json` |
 | Q61 | zod + OpenAPI; breaking-change diff; generated client | GAP | #316: stale check only, no diff vs main |
 | Q62 | TanStack Query + persist; send state from `wallet-core`; one Zustand store | IMPLEMENTED | ADR-0021 (send state is the pure `deriveState`, not a reducer) |

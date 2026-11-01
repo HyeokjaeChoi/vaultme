@@ -1,4 +1,5 @@
-import { Mnemonic, prepare, type ChainSnapshot, type Hex } from '@vaultme/wallet-core'
+import { prepare, type ChainSnapshot, type Hex } from '@vaultme/wallet-core'
+import { Mnemonic } from '@vaultme/wallet-core/signer'
 import { describe, expect, it, vi } from 'vitest'
 import { clearTestTx } from '../src/features/send/model/clearTestTx'
 import { blocksNewSend, runSend, type SendDeps } from '../src/features/send/model/runSend'
