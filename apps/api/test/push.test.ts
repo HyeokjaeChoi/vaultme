@@ -352,6 +352,29 @@ describe('POST /webhooks/alchemy', () => {
       err.mockRestore()
     })
 
+    it('pushes failed for a self-send whose received leg won the kind', async () => {
+      receiptStatus = '0x0'
+      await hook(activity([ownSend({ toAddress: ADDR })]))
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'failed' }])
+    })
+
+    it('treats an unknown receipt status as unreadable (503, nothing claimed)', async () => {
+      receiptStatus = '0x2'
+      expect((await hook(activity([ownSend()]))).status).toBe(503)
+      expect(sentMessages()).toHaveLength(0)
+      expect(await E.DB.prepare('SELECT COUNT(*) AS n FROM push_sent').first<{ n: number }>()).toEqual({ n: 0 })
+    })
+
+    it('one unreadable receipt does not hold back the other pushes of the payload, but still answers 503', async () => {
+      receiptStatus = null
+      const dep = eth({ hash: '0x' + '66'.repeat(32) })
+      expect((await hook(activity([ownSend(), dep]))).status).toBe(503)
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'deposit' }])
+      receiptStatus = '0x0'
+      expect((await hook(activity([ownSend(), dep]))).status).toBe(200)
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'deposit' }, { kind: 'failed' }])
+    })
+
     it('keeps the claim semantics: one push per install and tx', async () => {
       receiptStatus = '0x0'
       await hook(activity([ownSend()]))

@@ -239,8 +239,8 @@ export const AlchemyPayload = z.object({
   event: z.object({ network: z.string(), activity: z.array(Activity) }),
 })
 
-/** `probe`: an own zero-value tx. It is pushed only if its receipt says it failed (a reverted token call moves nothing, so it has no transfer leg). */
-type Notification = { address: string; kind: PushData['kind']; hash: string; ref: string; probe?: true }
+/** `own`: the address sent this tx (also when a received leg won the kind): its receipt is read. `probe`: an own zero-value tx. It is pushed only if its receipt says it failed (a reverted token call moves nothing, so it has no transfer leg). */
+type Notification = { address: string; kind: PushData['kind']; hash: string; ref: string; probe?: true; own?: true }
 
 const isZero = (rawValue: string | null | undefined, value: number | null | undefined): boolean => {
   if (rawValue) {
@@ -286,35 +286,62 @@ function notificationsFor(payload: z.infer<typeof AlchemyPayload>, subscribed: R
       const key = `${addr}:${hash}`
       const prev = out.get(key)
       if (prev?.kind === 'deposit' || (prev && probe && !prev.probe)) continue
-      out.set(key, { address: addr, kind, hash, ref: hash, ...(probe ? { probe: true as const } : {}) })
+      out.set(key, {
+        address: addr,
+        kind,
+        hash,
+        ref: hash,
+        ...(probe ? { probe: true as const } : {}),
+        ...(from === addr ? { own: true as const } : {}),
+      })
     }
   }
   return [...out.values()]
 }
 
-const Receipt = z.object({ result: z.object({ status: z.string() }).nullish(), error: z.unknown().optional() })
+const Receipt = z.object({
+  result: z.object({ status: z.enum(['0x0', '0x1']) }).nullish(),
+  error: z.unknown().optional(),
+})
 
 /**
- * Own outgoing txs are looked up on the chain (one `eth_getTransactionReceipt` per hash, through the RPC proxy):
- * receipt status 0x0 turns the push into `failed` (#314, Q23/Q24). A zero-value probe that did not fail is dropped.
- * Throws UpstreamError when the chain cannot be read, answers with an RPC error, or has no receipt yet (Alchemy reports mined txs, so a missing
- * receipt is a lagging node): the route answers 5xx and Alchemy retries. Nothing is claimed yet, so a retry can still push `failed`.
+ * Own txs are looked up on the chain (one `eth_getTransactionReceipt` per hash, through the RPC proxy):
+ * receipt status 0x0 turns the push into `failed` (#314, Q23/Q24), also when a received leg won the kind (a self-send).
+ * A zero-value probe that did not fail is dropped.
+ * A hash whose receipt cannot be read (chain down, RPC error, no receipt yet, unknown status; Alchemy reports mined txs, so a missing receipt
+ * is a lagging node) is left out and not claimed, and `unreadable` is true: the caller answers 5xx after it has sent the other pushes, so
+ * Alchemy retries and a retry can still push `failed`.
  */
-async function withFailures(env: Bindings, notes: Notification[]): Promise<Notification[]> {
-  const hashes = [...new Set(notes.filter((n) => n.kind === 'send').map((n) => n.hash))]
+async function withFailures(
+  env: Bindings,
+  notes: Notification[],
+): Promise<{ notes: Notification[]; unreadable: boolean }> {
+  const hashes = [...new Set(notes.filter((n) => n.kind === 'send' || n.own).map((n) => n.hash))]
   const failed = new Set<string>()
+  const unreadable = new Set<string>()
   await Promise.all(
     hashes.map(async (hash) => {
-      const text = await proxyRpc(env, { jsonrpc: '2.0', id: 1, method: 'eth_getTransactionReceipt', params: [hash] })
-      if (text === null) throw new UpstreamError('rpc unreachable')
-      const r = Receipt.safeParse(JSON.parse(text))
-      if (!r.success || r.data.error !== undefined || !r.data.result) throw new UpstreamError('rpc receipt')
-      if (r.data.result.status === '0x0') failed.add(hash)
+      try {
+        const text = await proxyRpc(env, {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'eth_getTransactionReceipt',
+          params: [hash],
+        })
+        const r = text === null ? null : Receipt.safeParse(JSON.parse(text))
+        if (!r?.success || r.data.error !== undefined || !r.data.result) throw new Error('no receipt')
+        if (r.data.result.status === '0x0') failed.add(hash)
+      } catch {
+        unreadable.add(hash)
+      }
     }),
   )
-  return notes
-    .filter((n) => !n.probe || failed.has(n.hash))
-    .map((n) => (n.kind === 'send' && failed.has(n.hash) ? { ...n, kind: 'failed' as const } : n))
+  return {
+    notes: notes
+      .filter((n) => !unreadable.has(n.hash) && (!n.probe || failed.has(n.hash)))
+      .map((n) => (failed.has(n.hash) && (n.kind === 'send' || n.own) ? { ...n, kind: 'failed' as const } : n)),
+    unreadable: unreadable.size > 0,
+  }
 }
 
 const ExpoTickets = z.object({
@@ -361,7 +388,8 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     console.log('push subs=0 notes=0 jobs=0')
     return
   }
-  const notes = await withFailures(env, notificationsFor(payload, new Set(subs.results.map((s) => s.address))))
+  const checked = await withFailures(env, notificationsFor(payload, new Set(subs.results.map((s) => s.address))))
+  const { notes } = checked
 
   // Claim first, then send: Alchemy can deliver two legs of one tx as separate webhooks at the same moment, and a
   // check-then-insert let both runs send. INSERT OR IGNORE is atomic, so only the first claimer sends (its kind wins,
@@ -373,6 +401,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     console.log(`push subs=${String(subs.results.length)} notes=${String(notes.length)} jobs=${String(jobs)}`)
   if (pairs.length === 0) {
     outcome(0)
+    if (checked.unreadable) throw new UpstreamError('rpc receipt') // retried by Alchemy
     return
   }
   const claims = await env.DB.batch(
@@ -462,5 +491,6 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   }
   // The token is invalid: delete the subscription and the address at once (#67 decision 7).
   for (const id of new Set(dead)) await unsubscribe(env, id)
+  if (checked.unreadable) throw new UpstreamError('rpc receipt') // the other pushes are claimed, so the retry sends only the unread tx
   if (ticketFailed) throw new UpstreamError('expo ticket error') // push_sent keeps the retry from notifying the others twice
 }
