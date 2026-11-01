@@ -1,4 +1,4 @@
-import { createHistory, type HistoryItem, type PushDir } from '@vaultme/history'
+import { createHistory, type HistoryItem } from '@vaultme/history'
 import { api, historyCache } from '@/shared/api'
 import { getAccountAddress } from '@/shared/storage'
 
@@ -23,5 +23,4 @@ export function accountAddress(): string | null {
 export const listAddress = (): string | null => (client ? accountAddress() : null)
 
 /** The cached history row an S41 route param names (see `history.cachedRow`), for this account only. Null = only a lookup can tell. */
-export const findCachedRow = (address: string | null, id: string, dir?: PushDir): HistoryItem | null =>
-  history.cachedRow(address, id, dir)
+export const findCachedRow = (address: string | null, id: string): HistoryItem | null => history.cachedRow(address, id)

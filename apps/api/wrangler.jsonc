@@ -13,7 +13,7 @@
   // TOKEN_SECRET (>= 32 chars) is a secret: .dev.vars locally, `wrangler secret put TOKEN_SECRET` when deployed.
   // database_id is left out so wrangler provisions the D1 database on first deploy. Local dev needs none.
   "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
-  // Hourly sweep for transaction push (#67): 30-day expiry and Alchemy removal retries.
+  // Hourly sweep for transaction push (#67): 30-day expiry, Alchemy removal retries, Expo receipts (#314).
   "triggers": { "crons": ["17 * * * *"] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
   "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api", "migrations_dir": "migrations" }],

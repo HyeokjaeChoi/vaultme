@@ -1,4 +1,4 @@
-export { parseDir, type HistoryItem, type HistoryView, type PushDir, type RowLookup } from '@vaultme/history'
+export { type HistoryItem, type HistoryView, type RowLookup } from '@vaultme/history'
 export { useHistory } from './model/useHistory'
 export { findCachedRow } from './model/loader'
 export { detailRoute, localRecordMatches, rowCopy } from './model/detail'

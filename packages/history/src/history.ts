@@ -25,23 +25,18 @@ export type HistoryView = {
 export type RowLookup =
   { status: 'row'; row: HistoryItem } | { status: 'none' } | { status: 'several' } | { status: 'failed' }
 
-/** Direction a push names (`deposit` = in, `send` = out). One tx can have a row of each (an address that forwards what it receives). */
-export type PushDir = 'in' | 'out'
-export const parseDir = (v: string | undefined): PushDir | undefined => (v === 'in' || v === 'out' ? v : undefined)
-
 type Page = { source: 'api'; items: HistoryItem[]; updatedAt: number; nextCursor: string | null } | { source: 'local' }
 
 /**
  * The row an S41 route param names. A row id (`<hash>:<seq>`, from the list) is one exact row. A bare hash (from a push)
  * is a row only when exactly one row has that hash; with several, the caller must not guess which one the user means.
- * A push also names a direction: then only rows of that direction count.
  */
-function pick(rows: HistoryItem[], id: string, dir?: PushDir): RowLookup {
+function pick(rows: HistoryItem[], id: string): RowLookup {
   if (id.includes(':')) {
     const row = rows.find((i) => i.id === id)
     return row ? { status: 'row', row } : { status: 'none' }
   }
-  const same = rows.filter((i) => sameHash(i.hash, id) && (!dir || i.kind === (dir === 'in' ? 'receive' : 'send')))
+  const same = rows.filter((i) => sameHash(i.hash, id))
   const [only] = same
   return same.length === 1 && only ? { status: 'row', row: only } : { status: same.length ? 'several' : 'none' }
 }
@@ -90,9 +85,9 @@ export function createHistory(d: HistoryDeps) {
   }
 
   /** Cache-only step of `findRow`: a row, or null when only a fresh page can tell (no cache, other account, none or several rows). */
-  function cachedRow(address: string | null, id: string, dir?: PushDir): HistoryItem | null {
+  function cachedRow(address: string | null, id: string): HistoryItem | null {
     const c = address ? cached(address) : null
-    const r = c ? pick(c.rows, id, dir) : null
+    const r = c ? pick(c.rows, id) : null
     return r?.status === 'row' ? r.row : null
   }
 
@@ -131,13 +126,13 @@ export function createHistory(d: HistoryDeps) {
      * S41 for a history row without a local record: the cache first, else a fresh first page (also cached; the pushed tx is usually newer than
      * the cache). `failed` = no address, a fetch error, `update_required` or 404.
      */
-    async findRow(address: string | null, id: string, dir?: PushDir): Promise<RowLookup> {
+    async findRow(address: string | null, id: string): Promise<RowLookup> {
       if (!address) return { status: 'failed' }
-      const row = cachedRow(address, id, dir)
+      const row = cachedRow(address, id)
       if (row) return { status: 'row', row }
       try {
         const p = await fresh(address)
-        return p.source === 'api' ? pick(p.items, id, dir) : { status: 'failed' }
+        return p.source === 'api' ? pick(p.items, id) : { status: 'failed' }
       } catch {
         return { status: 'failed' }
       }

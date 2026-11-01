@@ -44,13 +44,13 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q20 | App estimates the fee; no speed picker | IMPLEMENTED | `packages/wallet-core/src/send.ts` |
 | Q21 | Max amount (native keeps the fee; ERC-20 checks native) | IMPLEMENTED | `packages/wallet-core/src/amount.ts` |
 | Q22 | Re-check, last-checked time, explorer link; no auto resend | IMPLEMENTED | ADR-0006 |
-| Q23 | Push when an own transaction completes or fails | GAP | #314: no failure push |
-| Q24 | Push for own results and deposits, by address | GAP | #314: address webhook is ADR-0010; failures are not pushed |
+| Q23 | Push when an own transaction completes or fails | IMPLEMENTED | #314: `failed` push from the receipt status (`apps/api/src/push.ts` `withFailures`). Not verified: that Alchemy reports every reverted tx |
+| Q24 | Push for own results and deposits, by address | IMPLEMENTED | ADR-0010 address webhook; failures added in #314 |
 | Q25 | Deposit push once, after `safe` | SUPERSEDED | ADR-0010: push at Alchemy report, before `safe` |
 | Q26 | Detection p95 ≤ 2 min, reported only after measuring | GAP | #315: not measured |
 | Q27 | Push off by default; explainer; Settings toggle; off deletes the link | SUPERSEDED | #67 decision 5: explainer after first copy or share on Receive |
 | Q28 | SIWE ownership proof + device session | SUPERSEDED | ADR-0010: no proof, accepted risk |
-| Q29 | Push text names only the event; no tx hash in the payload | GAP | #314: payload carries the hash. Copy fixed in #298 |
+| Q29 | Push text names only the event; no tx hash in the payload | SUPERSEDED | #314 (owner chose B): payload is `kind` only, no opaque id; a tap opens the 내역 list, no per-tx link. Copy fixed in #298 |
 | Q30 | App calls the history provider directly | SUPERSEDED | By Q32 in the same session; ADR-0007 |
 | Q31 | Idle subscriptions deleted; events 7 d; installs 90 d | GAP | #317: installs are never purged. Subscription expiry is ADR-0010 (30 d) |
 | Q32 | Stateless proxy, no address logs, rate limits, privacy notice | GAP | #311: no privacy notice. Proxy: ADR-0007 |
@@ -60,7 +60,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q36 | Etherscan V2 for history; Infura/QuickNode for RPC | SUPERSEDED | RPC fallback is Alchemy, not QuickNode (Q78, ADR-0007). Etherscan history still used; rate: rolling window (#290) |
 | Q37 | Confirmed = `safe` for push, send result and UI | SUPERSEDED | Push part: ADR-0010 (push before `safe`). Send result and UI still follow ADR-0006 |
 | Q38 | Workers + Hono + 1-min cron watcher + Queues + D1 | SUPERSEDED | ADR-0009, ADR-0010 |
-| Q39 | Expo Push ticket and receipt check; `DeviceNotRegistered` deletes | GAP | #314: receipts are not polled |
+| Q39 | Expo Push ticket and receipt check; `DeviceNotRegistered` deletes | IMPLEMENTED | #314: `push_receipts` in D1, cron `checkReceipts` (`apps/api/src/push.ts`) |
 | Q40 | 12 words new, 12/24 restore, one path, no passphrase | SUPERSEDED | Optional restore passphrase: ADR-0003. Words and path still follow ADR-0002 |
 | Q41 | Circle Sepolia USDC, 6 decimals | IMPLEMENTED | `packages/wallet-core/src/constants.ts` |
 | Q42 | QR = address only; EIP-681 accepted; other chain stops | IMPLEMENTED | `shared/lib/qrAddress.ts` |
@@ -98,7 +98,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q74 | Supply chain: release age, scripts, `wallet-core` allow-list, osv-scanner, pinned actions | IMPLEMENTED | `pnpm-workspace.yaml`; `scripts/check-repo-rules.sh` R15; `.github/workflows/osv-scanner.yml` |
 | Q75 | Push hardening: token enforcement, payload check, re-read on tap | IMPLEMENTED | `packages/contracts/src/push.ts` |
 | Q76 | WCAG 2.2 AA, address a11y label, text size, motion | IMPLEMENTED | `shared/lib/address.ts`; screen reader run not recorded |
-| Q77 | Replaced state unblocks send; push notifies | GAP | #314: no replaced push. State: ADR-0006 |
+| Q77 | Replaced state unblocks send; push notifies | GAP | #314: no replaced push; it needs a server record of pending sends. State: ADR-0006 |
 | Q78 | Infura primary, Alchemy fallback | IMPLEMENTED | ADR-0007 |
 | Q79 | Burn and token-contract warnings | IMPLEMENTED | `packages/wallet-core/src/risk.ts` |
 | Q80 | Dark mode and the added components | IMPLEMENTED | `shared/theme/index.tsx` |

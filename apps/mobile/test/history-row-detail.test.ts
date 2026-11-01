@@ -2,14 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { detailRoute, hashOfId, localRecordMatches, rowCopy } from '../src/features/history/model/detail'
 import { explorerUrl } from '../src/shared/chain/port'
 
-// The row lookup (cache, fresh page, push direction, poisoning filter) is tested in packages/history.
+// The row lookup (cache, fresh page, poisoning filter) is tested in packages/history.
 const H = '0x' + '1'.repeat(64)
 
 describe('local record (S41)', () => {
-  it('the local own-send record wins unless the push says in (a self-send deposit)', () => {
+  it('the local own-send record wins for its own hash', () => {
     expect(localRecordMatches(H, H)).toBe(true)
-    expect(localRecordMatches(H.toUpperCase().replace('0X', '0x'), H, 'out')).toBe(true)
-    expect(localRecordMatches(H, H, 'in')).toBe(false)
+    expect(localRecordMatches(H.toUpperCase().replace('0X', '0x'), H)).toBe(true)
     expect(localRecordMatches(H, `${H}:1`)).toBe(true)
     expect(localRecordMatches(undefined, H)).toBe(false)
     expect(localRecordMatches('0x' + '3'.repeat(64), H)).toBe(false)
