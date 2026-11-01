@@ -8,7 +8,7 @@ ADR-0023 reads `eth_getTransactionReceipt` for own sends before the claim. An in
 
 ## Decision
 - Before the claim, the Worker reads the receipt of every notified tx, deposits included. No receipt, RPC error or unknown status: no push and no claim for that tx. The other pushes of the payload go first, then the webhook answers 5xx and Alchemy retries (same as for `failed`).
-- Receipt status `0x0` still turns an own send into `failed` (ADR-0023). A deposit keeps its kind.
+- Receipt status `0x0` still turns an own send into `failed` (ADR-0023). A deposit from another sender keeps its kind; a self-send whose received leg won is own and still becomes `failed`.
 - `failed` has its own `push_sent` ref, `<hash>:failed` (#345), so a `send` push that went out before a reorg does not block the `failed` push of the re-mined tx.
 - No retraction push is added.
 
