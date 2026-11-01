@@ -235,6 +235,7 @@ CI (`.github/workflows`):
 
 Release:
 
+- Deployment environment (dev, staging, production) and chain network (local, Sepolia, mainnet) are separate axes. Every environment allows Sepolia only; staging is the only deployed environment, and production is created at the first public release (ADR-0025).
 - Staging API: `api-staging.yml`; staging web: `web-staging.yml` (above). Production web has no workflow yet (#198). Production API: by hand, `wrangler d1 migrations apply DB --remote --env production`, then `wrangler deploy --env production`. No EAS config, no store build.
 - Before the first run in a new env, create its D1 database once by hand (`wrangler d1 create vaultme-api-<env>`; no `database_id` in `wrangler.jsonc`, later runs find it by name). The workflow applies migrations before `wrangler deploy`, and `migrations apply` cannot create the database (staging run #2 failed this way).
 - D1 migrations are forward-only SQL files. Write them so the old Worker still runs: add columns and tables, do not drop or rename in the same release.
