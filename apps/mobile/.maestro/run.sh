@@ -21,4 +21,6 @@ trap 'kill $loop 2>/dev/null || true' EXIT
 include=smoke
 [ "$tags" = full ] && include=smoke,full
 export MAESTRO_CLI_NO_ANALYTICS=1
+# The first start of the XCTest driver on a fresh CI simulator took 2.5 min (run 1) and timed out at the default (run 2).
+export MAESTRO_DRIVER_STARTUP_TIMEOUT=600000
 maestro --udid "$udid" test flows --include-tags "$include" --format junit --output ../e2e-report.xml --test-output-dir ../e2e-artifacts
