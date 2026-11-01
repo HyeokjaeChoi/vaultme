@@ -65,7 +65,8 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 - `push.ts`: subscribe, unsubscribe, `verifyAlchemySignature`, `notificationsFor` (pure), `handleActivity`, `sweep`.
 - `log.ts`, `metrics.ts`, `sentry.ts`, `alerts.ts`: observability (see Observability).
 - `index.ts`: Worker entry inside `Sentry.withSentry`. `fetch` is the app. `scheduled` runs `sweep`, then `checkAlerts`.
-- `migrations/`: plain SQL for D1 (no ORM).
+- `db/`: `schema.ts` is the D1 schema (Drizzle); `index.ts` has `getDb` and `runBatch`. Every query goes through them (ADR-0029).
+- `migrations/`: SQL for D1, written by `drizzle-kit generate` from `db/schema.ts` (0001-0004 by hand), with drizzle-kit's `meta/` beside it.
 
 ### apps/web
 
@@ -238,5 +239,5 @@ Release:
 - Deployment environment (dev, staging, production) and chain network (local, Sepolia, mainnet) are separate axes. Every environment allows Sepolia only; staging is the only deployed environment, and production is created at the first public release (ADR-0025).
 - Staging API: `api-staging.yml`; staging web: `web-staging.yml` (above). Production web has no workflow yet (#198). Production API: by hand, `wrangler d1 migrations apply DB --remote --env production`, then `wrangler deploy --env production`. No EAS config, no store build.
 - Before the first run in a new env, create its D1 database once by hand (`wrangler d1 create vaultme-api-<env>`; no `database_id` in `wrangler.jsonc`, later runs find it by name). The workflow applies migrations before `wrangler deploy`, and `migrations apply` cannot create the database (staging run #2 failed this way).
-- D1 migrations are forward-only SQL files. Write them so the old Worker still runs: add columns and tables, do not drop or rename in the same release. R16 fails a migration with `DROP COLUMN`, `DROP TABLE` or `RENAME` unless the file has a line `-- contract-ok: <reason>`.
+- D1 migrations are forward-only SQL files. Change `apps/api/src/db/schema.ts`, run `pnpm --filter @vaultme/api db:generate` and commit the file; CI `db:check` fails when the schema has no migration (ADR-0029). Write changes so the old Worker still runs: add columns and tables, do not drop or rename in the same release. R16 fails a migration with `DROP COLUMN`, `DROP TABLE` or `RENAME` unless the file has a line `-- contract-ok: <reason>`.
 - `MIN_APP_VERSION` (a var) forces old apps to update.

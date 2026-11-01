@@ -17,3 +17,5 @@ apps/web/test-results/
 apps/web/public/_headers
 apps/web/public/_redirects
 apps/web/test/fixtures/build/
+# drizzle-kit output (journal and snapshots), rewritten by `db:generate`
+apps/api/migrations/meta/

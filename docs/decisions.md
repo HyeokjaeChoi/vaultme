@@ -87,7 +87,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q63 | Encrypted MMKV; key and token in Keychain | IMPLEMENTED | ADR-0004 |
 | Q64 | Style Dictionary tokens; raw-value lint; web CSS Modules; light only | SUPERSEDED | #189: Tailwind theme from tokens. Dark mode: Q80 |
 | Q65 | react-hook-form + zod resolver; rules from `wallet-core` | IMPLEMENTED | ADR-0021 |
-| Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | GAP | #319: the migration lint is done (R16); Drizzle is not |
+| Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | IMPLEMENTED | ADR-0029 (#355): Drizzle schema and queries, generated migrations, `db:check` drift check in CI; R16 lints the SQL |
 | Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | IMPLEMENTED | oasdiff (`ci.yml` `verify`, #343), anvil reorg tests (`apps/api/test-reorg`, #345), Maestro (`apps/mobile/.maestro`, #348) |
 | Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | GAP | #319: no Stylelint |
 | Q69 | Slack alerts with dedupe and recovery | GAP | #336. Channel is Sentry email, not Slack: ADR-0024. Built (#315): the 5xx spike (`apps/api/src/alerts.ts`). Not built: watcher stall, dead-letter, recovery message |
