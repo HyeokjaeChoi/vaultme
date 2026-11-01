@@ -20,7 +20,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 
 | Rule | Enforced by |
 |---|---|
-| App UI (mobile and web) uses `@vaultme/tokens` only (no raw hex, no numeric spacing/radius/type, no Tailwind arbitrary values, no landing-page gaps) | `scripts/check-repo-rules.sh` R2, R4, R5; `apps/web/eslint.config.js` |
+| App UI (mobile and web) uses `@vaultme/tokens` only (no raw hex, no numeric spacing/radius/type, no Tailwind arbitrary values, no landing-page gaps) | `scripts/check-repo-rules.sh` R2, R4, R5; `apps/web/eslint.config.js`, `apps/web/stylelint.config.mjs` (CSS) |
 | Each shared UI primitive names its Figma node | R6 |
 | No private keys, `.env` or worker secrets; recovery phrases only as the public test vectors listed in R10 | R1, R3, R8, R10 |
 | No `CLAUDE.md` / `CLAUDE.local.md` anywhere (it stops Claude Code from reading this file) | R9 |
