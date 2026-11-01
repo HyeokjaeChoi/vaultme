@@ -11,25 +11,36 @@ const addr = `0x${'a'.repeat(40)}`
 const hash = `0x${'b'.repeat(64)}`
 const INSTALL_ID = '123e4567-e89b-42d3-a456-426614174000'
 
-/** One call per client method. A new method without a row fails the test below. */
-const CALLS: Record<string, (c: ReturnType<typeof createApiClient>) => Promise<unknown>> = {
-  rpc: (c) => c.rpc('eth_blockNumber'),
-  history: (c) => c.history(addr),
-  txInternal: (c) => c.txInternal(hash),
-  putPushSubscription: (c) => c.putPushSubscription(addr, 'ExponentPushToken[abcdefgh12345678]'),
-  deletePushSubscription: (c) => c.deletePushSubscription(),
+/** Per client method: how to call it and the one operation it must send. A new method without a row fails the test below. */
+type Row = { call: (c: ReturnType<typeof createApiClient>) => Promise<unknown>; op: string }
+const CALLS: Record<string, Row> = {
+  rpc: { call: (c) => c.rpc('eth_blockNumber'), op: 'POST /v1/rpc' },
+  history: { call: (c) => c.history(addr), op: 'POST /v1/history' },
+  txInternal: { call: (c) => c.txInternal(hash), op: 'POST /v1/tx/internal' },
+  putPushSubscription: {
+    call: (c) => c.putPushSubscription(addr, 'ExponentPushToken[abcdefgh12345678]'),
+    op: 'PUT /v1/push/subscription',
+  },
+  deletePushSubscription: { call: (c) => c.deletePushSubscription(), op: 'DELETE /v1/push/subscription' },
 }
+// Sent by the first call (identify, then token), whatever the method.
+const AUTH_OPS = ['POST /v1/installs', 'POST /v1/installs/token']
 
 /** `/v1/tx/{hash}` in the spec matches any one segment of a client path. */
 const matches = (template: string, path: string) =>
   new RegExp(`^${template.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{[^}]+\}/g, '[^/]+')}$`).test(path)
 
 describe('api-client vs docs/openapi/v1.json', () => {
-  it('every path and method the client calls is in the spec', async () => {
-    const seen = new Set<string>()
+  const inSpec = (op: string) => {
+    const [method = '', path = ''] = op.split(' ')
+    return Object.entries(spec.paths).some(([t, ops]) => matches(t, path) && method.toLowerCase() in ops)
+  }
+
+  it('each client method sends its expected operation, and that operation is in the spec', async () => {
+    let sent: string[] = []
     const fetchStub = ((url: string, init: RequestInit) => {
       const path = new URL(url).pathname
-      seen.add(`${String(init.method)} ${path}`)
+      sent.push(`${String(init.method)} ${path}`)
       const body =
         path === '/v1/installs'
           ? { installId: INSTALL_ID }
@@ -55,13 +66,16 @@ describe('api-client vs docs/openapi/v1.json', () => {
     const client = createApiClient({ baseUrl: 'https://api.test', appVersion: '1.0.0', signer, fetch: fetchStub })
 
     expect(Object.keys(CALLS).sort()).toEqual(Object.keys(client).sort())
-    for (const call of Object.values(CALLS)) await call(client)
-
-    expect(seen.size).toBeGreaterThanOrEqual(7) // 5 methods + install + token
-    for (const call of seen) {
-      const [method = '', path = ''] = call.split(' ')
-      const ok = Object.entries(spec.paths).some(([t, ops]) => matches(t, path) && method.toLowerCase() in ops)
-      expect(ok, `${call} is not in docs/openapi/v1.json`).toBe(true)
+    for (const [name, { call, op }] of Object.entries(CALLS)) {
+      sent = []
+      await call(client)
+      // The install and the token are made once, by the first method called.
+      expect(
+        sent.filter((o) => !AUTH_OPS.includes(o)),
+        name,
+      ).toEqual([op])
+      expect(inSpec(op), `${op} is not in docs/openapi/v1.json`).toBe(true)
     }
+    for (const op of AUTH_OPS) expect(inSpec(op), `${op} is not in docs/openapi/v1.json`).toBe(true)
   })
 })
