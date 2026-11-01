@@ -3,8 +3,9 @@ import { USDC_SEPOLIA } from '@vaultme/contracts'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { app } from '../src/app.ts'
 import { b64uEncode, issueToken, nowSeconds } from '../src/auth.ts'
-import { INSTALL_KEEP_SECONDS, PUSH_INACTIVE_SECONDS, sweep } from '../src/push.ts'
+import { PUSH_INACTIVE_SECONDS, sweep } from '../src/push.ts'
 
+const INSTALL_KEEP_SECONDS = 90 * 24 * 3600
 const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
 const E = {
@@ -148,9 +149,13 @@ describe('push subscription routes', () => {
     const fresh = await newInstall()
     await put(stale, { address: ADDR, expoToken: TOKEN })
     await put(fresh, { address: OTHER, expoToken: TOKEN })
+    await E.DB.prepare('INSERT INTO push_sent (install_id, ref, sent_at) VALUES (?, ?, ?)')
+      .bind(stale, `${HASH}:native`, nowSeconds())
+      .run()
     calls.length = 0
     await sweep(E)
     expect((await subs()).map((s) => s.install_id)).toEqual([fresh])
+    expect(await E.DB.prepare('SELECT 1 FROM push_sent WHERE install_id = ?').bind(stale).first()).toBeNull()
     expect(body(calls[0]!).addresses_to_remove).toEqual([ADDR])
   })
 
