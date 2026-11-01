@@ -355,6 +355,12 @@ export const ko = {
     receivedAccount: '받은 계정',
     received: '받았어요',
     success: { body: '이 거래는 성공했어요.' },
+    // B-S41 State caution (Figma 883:4375, #334): an incoming zero-value row. The new-sender line is shown only when this wallet never sent to the address.
+    caution: {
+      title: '주소를 사칭한 거래일 수 있어요',
+      body: '보낸 사람 주소를 복사하거나 이 주소로 보내지 마세요. 주소 앞뒤만 같은 다른 주소일 수 있어요.',
+      newSender: '주의 · 처음 보는 주소예요',
+    },
     infoTitle: '거래 정보',
     time: '시각',
     block: '블록',

@@ -6,9 +6,11 @@ import { useTranslation } from 'react-i18next'
 import { networkFact } from '@/entities/account'
 import { demoTx } from '@/entities/transaction'
 import {
+  cautionOf,
   findCachedRow,
   localRecordMatches,
   rowCopy,
+  useHistory,
   useInternalTransfers,
   useRowLookup,
   type HistoryItem,
@@ -16,7 +18,16 @@ import {
   type RowLookup,
 } from '@/features/history'
 import type { TxState } from '@/features/send'
-import { clearTestTx, isFinal, isPolled, resultCopy, txView, useTrackedTx, writePendingTx } from '@/features/send'
+import {
+  clearTestTx,
+  isFinal,
+  isPolled,
+  resultCopy,
+  txView,
+  useRecents,
+  useTrackedTx,
+  writePendingTx,
+} from '@/features/send'
 import { ApiError, apiErrorKey } from '@/shared/api'
 import { useAppStore } from '@/shared/app-store'
 import { chain } from '@/shared/chain'
@@ -50,17 +61,19 @@ import { Loading } from './Loading'
 
 // __DEV__ capture only (`?row=in|out`): a history row as in Figma Flow 4 A 742:2487 / B 742:2584.
 const DEV_ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
-const devHistoryRow = (dir: 'in' | 'out', amount = '0.05'): HistoryItem => ({
+// `?caution=1` adds the caution state (incoming zero-value, Figma B-S41 883:4375).
+const devHistoryRow = (dir: 'in' | 'out', amount = '0.05', caution = false): HistoryItem => ({
   id: 'dev:0',
   hash: '0xa1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90',
   kind: dir === 'in' ? 'receive' : 'send',
   asset: 'ETH',
   amount,
-  counterparty: '0x123456789aBCdef0123456789AbCDEF012345678',
+  counterparty: caution ? '0x4444a91c07de33f2b8e05c17d4a692bf6e084444' : '0x123456789aBCdef0123456789AbCDEF012345678',
   at: new Date(2026, 9, 16, 9, 41).getTime(),
   ...txView('Confirmed'),
   local: false,
   blockNumber: 5812044,
+  ...(caution ? { caution: true as const } : {}),
 })
 
 // __DEV__ capture only (`?internal=list|many|capped|loading|error`): the 내부 이동 states of Figma Flow 4 B-S41 (804:39671 list, 804:39832 many, 804:40085 loading, 804:40202 error).
@@ -124,7 +137,16 @@ function RowDetail({
   devInternalState?: string | undefined
 }) {
   const { t } = useTranslation()
+  const th = useTheme()
   const copy = rowCopy(row)
+  // "처음 보는 주소" is a claim: it holds only when this wallet never sent to the sender (send recents and the sends of the loaded history).
+  const recents = useRecents()
+  const { view } = useHistory()
+  const known = [
+    ...recents.map((r) => r.address),
+    ...(view?.items ?? []).filter((i) => i.kind === 'send').map((i) => i.counterparty),
+  ]
+  const caution = cautionOf(row, known)
   const explorer =
     explorerUrl(chain, row.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${row.hash}` : null)
   const [figure, unit] = showAmount(row.amount, row.asset, 'exact').split(' ')
@@ -138,6 +160,11 @@ function RowDetail({
       gap="none"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/activity')} chips={<NetworkChips />} />}
     >
+      {caution ? (
+        <View style={{ paddingTop: th.semantic.layout.groupGap, paddingHorizontal: th.semantic.layout.screen.padding }}>
+          <StatusNotice tone="warning" heading title={t('detail.caution.title')} body={t('detail.caution.body')} />
+        </View>
+      ) : null}
       <AmountHero
         result={{ badge: example ? 'info' : copy.badge, title: example ? t('result.testTitle') : t(copy.title) }}
         asset={row.asset === 'USDC' ? 'USDC' : 'ETH'}
@@ -150,6 +177,11 @@ function RowDetail({
         <>
           <Block title={t(copy.counterpartyTitle)}>
             <AddressText address={row.counterparty} />
+            {caution?.newSender ? (
+              <Text variant="caption" color={th.component.badge.warning.fg}>
+                {t('detail.caution.newSender')}
+              </Text>
+            ) : null}
           </Block>
           <SectionBand />
         </>
@@ -251,6 +283,7 @@ export function TxDetailPage() {
     hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash), or a bare hash
     demo,
     row: devRow,
+    caution: devCaution,
     lookup: devLookup,
     internal: devInternalParam,
     real,
@@ -259,6 +292,7 @@ export function TxDetailPage() {
   } = useLocalSearchParams<{
     hash: string
     row?: string
+    caution?: string
     lookup?: string
     internal?: string
     demo?: string
@@ -283,7 +317,7 @@ export function TxDetailPage() {
     const cached = findCachedRow(address, id)
     const row =
       (__DEV__ && (devRow === 'in' || devRow === 'out')
-        ? devHistoryRow(devRow, devInternalParam ? '0' : undefined)
+        ? devHistoryRow(devRow, devInternalParam || devCaution ? '0' : undefined, devCaution === '1')
         : null) ??
       cached ??
       (testMode ? fakeHistoryItems(null).find((i) => i.id === id) : undefined)
