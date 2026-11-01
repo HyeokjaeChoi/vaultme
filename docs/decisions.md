@@ -82,7 +82,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q58 | All RPC via the proxy with failover; history cached on device | IMPLEMENTED | ADR-0007 |
 | Q59 | `wallet-core` signing boundary; lint limits its importers | SUPERSEDED | #312: scope widened by the owner (2026-11-01) from send and backup to send, backup, restore and `shared/storage/keychain.ts`. The rest holds: `@vaultme/wallet-core/signer`, lint in `apps/mobile/eslint.config.mjs` and `apps/web/eslint.config.js`, test `apps/mobile/test/signer-import.test.ts` |
 | Q60 | viem in `wallet-core`; explicit path; bigint units | IMPLEMENTED | `packages/wallet-core/package.json` |
-| Q61 | zod + OpenAPI; breaking-change diff; generated client | GAP | #316: stale check and oasdiff diff vs the PR base are done (`ci.yml` `verify`); the client is hand-written on the shared zod contracts, not generated |
+| Q61 | zod + OpenAPI; breaking-change diff; generated client | SUPERSEDED | ADR-0027 (#350): the client stays hand-written on the shared `@vaultme/contracts` zod schemas. Stale check and oasdiff diff vs the PR base are done (`ci.yml` `verify`, #316); path and method drift is caught by `packages/api-client/test/openapi-paths.test.ts` |
 | Q62 | TanStack Query + persist; send state from `wallet-core`; one Zustand store | IMPLEMENTED | ADR-0021 (send state is the pure `deriveState`, not a reducer) |
 | Q63 | Encrypted MMKV; key and token in Keychain | IMPLEMENTED | ADR-0004 |
 | Q64 | Style Dictionary tokens; raw-value lint; web CSS Modules; light only | SUPERSEDED | #189: Tailwind theme from tokens. Dark mode: Q80 |

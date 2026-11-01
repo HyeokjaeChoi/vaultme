@@ -1,0 +1,67 @@
+import { readFileSync } from 'node:fs'
+import { describe, expect, it } from 'vitest'
+import { createApiClient, type DeviceSigner } from '../src/index.ts'
+
+// ADR-0027: the client is hand-written, so this test is what stops path/method drift from `docs/openapi/v1.json`.
+const spec = JSON.parse(readFileSync(new URL('../../../docs/openapi/v1.json', import.meta.url), 'utf8')) as {
+  paths: Record<string, Record<string, unknown>>
+}
+
+const addr = `0x${'a'.repeat(40)}`
+const hash = `0x${'b'.repeat(64)}`
+const INSTALL_ID = '123e4567-e89b-42d3-a456-426614174000'
+
+/** One call per client method. A new method without a row fails the test below. */
+const CALLS: Record<string, (c: ReturnType<typeof createApiClient>) => Promise<unknown>> = {
+  rpc: (c) => c.rpc('eth_blockNumber'),
+  history: (c) => c.history(addr),
+  txInternal: (c) => c.txInternal(hash),
+  putPushSubscription: (c) => c.putPushSubscription(addr, 'ExponentPushToken[abcdefgh12345678]'),
+  deletePushSubscription: (c) => c.deletePushSubscription(),
+}
+
+/** `/v1/tx/{hash}` in the spec matches any one segment of a client path. */
+const matches = (template: string, path: string) =>
+  new RegExp(`^${template.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{[^}]+\}/g, '[^/]+')}$`).test(path)
+
+describe('api-client vs docs/openapi/v1.json', () => {
+  it('every path and method the client calls is in the spec', async () => {
+    const seen = new Set<string>()
+    const fetchStub = ((url: string, init: RequestInit) => {
+      const path = new URL(url).pathname
+      seen.add(`${String(init.method)} ${path}`)
+      const body =
+        path === '/v1/installs'
+          ? { installId: INSTALL_ID }
+          : path === '/v1/installs/token'
+            ? { token: 't', expiresAt: 4_000_000_000 }
+            : path === '/v1/rpc'
+              ? { jsonrpc: '2.0', id: 1, result: '0x1' }
+              : { ok: true }
+      return Promise.resolve(new Response(JSON.stringify(body)))
+    }) as unknown as typeof fetch
+
+    let id: string | null = null
+    const signer: DeviceSigner = {
+      publicKey: () => Promise.resolve('k'),
+      createKey: () => Promise.resolve('k'),
+      sign: () => Promise.resolve('s'),
+      getInstallId: () => Promise.resolve(id),
+      setInstallId: (v) => {
+        id = v
+        return Promise.resolve()
+      },
+    }
+    const client = createApiClient({ baseUrl: 'https://api.test', appVersion: '1.0.0', signer, fetch: fetchStub })
+
+    expect(Object.keys(CALLS).sort()).toEqual(Object.keys(client).sort())
+    for (const call of Object.values(CALLS)) await call(client)
+
+    expect(seen.size).toBeGreaterThanOrEqual(7) // 5 methods + install + token
+    for (const call of seen) {
+      const [method = '', path = ''] = call.split(' ')
+      const ok = Object.entries(spec.paths).some(([t, ops]) => matches(t, path) && method.toLowerCase() in ops)
+      expect(ok, `${call} is not in docs/openapi/v1.json`).toBe(true)
+    }
+  })
+})
