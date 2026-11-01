@@ -3,7 +3,7 @@ import { toWords } from './phrase'
 // S05 per-word cells (Figma B/Word cell 565:73619). Pure helpers: the words only live in the page state, never stored or logged.
 
 export type WordCount = 12 | 24
-export const MAX_WORDS = 24
+const MAX_WORDS = 24
 
 export const emptyWords = (): string[] => Array<string>(MAX_WORDS).fill('')
 

@@ -1,4 +1,5 @@
-import { fromUnits, signAndSubmit, type Address, type ApprovedSend } from '@vaultme/wallet-core'
+import { fromUnits, type Address, type ApprovedSend } from '@vaultme/wallet-core'
+import { signAndSubmit } from '@vaultme/wallet-core/signer'
 import { ACCOUNT_INDEX } from '@/entities/account'
 import type { ChainPort } from '@/shared/chain'
 import type { AuthPrompt, LoadPhraseResult, PendingTx } from '@/shared/storage'

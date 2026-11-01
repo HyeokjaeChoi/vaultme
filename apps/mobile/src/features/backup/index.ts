@@ -1,7 +1,7 @@
 export { useBackupDone } from './model/useBackupDone'
 export { useAccountAddress } from './model/useAccountAddress'
 export { backupGateState, type BackupGateState } from './model/gate'
-export { clearCheck, getCheck, startCheck, wrongIndexes } from './model/check'
+export { clearCheck, getCheck, startCheck } from './model/check'
 export { createWallet } from './model/createWallet'
 export { leavesReveal } from './model/reveal'
 export { WRONG_ANSWER, answersFilled, checkResolver, type CheckForm } from './model/form'

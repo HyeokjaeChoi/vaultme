@@ -3,7 +3,7 @@ import type { ChainPort, Receipt } from '@/shared/chain'
 import type { PendingTx } from '@/shared/storage'
 
 // The derivation lives in wallet-core (Q59, ADR-0021); the app keeps the network check and the fake adapter.
-export { deriveState, isFinal, isPolled }
+export { isFinal, isPolled }
 
 export type TxState = PendingTx['state']
 

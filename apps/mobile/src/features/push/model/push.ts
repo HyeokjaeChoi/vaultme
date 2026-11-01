@@ -11,7 +11,7 @@ export type PushPort = {
   token(projectId: string): Promise<string>
 }
 
-export type PushServer = {
+type PushServer = {
   putPushSubscription(address: string, expoToken: string): Promise<void>
   deletePushSubscription(): Promise<void>
 }
