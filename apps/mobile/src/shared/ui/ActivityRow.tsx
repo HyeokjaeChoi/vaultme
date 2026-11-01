@@ -56,7 +56,7 @@ export function ActivityRow({
       {...(onPress ? {} : { accessible: true, accessibilityLabel: label })}
       style={{
         minHeight: t.component.rowB.height,
-        ...(caution ? { paddingVertical: t.primitive.space[3] } : {}),
+        ...(look.showCaution ? { paddingVertical: t.primitive.space[3] } : {}),
         flexDirection: 'row',
         alignItems: 'center',
         gap: t.semantic.layout.rowGap,
@@ -82,7 +82,7 @@ export function ActivityRow({
         <Text variant="caption" color={t.semantic.text.tertiary}>
           {detail ?? time}
         </Text>
-        {caution ? (
+        {look.showCaution ? (
           <Text variant="caption" color={t.component.badge.warning.fg}>
             {caution}
           </Text>

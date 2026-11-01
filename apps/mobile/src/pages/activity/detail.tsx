@@ -20,6 +20,7 @@ import {
 import type { TxState } from '@/features/send'
 import { clearTestTx, isFinal, isPolled, resultCopy, txView, useTrackedTx, writePendingTx } from '@/features/send'
 import { ApiError, apiErrorKey } from '@/shared/api'
+import { useAppStore } from '@/shared/app-store'
 import { chain } from '@/shared/chain'
 import { explorerUrl } from '@/shared/chain'
 import { useTestMode } from '@/shared/chain'
@@ -272,6 +273,7 @@ export function TxDetailPage() {
     err?: string
   }>()
   const router = useRouter()
+  useAppStore((s) => s.zeroSetting) // S63 flip: render again, so `findCachedRow` below follows the switch (a row it hides must not stay on screen)
   const [confirmClear, setConfirmClear] = useState(__DEV__ && sheet === '1')
   const { tx: stored, checking, error: trackedError, recheck } = useTrackedTx()
   const testMode = useTestMode()

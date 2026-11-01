@@ -426,4 +426,15 @@ describe('zero-value switch (Q71, S63)', () => {
     on = false
     expect((await s.h.more(ME, 'c'))?.items).toEqual([])
   })
+
+  it('a flip while a page loads does not change how that answer is parsed', async () => {
+    on = false
+    let release: (v: unknown) => void = () => undefined
+    const s = withSwitch({ answer: () => new Promise((r) => (release = r)) })
+    const loading = s.load(ME)
+    on = true
+    release(page([zero(0, 'in')]))
+    await loading
+    expect(s.views[0]?.items).toEqual([]) // parsed with the value read when the load started (off)
+  })
 })

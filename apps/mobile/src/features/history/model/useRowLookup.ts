@@ -18,11 +18,11 @@ const cachedLookup = (id: string, dir?: PushDir): RowLookup | undefined => {
  */
 export function useRowLookup(id: string, dir?: PushDir): { lookup: RowLookup | null; retry: () => void } {
   const qc = useQueryClient()
-  useAppStore((s) => s.zeroSetting) // S63 flip: re-render, so the lookup gets the new key
+  const zero = useAppStore((s) => s.zeroSetting) // S63 flip: re-render, so the lookup gets the new key and the seam cache is read again
   const q = rowLookupQuery(id, dir)
   const { data, isFetching, dataUpdatedAt } = useQuery(q)
   // eslint-disable-next-line react-hooks/exhaustive-deps -- re-read the seam cache when a lookup finished (it may have stored a page)
-  const cached = useMemo(() => cachedLookup(id, dir), [id, dir, dataUpdatedAt])
+  const cached = useMemo(() => cachedLookup(id, dir), [id, dir, dataUpdatedAt, zero])
   const done = isFetching ? null : (data ?? null)
   useEffect(() => {
     if (done?.status === 'several') goBack('/activity') // one hash, several rows: which one is unknown, the list is below

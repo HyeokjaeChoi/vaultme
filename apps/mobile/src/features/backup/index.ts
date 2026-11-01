@@ -1,6 +1,6 @@
 export { useBackupDone } from './model/useBackupDone'
 export { useAccountAddress } from './model/useAccountAddress'
-export { backupGateState, type BackupGateState } from './model/gate'
+export { backupGateState, hasDeposit, type BackupGateState } from './model/gate'
 export { clearCheck, getCheck, startCheck } from './model/check'
 export { createWallet } from './model/createWallet'
 export { leavesReveal } from './model/reveal'

@@ -10,7 +10,7 @@ export type HistoryDeps = {
   /** One slot: the last first page of any address. */
   cache: { get(): HistoryCache | null; set(c: HistoryCache): void }
   now: () => number
-  /** Read on every parse. True = show incoming zero-value rows with `caution` (mobile S63 switch, Q71). Absent = hidden (web viewer). The cache keeps the raw page, so a flip needs no refetch. */
+  /** Read on every parse. True = show incoming zero-value rows with `caution` (mobile S63 switch, Q71). Absent = hidden (web viewer). The cache keeps the raw page, so `cachedRow` follows a flip with no refetch (the mobile list view reloads, its query key holds the value). */
   showZero?: () => boolean
 }
 
@@ -66,11 +66,12 @@ export function createHistory(d: HistoryDeps) {
 
   /** A fresh first page, also written to the cache. 404 (an API without `/v1/history`, e.g. an old deployment) = `local`. Other errors throw. */
   async function fresh(address: string): Promise<Page> {
+    const zero = d.showZero?.() // read before the await: a flip while the page loads must not change how this answer is parsed (it is stored under the key of the old value)
     try {
       const data = await d.fetchPage(address)
       const updatedAt = d.now()
       d.cache.set({ address, json: JSON.stringify(data ?? null), updatedAt })
-      return { source: 'api', items: parseItems(data, d.showZero?.()), updatedAt, nextCursor: parseNextCursor(data) }
+      return { source: 'api', items: parseItems(data, zero), updatedAt, nextCursor: parseNextCursor(data) }
     } catch (e) {
       if (isApiError(e, 'not_found')) return { source: 'local' }
       throw e
@@ -121,9 +122,10 @@ export function createHistory(d: HistoryDeps) {
      * Null = the fetch failed (also `update_required`): the caller keeps what it shows and offers a retry. The caller drops rows it has (`id`).
      */
     async more(address: string, cursor: string): Promise<{ items: HistoryItem[]; nextCursor: string | null } | null> {
+      const zero = d.showZero?.()
       try {
         const data = await d.fetchPage(address, cursor)
-        return { items: parseItems(data, d.showZero?.()), nextCursor: parseNextCursor(data) }
+        return { items: parseItems(data, zero), nextCursor: parseNextCursor(data) }
       } catch {
         return null
       }
