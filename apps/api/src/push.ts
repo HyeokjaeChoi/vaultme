@@ -362,6 +362,7 @@ const Receipt = z.object({
  * Own txs are looked up on the chain (one `eth_getTransactionReceipt` per hash, through the RPC proxy):
  * receipt status 0x0 turns the push into `failed` (#314, Q23/Q24), also when a received leg won the kind (a self-send).
  * A zero-value probe that did not fail is dropped.
+ * `failed` has its own `push_sent` ref (`<hash>:failed`): after a reorg the same hash can revert although a `send` push went out (#345), and the failure must still be pushed.
  * A hash whose receipt cannot be read (chain down, RPC error, no receipt yet, unknown status; Alchemy reports mined txs, so a missing receipt
  * is a lagging node) is left out and not claimed, and `unreadable` is true: the caller answers 5xx after it has sent the other pushes, so
  * Alchemy retries and a retry can still push `failed`.
@@ -393,7 +394,11 @@ async function withFailures(
   return {
     notes: notes
       .filter((n) => !unreadable.has(n.hash) && (!n.probe || failed.has(n.hash)))
-      .map((n) => (failed.has(n.hash) && (n.kind === 'send' || n.own) ? { ...n, kind: 'failed' as const } : n)),
+      .map((n) =>
+        failed.has(n.hash) && (n.kind === 'send' || n.own)
+          ? { ...n, kind: 'failed' as const, ref: `${n.hash}:failed` }
+          : n,
+      ),
     unreadable: unreadable.size > 0,
   }
 }

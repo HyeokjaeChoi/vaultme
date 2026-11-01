@@ -218,7 +218,7 @@ Local:
 
 - `pnpm turbo run typecheck lint test` and `scripts/check-repo-rules.sh`.
 - Run `git config core.hooksPath .githooks` once. Pre-commit runs the repo rules. Pre-push adds typecheck, lint and test when code changed.
-- API: `wrangler dev`, `pnpm --filter @vaultme/api db:migrate:local`. Tests run in the Workers runtime (`@cloudflare/vitest-plugin`) with D1 migrations applied.
+- API: `wrangler dev`, `pnpm --filter @vaultme/api db:migrate:local`. Tests run in the Workers runtime (`@cloudflare/vitest-plugin`) with D1 migrations applied. Reorg tests (`pnpm --filter @vaultme/api test:reorg`, `apps/api/test-reorg`) run the push webhook against a local anvil chain and reproduce a reorg with `evm_snapshot` and `evm_revert`; they need Foundry (`anvil`) and run in CI job `verify`.
 - Mobile dev build (Expo Go does not work: it needs Keychain and MMKV):
   - From `apps/mobile`: `npx expo prebuild --clean`, then `npx expo run:ios` or `npx expo run:android`. The URL scheme is `vaultme`.
   - Set `EXPO_PUBLIC_API_URL` for the real API. Without it the fake chain is used. `pnpm staging <script>` (for example `pnpm staging ios`) sets the staging API; the EAS `development` profile in `apps/mobile/eas.json` sets it too.
@@ -227,7 +227,7 @@ Local:
 
 CI (`.github/workflows`):
 
-- `ci.yml`, on pull request and push to `main`: job `repo-rules` runs `scripts/check-repo-rules.sh` (R1 to R13). Job `verify` runs `prettier --check .`, `pnpm turbo run typecheck lint test`, `openapi:check`, `pnpm knip` and the mobile `export:check` (`turbo boundaries` and `expo-doctor` only report). Job `web` builds `apps/web` and runs Playwright with axe and Lighthouse CI against `wrangler dev` (ADR-0012).
+- `ci.yml`, on pull request and push to `main`: job `repo-rules` runs `scripts/check-repo-rules.sh` (R1 to R13). Job `verify` runs `prettier --check .`, `pnpm turbo run typecheck lint test`, the API reorg tests (`test:reorg`, Foundry), `openapi:check`, `pnpm knip` and the mobile `export:check` (`turbo boundaries` and `expo-doctor` only report). Job `web` builds `apps/web` and runs Playwright with axe and Lighthouse CI against `wrangler dev` (ADR-0012).
 - `api-staging.yml`, on push to `main` that touches the API (and by hand): in the GitHub Environment `staging`, applies D1 migrations, runs `wrangler deploy --env staging`, then checks `/v1/health`.
 - `web-staging.yml`, on push to `main` that touches `apps/web` or the packages it uses (and by hand): job `gate` repeats the `web` checks, then `deploy` publishes `vaultme-web-staging` at `vaultme-staging.stack-line.dev`.
 - `claude-code-review.yml`: Claude reviews a PR once when it is opened as non-draft or marked ready, and again when the owner adds the `review` label. It uses the `vaultme-pr-review` skill and `REVIEW.md`, read from the PR base. `review-learn.yml` collects review findings weekly (Monday) for the learning loop in `REVIEW.md`.

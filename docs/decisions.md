@@ -88,7 +88,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q64 | Style Dictionary tokens; raw-value lint; web CSS Modules; light only | SUPERSEDED | #189: Tailwind theme from tokens. Dark mode: Q80 |
 | Q65 | react-hook-form + zod resolver; rules from `wallet-core` | IMPLEMENTED | ADR-0021 |
 | Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | GAP | #319 |
-| Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | GAP | #316: no oasdiff, anvil, Maestro |
+| Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | GAP | #316: no oasdiff, Maestro. Anvil reorg tests are built (`apps/api/test-reorg`, #345) |
 | Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | GAP | #319: no Stylelint |
 | Q69 | Slack alerts with dedupe and recovery | GAP | #336. Channel is Sentry email, not Slack: ADR-0024. Built (#315): the 5xx spike (`apps/api/src/alerts.ts`). Not built: watcher stall, dead-letter, recovery message |
 | Q70 | Library list | SUPERSEDED | #63: Solar icons. Sentry part: Q50 |
