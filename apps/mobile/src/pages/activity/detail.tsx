@@ -184,7 +184,7 @@ function RowDetail({
 
 /**
  * S41 for a route param with no local record, no cached row and not an example row: looks the row up (cache, then a fresh history page).
- * Loading = Figma 749:2651, load failed 749:2738, not found 749:2800. Several rows with one hash: back to the list, which a push tap has below S41.
+ * Loading = Figma 749:2651, load failed 749:2738, not found 749:2800. Several rows with one hash: back to the list, which a deep link has below S41.
  * `?lookup=loading|failed|none` is a __DEV__ capture override of the three states.
  */
 function LookupDetail({

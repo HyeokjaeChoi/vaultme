@@ -28,7 +28,7 @@ export type RowLookup =
 type Page = { source: 'api'; items: HistoryItem[]; updatedAt: number; nextCursor: string | null } | { source: 'local' }
 
 /**
- * The row an S41 route param names. A row id (`<hash>:<seq>`, from the list) is one exact row. A bare hash (from a push)
+ * The row an S41 route param names. A row id (`<hash>:<seq>`, from the list) is one exact row. A bare hash (a deep link)
  * is a row only when exactly one row has that hash; with several, the caller must not guess which one the user means.
  */
 function pick(rows: HistoryItem[], id: string): RowLookup {
@@ -123,7 +123,7 @@ export function createHistory(d: HistoryDeps) {
     },
     cachedRow,
     /**
-     * S41 for a history row without a local record: the cache first, else a fresh first page (also cached; the pushed tx is usually newer than
+     * S41 for a history row without a local record: the cache first, else a fresh first page (also cached; a tx the user just sent is usually newer than
      * the cache). `failed` = no address, a fetch error, `update_required` or 404.
      */
     async findRow(address: string | null, id: string): Promise<RowLookup> {

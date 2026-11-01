@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/shared/theme'
 import { SkeletonRow, Text } from '@/shared/ui'
 
-/** The S40 loading body; S41 shows it too while it looks a pushed hash up (Figma 749:2651). */
+/** The S40 loading body; S41 shows it too while it looks a bare hash up (Figma 749:2651). */
 export function Loading() {
   const { t } = useTranslation()
   const th = useTheme()

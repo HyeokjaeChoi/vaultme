@@ -112,12 +112,18 @@ export async function subscribe(
 }
 
 /** Deletes the subscription right away, then removes the address from Alchemy. Returns false when that last step failed (cron retries). */
-export async function unsubscribe(env: Bindings, installId: string): Promise<boolean> {
-  const row = await env.DB.prepare('DELETE FROM push_subscriptions WHERE install_id = ? RETURNING address')
-    .bind(installId)
+export async function unsubscribe(env: Bindings, installId: string, onlyToken?: string): Promise<boolean> {
+  // `onlyToken`: delete only while the install still has that token (a receipt of an old token must not remove a new subscription).
+  const row = await env.DB.prepare(
+    'DELETE FROM push_subscriptions WHERE install_id = ? AND (? IS NULL OR expo_token = ?) RETURNING address',
+  )
+    .bind(installId, onlyToken ?? null, onlyToken ?? null)
     .first<{ address: string }>()
   if (row) {
-    await env.DB.prepare('DELETE FROM push_sent WHERE install_id = ?').bind(installId).run()
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM push_sent WHERE install_id = ?').bind(installId),
+      env.DB.prepare('DELETE FROM push_receipts WHERE install_id = ?').bind(installId),
+    ])
     return unregisterAddresses(env, [row.address])
   }
   return true
@@ -152,12 +158,12 @@ const ExpoReceipts = z.object({
 /**
  * Reads the Expo receipts of pushes sent at least 15 minutes ago. A `DeviceNotRegistered` receipt deletes the subscription
  * (only while the install still has the token that was pushed to). Every id Expo answered for is then deleted; an id with no receipt
- * yet stays for the next run. An Expo failure keeps all ids (the 7-day purge bounds them) and never stops the rest of the sweep.
+ * yet stays for the next run (newest first, so ids Expo no longer knows cannot starve newer ones). An Expo failure keeps all ids (the 7-day purge bounds them) and never stops the rest of the sweep.
  */
 async function checkReceipts(env: Bindings, now: number): Promise<void> {
   type Row = { receipt_id: string; install_id: string; expo_token: string }
   const rows = await env.DB.prepare(
-    'SELECT receipt_id, install_id, expo_token FROM push_receipts WHERE created_at < ? ORDER BY created_at LIMIT 1000',
+    'SELECT receipt_id, install_id, expo_token FROM push_receipts WHERE created_at < ? ORDER BY created_at DESC LIMIT 1000',
   )
     .bind(now - PUSH_RECEIPT_DELAY_SECONDS)
     .all<Row>()
@@ -180,12 +186,7 @@ async function checkReceipts(env: Bindings, now: number): Promise<void> {
       const checked = batch.filter((r) => r.receipt_id in parsed.data.data)
       for (const r of checked) {
         if (parsed.data.data[r.receipt_id]?.details?.error !== 'DeviceNotRegistered') continue
-        const live = await env.DB.prepare(
-          'SELECT 1 AS x FROM push_subscriptions WHERE install_id = ? AND expo_token = ?',
-        )
-          .bind(r.install_id, r.expo_token)
-          .first()
-        if (live) await unsubscribe(env, r.install_id)
+        await unsubscribe(env, r.install_id, r.expo_token)
       }
       if (checked.length > 0)
         await env.DB.batch(
@@ -291,12 +292,13 @@ function notificationsFor(payload: z.infer<typeof AlchemyPayload>, subscribed: R
   return [...out.values()]
 }
 
-const Receipt = z.object({ result: z.object({ status: z.string().optional() }).nullish() })
+const Receipt = z.object({ result: z.object({ status: z.string() }).nullish(), error: z.unknown().optional() })
 
 /**
  * Own outgoing txs are looked up on the chain (one `eth_getTransactionReceipt` per hash, through the RPC proxy):
- * receipt status 0x0 turns the push into `failed` (#314, Q23/Q24). No receipt yet = send. A zero-value probe not failed is dropped.
- * Throws UpstreamError when the chain cannot be read, so the route answers 5xx and Alchemy retries (nothing is claimed yet).
+ * receipt status 0x0 turns the push into `failed` (#314, Q23/Q24). A zero-value probe that did not fail is dropped.
+ * Throws UpstreamError when the chain cannot be read, answers with an RPC error, or has no receipt yet (Alchemy reports mined txs, so a missing
+ * receipt is a lagging node): the route answers 5xx and Alchemy retries. Nothing is claimed yet, so a retry can still push `failed`.
  */
 async function withFailures(env: Bindings, notes: Notification[]): Promise<Notification[]> {
   const hashes = [...new Set(notes.filter((n) => n.kind === 'send').map((n) => n.hash))]
@@ -305,7 +307,9 @@ async function withFailures(env: Bindings, notes: Notification[]): Promise<Notif
     hashes.map(async (hash) => {
       const text = await proxyRpc(env, { jsonrpc: '2.0', id: 1, method: 'eth_getTransactionReceipt', params: [hash] })
       if (text === null) throw new UpstreamError('rpc unreachable')
-      if (Receipt.parse(JSON.parse(text)).result?.status === '0x0') failed.add(hash)
+      const r = Receipt.safeParse(JSON.parse(text))
+      if (!r.success || r.data.error !== undefined || !r.data.result) throw new UpstreamError('rpc receipt')
+      if (r.data.result.status === '0x0') failed.add(hash)
     }),
   )
   return notes
@@ -446,7 +450,8 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
         } else ticketFailed = true
       }
       for (const j of settled) unsettled.delete(j)
-      if (receipts.length > 0) await env.DB.batch(receipts)
+      // A side record: a D1 failure here must not stop the send loop or the DeviceNotRegistered cleanup (lost ids only skip a receipt check).
+      if (receipts.length > 0) await env.DB.batch(receipts).catch(() => console.error('push receipt ids not stored'))
     }
   } finally {
     // Not sent (Expo failed, rejected, or ticket error): release the claim so the retry can send.

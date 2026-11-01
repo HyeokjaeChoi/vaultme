@@ -284,11 +284,38 @@ describe('POST /webhooks/alchemy', () => {
       })
     })
 
-    it('pushes send when the receipt status is 0x1 or no receipt is known yet', async () => {
+    it('pushes send when the receipt status is 0x1', async () => {
       await hook(activity([ownSend()]))
-      receiptStatus = null
-      await hook(activity([ownSend({ hash: '0x' + '22'.repeat(32) })]))
-      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'send' }, { kind: 'send' }])
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'send' }])
+    })
+
+    it.each([
+      ['no receipt yet', 'none'],
+      ['an in-band RPC error', 'error'],
+    ])('answers 503 and claims nothing on %s, so a retry can still push failed', async (_n, mode) => {
+      const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      const f = globalThis.fetch
+      if (mode === 'error')
+        vi.stubGlobal('fetch', (url: string, init: RequestInit) =>
+          rpcUrl(url)
+            ? Promise.resolve(
+                new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, error: { code: -32000, message: 'x' } })),
+              )
+            : f(url, init),
+        )
+      else receiptStatus = null
+      for (const tx of [
+        ownSend(),
+        ownSend({ value: 0, rawContract: { rawValue: '0x0' }, hash: '0x' + '55'.repeat(32) }),
+      ])
+        expect((await hook(activity([tx]))).status).toBe(503)
+      expect(sentMessages()).toHaveLength(0)
+      expect(await E.DB.prepare('SELECT COUNT(*) AS n FROM push_sent').first<{ n: number }>()).toEqual({ n: 0 })
+      vi.stubGlobal('fetch', f)
+      receiptStatus = '0x0'
+      expect((await hook(activity([ownSend()]))).status).toBe(200)
+      expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'failed' }])
+      err.mockRestore()
     })
 
     it('catches a reverted contract call: a zero-value outgoing tx is pushed only when it failed', async () => {
@@ -579,5 +606,40 @@ describe('Expo receipts (Q39, #314)', () => {
       300, 1,
     ])
     expect(await ids()).toEqual([])
+  })
+
+  it('still answers 200 and keeps the claim when the receipt ids cannot be stored', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    await E.DB.prepare('ALTER TABLE push_receipts RENAME TO push_receipts_off').run()
+    try {
+      expect((await hook(activity([eth()]))).status).toBe(200)
+    } finally {
+      await E.DB.prepare('ALTER TABLE push_receipts_off RENAME TO push_receipts').run()
+    }
+    expect(err).toHaveBeenCalledWith('push receipt ids not stored')
+    expect(sentMessages()).toHaveLength(1)
+    err.mockRestore()
+  })
+
+  it('removes the install receipt ids when the subscription is deleted', async () => {
+    await hook(activity([eth()]))
+    expect(await ids()).toEqual(['r1'])
+    await del(install)
+    expect(await ids()).toEqual([])
+  })
+
+  it('reads the newest ids first when 1000 older ones are waiting', async () => {
+    const ins = (id: string, t: number) =>
+      E.DB.prepare(
+        'INSERT INTO push_receipts (receipt_id, install_id, expo_token, created_at) VALUES (?, ?, ?, ?)',
+      ).bind(id, install, TOKEN, t)
+    await E.DB.batch([
+      ...Array.from({ length: 1000 }, (_, i) => ins(`old${String(i)}`, nowSeconds() - 3 * 24 * 3600)),
+      ins('fresh', nowSeconds() - PUSH_RECEIPT_DELAY_SECONDS - 5),
+    ])
+    receiptsReply = () =>
+      new Response(JSON.stringify({ data: { fresh: { status: 'error', details: { error: 'DeviceNotRegistered' } } } }))
+    await sweep(E)
+    expect(await subs()).toHaveLength(0) // the fresh id was read although 1000 older ones are unanswered
   })
 })
