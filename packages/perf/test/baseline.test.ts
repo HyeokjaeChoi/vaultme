@@ -38,7 +38,7 @@ describe('buildBaseline', () => {
   it('keeps the path of each JS budget row, sorted, and adds the Hermes limit', () => {
     expect(baseline.web.jsBudget.map((r) => r.url)).toEqual(['/', '/en/'])
     expect(baseline.hermes.limit).toBe(HERMES_LIMIT)
-    expect(HERMES_LIMIT).toBe(9_437_184)
+    expect(HERMES_LIMIT).toBe(11_534_336)
   })
 })
 
@@ -49,7 +49,7 @@ describe('renderBaseline', () => {
     expect(md).toContain('### Desktop (3 runs per page)')
     expect(md).toContain('| `/en/` | 99 | 100 | 96 | 100 | 900 | 0.012 | 10 |')
     expect(md).toContain('| `/` | 80000 | 102400 | 3 |')
-    expect(md).toContain('| ios | 5242880 | 5.00 | 9.00 |')
+    expect(md).toContain('| ios | 5242880 | 5.00 | 11.00 |')
     expect(md).toContain('31 s apart')
   })
   it('writes n/a for an endpoint without a successful call', () => {

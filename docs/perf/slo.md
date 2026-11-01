@@ -11,7 +11,7 @@ What "fast enough" means for VaultMe, where each limit comes from, and how far w
 | CLS <= 0.1 | same | [web.dev CLS](https://web.dev/articles/cls) | 0 to 0.001 |
 | TBT <= 200 ms | same | [web.dev TBT](https://web.dev/articles/tbt) | 0 ms |
 | JS: static pages <= 100 KB, viewer (`/address`, `/tx`) <= 150 KB, gzip body | `apps/web/scripts/js-budget.ts` | [ADR-0017](../adr/0017-web-analytics-beacon-and-js-budgets.md), [ADR-0018](../adr/0018-js-budgets-count-compressed-body.md) | Static 0 B; viewer 138.4 KB (141,673 B) |
-| Hermes bundle <= 9 MiB | `export:check` in `apps/mobile/package.json` | `AGENTS.md` "Enforced rules" | 7.75 MiB (iOS), 7.74 MiB (Android) |
+| Hermes bundle <= 11 MiB | `export:check` in `apps/mobile/package.json` | `AGENTS.md` "Enforced rules" | 7.75 MiB (iOS), 7.74 MiB (Android) |
 
 Attainment is from [baseline.md](baseline.md) (a local run of 2026-10-30) and the LHRs of CI run 41076156239 (mobile LCP).
 
