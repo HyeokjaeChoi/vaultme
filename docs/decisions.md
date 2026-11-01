@@ -75,7 +75,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q51 | pnpm + Turborepo monorepo | IMPLEMENTED | `turbo.json` |
 | Q52 | local/staging/prod; separate D1, secrets, EAS channel; web previews | SUPERSEDED | ADR-0025: production environment and EAS production channel wait for the first public release. Still open: EAS channels for staging (#316). Web previews off (`apps/web/AGENTS.md`) |
 | Q53 | Zero-downtime release rules | SUPERSEDED | ADR-0025: gradual deploy waits for the first public release. Still open (#316): EAS Update. Done: v1 add-only, migration lint (R16) |
-| Q54 | Risk-based tests; mobile E2E; device checklist | GAP | #316 |
+| Q54 | Risk-based tests; mobile E2E; device checklist | GAP | #316: Maestro smoke gate, nightly full run and device checklist are built (`docs/testing/e2e.md`, `docs/testing/device-checklist.md`, #348). Not built: the send flow stops at the amount screen (Review needs a funded test wallet), and the release hard gate waits for production (ADR-0025) |
 | Q55 | CI/CD gates and release pipeline | SUPERSEDED | ADR-0025: release tag, manual approval and gradual deploy wait for the first public release. The other gates are decided one by one (#316). Done: OpenAPI breaking-change diff (`ci.yml` `verify`), migration lint (R16), post-deploy staging smoke (`api-staging.yml`) |
 | Q56 | 3 SLOs, alerts, JSON logs with request id, Analytics Engine | GAP | #336, #335. Built (#315): JSON logs with a request id (`apps/api/src/log.ts`), data points (`apps/api/src/metrics.ts`). Not built: reading the SLOs (#335), two of three alert conditions (#336). SLO targets: ADR-0020 |
 | Q57 | Anonymous install id; never linked to an address | SUPERSEDED | ADR-0022: the link exists only while push is on |
@@ -88,7 +88,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q64 | Style Dictionary tokens; raw-value lint; web CSS Modules; light only | SUPERSEDED | #189: Tailwind theme from tokens. Dark mode: Q80 |
 | Q65 | react-hook-form + zod resolver; rules from `wallet-core` | IMPLEMENTED | ADR-0021 |
 | Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | GAP | #319: the migration lint is done (R16); Drizzle is not |
-| Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | GAP | #316: no Maestro. oasdiff is done (`ci.yml` `verify`, #343); anvil reorg tests are done (`apps/api/test-reorg`, #345) |
+| Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | IMPLEMENTED | oasdiff (`ci.yml` `verify`, #343), anvil reorg tests (`apps/api/test-reorg`, #345), Maestro (`apps/mobile/.maestro`, #348) |
 | Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | GAP | #319: no Stylelint |
 | Q69 | Slack alerts with dedupe and recovery | GAP | #336. Channel is Sentry email, not Slack: ADR-0024. Built (#315): the 5xx spike (`apps/api/src/alerts.ts`). Not built: watcher stall, dead-letter, recovery message |
 | Q70 | Library list | SUPERSEDED | #63: Solar icons. Sentry part: Q50 |

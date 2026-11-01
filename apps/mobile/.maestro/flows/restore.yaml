@@ -1,0 +1,6 @@
+appId: dev.stackline.vaultme
+name: restore from the public test vector
+tags: [smoke]
+---
+- runFlow: ../subflows/start-fresh.yaml
+- runFlow: ../subflows/restore-vector.yaml

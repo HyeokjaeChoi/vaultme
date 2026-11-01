@@ -33,3 +33,5 @@ work/c2a/screens/
 .dev.vars*
 !.dev.vars.example
 .wrangler/
+apps/mobile/e2e-report.xml
+apps/mobile/e2e-artifacts
