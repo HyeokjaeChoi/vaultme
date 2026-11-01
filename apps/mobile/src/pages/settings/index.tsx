@@ -1,4 +1,4 @@
-// Figma: B-S60 Settings 423:13797 (full 515:45343, dark 515:45681): Title, B/Account block 515:27571, Section bands, Blocks 보안 / 알림 / 정보 with B/Settings row 426:2045 (Solar Linear leading icon)
+// Figma: B-S60 Settings 423:13797 (full 515:45343, dark 515:45681): Title, B/Account block 515:27571, Section bands, Blocks 보안 / 알림 / 정보 (정보 > 데이터와 개인정보 871:1401, #311) with B/Settings row 426:2045 (Solar Linear leading icon)
 import Constants from 'expo-constants'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -78,6 +78,12 @@ export function SettingsPage() {
           trailing={{ kind: 'value', text: networkFact }}
         />
         <ListItem
+          icon="shieldUser"
+          title={t('settings.privacy')}
+          trailing={{ kind: 'disclosure' }}
+          onPress={() => router.push('/settings/privacy')}
+        />
+        <ListItem
           icon="document"
           title={t('settings.licenses')}
           trailing={{ kind: 'disclosure' }}
@@ -97,5 +103,6 @@ export function SettingsPage() {
 export { DeviceWarningPage } from './device'
 export { LicensePage } from './license'
 export { LicensesPage } from './licenses'
+export { PrivacyPage } from './privacy'
 export { PushSettingPage } from './push'
 export { ZeroSettingPage } from './zero'

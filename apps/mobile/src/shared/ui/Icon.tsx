@@ -53,6 +53,7 @@ import { ShareIcon as ShareIconL } from '@solar-icons/react-native/linear/share'
 import { ShieldCheckIcon as ShieldCheckIconD } from '@solar-icons/react-native/bold-duotone/shield-check'
 import { ShieldCheckIcon as ShieldCheckIconL } from '@solar-icons/react-native/linear/shield-check'
 import { ShieldWarningIcon as ShieldWarningIconD } from '@solar-icons/react-native/bold-duotone/shield-warning'
+import { ShieldUserIcon as ShieldUserIconL } from '@solar-icons/react-native/linear/shield-user'
 import { ShieldWarningIcon as ShieldWarningIconL } from '@solar-icons/react-native/linear/shield-warning'
 import { SquareArrowRightUpIcon as SquareArrowRightUpIconL } from '@solar-icons/react-native/linear/square-arrow-right-up'
 import { WalletIcon as WalletIconL } from '@solar-icons/react-native/linear/wallet'
@@ -135,6 +136,7 @@ const LINEAR = {
   collapse: AltArrowUpIconL,
   network: GlobalIconL,
   deviceWarning: ShieldWarningIconL,
+  shieldUser: ShieldUserIconL,
   document: DocumentTextIconL,
   face: FaceScanGlyph,
   hand: HandMoneyIconL,

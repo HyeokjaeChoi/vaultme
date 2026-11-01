@@ -162,12 +162,16 @@ function AddressForm({ t, initial, headingRef }: { t: WebMessages; initial: stri
             autoCapitalize="off"
             autoCorrect="off"
             spellCheck={false}
+            aria-describedby="address-privacy"
             value={value}
             onChange={(e) => {
               setValue(e.target.value)
               setError(false)
             }}
           />
+          <p id="address-privacy" className="px-row-b-padding-x text-product-b-caption text-text-secondary">
+            {t.address.privacy}
+          </p>
           <div className="flex gap-3">
             <Button variant="secondary" onClick={() => void paste()}>
               {t.address.paste}

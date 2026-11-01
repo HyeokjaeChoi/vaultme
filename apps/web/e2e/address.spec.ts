@@ -51,6 +51,10 @@ test.describe('address input', () => {
     await page.getByLabel('Sepolia 주소').fill('0x1234abcd')
     await page.getByRole('button', { name: '주소 보기' }).click()
     await expect(page.getByRole('alert')).toHaveText(/올바른 주소가 아니에요/)
+    // the privacy line stays in the input's description next to the error (#311)
+    await expect(page.getByLabel('Sepolia 주소')).toHaveAccessibleDescription(
+      /올바른 주소가 아니에요.*VaultMe 서버를 거쳐요/,
+    )
     expect(new URL(page.url()).hash).toBe('')
     expect(api.requests).toEqual([])
   })
