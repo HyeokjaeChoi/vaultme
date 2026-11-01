@@ -50,7 +50,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q26 | Detection p95 ≤ 2 min, reported only after measuring | GAP | #315: not measured |
 | Q27 | Push off by default; explainer; Settings toggle; off deletes the link | SUPERSEDED | #67 decision 5: explainer after first copy or share on Receive |
 | Q28 | SIWE ownership proof + device session | SUPERSEDED | ADR-0010: no proof, accepted risk |
-| Q29 | Push text names only the event; no tx hash in the payload | SUPERSEDED | ADR-0022, #314 (owner chose B): payload is `kind` only, no opaque id; a tap opens the 내역 list, no per-tx link. Copy fixed in #298 |
+| Q29 | Push text names only the event; no tx hash in the payload | SUPERSEDED | ADR-0023, #314 (owner chose B): payload is `kind` only, no opaque id; a tap opens the 내역 list, no per-tx link. Copy fixed in #298 |
 | Q30 | App calls the history provider directly | SUPERSEDED | By Q32 in the same session; ADR-0007 |
 | Q31 | Idle subscriptions deleted; events 7 d; installs 90 d | GAP | #317: installs are never purged. Subscription expiry is ADR-0010 (30 d) |
 | Q32 | Stateless proxy, no address logs, rate limits, privacy notice | GAP | #311: no privacy notice. Proxy: ADR-0007 |
@@ -98,7 +98,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q74 | Supply chain: release age, scripts, `wallet-core` allow-list, osv-scanner, pinned actions | IMPLEMENTED | `pnpm-workspace.yaml`; `scripts/check-repo-rules.sh` R15; `.github/workflows/osv-scanner.yml` |
 | Q75 | Push hardening: token enforcement, payload check, re-read on tap | IMPLEMENTED | `packages/contracts/src/push.ts` |
 | Q76 | WCAG 2.2 AA, address a11y label, text size, motion | IMPLEMENTED | `shared/lib/address.ts`; screen reader run not recorded |
-| Q77 | Replaced state unblocks send; push notifies | GAP | #314: no replaced push; it needs a server record of pending sends. State: ADR-0006 |
+| Q77 | Replaced state unblocks send; push notifies | GAP | #331: no replaced push; it needs a server record of pending sends. State: ADR-0006 |
 | Q78 | Infura primary, Alchemy fallback | IMPLEMENTED | ADR-0007 |
 | Q79 | Burn and token-contract warnings | IMPLEMENTED | `packages/wallet-core/src/risk.ts` |
 | Q80 | Dark mode and the added components | IMPLEMENTED | `shared/theme/index.tsx` |

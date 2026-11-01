@@ -140,7 +140,7 @@ App side (`features/push`):
 - S62 off and wallet removal call `DELETE`. kv `push.unregisterPending` is set before a `DELETE` and before a `PUT` and cleared on success, so an interrupted or unanswered call is undone at the next launch.
 - At launch `syncPush` finishes an owed `DELETE`, or re-sends address and token when the setting is on. Push operations run one at a time.
 - A tap that starts a killed app is held until the route has left `/` (`launchDone`): the start route replaces itself with `/home`, and that replace would otherwise remove the opened list.
-- A tap (after `PushData` parses) opens `/activity` (the 내역 list) at once, with no fetch and no wait. The payload has no hash, so there is no per-tx link (#314, Q29, ADR-0022). Older app builds still parse the old payload (`hash` required): they open nothing on a tap until the user updates. Only a repeated notification identifier is dropped (cold-start read plus listener). Test-data mode (no API) registers nothing.
+- A tap (after `PushData` parses) opens `/activity` (the 내역 list) at once, with no fetch and no wait. The payload has no hash, so there is no per-tx link (#314, Q29, ADR-0023). Older app builds still parse the old payload (`hash` required): they open nothing on a tap until the user updates. Only a repeated notification identifier is dropped (cold-start read plus listener). Test-data mode (no API) registers nothing.
 - The Expo token uses the EAS `projectId` in `app.json` (`extra.eas.projectId`, project `@gurwo1007/vaultme`).
 
 ## Invariants

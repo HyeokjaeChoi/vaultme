@@ -1,4 +1,4 @@
-# 0022. Push payload is `kind` only; the webhook checks own sends on the chain; Expo receipts are polled
+# 0023. Push payload is `kind` only; the webhook checks own sends on the chain; Expo receipts are polled
 
 Status: Accepted (2026-11-01 from issue #314, owner decisions of 2026-11-01)
 Supersedes/Aliases: Q29 in part (no opaque id; a tap opens the list), owner decision of #171 (a tap opens S41), ADR-0010 in part (zero-value skip, no chain read)
@@ -13,7 +13,7 @@ ADR-0010 sends one push per deposit or send reported by the Alchemy webhook. The
 - `replaced` (Q77) is not built. It needs a server record of pending sends (hash, nonce) and a poll, which is new infrastructure.
 
 ## Consequences
-- Older app builds parse `hash` as required and `kind` as `deposit | send`: they open nothing on a tap until updated.
+- Older app builds parse `hash` as required and `kind` as `deposit | send`: they open nothing on a tap until updated. Accepted by the owner (testnet): ship the app and the API together.
 - Detection of `failed` covers only txs Alchemy reports. Whether Alchemy reports every reverted tx is not verified.
 - The webhook now depends on the RPC upstreams for own sends.
 
