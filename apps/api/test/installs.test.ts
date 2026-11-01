@@ -147,6 +147,44 @@ describe('installs', () => {
     expect(await code(await call('/v1/installs/token', { method: 'POST', headers }))).toBe('unauthorized')
   })
 
+  it('issues no token when the cron purged the install after the signature check', async () => {
+    const d = await newDevice()
+    const headers = await d.sign('POST', '/v1/installs/token')
+    const racing = {
+      ...E,
+      DB: new Proxy(E.DB, {
+        get: (t, k) =>
+          k === 'prepare'
+            ? (q: string) => {
+                const st = t.prepare(q)
+                return q.startsWith('UPDATE installs SET last_seen_at')
+                  ? new Proxy(st, {
+                      get: (s, m) =>
+                        m === 'bind'
+                          ? (...v: unknown[]) => {
+                              const b = s.bind(...v)
+                              return new Proxy(b, {
+                                get: (x, y) =>
+                                  y === 'run'
+                                    ? async () => {
+                                        await t.prepare('DELETE FROM installs WHERE id = ?').bind(d.installId).run()
+                                        return x.run()
+                                      }
+                                    : (x as never)[y],
+                              })
+                            }
+                          : (s as never)[m],
+                    })
+                  : st
+              }
+            : (t as never)[k],
+      }),
+    }
+    const r = await call('/v1/installs/token', { method: 'POST', headers }, racing)
+    expect(r.status).toBe(401)
+    expect(await code(r)).toBe('unauthorized')
+  })
+
   it('rejects an expired token', async () => {
     const d = await newDevice()
     const { body } = await d.token()

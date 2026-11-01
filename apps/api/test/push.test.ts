@@ -5,6 +5,7 @@ import { app } from '../src/app.ts'
 import { b64uEncode, issueToken, nowSeconds } from '../src/auth.ts'
 import { PUSH_INACTIVE_SECONDS, sweep } from '../src/push.ts'
 
+const INSTALL_KEEP_SECONDS = 90 * 24 * 3600
 const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
 const E = {
@@ -165,10 +166,29 @@ describe('push subscription routes', () => {
     const fresh = await newInstall()
     await put(stale, { address: ADDR, expoToken: TOKEN })
     await put(fresh, { address: OTHER, expoToken: TOKEN })
+    await E.DB.prepare('INSERT INTO push_sent (install_id, ref, sent_at) VALUES (?, ?, ?)')
+      .bind(stale, `${HASH}:native`, nowSeconds())
+      .run()
     calls.length = 0
     await sweep(E)
     expect((await subs()).map((s) => s.install_id)).toEqual([fresh])
+    expect(await E.DB.prepare('SELECT 1 FROM push_sent WHERE install_id = ?').bind(stale).first()).toBeNull()
     expect(body(calls[0]!).addresses_to_remove).toEqual([ADDR])
+  })
+
+  it('deletes installs idle for 90 days with their nonces and subscription (Q31)', async () => {
+    const old = await newInstall(nowSeconds() - INSTALL_KEEP_SECONDS - 10)
+    const idle = await newInstall(nowSeconds() - INSTALL_KEEP_SECONDS + 3600)
+    await E.DB.prepare('INSERT INTO nonces (install_id, nonce, expires_at) VALUES (?, ?, ?)')
+      .bind(old, 'n', nowSeconds() + 60)
+      .run()
+    await put(old, { address: ADDR, expoToken: TOKEN })
+    await sweep(E)
+    const ids = (await E.DB.prepare('SELECT id FROM installs').all<{ id: string }>()).results.map((r) => r.id)
+    expect(ids).toContain(idle)
+    expect(ids).not.toContain(old)
+    expect(await E.DB.prepare('SELECT 1 FROM nonces WHERE install_id = ?').bind(old).first()).toBeNull()
+    expect(await subs()).toEqual([])
   })
 })
 
@@ -642,6 +662,15 @@ describe('Expo receipts (Q39, #314)', () => {
     expect(err).toHaveBeenCalledWith('push receipt ids not stored')
     expect(sentMessages()).toHaveLength(1)
     err.mockRestore()
+  })
+
+  it('removes the receipt ids of an install whose subscription expired by inactivity', async () => {
+    await hook(activity([eth()]))
+    await E.DB.prepare('UPDATE installs SET last_seen_at = ? WHERE id = ?')
+      .bind(nowSeconds() - PUSH_INACTIVE_SECONDS - 10, install)
+      .run()
+    await sweep(E)
+    expect(await ids()).toEqual([])
   })
 
   it('removes the install receipt ids when the subscription is deleted', async () => {

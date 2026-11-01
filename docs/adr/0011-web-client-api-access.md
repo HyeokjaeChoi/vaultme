@@ -2,6 +2,7 @@
 
 Status: Accepted (2026-10-25, spec issue #186, owner grilling Q2, Q12).
 Supersedes: the "no browser client" part of [0008](0008-anonymous-install-identity.md) (Origin rejection, no CORS headers, "A browser client cannot use the API").
+Superseded in part by [0022](0022-install-id-linked-to-address-only-while-push-is-on.md): the "no link between install ID and wallet address" line below. The link exists while push is on.
 
 ## Context
 ADR-0008 had one client, the native app, so the API rejected every request with an `Origin` header. The web app (`apps/web`, see [0012](0012-web-scope-and-quality-bars.md)) runs in a browser and must call the same API. The abuse limits must apply to the web too. The API must not become open to every site.

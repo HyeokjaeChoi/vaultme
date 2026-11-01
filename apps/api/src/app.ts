@@ -177,7 +177,11 @@ app.openapi(
   }),
   async (c) => {
     const installId = c.get('installId')
-    await c.env.DB.prepare('UPDATE installs SET last_seen_at = ? WHERE id = ?').bind(nowSeconds(), installId).run()
+    const seen = await c.env.DB.prepare('UPDATE installs SET last_seen_at = ? WHERE id = ?')
+      .bind(nowSeconds(), installId)
+      .run()
+    // The cron may have purged the install after the signature check: no token, so the client registers again.
+    if (seen.meta.changes === 0) return c.json(errorEnvelope('unauthorized', 'Unknown install'), 401)
     return c.json(await issueToken(c, installId), 200)
   },
 )
