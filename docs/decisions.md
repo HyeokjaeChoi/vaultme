@@ -52,7 +52,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q28 | SIWE ownership proof + device session | SUPERSEDED | ADR-0010: no proof, accepted risk |
 | Q29 | Push text names only the event; no tx hash in the payload | GAP | #314: payload carries the hash. Copy fixed in #298 |
 | Q30 | App calls the history provider directly | SUPERSEDED | By Q32 in the same session; ADR-0007 |
-| Q31 | Idle subscriptions deleted; events 7 d; installs 90 d | GAP | #317: installs are never purged. Subscription expiry is ADR-0010 (30 d) |
+| Q31 | Idle subscriptions deleted; events 7 d; installs 90 d | IMPLEMENTED | `INSTALL_KEEP_SECONDS` in `apps/api/src/push.ts` `sweep` (#317). Subscription expiry is ADR-0010 (30 d) |
 | Q32 | Stateless proxy, no address logs, rate limits, privacy notice | GAP | #311: no privacy notice. Proxy: ADR-0007 |
 | Q33 | Expo dev build + EAS Build, no Expo Go | IMPLEMENTED | `apps/mobile/eas.json` |
 | Q34 | Keychain `BIOMETRY_ANY_OR_DEVICE_PASSCODE`, this device only | IMPLEMENTED | ADR-0004 |
@@ -78,7 +78,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q54 | Risk-based tests; mobile E2E; device checklist | GAP | #316 |
 | Q55 | CI/CD gates and release pipeline | GAP | #316 |
 | Q56 | 3 SLOs, alerts, JSON logs with request id, Analytics Engine | GAP | #315. SLO targets: ADR-0020 |
-| Q57 | Anonymous install id; never linked to an address | GAP | #317: push subscriptions link them. ADR-0008 |
+| Q57 | Anonymous install id; never linked to an address | SUPERSEDED | ADR-0022: the link exists only while push is on |
 | Q58 | All RPC via the proxy with failover; history cached on device | IMPLEMENTED | ADR-0007 |
 | Q59 | `wallet-core` signing boundary; lint limits its importers | SUPERSEDED | #312: scope widened by the owner (2026-11-01) from send and backup to send, backup, restore and `shared/storage/keychain.ts`. The rest holds: `@vaultme/wallet-core/signer`, lint in `apps/mobile/eslint.config.mjs` and `apps/web/eslint.config.js`, test `apps/mobile/test/signer-import.test.ts` |
 | Q60 | viem in `wallet-core`; explicit path; bigint units | IMPLEMENTED | `packages/wallet-core/package.json` |

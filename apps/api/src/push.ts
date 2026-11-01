@@ -14,6 +14,8 @@ const NETWORK = 'ETH_SEPOLIA'
 
 /** Subscriptions of installs not seen for this long are deleted (#67 decision 7). */
 export const PUSH_INACTIVE_SECONDS = 30 * 24 * 3600
+/** Installs not seen for this long are deleted by the cron (Q31). Nonces and any subscription cascade. */
+const INSTALL_KEEP_SECONDS = 90 * 24 * 3600
 const SENT_KEEP_SECONDS = 7 * 24 * 3600
 const EXPO_BATCH = 100
 const D1_MAX_PARAMS = 100
@@ -117,14 +119,23 @@ export async function unsubscribe(env: Bindings, installId: string): Promise<boo
   return true
 }
 
-/** Cron: expire inactive installs' subscriptions, retry failed removals, purge dedupe rows. */
+/** Cron: expire inactive installs' subscriptions, delete installs idle for 90 days, retry failed removals, purge dedupe rows. */
 export async function sweep(env: Bindings): Promise<void> {
   const now = nowSeconds()
   const expired = await env.DB.prepare(
-    'DELETE FROM push_subscriptions WHERE install_id IN (SELECT s.install_id FROM push_subscriptions s JOIN installs i ON i.id = s.install_id WHERE i.last_seen_at < ?) RETURNING address',
+    'DELETE FROM push_subscriptions WHERE install_id IN (SELECT s.install_id FROM push_subscriptions s JOIN installs i ON i.id = s.install_id WHERE i.last_seen_at < ?) RETURNING install_id, address',
   )
     .bind(now - PUSH_INACTIVE_SECONDS)
-    .all<{ address: string }>()
+    .all<{ install_id: string; address: string }>()
+  // The dedupe rows hold install_id + tx hash: drop them with the link (ADR-0022), not after their 7 days.
+  if (expired.results.length)
+    await env.DB.batch(
+      expired.results.map((r) => env.DB.prepare('DELETE FROM push_sent WHERE install_id = ?').bind(r.install_id)),
+    )
+  // After the subscription expiry above (30 d < 90 d), so no subscription is left to cascade without an Alchemy removal.
+  await env.DB.prepare('DELETE FROM installs WHERE last_seen_at < ?')
+    .bind(now - INSTALL_KEEP_SECONDS)
+    .run()
   await env.DB.prepare('DELETE FROM push_sent WHERE sent_at < ?')
     .bind(now - SENT_KEEP_SECONDS)
     .run()
