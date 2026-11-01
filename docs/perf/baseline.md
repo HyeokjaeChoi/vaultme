@@ -52,8 +52,8 @@ Gzip bytes of the app's own JS per page.
 
 | Platform | Bytes | MiB | Limit (MiB) |
 | --- | --- | --- | --- |
-| ios | 8123911 | 7.75 | 9.00 |
-| android | 8117373 | 7.74 | 9.00 |
+| ios | 8123911 | 7.75 | 11.00 |
+| android | 8117373 | 7.74 | 11.00 |
 
 ## API latency (staging)
 

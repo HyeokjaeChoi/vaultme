@@ -2,8 +2,8 @@ import { benchTable, type ApiBench } from './bench.ts'
 import type { ApiLatency, Endpoint } from './latency.ts'
 import type { HermesSizes, PageScores } from './summarize.ts'
 
-/** The Hermes limit of `export:check` (apps/mobile/package.json): 9 MiB. */
-export const HERMES_LIMIT = 9 * 1024 * 1024
+/** The Hermes limit of `export:check` (apps/mobile/package.json): 11 MiB (ADR-0024). */
+export const HERMES_LIMIT = 11 * 1024 * 1024
 
 export type JsBudgetRow = { url: string; bytes: number; limit: number; files: number }
 

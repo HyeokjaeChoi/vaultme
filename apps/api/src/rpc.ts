@@ -7,6 +7,7 @@ import {
   RPC_ALLOWED_METHODS,
 } from '@vaultme/contracts'
 import type { Env } from './env.ts'
+import { logEvent } from './log.ts'
 
 const UPSTREAM_TIMEOUT_MS = 5000
 const ARG_32_BYTES = new RegExp(`^${BALANCE_OF_SELECTOR}[0-9a-fA-F]{64}$`)
@@ -73,7 +74,7 @@ export async function proxyRpc(env: Env['Bindings'], req: RpcRequest): Promise<s
         signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
       })
       if (!res.ok) {
-        console.error('rpc upstream failed', u.name, res.status)
+        logEvent('error', 'rpc_upstream_failed', { upstream: u.name, status: res.status })
         continue
       }
       const text = await res.text()
@@ -83,7 +84,7 @@ export async function proxyRpc(env: Env['Bindings'], req: RpcRequest): Promise<s
       if (text.includes(u.key)) throw new Error('key echoed') // never pass a body that contains the key
       return text
     } catch (e) {
-      console.error('rpc upstream failed', u.name, e instanceof Error ? e.name : 'error')
+      logEvent('error', 'rpc_upstream_failed', { upstream: u.name, error: e instanceof Error ? e.name : 'error' })
     }
   }
   return null

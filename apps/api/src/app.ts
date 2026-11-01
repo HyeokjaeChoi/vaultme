@@ -25,8 +25,10 @@ import {
   errorEnvelope,
   isBelow,
 } from '@vaultme/contracts'
-import type { ErrorHandler, MiddlewareHandler } from 'hono'
+import * as Sentry from '@sentry/cloudflare'
+import type { Context, ErrorHandler, MiddlewareHandler } from 'hono'
 import { cors } from 'hono/cors'
+import { routePath } from 'hono/route'
 import pkg from '../package.json' with { type: 'json' }
 import {
   importPublicKey,
@@ -37,9 +39,13 @@ import {
   requireSigned,
   requireToken,
 } from './auth.ts'
+import { recordServerError } from './alerts.ts'
 import type { Env } from './env.ts'
 import { getHistory, getTxInternal } from './etherscan.ts'
+import { HTTPException } from 'hono/http-exception'
 import { InvalidCursorError, UpstreamError, fail } from './errors.ts'
+import { logEvent, withRequestId } from './log.ts'
+import { recordRequest } from './metrics.ts'
 import { AlchemyPayload, handleActivity, subscribe, unsubscribe, verifyAlchemySignature } from './push.ts'
 import { proxyRpc, rpcAllowed } from './rpc.ts'
 
@@ -49,6 +55,38 @@ export const app = new OpenAPIHono<Env>({
     return undefined
   },
 })
+
+// Background work after the answer. No execution context (unit tests with `app.request`): wait for it instead.
+const after = (
+  c: { executionCtx: { waitUntil(p: Promise<unknown>): void } },
+  work: Promise<void>,
+): Promise<void> | void => {
+  try {
+    c.executionCtx.waitUntil(work)
+  } catch {
+    return work
+  }
+}
+
+// First middleware: a request id for every log line, then one `request` log line and one Analytics Engine data point (Q56).
+// The route is the registered pattern (`/v1/history`), never the raw path. An unmatched path is `not_found`.
+app.use('*', (c, next) =>
+  withRequestId(crypto.randomUUID(), async () => {
+    const t0 = Date.now()
+    await next()
+    const status = c.res.status
+    const route = status === 404 ? 'not_found' : routePath(c as Context<Env>, -1)
+    const duration = Date.now() - t0
+    logEvent(status >= 500 ? 'error' : 'info', 'request', {
+      method: c.req.method,
+      route,
+      status,
+      duration_ms: duration,
+    })
+    recordRequest(c.env, route, status, duration)
+    if (status >= 500) await after(c, recordServerError(c.env)) // the hourly cron reports a spike (Q69); not on the failing request's time
+  }),
+)
 
 // WEB_ORIGINS is a comma-separated var: the exact browser origins allowed (ADR-0011). Empty = no browser.
 const webOrigins = (c: { env: Env['Bindings'] }) =>
@@ -332,12 +370,12 @@ app.post('/webhooks/alchemy', async (c) => {
   const payload = AlchemyPayload.safeParse(json)
   if (!payload.success) return fail(c, 400, 'invalid_request', 'Invalid request')
   try {
-    await handleActivity(c.env, payload.data)
+    await handleActivity(c.env, payload.data, (work) => after(c, work))
   } catch (e) {
     // Non-200 makes Alchemy retry with backoff. push_sent stops a retry from notifying twice.
     if (e instanceof UpstreamError) {
       // Fixed messages only (expo unreachable / <status> / ticket shape / ticket error): a failed batch shows in Workers Logs (#263).
-      console.error('push upstream', e.message)
+      logEvent('error', 'push_upstream', { reason: e.message })
       return fail(c, 503, 'unavailable', 'Push unavailable')
     }
     throw e
@@ -345,10 +383,20 @@ app.post('/webhooks/alchemy', async (c) => {
   return c.json({ ok: true }, 200)
 })
 
+// Test door for Sentry (Q50). It throws only where ENVIRONMENT is `dev` (local `wrangler dev`); staging and production answer 404 like any unknown path.
+// The route takes no header or secret, so there is nothing for a caller to guess: the check is the deployed var.
+app.get('/v1/debug/sentry', (c) => {
+  if (c.env.ENVIRONMENT !== 'dev') return fail(c, 404, 'not_found', 'Not found')
+  throw new Error('vaultme sentry test')
+})
+
 app.notFound((c) => fail(c, 404, 'not_found', 'Not found'))
-// Never return the stack or the error text. Log only the error name.
+// Never return the stack or the error text. Log only the error name. Sentry gets the error through the scrubber in sentry.ts.
 export const handleError: ErrorHandler<Env> = (err, c) => {
-  console.error('unhandled error', err.name)
+  // A client error that Hono raised (malformed JSON from the validator): a 4xx, not a server fault. No Sentry event, no 5xx count.
+  if (err instanceof HTTPException && err.status < 500) return fail(c, err.status, 'invalid_request', 'Invalid request')
+  logEvent('error', 'unhandled_error', { name: err.name })
+  Sentry.captureException(err)
   return fail(c, 500, 'internal', 'Internal error')
 }
 app.onError(handleError)

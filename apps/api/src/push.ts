@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { nowSeconds } from './auth.ts'
 import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
+import { logEvent } from './log.ts'
+import { recordPushLatency, recordPushReceipt, recordPushTicket } from './metrics.ts'
 import { proxyRpc } from './rpc.ts'
 import { at } from './util.ts'
 
@@ -25,6 +27,25 @@ const RECEIPT_KEEP_SECONDS = 7 * 24 * 3600
 const EXPO_RECEIPT_BATCH = 300 // getReceipts accepts at most 300 ids
 const EXPO_BATCH = 100
 const D1_MAX_PARAMS = 100
+
+/** `[a, a, b]` -> `Map {a => 2, b => 1}`. */
+const tally = (xs: string[]): Map<string, number> => {
+  const m = new Map<string, number>()
+  for (const x of xs) m.set(x, (m.get(x) ?? 0) + 1)
+  return m
+}
+
+/** Ticket and receipt errors Expo documents ("Push notification errors"). Anything else is `other`: Expo's text is not ours, so it never becomes a data point label or a log field. */
+const EXPO_OUTCOMES = new Set([
+  'ok',
+  'error',
+  'DeviceNotRegistered',
+  'MessageTooBig',
+  'MessageRateExceeded',
+  'MismatchSenderId',
+  'InvalidCredentials',
+])
+const outcomeLabel = (v: string): string => (EXPO_OUTCOMES.has(v) ? v : 'other')
 
 const secret = (v: unknown): string => {
   // Fail closed (500) when a secret is missing.
@@ -198,16 +219,22 @@ async function checkReceipts(env: Bindings, now: number): Promise<void> {
       const parsed = ExpoReceipts.safeParse(await res.json())
       if (!parsed.success) throw new Error('expo receipt shape')
       const checked = batch.filter((r) => r.receipt_id in parsed.data.data)
+      const outcomes: string[] = []
       for (const r of checked) {
-        if (parsed.data.data[r.receipt_id]?.details?.error !== 'DeviceNotRegistered') continue
+        const item = parsed.data.data[r.receipt_id]
+        const error = item?.details?.error
+        outcomes.push(outcomeLabel(item?.status === 'ok' ? 'ok' : (error ?? item?.status ?? 'unknown')))
+        if (error !== 'DeviceNotRegistered') continue
         await unsubscribe(env, r.install_id, r.expo_token)
       }
+      for (const [outcome, n] of tally(outcomes)) recordPushReceipt(env, outcome, n)
+      logEvent('info', 'expo_receipts', { requested: batch.length, answered: checked.length })
       if (checked.length > 0)
         await env.DB.batch(
           checked.map((r) => env.DB.prepare('DELETE FROM push_receipts WHERE receipt_id = ?').bind(r.receipt_id)),
         )
     } catch (e) {
-      console.error('expo receipts failed', e instanceof Error ? e.message : 'error') // retried by the next run
+      logEvent('error', 'expo_receipts_failed', { reason: e instanceof Error ? e.message : 'error' }) // retried by the next run
       return
     }
   }
@@ -246,6 +273,7 @@ const Activity = z.object({
   category: z.string(),
   rawContract: z.object({ address: z.string().nullish(), rawValue: z.string().nullish() }).partial().nullish(),
   log: z.object({ logIndex: z.string().optional(), removed: z.boolean().optional() }).partial().nullish(),
+  blockNum: z.string().optional(),
 })
 export const AlchemyPayload = z.object({
   webhookId: z.string(),
@@ -254,7 +282,15 @@ export const AlchemyPayload = z.object({
 })
 
 /** `own`: the address sent this tx (also when a received leg won the kind): its receipt is read. `probe`: an own zero-value tx. It is pushed only if its receipt says it failed (a reverted token call moves nothing, so it has no transfer leg). */
-type Notification = { address: string; kind: PushData['kind']; hash: string; ref: string; probe?: true; own?: true }
+type Notification = {
+  address: string
+  kind: PushData['kind']
+  hash: string
+  ref: string
+  probe?: true
+  own?: true
+  blockNum?: string // hex block number of the activity: its block timestamp is the canonical time of the push (Q26)
+}
 
 const isZero = (rawValue: string | null | undefined, value: number | null | undefined): boolean => {
   if (rawValue) {
@@ -299,7 +335,10 @@ function notificationsFor(payload: z.infer<typeof AlchemyPayload>, subscribed: R
       if (!addr || !subscribed.has(addr) || (probe && kind === 'deposit')) continue
       const key = `${addr}:${hash}`
       const prev = out.get(key)
-      if (prev?.kind === 'deposit' || (prev && probe && !prev.probe)) continue
+      if (prev?.kind === 'deposit' || (prev && probe && !prev.probe)) {
+        if (!prev.blockNum && a.blockNum) prev.blockNum = a.blockNum // the kept leg has no block: take it from a later leg of the same tx
+        continue
+      }
       out.set(key, {
         address: addr,
         kind,
@@ -307,6 +346,7 @@ function notificationsFor(payload: z.infer<typeof AlchemyPayload>, subscribed: R
         ref: hash,
         ...(probe ? { probe: true as const } : {}),
         ...(from === addr ? { own: true as const } : {}),
+        ...(a.blockNum ? { blockNum: a.blockNum } : {}),
       })
     }
   }
@@ -368,15 +408,74 @@ const ExpoTickets = z.object({
   ),
 })
 
+const BlockTime = z.object({ result: z.object({ timestamp: z.string() }) })
+
+/** Runs background work after the answer: `waitUntil` in the route, awaited where there is no execution context (unit tests). */
+type After = (work: Promise<void>) => Promise<void> | void
+
+/** An accepted push: when Expo took it (ms) and the block it is for. */
+type Handoff = { kind: PushData['kind']; blockNum: string | undefined; at: number }
+
+/**
+ * Q26: seconds from the block timestamp of the event the push is for (the canonical time) to the Expo hand-off.
+ * The block is read after the send, and the caller runs this after the answer (`after`), so it delays neither a push, the release of an unsent claim nor the answer to Alchemy.
+ * Never throws: a block that cannot be read only loses its data point.
+ */
+async function recordLatencies(env: Bindings, handoffs: Handoff[]): Promise<void> {
+  const stamps = new Map<string, number>()
+  await Promise.all(
+    [...new Set(handoffs.flatMap((h) => (h.blockNum ? [h.blockNum] : [])))].map(async (blockNum) => {
+      try {
+        const text = await proxyRpc(env, {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'eth_getBlockByNumber',
+          params: [blockNum, false],
+        })
+        const r = BlockTime.safeParse(JSON.parse(text ?? 'null'))
+        if (r.success) stamps.set(blockNum, Number(BigInt(r.data.result.timestamp)))
+      } catch {
+        // logged below as unavailable
+      }
+    }),
+  )
+  // One line and one data point per (kind, block, batch): pushes of one batch for one block share their latency (250 points per invocation).
+  const groups = new Map<string, { h: Handoff; n: number }>()
+  for (const h of handoffs) {
+    const key = `${h.kind}|${h.blockNum ?? ''}|${String(h.at)}`
+    const g = groups.get(key)
+    if (g) g.n += 1
+    else groups.set(key, { h, n: 1 })
+  }
+  for (const { h, n } of groups.values()) {
+    const stamp = h.blockNum ? stamps.get(h.blockNum) : undefined
+    if (stamp === undefined) {
+      logEvent('warn', 'push_latency_unavailable', { kind: h.kind, pushes: n })
+      continue
+    }
+    // Block timestamps are whole seconds from a validator clock: a hand-off a moment "before" its block is skew, not a negative latency.
+    const seconds = Math.max(0, h.at / 1000 - stamp)
+    logEvent('info', 'push_latency', { kind: h.kind, seconds: Math.round(seconds * 10) / 10, pushes: n })
+    recordPushLatency(env, h.kind, seconds, n)
+  }
+}
+
 /**
  * Handles one verified webhook body. Throws UpstreamError when Expo failed so the route can answer 5xx and Alchemy retries;
  * push_sent keeps a retry from notifying twice.
  */
-export async function handleActivity(env: Bindings, payload: z.infer<typeof AlchemyPayload>): Promise<void> {
+export async function handleActivity(
+  env: Bindings,
+  payload: z.infer<typeof AlchemyPayload>,
+  after: After = (work) => work.then(() => undefined),
+): Promise<void> {
   const expoToken = secret(env.EXPO_ACCESS_TOKEN)
   if (payload.webhookId !== secret(env.ALCHEMY_WEBHOOK_ID)) return
-  // One line per delivery (tx hash prefix + category, no address): shows in Workers Logs whether legs of one tx arrive apart (#183).
-  console.log('alchemy activity', payload.event.activity.map((a) => `${a.hash.slice(0, 10)}:${a.category}`).join(' '))
+  // One line per delivery (count and categories, no address or hash): shows in Workers Logs whether legs of one tx arrive apart (#183).
+  logEvent('info', 'alchemy_activity', {
+    activities: payload.event.activity.length,
+    categories: [...new Set(payload.event.activity.map((a) => a.category))].join(','),
+  })
   const addresses = new Set(
     payload.event.activity
       .flatMap((a) => [a.fromAddress, a.toAddress])
@@ -399,7 +498,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   }
   // Counts only (no address or token): shows in Workers Logs where a delivery stopped before Expo (#263).
   if (subs.results.length === 0) {
-    console.log('push subs=0 notes=0 jobs=0')
+    logEvent('info', 'push_outcome', { subs: 0, notes: 0, jobs: 0 })
     return
   }
   const checked = await withFailures(env, notificationsFor(payload, new Set(subs.results.map((s) => s.address))))
@@ -412,7 +511,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
     subs.results.filter((s) => s.address === note.address).map((sub) => ({ sub, note })),
   )
   const outcome = (jobs: number) =>
-    console.log(`push subs=${String(subs.results.length)} notes=${String(notes.length)} jobs=${String(jobs)}`)
+    logEvent('info', 'push_outcome', { subs: subs.results.length, notes: notes.length, jobs })
   if (pairs.length === 0) {
     outcome(0)
     if (checked.unreadable) throw new UpstreamError('rpc receipt') // retried by Alchemy
@@ -432,6 +531,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
   const unsettled = new Set(jobs)
   const dead: string[] = []
   let ticketFailed = false
+  const handoffs: Handoff[] = []
   try {
     for (let i = 0; i < jobs.length; i += EXPO_BATCH) {
       const batch = jobs.slice(i, i + EXPO_BATCH)
@@ -458,21 +558,25 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
       } catch {
         throw new UpstreamError('expo unreachable')
       }
+      const handedOffAt = Date.now() // Expo has the batch: the end of the Q26 latency
       if (res.status === 429 || res.status >= 500) throw new UpstreamError(`expo ${String(res.status)}`)
       if (!res.ok) {
         // Our own request is wrong (400) or the access token is (401): retrying cannot help.
-        console.error('expo rejected push', res.status)
+        logEvent('error', 'expo_rejected', { status: res.status })
         continue
       }
       const tickets = ExpoTickets.safeParse(await res.json().catch(() => null))
       if (!tickets.success || tickets.data.data.length !== batch.length) throw new UpstreamError('expo ticket shape')
       // Receipt ids (ok) or error codes: an accepted push that never arrives is then looked up in Expo's receipts (#263).
-      console.log(
-        'expo tickets',
-        tickets.data.data
-          .map((t) => (t.status === 'ok' ? `ok:${t.id ?? '?'}` : `${t.status}:${t.details?.error ?? '?'}`))
-          .join(' '),
+      const outcomes = tickets.data.data.map((t) =>
+        outcomeLabel(t.status === 'ok' ? 'ok' : (t.details?.error ?? t.status)),
       )
+      for (const [outcome, n] of tally(outcomes)) recordPushTicket(env, outcome, n)
+      logEvent('info', 'expo_tickets', {
+        ok: outcomes.filter((o) => o === 'ok').length,
+        errors: outcomes.filter((o) => o !== 'ok').join(','),
+        receipt_ids: tickets.data.data.flatMap((t) => (t.status === 'ok' && t.id ? [t.id] : [])).join(','),
+      })
       // Only accepted tickets (and dead tokens, which are deleted below) count as sent. Any other ticket error stays retryable.
       const settled: typeof batch = []
       const receipts: D1PreparedStatement[] = []
@@ -480,6 +584,7 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
         const sent = at(batch, j) // lengths are equal, checked above
         if (t.status === 'ok') {
           settled.push(sent)
+          handoffs.push({ kind: sent.note.kind, blockNum: sent.note.blockNum, at: handedOffAt })
           // Expo receipts are read by the cron, 15 minutes later (#314, Q39).
           if (t.id)
             receipts.push(
@@ -494,14 +599,19 @@ export async function handleActivity(env: Bindings, payload: z.infer<typeof Alch
       }
       for (const j of settled) unsettled.delete(j)
       // A side record: a D1 failure here must not stop the send loop or the DeviceNotRegistered cleanup (lost ids only skip a receipt check).
-      if (receipts.length > 0) await env.DB.batch(receipts).catch(() => console.error('push receipt ids not stored'))
+      if (receipts.length > 0)
+        await env.DB.batch(receipts).catch(() => logEvent('error', 'push_receipt_ids_not_stored'))
     }
   } finally {
     // Not sent (Expo failed, rejected, or ticket error): release the claim so the retry can send.
     const release = [...unsettled].map(({ sub, note }) =>
       env.DB.prepare('DELETE FROM push_sent WHERE install_id = ? AND ref = ?').bind(sub.install_id, note.ref),
     )
-    if (release.length > 0) await env.DB.batch(release)
+    try {
+      if (release.length > 0) await env.DB.batch(release)
+    } finally {
+      await after(recordLatencies(env, handoffs)) // after the claims are released
+    }
   }
   // The token is invalid: delete the subscription and the address at once (#67 decision 7).
   for (const id of new Set(dead)) await unsubscribe(env, id)

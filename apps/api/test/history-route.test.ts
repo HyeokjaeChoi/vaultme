@@ -257,7 +257,7 @@ describe('Etherscan failures -> 503 retryable, nothing leaks', () => {
     const r = await post({ address: a })
     expect(r.status).toBe(200)
     expect(f).toHaveBeenCalledTimes(4)
-    expect(out.join('\n')).toContain('metric etherscan_429_total')
+    expect(out.join('\n')).toContain('"event":"etherscan_rate_limited"')
   })
 
   it('rate limit message twice -> 503', async () => {
@@ -271,7 +271,7 @@ describe('Etherscan failures -> 503 retryable, nothing leaks', () => {
     const out = logs()
     await expect503(await post({ address: newAddress() }, { ...E, ETHERSCAN_BUCKET: grant(null) }))
     expect(f).not.toHaveBeenCalled()
-    expect(out.join('\n')).toContain('metric etherscan_throttled_total')
+    expect(out.join('\n')).toContain('"event":"etherscan_throttled"')
   })
 
   it('waits for the bucket when it asks for a short wait', async () => {

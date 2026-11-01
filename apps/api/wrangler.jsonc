@@ -3,10 +3,24 @@
   "name": "vaultme-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-13",
+  // nodejs_als: AsyncLocalStorage for the request id in logs (src/log.ts) and for @sentry/cloudflare. Inherited by the envs.
+  "compatibility_flags": ["nodejs_als"],
   // vars only. No account IDs, no secrets here. Secrets go in `.dev.vars` (local) or `wrangler secret` (deployed).
   // Vars and bindings are not inherited by named environments, so each env repeats them.
   // WEB_ORIGINS: comma-separated browser origins the API allows (ADR-0011). Empty at the top level (local dev, tests): no browser.
-  "vars": { "MIN_APP_VERSION": "0.0.0", "MIN_WEB_VERSION": "0.0.0", "WEB_ORIGINS": "" },
+  // ENVIRONMENT: dev | staging | production; the Sentry environment, and only `dev` serves /v1/debug/sentry (ARCHITECTURE.md#observability).
+  // SENTRY_DSN (Q50) is a plain var, not a secret: a Sentry DSN only allows sending events and gives no read access, so it is safe to keep public
+  // (https://docs.sentry.io/concepts/key-terms/dsn-explainer/, "DSN Utilization"). Project vaultme-api. An empty value turns Sentry off (tests).
+  "vars": {
+    "MIN_APP_VERSION": "0.0.0",
+    "MIN_WEB_VERSION": "0.0.0",
+    "WEB_ORIGINS": "",
+    "ENVIRONMENT": "dev",
+    "SENTRY_DSN": "https://d539efbe04f78c6b05458cd5f7133138@o4512355457433600.ingest.us.sentry.io/4512355519102976",
+  },
+  // Workers Analytics Engine (Q56): request, push latency and push ticket/receipt data points (src/metrics.ts). One dataset per env.
+  // The dataset is created on the first write. Reading it needs a Cloudflare API token with Account Analytics read (owner).
+  "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "vaultme_api" }],
   // ETHERSCAN_API_KEY (history upstream) is a secret too. The EtherscanBucket Durable Object is one global token bucket (ARCHITECTURE.md#history).
   // ALCHEMY_WEBHOOK_ID, ALCHEMY_SIGNING_KEY, ALCHEMY_NOTIFY_TOKEN, EXPO_ACCESS_TOKEN (transaction push, #67) are secrets too.
   // INFURA_KEY and ALCHEMY_KEY (RPC upstreams) are secrets too, set the same way.
@@ -35,7 +49,10 @@
         "MIN_APP_VERSION": "0.0.0",
         "MIN_WEB_VERSION": "0.0.0",
         "WEB_ORIGINS": "https://vaultme-staging.stack-line.dev",
+        "ENVIRONMENT": "staging",
+        "SENTRY_DSN": "https://d539efbe04f78c6b05458cd5f7133138@o4512355457433600.ingest.us.sentry.io/4512355519102976",
       },
+      "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "vaultme_api_staging" }],
       "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
       "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api-staging", "migrations_dir": "migrations" }],
@@ -53,7 +70,10 @@
         "MIN_APP_VERSION": "0.0.0",
         "MIN_WEB_VERSION": "0.0.0",
         "WEB_ORIGINS": "https://vaultme.stack-line.dev",
+        "ENVIRONMENT": "production",
+        "SENTRY_DSN": "https://d539efbe04f78c6b05458cd5f7133138@o4512355457433600.ingest.us.sentry.io/4512355519102976",
       },
+      "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "vaultme_api_production" }],
       "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
       "d1_databases": [{ "binding": "DB", "database_name": "vaultme-api-production", "migrations_dir": "migrations" }],
