@@ -1,5 +1,4 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { PushDir } from '@vaultme/history'
 import { readPendingTx } from '@/entities/transaction'
 import type { PendingTx } from '@/shared/storage'
 import { accountAddress, history, showZero } from './loader'
@@ -34,12 +33,12 @@ export const historyQuery = (address: string | null) =>
     meta,
   })
 
-/** The S41 row an id and push direction name (`history.findRow`: seam cache first, else a fresh first page). `findRow` never throws. */
-export const rowLookupQuery = (id: string, dir: PushDir | undefined) => {
+/** The S41 row an id names (`history.findRow`: seam cache first, else a fresh first page). `findRow` never throws. */
+export const rowLookupQuery = (id: string) => {
   const address = accountAddress()
   return queryOptions({
-    queryKey: ['historyRow', address, id, dir ?? null, showZero()] as const,
-    queryFn: () => history.findRow(address, id, dir),
+    queryKey: ['historyRow', address, id, showZero()] as const,
+    queryFn: () => history.findRow(address, id),
     // Read on mount, key change and `retry` only, as before: an app return must not turn a not-found or failed screen into a spinner.
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

@@ -1,4 +1,4 @@
-import type { HistoryItem, PushDir } from '@vaultme/history'
+import type { HistoryItem } from '@vaultme/history'
 
 /** `<hash>:<seq>` -> `<hash>`. The local send's id is its hash. */
 export const hashOfId = (id: string): string => id.split(':')[0] ?? id
@@ -46,8 +46,8 @@ export function rowCopy(row: Pick<HistoryItem, 'kind' | 'status'>) {
 const sameHash = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 
 /**
- * The send recorded on this device wins for its own hash (full S41), unless the push says `in`: a self-send's deposit leg is a history row.
+ * The send recorded on this device wins for its own hash (full S41).
  * `id` is a row id or a bare hash.
  */
-export const localRecordMatches = (storedHash: string | undefined, id: string, dir?: PushDir): boolean =>
-  storedHash !== undefined && sameHash(storedHash, hashOfId(id)) && dir !== 'in'
+export const localRecordMatches = (storedHash: string | undefined, id: string): boolean =>
+  storedHash !== undefined && sameHash(storedHash, hashOfId(id))

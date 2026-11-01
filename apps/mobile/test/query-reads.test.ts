@@ -61,14 +61,13 @@ describe('history reads', () => {
     m.view.mockResolvedValue(failed)
     expect(await qc().query(historyQuery(ME))).toBe(failed)
   })
-  it('each account has its own list view; a row lookup is keyed by account, id and direction', () => {
+  it('each account has its own list view; a row lookup is keyed by account and id', () => {
     expect(historyQuery(ME).queryKey).toEqual(['history', ME, false])
     expect(historyKey(null)).toEqual(['history', null, false])
-    expect(rowLookupQuery('0xh:0', undefined).queryKey).toEqual(['historyRow', ME, '0xh:0', null, false])
+    expect(rowLookupQuery('0xh:0').queryKey).toEqual(['historyRow', ME, '0xh:0', false])
     m.zero = true
     expect(historyKey(ME)).toEqual(['history', ME, true]) // a flip of S63 is a new view
     m.zero = false
-    expect(rowLookupQuery('0xh', 'in').queryKey).toEqual(['historyRow', ME, '0xh', 'in', false])
   })
   it('a send that settled while the page was fetched is merged again (the list never keeps "보내는 중")', async () => {
     m.pending = { hash: '0x1', state: 'Pending' }
@@ -88,14 +87,14 @@ describe('history reads', () => {
     expect(m.view).toHaveBeenCalledTimes(1)
   })
   it('a row lookup is read on mount and retry only (no app-return refetch)', () => {
-    const q = rowLookupQuery('0xh', undefined)
+    const q = rowLookupQuery('0xh')
     expect(q.refetchOnWindowFocus).toBe(false)
     expect(q.refetchOnReconnect).toBe(false)
   })
   it('a row lookup goes through findRow (seam cache first, else a fresh page)', async () => {
     m.findRow.mockResolvedValue({ status: 'none' })
-    expect(await qc().query(rowLookupQuery('0xh', 'out'))).toEqual({ status: 'none' })
-    expect(m.findRow).toHaveBeenCalledWith(ME, '0xh', 'out')
+    expect(await qc().query(rowLookupQuery('0xh'))).toEqual({ status: 'none' })
+    expect(m.findRow).toHaveBeenCalledWith(ME, '0xh')
   })
 })
 
@@ -182,7 +181,7 @@ describe('what is persisted (ADR-0021 PR 3)', () => {
     m.getSnapshot.mockResolvedValue(snap)
     await Promise.all([
       c.query(historyQuery(ME)),
-      c.query(rowLookupQuery('0xh', undefined)),
+      c.query(rowLookupQuery('0xh')),
       c.query({ ...sendableQuery(FROM, TO, 'ETH'), gcTime: Infinity }),
       c.query({ ...reviewQuery(FROM, TO, '0.1', 'ETH', []), gcTime: Infinity }),
     ])

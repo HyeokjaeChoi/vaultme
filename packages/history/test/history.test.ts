@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ApiError, type ApiErrorCode } from '@vaultme/api-client'
-import { createHistory, parseDir, txView, type HistoryCache, type HistoryView, type LocalSend } from '../src/index.ts'
+import { createHistory, txView, type HistoryCache, type HistoryView, type LocalSend } from '../src/index.ts'
 
 const ME = '0x' + 'a'.repeat(40)
 const OTHER = '0x' + 'b'.repeat(40)
@@ -292,20 +292,18 @@ describe('cachedRow (S41 first render, no fetch)', () => {
     const { h } = setup({ cache: cacheOf([row(0, 'in'), row(1, 'out')]) })
     expect(h.cachedRow(ME, `${H}:1`)).toMatchObject({ id: `${H}:1`, kind: 'send', counterparty: OTHER })
     expect(h.cachedRow(ME, `${H}:0`)).toMatchObject({ kind: 'receive', counterparty: OTHER })
-    expect(h.cachedRow(ME, `${H}:1`, 'in')).toMatchObject({ id: `${H}:1` }) // a row id is exact, whatever the push says
   })
   it('compares the account and the hash case-insensitively', () => {
     const { h } = setup({ cache: cacheOf([row(0, 'in')]) })
     expect(h.cachedRow(upper(ME), `${H}:0`)).not.toBeNull()
     expect(h.cachedRow(ME, upper(H))).toMatchObject({ id: `${H}:0` })
   })
-  it('null: no cache, other account, no address, unknown id, bad json, several rows of a bare hash, other direction', () => {
+  it('null: no cache, other account, no address, unknown id, bad json, several rows of a bare hash', () => {
     expect(setup().h.cachedRow(ME, `${H}:0`)).toBeNull()
     const { h } = setup({ cache: cacheOf([row(0, 'in')]) })
     expect(h.cachedRow(OTHER, `${H}:0`)).toBeNull()
     expect(h.cachedRow(null, `${H}:0`)).toBeNull()
     expect(h.cachedRow(ME, `${H}:9`)).toBeNull()
-    expect(h.cachedRow(ME, H, 'out')).toBeNull()
     expect(setup({ cache: { address: ME, json: '{', updatedAt: 1 } }).h.cachedRow(ME, `${H}:0`)).toBeNull()
     expect(setup({ cache: cacheOf([row(0, 'in'), row(1, 'out')]) }).h.cachedRow(ME, H)).toBeNull()
   })
@@ -336,34 +334,12 @@ describe('findRow (S41 without a local record: cache, else a fresh first page)',
     const one = setup({ answer: () => Promise.resolve(page([row(0, 'in')])) })
     expect((await one.h.findRow(ME, `${H}:7`)).status).toBe('none')
   })
-  it('push direction: picks the row of that direction; a cached row of the other direction is not shown', async () => {
-    const both = page([row(0, 'in'), row(1, 'out')])
-    const s = setup({ cache: cacheOf([row(0, 'in'), row(1, 'out')]), answer: () => Promise.resolve(both) })
-    expect(await s.h.findRow(ME, H, 'in')).toMatchObject({ status: 'row', row: { id: `${H}:0`, kind: 'receive' } })
-    expect(await s.h.findRow(ME, H, 'out')).toMatchObject({ status: 'row', row: { id: `${H}:1`, kind: 'send' } })
-    expect(s.fetchPage).not.toHaveBeenCalled()
-    const other = setup({ cache: cacheOf([row(0, 'in')]), answer: () => Promise.resolve(both) })
-    expect(await other.h.findRow(ME, H, 'out')).toMatchObject({ status: 'row', row: { id: `${H}:1` } })
-    expect(other.fetchPage).toHaveBeenCalledTimes(1)
-    const twoIn = setup({ answer: () => Promise.resolve(page([row(0, 'in'), row(2, 'in')])) })
-    expect((await twoIn.h.findRow(ME, H, 'in')).status).toBe('several')
-    expect((await twoIn.h.findRow(ME, H, 'out')).status).toBe('none')
-  })
   it('failed: no address, a fetch error, update_required, 404 or a cache fallback is never trusted', async () => {
     expect((await setup().h.findRow(null, H)).status).toBe('failed')
     for (const e of [new Error('x'), err('update_required', 426), err('not_found', 404), err('network')]) {
       const s = setup({ cache: cacheOf([row(5, 'out', { hash: H2 })]), answer: () => Promise.reject(e) })
       expect((await s.h.findRow(ME, H)).status).toBe('failed')
     }
-  })
-})
-
-describe('parseDir', () => {
-  it('accepts only in | out', () => {
-    expect(parseDir('in')).toBe('in')
-    expect(parseDir('out')).toBe('out')
-    expect(parseDir('x')).toBeUndefined()
-    expect(parseDir(undefined)).toBeUndefined()
   })
 })
 
@@ -415,7 +391,7 @@ describe('zero-value switch (Q71, S63)', () => {
     expect(s.h.cachedRow(ME, `${H}:0`)).toBeNull()
     on = true
     expect(s.h.cachedRow(ME, `${H}:0`)).toMatchObject({ id: `${H}:0`, caution: true })
-    expect(await s.h.findRow(ME, H, 'in')).toMatchObject({ status: 'row', row: { caution: true } })
+    expect(await s.h.findRow(ME, H)).toMatchObject({ status: 'row', row: { caution: true } })
     expect(s.fetchPage).not.toHaveBeenCalled()
   })
 
