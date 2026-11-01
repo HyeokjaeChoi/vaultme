@@ -18,7 +18,7 @@ Common pairing (general practice, not a cited source):
 - Two separate axes.
   - Deployment environment (dev = local machine, staging, production): which code version runs and who uses it.
   - Chain network (local chain, Sepolia, mainnet): where funds and data live.
-- Each environment allows a set of networks by config. Today every environment allows Sepolia only.
+- Each environment allows a set of networks. No per-environment network config exists yet: Sepolia is fixed in code (`packages/wallet-core/src/constants.ts`) and every environment allows Sepolia only. A mainnet ADR adds the config.
 - Staging is the only deployed environment. It is the live service for the testnet portfolio.
 - The production deployment environment is created at the first public release. Then the production parts of Q52 and Q55 are built: release tag, manual approval, gradual Workers deploy, EAS production channel, GitHub Environments.
 - Allowing mainnet is a separate future ADR. It is never bundled with creating production. Prerequisites:
@@ -27,7 +27,7 @@ Common pairing (general practice, not a cited source):
   - real-asset copy and warnings
   - legal review
   - incident response runbook
-  - a change of the project's testnet-only rule (first line of `AGENTS.md`)
+  - a change of the project's testnet-only rule (`AGENTS.md`, intro)
 
 ## Consequences
 - The production-only parts of Q52, Q53 (gradual deploy) and Q55 (release tag, approval, gradual deploy) are superseded until the first public release. The other parts of Q53 and Q55 stay open in #316 and are decided one by one.
