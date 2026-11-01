@@ -38,6 +38,13 @@ jobs:
         run: pnpm exec prettier --check .
       - if: hashFiles('package.json') != ''
         run: pnpm turbo run typecheck lint test
+      # Reorg tests (#316, Q67) need anvil. foundry-toolchain v1.9.2 (2026-10-22), Foundry v1.8.6 (2026-10-21): both older than 7 days.
+      - if: hashFiles('package.json') != ''
+        uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
+        with:
+          version: v1.8.6
+      - if: hashFiles('package.json') != ''
+        run: pnpm --filter @vaultme/api test:reorg
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api openapi:check
       # Q61: fail on a breaking change of the API contract against the PR base. openapi:check just proved the committed

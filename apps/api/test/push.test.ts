@@ -361,11 +361,11 @@ describe('POST /webhooks/alchemy', () => {
       expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'failed' }, { kind: 'failed' }])
     })
 
-    it('asks the chain only for own outgoing txs, once per hash', async () => {
-      await hook(activity([eth()])) // deposit: no receipt lookup
-      expect(rpcCalls()).toHaveLength(0)
-      await hook(activity([ownSend(), usdc({ fromAddress: ADDR, toAddress: OTHER }), ownSend({ value: 0 })]))
+    it('asks the chain once per hash, for deposits too (ADR-0026)', async () => {
+      await hook(activity([eth()]))
       expect(rpcCalls()).toHaveLength(1)
+      await hook(activity([ownSend(), usdc({ fromAddress: ADDR, toAddress: OTHER }), ownSend({ value: 0 })]))
+      expect(rpcCalls()).toHaveLength(2)
     })
 
     it('answers 503 and sends nothing when the receipt cannot be read, then sends on the retry', async () => {
@@ -400,10 +400,19 @@ describe('POST /webhooks/alchemy', () => {
     })
 
     it('one unreadable receipt does not hold back the other pushes of the payload, but still answers 503', async () => {
-      receiptStatus = null
       const dep = eth({ hash: '0x' + '66'.repeat(32) })
+      const f = globalThis.fetch
+      // Only the deposit's receipt can be read: the own send's is missing (a lagging node).
+      vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
+        const req = rpcUrl(url) ? (JSON.parse(init.body as string) as { params: string[] }) : null
+        return req?.params[0] === dep.hash
+          ? Promise.resolve(new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result: { status: '0x1' } })))
+          : f(url, init)
+      })
+      receiptStatus = null
       expect((await hook(activity([ownSend(), dep]))).status).toBe(503)
       expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'deposit' }])
+      vi.stubGlobal('fetch', f)
       receiptStatus = '0x0'
       expect((await hook(activity([ownSend(), dep]))).status).toBe(200)
       expect(sentMessages().map((m) => m.data)).toEqual([{ kind: 'deposit' }, { kind: 'failed' }])
