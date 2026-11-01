@@ -57,12 +57,12 @@ export const localRecordMatches = (storedHash: string | undefined, id: string): 
 
 /**
  * S41 State caution (Q71): the row is an incoming zero-value transfer. `newSender` = the sender is not among `known` (addresses this wallet sent to:
- * the send recents and the sends of the loaded history). It is a claim ("처음 보는 주소예요"), so it needs a sender and no match. No `caution` = null.
+ * the send recents and the sends of the loaded history; null = the history is not loaded, nothing can be claimed). It is a claim ("처음 보는 주소예요"), so it needs a sender and no match. No `caution` = null.
  */
 export function cautionOf(
   row: Pick<HistoryItem, 'caution' | 'counterparty'>,
-  known: string[],
+  known: string[] | null,
 ): { newSender: boolean } | null {
   if (!row.caution) return null
-  return { newSender: row.counterparty !== '' && !known.some((a) => sameHash(a, row.counterparty)) }
+  return { newSender: known !== null && row.counterparty !== '' && !known.some((a) => sameHash(a, row.counterparty)) }
 }

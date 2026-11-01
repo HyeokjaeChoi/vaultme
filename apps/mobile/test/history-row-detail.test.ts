@@ -81,6 +81,9 @@ describe('cautionOf', () => {
   it('a sender among the known recipients is not called new (any case)', () => {
     expect(cautionOf(row({ caution: true }), [B, A.toUpperCase().replace('0X', '0x')])).toEqual({ newSender: false })
   })
+  it('the known addresses are not loaded (null): no claim', () => {
+    expect(cautionOf(row({ caution: true }), null)).toEqual({ newSender: false })
+  })
   it('no sender address: the notice stays, no claim about the sender', () => {
     expect(cautionOf(row({ caution: true, counterparty: '' }), [])).toEqual({ newSender: false })
   })

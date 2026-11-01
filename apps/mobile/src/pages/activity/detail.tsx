@@ -119,6 +119,27 @@ function EtherscanRow({ url }: { url: string }) {
 }
 
 /**
+ * "주의 · 처음 보는 주소예요" under the sender of a caution row (Figma 883:4375). It is a claim, so it shows only after the history has loaded without error:
+ * until then (or when the read failed) the wallet cannot tell, and says nothing. Own component: a normal row never subscribes to the history.
+ */
+function NewSenderLine({ row }: { row: HistoryItem }) {
+  const { t } = useTranslation()
+  const th = useTheme()
+  const recents = useRecents()
+  const { view } = useHistory()
+  const known =
+    view && !view.failed
+      ? [...recents.map((r) => r.address), ...view.items.filter((i) => i.kind === 'send').map((i) => i.counterparty)]
+      : null
+  if (!cautionOf(row, known)?.newSender) return null
+  return (
+    <Text variant="caption" color={th.component.badge.warning.fg}>
+      {t('detail.caution.newSender')}
+    </Text>
+  )
+}
+
+/**
  * B-S41 for a history row without a local record (incoming, or a send from another device). Shows the one tapped movement.
  * History has no confirmation state, so: status 성공/실패 only, no fee row, no recheck, no clear sheet (Figma Flow 4 A 742:2487, B 742:2584).
  * No counterparty (contract creation, example rows): the 보낸 사람 / 받는 사람 block is left out.
@@ -139,14 +160,6 @@ function RowDetail({
   const { t } = useTranslation()
   const th = useTheme()
   const copy = rowCopy(row)
-  // "처음 보는 주소" is a claim: it holds only when this wallet never sent to the sender (send recents and the sends of the loaded history).
-  const recents = useRecents()
-  const { view } = useHistory()
-  const known = [
-    ...recents.map((r) => r.address),
-    ...(view?.items ?? []).filter((i) => i.kind === 'send').map((i) => i.counterparty),
-  ]
-  const caution = cautionOf(row, known)
   const explorer =
     explorerUrl(chain, row.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${row.hash}` : null)
   const [figure, unit] = showAmount(row.amount, row.asset, 'exact').split(' ')
@@ -160,7 +173,7 @@ function RowDetail({
       gap="none"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/activity')} chips={<NetworkChips />} />}
     >
-      {caution ? (
+      {row.caution ? (
         <View style={{ paddingTop: th.semantic.layout.groupGap, paddingHorizontal: th.semantic.layout.screen.padding }}>
           <StatusNotice tone="warning" heading title={t('detail.caution.title')} body={t('detail.caution.body')} />
         </View>
@@ -177,11 +190,7 @@ function RowDetail({
         <>
           <Block title={t(copy.counterpartyTitle)}>
             <AddressText address={row.counterparty} />
-            {caution?.newSender ? (
-              <Text variant="caption" color={th.component.badge.warning.fg}>
-                {t('detail.caution.newSender')}
-              </Text>
-            ) : null}
+            {row.caution ? <NewSenderLine row={row} /> : null}
           </Block>
           <SectionBand />
         </>
