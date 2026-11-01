@@ -8,10 +8,12 @@
     "lint": "eslint . --max-warnings=0",
     "hermes": "node src/cli.ts hermes",
     "latency": "node --experimental-transform-types src/cli.ts latency",
+    "smoke": "node --experimental-transform-types src/cli.ts smoke",
     "baseline": "node src/cli.ts baseline"
   },
   "dependencies": {
-    "@vaultme/api-client": "workspace:*"
+    "@vaultme/api-client": "workspace:*",
+    "@vaultme/contracts": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "24.19.1",
