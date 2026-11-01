@@ -69,6 +69,7 @@ describe('initSentry', () => {
     expect(o.integrations).toBeUndefined() // no replay, no extra integrations
     expect(o.beforeSend?.({ message: `to ${ADDR}`, user: { id: 'x' }, request: { url: `/a?b=${ADDR}` } })).toEqual({
       message: 'to [address]',
+      sdk: { settings: { infer_ip: 'never' } },
       request: { url: '/a' },
     })
     expect(o.beforeBreadcrumb?.({ category: 'fetch', data: { url: `https://api.example/v1/rpc?a=${ADDR}` } })).toEqual({
@@ -77,6 +78,15 @@ describe('initSentry', () => {
     })
   })
 })
+
+// triggerTestCrash waits a few seconds for the native send: run it on fake timers
+async function crash() {
+  vi.useFakeTimers()
+  const done = triggerTestCrash()
+  await vi.runAllTimersAsync()
+  await done
+  vi.useRealTimers()
+}
 
 describe('test crash door', () => {
   it.each([
@@ -88,19 +98,19 @@ describe('test crash door', () => {
   ])('EXPO_PUBLIC_ENV=%s, dev=%s: open=%s', async (publicEnv, dev, open) => {
     g.__DEV__ = dev
     if (publicEnv) process.env.EXPO_PUBLIC_ENV = publicEnv
-    await triggerTestCrash()
+    await crash()
     expect(h.nativeCrash).toHaveBeenCalledTimes(open ? 1 : 0)
   })
 
   it('does nothing when the door is closed', async () => {
-    await triggerTestCrash()
+    await crash()
     expect(h.captureException).not.toHaveBeenCalled()
     expect(h.nativeCrash).not.toHaveBeenCalled()
   })
 
   it('sends one JS error, waits for the flush, then crashes the native side', async () => {
     g.__DEV__ = true
-    await triggerTestCrash()
+    await crash()
     expect(h.captureException).toHaveBeenCalledTimes(1)
     expect(h.flush).toHaveBeenCalled()
     expect(h.nativeCrash).toHaveBeenCalledTimes(1)

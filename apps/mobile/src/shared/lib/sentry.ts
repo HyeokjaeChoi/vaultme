@@ -27,6 +27,8 @@ export function initSentry(): void {
 /** Wraps the root component as the Sentry docs ask (touch and app-start breadcrumbs, error boundary). */
 export const wrapRoot = (root: ComponentType): ComponentType => Sentry.wrap(root)
 
+const NATIVE_SEND_MS = 3000
+
 /** The hidden test action exists only in a dev build and in staging (EXPO_PUBLIC_ENV=staging); a release build has no way in. */
 const crashDoorOpen = (publicEnv: string | undefined, dev: boolean): boolean => dev || publicEnv === 'staging'
 
@@ -40,5 +42,8 @@ export async function triggerTestCrash(): Promise<void> {
   if (!testCrashEnabled()) return
   Sentry.captureException(new Error('vaultme sentry test (JS)'))
   await Sentry.flush()
+  // flush ends when the JS client has handed the event to the native SDK; the native transport sends it a moment later (the first
+  // run lost the JS event to an immediate crash). Wait before crashing. Test-only path, so a few seconds cost nothing.
+  await new Promise((resolve) => setTimeout(resolve, NATIVE_SEND_MS))
   Sentry.nativeCrash()
 }

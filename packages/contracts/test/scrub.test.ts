@@ -43,7 +43,7 @@ describe('scrubString', () => {
 
 describe('nested values', () => {
   it('scrubs strings at any depth, in arrays and objects, and passes other values through', () => {
-    expect(scrubEvent({ extra: { a: [ADDR, 1, { b: HASH, c: null, d: true }] } })).toEqual({
+    expect(scrubEvent({ extra: { a: [ADDR, 1, { b: HASH, c: null, d: true }] } })).toMatchObject({
       extra: { a: ['[address]', 1, { b: '[hash]', c: null, d: true }] },
     })
   })
@@ -72,6 +72,7 @@ describe('scrubEvent', () => {
       },
     })
     expect(e).toEqual({
+      sdk: { settings: { infer_ip: 'never' } },
       message: 'failed for [address]',
       exception: { values: [{ type: 'Error', value: 'tx [hash]' }] },
       extra: { token: '[push-token]' },
@@ -80,11 +81,15 @@ describe('scrubEvent', () => {
   })
 
   it('works on an event without a request', () => {
-    expect(scrubEvent({ message: 'x' })).toEqual({ message: 'x' })
+    expect(scrubEvent({ message: 'x' })).toEqual({ message: 'x', sdk: { settings: { infer_ip: 'never' } } })
+    // an existing sdk block keeps its other fields
+    expect(scrubEvent({ sdk: { name: 'n', settings: { infer_ip: 'auto', other: 1 } } })).toEqual({
+      sdk: { name: 'n', settings: { infer_ip: 'never', other: 1 } },
+    })
   })
 
   it('keeps a url it cannot parse, without its query', () => {
-    expect(scrubEvent({ request: { url: `/v1/history?a=${ADDR}` } })).toEqual({ request: { url: '/v1/history' } })
+    expect(scrubEvent({ request: { url: `/v1/history?a=${ADDR}` } })).toMatchObject({ request: { url: '/v1/history' } })
   })
 })
 

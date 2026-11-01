@@ -34,10 +34,14 @@ const pathOnly = (url: string): string => {
 
 type Request = { method?: string; url?: string }
 
-/** Sentry `beforeSend`: no user, no request body, query, cookies or headers, then every string scrubbed. */
+/** Sentry `beforeSend`: no user, no IP inference, no request body, query, cookies or headers, then every string scrubbed. */
 export function scrubEvent<T extends object>(event: T): T {
   const out = { ...(event as Record<string, unknown>) }
   delete out.user
+  // The SDK sends no IP, but Sentry's server infers one from the connection unless told not to:
+  // https://develop.sentry.dev/sdk/data-model/event-payloads/sdk/ (`settings.infer_ip`, `never`).
+  const sdk = (out.sdk ?? {}) as { settings?: object }
+  out.sdk = { ...sdk, settings: { ...sdk.settings, infer_ip: 'never' } }
   const request = out.request as Request | undefined
   if (request)
     out.request = {
