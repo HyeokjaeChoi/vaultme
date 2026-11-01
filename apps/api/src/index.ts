@@ -10,16 +10,27 @@ import { sentryOptions } from './sentry.ts'
 export const handler = {
   fetch: app.fetch,
   // Hourly: expire inactive push subscriptions, purge installs idle 90 days (Q31) and retry failed Alchemy address removals (#67),
-  // then report alert conditions to Sentry (Q69). The check runs even when the sweep throws (the Sentry wrapper reports that throw).
+  // then report alert conditions to Sentry (Q69). The check runs even when the sweep throws, and the sweep error is still thrown.
   scheduled: (_event: ScheduledController, env: Env['Bindings']) =>
     withRequestId(crypto.randomUUID(), async () => {
       const t0 = Date.now()
+      let sweepFailed = false
+      let sweepError: unknown
       try {
         await sweep(env)
-      } finally {
-        await checkAlerts(env)
-        logEvent('info', 'cron', { duration_ms: Date.now() - t0 })
+      } catch (e) {
+        sweepFailed = true
+        sweepError = e
       }
+      try {
+        await checkAlerts(env)
+      } catch (e) {
+        // Reported on its own; it must not replace the sweep error below.
+        logEvent('error', 'alert_check_failed', { name: e instanceof Error ? e.name : 'error' })
+        Sentry.captureException(e)
+      }
+      logEvent('info', 'cron', { duration_ms: Date.now() - t0, sweep_ok: !sweepFailed })
+      if (sweepFailed) throw sweepError // the Sentry wrapper reports it
     }),
 } satisfies ExportedHandler<Env['Bindings']>
 

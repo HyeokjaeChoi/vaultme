@@ -749,7 +749,7 @@ describe('observability (#315)', () => {
         JSON.stringify({ jsonrpc: '2.0', id: 1, result: { timestamp: `0x${(nowSeconds() + 60).toString(16)}` } }),
       )
     await hook(activity([eth({ blockNum: '0x10' })]))
-    expect(pointsOf('push_latency')[0]?.doubles).toEqual([0])
+    expect(pointsOf('push_latency')[0]?.doubles).toEqual([0, 1])
   })
 
   it.each([
@@ -792,5 +792,25 @@ describe('observability (#315)', () => {
     expect(pointsOf('push_receipt')).toEqual([
       { indexes: ['push_receipt'], blobs: ['DeviceNotRegistered'], doubles: [1] },
     ])
+  })
+
+  it('takes the block number from a later leg when the kept deposit leg has none', async () => {
+    await hook(activity([eth(), eth({ blockNum: '0x10', category: 'internal' })]))
+    expect(pointsOf('push_latency')).toHaveLength(1)
+  })
+
+  it('writes one latency point per kind and block with a count, not one per push (250 points per invocation)', async () => {
+    const others = ['0x' + 'e1'.repeat(20), '0x' + 'e2'.repeat(20)]
+    for (const a of others) await put(await newInstall(), { address: a, expoToken: TOKEN })
+    expoReply = () =>
+      new Response(
+        JSON.stringify({ data: Array.from({ length: 3 }, (_, i) => ({ status: 'ok', id: `r${String(i)}` })) }),
+      )
+    await hook(activity([ADDR, ...others].map((to) => eth({ toAddress: to, blockNum: '0x10', hash: HASH }))))
+    expect(sentMessages()).toHaveLength(3)
+    expect(blockCalls()).toHaveLength(1)
+    expect(pointsOf('push_latency')).toHaveLength(1)
+    expect(pointsOf('push_latency')[0]?.doubles?.[1]).toBe(3)
+    expect(pointsOf('push_ticket')).toEqual([{ indexes: ['push_ticket'], blobs: ['ok'], doubles: [3] }])
   })
 })

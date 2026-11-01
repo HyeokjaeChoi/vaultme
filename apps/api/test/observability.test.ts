@@ -158,6 +158,46 @@ describe('5xx spike alert (Q69)', () => {
   })
 })
 
+describe('client errors and the cron', () => {
+  it('a malformed JSON body is a 400, not a 5xx: no Sentry event, no server_errors row', async () => {
+    const r = await app.request(
+      '/v1/installs',
+      { method: 'POST', headers: { ...V, 'content-type': 'application/json' }, body: '{not json' },
+      E,
+    )
+    expect(r.status).toBe(400)
+    expect(await r.json()).toMatchObject({ code: 'invalid_request' })
+    expect(await errorRows()).toBe(0)
+  })
+
+  it('a failing alert check is logged and reported on its own; the run still ends', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    await E.DB.prepare('ALTER TABLE server_errors RENAME TO server_errors_off').run()
+    try {
+      await cron() // the sweep works; only the alert check fails
+    } finally {
+      await E.DB.prepare('ALTER TABLE server_errors_off RENAME TO server_errors').run()
+    }
+    expect(lines(err)).toContainEqual(expect.objectContaining({ event: 'alert_check_failed' }))
+    expect(events).toHaveLength(1) // the alert-check error, sent once
+  })
+
+  it('a failing sweep still runs the alert check, and its error is thrown (and reported by the Sentry wrapper)', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    await E.DB.batch(
+      Array.from({ length: 10 }, () => E.DB.prepare('INSERT INTO server_errors (at) VALUES (?)').bind(nowSeconds())),
+    )
+    await E.DB.prepare('ALTER TABLE push_subscriptions RENAME TO push_subscriptions_off').run()
+    try {
+      await expect(cron()).rejects.toThrow()
+    } finally {
+      await E.DB.prepare('ALTER TABLE push_subscriptions_off RENAME TO push_subscriptions').run()
+    }
+    const kinds = events.map((e) => ((e as { message?: string }).message === 'API 5xx spike' ? 'alert' : 'sweep error'))
+    expect(kinds.sort()).toEqual(['alert', 'sweep error'])
+  })
+})
+
 describe('sentryOptions (Q50)', () => {
   const o = sentryOptions(E)
 

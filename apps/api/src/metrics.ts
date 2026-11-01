@@ -20,12 +20,17 @@ function point(env: Bindings, event: string, blobs: string[], doubles: number[])
 export const recordRequest = (env: Bindings, route: string, status: number, durationMs: number): void =>
   point(env, 'request', [route, String(status)], [durationMs])
 
-/** blobs: push kind. doubles: seconds from the block timestamp to the Expo hand-off (Q26). */
-export const recordPushLatency = (env: Bindings, kind: PushData['kind'], seconds: number): void =>
-  point(env, 'push_latency', [kind], [seconds])
+// A Worker invocation may write 250 data points at most (Cloudflare "Limits"), and one webhook or cron run can touch hundreds of
+// tickets or receipts. So push data is written per group with a count, never per message.
 
-/** blobs: `ok` or the Expo ticket error. doubles: 1. */
-export const recordPushTicket = (env: Bindings, outcome: string): void => point(env, 'push_ticket', [outcome], [1])
+/** blobs: push kind. doubles: seconds from the block timestamp to the Expo hand-off (Q26), and how many pushes had it. */
+export const recordPushLatency = (env: Bindings, kind: PushData['kind'], seconds: number, count: number): void =>
+  point(env, 'push_latency', [kind], [seconds, count])
 
-/** blobs: `ok` or the Expo receipt error. doubles: 1. */
-export const recordPushReceipt = (env: Bindings, outcome: string): void => point(env, 'push_receipt', [outcome], [1])
+/** blobs: `ok` or the Expo ticket error. doubles: how many tickets. */
+export const recordPushTicket = (env: Bindings, outcome: string, count: number): void =>
+  point(env, 'push_ticket', [outcome], [count])
+
+/** blobs: `ok` or the Expo receipt error. doubles: how many receipts. */
+export const recordPushReceipt = (env: Bindings, outcome: string, count: number): void =>
+  point(env, 'push_receipt', [outcome], [count])

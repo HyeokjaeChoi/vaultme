@@ -42,6 +42,7 @@ import {
 import { recordServerError } from './alerts.ts'
 import type { Env } from './env.ts'
 import { getHistory, getTxInternal } from './etherscan.ts'
+import { HTTPException } from 'hono/http-exception'
 import { InvalidCursorError, UpstreamError, fail } from './errors.ts'
 import { logEvent, withRequestId } from './log.ts'
 import { recordRequest } from './metrics.ts'
@@ -54,6 +55,18 @@ export const app = new OpenAPIHono<Env>({
     return undefined
   },
 })
+
+// Background work after the answer. No execution context (unit tests with `app.request`): wait for it instead.
+const after = (
+  c: { executionCtx: { waitUntil(p: Promise<unknown>): void } },
+  work: Promise<void>,
+): Promise<void> | void => {
+  try {
+    c.executionCtx.waitUntil(work)
+  } catch {
+    return work
+  }
+}
 
 // First middleware: a request id for every log line, then one `request` log line and one Analytics Engine data point (Q56).
 // The route is the registered pattern (`/v1/history`), never the raw path. An unmatched path is `not_found`.
@@ -71,7 +84,7 @@ app.use('*', (c, next) =>
       duration_ms: duration,
     })
     recordRequest(c.env, route, status, duration)
-    if (status >= 500) await recordServerError(c.env) // the hourly cron reports a spike (Q69)
+    if (status >= 500) await after(c, recordServerError(c.env)) // the hourly cron reports a spike (Q69); not on the failing request's time
   }),
 )
 
@@ -357,7 +370,7 @@ app.post('/webhooks/alchemy', async (c) => {
   const payload = AlchemyPayload.safeParse(json)
   if (!payload.success) return fail(c, 400, 'invalid_request', 'Invalid request')
   try {
-    await handleActivity(c.env, payload.data)
+    await handleActivity(c.env, payload.data, (work) => after(c, work))
   } catch (e) {
     // Non-200 makes Alchemy retry with backoff. push_sent stops a retry from notifying twice.
     if (e instanceof UpstreamError) {
@@ -380,6 +393,8 @@ app.get('/v1/debug/sentry', (c) => {
 app.notFound((c) => fail(c, 404, 'not_found', 'Not found'))
 // Never return the stack or the error text. Log only the error name. Sentry gets the error through the scrubber in sentry.ts.
 export const handleError: ErrorHandler<Env> = (err, c) => {
+  // A client error that Hono raised (malformed JSON from the validator): a 4xx, not a server fault. No Sentry event, no 5xx count.
+  if (err instanceof HTTPException && err.status < 500) return fail(c, err.status, 'invalid_request', 'Invalid request')
   logEvent('error', 'unhandled_error', { name: err.name })
   Sentry.captureException(err)
   return fail(c, 500, 'internal', 'Internal error')

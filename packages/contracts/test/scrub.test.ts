@@ -13,6 +13,11 @@ describe('scrubString', () => {
     expect(s).toBe('to [address] tx [hash] key [hash] [push-token] words ([phrase]) end')
   })
 
+  it('removes a phrase typed with capital letters, or one word per line', () => {
+    expect(scrubString(PHRASE.replace(/^./, 'A'))).toBe('[phrase]')
+    expect(scrubString(PHRASE.replaceAll(' ', '\n'))).toBe('[phrase]')
+  })
+
   it('removes a 24-word phrase and an address in either case', () => {
     expect(scrubString([...Array<string>(23).fill('abandon'), 'art'].join(' '))).toBe('[phrase]')
     expect(scrubString('0x' + 'AB'.repeat(20))).toBe('[address]')

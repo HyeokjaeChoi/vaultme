@@ -5,7 +5,7 @@ const PATTERNS: readonly (readonly [RegExp, string])[] = [
   [/0x[0-9a-fA-F]{40}(?![0-9a-fA-F])/g, '[address]'],
   [/(?<![0-9a-fA-F])[0-9a-fA-F]{64}(?![0-9a-fA-F])/g, '[hash]'], // a private key or hash without 0x
   [/Expo(?:nent)?PushToken\[[^\]]*\]/g, '[push-token]'],
-  [/\b(?:[a-z]{3,8}[ \t]+){11,}[a-z]{3,8}\b/g, '[phrase]'], // 12+ lowercase BIP39-length words in a row (12 or 24 words)
+  [/\b(?:[a-z]{3,8}\s+){11,}[a-z]{3,8}\b/gi, '[phrase]'], // 12+ BIP39-length words in a row, any case, any whitespace (12 or 24 words)
 ]
 
 export const scrubString = (s: string): string => PATTERNS.reduce((acc, [re, to]) => acc.replace(re, to), s)
