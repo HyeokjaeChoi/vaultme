@@ -813,4 +813,21 @@ describe('observability (#315)', () => {
     expect(pointsOf('push_latency')[0]?.doubles?.[1]).toBe(3)
     expect(pointsOf('push_ticket')).toEqual([{ indexes: ['push_ticket'], blobs: ['ok'], doubles: [3] }])
   })
+
+  it('labels an Expo error it does not know as `other`, in the data point and the log (Expo text is not ours)', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
+    const odd = `bad ${TOKEN}`
+    expoReply = () => new Response(JSON.stringify({ data: [{ status: 'error', details: { error: odd } }] }))
+    await hook(activity([eth()]))
+    expect(pointsOf('push_ticket')).toEqual([{ indexes: ['push_ticket'], blobs: ['other'], doubles: [1] }])
+    expect(JSON.stringify(logged(log))).not.toContain('bad')
+    expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
+    await hook(activity([eth({ hash: '0x' + '22'.repeat(32) })]))
+    await E.DB.prepare('UPDATE push_receipts SET created_at = created_at - ?')
+      .bind(PUSH_RECEIPT_DELAY_SECONDS + 1)
+      .run()
+    receiptsReply = () => new Response(JSON.stringify({ data: { r1: { status: 'error', details: { error: odd } } } }))
+    await sweep(E)
+    expect(pointsOf('push_receipt')).toEqual([{ indexes: ['push_receipt'], blobs: ['other'], doubles: [1] }])
+  })
 })

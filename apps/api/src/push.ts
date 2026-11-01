@@ -35,6 +35,18 @@ const tally = (xs: string[]): Map<string, number> => {
   return m
 }
 
+/** Ticket and receipt errors Expo documents ("Push notification errors"). Anything else is `other`: Expo's text is not ours, so it never becomes a data point label or a log field. */
+const EXPO_OUTCOMES = new Set([
+  'ok',
+  'error',
+  'DeviceNotRegistered',
+  'MessageTooBig',
+  'MessageRateExceeded',
+  'MismatchSenderId',
+  'InvalidCredentials',
+])
+const outcomeLabel = (v: string): string => (EXPO_OUTCOMES.has(v) ? v : 'other')
+
 const secret = (v: unknown): string => {
   // Fail closed (500) when a secret is missing.
   if (typeof v !== 'string' || v.length === 0) throw new Error('invalid push secret')
@@ -211,7 +223,7 @@ async function checkReceipts(env: Bindings, now: number): Promise<void> {
       for (const r of checked) {
         const item = parsed.data.data[r.receipt_id]
         const error = item?.details?.error
-        outcomes.push(item?.status === 'ok' ? 'ok' : (error ?? item?.status ?? 'unknown'))
+        outcomes.push(outcomeLabel(item?.status === 'ok' ? 'ok' : (error ?? item?.status ?? 'unknown')))
         if (error !== 'DeviceNotRegistered') continue
         await unsubscribe(env, r.install_id, r.expo_token)
       }
@@ -556,7 +568,9 @@ export async function handleActivity(
       const tickets = ExpoTickets.safeParse(await res.json().catch(() => null))
       if (!tickets.success || tickets.data.data.length !== batch.length) throw new UpstreamError('expo ticket shape')
       // Receipt ids (ok) or error codes: an accepted push that never arrives is then looked up in Expo's receipts (#263).
-      const outcomes = tickets.data.data.map((t) => (t.status === 'ok' ? 'ok' : (t.details?.error ?? t.status)))
+      const outcomes = tickets.data.data.map((t) =>
+        outcomeLabel(t.status === 'ok' ? 'ok' : (t.details?.error ?? t.status)),
+      )
       for (const [outcome, n] of tally(outcomes)) recordPushTicket(env, outcome, n)
       logEvent('info', 'expo_tickets', {
         ok: outcomes.filter((o) => o === 'ok').length,
