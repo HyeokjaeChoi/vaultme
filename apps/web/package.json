@@ -50,11 +50,11 @@
     "jsdom": "^30.1.3",
     "postcss": "^8.5.30",
     "pretendard": "1.3.9",
-    "steiger": "0.7.0",
+    "steiger": "0.8.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "vite": "^8.3.4",
     "vitest": "^5.0.3",
-    "wrangler": "4.151.1"
+    "wrangler": "4.152.0"
   }
 }
