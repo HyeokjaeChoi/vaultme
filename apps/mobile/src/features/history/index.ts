@@ -1,7 +1,7 @@
 export { type HistoryItem, type HistoryView, type RowLookup } from '@vaultme/history'
 export { useHistory } from './model/useHistory'
 export { findCachedRow } from './model/loader'
-export { detailRoute, localRecordMatches, rowCopy } from './model/detail'
+export { cautionOf, detailRoute, localRecordMatches, rowCopy } from './model/detail'
 export { useRowLookup } from './model/useRowLookup'
 export { internalRow, type Internal } from './model/internal'
 export { useInternalTransfers } from './model/useInternalTransfers'

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { detailRoute, hashOfId, localRecordMatches, rowCopy } from '../src/features/history/model/detail'
+import { cautionOf, detailRoute, hashOfId, localRecordMatches, rowCopy } from '../src/features/history/model/detail'
 import { explorerUrl } from '../src/shared/chain/port'
 
 // The row lookup (cache, fresh page, poisoning filter) is tested in packages/history.
@@ -63,5 +63,39 @@ describe('routes and links', () => {
   it('Etherscan row: link on a broadcasting chain, hidden (null) in test-data mode', () => {
     expect(explorerUrl({ broadcasts: true }, H)).toBe(`https://sepolia.etherscan.io/tx/${H}`)
     expect(explorerUrl({ broadcasts: false }, H)).toBeNull()
+  })
+})
+
+// S41 State caution (Figma 883:4375, Q71, #334): an incoming zero-value row opened from S40 with the S63 switch on.
+describe('cautionOf', () => {
+  const A = '0x' + 'a'.repeat(40)
+  const B = '0x' + 'b'.repeat(40)
+  const row = (o: { caution?: true; counterparty?: string } = {}) => ({ counterparty: A, ...o })
+  it('no caution flag: no caution state', () => {
+    expect(cautionOf(row(), [])).toBeNull()
+  })
+  it('a sender this wallet never sent to is new', () => {
+    expect(cautionOf(row({ caution: true }), [])).toEqual({ newSender: true })
+    expect(cautionOf(row({ caution: true }), [B])).toEqual({ newSender: true })
+  })
+  it('a sender among the known recipients is not called new (any case)', () => {
+    expect(cautionOf(row({ caution: true }), [B, A.toUpperCase().replace('0X', '0x')])).toEqual({ newSender: false })
+  })
+  it('the known addresses are not loaded (null): no claim', () => {
+    expect(cautionOf(row({ caution: true }), null)).toEqual({ newSender: false })
+  })
+  it('no sender address: the notice stays, no claim about the sender', () => {
+    expect(cautionOf(row({ caution: true, counterparty: '' }), [])).toEqual({ newSender: false })
+  })
+})
+
+describe('rowCopy with caution', () => {
+  it('the hero keeps 받았어요 and the success badge but drops the success sentence', () => {
+    expect(rowCopy({ kind: 'receive', status: 'confirmed', caution: true })).toMatchObject({
+      badge: 'confirmed',
+      title: 'detail.received',
+      body: null,
+      statusWord: 'detail.state.success',
+    })
   })
 })
