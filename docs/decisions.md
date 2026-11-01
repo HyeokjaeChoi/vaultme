@@ -74,20 +74,20 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q50 | Sentry crash and performance, PII scrubbed | SUPERSEDED | ADR-0024: performance monitoring dropped. Still holds and is built (#315): errors and crashes on the app (`apps/mobile/src/shared/lib/sentry.ts`) and the Worker (`apps/api/src/sentry.ts`), PII scrubbed (`packages/contracts/src/scrub.ts`). Source maps: #337 |
 | Q51 | pnpm + Turborepo monorepo | IMPLEMENTED | `turbo.json` |
 | Q52 | local/staging/prod; separate D1, secrets, EAS channel; web previews | GAP | #316: no EAS channels. Web previews off (`apps/web/AGENTS.md`) |
-| Q53 | Zero-downtime release rules | GAP | #316: v1 add-only is done; EAS Update, gradual deploy, migration lint are not |
+| Q53 | Zero-downtime release rules | GAP | #316: v1 add-only and migration lint (R16) are done; EAS Update and gradual deploy are not |
 | Q54 | Risk-based tests; mobile E2E; device checklist | GAP | #316 |
-| Q55 | CI/CD gates and release pipeline | GAP | #316 |
+| Q55 | CI/CD gates and release pipeline | GAP | #316: OpenAPI breaking-change diff (`ci.yml` `verify`), migration lint (R16) and the post-deploy staging smoke (`api-staging.yml`) are done; the rest is not |
 | Q56 | 3 SLOs, alerts, JSON logs with request id, Analytics Engine | GAP | #336, #335. Built (#315): JSON logs with a request id (`apps/api/src/log.ts`), data points (`apps/api/src/metrics.ts`). Not built: reading the SLOs (#335), two of three alert conditions (#336). SLO targets: ADR-0020 |
 | Q57 | Anonymous install id; never linked to an address | SUPERSEDED | ADR-0022: the link exists only while push is on |
 | Q58 | All RPC via the proxy with failover; history cached on device | IMPLEMENTED | ADR-0007 |
 | Q59 | `wallet-core` signing boundary; lint limits its importers | SUPERSEDED | #312: scope widened by the owner (2026-11-01) from send and backup to send, backup, restore and `shared/storage/keychain.ts`. The rest holds: `@vaultme/wallet-core/signer`, lint in `apps/mobile/eslint.config.mjs` and `apps/web/eslint.config.js`, test `apps/mobile/test/signer-import.test.ts` |
 | Q60 | viem in `wallet-core`; explicit path; bigint units | IMPLEMENTED | `packages/wallet-core/package.json` |
-| Q61 | zod + OpenAPI; breaking-change diff; generated client | GAP | #316: stale check only, no diff vs main |
+| Q61 | zod + OpenAPI; breaking-change diff; generated client | GAP | #316: stale check and oasdiff diff vs the PR base are done (`ci.yml` `verify`); the client is hand-written on the shared zod contracts, not generated |
 | Q62 | TanStack Query + persist; send state from `wallet-core`; one Zustand store | IMPLEMENTED | ADR-0021 (send state is the pure `deriveState`, not a reducer) |
 | Q63 | Encrypted MMKV; key and token in Keychain | IMPLEMENTED | ADR-0004 |
 | Q64 | Style Dictionary tokens; raw-value lint; web CSS Modules; light only | SUPERSEDED | #189: Tailwind theme from tokens. Dark mode: Q80 |
 | Q65 | react-hook-form + zod resolver; rules from `wallet-core` | IMPLEMENTED | ADR-0021 |
-| Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | GAP | #319 |
+| Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | GAP | #319: the migration lint is done (R16); Drizzle is not |
 | Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | GAP | #316: no oasdiff, anvil, Maestro |
 | Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | GAP | #319: no Stylelint |
 | Q69 | Slack alerts with dedupe and recovery | GAP | #336. Channel is Sentry email, not Slack: ADR-0024. Built (#315): the 5xx spike (`apps/api/src/alerts.ts`). Not built: watcher stall, dead-letter, recovery message |

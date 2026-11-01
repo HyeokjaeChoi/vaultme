@@ -7,7 +7,16 @@ name: api-staging
 on:
   push:
     branches: [main]
-    paths: [apps/api/**, packages/config/**, packages/contracts/**, pnpm-lock.yaml, .github/workflows/api-staging.yml]
+    paths:
+      [
+        apps/api/**,
+        packages/config/**,
+        packages/contracts/**,
+        packages/api-client/**,
+        packages/perf/**,
+        pnpm-lock.yaml,
+        .github/workflows/api-staging.yml,
+      ]
   workflow_dispatch:
 
 permissions:
@@ -51,3 +60,12 @@ jobs:
         run: |
           : "${STAGING_API_URL:?set variable STAGING_API_URL in the staging environment}"
           curl -fsS --retry 3 --retry-all-errors "$STAGING_API_URL/v1/health" | grep -q '"ok":true'
+      # Post-deploy smoke (Q55): a signed install, one balance read (ETH and USDC) and one history read of the public
+      # Sepolia USDC contract, through the real endpoints. Needs no secret: the install key is made in memory per run.
+      - name: Smoke test (balance and history reads)
+        env:
+          STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+        run: |
+          : "${STAGING_API_URL:?set variable STAGING_API_URL in the staging environment}"
+          pnpm install --frozen-lockfile --filter @vaultme/perf...
+          pnpm --filter @vaultme/perf run smoke

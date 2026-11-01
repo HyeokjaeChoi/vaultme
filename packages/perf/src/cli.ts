@@ -1,6 +1,7 @@
 // Usage (from the repo root, node 24):
 //   node packages/perf/src/cli.ts hermes <expo export dir> <out.json>
 //   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts latency <out.json>    (prints the table; CI adds it to the job summary)
+//   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts smoke    (post-deploy: one balance read and one history read; exit 1 on failure)
 //   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha> --origin <text>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the tier-2 limits for api.js)
 //   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text>
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -42,6 +43,13 @@ if (cmd === 'hermes') {
   console.log(latencyTable(api))
   // A run where an endpoint never answered is a failed run, not a baseline.
   if (Object.values(api).some((e) => e.ok === 0)) process.exitCode = 1
+} else if (cmd === 'smoke') {
+  const baseUrl = process.env.STAGING_API_URL
+  if (!baseUrl) throw new Error('usage: STAGING_API_URL=<url> smoke')
+  const web = readJson(new URL('../../../apps/web/package.json', import.meta.url).pathname) as { version: string }
+  const { smokeApi } = await import('./smoke.ts')
+  await smokeApi({ baseUrl: baseUrl.replace(/\/+$/, ''), appVersion: web.version })
+  console.log('smoke ok: balance read and history read')
 } else if (cmd === 'baseline') {
   const { values: v } = parseArgs({
     args: rest,
@@ -120,5 +128,5 @@ if (cmd === 'hermes') {
   writeFileSync(join(v.out, 'baseline.md'), renderBaseline(baseline))
   console.log(`${benchTable(apiBench.results)}\n\n${limitsJs(apiBench.results)}`)
 } else {
-  throw new Error('usage: cli.ts hermes | latency | baseline | bench')
+  throw new Error('usage: cli.ts hermes | latency | smoke | baseline | bench')
 }
