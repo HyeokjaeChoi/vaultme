@@ -17,7 +17,7 @@ export type PushData = z.infer<typeof PushData>
 /** Android notification channel. The app creates it before it asks for permission; the server sends every push on it (Expo `channelId`). */
 export const PUSH_CHANNEL_ID = 'default'
 
-/** Lock-screen text carries no amount and no address (#67 decision 4). Copy: Figma notification spec 652:108108. `replaced` (Q77) is not built: it needs a server-side record of pending sends (#314). */
+/** Lock-screen text carries no amount and no address (#67 decision 4). Copy: Figma notification spec 652:108108. There is no `replaced` push (Q77, ADR-0030). */
 export const PUSH_COPY = {
   deposit: { title: '입금이 들어왔어요', body: '앱에서 확인해 주세요.' },
   send: { title: '보낸 거래가 블록에 담겼어요', body: '확정까지 몇 분 걸려요. 앱에서 확인해 주세요.' },
