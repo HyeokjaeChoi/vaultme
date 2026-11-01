@@ -28,6 +28,7 @@ describe('@vaultme/wallet-core/signer import rule', { timeout: 60_000 }, () => {
     'src/entities/account/model.ts',
     'src/shared/lib/amount.ts',
     'src/shared/storage/kv.ts',
+    'src/shared/ui/BottomSheet.tsx',
   ])('rejects %s', async (f) => {
     const errors = await signerErrors(f)
     expect(errors).toHaveLength(1)

@@ -72,8 +72,11 @@ const signerAllowed = {
   ],
   rules: { 'no-restricted-imports': ['error', ...rnPaths] },
 }
-// BottomSheet is the one shared sheet; it is built on the RN Modal.
-const bottomSheet = { files: ['src/shared/ui/BottomSheet.tsx'], rules: { 'no-restricted-imports': 'off' } }
+// BottomSheet is the one shared sheet; it is built on the RN Modal. It stays under the signer ban.
+const bottomSheet = {
+  files: ['src/shared/ui/BottomSheet.tsx'],
+  rules: { 'no-restricted-imports': ['error', signerPath] },
+}
 
 // React rules from the Vercel React and React Native skills that an installable plugin can check (#91).
 // Not here, because the plugin crashes on ESLint 10 or has no release older than 7 days:
