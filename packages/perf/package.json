@@ -16,7 +16,7 @@
     "@vaultme/contracts": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "24.19.2",
+    "@types/node": "26.6.5",
     "@vaultme/config": "workspace:*",
     "@vitest/coverage-v8": "5.0.5",
     "eslint": "^10.12.0",
