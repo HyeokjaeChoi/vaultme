@@ -73,10 +73,10 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q49 | Korean only; strings in i18n | IMPLEMENTED | `packages/i18n/src/ko.ts` |
 | Q50 | Sentry crash and performance, PII scrubbed | SUPERSEDED | ADR-0024: performance monitoring dropped. Still holds and is built (#315): errors and crashes on the app (`apps/mobile/src/shared/lib/sentry.ts`) and the Worker (`apps/api/src/sentry.ts`), PII scrubbed (`packages/contracts/src/scrub.ts`). Source maps: #337 |
 | Q51 | pnpm + Turborepo monorepo | IMPLEMENTED | `turbo.json` |
-| Q52 | local/staging/prod; separate D1, secrets, EAS channel; web previews | GAP | #316: no EAS channels. Web previews off (`apps/web/AGENTS.md`) |
-| Q53 | Zero-downtime release rules | GAP | #316: v1 add-only and migration lint (R16) are done; EAS Update and gradual deploy are not |
+| Q52 | local/staging/prod; separate D1, secrets, EAS channel; web previews | SUPERSEDED | ADR-0025: production environment and EAS production channel wait for the first public release. Still open: EAS channels for staging (#316). Web previews off (`apps/web/AGENTS.md`) |
+| Q53 | Zero-downtime release rules | SUPERSEDED | ADR-0025: gradual deploy waits for the first public release. Still open (#316): EAS Update. Done: v1 add-only, migration lint (R16) |
 | Q54 | Risk-based tests; mobile E2E; device checklist | GAP | #316 |
-| Q55 | CI/CD gates and release pipeline | GAP | #316: OpenAPI breaking-change diff (`ci.yml` `verify`), migration lint (R16) and the post-deploy staging smoke (`api-staging.yml`) are done; the rest is not |
+| Q55 | CI/CD gates and release pipeline | SUPERSEDED | ADR-0025: release tag, manual approval and gradual deploy wait for the first public release. The other gates are decided one by one (#316). Done: OpenAPI breaking-change diff (`ci.yml` `verify`), migration lint (R16), post-deploy staging smoke (`api-staging.yml`) |
 | Q56 | 3 SLOs, alerts, JSON logs with request id, Analytics Engine | GAP | #336, #335. Built (#315): JSON logs with a request id (`apps/api/src/log.ts`), data points (`apps/api/src/metrics.ts`). Not built: reading the SLOs (#335), two of three alert conditions (#336). SLO targets: ADR-0020 |
 | Q57 | Anonymous install id; never linked to an address | SUPERSEDED | ADR-0022: the link exists only while push is on |
 | Q58 | All RPC via the proxy with failover; history cached on device | IMPLEMENTED | ADR-0007 |
