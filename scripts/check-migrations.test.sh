@@ -10,6 +10,17 @@ CREATE TABLE t (id TEXT);'
 run fail 'ALTER TABLE t DROP COLUMN c;'
 run fail 'alter table t drop  column c;'
 run fail 'DROP TABLE t;'
+run fail 'ALTER TABLE t DROP c;'
+run fail 'ALTER TABLE t DROP
+COLUMN c;'
+run fail 'DROP /* x */ TABLE t;'
+run pass 'ALTER TABLE t ADD COLUMN renamed_at INTEGER;
+CREATE TABLE rename_history (id TEXT);'
+run pass "CREATE TABLE t (id TEXT); -- rename later
+/* DROP TABLE old */ INSERT INTO t VALUES ('drop table x');"
+run pass '-- contract-ok: the column is unused since release 12
+ALTER TABLE t DROP
+COLUMN c;'
 run fail 'ALTER TABLE t RENAME COLUMN a TO b;'
 run fail 'ALTER TABLE t RENAME TO u;'
 run fail '-- contract-ok:

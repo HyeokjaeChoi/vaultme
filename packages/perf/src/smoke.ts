@@ -1,11 +1,15 @@
-import { createApiClient, readBalances } from '@vaultme/api-client'
+import { createApiClient, isApiError, readBalances } from '@vaultme/api-client'
+import { HistoryResponse, USDC_SEPOLIA } from '@vaultme/contracts'
 import { memorySigner } from './latency.ts'
 
-// The Sepolia USDC token contract (`USDC_SEPOLIA` in @vaultme/contracts): a public contract, not a person's wallet.
-export const SMOKE_ADDRESS = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
-
-/** Post-deploy check (Q55): a real balance read (JSON-RPC) and a real history read through the signed-install flow. Throws on non-2xx or a wrong shape. */
-export async function smokeApi(o: { baseUrl: string; appVersion: string; fetch?: typeof fetch }) {
+/** Post-deploy check (Q55): a real balance read (JSON-RPC) and a real history read through the signed-install flow, of the public Sepolia USDC contract (not a person's wallet). Throws on non-2xx or a wrong shape. A retryable 503 is tried 3 times. */
+export async function smokeApi(o: {
+  baseUrl: string
+  appVersion: string
+  fetch?: typeof fetch
+  sleep?: (ms: number) => Promise<void>
+}) {
+  const sleep = o.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)))
   const client = createApiClient({
     baseUrl: o.baseUrl,
     appVersion: o.appVersion,
@@ -13,13 +17,17 @@ export async function smokeApi(o: { baseUrl: string; appVersion: string; fetch?:
     signer: memorySigner(),
     fetch: (input, init) => (o.fetch ?? fetch)(input, { ...init, signal: AbortSignal.timeout(20_000) }),
   })
+  const retry = async <T>(call: () => Promise<T>): Promise<T> => {
+    for (let i = 1; ; i++) {
+      try {
+        return await call()
+      } catch (e) {
+        if (i === 3 || !(isApiError(e) && e.retryable)) throw e
+        await sleep(2000 * i) // an Etherscan throttle or an RPC upstream blip passes within seconds
+      }
+    }
+  }
   // readBalances throws unless both results are 0x quantities.
-  await readBalances((m, p) => client.rpc(m, p), SMOKE_ADDRESS)
-  const h = (await client.history(SMOKE_ADDRESS)) as { items?: unknown; nextCursor?: unknown; incomplete?: unknown }
-  if (
-    !Array.isArray(h.items) ||
-    !(h.nextCursor === null || typeof h.nextCursor === 'string') ||
-    typeof h.incomplete !== 'boolean'
-  )
-    throw new Error('history: unexpected shape')
+  await retry(() => readBalances((m, p) => client.rpc(m, p), USDC_SEPOLIA))
+  HistoryResponse.parse(await retry(() => client.history(USDC_SEPOLIA)))
 }
