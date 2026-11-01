@@ -44,6 +44,8 @@ export type HistoryItem = {
   local: boolean
   /** API rows only (S41 "블록"). */
   blockNumber?: number
+  /** An incoming zero-value transfer (address-poisoning vector), shown only when the zero-value switch is on (Q71). The row says so. */
+  caution?: true
 }
 
 /** The send recorded on this device (mobile only). */
@@ -59,9 +61,9 @@ export type LocalSend = {
 /**
  * `POST /v1/history` response (ARCHITECTURE.md#history): `{ items: HistoryItem[], nextCursor, incomplete }`. Each item is checked against the
  * contract and dropped when it does not fit (a newer server may send what this app does not know). Items are always on-chain
- * (`ok` | `failed`); pending sends come from the local record. Incoming zero-value rows are hidden. `nextCursor` is read here; the web viewer pages with `more` (mobile reads the first page only).
+ * (`ok` | `failed`); pending sends come from the local record. Incoming zero-value rows are hidden unless `showZero` (the mobile S63 switch), then they carry `caution`. `nextCursor` is read here; the web viewer pages with `more` (mobile reads the first page only).
  */
-export function parseItems(data: unknown): HistoryItem[] {
+export function parseItems(data: unknown, showZero = false): HistoryItem[] {
   const items = (data as { items?: unknown } | null)?.items
   if (!Array.isArray(items)) return []
   const out: HistoryItem[] = []
@@ -70,7 +72,8 @@ export function parseItems(data: unknown): HistoryItem[] {
     if (!p.success) continue
     const i = p.data
     if (Number.isNaN(new Date(i.timestamp * 1000).getTime())) continue // beyond the Date range: a client could not format the row (toISOString throws)
-    if (i.zeroValue && i.direction === 'in') continue // Incoming 0-value rows are the address-poisoning vector. Own calls stay.
+    const caution = i.zeroValue && i.direction === 'in' // Incoming 0-value rows are the address-poisoning vector. Own calls stay.
+    if (caution && !showZero) continue
     out.push({
       id: i.id,
       hash: i.hash,
@@ -82,6 +85,7 @@ export function parseItems(data: unknown): HistoryItem[] {
       ...txView(i.status === 'ok' ? 'Confirmed' : 'Failed'),
       local: false,
       blockNumber: i.blockNumber,
+      ...(caution ? { caution: true as const } : {}),
     })
   }
   return out

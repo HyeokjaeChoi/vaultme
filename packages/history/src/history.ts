@@ -10,6 +10,8 @@ export type HistoryDeps = {
   /** One slot: the last first page of any address. */
   cache: { get(): HistoryCache | null; set(c: HistoryCache): void }
   now: () => number
+  /** Read on every parse. True = show incoming zero-value rows with `caution` (mobile S63 switch, Q71). Absent = hidden (web viewer). The cache keeps the raw page, so a flip needs no refetch. */
+  showZero?: () => boolean
 }
 
 export type HistoryView = {
@@ -56,7 +58,7 @@ export function createHistory(d: HistoryDeps) {
     const c = d.cache.get()
     if (!c || !sameHash(c.address, address)) return null
     try {
-      return { rows: parseItems(JSON.parse(c.json)), updatedAt: c.updatedAt }
+      return { rows: parseItems(JSON.parse(c.json), d.showZero?.()), updatedAt: c.updatedAt }
     } catch {
       return null
     }
@@ -68,7 +70,7 @@ export function createHistory(d: HistoryDeps) {
       const data = await d.fetchPage(address)
       const updatedAt = d.now()
       d.cache.set({ address, json: JSON.stringify(data ?? null), updatedAt })
-      return { source: 'api', items: parseItems(data), updatedAt, nextCursor: parseNextCursor(data) }
+      return { source: 'api', items: parseItems(data, d.showZero?.()), updatedAt, nextCursor: parseNextCursor(data) }
     } catch (e) {
       if (isApiError(e, 'not_found')) return { source: 'local' }
       throw e
@@ -121,7 +123,7 @@ export function createHistory(d: HistoryDeps) {
     async more(address: string, cursor: string): Promise<{ items: HistoryItem[]; nextCursor: string | null } | null> {
       try {
         const data = await d.fetchPage(address, cursor)
-        return { items: parseItems(data), nextCursor: parseNextCursor(data) }
+        return { items: parseItems(data, d.showZero?.()), nextCursor: parseNextCursor(data) }
       } catch {
         return null
       }

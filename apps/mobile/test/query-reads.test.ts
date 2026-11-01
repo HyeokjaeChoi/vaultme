@@ -8,6 +8,7 @@ const m = vi.hoisted(() => ({
   view: vi.fn(),
   findRow: vi.fn(),
   pending: null as object | string | null,
+  zero: false,
 }))
 vi.mock('@/shared/chain', () => ({ chain: { broadcasts: true, getSnapshot: m.getSnapshot } }))
 vi.mock('@/shared/storage', () => ({ getAccountAddress: () => null }))
@@ -16,6 +17,7 @@ vi.mock('@/entities/transaction', () => ({ readPendingTx: () => m.pending }))
 vi.mock('../src/features/history/model/loader', () => ({
   history: { view: m.view, findRow: m.findRow },
   accountAddress: () => ME,
+  showZero: () => m.zero,
 }))
 
 import { historyKey, historyQuery, rowLookupQuery } from '../src/features/history/model/historyQuery'
@@ -40,6 +42,7 @@ beforeEach(() => {
   m.view.mockReset()
   m.findRow.mockReset()
   m.pending = null
+  m.zero = false
 })
 
 describe('history reads', () => {
@@ -59,10 +62,13 @@ describe('history reads', () => {
     expect(await qc().query(historyQuery(ME))).toBe(failed)
   })
   it('each account has its own list view; a row lookup is keyed by account, id and direction', () => {
-    expect(historyQuery(ME).queryKey).toEqual(['history', ME])
-    expect(historyKey(null)).toEqual(['history', null])
-    expect(rowLookupQuery('0xh:0', undefined).queryKey).toEqual(['historyRow', ME, '0xh:0', null])
-    expect(rowLookupQuery('0xh', 'in').queryKey).toEqual(['historyRow', ME, '0xh', 'in'])
+    expect(historyQuery(ME).queryKey).toEqual(['history', ME, false])
+    expect(historyKey(null)).toEqual(['history', null, false])
+    expect(rowLookupQuery('0xh:0', undefined).queryKey).toEqual(['historyRow', ME, '0xh:0', null, false])
+    m.zero = true
+    expect(historyKey(ME)).toEqual(['history', ME, true]) // a flip of S63 is a new view
+    m.zero = false
+    expect(rowLookupQuery('0xh', 'in').queryKey).toEqual(['historyRow', ME, '0xh', 'in', false])
   })
   it('a send that settled while the page was fetched is merged again (the list never keeps "보내는 중")', async () => {
     m.pending = { hash: '0x1', state: 'Pending' }

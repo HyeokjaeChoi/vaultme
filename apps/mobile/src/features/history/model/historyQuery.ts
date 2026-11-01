@@ -2,14 +2,14 @@ import { queryOptions } from '@tanstack/react-query'
 import type { PushDir } from '@vaultme/history'
 import { readPendingTx } from '@/entities/transaction'
 import type { PendingTx } from '@/shared/storage'
-import { accountAddress, history } from './loader'
+import { accountAddress, history, showZero } from './loader'
 
 // Not persisted (not in PERSISTED_QUERY_ROOTS): the `historyCache` seam (ADR-0007) already stores the last good first page, and the view also holds this
 // device's send. A second stored copy would be a second source of truth.
 const meta = { persist: false } as const
 
-/** Cache key of the S40 list view of `address` (null = test-data mode, only the local send). */
-export const historyKey = (address: string | null) => ['history', address] as const
+/** Cache key of the S40 list view of `address` (null = test-data mode, only the local send). The S63 zero-value switch is part of it: the view differs by it. */
+export const historyKey = (address: string | null) => ['history', address, showZero()] as const
 
 const localSend = (): PendingTx | null => {
   const raw = readPendingTx()
@@ -38,7 +38,7 @@ export const historyQuery = (address: string | null) =>
 export const rowLookupQuery = (id: string, dir: PushDir | undefined) => {
   const address = accountAddress()
   return queryOptions({
-    queryKey: ['historyRow', address, id, dir ?? null] as const,
+    queryKey: ['historyRow', address, id, dir ?? null, showZero()] as const,
     queryFn: () => history.findRow(address, id, dir),
     // Read on mount, key change and `retry` only, as before: an app return must not turn a not-found or failed screen into a spinner.
     refetchOnWindowFocus: false,

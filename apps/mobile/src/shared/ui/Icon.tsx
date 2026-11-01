@@ -23,6 +23,7 @@ import { CloseCircleIcon as CloseCircleIconL } from '@solar-icons/react-native/l
 import { CloseIcon as CloseIconL } from '@solar-icons/react-native/linear/close'
 import { CloudCrossIcon as CloudCrossIconD } from '@solar-icons/react-native/bold-duotone/cloud-cross'
 import { CopyIcon as CopyIconL } from '@solar-icons/react-native/linear/copy'
+import { DangerCircleIcon as DangerCircleIconB } from '@solar-icons/react-native/bold/danger-circle'
 import { DangerTriangleIcon as DangerTriangleIconB } from '@solar-icons/react-native/bold/danger-triangle'
 import { DangerTriangleIcon as DangerTriangleIconL } from '@solar-icons/react-native/linear/danger-triangle'
 import { DocumentTextIcon as DocumentTextIconL } from '@solar-icons/react-native/linear/document-text'
@@ -147,6 +148,7 @@ const BOLD = {
   confirmed: CheckCircleIconB,
   failed: CloseCircleIconB,
   warning: DangerTriangleIconB,
+  caution: DangerCircleIconB,
   info: InfoCircleIconB,
   unknown: QuestionCircleIconB,
   sent: RoundArrowRightUpIconB,
