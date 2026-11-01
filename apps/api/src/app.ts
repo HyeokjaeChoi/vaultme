@@ -26,10 +26,13 @@ import {
   isBelow,
 } from '@vaultme/contracts'
 import * as Sentry from '@sentry/cloudflare'
+import { eq } from 'drizzle-orm'
 import type { Context, ErrorHandler, MiddlewareHandler } from 'hono'
 import { cors } from 'hono/cors'
 import { routePath } from 'hono/route'
 import pkg from '../package.json' with { type: 'json' }
+import { getDb } from './db/index.ts'
+import { installs } from './db/schema.ts'
 import {
   importPublicKey,
   issueToken,
@@ -197,9 +200,7 @@ app.openapi(
     }
     const installId = crypto.randomUUID()
     const now = nowSeconds()
-    await c.env.DB.prepare('INSERT INTO installs (id, public_key, created_at, last_seen_at) VALUES (?, ?, ?, ?)')
-      .bind(installId, publicKey, now, now)
-      .run()
+    await getDb(c.env.DB).insert(installs).values({ id: installId, publicKey, createdAt: now, lastSeenAt: now })
     return c.json({ installId }, 201)
   },
 )
@@ -215,8 +216,10 @@ app.openapi(
   }),
   async (c) => {
     const installId = c.get('installId')
-    const seen = await c.env.DB.prepare('UPDATE installs SET last_seen_at = ? WHERE id = ?')
-      .bind(nowSeconds(), installId)
+    const seen = await getDb(c.env.DB)
+      .update(installs)
+      .set({ lastSeenAt: nowSeconds() })
+      .where(eq(installs.id, installId))
       .run()
     // The cron may have purged the install after the signature check: no token, so the client registers again.
     if (seen.meta.changes === 0) return c.json(errorEnvelope('unauthorized', 'Unknown install'), 401)

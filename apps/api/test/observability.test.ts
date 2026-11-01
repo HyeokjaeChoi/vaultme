@@ -4,6 +4,8 @@ import { env } from 'cloudflare:workers'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { app } from '../src/app.ts'
 import { nowSeconds } from '../src/auth.ts'
+import { getDb, withoutParams } from '../src/db/index.ts'
+import { serverErrors } from '../src/db/schema.ts'
 import type { Env } from '../src/env.ts'
 import { handler } from '../src/index.ts'
 import { sentryOptions } from '../src/sentry.ts'
@@ -155,6 +157,25 @@ describe('5xx spike alert (Q69)', () => {
       await E.DB.prepare('ALTER TABLE server_errors_off RENAME TO server_errors').run()
     }
     expect(lines(err)).toContainEqual(expect.objectContaining({ event: 'server_error_not_counted' }))
+  })
+})
+
+describe('a failed drizzle query', () => {
+  it('reaches Sentry and the logs without its bound values', async () => {
+    await E.DB.prepare('ALTER TABLE server_errors RENAME TO server_errors_off').run()
+    let error = new Error('not thrown')
+    try {
+      await getDb(E.DB).insert(serverErrors).values({ at: 424242424 })
+    } catch (e) {
+      error = e as Error
+    } finally {
+      await E.DB.prepare('ALTER TABLE server_errors_off RENAME TO server_errors').run()
+    }
+    expect(error.message).toContain('424242424') // drizzle puts the params in the message
+    const sent = await sentryOptions(E).beforeSend?.({ exception: { values: [{ value: error.message }] } } as never, {})
+    expect(JSON.stringify(sent)).toContain('Failed query')
+    expect(JSON.stringify(sent)).not.toContain('424242424')
+    expect(withoutParams(error.message)).not.toContain('424242424')
   })
 })
 

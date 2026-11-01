@@ -1,5 +1,8 @@
 import * as Sentry from '@sentry/cloudflare'
+import { count, gte, lt } from 'drizzle-orm'
 import { nowSeconds } from './auth.ts'
+import { getDb } from './db/index.ts'
+import { serverErrors } from './db/schema.ts'
 import type { Env } from './env.ts'
 import { logEvent } from './log.ts'
 
@@ -13,7 +16,7 @@ const KEEP_SECONDS = 24 * 3600
 /** Counts one 5xx answer. Only the time is stored. A failed write (D1 down is a likely cause of 5xx) is logged, never thrown. */
 export async function recordServerError(env: Bindings): Promise<void> {
   try {
-    await env.DB.prepare('INSERT INTO server_errors (at) VALUES (?)').bind(nowSeconds()).run()
+    await getDb(env.DB).insert(serverErrors).values({ at: nowSeconds() })
   } catch {
     logEvent('error', 'server_error_not_counted')
   }
@@ -26,19 +29,20 @@ export async function recordServerError(env: Bindings): Promise<void> {
  */
 export async function checkAlerts(env: Bindings): Promise<void> {
   const now = nowSeconds()
-  await env.DB.prepare('DELETE FROM server_errors WHERE at < ?')
-    .bind(now - KEEP_SECONDS)
-    .run()
-  const row = await env.DB.prepare('SELECT COUNT(*) AS n FROM server_errors WHERE at >= ?')
-    .bind(now - WINDOW_SECONDS)
-    .first<{ n: number }>()
-  const count = row?.n ?? 0
-  if (count < SERVER_ERROR_ALERT_COUNT) return
-  logEvent('error', 'alert_5xx_spike', { count })
+  const db = getDb(env.DB)
+  await db.delete(serverErrors).where(lt(serverErrors.at, now - KEEP_SECONDS))
+  const row = await db
+    .select({ n: count() })
+    .from(serverErrors)
+    .where(gte(serverErrors.at, now - WINDOW_SECONDS))
+    .get()
+  const recent = row?.n ?? 0
+  if (recent < SERVER_ERROR_ALERT_COUNT) return
+  logEvent('error', 'alert_5xx_spike', { count: recent })
   Sentry.captureMessage('API 5xx spike', {
     level: 'error',
     fingerprint: ['alert', 'api-5xx-spike'],
     tags: { alert: 'api-5xx-spike' },
-    extra: { count_last_hour: count },
+    extra: { count_last_hour: recent },
   })
 }

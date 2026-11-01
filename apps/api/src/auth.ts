@@ -10,7 +10,10 @@ import {
   TOKEN_TTL_SECONDS,
   canonicalString,
 } from '@vaultme/contracts'
+import { and, eq, lt } from 'drizzle-orm'
 import type { Context, Input, MiddlewareHandler } from 'hono'
+import { getDb } from './db/index.ts'
+import { installs, nonces } from './db/schema.ts'
 import type { Env } from './env.ts'
 import { fail } from './errors.ts'
 
@@ -53,9 +56,12 @@ export const requireSigned: MiddlewareHandler<Env> = async (c, next) => {
   const ts = Number(tsRaw)
   if (Math.abs(nowSeconds() - ts) > CLOCK_SKEW_SECONDS) return fail(c, 401, 'clock_skew', 'Device clock is off')
 
-  const row = await c.env.DB.prepare('SELECT public_key FROM installs WHERE id = ?')
-    .bind(installId.data)
-    .first<{ public_key: string }>()
+  const db = getDb(c.env.DB)
+  const row = await db
+    .select({ publicKey: installs.publicKey })
+    .from(installs)
+    .where(eq(installs.id, installId.data))
+    .get()
   if (!row) return fail(c, 401, 'unauthorized', 'Unknown install')
 
   const body = await c.req.arrayBuffer() // Hono caches it, so handlers can still read the body
@@ -69,22 +75,21 @@ export const requireSigned: MiddlewareHandler<Env> = async (c, next) => {
   })
   const ok = await crypto.subtle.verify(
     { name: 'ECDSA', hash: 'SHA-256' },
-    await importPublicKey(row.public_key),
+    await importPublicKey(row.publicKey),
     b64uDecode(sig.data),
     enc.encode(canonical),
   )
   if (!ok) return fail(c, 401, 'signature_invalid', 'Signature is invalid')
 
   // The nonce must outlive the timestamp window, so it expires at ts + skew.
-  const [, ins] = await c.env.DB.batch([
-    c.env.DB.prepare('DELETE FROM nonces WHERE install_id = ? AND expires_at < ?').bind(installId.data, nowSeconds()),
-    c.env.DB.prepare('INSERT OR IGNORE INTO nonces (install_id, nonce, expires_at) VALUES (?, ?, ?)').bind(
-      installId.data,
-      nonce.data,
-      ts + CLOCK_SKEW_SECONDS,
-    ),
+  const [, ins] = await db.batch([
+    db.delete(nonces).where(and(eq(nonces.installId, installId.data), lt(nonces.expiresAt, nowSeconds()))),
+    db
+      .insert(nonces)
+      .values({ installId: installId.data, nonce: nonce.data, expiresAt: ts + CLOCK_SKEW_SECONDS })
+      .onConflictDoNothing(),
   ])
-  if (ins?.meta.changes === 0) return fail(c, 401, 'nonce_reused', 'Nonce was already used')
+  if (ins.meta.changes === 0) return fail(c, 401, 'nonce_reused', 'Nonce was already used')
 
   c.set('installId', installId.data)
   await next()

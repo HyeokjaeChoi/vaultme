@@ -16,3 +16,8 @@ allowBuilds:
 # Peer suffixes by name@version only. Without it, @babel/core 8 (from @vitest/coverage-istanbul 5) gave packages/i18n
 # its own react-native peer path and a second react-i18next copy in the app bundle (two i18next contexts).
 dedupePeers: true
+
+# drizzle-kit 0.31 depends on @esbuild-kit/core-utils, which pins esbuild 0.18.20 (GHSA-67mh-4wv8-2f99, esbuild dev server; fixed in 0.25.0).
+# Same esbuild drizzle-kit itself uses. Remove when drizzle-kit drops @esbuild-kit (1.0 line).
+overrides:
+  '@esbuild-kit/core-utils>esbuild': 0.25.12

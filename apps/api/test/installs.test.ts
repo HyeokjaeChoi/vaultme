@@ -157,7 +157,7 @@ describe('installs', () => {
           k === 'prepare'
             ? (q: string) => {
                 const st = t.prepare(q)
-                return q.startsWith('UPDATE installs SET last_seen_at')
+                return q.startsWith('update "installs" set "last_seen_at"')
                   ? new Proxy(st, {
                       get: (s, m) =>
                         m === 'bind'

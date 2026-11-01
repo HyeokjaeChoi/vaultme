@@ -18,6 +18,7 @@ export default defineConfig({
       enabled: true,
       provider: 'istanbul',
       include: ['src/**'],
+      exclude: ['src/db/schema.ts'], // declarative; its callbacks run only in drizzle-kit, and `pnpm db:check` guards it against the migrations
       reporter: ['text-summary'],
       thresholds: { statements: 96, branches: 93, functions: 98, lines: 97 },
     },

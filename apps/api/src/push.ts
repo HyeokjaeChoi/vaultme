@@ -1,6 +1,9 @@
 import { PUSH_CHANNEL_ID, PUSH_COPY, USDC_SEPOLIA, type PushData } from '@vaultme/contracts'
+import { and, desc, eq, inArray, lt, notInArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { nowSeconds } from './auth.ts'
+import { getDb, runBatch, withoutParams, type BatchItem } from './db/index.ts'
+import { installs, pushReceipts, pushSent, pushSubscriptions, pushUnregister } from './db/schema.ts'
 import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
 import { logEvent } from './log.ts'
@@ -75,24 +78,31 @@ async function updateWebhookAddresses(env: Bindings, add: string[], remove: stri
 
 /** Removes addresses that no subscription uses any more. Rows in push_unregister stay until Alchemy confirms. */
 async function flushUnregister(env: Bindings): Promise<void> {
-  const rows = await env.DB.prepare(
-    'SELECT address FROM push_unregister WHERE address NOT IN (SELECT address FROM push_subscriptions) LIMIT 100',
-  ).all<{ address: string }>()
-  const addresses = rows.results.map((r) => r.address)
+  const db = getDb(env.DB)
+  const subscribed = db.select({ address: pushSubscriptions.address }).from(pushSubscriptions)
+  const rows = await db
+    .select({ address: pushUnregister.address })
+    .from(pushUnregister)
+    .where(notInArray(pushUnregister.address, subscribed))
+    .limit(100)
+  const addresses = rows.map((r) => r.address)
   if (addresses.length > 0) {
     await updateWebhookAddresses(env, [], addresses)
-    await env.DB.batch(addresses.map((a) => env.DB.prepare('DELETE FROM push_unregister WHERE address = ?').bind(a)))
+    // At most 100 addresses (the LIMIT above), which is D1's bound-parameter limit per statement.
+    await db.delete(pushUnregister).where(inArray(pushUnregister.address, addresses))
   }
   // An address that is subscribed again no longer needs removal.
-  await env.DB.prepare('DELETE FROM push_unregister WHERE address IN (SELECT address FROM push_subscriptions)').run()
+  await db.delete(pushUnregister).where(inArray(pushUnregister.address, subscribed))
 }
 
 /** Queue removal first (so a failed Alchemy call is retried by cron), then try it now. Returns false when Alchemy failed. */
 async function unregisterAddresses(env: Bindings, addresses: string[]): Promise<boolean> {
   if (addresses.length === 0) return true
-  await env.DB.batch(
+  const db = getDb(env.DB)
+  await runBatch(
+    db,
     addresses.map((a) =>
-      env.DB.prepare('INSERT OR IGNORE INTO push_unregister (address, created_at) VALUES (?, ?)').bind(a, nowSeconds()),
+      db.insert(pushUnregister).values({ address: a, createdAt: nowSeconds() }).onConflictDoNothing(),
     ),
   )
   try {
@@ -114,22 +124,24 @@ export async function subscribe(
   expoToken: string,
 ): Promise<boolean> {
   const addr = address.toLowerCase()
-  const old = await env.DB.prepare('SELECT address FROM push_subscriptions WHERE install_id = ?')
-    .bind(installId)
-    .first<{ address: string }>()
+  const db = getDb(env.DB)
+  const old = await db
+    .select({ address: pushSubscriptions.address })
+    .from(pushSubscriptions)
+    .where(eq(pushSubscriptions.installId, installId))
+    .get()
   try {
     await updateWebhookAddresses(env, [addr], [])
   } catch (e) {
     if (e instanceof UpstreamError) return false
     throw e
   }
-  await env.DB.prepare(
-    'INSERT INTO push_subscriptions (install_id, address, expo_token, created_at) VALUES (?, ?, ?, ?) ON CONFLICT (install_id) DO UPDATE SET address = excluded.address, expo_token = excluded.expo_token',
-  )
-    .bind(installId, addr, expoToken, nowSeconds())
-    .run()
+  await db
+    .insert(pushSubscriptions)
+    .values({ installId, address: addr, expoToken, createdAt: nowSeconds() })
+    .onConflictDoUpdate({ target: pushSubscriptions.installId, set: { address: addr, expoToken } }) // created_at stays
   // A new row for the same address cancels a queued removal.
-  await env.DB.prepare('DELETE FROM push_unregister WHERE address = ?').bind(addr).run()
+  await db.delete(pushUnregister).where(eq(pushUnregister.address, addr))
   if (old && old.address !== addr) await unregisterAddresses(env, [old.address])
   return true
 }
@@ -137,15 +149,21 @@ export async function subscribe(
 /** Deletes the subscription right away, then removes the address from Alchemy. Returns false when that last step failed (cron retries). */
 export async function unsubscribe(env: Bindings, installId: string, onlyToken?: string): Promise<boolean> {
   // `onlyToken`: delete only while the install still has that token (a receipt of an old token must not remove a new subscription).
-  const row = await env.DB.prepare(
-    'DELETE FROM push_subscriptions WHERE install_id = ? AND (? IS NULL OR expo_token = ?) RETURNING address',
-  )
-    .bind(installId, onlyToken ?? null, onlyToken ?? null)
-    .first<{ address: string }>()
+  const db = getDb(env.DB)
+  const row = await db
+    .delete(pushSubscriptions)
+    .where(
+      and(
+        eq(pushSubscriptions.installId, installId),
+        onlyToken === undefined ? undefined : eq(pushSubscriptions.expoToken, onlyToken),
+      ),
+    )
+    .returning({ address: pushSubscriptions.address })
+    .get()
   if (row) {
-    await env.DB.batch([
-      env.DB.prepare('DELETE FROM push_sent WHERE install_id = ?').bind(installId),
-      env.DB.prepare('DELETE FROM push_receipts WHERE install_id = ?').bind(installId),
+    await db.batch([
+      db.delete(pushSent).where(eq(pushSent.installId, installId)),
+      db.delete(pushReceipts).where(eq(pushReceipts.installId, installId)),
     ])
     return unregisterAddresses(env, [row.address])
   }
@@ -155,30 +173,30 @@ export async function unsubscribe(env: Bindings, installId: string, onlyToken?: 
 /** Cron: expire inactive installs' subscriptions, delete installs idle for 90 days, retry failed removals, purge dedupe rows. */
 export async function sweep(env: Bindings): Promise<void> {
   const now = nowSeconds()
-  const expired = await env.DB.prepare(
-    'DELETE FROM push_subscriptions WHERE install_id IN (SELECT s.install_id FROM push_subscriptions s JOIN installs i ON i.id = s.install_id WHERE i.last_seen_at < ?) RETURNING install_id, address',
-  )
-    .bind(now - PUSH_INACTIVE_SECONDS)
-    .all<{ install_id: string; address: string }>()
+  const db = getDb(env.DB)
+  const inactive = db
+    .select({ installId: pushSubscriptions.installId })
+    .from(pushSubscriptions)
+    .innerJoin(installs, eq(installs.id, pushSubscriptions.installId))
+    .where(lt(installs.lastSeenAt, now - PUSH_INACTIVE_SECONDS))
+  const expired = await db
+    .delete(pushSubscriptions)
+    .where(inArray(pushSubscriptions.installId, inactive))
+    .returning({ installId: pushSubscriptions.installId, address: pushSubscriptions.address })
   // The dedupe rows hold install_id + tx hash: drop them (and the receipt ids) with the link (ADR-0022), not after their 7 days.
-  if (expired.results.length)
-    await env.DB.batch(
-      expired.results.flatMap((r) => [
-        env.DB.prepare('DELETE FROM push_sent WHERE install_id = ?').bind(r.install_id),
-        env.DB.prepare('DELETE FROM push_receipts WHERE install_id = ?').bind(r.install_id),
+  if (expired.length)
+    await runBatch(
+      db,
+      expired.flatMap((r) => [
+        db.delete(pushSent).where(eq(pushSent.installId, r.installId)),
+        db.delete(pushReceipts).where(eq(pushReceipts.installId, r.installId)),
       ]),
     )
   // After the subscription expiry above (30 d < 90 d), so no subscription is left to cascade without an Alchemy removal.
-  await env.DB.prepare('DELETE FROM installs WHERE last_seen_at < ?')
-    .bind(now - INSTALL_KEEP_SECONDS)
-    .run()
-  await env.DB.prepare('DELETE FROM push_sent WHERE sent_at < ?')
-    .bind(now - SENT_KEEP_SECONDS)
-    .run()
-  await env.DB.prepare('DELETE FROM push_receipts WHERE created_at < ?')
-    .bind(now - RECEIPT_KEEP_SECONDS)
-    .run()
-  await unregisterAddresses(env, [...new Set(expired.results.map((r) => r.address))])
+  await db.delete(installs).where(lt(installs.lastSeenAt, now - INSTALL_KEEP_SECONDS))
+  await db.delete(pushSent).where(lt(pushSent.sentAt, now - SENT_KEEP_SECONDS))
+  await db.delete(pushReceipts).where(lt(pushReceipts.createdAt, now - RECEIPT_KEEP_SECONDS))
+  await unregisterAddresses(env, [...new Set(expired.map((r) => r.address))])
   await checkReceipts(env, now)
   await flushUnregister(env)
 }
@@ -196,14 +214,15 @@ const ExpoReceipts = z.object({
  * yet stays for the next run (newest first, so ids Expo no longer knows cannot starve newer ones). An Expo failure keeps all ids (the 7-day purge bounds them) and never stops the rest of the sweep.
  */
 async function checkReceipts(env: Bindings, now: number): Promise<void> {
-  type Row = { receipt_id: string; install_id: string; expo_token: string }
-  const rows = await env.DB.prepare(
-    'SELECT receipt_id, install_id, expo_token FROM push_receipts WHERE created_at < ? ORDER BY created_at DESC LIMIT 1000',
-  )
-    .bind(now - PUSH_RECEIPT_DELAY_SECONDS)
-    .all<Row>()
-  for (let i = 0; i < rows.results.length; i += EXPO_RECEIPT_BATCH) {
-    const batch = rows.results.slice(i, i + EXPO_RECEIPT_BATCH)
+  const db = getDb(env.DB)
+  const rows = await db
+    .select({ receiptId: pushReceipts.receiptId, installId: pushReceipts.installId, expoToken: pushReceipts.expoToken })
+    .from(pushReceipts)
+    .where(lt(pushReceipts.createdAt, now - PUSH_RECEIPT_DELAY_SECONDS))
+    .orderBy(desc(pushReceipts.createdAt))
+    .limit(1000)
+  for (let i = 0; i < rows.length; i += EXPO_RECEIPT_BATCH) {
+    const batch = rows.slice(i, i + EXPO_RECEIPT_BATCH)
     try {
       const res = await fetch(EXPO_RECEIPTS_URL, {
         method: 'POST',
@@ -212,29 +231,31 @@ async function checkReceipts(env: Bindings, now: number): Promise<void> {
           accept: 'application/json',
           authorization: `Bearer ${secret(env.EXPO_ACCESS_TOKEN)}`,
         },
-        body: JSON.stringify({ ids: batch.map((r) => r.receipt_id) }),
+        body: JSON.stringify({ ids: batch.map((r) => r.receiptId) }),
         signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
       })
       if (!res.ok) throw new Error(`expo ${String(res.status)}`)
       const parsed = ExpoReceipts.safeParse(await res.json())
       if (!parsed.success) throw new Error('expo receipt shape')
-      const checked = batch.filter((r) => r.receipt_id in parsed.data.data)
+      const checked = batch.filter((r) => r.receiptId in parsed.data.data)
       const outcomes: string[] = []
       for (const r of checked) {
-        const item = parsed.data.data[r.receipt_id]
+        const item = parsed.data.data[r.receiptId]
         const error = item?.details?.error
         outcomes.push(outcomeLabel(item?.status === 'ok' ? 'ok' : (error ?? item?.status ?? 'unknown')))
         if (error !== 'DeviceNotRegistered') continue
-        await unsubscribe(env, r.install_id, r.expo_token)
+        await unsubscribe(env, r.installId, r.expoToken)
       }
       for (const [outcome, n] of tally(outcomes)) recordPushReceipt(env, outcome, n)
       logEvent('info', 'expo_receipts', { requested: batch.length, answered: checked.length })
       if (checked.length > 0)
-        await env.DB.batch(
-          checked.map((r) => env.DB.prepare('DELETE FROM push_receipts WHERE receipt_id = ?').bind(r.receipt_id)),
+        await runBatch(
+          db,
+          // Up to 300 ids: one statement each, as D1 binds at most 100 parameters per statement.
+          checked.map((r) => db.delete(pushReceipts).where(eq(pushReceipts.receiptId, r.receiptId))),
         )
     } catch (e) {
-      logEvent('error', 'expo_receipts_failed', { reason: e instanceof Error ? e.message : 'error' }) // retried by the next run
+      logEvent('error', 'expo_receipts_failed', { reason: e instanceof Error ? withoutParams(e.message) : 'error' }) // retried by the next run
       return
     }
   }
@@ -490,45 +511,46 @@ export async function handleActivity(
   if (addresses.size === 0) return
   const list = [...addresses]
   // D1 allows 100 bound parameters per statement, and one payload can carry more addresses than that.
-  type Subscription = { install_id: string; address: string; expo_token: string }
-  const subs: { results: Subscription[] } = { results: [] }
+  const db = getDb(env.DB)
+  const subs: { installId: string; address: string; expoToken: string }[] = []
   for (let i = 0; i < list.length; i += D1_MAX_PARAMS) {
     const chunk = list.slice(i, i + D1_MAX_PARAMS)
-    const rows = await env.DB.prepare(
-      `SELECT install_id, address, expo_token FROM push_subscriptions WHERE address IN (${chunk.map(() => '?').join(',')})`,
+    subs.push(
+      ...(await db
+        .select({
+          installId: pushSubscriptions.installId,
+          address: pushSubscriptions.address,
+          expoToken: pushSubscriptions.expoToken,
+        })
+        .from(pushSubscriptions)
+        .where(inArray(pushSubscriptions.address, chunk))),
     )
-      .bind(...chunk)
-      .all<Subscription>()
-    subs.results.push(...rows.results)
   }
   // Counts only (no address or token): shows in Workers Logs where a delivery stopped before Expo (#263).
-  if (subs.results.length === 0) {
+  if (subs.length === 0) {
     logEvent('info', 'push_outcome', { subs: 0, notes: 0, jobs: 0 })
     return
   }
-  const checked = await withFailures(env, notificationsFor(payload, new Set(subs.results.map((s) => s.address))))
+  const checked = await withFailures(env, notificationsFor(payload, new Set(subs.map((s) => s.address))))
   const { notes } = checked
 
   // Claim first, then send: Alchemy can deliver two legs of one tx as separate webhooks at the same moment, and a
   // check-then-insert let both runs send. INSERT OR IGNORE is atomic, so only the first claimer sends (its kind wins,
   // which may be send). A claim whose send fails is released below, so Alchemy's retry still works.
-  const pairs = notes.flatMap((note) =>
-    subs.results.filter((s) => s.address === note.address).map((sub) => ({ sub, note })),
-  )
-  const outcome = (jobs: number) =>
-    logEvent('info', 'push_outcome', { subs: subs.results.length, notes: notes.length, jobs })
+  const pairs = notes.flatMap((note) => subs.filter((s) => s.address === note.address).map((sub) => ({ sub, note })))
+  const outcome = (jobs: number) => logEvent('info', 'push_outcome', { subs: subs.length, notes: notes.length, jobs })
   if (pairs.length === 0) {
     outcome(0)
     if (checked.unreadable) throw new UpstreamError('rpc receipt') // retried by Alchemy
     return
   }
-  const claims = await env.DB.batch(
+  const claims = await runBatch(
+    db,
     pairs.map(({ sub, note }) =>
-      env.DB.prepare('INSERT OR IGNORE INTO push_sent (install_id, ref, sent_at) VALUES (?, ?, ?)').bind(
-        sub.install_id,
-        note.ref,
-        nowSeconds(),
-      ),
+      db
+        .insert(pushSent)
+        .values({ installId: sub.installId, ref: note.ref, sentAt: nowSeconds() })
+        .onConflictDoNothing(),
     ),
   )
   const jobs = pairs.filter((_, i) => claims[i]?.meta.changes === 1)
@@ -551,7 +573,7 @@ export async function handleActivity(
           },
           body: JSON.stringify(
             batch.map(({ sub, note }) => ({
-              to: sub.expo_token,
+              to: sub.expoToken,
               ...PUSH_COPY[note.kind],
               channelId: PUSH_CHANNEL_ID,
               sound: 'default',
@@ -584,7 +606,7 @@ export async function handleActivity(
       })
       // Only accepted tickets (and dead tokens, which are deleted below) count as sent. Any other ticket error stays retryable.
       const settled: typeof batch = []
-      const receipts: D1PreparedStatement[] = []
+      const receipts: BatchItem<'sqlite'>[] = []
       for (const [j, t] of tickets.data.data.entries()) {
         const sent = at(batch, j) // lengths are equal, checked above
         if (t.status === 'ok') {
@@ -593,27 +615,33 @@ export async function handleActivity(
           // Expo receipts are read by the cron, 15 minutes later (#314, Q39).
           if (t.id)
             receipts.push(
-              env.DB.prepare(
-                'INSERT OR IGNORE INTO push_receipts (receipt_id, install_id, expo_token, created_at) VALUES (?, ?, ?, ?)',
-              ).bind(t.id, sent.sub.install_id, sent.sub.expo_token, nowSeconds()),
+              db
+                .insert(pushReceipts)
+                .values({
+                  receiptId: t.id,
+                  installId: sent.sub.installId,
+                  expoToken: sent.sub.expoToken,
+                  createdAt: nowSeconds(),
+                })
+                .onConflictDoNothing(),
             )
         } else if (t.details?.error === 'DeviceNotRegistered') {
-          dead.push(sent.sub.install_id)
+          dead.push(sent.sub.installId)
           settled.push(sent)
         } else ticketFailed = true
       }
       for (const j of settled) unsettled.delete(j)
       // A side record: a D1 failure here must not stop the send loop or the DeviceNotRegistered cleanup (lost ids only skip a receipt check).
       if (receipts.length > 0)
-        await env.DB.batch(receipts).catch(() => logEvent('error', 'push_receipt_ids_not_stored'))
+        await runBatch(db, receipts).catch(() => logEvent('error', 'push_receipt_ids_not_stored'))
     }
   } finally {
     // Not sent (Expo failed, rejected, or ticket error): release the claim so the retry can send.
     const release = [...unsettled].map(({ sub, note }) =>
-      env.DB.prepare('DELETE FROM push_sent WHERE install_id = ? AND ref = ?').bind(sub.install_id, note.ref),
+      db.delete(pushSent).where(and(eq(pushSent.installId, sub.installId), eq(pushSent.ref, note.ref))),
     )
     try {
-      if (release.length > 0) await env.DB.batch(release)
+      if (release.length > 0) await runBatch(db, release)
     } finally {
       await after(recordLatencies(env, handoffs)) // after the claims are released
     }

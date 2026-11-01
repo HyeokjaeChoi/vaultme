@@ -1,10 +1,11 @@
 import type { CloudflareOptions } from '@sentry/cloudflare'
 import { scrubBreadcrumb, scrubEvent } from '@vaultme/contracts'
+import { withoutParams } from './db/index.ts'
 import type { Env } from './env.ts'
 
 /**
  * Sentry options for the Worker (Q50). Errors only: no tracing, no profiling, no default PII.
- * `beforeSend` removes the user, request body, query, cookies and headers and scrubs every string (address, tx hash, key, push token, phrase).
+ * `beforeSend` drops the bound values of a failed drizzle query, removes the user, request body, query, cookies and headers and scrubs every string (address, tx hash, key, push token, phrase).
  * Outgoing fetch breadcrumbs are dropped: the Infura, Alchemy and Etherscan URLs carry the API keys.
  */
 export const sentryOptions = (env: Env['Bindings']): CloudflareOptions => ({
@@ -22,7 +23,11 @@ export const sentryOptions = (env: Env['Bindings']): CloudflareOptions => ({
     queues: false,
     stackFrameVariables: false,
   },
-  beforeSend: (event) => scrubEvent(event),
+  // A failed drizzle query carries its bound values in the message (withoutParams); the cause, the D1 error, is sent as its own exception.
+  beforeSend: (event) => {
+    for (const v of event.exception?.values ?? []) if (v.value !== undefined) v.value = withoutParams(v.value)
+    return scrubEvent(event)
+  },
   beforeBreadcrumb: (crumb) =>
     ['fetch', 'xhr', 'http'].includes(crumb.category ?? '') ? null : scrubBreadcrumb(crumb),
 })

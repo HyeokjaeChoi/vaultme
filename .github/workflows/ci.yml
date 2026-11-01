@@ -47,6 +47,9 @@ jobs:
         run: pnpm --filter @vaultme/api test:reorg
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api openapi:check
+      # Drizzle schema vs committed migrations (#355, ADR-0029): fails when apps/api/src/db/schema.ts changed without `db:generate`.
+      - if: hashFiles('package.json') != ''
+        run: pnpm --filter @vaultme/api db:check
       # Q61: fail on a breaking change of the API contract against the PR base. openapi:check just proved the committed
       # file equals the generated document. `review: false` and an empty token: no upload of the spec, no PR comment
       # (the job has read-only permissions). oasdiff-action v0.1.20 (2026-10-21, docker action).
