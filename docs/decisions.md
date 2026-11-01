@@ -89,7 +89,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q65 | react-hook-form + zod resolver; rules from `wallet-core` | IMPLEMENTED | ADR-0021 |
 | Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | GAP | #319: the migration lint is done (R16); Drizzle is not |
 | Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | IMPLEMENTED | oasdiff (`ci.yml` `verify`, #343), anvil reorg tests (`apps/api/test-reorg`, #345), Maestro (`apps/mobile/.maestro`, #348) |
-| Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | GAP | #319: no Stylelint |
+| Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | IMPLEMENTED | `apps/web/stylelint.config.mjs`, `lint:css` (#319) |
 | Q69 | Slack alerts with dedupe and recovery | GAP | #336. Channel is Sentry email, not Slack: ADR-0024. Built (#315): the 5xx spike (`apps/api/src/alerts.ts`). Not built: watcher stall, dead-letter, recovery message |
 | Q70 | Library list | SUPERSEDED | #63: Solar icons. Sentry part: Q50 |
 | Q71 | Address poisoning defenses; zero-value switch | IMPLEMENTED | `packages/history/src/items.ts` (`showZero`); S40 `ActivityRow` State=Caution (#313); S41 caution state `pages/activity/detail.tsx`, `cautionOf` (#334) |
