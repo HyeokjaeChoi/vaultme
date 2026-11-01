@@ -82,14 +82,14 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q58 | All RPC via the proxy with failover; history cached on device | IMPLEMENTED | ADR-0007 |
 | Q59 | `wallet-core` signing boundary; lint limits its importers | SUPERSEDED | #312: scope widened by the owner (2026-11-01) from send and backup to send, backup, restore and `shared/storage/keychain.ts`. The rest holds: `@vaultme/wallet-core/signer`, lint in `apps/mobile/eslint.config.mjs` and `apps/web/eslint.config.js`, test `apps/mobile/test/signer-import.test.ts` |
 | Q60 | viem in `wallet-core`; explicit path; bigint units | IMPLEMENTED | `packages/wallet-core/package.json` |
-| Q61 | zod + OpenAPI; breaking-change diff; generated client | GAP | #316: stale check and oasdiff diff vs the PR base are done (`ci.yml` `verify`); the client is hand-written on the shared zod contracts, not generated |
+| Q61 | zod + OpenAPI; breaking-change diff; generated client | SUPERSEDED | ADR-0027 (#350): the client stays hand-written on the shared `@vaultme/contracts` zod schemas. Stale check and oasdiff diff vs the PR base are done (`ci.yml` `verify`, #316); path and method drift is caught by `packages/api-client/test/openapi-paths.test.ts` |
 | Q62 | TanStack Query + persist; send state from `wallet-core`; one Zustand store | IMPLEMENTED | ADR-0021 (send state is the pure `deriveState`, not a reducer) |
 | Q63 | Encrypted MMKV; key and token in Keychain | IMPLEMENTED | ADR-0004 |
 | Q64 | Style Dictionary tokens; raw-value lint; web CSS Modules; light only | SUPERSEDED | #189: Tailwind theme from tokens. Dark mode: Q80 |
 | Q65 | react-hook-form + zod resolver; rules from `wallet-core` | IMPLEMENTED | ADR-0021 |
 | Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | IMPLEMENTED | ADR-0029 (#355): Drizzle schema and queries, generated migrations, `db:check` drift check in CI; R16 lints the SQL |
 | Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | IMPLEMENTED | oasdiff (`ci.yml` `verify`, #343), anvil reorg tests (`apps/api/test-reorg`, #345), Maestro (`apps/mobile/.maestro`, #348) |
-| Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | GAP | #319: no Stylelint |
+| Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | IMPLEMENTED | `apps/web/stylelint.config.mjs`, `lint:css` (#319) |
 | Q69 | Slack alerts with dedupe and recovery | GAP | #336. Channel is Sentry email, not Slack: ADR-0024. Built (#315): the 5xx spike (`apps/api/src/alerts.ts`). Not built: watcher stall, dead-letter, recovery message |
 | Q70 | Library list | SUPERSEDED | #63: Solar icons. Sentry part: Q50 |
 | Q71 | Address poisoning defenses; zero-value switch | IMPLEMENTED | `packages/history/src/items.ts` (`showZero`); S40 `ActivityRow` State=Caution (#313); S41 caution state `pages/activity/detail.tsx`, `cautionOf` (#334) |
@@ -98,7 +98,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q74 | Supply chain: release age, scripts, `wallet-core` allow-list, osv-scanner, pinned actions | IMPLEMENTED | `pnpm-workspace.yaml`; `scripts/check-repo-rules.sh` R15; `.github/workflows/osv-scanner.yml` |
 | Q75 | Push hardening: token enforcement, payload check, re-read on tap | IMPLEMENTED | `packages/contracts/src/push.ts` |
 | Q76 | WCAG 2.2 AA, address a11y label, text size, motion | IMPLEMENTED | `shared/lib/address.ts`; screen reader run not recorded |
-| Q77 | Replaced state unblocks send; push notifies | GAP | #331: no replaced push; it needs a server record of pending sends. State: ADR-0006 |
+| Q77 | Replaced state unblocks send; push notifies | SUPERSEDED | Push part: ADR-0030 (no replaced push, #331). The Replaced state still holds: ADR-0006 |
 | Q78 | Infura primary, Alchemy fallback | IMPLEMENTED | ADR-0007 |
 | Q79 | Burn and token-contract warnings | IMPLEMENTED | `packages/wallet-core/src/risk.ts` |
 | Q80 | Dark mode and the added components | IMPLEMENTED | `shared/theme/index.tsx` |

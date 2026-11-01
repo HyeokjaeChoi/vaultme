@@ -18,12 +18,15 @@
 @utility w-col-status {
   width: calc(var(--spacing-20) * 1.75);
 }
+
 @utility w-col-direction {
   width: var(--spacing-20);
 }
+
 @utility w-col-amount {
   width: calc(var(--spacing-20) * 1.75);
 }
+
 @utility w-col-time {
   width: calc(var(--spacing-20) * 1.1);
 }
@@ -34,14 +37,17 @@
   height: calc(var(--spacing-1) * 3.5);
   width: calc(var(--spacing-20) * 2);
 }
+
 @utility skeleton-subtitle {
   height: var(--spacing-3);
   width: calc(var(--spacing-20) * 1.25);
 }
+
 @utility skeleton-value {
   height: calc(var(--spacing-1) * 3.5);
   width: var(--spacing-16);
 }
+
 @utility skeleton-date {
   height: calc(var(--spacing-1) * 13);
 }
@@ -54,6 +60,7 @@
   min-height: calc(
     var(--spacing-row-b-height) * 4 + var(--spacing-1) * 26 + var(--spacing-6) + var(--spacing-button-b-height-lg)
   );
+
   @media (width >= 48rem) {
     min-height: calc(
       var(--spacing-row-b-height) * 5 + var(--spacing-1) * 8.25 + var(--spacing-6) + var(--spacing-button-b-height-lg)
@@ -67,40 +74,52 @@
 @utility w-definition-label {
   width: calc(var(--spacing-1) * 50);
 }
+
 @utility skeleton-line {
   height: calc(var(--spacing-1) * 3.5);
 }
+
 @utility skeleton-label {
   width: calc(var(--spacing-1) * 25);
+
   @media (width >= 48rem) {
     width: calc(var(--spacing-1) * 50);
   }
 }
+
 @utility skeleton-badge {
   width: calc(var(--spacing-1) * 24);
   height: calc(var(--spacing-1) * 9.5);
 }
+
 @utility skeleton-figure {
   width: calc(var(--spacing-1) * 40);
   height: calc(var(--spacing-1) * 13);
 }
+
 @utility skeleton-button {
   width: calc(var(--spacing-1) * 52.5);
 }
+
 @utility tx-row-address {
   height: calc(var(--spacing-1) * 24.5);
+
   @media (width >= 48rem) {
     height: calc(var(--spacing-1) * 17);
   }
 }
+
 @utility tx-row-line {
   height: calc(var(--spacing-1) * 18.5);
+
   @media (width >= 48rem) {
     height: var(--spacing-12);
   }
 }
+
 @utility tx-row-hash {
   height: calc(var(--spacing-1) * 30.5);
+
   @media (width >= 48rem) {
     height: calc(var(--spacing-1) * 18);
   }
@@ -114,21 +133,28 @@
       'tnum' 1;
     background-color: var(--color-screen-b-bg);
     color: var(--color-text-primary);
+
+    /* Safari has no unprefixed text-size-adjust. Remove the disable when it ships. */
+    /* stylelint-disable-next-line property-no-vendor-prefix */
     -webkit-text-size-adjust: 100%;
   }
+
   /* Addresses and hashes. Tailwind's `font-mono` would use the token family (IBM Plex Mono) without the fallback chain. */
   code,
   .font-mono {
     font-family: 'IBM Plex Mono', ui-monospace, monospace;
   }
+
   /* <details> marker: Safari draws its own triangle unless this is hidden. The chevron icons replace it. */
   summary::-webkit-details-marker {
     display: none;
   }
+
   a,
   button {
     touch-action: manipulation;
   }
+
   /* WCAG 2.2 focus ring from the focus tokens (tokens.css). */
   :focus-visible {
     outline: var(--semantic-focus-width) solid var(--semantic-focus-color);

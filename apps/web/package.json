@@ -14,7 +14,8 @@
     "lhci:desktop": "lhci autorun --config=lighthouserc.desktop.json; a=$?; node scripts/js-budget.ts; b=$?; test $a -eq 0 -a $b -eq 0",
     "lhci:mobile": "lhci autorun --config=lighthouserc.mobile.json; a=$?; node scripts/js-budget.ts; b=$?; test $a -eq 0 -a $b -eq 0",
     "typecheck": "react-router typegen && tsc -p tsconfig.json",
-    "lint": "eslint . --max-warnings=0 && steiger ./app"
+    "lint:css": "stylelint \"app/**/*.css\" --max-warnings=0",
+    "lint": "eslint . --max-warnings=0 && steiger ./app && pnpm lint:css"
   },
   "dependencies": {
     "@tanstack/react-query": "5.104.5",
@@ -51,6 +52,8 @@
     "postcss": "^8.5.30",
     "pretendard": "1.3.9",
     "steiger": "0.8.0",
+    "stylelint": "17.16.0",
+    "stylelint-config-standard": "40.0.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "vite": "^8.3.4",
