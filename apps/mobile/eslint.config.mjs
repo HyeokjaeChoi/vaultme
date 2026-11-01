@@ -44,20 +44,33 @@ const restrictedSyntax = {
 }
 
 // Vercel React Native skill rules ui-pressable, ui-safe-area-scroll, ui-native-modals (#91).
+const rnPaths = [
+  {
+    name: 'react-native',
+    importNames: ['TouchableOpacity', 'TouchableHighlight', 'TouchableWithoutFeedback', 'TouchableNativeFeedback'],
+    message: 'Use Pressable.',
+  },
+  { name: 'react-native', importNames: ['SafeAreaView'], message: 'Use react-native-safe-area-context.' },
+  { name: 'react-native', importNames: ['Modal'], message: 'Use BottomSheet from @/shared/ui.' },
+]
+// Q59 (#312): key and signing code is behind @vaultme/wallet-core/signer. Only the send, backup and restore slices and
+// the keychain file may import it (owner decision 2026-11-01). Tests under test/ are not linted by this config.
+const signerPath = {
+  name: '@vaultme/wallet-core/signer',
+  message: 'Signing code: only features send, backup, restore and shared/storage/keychain.ts (Q59, #312).',
+}
 const restrictedImports = {
   files: code,
-  rules: {
-    'no-restricted-imports': [
-      'error',
-      {
-        name: 'react-native',
-        importNames: ['TouchableOpacity', 'TouchableHighlight', 'TouchableWithoutFeedback', 'TouchableNativeFeedback'],
-        message: 'Use Pressable.',
-      },
-      { name: 'react-native', importNames: ['SafeAreaView'], message: 'Use react-native-safe-area-context.' },
-      { name: 'react-native', importNames: ['Modal'], message: 'Use BottomSheet from @/shared/ui.' },
-    ],
-  },
+  rules: { 'no-restricted-imports': ['error', ...rnPaths, signerPath] },
+}
+const signerAllowed = {
+  files: [
+    'src/features/send/**/*.{ts,tsx}',
+    'src/features/backup/**/*.{ts,tsx}',
+    'src/features/restore/**/*.{ts,tsx}',
+    'src/shared/storage/keychain.ts',
+  ],
+  rules: { 'no-restricted-imports': ['error', ...rnPaths] },
 }
 // BottomSheet is the one shared sheet; it is built on the RN Modal.
 const bottomSheet = { files: ['src/shared/ui/BottomSheet.tsx'], rules: { 'no-restricted-imports': 'off' } }
@@ -106,6 +119,7 @@ export default [
   ...react,
   restrictedSyntax,
   restrictedImports,
+  signerAllowed,
   bottomSheet,
   ...layers,
 ]

@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto'
 import * as Keychain from 'react-native-keychain'
-import { Mnemonic } from '@vaultme/wallet-core'
+import { Mnemonic } from '@vaultme/wallet-core/signer'
 import { loadFailureStatus } from '../auth/cancel'
 import { withAuthInProgress } from '../auth/inProgress'
 

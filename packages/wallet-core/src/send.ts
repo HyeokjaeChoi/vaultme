@@ -1,7 +1,6 @@
-import { encodeFunctionData, erc20Abi, isAddress, keccak256, type Address, type Hash, type Hex } from 'viem'
+import { isAddress, keccak256, type Address, type Hash, type Hex } from 'viem'
 import { toUnits, AmountError } from './amount'
-import { ABS_MAX_FEE_WEI, ASSETS, CHAIN, type AssetId } from './constants'
-import type { Mnemonic } from './mnemonic'
+import { ABS_MAX_FEE_WEI, ASSETS, type AssetId } from './constants'
 import { recipientRisk, type RecipientRisk } from './risk'
 
 /** Local tx hash: keccak256 of the signed raw tx (ADR-0005). */
@@ -114,43 +113,3 @@ export type SubmitResult =
   | { status: 'Blocked' } // absolute cap -> ABS_CAP_EXCEEDED
   | { status: 'Pending'; hash: Hash } // SUBMITTED
   | { status: 'Unknown'; hash: Hash; reason: 'hashMismatch' | 'submitError' } // SUBMIT_UNKNOWN (hash = locally computed)
-
-export async function signAndSubmit(
-  approved: ApprovedSend,
-  latest: ChainSnapshot,
-  deps: { mnemonic: Mnemonic; submit: SubmitFn },
-): Promise<SubmitResult> {
-  const latestCap = fees(latest).feeCap
-  if (approved.feeCap > ABS_MAX_FEE_WEI || latestCap > ABS_MAX_FEE_WEI) return { status: 'Blocked' }
-  if (latestCap > approved.feeCap) return { status: 'NeedsReview' }
-  // The signed tx must match the reviewed model. A new nonce means a new review.
-  if (latest.nonce !== approved.nonce) return { status: 'NeedsReview' }
-
-  const asset = ASSETS[approved.asset]
-  const account = deps.mnemonic.account()
-  const raw = await account.signTransaction({
-    type: 'eip1559',
-    chainId: CHAIN.id,
-    nonce: approved.nonce,
-    gas: approved.gasLimit,
-    maxFeePerGas: approved.maxFeePerGas,
-    maxPriorityFeePerGas: approved.maxPriorityFeePerGas,
-    ...(asset.kind === 'native'
-      ? { to: approved.to, value: approved.amount }
-      : {
-          to: asset.address,
-          value: 0n,
-          data: encodeFunctionData({ abi: erc20Abi, functionName: 'transfer', args: [approved.to, approved.amount] }),
-        }),
-  })
-  const hash = keccak256(raw)
-
-  try {
-    const reported = await deps.submit(raw)
-    return reported.toLowerCase() === hash
-      ? { status: 'Pending', hash }
-      : { status: 'Unknown', hash, reason: 'hashMismatch' }
-  } catch {
-    return { status: 'Unknown', hash, reason: 'submitError' }
-  }
-}

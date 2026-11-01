@@ -71,7 +71,7 @@ beforeEach(() => {
 
 describe('keychain phrase', () => {
   it('round-trips and uses the auth + this-device-only tier', async () => {
-    const { Mnemonic } = await import('@vaultme/wallet-core')
+    const { Mnemonic } = await import('@vaultme/wallet-core/signer')
     const k = await import('../src/shared/storage/keychain')
     expect(await k.hasPhrase()).toBe(false)
     await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
@@ -102,7 +102,7 @@ describe('keychain phrase', () => {
   })
 
   it('maps a user cancel to cancelled and other failures to error', async () => {
-    const { Mnemonic } = await import('@vaultme/wallet-core')
+    const { Mnemonic } = await import('@vaultme/wallet-core/signer')
     const k = await import('../src/shared/storage/keychain')
     await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
     failGet = 'User canceled the operation.'
@@ -131,7 +131,7 @@ describe('keychain options', () => {
   // react-native-keychain 10.0.0 (iOS) reads `cloudSync: false` as true (oblador/react-native-keychain#800):
   // the phrase save fails (-50) and the no-auth items become synchronizable. Omitted = not synced (#243, ADR-0004).
   it('no call passes cloudSync', async () => {
-    const { Mnemonic } = await import('@vaultme/wallet-core')
+    const { Mnemonic } = await import('@vaultme/wallet-core/signer')
     const k = await import('../src/shared/storage/keychain')
     await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
     await k.hasPhrase()
@@ -255,7 +255,7 @@ describe('kv key + store', () => {
 
 describe('Mnemonic safety', () => {
   it('error text and masked form never contain the phrase', async () => {
-    const { Mnemonic } = await import('@vaultme/wallet-core')
+    const { Mnemonic } = await import('@vaultme/wallet-core/signer')
     const m = new Mnemonic(VECTOR)
     expect(String(m)).not.toContain('abandon')
     expect(JSON.stringify({ m })).not.toContain('abandon')
