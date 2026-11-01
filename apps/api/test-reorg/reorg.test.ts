@@ -155,15 +155,17 @@ describe('push after a reorg (anvil)', () => {
     expect(pushes).toEqual([])
   })
 
-  // Known gap (#346): an incoming ETH leg has no `log`, so `removed` cannot mark it, and a deposit is not checked on the chain
-  // (ADR-0023 reads receipts of own txs only). A deposit that was reorged out before the webhook is pushed. A sent push cannot be recalled (ADR-0010).
-  it('known gap: a reorged-out incoming ETH deposit still pushes', async () => {
+  // #346 (ADR-0026): an incoming ETH leg has no `log`, so `removed` cannot mark it. The webhook reads the receipt of a deposit too.
+  it('a reorged-out incoming ETH deposit does not push and is retried; the re-mined one pushes once', async () => {
     const base = (await rpc('evm_snapshot')) as string
     const hash = await sendTx(A, '0x1', '0x5208', B)
     await reorgTo(base)
     expect(await receiptOf(hash)).toBeNull()
+    await expect(deliver([eth(hash, B, A)])).rejects.toBeInstanceOf(UpstreamError) // 5xx: Alchemy retries
+    expect(pushes).toEqual([])
+    expect((await E.DB.prepare('SELECT * FROM push_sent').all()).results).toHaveLength(0)
+    expect(await sendTx(A, '0x1', '0x5208', B)).toBe(hash)
     await deliver([eth(hash, B, A)])
     expect(pushes).toEqual(['deposit'])
   })
-  it.todo('does not push for a reorged-out incoming ETH deposit (#346)')
 })
