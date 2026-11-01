@@ -8,9 +8,10 @@ cd "$(dirname "$0")"
 tags="${1:-}"
 case "$tags" in smoke | full) ;; *) echo "usage: $0 smoke|full [VaultMe.app]" >&2; exit 2 ;; esac
 app="${2:-../ios/build/Build/Products/Release-iphonesimulator/VaultMe.app}"
-udid="${SIM_UDID:-$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' | head -n1)}"
-[ -n "$udid" ] || { echo "no booted simulator; boot one or set SIM_UDID" >&2; exit 2 ; }
-[ "$(printf '%s\n' "$udid" | wc -l)" -eq 1 ] || exit 2
+# Every flow clears the app data of its target: with several booted simulators, ask for SIM_UDID instead of guessing.
+udid="${SIM_UDID:-$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' || true)}"
+[ -n "$udid" ] || { echo "no booted simulator; boot one or set SIM_UDID" >&2; exit 2; }
+[ "$(printf '%s\n' "$udid" | wc -l)" -eq 1 ] || { echo "several simulators are booted; set SIM_UDID to one of: $udid" >&2; exit 2; }
 xcrun simctl install "$udid" "$app"
 # Enroll Face ID (same commands as apps/mobile/AGENTS.md, for a simulator made for E2E).
 xcrun simctl spawn "$udid" notifyutil -s com.apple.BiometricKit.enrollmentChanged 1

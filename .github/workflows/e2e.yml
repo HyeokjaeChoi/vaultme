@@ -45,7 +45,8 @@ jobs:
 
   e2e:
     needs: changes
-    if: needs.changes.outputs.run == 'true'
+    # A failed `changes` job must not skip this one (a skipped job passes the required check): then it runs.
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.run == 'true') }}
     runs-on: macos-26
     timeout-minutes: 75
     steps:
@@ -80,6 +81,7 @@ jobs:
           echo "SIM_UDID=$udid" >> "$GITHUB_ENV"
       - name: Run flows (${{ github.event_name == 'pull_request' && 'smoke' || 'full' }})
         run: apps/mobile/.maestro/run.sh ${{ github.event_name == 'pull_request' && 'smoke' || 'full' }}
+      # The create flow shows a generated recovery phrase: its screenshots and commands stay out of the public artifact (testnet-only, but never published).
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -87,5 +89,6 @@ jobs:
           path: |
             apps/mobile/e2e-report.xml
             apps/mobile/e2e-artifacts
+            !apps/mobile/e2e-artifacts/**/create wallet through backup/**
           retention-days: 14
           if-no-files-found: warn
