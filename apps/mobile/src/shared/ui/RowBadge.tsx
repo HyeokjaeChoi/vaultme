@@ -1,9 +1,10 @@
-// Figma: B/Row badge 495:358 (Kind=Sent / Received / Pending / Failed; 494:326 Confirmed, 494:331 Unknown, 494:336 Replaced; Info)
+// Figma: B/Row badge 495:358 (Kind=Sent / Received / Pending / Failed; 494:326 Confirmed, 494:331 Unknown, 494:336 Replaced; Info; 877:483 Warning)
 import { View } from 'react-native'
 import { useTheme } from '../theme'
 import { Icon, type BoldIconName } from './Icon'
 
-export type RowBadgeKind = 'sent' | 'received' | 'pending' | 'failed' | 'confirmed' | 'unknown' | 'replaced' | 'info'
+export type RowBadgeKind =
+  'sent' | 'received' | 'pending' | 'failed' | 'confirmed' | 'unknown' | 'replaced' | 'info' | 'warning'
 const GLYPH: Record<RowBadgeKind, BoldIconName> = {
   sent: 'sent',
   received: 'received',
@@ -13,6 +14,7 @@ const GLYPH: Record<RowBadgeKind, BoldIconName> = {
   unknown: 'unknown',
   replaced: 'replaced',
   info: 'info',
+  warning: 'caution',
 }
 
 /** Status badge that sits on the bottom-right of an asset logo: Solar Bold circle glyph (15 pt inside 18 pt) with a 2 pt ring in the surface color. The glyph alone says the kind; a word always sits next to it. */
@@ -37,11 +39,13 @@ export function RowBadge({
             ? b.failed.fg
             : kind === 'confirmed'
               ? s.success.fg
-              : kind === 'info'
-                ? s.info.fg
-                : kind === 'unknown'
-                  ? s.unknown.fg
-                  : b.sent.fg
+              : kind === 'warning'
+                ? t.component.badge.warning.fg
+                : kind === 'info'
+                  ? s.info.fg
+                  : kind === 'unknown'
+                    ? s.unknown.fg
+                    : b.sent.fg
   const glyph = size ?? b.size
   const outer = glyph + b.ring * 2
   return (

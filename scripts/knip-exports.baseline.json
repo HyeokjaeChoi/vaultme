@@ -37,7 +37,6 @@
   "apps/mobile/src/shared/storage/kv.ts:getLockState",
   "apps/mobile/src/shared/storage/kv.ts:parsePendingTx",
   "apps/mobile/src/shared/storage/kv.ts:setLockSettings",
-  "apps/mobile/src/shared/ui/ActivityRow.tsx:ActivityStatus",
   "apps/mobile/src/shared/ui/AddressBlock.tsx:AddressBlock",
   "apps/mobile/src/shared/ui/ProgressSteps.tsx:ProgressState",
   "apps/mobile/src/shared/ui/StatusNotice.tsx:Tone",

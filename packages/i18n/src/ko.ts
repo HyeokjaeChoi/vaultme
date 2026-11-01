@@ -474,6 +474,8 @@ export const ko = {
       unknown: '보내기 확인 못 함',
       unknownSub: '상태를 확인해 주세요',
       replaced: '실행되지 않음',
+      // B/Row State=Caution (Figma 877:631): an incoming zero-value transfer, shown only when S63 is on (Q71).
+      caution: '주의 · 주소를 사칭한 거래일 수 있어요',
     },
     // C3 (#44): Figma C3-S40 frames 377:2216 (loading), 377:2261 (empty), 377:2332 (error cached), 377:2388 (normal).
     updatedAt: '마지막 업데이트 {{time}}',

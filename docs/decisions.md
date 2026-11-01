@@ -92,7 +92,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | GAP | #319: no Stylelint |
 | Q69 | Slack alerts with dedupe and recovery | GAP | #315 |
 | Q70 | Library list | SUPERSEDED | #63: Solar icons. Sentry part: Q50 |
-| Q71 | Address poisoning defenses; zero-value switch | GAP | #313: switch not wired |
+| Q71 | Address poisoning defenses; zero-value switch | GAP | #334: S41 shows no caution for a zero-value row. Done in #313: the S63 switch, the filter (`packages/history/src/items.ts` `showZero`) and the S40 caution row |
 | Q72 | Paste shows a compare notice | IMPLEMENTED | `packages/i18n/src/ko.ts` |
 | Q73 | Safety values compiled in; hash on device; fee cap | IMPLEMENTED | ADR-0005 |
 | Q74 | Supply chain: release age, scripts, `wallet-core` allow-list, osv-scanner, pinned actions | IMPLEMENTED | `pnpm-workspace.yaml`; `scripts/check-repo-rules.sh` R15; `.github/workflows/osv-scanner.yml` |

@@ -7,6 +7,10 @@ export type BackupGateState = {
   shouldPromptAfterDeposit: boolean
 }
 
+/** A real deposit: an incoming row that is not an incoming zero-value transfer (`caution`, Q71: address poisoning, nothing was deposited). */
+export const hasDeposit = (items: { kind: string; caution?: true }[]): boolean =>
+  items.some((i) => i.kind === 'receive' && !i.caution)
+
 /** `backedUp` = backup done or wallet restored (the user already holds the phrase; this is not proof of backup). */
 export function backupGateState(i: {
   done: boolean

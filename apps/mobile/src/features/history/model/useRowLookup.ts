@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo } from 'react'
 import type { RowLookup } from '@vaultme/history'
+import { useAppStore } from '@/shared/app-store'
 import { goBack } from '@/shared/lib/nav'
 import { accountAddress, history } from './loader'
 import { rowLookupQuery } from './historyQuery'
@@ -17,10 +18,11 @@ const cachedLookup = (id: string): RowLookup | undefined => {
  */
 export function useRowLookup(id: string): { lookup: RowLookup | null; retry: () => void } {
   const qc = useQueryClient()
+  const zero = useAppStore((s) => s.zeroSetting) // S63 flip: re-render, so the lookup gets the new key and the seam cache is read again
   const q = rowLookupQuery(id)
   const { data, isFetching, dataUpdatedAt } = useQuery(q)
   // eslint-disable-next-line react-hooks/exhaustive-deps -- re-read the seam cache when a lookup finished (it may have stored a page)
-  const cached = useMemo(() => cachedLookup(id), [id, dataUpdatedAt])
+  const cached = useMemo(() => cachedLookup(id), [id, dataUpdatedAt, zero])
   const done = isFetching ? null : (data ?? null)
   useEffect(() => {
     if (done?.status === 'several') goBack('/activity') // one hash, several rows: which one is unknown, the list is below

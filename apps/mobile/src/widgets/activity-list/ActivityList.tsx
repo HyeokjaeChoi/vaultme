@@ -66,6 +66,7 @@ function Row({ item, dated }: { item: HistoryItem; dated?: boolean }) {
       asset={item.asset}
       status={item.status}
       statusLabel={t(item.label)}
+      {...(item.caution ? { caution: t('activity.row.caution') } : {})}
       onPress={() => router.push(detailRoute(item))}
     />
   )

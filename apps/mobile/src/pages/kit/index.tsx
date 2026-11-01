@@ -125,6 +125,17 @@ export function KitPage() {
           status="failed"
           statusLabel="실패"
         />
+        <ActivityRow
+          title="받음"
+          detail="Sepolia ETH · 09:20"
+          time="09:20"
+          amount="+0 ETH"
+          kind="receive"
+          asset="ETH"
+          status="confirmed"
+          statusLabel="확정"
+          caution="주의 · 주소를 사칭한 거래일 수 있어요"
+        />
         <ListItem title="복구 구문 보기" trailing={{ kind: 'disclosure', text: '켜짐' }} onPress={() => undefined} />
         <ListItem
           title="알림"

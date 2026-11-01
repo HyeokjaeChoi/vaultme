@@ -28,7 +28,7 @@ function store(): MMKV {
 // --- backup flag ---
 /**
  * Settings toggles (S62 거래 알림, S63 0원 거래 표시). S62 is on only after the user opted in and the OS allowed notifications (#67):
- * the default is off, so the switch never claims a registration that does not exist. The S63 zero-value filter is not wired to its switch yet.
+ * the default is off, so the switch never claims a registration that does not exist.
  */
 export const getPushSetting = (): boolean => store().getBoolean('settings.push') ?? false
 export const setPushSetting = (v: boolean): void => store().set('settings.push', v)

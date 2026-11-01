@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
 import type { HistoryView } from '@vaultme/history'
+import { useAppStore } from '@/shared/app-store'
 import { historyKey, historyQuery } from './historyQuery'
 import { listAddress } from './loader'
 
@@ -14,6 +15,7 @@ import { listAddress } from './loader'
  */
 export function useHistory(): { view: HistoryView | null; reload: () => void; refresh: () => Promise<void> } {
   const qc = useQueryClient()
+  useAppStore((s) => s.zeroSetting) // S63 flip: re-render, so `historyQuery` gets the new key
   const [address, setAddress] = useState(listAddress)
   const first = useRef(true)
   const { data } = useQuery(historyQuery(address))

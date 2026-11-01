@@ -30,6 +30,7 @@ vi.mock('@/shared/api', () => ({
   },
   historyCache: { get: () => m.stored, set: (c: HistoryCache) => void (m.stored = c) },
 }))
+vi.mock('@/shared/app-store', () => ({ appStore: () => ({ getState: () => ({ zeroSetting: false }) }) }))
 vi.mock('@/shared/storage', () => ({ getAccountAddress: () => m.address() }))
 
 const loader = () => import('../src/features/history/model/loader')

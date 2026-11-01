@@ -43,7 +43,9 @@ const local: LocalSend = {
 }
 
 /** Fake page fetch + in-memory cache. `answer` is what the next fetch does. */
-function setup(o: { cache?: HistoryCache | null; answer?: () => Promise<unknown>; now?: number } = {}) {
+function setup(
+  o: { cache?: HistoryCache | null; answer?: () => Promise<unknown>; now?: number; showZero?: () => boolean } = {},
+) {
   let stored = o.cache ?? null
   let t = o.now ?? 42
   const fetchPage = vi.fn<(address: string, cursor?: string) => Promise<unknown>>(() =>
@@ -53,6 +55,7 @@ function setup(o: { cache?: HistoryCache | null; answer?: () => Promise<unknown>
     fetchPage,
     cache: { get: () => stored, set: (c) => void (stored = c) },
     now: () => t,
+    ...(o.showZero ? { showZero: o.showZero } : {}),
   })
   const views: HistoryView[] = []
   const load = h.list((v) => views.push(v))
@@ -348,5 +351,66 @@ describe('txView', () => {
     expect(txView('Failed')).toEqual({ status: 'failed', label: 'activity.failed' })
     expect(txView('Replaced')).toEqual({ status: 'replaced', label: 'activity.replaced' })
     expect(txView('Unknown')).toEqual({ status: 'unknown', label: 'activity.unknown' })
+  })
+})
+
+describe('zero-value switch (Q71, S63)', () => {
+  const zero = (seq: number, direction: 'in' | 'out') => row(seq, direction, { zeroValue: true, value: '0' })
+  let on = false
+  const shown = () => on
+  const withSwitch = (o: Parameters<typeof setup>[0] = {}) => setup({ ...o, showZero: shown })
+
+  it('off (the default): an incoming zero-value row is hidden in the list, in a cached row and in a lookup', async () => {
+    on = false
+    const s = withSwitch({ answer: () => Promise.resolve(page([zero(0, 'in'), row(1, 'in')])) })
+    await s.load(ME)
+    expect(s.views[0]?.items.map((i) => i.id)).toEqual([`${H}:1`])
+    expect(s.h.cachedRow(ME, `${H}:0`)).toBeNull()
+    expect(await s.h.findRow(ME, `${H}:0`)).toEqual({ status: 'none' })
+    const web = setup({ answer: () => Promise.resolve(page([zero(0, 'in')])) }) // no `showZero` dep = hidden (web viewer)
+    await web.load(ME)
+    expect(web.views[0]?.items).toEqual([])
+  })
+
+  it('on: the incoming zero-value row shows with caution; other rows carry no caution; own zero-value calls stay as before', async () => {
+    on = true
+    const s = withSwitch({ answer: () => Promise.resolve(page([zero(0, 'in'), zero(1, 'out'), row(2, 'in')])) })
+    await s.load(ME)
+    const items = s.views[0]?.items ?? []
+    expect(items.map((i) => [i.id, i.caution ?? false])).toEqual([
+      [`${H}:0`, true],
+      [`${H}:1`, false],
+      [`${H}:2`, false],
+    ])
+    expect(items.find((i) => i.id === `${H}:0`)).toMatchObject({ kind: 'receive', amount: '0' })
+  })
+
+  it('the cache keeps the raw page: flipping the switch changes what S41 finds, no refetch needed for a cached row', async () => {
+    on = false
+    const s = withSwitch({ cache: cacheOf([zero(0, 'in')]) })
+    expect(s.h.cachedRow(ME, `${H}:0`)).toBeNull()
+    on = true
+    expect(s.h.cachedRow(ME, `${H}:0`)).toMatchObject({ id: `${H}:0`, caution: true })
+    expect(await s.h.findRow(ME, H)).toMatchObject({ status: 'row', row: { caution: true } })
+    expect(s.fetchPage).not.toHaveBeenCalled()
+  })
+
+  it('more() uses the same switch', async () => {
+    on = true
+    const s = withSwitch({ answer: () => Promise.resolve(page([zero(0, 'in')])) })
+    expect((await s.h.more(ME, 'c'))?.items[0]).toMatchObject({ caution: true })
+    on = false
+    expect((await s.h.more(ME, 'c'))?.items).toEqual([])
+  })
+
+  it('a flip while a page loads does not change how that answer is parsed', async () => {
+    on = false
+    let release: (v: unknown) => void = () => undefined
+    const s = withSwitch({ answer: () => new Promise((r) => (release = r)) })
+    const loading = s.load(ME)
+    on = true
+    release(page([zero(0, 'in')]))
+    await loading
+    expect(s.views[0]?.items).toEqual([]) // parsed with the value read when the load started (off)
   })
 })
