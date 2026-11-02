@@ -226,6 +226,35 @@ describe('kv key + store', () => {
     expect(kv.parsePendingTx(JSON.stringify({ hash: 'x' }))).toBeNull()
   })
 
+  it('pending tx: a record saved before ADR-0031 still loads (one hash); the replacement fields round-trip; bad ones are dropped', async () => {
+    const kv = await import('../src/shared/storage/kv')
+    const old = {
+      hash: '0xabc',
+      nonce: 3,
+      asset: 'ETH',
+      to: '0xdef',
+      amount: '0.1',
+      createdAt: 1,
+      lastCheckedAt: 2,
+      state: 'Pending' as const,
+    }
+    expect(kv.parsePendingTx(JSON.stringify(old))).toEqual(old) // no hashes: readers use [hash]
+    const sped = {
+      ...old,
+      hashes: ['0xabc', '0xdef1'],
+      kind: 'speedUp' as const,
+      maxFeePerGas: '4400000001',
+      maxPriorityFeePerGas: '2200000001',
+      minedHash: '0xdef1',
+    }
+    expect(kv.parsePendingTx(JSON.stringify(sped))).toEqual(sped)
+    expect(kv.parsePendingTx(JSON.stringify({ ...sped, kind: 'cancel' }))?.kind).toBe('cancel')
+    const bad = kv.parsePendingTx(
+      JSON.stringify({ ...sped, hashes: ['0xother'], kind: 'x', maxFeePerGas: '-1', minedHash: '' }),
+    )
+    expect(bad).toEqual({ ...old, maxPriorityFeePerGas: '2200000001' }) // the original hash must lead the list
+  })
+
   it('pending tx keeps the sending account index; a record saved before it (or a bad one) has none', async () => {
     const kv = await import('../src/shared/storage/kv')
     const tx = {

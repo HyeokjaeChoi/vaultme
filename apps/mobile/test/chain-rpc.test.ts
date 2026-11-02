@@ -121,6 +121,23 @@ describe('real ChainPort', () => {
       ).getReceipt(h),
     ).toMatchObject({ status: 'reverted' })
   })
+
+  it('getTransaction: the fee fields and gas of a known tx (a speed up of an old record starts from them), null when unknown', async () => {
+    const h = ('0x' + 'cd'.repeat(32)) as `0x${string}`
+    expect(await createRpcChain(node({ eth_getTransactionByHash: () => null }).rpc).getTransaction(h)).toBeNull()
+    const ok = node({
+      eth_getTransactionByHash: () => ({ maxFeePerGas: '0x10', maxPriorityFeePerGas: '0x2', gas: '0x5208' }),
+    })
+    expect(await createRpcChain(ok.rpc).getTransaction(h)).toEqual({
+      maxFeePerGas: 16n,
+      maxPriorityFeePerGas: 2n,
+      gasLimit: 21_000n,
+    })
+    expect(ok.calls).toEqual([['eth_getTransactionByHash', [h]]])
+    await expect(
+      createRpcChain(node({ eth_getTransactionByHash: () => ({ gas: '0x1' }) }).rpc).getTransaction(h),
+    ).rejects.toThrow()
+  })
 })
 
 describe('send with the real adapter (ADR-0005 hash compare)', () => {

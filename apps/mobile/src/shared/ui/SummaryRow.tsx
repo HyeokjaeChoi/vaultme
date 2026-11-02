@@ -9,7 +9,7 @@ type Props = {
   value: string
   /** `text` = label left, value right (Body). `address` = label above, full mono address below in 4-char groups, wraps. `total` = emphasis: Headline value. */
   format?: 'text' | 'address' | 'total'
-  /** Caption line under the value (right aligned), e.g. "최대 0.050063 ETH". */
+  /** Line under the value (right aligned, Product B/Label, text/secondary: B/Detail row 419:554), e.g. "지금보다 0.000042 ETH 많아요". */
   sub?: string
   /** Marks the 4-char groups of an `address` value that differ (look-alike check). */
   highlight?: number[]
@@ -101,9 +101,9 @@ export function SummaryRow({
           </Text>
           {sub ? (
             <Text
-              variant="caption"
+              variant="label"
               tabular
-              color={t.semantic.text.tertiary}
+              color={t.semantic.text.secondary}
               style={{ textAlign: stacked ? 'left' : 'right' }}
             >
               {sub}

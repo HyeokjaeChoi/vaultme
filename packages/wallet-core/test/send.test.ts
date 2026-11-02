@@ -10,7 +10,7 @@ import {
 } from 'viem'
 import { describe, expect, test } from 'vitest'
 import { ABS_MAX_FEE_WEI, ASSETS, CHAIN, prepare, type ChainSnapshot, type SendIntent } from '../src'
-import { Mnemonic, deriveAddress, signAndSubmit } from '../src/signer'
+import { Mnemonic, deriveAddress, signAndSubmit, signReplacement } from '../src/signer'
 import { OTHER, PUBLIC_JUNK_PHRASE, RECIPIENT } from './fixtures'
 
 const mnemonic = new Mnemonic(PUBLIC_JUNK_PHRASE)
@@ -105,6 +105,23 @@ describe('signAndSubmit (fake submit, no network)', () => {
     const res = await run(undefined, snap, () => Promise.reject(new Error('timeout')))
     expect(res).toMatchObject({ status: 'Unknown', reason: 'submitError' })
   })
+  // One case per test: each run derives the key (~1 s on CI), so five in one test passed the 5 s timeout.
+  const rpc = (message: string) => Object.assign(new Error(message), { rpcCode: -32000 })
+  test.each(['replacement transaction underpriced', 'insufficient funds for gas * price + value'])(
+    'a node refusal throws: %s',
+    async (m) => {
+      await expect(run(undefined, snap, () => Promise.reject(rpc(m)))).rejects.toThrow(m)
+    },
+  )
+  // "nonce too low" can be about this same tx: the API re-sent it to a second upstream after the first took it.
+  test.each(['already known', 'nonce too low: next nonce 8'])('"%s" from the node stays Unknown', async (m) => {
+    expect(await run(undefined, snap, () => Promise.reject(rpc(m)))).toMatchObject({ status: 'Unknown' })
+  })
+  test('a refusal message without an RPC code stays Unknown', async () => {
+    expect(await run(undefined, snap, () => Promise.reject(new Error('nonce too low')))).toMatchObject({
+      status: 'Unknown',
+    })
+  })
   test('latest fee cap above approved -> NeedsReview, nothing submitted', async () => {
     let called = false
     const res = await run(undefined, { ...snap, baseFeePerGas: parseGwei('20') }, () => {
@@ -132,5 +149,40 @@ describe('signAndSubmit (fake submit, no network)', () => {
     })
     expect(res).toEqual({ status: 'Blocked' })
     expect(called).toBe(false)
+  })
+})
+
+describe('signReplacement (speed up, ADR-0031)', () => {
+  test('same nonce, to, value, gas and chain; only the fee fields change', async () => {
+    const approved = ok({ asset: 'ETH', to: RECIPIENT, amount: '0.05', previous: [RECIPIENT] })
+    const raws: `0x${string}`[] = []
+    const submit = (raw: `0x${string}`) => {
+      raws.push(raw)
+      return Promise.resolve(keccak256(raw))
+    }
+    const higher = {
+      maxFeePerGas: approved.maxFeePerGas * 2n,
+      maxPriorityFeePerGas: approved.maxPriorityFeePerGas * 2n,
+    }
+    const out = await signReplacement({ ...approved, ...higher }, { mnemonic, submit })
+    expect(out.status).toBe('Pending')
+    const tx = parseTransaction(raws[0]!)
+    expect(tx).toMatchObject({
+      chainId: CHAIN.id,
+      nonce: approved.nonce,
+      to: approved.to.toLowerCase(),
+      value: approved.amount,
+      gas: approved.gasLimit,
+      ...higher,
+    })
+  })
+  test('a fee cap above the absolute cap is Blocked and nothing is submitted', async () => {
+    const approved = ok(usdc)
+    const submit = () => Promise.reject(new Error('must not submit'))
+    const out = await signReplacement(
+      { ...approved, maxFeePerGas: ABS_MAX_FEE_WEI / approved.gasLimit + 1n },
+      { mnemonic, submit },
+    )
+    expect(out).toEqual({ status: 'Blocked' })
   })
 })

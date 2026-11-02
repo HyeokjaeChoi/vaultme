@@ -474,6 +474,15 @@ describe('POST /webhooks/alchemy', () => {
     expect(sentMessages()).toHaveLength(1)
   })
 
+  it('a sped-up send (replace by nonce, ADR-0031) pushes once, for the mined replacement hash; a repeated delivery adds none', async () => {
+    // Speed up sends a second tx with the same nonce; the node mines one. Alchemy reports only the mined tx, so the replaced hash never reaches the webhook.
+    const mined = '0x' + '22'.repeat(32)
+    const sent = eth({ hash: mined, fromAddress: ADDR, toAddress: OTHER })
+    expect((await hook(activity([sent]))).status).toBe(200)
+    expect((await hook(activity([sent], { id: 'whevt_2' }))).status).toBe(200)
+    expect(sentMessages()).toMatchObject([{ data: { kind: 'send' } }])
+  })
+
   it('pushes once when the two legs of one tx arrive in concurrent webhooks', async () => {
     const res = await Promise.all([
       hook(activity([eth()])),

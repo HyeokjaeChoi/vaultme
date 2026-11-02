@@ -337,6 +337,23 @@ export const ko = {
     history: '내역 보기',
     home: '홈으로',
   },
+  // Speed up of a Pending send (ADR-0031, issue #361): Figma Flow 3 888:5798 (S23 actions 888:5799, sheet 888:6058, ETH short 888:6136, line 888:6568). Copy: owner decisions D3, D8; sheet.busy is new.
+  speedUp: {
+    action: '속도 올리기',
+    /** Info line in the status area once a replacement was sent. */
+    sentLine: '수수료를 올려 다시 보냈어요',
+    sheet: {
+      title: '수수료를 올려 다시 보낼까요?',
+      body: '더 높은 네트워크 수수료로 같은 거래를 다시 보내요.',
+      notice: '원래 거래가 먼저 처리될 수도 있어요',
+      current: '지금 네트워크 수수료',
+      next: '새 네트워크 수수료',
+      extra: '지금보다 {{amount}} ETH 많아요',
+      back: '돌아가기',
+      confirm: '속도 올리기',
+      busy: '다시 보내는 중…',
+    },
+  },
   // S41: Figma C2b-S41.
   detail: {
     title: '거래 상세',

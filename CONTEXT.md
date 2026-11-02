@@ -36,6 +36,14 @@ _Avoid_: 내부 거래, 내부 트랜잭션
 The cost the user pays in ETH to have the network process a transaction. The app shows an estimate before sending and the final amount after.
 _Avoid_: 가스비, 가스
 
+**속도 올리기** (speed up):
+The user sends the same pending transaction again with a higher network fee. The network processes only one of the two. The original can still be processed first.
+_Avoid_: 가속, 재전송
+
+**거래 취소** (cancel):
+The user sends a 0 ETH transaction to their own account in place of a pending one. It can fail: if the original is processed first, it is not cancelled. The network fee is spent either way. The app says a cancel worked only after the network processed it.
+_Avoid_: 철회
+
 ### Transaction status
 
 **처리 중** (pending):

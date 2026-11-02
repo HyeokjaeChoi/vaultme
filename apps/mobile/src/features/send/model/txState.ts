@@ -1,5 +1,6 @@
 import { deriveState, isFinal, isPolled, type Address, type Hash } from '@vaultme/wallet-core'
 import type { ChainPort, Receipt } from '@/shared/chain'
+import { ownHashes } from './hashes'
 import type { PendingTx } from '@/shared/storage'
 
 // The derivation lives in wallet-core (Q59, ADR-0021); the app keeps the network check and the fake adapter.
@@ -21,7 +22,13 @@ export function fakeSettle(tx: PendingTx, now: number): PendingTx {
 }
 
 /** What the network said about one send (ADR-0006 inputs of `deriveState`). Facts only: the stored record is not touched. */
-export type TxFacts = { hash: string; receipt: Receipt | null; safeBlock: bigint | null; safeNonce: bigint | null }
+/** `receipts[i]` belongs to `hashes[i]` (ADR-0031: one entry per own hash). */
+export type TxFacts = {
+  hashes: string[]
+  receipts: (Receipt | null)[]
+  safeBlock: bigint | null
+  safeNonce: bigint | null
+}
 
 type FactsChain = Pick<ChainPort, 'getReceipt' | 'getSafeBlock' | 'getSafeNonce'>
 
@@ -29,10 +36,16 @@ type FactsChain = Pick<ChainPort, 'getReceipt' | 'getSafeBlock' | 'getSafeNonce'
 export const needsFacts = (tx: PendingTx, broadcasts: boolean): boolean => broadcasts && !isFinal(tx.state)
 
 /** The network reads of one status check. Throws when the network could not be asked. */
-export async function fetchTxFacts(tx: Pick<PendingTx, 'hash'>, chain: FactsChain, from: Address): Promise<TxFacts> {
-  const receipt = await chain.getReceipt(tx.hash as Hash)
-  const [safeBlock, safeNonce] = receipt ? [await chain.getSafeBlock(), null] : [null, await chain.getSafeNonce(from)]
-  return { hash: tx.hash, receipt, safeBlock, safeNonce }
+export async function fetchTxFacts(
+  tx: Pick<PendingTx, 'hash' | 'hashes'>,
+  chain: FactsChain,
+  from: Address,
+): Promise<TxFacts> {
+  const hashes = ownHashes(tx)
+  const receipts = await Promise.all(hashes.map((h) => chain.getReceipt(h as Hash)))
+  const mined = receipts.some((r) => r !== null)
+  const [safeBlock, safeNonce] = mined ? [await chain.getSafeBlock(), null] : [null, await chain.getSafeNonce(from)]
+  return { hashes, receipts, safeBlock, safeNonce }
 }
 
 /**
@@ -42,9 +55,16 @@ export async function fetchTxFacts(tx: Pick<PendingTx, 'hash'>, chain: FactsChai
 export function settleTx(tx: PendingTx, facts: TxFacts | null, broadcasts: boolean, now: () => number): PendingTx {
   if (!broadcasts) return fakeSettle(tx, now())
   if (!facts) return { ...tx, lastCheckedAt: now() }
-  const { receipt, safeBlock, safeNonce } = facts
-  const state = deriveState({ current: tx.state, nonce: tx.nonce, receipt, safeBlock, safeNonce })
-  return { ...tx, state, lastCheckedAt: now(), ...(receipt ? { blockNumber: Number(receipt.blockNumber) } : {}) }
+  const { hashes, receipts, safeBlock, safeNonce } = facts
+  const state = deriveState({ current: tx.state, nonce: tx.nonce, receipts, safeBlock, safeNonce })
+  const i = receipts.findIndex((r) => r !== null)
+  const receipt = receipts[i] ?? null
+  const next: PendingTx = { ...tx, state, lastCheckedAt: now() }
+  if (receipt) {
+    next.blockNumber = Number(receipt.blockNumber)
+    next.minedHash = hashes[i] ?? tx.hash
+  } else delete next.minedHash // reorged back to Pending: the explorer link falls back to the latest sent hash
+  return next
 }
 
 /**

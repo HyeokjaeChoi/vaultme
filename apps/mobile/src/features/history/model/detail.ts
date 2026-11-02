@@ -49,11 +49,11 @@ export function rowCopy(row: Pick<HistoryItem, 'kind' | 'status' | 'caution'>) {
 const sameHash = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 
 /**
- * The send recorded on this device wins for its own hash (full S41).
- * `id` is a row id or a bare hash.
+ * The send recorded on this device wins for any of its own hashes (full S41; a sped-up send has several, ADR-0031).
+ * `own` = the record's hashes; `id` is a row id or a bare hash.
  */
-export const localRecordMatches = (storedHash: string | undefined, id: string): boolean =>
-  storedHash !== undefined && sameHash(storedHash, hashOfId(id))
+export const localRecordMatches = (own: readonly string[] | undefined, id: string): boolean =>
+  own?.some((h) => sameHash(h, hashOfId(id))) ?? false
 
 /**
  * S41 State caution (Q71): the row is an incoming zero-value transfer. `newSender` = the sender is not among `known` (addresses this wallet sent to:

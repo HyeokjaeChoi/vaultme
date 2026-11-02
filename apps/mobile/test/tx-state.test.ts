@@ -27,7 +27,7 @@ const ok = (n: bigint): Receipt => ({ status: 'success', blockNumber: n })
 describe('checkTx', () => {
   const chain = (receipt: Receipt | null, safe = 100n, safeNonce = 0n, broadcasts = true) => ({
     broadcasts,
-    getReceipt: vi.fn(() => Promise.resolve(receipt)),
+    getReceipt: vi.fn<(h: string) => Promise<Receipt | null>>(() => Promise.resolve(receipt)),
     getSafeBlock: vi.fn(() => Promise.resolve(safe)),
     getSafeNonce: vi.fn(() => Promise.resolve(safeNonce)),
   })
@@ -41,6 +41,14 @@ describe('checkTx', () => {
     expect(await checkTx(tx('Pending'), b, FROM, () => 9)).toMatchObject({ state: 'Replaced', lastCheckedAt: 9 })
     expect(b.getSafeBlock).not.toHaveBeenCalled()
     expect(b.getSafeNonce).toHaveBeenCalledWith(FROM)
+  })
+  it('asks a receipt for every own hash, and the safe block only when one is mined', async () => {
+    const c = chain(null)
+    c.getReceipt.mockImplementation((h: string) => Promise.resolve(h === '0x2' ? ok(90n) : null))
+    const sped = { ...tx('Pending'), hashes: [tx('Pending').hash, '0x2'] }
+    expect((await checkTx(sped, c, FROM, () => 9)).state).toBe('Confirmed')
+    expect(c.getReceipt).toHaveBeenCalledTimes(2)
+    expect(c.getSafeNonce).not.toHaveBeenCalled()
   })
   it('a network failure throws, so the caller keeps the old record', async () => {
     const c = {
@@ -62,22 +70,49 @@ describe('checkTx', () => {
 })
 
 describe('settleTx (facts -> record, ADR-0006)', () => {
-  const none = { hash: '0x', receipt: null, safeBlock: null, safeNonce: 0n }
+  const none = { hashes: ['0x'], receipts: [null], safeBlock: null, safeNonce: 0n }
   it('time alone moves nothing: no facts keeps every state, only lastCheckedAt moves', () => {
     for (const s of ['Pending', 'Included', 'Unknown', 'Confirmed', 'Failed', 'Replaced'] as const)
       expect(settleTx(tx(s), null, true, () => 9)).toMatchObject({ state: s, lastCheckedAt: 9 })
   })
   it('Unknown with the same facts as a poll moves only because a check asked (the caller decides when)', () => {
-    expect(settleTx(tx('Unknown'), { ...none, receipt: ok(90n), safeBlock: 100n }, true, () => 9).state).toBe(
+    expect(settleTx(tx('Unknown'), { ...none, receipts: [ok(90n)], safeBlock: 100n }, true, () => 9).state).toBe(
       'Confirmed',
     )
   })
   it('a receipt sets blockNumber; no receipt keeps the old one', () => {
-    expect(settleTx(tx('Pending'), { ...none, receipt: ok(90n), safeBlock: 10n }, true, () => 9)).toMatchObject({
+    expect(settleTx(tx('Pending'), { ...none, receipts: [ok(90n)], safeBlock: 10n }, true, () => 9)).toMatchObject({
       state: 'Included',
       blockNumber: 90,
     })
     expect(settleTx({ ...tx('Included'), blockNumber: 7 }, none, true, () => 9).blockNumber).toBe(7)
+  })
+  it('a receipt for a replacement hash decides and names the mined hash (ADR-0031)', () => {
+    const sped = { ...tx('Pending'), hashes: ['0x1', '0x2'], kind: 'speedUp' as const }
+    const facts = { hashes: ['0x1', '0x2'], receipts: [null, ok(90n)], safeBlock: 100n, safeNonce: null }
+    expect(settleTx(sped, facts, true, () => 9)).toMatchObject({
+      state: 'Confirmed',
+      blockNumber: 90,
+      minedHash: '0x2',
+    })
+  })
+  it('a mined original beats a replacement the node never ran', () => {
+    const sped = { ...tx('Pending'), hashes: ['0x1', '0x2'] }
+    const facts = { hashes: ['0x1', '0x2'], receipts: [ok(90n), null], safeBlock: 100n, safeNonce: null }
+    expect(settleTx(sped, facts, true, () => 9)).toMatchObject({ state: 'Confirmed', minedHash: '0x1' })
+  })
+  it('a reorg back to Pending clears minedHash: the link falls back to the latest sent hash', () => {
+    const sped = { ...tx('Included'), hashes: ['0x1', '0x2'], minedHash: '0x1', blockNumber: 90 }
+    const facts = { hashes: ['0x1', '0x2'], receipts: [null, null], safeBlock: null, safeNonce: 5n }
+    const next = settleTx(sped, facts, true, () => 9)
+    expect(next.state).toBe('Pending')
+    expect(next.minedHash).toBeUndefined()
+  })
+  it('no receipt for any own hash and a higher safe nonce = Replaced; below = still Pending', () => {
+    const sped = { ...tx('Pending'), hashes: ['0x1', '0x2'] }
+    const f = (safeNonce: bigint) => ({ hashes: ['0x1', '0x2'], receipts: [null, null], safeBlock: null, safeNonce })
+    expect(settleTx(sped, f(6n), true, () => 9).state).toBe('Replaced')
+    expect(settleTx(sped, f(5n), true, () => 9).state).toBe('Pending')
   })
   it('only a polled, broadcast send asks the network', () => {
     expect(needsFacts(tx('Pending'), true)).toBe(true)

@@ -51,6 +51,8 @@ export type HistoryItem = {
 /** The send recorded on this device (mobile only). */
 export type LocalSend = {
   hash: string
+  /** Every own hash when the send was sped up (ADR-0031): an API row with any of them is this send. */
+  hashes?: readonly string[]
   asset: string
   to: string
   amount: string
@@ -113,7 +115,8 @@ export const sameHash = (a: string, b: string) => a.toLowerCase() === b.toLowerC
 
 /** Newest first. The send recorded on this device wins over an API row with the same hash: its state is the one this app checks. */
 export function merge(api: HistoryItem[], local: LocalSend | null): HistoryItem[] {
-  const rest = local ? api.filter((i) => !sameHash(i.hash, local.hash)) : api
+  const own = local ? (local.hashes ?? [local.hash]) : []
+  const rest = local ? api.filter((i) => !own.some((h) => sameHash(i.hash, h))) : api
   const all = local ? [fromLocal(local), ...rest] : [...rest]
   all.sort((a, b) => b.at - a.at)
   return all

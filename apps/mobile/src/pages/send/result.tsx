@@ -1,4 +1,4 @@
-// Figma: B-S23 Send result (Pending 423:15795, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode; 보낸 계정 row 723:5774)
+// Figma: B-S23 Send result (Pending 423:15795, Pending + actions 888:5799, Pending + speed-up line 888:6568, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode; 보낸 계정 row 723:5774)
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef } from 'react'
 import { Redirect } from 'expo-router'
@@ -24,6 +24,7 @@ import {
 } from '@/shared/ui'
 import { BackHandler, View } from 'react-native'
 import { NetworkChips } from '@/widgets/network-chips'
+import { SpeedUp } from '@/widgets/speed-up'
 
 /**
  * B-S23 보내기 결과: a centered end moment (asset logo + status badge, headline, Figure amount, sentence), the 보냄 -> 블록 포함 -> 확정 progress for Pending / Included / Confirmed only,
@@ -39,7 +40,7 @@ export function SendResultPage() {
   const router = useRouter()
   const { demo, reason, real } = useLocalSearchParams<{ demo?: string; reason?: string; real?: string }>()
   const tracked = useTrackedTx()
-  const { checking, recheck } = tracked
+  const { checking, recheck, reload } = tracked
   const testMode = useTestMode()
   const tx =
     __DEV__ && demo
@@ -129,6 +130,18 @@ export function SendResultPage() {
             state={progress}
             labels={[t('result.progress.sent'), t('result.progress.included'), t('result.progress.confirmed')]}
           />
+        </View>
+      ) : null}
+      {!test && tx.state === 'Pending' ? (
+        <View
+          style={{
+            paddingHorizontal: th.semantic.layout.screen.padding,
+            paddingBottom: th.semantic.layout.sectionGap.product,
+            gap: th.semantic.layout.fieldGap,
+          }}
+        >
+          {tx.kind === 'speedUp' ? <StatusNotice tone="info" title={t('speedUp.sentLine')} /> : null}
+          <SpeedUp tx={tx} onDone={reload} />
         </View>
       ) : null}
       <SectionBand />

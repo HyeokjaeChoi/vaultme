@@ -14,7 +14,9 @@ const localSend = (): PendingTx | null => {
   const raw = readPendingTx()
   return raw === 'corrupt' ? null : raw
 }
-const sameSend = (a: PendingTx | null, b: PendingTx | null) => a?.hash === b?.hash && a?.state === b?.state
+// The own hashes are part of it: a speed up adds one to a Pending record, and the merge drops API rows by them.
+const sendKey = (tx: PendingTx | null) => (tx ? [tx.hash, tx.state, ...(tx.hashes ?? [])].join('|') : '')
+const sameSend = (a: PendingTx | null, b: PendingTx | null) => sendKey(a) === sendKey(b)
 
 /**
  * The S40 list view (`history.view`: fresh page, or the seam cache with `failed`, or only the local send). `view` never throws, so a failed read is
