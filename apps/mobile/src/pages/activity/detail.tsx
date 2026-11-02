@@ -21,6 +21,7 @@ import type { TxState } from '@/features/send'
 import {
   clearTestTx,
   explorerHash,
+  ownHashes,
   isFinal,
   isPolled,
   resultCopy,
@@ -318,9 +319,14 @@ export function TxDetailPage() {
   const testMode = useTestMode()
   const error = __DEV__ && err === '1' ? new ApiError('network', 0, true, 'offline') : trackedError // `?err=1` is a __DEV__ capture override (Figma 457:17668)
   // The local record wins over a history row with the same hash.
-  const tx = __DEV__ && demo ? demoTx(demo as TxState) : localRecordMatches(stored?.hash, id) ? stored : null
+  const tx =
+    __DEV__ && demo
+      ? demoTx(demo as TxState)
+      : localRecordMatches(stored ? ownHashes(stored) : undefined, id)
+        ? stored
+        : null
   const [readInternal, retryInternal] = useInternalTransfers(
-    tx && !testMode && tx.state === 'Confirmed' ? tx.hash : null,
+    tx && !testMode && tx.state === 'Confirmed' ? explorerHash(tx) : null,
   )
   const internal = __DEV__ && devInternalParam ? devInternal(devInternalParam) : readInternal
   if (!tx) {

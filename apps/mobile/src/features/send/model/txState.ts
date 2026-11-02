@@ -66,12 +66,12 @@ export function settleTx(tx: PendingTx, facts: TxFacts | null, broadcasts: boole
   })
   const i = minedIndex(receipts)
   const receipt = i === null ? null : (receipts[i] ?? null)
-  return {
-    ...tx,
-    state,
-    lastCheckedAt: now(),
-    ...(receipt ? { blockNumber: Number(receipt.blockNumber), minedHash: hashes[i ?? 0] ?? tx.hash } : {}),
-  }
+  const next: PendingTx = { ...tx, state, lastCheckedAt: now() }
+  if (receipt) {
+    next.blockNumber = Number(receipt.blockNumber)
+    next.minedHash = hashes[i ?? 0] ?? tx.hash
+  } else delete next.minedHash // reorged back to Pending: the explorer link falls back to the latest sent hash
+  return next
 }
 
 /**

@@ -72,11 +72,21 @@ describe('runSend', () => {
       to: TO,
       amount: '0.05',
       fee: '0.000042',
+      gasLimit: '21000', // the limit the tx was signed with: a speed up keeps it
       createdAt: 1000,
       lastCheckedAt: 1000,
       accountIndex: 0,
     })
     expect(saved[0]!.hash).toMatch(/^0x[0-9a-f]{64}$/)
+  })
+  it('a node refusal (underpriced, nonce too low, insufficient funds) is a ChainError and saves nothing', async () => {
+    const { review, snap } = await base()
+    const refused = Object.assign(new Error('insufficient funds for gas * price + value'), { rpcCode: -32000 })
+    const { d, saved } = deps({
+      chain: { broadcasts: true, getSnapshot: () => Promise.resolve(snap), submit: () => Promise.reject(refused) },
+    })
+    expect(await runSend(review, '0.05', FROM, d)).toEqual({ status: 'ChainError', error: refused })
+    expect(saved).toEqual([])
   })
   it('a savePending failure after submit is reported as Unknown, not thrown', async () => {
     const { review, snap } = await base()

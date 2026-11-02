@@ -101,6 +101,13 @@ describe('settleTx (facts -> record, ADR-0006)', () => {
     const facts = { hashes: ['0x1', '0x2'], receipts: [ok(90n), null], safeBlock: 100n, safeNonce: null }
     expect(settleTx(sped, facts, true, () => 9)).toMatchObject({ state: 'Confirmed', minedHash: '0x1' })
   })
+  it('a reorg back to Pending clears minedHash: the link falls back to the latest sent hash', () => {
+    const sped = { ...tx('Included'), hashes: ['0x1', '0x2'], minedHash: '0x1', blockNumber: 90 }
+    const facts = { hashes: ['0x1', '0x2'], receipts: [null, null], safeBlock: null, safeNonce: 5n }
+    const next = settleTx(sped, facts, true, () => 9)
+    expect(next.state).toBe('Pending')
+    expect(next.minedHash).toBeUndefined()
+  })
   it('no receipt for any own hash and a higher safe nonce = Replaced; below = still Pending', () => {
     const sped = { ...tx('Pending'), hashes: ['0x1', '0x2'] }
     const f = (safeNonce: bigint) => ({ hashes: ['0x1', '0x2'], receipts: [null, null], safeBlock: null, safeNonce })

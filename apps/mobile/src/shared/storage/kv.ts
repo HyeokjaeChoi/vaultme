@@ -95,6 +95,8 @@ export type PendingTx = {
   /** Fee fields of the latest sent tx (decimal wei strings), the base of the next speed up. Absent in older records: the market value is the base. */
   maxFeePerGas?: string
   maxPriorityFeePerGas?: string
+  /** Gas limit the original was signed with (decimal string): a replacement keeps it (an ERC-20 re-estimate can be lower and run out of gas). Absent in older records: read from the chain by hash. */
+  gasLimit?: string
   /** The own hash a receipt was seen for (Etherscan link, ADR-0031). */
   minedHash?: string
   nonce: number
@@ -154,6 +156,7 @@ export function parsePendingTx(raw: string): PendingTx | null {
     ...(o.kind === 'speedUp' || o.kind === 'cancel' ? { kind: o.kind } : {}),
     ...(isWei(o.maxFeePerGas) ? { maxFeePerGas: o.maxFeePerGas } : {}),
     ...(isWei(o.maxPriorityFeePerGas) ? { maxPriorityFeePerGas: o.maxPriorityFeePerGas } : {}),
+    ...(isWei(o.gasLimit) ? { gasLimit: o.gasLimit } : {}),
     ...(isStr(o.minedHash) ? { minedHash: o.minedHash } : {}),
     ...(isStr(o.fee) ? { fee: o.fee } : {}),
     ...(isNum(o.blockNumber) ? { blockNumber: o.blockNumber } : {}),

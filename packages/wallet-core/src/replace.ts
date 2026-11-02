@@ -11,12 +11,15 @@ const replacementFees = (latestSent: FeeFields, market: FeeFields): FeeFields =>
   maxPriorityFeePerGas: max(bump(latestSent.maxPriorityFeePerGas), market.maxPriorityFeePerGas),
 })
 const max = (a: bigint, b: bigint) => (a > b ? a : b)
+const min = (a: bigint, b: bigint) => (a < b ? a : b)
 
 export type SpeedUpPlan = FeeFields & {
   gasLimit: bigint
   /** gasLimit x maxFeePerGas of the latest sent tx and of the replacement (worst case, in wei). */
   currentFeeCap: bigint
   newFeeCap: bigint
+  /** The fee the replacement is expected to cost (gasLimit x the price it pays at the current base fee), the "예상 네트워크 수수료" of the record. */
+  estimatedFee: bigint
   /** newFeeCap - currentFeeCap: "지금보다 N ETH 많아요". */
   extra: bigint
   /** ETH the account must hold for the replacement: newFeeCap, plus the amount for an ETH send. */
@@ -31,6 +34,7 @@ export type SpeedUpPlan = FeeFields & {
 export function planSpeedUp(i: {
   latestSent: FeeFields
   market: FeeFields
+  baseFeePerGas: bigint
   gasLimit: bigint
   asset: AssetId
   amount: bigint
@@ -45,6 +49,7 @@ export function planSpeedUp(i: {
     gasLimit: i.gasLimit,
     currentFeeCap,
     newFeeCap,
+    estimatedFee: i.gasLimit * min(fees.maxFeePerGas, i.baseFeePerGas + fees.maxPriorityFeePerGas),
     extra: newFeeCap - currentFeeCap,
     needed,
     shortBy: needed > i.nativeBalance ? needed - i.nativeBalance : 0n,
@@ -56,5 +61,9 @@ export function planSpeedUp(i: {
 const CANCEL_GAS = 21_000n
 
 /** Fee plan of a cancel: the speed-up fee rule, gas 21000, no amount. `needed` = the new fee cap only. */
-export const planCancel = (i: { latestSent: FeeFields; market: FeeFields; nativeBalance: bigint }): SpeedUpPlan =>
-  planSpeedUp({ ...i, gasLimit: CANCEL_GAS, asset: 'ETH', amount: 0n })
+export const planCancel = (i: {
+  latestSent: FeeFields
+  market: FeeFields
+  baseFeePerGas: bigint
+  nativeBalance: bigint
+}): SpeedUpPlan => planSpeedUp({ ...i, gasLimit: CANCEL_GAS, asset: 'ETH', amount: 0n })

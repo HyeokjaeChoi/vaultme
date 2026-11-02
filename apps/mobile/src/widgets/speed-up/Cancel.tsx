@@ -1,6 +1,6 @@
 // Figma: B-S23 Pending + cancel sheet 888:6228 (actions 888:5799, requested 888:6647); B/Fee compare 891:6915 with the new fee row off
 import { useQuery } from '@tanstack/react-query'
-import { fromUnits } from '@vaultme/wallet-core'
+import { fromUnits, type SpeedUpPlan } from '@vaultme/wallet-core'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { View } from 'react-native'
@@ -11,7 +11,7 @@ import { loadPhrase, type PendingTx } from '@/shared/storage'
 import { useTheme } from '@/shared/theme'
 import { BottomSheet, Button, FeeCompare, StatusNotice, Text } from '@/shared/ui'
 
-type Notice = 'authError' | 'chainError' | 'needsReview' | 'blocked'
+type Notice = 'authError' | 'chainError' | 'needsReview' | 'blocked' | 'unknown'
 
 /**
  * "거래 취소" next to "속도 올리기" on a Pending send (S23, S41; ADR-0031) and its confirm sheet. The risky action is the safe one's opposite:
@@ -25,6 +25,8 @@ export function Cancel({ tx, onDone }: { tx: PendingTx; onDone: () => void }) {
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState<Notice | null>(null)
   const [cause, setCause] = useState<unknown>(null)
+  // The plan a NeedsReview answer carried: it replaces the one the sheet showed (no second read that could fail and leave the old one).
+  const [fresh, setFresh] = useState<SpeedUpPlan | null>(null)
   const quote = useQuery({
     queryKey: ['cancel', tx.hash, tx.hashes?.length ?? 1, open] as const,
     queryFn: () => quoteCancel(tx, sendFrom(), chain),
@@ -36,22 +38,24 @@ export function Cancel({ tx, onDone }: { tx: PendingTx; onDone: () => void }) {
     meta: { persist: false },
   })
   if (!canCancel(tx, chain.broadcasts)) return null
-  const plan = quote.data ?? null
+  const plan = fresh ?? quote.data ?? null
   const short = plan !== null && plan.shortBy > 0n
-  const shown: Notice | null = notice ?? (quote.isError ? 'chainError' : null)
+  const over = plan?.overAbsCap === true // the signer refuses it: disabled with the blocked reason before device auth
+  const shown: Notice | null = notice ?? (quote.isError ? 'chainError' : over ? 'blocked' : null)
   const noticeKey =
     shown === 'chainError'
       ? apiErrorKey(notice === 'chainError' ? cause : quote.error)
-      : shown
+      : shown && shown !== 'unknown'
         ? (`send.${shown}` as const)
         : null
 
   const close = () => {
     setOpen(false)
     setNotice(null)
+    setFresh(null)
   }
   const confirm = async () => {
-    if (!plan || short || busy) return
+    if (!plan || short || over || notice === 'unknown' || busy) return
     setBusy(true)
     setNotice(null)
     setCause(null)
@@ -64,12 +68,16 @@ export function Cancel({ tx, onDone }: { tx: PendingTx; onDone: () => void }) {
         now: Date.now,
         prompt: { title: t('send.authPrompt'), cancel: t('common.cancel') },
       })
-      if (out.status === 'Sent' || out.status === 'Unknown' || out.status === 'NotPending') {
+      if (out.status === 'Sent' || out.status === 'NotPending') {
         close()
         onDone()
+      } else if (out.status === 'Unknown') {
+        // The answer was unclear: the sheet says so and cannot send a second cancel. The record is read again (it may hold the hash).
+        setNotice('unknown')
+        onDone()
       } else if (out.status === 'NeedsReview') {
+        setFresh(out.plan)
         setNotice('needsReview')
-        await quote.refetch()
       } else if (out.status === 'AuthError') setNotice('authError')
       else if (out.status === 'Blocked') setNotice('blocked')
       else if (out.status === 'ChainError') {
@@ -97,7 +105,7 @@ export function Cancel({ tx, onDone }: { tx: PendingTx; onDone: () => void }) {
               danger
               busy={busy}
               busyLabel={t('cancel.sheet.busy')}
-              disabled={!plan || short}
+              disabled={!plan || short || over || notice === 'unknown'}
               onPress={() => void confirm()}
             />
             <Button label={t('cancel.sheet.back')} disabled={busy} onPress={close} />
@@ -106,7 +114,9 @@ export function Cancel({ tx, onDone }: { tx: PendingTx; onDone: () => void }) {
       >
         <Text color={th.semantic.text.secondary}>{t('cancel.sheet.body')}</Text>
         <View style={{ gap: th.semantic.layout.fieldGap }}>
-          {noticeKey ? (
+          {shown === 'unknown' ? (
+            <StatusNotice tone="warning" title={t('result.unknownTitle')} body={t('result.unknownBody')} />
+          ) : noticeKey ? (
             <StatusNotice
               tone={shown === 'authError' || shown === 'needsReview' ? 'warning' : 'danger'}
               title={t(`${noticeKey}.title`)}
