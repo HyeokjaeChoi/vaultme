@@ -248,7 +248,8 @@ describe('kv key + store', () => {
       minedHash: '0xdef1',
     }
     expect(kv.parsePendingTx(JSON.stringify(sped))).toEqual(sped)
-    expect(kv.parsePendingTx(JSON.stringify({ ...sped, kind: 'cancel' }))?.kind).toBe('cancel')
+    const cancelled = { ...sped, kind: 'cancel' as const }
+    expect(kv.parsePendingTx(JSON.stringify(cancelled))).toEqual(cancelled)
     const bad = kv.parsePendingTx(
       JSON.stringify({ ...sped, hashes: ['0xother'], kind: 'x', maxFeePerGas: '-1', minedHash: '' }),
     )

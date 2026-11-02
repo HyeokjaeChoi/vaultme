@@ -21,5 +21,6 @@ export {
   type AmountForm,
   type RecipientForm,
 } from './model/forms'
-export { explorerHash } from './model/hashes'
+export { canCancel, quoteCancel, runCancel } from './model/cancel'
+export { explorerHash, processedBeforeCancel } from './model/hashes'
 export { canSpeedUp, quoteSpeedUp, runSpeedUp } from './model/speedUp'

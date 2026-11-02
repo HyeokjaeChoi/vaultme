@@ -1,4 +1,4 @@
-// Figma: B-S23 Send result (Pending 423:15795, Pending + actions 888:5799, Pending + speed-up line 888:6568, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode; 보낸 계정 row 723:5774)
+// Figma: B-S23 Send result (Pending 423:15795, Pending + actions 888:5799, Pending + speed-up line 888:6568, cancel sheet 888:6228, cancel requested 888:6647, Replaced / cancelled 888:6726, processed before cancel 888:6776 / 888:6852, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode; 보낸 계정 row 723:5774)
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef } from 'react'
 import { Redirect } from 'expo-router'
@@ -24,7 +24,7 @@ import {
 } from '@/shared/ui'
 import { BackHandler, View } from 'react-native'
 import { NetworkChips } from '@/widgets/network-chips'
-import { SpeedUp } from '@/widgets/speed-up'
+import { PendingActions } from '@/widgets/speed-up'
 
 /**
  * B-S23 보내기 결과: a centered end moment (asset logo + status badge, headline, Figure amount, sentence), the 보냄 -> 블록 포함 -> 확정 progress for Pending / Included / Confirmed only,
@@ -67,7 +67,7 @@ export function SendResultPage() {
     }, [router]),
   )
   if (!tx) return <Redirect href="/home" />
-  const copy = resultCopy(tx.state)
+  const copy = resultCopy(tx.state, tx.kind)
   const test = testMode && !(__DEV__ && real === '1') && isPolled(tx.state) // the fake adapter keeps a send Pending forever: it was never on the network
   const toHome = () => {
     router.dismissAll()
@@ -119,6 +119,7 @@ export function SendResultPage() {
         asset={tx.asset === 'USDC' ? 'USDC' : 'ETH'}
         amount={figure ?? tx.amount}
         unit={unit ?? tx.asset}
+        struck={tx.state === 'Replaced' && tx.kind === 'cancel'}
         lines={lines}
         celebrate={tx.state === 'Confirmed' && !test}
         {...(failed ? { link: { label: t('result.details'), onPress: toDetail } } : {})}
@@ -132,18 +133,7 @@ export function SendResultPage() {
           />
         </View>
       ) : null}
-      {!test && tx.state === 'Pending' ? (
-        <View
-          style={{
-            paddingHorizontal: th.semantic.layout.screen.padding,
-            paddingBottom: th.semantic.layout.sectionGap.product,
-            gap: th.semantic.layout.fieldGap,
-          }}
-        >
-          {tx.kind === 'speedUp' ? <StatusNotice tone="info" title={t('speedUp.sentLine')} /> : null}
-          <SpeedUp tx={tx} onDone={reload} />
-        </View>
-      ) : null}
+      {!test ? <PendingActions tx={tx} onDone={reload} /> : null}
       <SectionBand />
       <Block>
         {!test && copy.warn ? <StatusNotice tone="warning" title={t(copy.warn)} /> : null}

@@ -107,6 +107,14 @@ describe('settleTx (facts -> record, ADR-0006)', () => {
     expect(settleTx(sped, f(6n), true, () => 9).state).toBe('Replaced')
     expect(settleTx(sped, f(5n), true, () => 9).state).toBe('Pending')
   })
+  it('a mined cancel (kind cancel, last hash) at safe = Replaced and names the cancel hash; the original mined first is the normal state', () => {
+    const base = { ...tx('Pending'), hashes: ['0x1', '0x2'], kind: 'cancel' as const }
+    const hashes = ['0x1', '0x2']
+    const f = (receipts: (Receipt | null)[]) => ({ hashes, receipts, safeBlock: 100n, safeNonce: null })
+    expect(settleTx(base, f([null, ok(90n)]), true, () => 9)).toMatchObject({ state: 'Replaced', minedHash: '0x2' })
+    expect(settleTx(base, f([ok(90n), null]), true, () => 9)).toMatchObject({ state: 'Confirmed', minedHash: '0x1' })
+    expect(settleTx(base, f([null, ok(101n)]), true, () => 9).state).toBe('Pending') // above safe: no claim yet
+  })
   it('only a polled, broadcast send asks the network', () => {
     expect(needsFacts(tx('Pending'), true)).toBe(true)
     expect(needsFacts(tx('Pending'), false)).toBe(false)

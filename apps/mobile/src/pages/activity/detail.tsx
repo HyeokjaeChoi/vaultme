@@ -58,7 +58,7 @@ import { AddressText } from '@/shared/ui'
 import { fakeHistoryItems } from '@/widgets/activity-list'
 import { InternalTransfers } from '@/widgets/internal-transfers'
 import { NetworkChips } from '@/widgets/network-chips'
-import { SpeedUp } from '@/widgets/speed-up'
+import { PendingActions } from '@/widgets/speed-up'
 import { Loading } from './Loading'
 
 // __DEV__ capture only (`?row=in|out`): a history row as in Figma Flow 4 A 742:2487 / B 742:2584.
@@ -352,7 +352,7 @@ export function TxDetailPage() {
   const explorer =
     explorerUrl(chain, explorerHash(tx)) ??
     (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${explorerHash(tx)}` : null)
-  const copy = resultCopy(tx.state)
+  const copy = resultCopy(tx.state, tx.kind)
   const test = testMode && isPolled(tx.state)
   const final = isFinal(tx.state)
   const [figure, unit] = showAmount(tx.amount, tx.asset, 'exact').split(' ')
@@ -396,20 +396,10 @@ export function TxDetailPage() {
         asset={tx.asset === 'USDC' ? 'USDC' : 'ETH'}
         amount={figure ?? tx.amount}
         unit={unit ?? tx.asset}
+        struck={tx.state === 'Replaced' && tx.kind === 'cancel'}
         lines={(test ? t('result.testBody') : t(copy.body)).split('\n')}
       />
-      {!test && tx.state === 'Pending' ? (
-        <View
-          style={{
-            paddingHorizontal: th.semantic.layout.screen.padding,
-            paddingBottom: th.semantic.layout.sectionGap.product,
-            gap: th.semantic.layout.fieldGap,
-          }}
-        >
-          {tx.kind === 'speedUp' ? <StatusNotice tone="info" title={t('speedUp.sentLine')} /> : null}
-          <SpeedUp tx={tx} onDone={reload} />
-        </View>
-      ) : null}
+      {!test ? <PendingActions tx={tx} onDone={reload} /> : null}
       <SectionBand />
       <Block title={t('detail.recipientTitle')}>
         <AddressText address={tx.to} />

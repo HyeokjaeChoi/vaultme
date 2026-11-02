@@ -51,3 +51,10 @@ export function planSpeedUp(i: {
     overAbsCap: newFeeCap > ABS_MAX_FEE_WEI,
   }
 }
+
+/** A cancel is a 0 ETH send to the user's own account: a plain transfer (ADR-0031). */
+const CANCEL_GAS = 21_000n
+
+/** Fee plan of a cancel: the speed-up fee rule, gas 21000, no amount. `needed` = the new fee cap only. */
+export const planCancel = (i: { latestSent: FeeFields; market: FeeFields; nativeBalance: bigint }): SpeedUpPlan =>
+  planSpeedUp({ ...i, gasLimit: CANCEL_GAS, asset: 'ETH', amount: 0n })

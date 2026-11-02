@@ -90,7 +90,7 @@ export function SpeedUp({ tx, onDone }: { tx: PendingTx; onDone: () => void }) {
 
   return (
     <>
-      <Button label={t('speedUp.action')} variant="secondary" onPress={() => setOpen(true)} />
+      <Button label={t('speedUp.action')} variant="secondary" style={{ flex: 1 }} onPress={() => setOpen(true)} />
       <BottomSheet
         visible={open}
         onClose={close}
