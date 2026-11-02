@@ -228,7 +228,8 @@ function RowDetail({
             <DetailRow
               label={t(copy.counterpartyTitle)}
               value={shortAddress(row.counterparty)}
-              copy={copyOf(t, t(copy.counterpartyTitle), row.counterparty)}
+              // A caution row (look-alike address) offers no copy: the banner above says not to copy it. Figma 883:4375 draws the icon; owner decision in the PR.
+              {...(row.caution ? {} : { copy: copyOf(t, t(copy.counterpartyTitle), row.counterparty) })}
             />
             {row.caution ? <NewSenderLine row={row} /> : null}
           </Block>
