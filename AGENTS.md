@@ -8,6 +8,7 @@ pnpm + Turborepo monorepo: `apps/mobile` (Expo), `apps/api`, `apps/web`, `packag
 Always talk to me like I have ADHD.
 Explain all answers in Korean. Write short, simple sentences and concrete steps, following ASD-STE100 Simplified Technical English principles. Keep proper nouns and technical identifiers in their original language.
 Put the main result first. Explain one point at a time.
+When a choice is yours to make, take your recommended option and keep working; do not stop to confirm it. End the report with an owner check list: each choice, what you chose, and where to see it. The owner approves it or asks for a fix. Stop only for what the owner alone can do (secrets, payments, Library publish, device passcodes, the limits in this file).
 
 ## Commands
 
@@ -46,7 +47,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | pnpm installs only package versions published at least 7 days (10080 min) ago, security fixes too, no exceptions | `pnpm-workspace.yaml` `minimumReleaseAge`, R13; Renovate waits the same 7 days (`.github/renovate.json5`) |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |
 
-When a review finding repeats, add a check (`scripts/check-repo-rules.sh` or a test) and list it here. Only if no check can detect it, add a lesson to `vaultme-review-lessons`.
+When a review finding or an owner fix from a check list repeats, add a check (`scripts/check-repo-rules.sh` or a test) and list it here. Only if no check can detect it, add a lesson to `vaultme-review-lessons`.
 
 ## Production code
 
