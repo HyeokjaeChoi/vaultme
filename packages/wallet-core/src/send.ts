@@ -59,6 +59,12 @@ function fees(s: ChainSnapshot) {
   }
 }
 
+/** The market fee fields of a snapshot (the send fee formula: max fee = 2 * base + tip). Speed up never goes below them (ADR-0031). */
+export const marketFeesOf = (s: ChainSnapshot): { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint } => ({
+  maxFeePerGas: fees(s).maxFeePerGas,
+  maxPriorityFeePerGas: s.maxPriorityFeePerGas,
+})
+
 /** Worst-case fee (gasLimit x maxFeePerGas) for a snapshot: the cap the user approves. */
 export const feeCapOf = (s: ChainSnapshot): bigint => fees(s).feeCap
 

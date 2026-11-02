@@ -173,11 +173,12 @@ Decisions Q26, Q50, Q56, Q69 (#315, ADR-0024). One rule for all of it: no addres
   - MMKV (AES-256): lock state, pending tx, history cache, flags, recent recipients, TanStack Query cache (balances, with the wallet's public address in the key). No phrase.
 - App state kinds (ADR-0021): server state in TanStack Query, send status derived by `wallet-core` `deriveState`, global UI state in one Zustand store, forms in react-hook-form. Done so far: the derivation in `wallet-core`; TanStack Query provider in `shell` with the cache persisted to MMKV (whitelist in `shared/query/persist.ts`), and the balance reads on it; the history reads (list and S41 row lookup), the amount-step snapshot and the review read, and the receipt reads of `useTrackedTx` (the query fetches facts only; the `PendingTx` record in MMKV stays the send status, written through `settleTx`). Only balances are persisted; the Zustand store in `shared/app-store` holds lock, backup and opt-in flags (hydrated synchronously from MMKV by `initAppStore` before the first render, same MMKV keys as before, `persist` middleware not used because it keeps one JSON key). The four forms (send recipient, send amount, restore, backup word check) run on react-hook-form: shapes in `packages/contracts` `forms.ts`, rules inside the resolvers in `features/*/model`: restore word list and checksum from `wallet-core`, amount balance and zero through `shared/lib/amount` over `wallet-core` `toUnits`, Max and the USDC fee shortfall from `sendLimits` (the shortfall only warns, Review blocks), word check through `wrongIndexes`. The web viewer reads (balance, history pages, tx detail, internal transfers) are TanStack Query too, in memory only (`apps/web/app/shared/api/query.tsx`, #291). Not yet: nothing of ADR-0021.
 - Transaction state, from receipt facts only (`deriveState` in `wallet-core`):
+  - A receipt for any own hash decides (ADR-0031: the record holds `hashes`, original first, then each speed-up replacement; a record without `hashes` has the one `hash`).
   - Receipt at or below the `safe` block: `Confirmed` (success) or `Failed` (reverted).
   - Receipt above `safe`: `Included`. If the receipt disappears: back to `Pending`.
-  - No receipt and the `safe` nonce is above ours: `Replaced`.
+  - No receipt for any own hash and the `safe` nonce is above ours: `Replaced`.
   - `Unknown` means the result is not known. Only a check moves it.
-  - Time alone never changes a state. The app never resends.
+  - Time alone never changes a state. The app resends only when the user asks (speed up from S23 or S41, ADR-0031).
   - `Pending` or `Unknown` blocks a new send (`blocksNewSend`). A corrupt record also blocks.
 - Recipient risk order: burn, token contract, look-alike (first 4 and last 4 hex), first-time, known.
 - App lock: cold start is locked. Lock after 30 s in the background. `inactive` never starts the timer. A clock set back counts as locked.

@@ -18,6 +18,27 @@ export async function signAndSubmit(
   // The signed tx must match the reviewed model. A new nonce means a new review.
   if (latest.nonce !== approved.nonce) return { status: 'NeedsReview' }
 
+  return signAndSend(approved, deps)
+}
+
+/** A same-nonce replacement of a pending send (speed up, ADR-0031): the same tx with new fee fields. Nothing is checked against a fresh snapshot here: the caller planned the fees from one. */
+export type Replacement = Pick<
+  ApprovedSend,
+  'asset' | 'to' | 'amount' | 'gasLimit' | 'nonce' | 'maxFeePerGas' | 'maxPriorityFeePerGas'
+>
+
+export async function signReplacement(
+  tx: Replacement,
+  deps: { mnemonic: Mnemonic; submit: SubmitFn },
+): Promise<SubmitResult> {
+  if (tx.gasLimit * tx.maxFeePerGas > ABS_MAX_FEE_WEI) return { status: 'Blocked' }
+  return signAndSend(tx, deps)
+}
+
+async function signAndSend(
+  approved: Replacement,
+  deps: { mnemonic: Mnemonic; submit: SubmitFn },
+): Promise<SubmitResult> {
   const asset = ASSETS[approved.asset]
   const account = deps.mnemonic.account()
   const raw = await account.signTransaction({

@@ -156,6 +156,15 @@ describe('list (S40, ADR-0007)', () => {
     expect(s.views[0]?.items).toHaveLength(2)
   })
 
+  it('a sped-up local send also wins over the API row of its replacement hash (ADR-0031): one row', async () => {
+    const s = setup({
+      answer: () => Promise.resolve(page([row(0, 'out', { hash: upper(H), id: `${H}:0` })])),
+    })
+    await s.load(ME, { ...local, hash: H2, hashes: [H2, H] })
+    expect(s.views[0]?.items).toMatchObject([{ id: H2, local: true }])
+    expect(s.views[0]?.items).toHaveLength(1)
+  })
+
   it('a later failure shows the cache with its first update time, marked failed', async () => {
     const s = setup({ answer: () => Promise.resolve(page([row(0, 'in')])) })
     await s.load(ME)

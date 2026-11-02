@@ -52,6 +52,9 @@ export async function runSend(
   const at = d.now()
   const tx: PendingTx = {
     hash: result.hash,
+    hashes: [result.hash],
+    maxFeePerGas: String(approved.maxFeePerGas),
+    maxPriorityFeePerGas: String(approved.maxPriorityFeePerGas),
     nonce: approved.nonce,
     asset: approved.asset,
     to: approved.to,
