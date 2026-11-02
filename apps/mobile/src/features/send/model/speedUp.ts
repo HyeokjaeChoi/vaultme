@@ -95,7 +95,7 @@ export type SpeedUpOutcome =
   /** The fee rose above what the sheet showed, or ETH is short now: the sheet shows the new plan. */
   | { status: 'NeedsReview'; plan: SpeedUpPlan }
   | { status: 'Blocked' | 'Cancelled' | 'AuthError' | 'NotPending' }
-  /** The network could not be asked, or the node refused the tx (underpriced, nonce too low, insufficient funds): nothing is recorded. */
+  /** The network could not be asked, or the node refused the tx (underpriced, insufficient funds): nothing is recorded. */
   | { status: 'ChainError'; error: unknown }
 
 export const runSpeedUp = (tx: PendingTx, approved: SpeedUpPlan, from: Address, d: SpeedUpDeps) =>
@@ -154,24 +154,23 @@ export async function runReplace(
     return { status: 'Unknown', tx: { ...cur, hashes: [...ownHashes(cur), result.hash] } }
   const hashes = [...ownHashes(latest).filter((h) => h !== result.hash), result.hash]
   const stillPending = latest.state === 'Pending'
-  // Claimed (kind, fees, fee) only when the node took it and the send is still Pending: otherwise the hash alone is recorded.
+  // Claimed (kind, fee) only when the node took it and the send is still Pending.
   // A cancel whose answer was unclear still gets its `kind`, so a receipt for it is read as the cancel (Replaced), not as a send.
   const sent = result.status === 'Pending' && stillPending
   const next: PendingTx = {
     ...latest,
     hashes,
-    ...(sent
+    // The signed fees are kept even when the answer was unclear: that tx may be in the pool, so the next replacement must bump from it.
+    // A speed up is the same tx: its gas limit carries on. A cancel keeps the send's own (it may still be the one that runs).
+    ...(stillPending
       ? {
-          kind,
           maxFeePerGas: String(plan.maxFeePerGas),
           maxPriorityFeePerGas: String(plan.maxPriorityFeePerGas),
-          lastCheckedAt: d.now(),
-          // A speed up is the same tx: its gas limit and estimate carry on. A cancel keeps the send's own (it may still be the one that runs).
-          ...(cancel ? {} : { gasLimit: String(plan.gasLimit), fee: fromUnits(plan.estimatedFee, 'ETH') }),
+          ...(cancel ? {} : { gasLimit: String(plan.gasLimit) }),
         }
-      : cancel && stillPending
-        ? { kind }
-        : {}),
+      : {}),
+    ...(sent || (cancel && stillPending) ? { kind } : {}),
+    ...(sent ? { lastCheckedAt: d.now(), ...(cancel ? {} : { fee: fromUnits(plan.estimatedFee, 'ETH') }) } : {}),
   }
   try {
     d.savePending(next)

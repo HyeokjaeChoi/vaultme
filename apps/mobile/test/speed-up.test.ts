@@ -199,12 +199,8 @@ describe('runSpeedUp (ADR-0031)', () => {
     expect((await runSpeedUp(record(), approved, FROM, a.d)).status).toBe('ChainError')
     expect(a.saved).toEqual([])
   })
-  it('a definite node refusal (underpriced, nonce too low, insufficient funds) is a ChainError: nothing is recorded', async () => {
-    for (const m of [
-      'replacement transaction underpriced',
-      'nonce too low',
-      'insufficient funds for gas * price + value',
-    ]) {
+  it('a definite node refusal (underpriced, insufficient funds) is a ChainError: nothing is recorded', async () => {
+    for (const m of ['replacement transaction underpriced', 'insufficient funds for gas * price + value']) {
       const { d, saved } = setup()
       const approved = await quoteSpeedUp(record(), FROM, d.chain)
       d.chain = { ...d.chain, submit: () => Promise.reject(rpcError(m)) }
@@ -213,15 +209,20 @@ describe('runSpeedUp (ADR-0031)', () => {
       expect(saved).toEqual([])
     }
   })
-  it('an unclear submit (timeout, "already known") records the hash only: no speed-up claim, no new fees', async () => {
-    for (const e of [new Error('timeout'), rpcError('already known')]) {
+  it('an unclear submit (timeout, "already known", "nonce too low") records the hash and the signed fees: no speed-up claim', async () => {
+    for (const e of [new Error('timeout'), rpcError('already known'), rpcError('nonce too low')]) {
       const { d, saved } = setup()
       const approved = await quoteSpeedUp(record(), FROM, d.chain)
       d.chain = { ...d.chain, submit: () => Promise.reject(e) }
       const out = await runSpeedUp(record(), approved, FROM, d)
       expect(out.status).toBe('Unknown')
       expect(saved[0]!.hashes).toHaveLength(2)
-      expect(saved[0]).toMatchObject({ state: 'Pending', maxFeePerGas: record().maxFeePerGas })
+      // The next replacement bumps from the tx that may be in the pool, not from the older one.
+      expect(saved[0]).toMatchObject({
+        state: 'Pending',
+        maxFeePerGas: String(approved.maxFeePerGas),
+        maxPriorityFeePerGas: String(approved.maxPriorityFeePerGas),
+      })
       expect(saved[0]!.kind).toBeUndefined()
     }
   })

@@ -175,26 +175,28 @@ describe('runCancel (ADR-0031)', () => {
     expect((await runCancel(record(), approved, FROM, a.d)).status).toBe('ChainError')
     expect(a.saved).toEqual([])
   })
-  it('a definite node refusal (underpriced, nonce too low, insufficient funds) is a ChainError: nothing is recorded', async () => {
+  it('a definite node refusal (underpriced, insufficient funds) is a ChainError: nothing is recorded', async () => {
     const approved = await quoteCancel(record(), FROM, setup().d.chain)
-    for (const m of [
-      'replacement transaction underpriced',
-      'nonce too low',
-      'insufficient funds for gas * price + value',
-    ]) {
+    for (const m of ['replacement transaction underpriced', 'insufficient funds for gas * price + value']) {
       const { d, saved } = setup()
       d.chain = { ...d.chain, submit: () => Promise.reject(rpcError(m)) }
       expect((await runCancel(record(), approved, FROM, d)).status).toBe('ChainError')
       expect(saved).toEqual([])
     }
   })
-  it('an unclear submit records the hash with kind cancel (a receipt for it reads as the cancel) but no new fees', async () => {
+  it('an unclear submit records the hash, kind cancel (a receipt for it reads as the cancel) and the signed fees', async () => {
     const approved = await quoteCancel(record(), FROM, setup().d.chain)
-    for (const e of [new Error('timeout'), rpcError('already known')]) {
+    for (const e of [new Error('timeout'), rpcError('already known'), rpcError('nonce too low')]) {
       const { d, saved } = setup()
       d.chain = { ...d.chain, submit: () => Promise.reject(e) }
       expect((await runCancel(record(), approved, FROM, d)).status).toBe('Unknown')
-      expect(saved[0]).toMatchObject({ kind: 'cancel', maxFeePerGas: record().maxFeePerGas })
+      // The next replacement bumps from the cancel that may be in the pool; the send's gas limit stays.
+      expect(saved[0]).toMatchObject({
+        kind: 'cancel',
+        maxFeePerGas: String(approved.maxFeePerGas),
+        maxPriorityFeePerGas: String(approved.maxPriorityFeePerGas),
+        gasLimit: record().gasLimit,
+      })
       expect(saved[0]!.hashes).toHaveLength(2)
     }
   })

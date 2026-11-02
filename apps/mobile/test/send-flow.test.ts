@@ -79,7 +79,7 @@ describe('runSend', () => {
     })
     expect(saved[0]!.hash).toMatch(/^0x[0-9a-f]{64}$/)
   })
-  it('a node refusal (underpriced, nonce too low, insufficient funds) is a ChainError and saves nothing', async () => {
+  it('a node refusal (underpriced, insufficient funds) is a ChainError and saves nothing', async () => {
     const { review, snap } = await base()
     const refused = Object.assign(new Error('insufficient funds for gas * price + value'), { rpcCode: -32000 })
     const { d, saved } = deps({
