@@ -10,6 +10,14 @@ export type TxFacts = {
   receipts: readonly (TxReceipt | null)[]
   safeBlock: bigint | null
   safeNonce: bigint | null
+  /** Index in `receipts` of the cancel tx (the last hash while the record's kind is cancel); absent or null = no cancel (ADR-0031). */
+  cancelIndex?: number | null
+}
+
+/** Index of the own hash that has a receipt (the one the network ran), null when none has. */
+export const minedIndex = (receipts: readonly (TxReceipt | null)[]): number | null => {
+  const i = receipts.findIndex((r) => r !== null)
+  return i < 0 ? null : i
 }
 
 /** Final states: nothing changes them, so nothing re-checks them. */
@@ -21,13 +29,16 @@ export const isPolled = (s: TxStatus): boolean => s === 'Pending' || s === 'Incl
  * ARCHITECTURE.md#invariants (transaction state). A receipt for ANY own hash decides (ADR-0031: the network runs one of the txs that share the nonce). A receipt at or below the `safe` block is final: success = Confirmed, reverted = Failed (ADR-0006).
  * A receipt above it is Included, whether it succeeded or not. No receipt: Included falls back to Pending (reorg);
  * an account nonce at `safe` beyond ours means another tx took the nonce = Replaced (ADR-0006). Nothing else changes the state,
- * and never the passing of time (ADR-0006).
+ * and never the passing of time (ADR-0006). A mined cancel (`cancelIndex`) is Replaced once its receipt is at or below `safe`; above it the state stays Pending, so no cancel is claimed before it is final (ADR-0031).
  */
 export function deriveState(f: TxFacts): TxStatus {
   if (isFinal(f.current)) return f.current
-  const receipt = f.receipts.find((r) => r !== null) ?? null
+  const i = minedIndex(f.receipts)
+  const receipt = i === null ? null : (f.receipts[i] ?? null)
   if (receipt) {
-    if (f.safeBlock === null || receipt.blockNumber > f.safeBlock) return 'Included'
+    const cancel = f.cancelIndex === i
+    if (f.safeBlock === null || receipt.blockNumber > f.safeBlock) return cancel ? 'Pending' : 'Included'
+    if (cancel) return 'Replaced'
     return receipt.status === 'success' ? 'Confirmed' : 'Failed'
   }
   if (f.safeNonce !== null && f.safeNonce > BigInt(f.nonce)) return 'Replaced'

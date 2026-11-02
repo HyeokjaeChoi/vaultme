@@ -1,6 +1,6 @@
-import { deriveState, isFinal, isPolled, type Address, type Hash } from '@vaultme/wallet-core'
+import { deriveState, isFinal, isPolled, minedIndex, type Address, type Hash } from '@vaultme/wallet-core'
 import type { ChainPort, Receipt } from '@/shared/chain'
-import { ownHashes } from './hashes'
+import { cancelIndexOf, ownHashes } from './hashes'
 import type { PendingTx } from '@/shared/storage'
 
 // The derivation lives in wallet-core (Q59, ADR-0021); the app keeps the network check and the fake adapter.
@@ -56,13 +56,20 @@ export function settleTx(tx: PendingTx, facts: TxFacts | null, broadcasts: boole
   if (!broadcasts) return fakeSettle(tx, now())
   if (!facts) return { ...tx, lastCheckedAt: now() }
   const { hashes, receipts, safeBlock, safeNonce } = facts
-  const state = deriveState({ current: tx.state, nonce: tx.nonce, receipts, safeBlock, safeNonce })
-  const i = receipts.findIndex((r) => r !== null)
-  const receipt = receipts[i] ?? null
+  const state = deriveState({
+    current: tx.state,
+    nonce: tx.nonce,
+    receipts,
+    safeBlock,
+    safeNonce,
+    cancelIndex: cancelIndexOf(tx),
+  })
+  const i = minedIndex(receipts)
+  const receipt = i === null ? null : (receipts[i] ?? null)
   const next: PendingTx = { ...tx, state, lastCheckedAt: now() }
   if (receipt) {
     next.blockNumber = Number(receipt.blockNumber)
-    next.minedHash = hashes[i] ?? tx.hash
+    next.minedHash = hashes[i ?? 0] ?? tx.hash
   } else delete next.minedHash // reorged back to Pending: the explorer link falls back to the latest sent hash
   return next
 }

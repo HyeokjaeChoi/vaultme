@@ -148,6 +148,23 @@ describe('signAndSubmit (fake submit, no network)', () => {
   })
 })
 
+describe('signReplacement as a cancel (ADR-0031)', () => {
+  test('0 ETH to the own address, gas 21000, the original nonce', async () => {
+    const own = mnemonic.account().address
+    const raws: `0x${string}`[] = []
+    const submit = (raw: `0x${string}`) => (raws.push(raw), Promise.resolve(keccak256(raw)))
+    const fee = { maxFeePerGas: parseGwei('30'), maxPriorityFeePerGas: parseGwei('2') }
+    const out = await signReplacement(
+      { asset: 'ETH', to: own, amount: 0n, gasLimit: 21_000n, nonce: 7, ...fee },
+      { mnemonic, submit },
+    )
+    expect(out.status).toBe('Pending')
+    const tx = parseTransaction(raws[0]!)
+    expect(tx).toMatchObject({ nonce: 7, gas: 21_000n, to: own.toLowerCase(), ...fee })
+    expect(tx.value ?? 0n).toBe(0n) // a zero value is encoded as empty
+  })
+})
+
 describe('signReplacement (speed up, ADR-0031)', () => {
   test('same nonce, to, value, gas and chain; only the fee fields change', async () => {
     const approved = ok({ asset: 'ETH', to: RECIPIENT, amount: '0.05', previous: [RECIPIENT] })

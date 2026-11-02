@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { deriveState, isFinal, isPolled, type TxFacts, type TxReceipt, type TxStatus } from '../src'
+import { deriveState, isFinal, isPolled, minedIndex, type TxFacts, type TxReceipt, type TxStatus } from '../src'
 
 const ok = (n: bigint): TxReceipt => ({ status: 'success', blockNumber: n })
 const bad = (n: bigint): TxReceipt => ({ status: 'reverted', blockNumber: n })
@@ -67,5 +67,33 @@ describe('isPolled / isFinal', () => {
   })
   test('Confirmed, Failed, Replaced are final', () => {
     expect(all.map(isFinal)).toEqual([false, false, false, true, true, true])
+  })
+})
+
+describe('deriveState with a cancel (ADR-0031)', () => {
+  const c = (over: Partial<TxFacts>) => f({ cancelIndex: 1, ...over })
+  test('a mined cancel at or below safe = Replaced', () => {
+    expect(c({ receipts: [null, ok(90n)], safeBlock: 100n })).toBe('Replaced')
+  })
+  test('a mined cancel above safe stays Pending: no cancel claim before it is safe', () => {
+    expect(c({ receipts: [null, ok(101n)], safeBlock: 100n })).toBe('Pending')
+    expect(c({ receipts: [null, ok(1n)], safeBlock: null })).toBe('Pending')
+  })
+  test('the original mined first: the normal state, never Replaced', () => {
+    expect(c({ receipts: [ok(90n), null], safeBlock: 100n })).toBe('Confirmed')
+    expect(c({ receipts: [ok(101n), null], safeBlock: 100n })).toBe('Included')
+    expect(c({ receipts: [bad(90n), null], safeBlock: 100n })).toBe('Failed')
+  })
+  test('with several hashes only the cancel index counts', () => {
+    expect(f({ cancelIndex: 2, receipts: [null, ok(90n), null], safeBlock: 100n })).toBe('Confirmed') // a mined speed-up
+    expect(f({ cancelIndex: 2, receipts: [null, null, ok(90n)], safeBlock: 100n })).toBe('Replaced')
+  })
+  test('no receipt: unchanged by a cancel', () => {
+    expect(c({ receipts: [null, null] })).toBe('Pending')
+    expect(c({ receipts: [null, null], safeNonce: 6n })).toBe('Replaced')
+  })
+  test('minedIndex names the own hash that has a receipt', () => {
+    expect(minedIndex([null, null])).toBeNull()
+    expect(minedIndex([null, ok(1n), null])).toBe(1)
   })
 })

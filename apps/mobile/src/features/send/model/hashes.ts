@@ -7,3 +7,10 @@ const latestHash = (tx: Pick<PendingTx, 'hash' | 'hashes'>): string => ownHashes
 /** The hash Etherscan links to: the mined one, else the latest sent (ADR-0031). */
 export const explorerHash = (tx: Pick<PendingTx, 'hash' | 'hashes' | 'minedHash'>): string =>
   tx.minedHash ?? latestHash(tx)
+
+/** Index of the cancel tx in `hashes`: the last one while the latest replacement is a cancel (a cancel is final in the UI: no later replacement). null = no cancel. */
+export const cancelIndexOf = (tx: Pick<PendingTx, 'hash' | 'hashes' | 'kind'>): number | null =>
+  tx.kind === 'cancel' ? ownHashes(tx).length - 1 : null
+/** The original (or a speed-up) was processed although a cancel was sent: the cancel lost (ADR-0031). */
+export const processedBeforeCancel = (tx: Pick<PendingTx, 'hash' | 'hashes' | 'kind' | 'minedHash'>): boolean =>
+  tx.kind === 'cancel' && tx.minedHash !== undefined && tx.minedHash !== latestHash(tx)
