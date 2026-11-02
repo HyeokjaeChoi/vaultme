@@ -105,15 +105,19 @@ describe('signAndSubmit (fake submit, no network)', () => {
     const res = await run(undefined, snap, () => Promise.reject(new Error('timeout')))
     expect(res).toMatchObject({ status: 'Unknown', reason: 'submitError' })
   })
-  test('a node refusal (underpriced, nonce too low, insufficient funds) throws; "already known" and a timeout stay Unknown', async () => {
-    const rpc = (message: string) => Object.assign(new Error(message), { rpcCode: -32000 })
-    for (const m of [
-      'replacement transaction underpriced',
-      'nonce too low: next nonce 8',
-      'insufficient funds for gas * price + value',
-    ])
+  // One case per test: each run derives the key (~1 s on CI), so five in one test passed the 5 s timeout.
+  const rpc = (message: string) => Object.assign(new Error(message), { rpcCode: -32000 })
+  test.each(['replacement transaction underpriced', 'insufficient funds for gas * price + value'])(
+    'a node refusal throws: %s',
+    async (m) => {
       await expect(run(undefined, snap, () => Promise.reject(rpc(m)))).rejects.toThrow(m)
-    expect(await run(undefined, snap, () => Promise.reject(rpc('already known')))).toMatchObject({ status: 'Unknown' })
+    },
+  )
+  // "nonce too low" can be about this same tx: the API re-sent it to a second upstream after the first took it.
+  test.each(['already known', 'nonce too low: next nonce 8'])('"%s" from the node stays Unknown', async (m) => {
+    expect(await run(undefined, snap, () => Promise.reject(rpc(m)))).toMatchObject({ status: 'Unknown' })
+  })
+  test('a refusal message without an RPC code stays Unknown', async () => {
     expect(await run(undefined, snap, () => Promise.reject(new Error('nonce too low')))).toMatchObject({
       status: 'Unknown',
     })

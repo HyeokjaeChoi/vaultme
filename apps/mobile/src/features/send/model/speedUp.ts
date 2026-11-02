@@ -72,7 +72,7 @@ export type SpeedUpOutcome =
   /** The fee rose above what the sheet showed, or ETH is short now: the sheet shows the new plan. */
   | { status: 'NeedsReview'; plan: SpeedUpPlan }
   | { status: 'Blocked' | 'Cancelled' | 'AuthError' | 'NotPending' }
-  /** The network could not be asked, or the node refused the tx (underpriced, nonce too low, insufficient funds): nothing is recorded. */
+  /** The network could not be asked, or the node refused the tx (underpriced, insufficient funds): nothing is recorded. */
   | { status: 'ChainError'; error: unknown }
 
 /**
@@ -125,21 +125,20 @@ export async function runSpeedUp(
   if (latest === null || latest === 'corrupt' || latest.hash !== cur.hash)
     return { status: 'Unknown', tx: { ...cur, hashes: [...ownHashes(cur), result.hash] } }
   const hashes = [...ownHashes(latest).filter((h) => h !== result.hash), result.hash]
-  // Claimed as a speed up only when the node took it and the send is still Pending: otherwise the hash alone is recorded.
+  // Claimed as a speed up only when the node took it and the send is still Pending: otherwise no claim is made.
   const sent = result.status === 'Pending' && latest.state === 'Pending'
   const next: PendingTx = {
     ...latest,
     hashes,
-    ...(sent
+    // The signed fees are kept even when the answer was unclear: that tx may be in the pool, so the next replacement must bump from it.
+    ...(latest.state === 'Pending'
       ? {
-          kind: 'speedUp' as const,
           maxFeePerGas: String(plan.maxFeePerGas),
           maxPriorityFeePerGas: String(plan.maxPriorityFeePerGas),
           gasLimit: String(plan.gasLimit),
-          fee: fromUnits(plan.estimatedFee, 'ETH'),
-          lastCheckedAt: d.now(),
         }
       : {}),
+    ...(sent ? { kind: 'speedUp' as const, fee: fromUnits(plan.estimatedFee, 'ETH'), lastCheckedAt: d.now() } : {}),
   }
   try {
     d.savePending(next)

@@ -111,9 +111,12 @@ export function prepare(intent: SendIntent, chain: ChainSnapshot): PrepareResult
   }
 }
 
-/** Node answers that mean the node refused the tx: it is not in the pool, so nothing is recorded (ADR-0031). "already known" is NOT one: the tx is out there. */
+/**
+ * Node answers that mean the node refused the tx: it is not in the pool, so nothing is recorded (ADR-0031). "already known" is NOT one: the tx is out there.
+ * Neither is "nonce too low": the API re-sends to a second upstream after a timeout, and if the first one took the tx and it was mined, the second says "nonce too low" about this same tx.
+ */
 const REFUSED =
-  /underpriced|nonce too low|insufficient funds|intrinsic gas|exceeds block gas limit|less than block base fee|invalid sender/i
+  /underpriced|insufficient funds|intrinsic gas|exceeds block gas limit|less than block base fee|invalid sender/i
 const KNOWN = /already known|known transaction/i
 
 /** A JSON-RPC error (it has a numeric `rpcCode`, like api-client `RpcError`) whose message is a definite refusal. A timeout or a network error is not: the tx may be out there. */
