@@ -3,7 +3,7 @@ import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Linking, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { networkFact } from '@/entities/account'
+import { account } from '@/entities/account'
 import { demoTx } from '@/entities/transaction'
 import {
   cautionOf,
@@ -39,23 +39,24 @@ import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { showAmount } from '@/shared/lib/amount'
 import { getAccountAddress } from '@/shared/storage'
-import { factTime } from '@/shared/lib/time'
+import { shortAddress, shortHash } from '@/shared/lib/address'
+import { dateParts } from '@/shared/lib/time'
 import { useTheme } from '@/shared/theme'
 import {
   AmountHero,
   BottomSheet,
   Block,
   Button,
+  DetailRow,
+  DisclosureRow,
   EmptyState,
   Icon,
   Screen,
   ScreenHeader,
   SectionBand,
   StatusNotice,
-  SummaryRow,
   Text,
 } from '@/shared/ui'
-import { AddressText } from '@/shared/ui'
 import { fakeHistoryItems } from '@/widgets/activity-list'
 import { InternalTransfers } from '@/widgets/internal-transfers'
 import { NetworkChips } from '@/widgets/network-chips'
@@ -97,6 +98,38 @@ const devInternal = (state: string): Internal => {
 }
 
 const hhmm = (at: number) => new Date(at).toTimeString().slice(0, 5)
+
+type T = ReturnType<typeof useTranslation>['t']
+/** "2026년 10월 16일 오전 9:41" (B-S41 시각, no zone). */
+const whenText = (t: T, at: number) => {
+  const { pm, ...parts } = dateParts(at)
+  return t(pm ? 'detail.timePm' : 'detail.timeAm', parts)
+}
+/** The copy icon of a detail row: the clipboard gets the full value, the row shows the short one. */
+const copyOf = (t: T, label: string, text: string) => ({
+  text,
+  label: t('detail.copyLabel', { label }),
+  announce: t('receive.copied'),
+})
+
+/** 자세히: chain ID and block, hidden until opened (Figma 934:9123 open, 934:9154 row). */
+function MoreRows({ blockNumber }: { blockNumber: number | undefined }) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <DisclosureRow title={t('detail.more')} expanded={open} onToggle={() => setOpen((o) => !o)} />
+      {open ? (
+        <>
+          <DetailRow label={t('detail.chainId')} value={String(account.chainId)} />
+          {blockNumber !== undefined ? (
+            <DetailRow label={t('detail.block')} value={String(blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} />
+          ) : null}
+        </>
+      ) : null}
+    </>
+  )
+}
 
 function EtherscanRow({ url }: { url: string }) {
   const { t } = useTranslation()
@@ -191,24 +224,40 @@ function RowDetail({
       <SectionBand />
       {row.counterparty ? (
         <>
-          <Block title={t(copy.counterpartyTitle)}>
-            <AddressText address={row.counterparty} />
+          <Block>
+            <DetailRow
+              label={t(copy.counterpartyTitle)}
+              value={shortAddress(row.counterparty)}
+              copy={copyOf(t, t(copy.counterpartyTitle), row.counterparty)}
+            />
             {row.caution ? <NewSenderLine row={row} /> : null}
           </Block>
           <SectionBand />
         </>
       ) : null}
       <Block title={t('detail.infoTitle')}>
-        <SummaryRow label={t('detail.time')} fact value={factTime(row.at)} />
-        <SummaryRow label={t('result.statusLabel')} value={example ? t('detail.state.test') : t(copy.statusWord)} />
+        <DetailRow label={t('detail.time')} value={whenText(t, row.at)} />
+        <DetailRow
+          emphasis
+          label={t('result.statusLabel')}
+          value={example ? t('detail.state.test') : t(copy.statusWord)}
+        />
         {/^0x[0-9a-fA-F]{64}$/.test(row.hash) ? (
-          <SummaryRow format="address" plain fact label={t('detail.hashTitle')} value={row.hash} />
+          <DetailRow
+            label={t('detail.hashTitle')}
+            value={shortHash(row.hash)}
+            copy={copyOf(t, t('detail.hashTitle'), row.hash)}
+          />
         ) : null}
-        {address ? <SummaryRow format="address" plain label={t(copy.accountLabel)} value={address} /> : null}
-        <SummaryRow label={t('result.network')} fact value={networkFact} />
-        {row.blockNumber !== undefined ? (
-          <SummaryRow label={t('detail.block')} fact value={String(row.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} />
+        {address ? (
+          <DetailRow
+            label={t(copy.accountLabel)}
+            value={shortAddress(address)}
+            copy={copyOf(t, t(copy.accountLabel), address)}
+          />
         ) : null}
+        <DetailRow label={t('result.network')} value={account.network} />
+        <MoreRows blockNumber={row.blockNumber} />
       </Block>
       {internal ? (
         <InternalTransfers
@@ -417,27 +466,33 @@ export function TxDetailPage() {
         </View>
       ) : null}
       <SectionBand />
-      <Block title={t('detail.recipientTitle')}>
-        <AddressText address={tx.to} />
+      <Block>
+        <DetailRow
+          label={t('detail.recipientTitle')}
+          value={shortAddress(tx.to)}
+          copy={copyOf(t, t('detail.recipientTitle'), tx.to)}
+        />
       </Block>
       <SectionBand />
       <Block title={t('detail.infoTitle')}>
-        <SummaryRow label={t('detail.time')} fact value={factTime(tx.createdAt)} />
-        <SummaryRow label={t('result.statusLabel')} value={stateWord} />
-        <SummaryRow format="address" plain fact label={t('detail.hashTitle')} value={explorerHash(tx)} />
+        <DetailRow label={t('detail.time')} value={whenText(t, tx.createdAt)} />
+        <DetailRow emphasis label={t('result.statusLabel')} value={stateWord} />
+        <DetailRow
+          label={t('detail.hashTitle')}
+          value={shortHash(explorerHash(tx))}
+          copy={copyOf(t, t('detail.hashTitle'), explorerHash(tx))}
+        />
         {tx.accountIndex !== undefined ? (
-          <SummaryRow label={t('detail.sender')} value={t('detail.accountName', { n: tx.accountIndex + 1 })} />
+          <DetailRow label={t('detail.sender')} value={t('detail.accountName', { n: tx.accountIndex + 1 })} />
         ) : null}
-        <SummaryRow label={t('result.network')} fact value={networkFact} />
-        {tx.blockNumber !== undefined && !test ? (
-          <SummaryRow label={t('detail.block')} fact value={String(tx.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} />
-        ) : null}
+        <DetailRow label={t('result.network')} value={account.network} />
         {showFee ? (
-          <SummaryRow
+          <DetailRow
             label={t(tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal')}
             value={tx.fee ? `${tx.fee} ETH` : '—'}
           />
         ) : null}
+        <MoreRows blockNumber={test ? undefined : tx.blockNumber} />
         {final || test ? null : <StatusNotice tone="info" title={lastChecked} />}
       </Block>
       {internal ? (

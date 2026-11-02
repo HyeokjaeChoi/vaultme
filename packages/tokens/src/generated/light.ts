@@ -402,6 +402,13 @@ export const light = {
           "lineHeight": 20,
           "letterSpacing": -0.2
         },
+        "value": {
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
+          "fontSize": 14,
+          "lineHeight": 20,
+          "letterSpacing": -0.2
+        },
         "caption": {
           "fontFamily": "Pretendard",
           "fontWeight": "400",
