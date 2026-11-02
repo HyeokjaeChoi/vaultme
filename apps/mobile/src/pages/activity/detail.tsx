@@ -1,4 +1,4 @@
-// Figma: B-S41 Transaction detail (Confirmed 423:16327, real chain 460:4988, Unknown 423:16381, API error 457:17668, test mode + clear sheet)
+// Figma: B-S41 Transaction detail (Pending + actions 888:5913, Confirmed 423:16327, real chain 460:4988, Unknown 423:16381, API error 457:17668, test mode + clear sheet)
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Linking, Pressable, View } from 'react-native'
@@ -20,6 +20,8 @@ import {
 import type { TxState } from '@/features/send'
 import {
   clearTestTx,
+  explorerHash,
+  ownHashes,
   isFinal,
   isPolled,
   resultCopy,
@@ -57,6 +59,7 @@ import { AddressText } from '@/shared/ui'
 import { fakeHistoryItems } from '@/widgets/activity-list'
 import { InternalTransfers } from '@/widgets/internal-transfers'
 import { NetworkChips } from '@/widgets/network-chips'
+import { SpeedUp } from '@/widgets/speed-up'
 import { Loading } from './Loading'
 
 // __DEV__ capture only (`?row=in|out`): a history row as in Figma Flow 4 A 742:2487 / B 742:2584.
@@ -312,13 +315,18 @@ export function TxDetailPage() {
   const router = useRouter()
   useAppStore((s) => s.zeroSetting) // S63 flip: render again, so `findCachedRow` below follows the switch (a row it hides must not stay on screen)
   const [confirmClear, setConfirmClear] = useState(__DEV__ && sheet === '1')
-  const { tx: stored, checking, error: trackedError, recheck } = useTrackedTx()
+  const { tx: stored, checking, error: trackedError, recheck, reload } = useTrackedTx()
   const testMode = useTestMode()
   const error = __DEV__ && err === '1' ? new ApiError('network', 0, true, 'offline') : trackedError // `?err=1` is a __DEV__ capture override (Figma 457:17668)
   // The local record wins over a history row with the same hash.
-  const tx = __DEV__ && demo ? demoTx(demo as TxState) : localRecordMatches(stored?.hash, id) ? stored : null
+  const tx =
+    __DEV__ && demo
+      ? demoTx(demo as TxState)
+      : localRecordMatches(stored ? ownHashes(stored) : undefined, id)
+        ? stored
+        : null
   const [readInternal, retryInternal] = useInternalTransfers(
-    tx && !testMode && tx.state === 'Confirmed' ? tx.hash : null,
+    tx && !testMode && tx.state === 'Confirmed' ? explorerHash(tx) : null,
   )
   const internal = __DEV__ && devInternalParam ? devInternal(devInternalParam) : readInternal
   if (!tx) {
@@ -348,7 +356,8 @@ export function TxDetailPage() {
     )
   }
   const explorer =
-    explorerUrl(chain, tx.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${tx.hash}` : null)
+    explorerUrl(chain, explorerHash(tx)) ??
+    (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${explorerHash(tx)}` : null)
   const copy = resultCopy(tx.state)
   const test = testMode && isPolled(tx.state)
   const final = isFinal(tx.state)
@@ -395,6 +404,18 @@ export function TxDetailPage() {
         unit={unit ?? tx.asset}
         lines={(test ? t('result.testBody') : t(copy.body)).split('\n')}
       />
+      {!test && tx.state === 'Pending' ? (
+        <View
+          style={{
+            paddingHorizontal: th.semantic.layout.screen.padding,
+            paddingBottom: th.semantic.layout.sectionGap.product,
+            gap: th.semantic.layout.fieldGap,
+          }}
+        >
+          {tx.kind === 'speedUp' ? <StatusNotice tone="info" title={t('speedUp.sentLine')} /> : null}
+          <SpeedUp tx={tx} onDone={reload} />
+        </View>
+      ) : null}
       <SectionBand />
       <Block title={t('detail.recipientTitle')}>
         <AddressText address={tx.to} />
@@ -403,7 +424,7 @@ export function TxDetailPage() {
       <Block title={t('detail.infoTitle')}>
         <SummaryRow label={t('detail.time')} fact value={factTime(tx.createdAt)} />
         <SummaryRow label={t('result.statusLabel')} value={stateWord} />
-        <SummaryRow format="address" plain fact label={t('detail.hashTitle')} value={tx.hash} />
+        <SummaryRow format="address" plain fact label={t('detail.hashTitle')} value={explorerHash(tx)} />
         {tx.accountIndex !== undefined ? (
           <SummaryRow label={t('detail.sender')} value={t('detail.accountName', { n: tx.accountIndex + 1 })} />
         ) : null}

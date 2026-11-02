@@ -3,7 +3,14 @@
 import { encodeFunctionData, erc20Abi, keccak256 } from 'viem'
 import { ABS_MAX_FEE_WEI, ASSETS, CHAIN } from './constants'
 import type { Mnemonic } from './mnemonic'
-import { feeCapOf, type ApprovedSend, type ChainSnapshot, type SubmitFn, type SubmitResult } from './send'
+import {
+  feeCapOf,
+  isNodeRejection,
+  type ApprovedSend,
+  type ChainSnapshot,
+  type SubmitFn,
+  type SubmitResult,
+} from './send'
 
 export { Mnemonic, deriveAddress, generateMnemonic, toMnemonic } from './mnemonic'
 
@@ -18,6 +25,27 @@ export async function signAndSubmit(
   // The signed tx must match the reviewed model. A new nonce means a new review.
   if (latest.nonce !== approved.nonce) return { status: 'NeedsReview' }
 
+  return signAndSend(approved, deps)
+}
+
+/** A same-nonce replacement of a pending send (speed up, ADR-0031): the same tx with new fee fields. Nothing is checked against a fresh snapshot here: the caller planned the fees from one. */
+export type Replacement = Pick<
+  ApprovedSend,
+  'asset' | 'to' | 'amount' | 'gasLimit' | 'nonce' | 'maxFeePerGas' | 'maxPriorityFeePerGas'
+>
+
+export async function signReplacement(
+  tx: Replacement,
+  deps: { mnemonic: Mnemonic; submit: SubmitFn },
+): Promise<SubmitResult> {
+  if (tx.gasLimit * tx.maxFeePerGas > ABS_MAX_FEE_WEI) return { status: 'Blocked' }
+  return signAndSend(tx, deps)
+}
+
+async function signAndSend(
+  approved: Replacement,
+  deps: { mnemonic: Mnemonic; submit: SubmitFn },
+): Promise<SubmitResult> {
   const asset = ASSETS[approved.asset]
   const account = deps.mnemonic.account()
   const raw = await account.signTransaction({
@@ -42,7 +70,9 @@ export async function signAndSubmit(
     return reported.toLowerCase() === hash
       ? { status: 'Pending', hash }
       : { status: 'Unknown', hash, reason: 'hashMismatch' }
-  } catch {
+  } catch (e) {
+    // A definite node refusal is an error, not an Unknown send: nothing was broadcast, so the caller records nothing.
+    if (isNodeRejection(e)) throw e
     return { status: 'Unknown', hash, reason: 'submitError' }
   }
 }

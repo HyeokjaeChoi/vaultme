@@ -59,6 +59,12 @@ function fees(s: ChainSnapshot) {
   }
 }
 
+/** The market fee fields of a snapshot (the send fee formula: max fee = 2 * base + tip). Speed up never goes below them (ADR-0031). */
+export const marketFeesOf = (s: ChainSnapshot): { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint } => ({
+  maxFeePerGas: fees(s).maxFeePerGas,
+  maxPriorityFeePerGas: s.maxPriorityFeePerGas,
+})
+
 /** Worst-case fee (gasLimit x maxFeePerGas) for a snapshot: the cap the user approves. */
 export const feeCapOf = (s: ChainSnapshot): bigint => fees(s).feeCap
 
@@ -103,6 +109,18 @@ export function prepare(intent: SendIntent, chain: ChainSnapshot): PrepareResult
       warnings,
     },
   }
+}
+
+/** Node answers that mean the node refused the tx: it is not in the pool, so nothing is recorded (ADR-0031). "already known" is NOT one: the tx is out there. */
+const REFUSED =
+  /underpriced|nonce too low|insufficient funds|intrinsic gas|exceeds block gas limit|less than block base fee|invalid sender/i
+const KNOWN = /already known|known transaction/i
+
+/** A JSON-RPC error (it has a numeric `rpcCode`, like api-client `RpcError`) whose message is a definite refusal. A timeout or a network error is not: the tx may be out there. */
+export function isNodeRejection(e: unknown): boolean {
+  if (typeof e !== 'object' || e === null || typeof (e as { rpcCode?: unknown }).rpcCode !== 'number') return false
+  const m = String((e as { message?: unknown }).message)
+  return !KNOWN.test(m) && REFUSED.test(m)
 }
 
 /** Sends the signed raw tx. Returns the hash the node reports. */

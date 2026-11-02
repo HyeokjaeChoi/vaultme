@@ -80,6 +80,17 @@ describe('history reads', () => {
     expect(m.view).toHaveBeenCalledTimes(2)
     expect(v.local.state).toBe('Confirmed')
   })
+  it('a speed up that added an own hash during the fetch merges again (the API row of the replacement must not stay beside the send)', async () => {
+    m.pending = { hash: '0x1', state: 'Pending', hashes: ['0x1'] }
+    m.view.mockImplementationOnce((_a: unknown, local: unknown) => {
+      m.pending = { hash: '0x1', state: 'Pending', hashes: ['0x1', '0x2'] }
+      return Promise.resolve({ local, failed: false })
+    })
+    m.view.mockImplementationOnce((_a: unknown, local: unknown) => Promise.resolve({ local, failed: false }))
+    await qc().query(historyQuery(ME))
+    expect(m.view).toHaveBeenCalledTimes(2)
+    expect(m.view).toHaveBeenLastCalledWith(ME, { hash: '0x1', state: 'Pending', hashes: ['0x1', '0x2'] })
+  })
   it('a send that did not change is merged once', async () => {
     m.pending = { hash: '0x1', state: 'Pending' }
     m.view.mockResolvedValue({ items: [], updatedAt: 1, failed: false, nextCursor: null })

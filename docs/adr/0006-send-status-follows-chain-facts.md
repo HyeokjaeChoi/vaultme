@@ -2,6 +2,7 @@
 
 Status: Accepted (2026-10-13 derived from the removed requirements-session doc, see git history)
 Supersedes/Aliases: Q22, Q37, Q47, Q77
+Superseded in part by [ADR-0031](0031-speed-up-and-cancel-replace-by-nonce.md): "the app never resends" now means "never on its own"; a receipt for any own hash decides the state.
 
 ## Context
 A receipt does not make a transaction final. On Sepolia the `safe` block lags the newest block by about 7 to 13 minutes. A send can also fail to run because another transaction used the same nonce.

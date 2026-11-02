@@ -30,6 +30,9 @@ export function createFakeChain(nonce: NonceStore): ChainPort {
     getReceipt() {
       return Promise.resolve(null) // nothing was sent, so nothing is ever mined
     },
+    getTransaction() {
+      return Promise.resolve(null) // nothing was sent
+    },
     getSafeBlock() {
       return Promise.resolve(0n)
     },

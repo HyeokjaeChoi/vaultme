@@ -2,6 +2,7 @@
 
 Status: Accepted (2026-11-02 from issue #331, owner decision of 2026-11-02)
 Supersedes/Aliases: Q77 in part (the push part; the in-app Replaced state still holds), ADR-0006 in part (Replaced has no push)
+Revisited by [ADR-0031](0031-speed-up-and-cancel-replace-by-nonce.md): speed up and cancel are built; the decision stands (still no `replaced` push), and the "VaultMe has no speed-up or cancel today" line is out of date.
 
 ## Context
 Q77 says the Replaced state unblocks send and that a push notifies it. ADR-0006 built the state. The push was never built (#314, #331). The server sees only Alchemy address-activity webhooks. It never learns of a pending send or its nonce, so a replaced tx that never mines is invisible to it.
