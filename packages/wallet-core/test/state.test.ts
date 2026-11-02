@@ -71,7 +71,7 @@ describe('isPolled / isFinal', () => {
 })
 
 describe('deriveState with a cancel (ADR-0031)', () => {
-  const c = (over: Partial<TxFacts>) => f({ cancelIndex: 1, ...over })
+  const c = (over: Partial<TxFacts>) => f({ cancelFrom: 1, ...over })
   test('a mined cancel at or below safe = Replaced', () => {
     expect(c({ receipts: [null, ok(90n)], safeBlock: 100n })).toBe('Replaced')
   })
@@ -84,9 +84,10 @@ describe('deriveState with a cancel (ADR-0031)', () => {
     expect(c({ receipts: [ok(101n), null], safeBlock: 100n })).toBe('Included')
     expect(c({ receipts: [bad(90n), null], safeBlock: 100n })).toBe('Failed')
   })
-  test('with several hashes only the cancel index counts', () => {
-    expect(f({ cancelIndex: 2, receipts: [null, ok(90n), null], safeBlock: 100n })).toBe('Confirmed') // a mined speed-up
-    expect(f({ cancelIndex: 2, receipts: [null, null, ok(90n)], safeBlock: 100n })).toBe('Replaced')
+  test('every hash from the first cancel on is a cancel; earlier ones are the send', () => {
+    expect(f({ cancelFrom: 2, receipts: [null, ok(90n), null], safeBlock: 100n })).toBe('Confirmed') // a mined speed-up
+    expect(f({ cancelFrom: 2, receipts: [null, null, ok(90n)], safeBlock: 100n })).toBe('Replaced')
+    expect(f({ cancelFrom: 1, receipts: [null, ok(90n), null], safeBlock: 100n })).toBe('Replaced') // the first of two cancels mined
   })
   test('no receipt: unchanged by a cancel', () => {
     expect(c({ receipts: [null, null] })).toBe('Pending')

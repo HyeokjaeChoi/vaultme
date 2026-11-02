@@ -78,6 +78,12 @@ export const demoTx = (state: PendingTx['state'], kind?: PendingTx['kind']): Pen
   state,
   // `?kind=` on S41: the latest replacement (ADR-0031), sent after the original.
   ...(kind
-    ? { kind, hashes: ['0xa1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90', `0x${'c4'.repeat(32)}`] }
+    ? {
+        kind,
+        hashes: ['0xa1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90', `0x${'c4'.repeat(32)}`],
+        ...(kind === 'cancel' ? { cancelFrom: 1 } : {}),
+        // A mined demo state names the replacement as the mined hash (a Replaced cancel demo shows the cancel copy).
+        ...(state === 'Pending' || state === 'Unknown' ? {} : { minedHash: `0x${'c4'.repeat(32)}` }),
+      }
     : {}),
 })

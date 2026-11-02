@@ -170,6 +170,13 @@ export async function runReplace(
         }
       : {}),
     ...(sent || (cancel && stillPending) ? { kind } : {}),
+    // The first cancel marks where the cancels start; a cancel sent again keeps it (an earlier cancel can still be the one mined).
+    ...(cancel && stillPending
+      ? {
+          cancelFrom:
+            latest.kind === 'cancel' ? (latest.cancelFrom ?? ownHashes(latest).length - 1) : hashes.length - 1,
+        }
+      : {}),
     ...(sent ? { lastCheckedAt: d.now(), ...(cancel ? {} : { fee: fromUnits(plan.estimatedFee, 'ETH') }) } : {}),
   }
   try {

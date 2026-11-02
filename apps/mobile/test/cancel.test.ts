@@ -2,7 +2,7 @@ import { txHash, type ChainSnapshot, type Hex } from '@vaultme/wallet-core'
 import { Mnemonic, signReplacement } from '@vaultme/wallet-core/signer'
 import { describe, expect, it, vi } from 'vitest'
 import { canCancel, quoteCancel, runCancel } from '../src/features/send/model/cancel'
-import { cancelIndexOf, cancelMined, explorerHash, processedBeforeCancel } from '../src/features/send/model/hashes'
+import { cancelFromOf, cancelMined, explorerHash, processedBeforeCancel } from '../src/features/send/model/hashes'
 import { canSpeedUp, quoteSpeedUp, type SpeedUpDeps } from '../src/features/send/model/speedUp'
 import type { SentTx } from '../src/shared/chain/port'
 import type { PendingTx } from '../src/shared/storage'
@@ -147,7 +147,19 @@ describe('runCancel (ADR-0031)', () => {
       gasLimit: '65000', // the cancel's 21000 is not saved over the send's own
     })
     expect(saved[0]!.hashes).toEqual([H1, txHash(raws[0]!)])
-    expect(cancelIndexOf(saved[0]!)).toBe(1)
+    expect(cancelFromOf(saved[0]!)).toBe(1)
+    expect(saved[0]!.cancelFrom).toBe(1)
+  })
+  it('a cancel sent again keeps where the cancels start, so the first cancel still counts when it is the one mined', async () => {
+    const { d, saved } = setup()
+    const first = record({ hashes: [H1, '0x3'], kind: 'cancel', cancelFrom: 1 })
+    d.readPending = () => first
+    const out = await runCancel(first, await quoteCancel(first, FROM, d.chain), FROM, d)
+    expect(out.status).toBe('Sent')
+    expect(saved[0]!.hashes).toHaveLength(3)
+    expect(saved[0]!.cancelFrom).toBe(1)
+    expect(cancelMined({ ...saved[0]!, state: 'Replaced', minedHash: '0x3' })).toBe(true)
+    expect(processedBeforeCancel({ ...saved[0]!, minedHash: '0x3' })).toBe(false)
   })
   it('auth cancel and auth error sign nothing', async () => {
     for (const [status, want] of [
@@ -257,5 +269,6 @@ describe('cancelMined', () => {
     expect(cancelMined({ ...c, minedHash: H1 })).toBe(false) // the original ran
     expect(cancelMined({ ...c, kind: 'speedUp', minedHash: '0x3' })).toBe(false)
     expect(cancelMined({ ...c, state: 'Pending', minedHash: '0x3' })).toBe(false) // not final yet
+    expect(cancelMined({ ...c, hashes: [H1, '0x3', '0x4'], cancelFrom: 1, minedHash: '0x3' })).toBe(true) // the first of two cancels
   })
 })
