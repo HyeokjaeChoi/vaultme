@@ -1,9 +1,9 @@
-import { txHash, type ChainSnapshot, type Hex } from '@vaultme/wallet-core'
+import { fromUnits, txHash, type ChainSnapshot, type Hex } from '@vaultme/wallet-core'
 import { Mnemonic } from '@vaultme/wallet-core/signer'
 import { describe, expect, it, vi } from 'vitest'
 import { explorerHash, ownHashes } from '../src/features/send/model/hashes'
-import type { SendDeps } from '../src/features/send/model/runSend'
-import { canSpeedUp, quoteSpeedUp, runSpeedUp } from '../src/features/send/model/speedUp'
+import { canSpeedUp, quoteSpeedUp, runSpeedUp, type SpeedUpDeps } from '../src/features/send/model/speedUp'
+import type { SentTx } from '../src/shared/chain/port'
 import type { PendingTx } from '../src/shared/storage'
 
 // Published BIP39 test vector (all-zero entropy). Not a wallet phrase.
@@ -35,16 +35,28 @@ const record = (over: Partial<PendingTx> = {}): PendingTx => ({
   state: 'Pending',
   maxFeePerGas: String(4n * GWEI),
   maxPriorityFeePerGas: String(2n * GWEI),
+  gasLimit: '21000',
   ...over,
 })
+// What the node says of a tx sent before the record saved its fees (an old original, priced above today's market).
+const ORIGINAL: SentTx = { maxFeePerGas: 40n * GWEI, maxPriorityFeePerGas: 3n * GWEI, gasLimit: 65_000n }
+const rpcError = (message: string) => Object.assign(new Error(message), { rpcCode: -32000 })
+const old = (over: Partial<PendingTx> = {}): PendingTx => {
+  const r = record(over)
+  delete r.maxFeePerGas
+  delete r.maxPriorityFeePerGas
+  delete r.gasLimit
+  return r
+}
 
-function setup(stored: PendingTx | null | 'corrupt' = record(), s = snap()) {
+function setup(stored: PendingTx | null | 'corrupt' = record(), s = snap(), sent: SentTx | null = ORIGINAL) {
   const raws: Hex[] = []
   const saved: PendingTx[] = []
-  const d: SendDeps = {
+  const d: SpeedUpDeps = {
     chain: {
       broadcasts: true,
       getSnapshot: () => Promise.resolve(s),
+      getTransaction: () => Promise.resolve(sent),
       submit: (raw) => {
         raws.push(raw)
         return Promise.resolve(txHash(raw))
@@ -68,13 +80,26 @@ describe('quoteSpeedUp', () => {
     expect(plan.currentFeeCap).toBe(21_000n * 4n * GWEI)
     expect(plan.shortBy).toBe(0n)
   })
-  it('a record saved before ADR-0031 has no sent fees: the market value is the base', async () => {
+  it('a record saved before it kept fees and gas: the original tx is read from the chain by hash, not the market value', async () => {
     const { d } = setup()
-    const old = { ...record(), maxFeePerGas: undefined, maxPriorityFeePerGas: undefined } as unknown as PendingTx
-    delete (old as Partial<PendingTx>).maxFeePerGas
-    delete (old as Partial<PendingTx>).maxPriorityFeePerGas
-    const plan = await quoteSpeedUp(old, FROM, d.chain)
-    expect(plan.maxFeePerGas).toBe(((2n * GWEI + GWEI / 2n) * 11n) / 10n + 1n)
+    const spy = vi.spyOn(d.chain, 'getTransaction')
+    const plan = await quoteSpeedUp(old(), FROM, d.chain)
+    expect(spy).toHaveBeenCalledWith(H1)
+    expect(plan.maxFeePerGas).toBe((40n * GWEI * 11n) / 10n + 1n) // 10 % over the ORIGINAL (40 gwei), far above the market (2.5 gwei)
+    expect(plan.maxPriorityFeePerGas).toBe((3n * GWEI * 11n) / 10n + 1n)
+    expect(plan.gasLimit).toBe(65_000n)
+    expect(plan.currentFeeCap).toBe(65_000n * 40n * GWEI)
+  })
+  it('the saved gas limit is kept even when a fresh estimate is lower (an ERC-20 re-estimate can run out of gas)', async () => {
+    const { d } = setup(record(), snap({ gasLimit: 50_000n }))
+    const spy = vi.spyOn(d.chain, 'getTransaction')
+    const plan = await quoteSpeedUp(record({ asset: 'USDC', amount: '1.5', gasLimit: '78000' }), FROM, d.chain)
+    expect(plan.gasLimit).toBe(78_000n)
+    expect(spy).not.toHaveBeenCalled() // fees and gas are on the record
+  })
+  it('a node that does not know the original of an old record is an error, not a bump from the market value', async () => {
+    const { d } = setup(record(), snap(), null)
+    await expect(quoteSpeedUp(old(), FROM, d.chain)).rejects.toThrow()
   })
   it('too little ETH disables it with the shortfall', async () => {
     const { d } = setup(record(), snap({ nativeBalance: 5n * 10n ** 16n }))
@@ -103,6 +128,8 @@ describe('runSpeedUp (ADR-0031)', () => {
       state: 'Pending',
       kind: 'speedUp',
       maxFeePerGas: String(approved.maxFeePerGas),
+      gasLimit: '21000',
+      fee: fromUnits(approved.estimatedFee, 'ETH'), // the displayed estimate follows the approved plan
       lastCheckedAt: 99,
     })
     expect(saved[0]!.hashes).toEqual([H1, txHash(raws[0]!)])
@@ -157,19 +184,71 @@ describe('runSpeedUp (ADR-0031)', () => {
     expect(out.status).toBe('Blocked')
     expect(raws).toEqual([])
   })
-  it('a chain error before the hash is known records nothing; an unclear submit records the hash and says Unknown', async () => {
+  it('a plan above the absolute fee cap is Blocked before device auth', async () => {
+    const big = record({ maxFeePerGas: String(300n * GWEI) })
+    const { d, raws } = setup(big)
+    const out = await runSpeedUp(big, await quoteSpeedUp(big, FROM, d.chain), FROM, d)
+    expect(out.status).toBe('Blocked')
+    expect(d.loadPhrase).not.toHaveBeenCalled()
+    expect(raws).toEqual([])
+  })
+  it('a chain error before the hash is known records nothing', async () => {
     const a = setup()
     const approved = await quoteSpeedUp(record(), FROM, a.d.chain)
     a.d.chain = { ...a.d.chain, getSnapshot: () => Promise.reject(new Error('offline')) }
     expect((await runSpeedUp(record(), approved, FROM, a.d)).status).toBe('ChainError')
     expect(a.saved).toEqual([])
-    const b = setup()
-    b.d.chain = { ...b.d.chain, submit: () => Promise.reject(new Error('timeout')) }
-    const out = await runSpeedUp(record(), approved, FROM, b.d)
-    expect(out.status).toBe('Unknown')
-    expect(b.saved[0]!.hashes).toHaveLength(2)
   })
-  it('a failed save reports Unknown (the replacement was sent)', async () => {
+  it('a definite node refusal (underpriced, nonce too low, insufficient funds) is a ChainError: nothing is recorded', async () => {
+    for (const m of [
+      'replacement transaction underpriced',
+      'nonce too low',
+      'insufficient funds for gas * price + value',
+    ]) {
+      const { d, saved } = setup()
+      const approved = await quoteSpeedUp(record(), FROM, d.chain)
+      d.chain = { ...d.chain, submit: () => Promise.reject(rpcError(m)) }
+      const out = await runSpeedUp(record(), approved, FROM, d)
+      expect(out.status).toBe('ChainError')
+      expect(saved).toEqual([])
+    }
+  })
+  it('an unclear submit (timeout, "already known") records the hash only: no speed-up claim, no new fees', async () => {
+    for (const e of [new Error('timeout'), rpcError('already known')]) {
+      const { d, saved } = setup()
+      const approved = await quoteSpeedUp(record(), FROM, d.chain)
+      d.chain = { ...d.chain, submit: () => Promise.reject(e) }
+      const out = await runSpeedUp(record(), approved, FROM, d)
+      expect(out.status).toBe('Unknown')
+      expect(saved[0]!.hashes).toHaveLength(2)
+      expect(saved[0]).toMatchObject({ state: 'Pending', maxFeePerGas: record().maxFeePerGas })
+      expect(saved[0]!.kind).toBeUndefined()
+    }
+  })
+  it('the record is read again before saving: a state a check wrote meanwhile is kept, the hash is added', async () => {
+    const { d, saved } = setup()
+    const approved = await quoteSpeedUp(record(), FROM, d.chain)
+    const mined = record({ state: 'Included', minedHash: H1, blockNumber: 9 })
+    let reads = 0
+    d.readPending = () => (++reads === 1 ? record() : mined) // Pending before auth, Included after submit
+    const out = await runSpeedUp(record(), approved, FROM, d)
+    expect(out.status).toBe('NotPending')
+    expect(saved[0]).toMatchObject({ state: 'Included', minedHash: H1, blockNumber: 9 })
+    expect(saved[0]!.hashes).toHaveLength(2)
+    expect(saved[0]!.kind).toBeUndefined()
+    expect(saved[0]!.maxFeePerGas).toBe(record().maxFeePerGas)
+  })
+  it('the hash is appended to the latest hashes: another replacement saved meanwhile is not lost', async () => {
+    const { d, saved } = setup()
+    const approved = await quoteSpeedUp(record(), FROM, d.chain)
+    const other = '0x' + '77'.repeat(32)
+    let reads = 0
+    d.readPending = () => (++reads === 1 ? record() : record({ hashes: [H1, other] }))
+    await runSpeedUp(record(), approved, FROM, d)
+    expect(saved[0]!.hashes).toEqual([H1, other, saved[0]!.hashes![2]])
+    expect(saved[0]!.hashes).toHaveLength(3)
+  })
+  it('a failed save reports Unknown (the replacement was sent, nothing is claimed)', async () => {
     const { d } = setup()
     d.savePending = () => {
       throw new Error('kv')

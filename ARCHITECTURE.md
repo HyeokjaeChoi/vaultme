@@ -11,7 +11,7 @@ Goals:
 - The key and the signature never leave the phone.
 - Show history. Send a push when a watched address gets a deposit or sends a transaction.
 
-Non-goals (not built): other chains, other tokens, swap, multiple accounts, smart accounts, WalletConnect, cloud backup, ENS, address book, speed-up or cancel, an admin dashboard. In the web app, also no keys, no recovery phrase, no send, no fiat prices (see [ADR-0012](docs/adr/0012-web-scope-and-quality-bars.md)).
+Non-goals (not built): other chains, other tokens, swap, multiple accounts, smart accounts, WalletConnect, cloud backup, ENS, address book, cancel of a pending send (staged after speed up, ADR-0031), an admin dashboard. In the web app, also no keys, no recovery phrase, no send, no fiat prices (see [ADR-0012](docs/adr/0012-web-scope-and-quality-bars.md)).
 
 The web app (`apps/web`, landing + read-only address viewer) is in scope and partly built (issue #186): the 404 page, the CI gates and the staging deploy (#192), the ko/en landing page (#194) and the address viewer with ETH and USDC balances (#195) exist. The viewer history list (#196) and the transaction page `/tx#0x…` (#197, read by hash through `eth_getTransactionByHash` and the receipt) exist; production domains (#198) are not built. See ADR-0011, ADR-0012, ADR-0013 and `apps/web/AGENTS.md`.
 

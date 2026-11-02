@@ -55,6 +55,7 @@ export async function runSend(
     hashes: [result.hash],
     maxFeePerGas: String(approved.maxFeePerGas),
     maxPriorityFeePerGas: String(approved.maxPriorityFeePerGas),
+    gasLimit: String(approved.gasLimit),
     nonce: approved.nonce,
     asset: approved.asset,
     to: approved.to,

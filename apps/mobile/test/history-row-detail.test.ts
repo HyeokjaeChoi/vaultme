@@ -7,11 +7,16 @@ const H = '0x' + '1'.repeat(64)
 
 describe('local record (S41)', () => {
   it('the local own-send record wins for its own hash', () => {
-    expect(localRecordMatches(H, H)).toBe(true)
-    expect(localRecordMatches(H.toUpperCase().replace('0X', '0x'), H)).toBe(true)
-    expect(localRecordMatches(H, `${H}:1`)).toBe(true)
+    expect(localRecordMatches([H], H)).toBe(true)
+    expect(localRecordMatches([H.toUpperCase().replace('0X', '0x')], H)).toBe(true)
+    expect(localRecordMatches([H], `${H}:1`)).toBe(true)
     expect(localRecordMatches(undefined, H)).toBe(false)
-    expect(localRecordMatches('0x' + '3'.repeat(64), H)).toBe(false)
+    expect(localRecordMatches(['0x' + '3'.repeat(64)], H)).toBe(false)
+  })
+  it('matches any own hash of a sped-up send, not only the first', () => {
+    const R = '0x' + '2'.repeat(64)
+    expect(localRecordMatches([H, R], R)).toBe(true)
+    expect(localRecordMatches([H, R], `${R}:0`)).toBe(true)
   })
 })
 

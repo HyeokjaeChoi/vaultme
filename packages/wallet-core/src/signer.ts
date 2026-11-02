@@ -3,7 +3,14 @@
 import { encodeFunctionData, erc20Abi, keccak256 } from 'viem'
 import { ABS_MAX_FEE_WEI, ASSETS, CHAIN } from './constants'
 import type { Mnemonic } from './mnemonic'
-import { feeCapOf, type ApprovedSend, type ChainSnapshot, type SubmitFn, type SubmitResult } from './send'
+import {
+  feeCapOf,
+  isNodeRejection,
+  type ApprovedSend,
+  type ChainSnapshot,
+  type SubmitFn,
+  type SubmitResult,
+} from './send'
 
 export { Mnemonic, deriveAddress, generateMnemonic, toMnemonic } from './mnemonic'
 
@@ -63,7 +70,9 @@ async function signAndSend(
     return reported.toLowerCase() === hash
       ? { status: 'Pending', hash }
       : { status: 'Unknown', hash, reason: 'hashMismatch' }
-  } catch {
+  } catch (e) {
+    // A definite node refusal is an error, not an Unknown send: nothing was broadcast, so the caller records nothing.
+    if (isNodeRejection(e)) throw e
     return { status: 'Unknown', hash, reason: 'submitError' }
   }
 }

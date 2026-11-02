@@ -6,7 +6,15 @@ const f = (maxFeePerGas: bigint, maxPriorityFeePerGas: bigint) => ({ maxFeePerGa
 
 // The fee fields of a plan are `replacementFees`.
 const replacementFees = (latestSent: ReturnType<typeof f>, market: ReturnType<typeof f>) => {
-  const p = planSpeedUp({ latestSent, market, gasLimit: 1n, asset: 'USDC', amount: 0n, nativeBalance: 0n })
+  const p = planSpeedUp({
+    latestSent,
+    market,
+    baseFeePerGas: 0n,
+    gasLimit: 1n,
+    asset: 'USDC',
+    amount: 0n,
+    nativeBalance: 0n,
+  })
   return f(p.maxFeePerGas, p.maxPriorityFeePerGas)
 }
 
@@ -40,6 +48,7 @@ describe('planSpeedUp', () => {
   const base = {
     latestSent: f(2n * GWEI, GWEI),
     market: f(GWEI, GWEI / 2n),
+    baseFeePerGas: GWEI / 2n,
     gasLimit: 21_000n,
     asset: 'ETH' as const,
     amount: 5n * 10n ** 16n,
@@ -54,6 +63,10 @@ describe('planSpeedUp', () => {
     expect(p.needed).toBe(p.newFeeCap + base.amount)
     expect(p.shortBy).toBe(0n)
     expect(p.overAbsCap).toBe(false)
+  })
+  test('estimatedFee is gas x the price paid at the current base fee, never above the max fee', () => {
+    expect(planSpeedUp(base).estimatedFee).toBe(21_000n * (GWEI / 2n + 1_100_000_001n)) // base 0.5 gwei + new tip 1.1 gwei + 1 wei
+    expect(planSpeedUp({ ...base, baseFeePerGas: 100n * GWEI }).estimatedFee).toBe(21_000n * 2_200_000_001n)
   })
   test('shortBy is the missing ETH; a token send needs only the fee', () => {
     const eth = planSpeedUp({ ...base, nativeBalance: base.amount })

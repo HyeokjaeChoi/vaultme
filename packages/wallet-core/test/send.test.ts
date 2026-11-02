@@ -105,6 +105,19 @@ describe('signAndSubmit (fake submit, no network)', () => {
     const res = await run(undefined, snap, () => Promise.reject(new Error('timeout')))
     expect(res).toMatchObject({ status: 'Unknown', reason: 'submitError' })
   })
+  test('a node refusal (underpriced, nonce too low, insufficient funds) throws; "already known" and a timeout stay Unknown', async () => {
+    const rpc = (message: string) => Object.assign(new Error(message), { rpcCode: -32000 })
+    for (const m of [
+      'replacement transaction underpriced',
+      'nonce too low: next nonce 8',
+      'insufficient funds for gas * price + value',
+    ])
+      await expect(run(undefined, snap, () => Promise.reject(rpc(m)))).rejects.toThrow(m)
+    expect(await run(undefined, snap, () => Promise.reject(rpc('already known')))).toMatchObject({ status: 'Unknown' })
+    expect(await run(undefined, snap, () => Promise.reject(new Error('nonce too low')))).toMatchObject({
+      status: 'Unknown',
+    })
+  })
   test('latest fee cap above approved -> NeedsReview, nothing submitted', async () => {
     let called = false
     const res = await run(undefined, { ...snap, baseFeePerGas: parseGwei('20') }, () => {
