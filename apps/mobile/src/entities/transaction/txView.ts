@@ -59,9 +59,8 @@ const CANCELLED: ResultCopy = {
   warn: null,
 }
 
-/** A Replaced send whose latest replacement is a cancel means the cancel was mined (the state rule, ADR-0031): cancel copy (Figma 888:6726). */
-export const resultCopy = (state: TxState, kind?: 'speedUp' | 'cancel'): ResultCopy =>
-  state === 'Replaced' && kind === 'cancel' ? CANCELLED : RESULT[state]
+/** `cancelled` = the cancel tx itself was mined (features/send `cancelMined`, ADR-0031): cancel copy (Figma 888:6726). */
+export const resultCopy = (state: TxState, cancelled = false): ResultCopy => (cancelled ? CANCELLED : RESULT[state])
 
 /** S40 row title key (Redesign B): direction plus progress. Received rows are always Confirmed (no incoming pending row). */
 export function rowTitleKey(kind: 'send' | 'receive', label: ReturnType<typeof txView>['label']) {

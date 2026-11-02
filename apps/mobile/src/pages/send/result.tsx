@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { networkFact } from '@/entities/account'
 import { demoTx } from '@/entities/transaction'
 import type { TxState } from '@/features/send'
-import { isPolled, resultCopy, useTrackedTx } from '@/features/send'
+import { cancelMined, isPolled, resultCopy, useTrackedTx } from '@/features/send'
 import { haptic } from '@/shared/lib/haptics'
 import { showAmount } from '@/shared/lib/amount'
 import { useTestMode } from '@/shared/chain'
@@ -67,7 +67,8 @@ export function SendResultPage() {
     }, [router]),
   )
   if (!tx) return <Redirect href="/home" />
-  const copy = resultCopy(tx.state, tx.kind)
+  const cancelled = cancelMined(tx)
+  const copy = resultCopy(tx.state, cancelled)
   const test = testMode && !(__DEV__ && real === '1') && isPolled(tx.state) // the fake adapter keeps a send Pending forever: it was never on the network
   const toHome = () => {
     router.dismissAll()
@@ -119,7 +120,7 @@ export function SendResultPage() {
         asset={tx.asset === 'USDC' ? 'USDC' : 'ETH'}
         amount={figure ?? tx.amount}
         unit={unit ?? tx.asset}
-        struck={tx.state === 'Replaced' && tx.kind === 'cancel'}
+        struck={cancelled}
         lines={lines}
         celebrate={tx.state === 'Confirmed' && !test}
         {...(failed ? { link: { label: t('result.details'), onPress: toDetail } } : {})}

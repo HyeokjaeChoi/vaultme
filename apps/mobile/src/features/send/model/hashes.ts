@@ -11,6 +11,12 @@ export const explorerHash = (tx: Pick<PendingTx, 'hash' | 'hashes' | 'minedHash'
 /** Index of the cancel tx in `hashes`: the last one while the latest replacement is a cancel (a cancel is final in the UI: no later replacement). null = no cancel. */
 export const cancelIndexOf = (tx: Pick<PendingTx, 'hash' | 'hashes' | 'kind'>): number | null =>
   tx.kind === 'cancel' ? ownHashes(tx).length - 1 : null
+/**
+ * The cancel tx itself was mined and is final: Replaced with the cancel as the mined hash. A Replaced from another tx taking the nonce
+ * (no receipt of ours) is not a cancel (ADR-0031): it keeps the plain Replaced copy.
+ */
+export const cancelMined = (tx: Pick<PendingTx, 'hash' | 'hashes' | 'kind' | 'minedHash' | 'state'>): boolean =>
+  tx.state === 'Replaced' && tx.kind === 'cancel' && tx.minedHash !== undefined && tx.minedHash === latestHash(tx)
 /** The original (or a speed-up) was processed although a cancel was sent: the cancel lost (ADR-0031). */
 export const processedBeforeCancel = (tx: Pick<PendingTx, 'hash' | 'hashes' | 'kind' | 'minedHash'>): boolean =>
   tx.kind === 'cancel' && tx.minedHash !== undefined && tx.minedHash !== latestHash(tx)

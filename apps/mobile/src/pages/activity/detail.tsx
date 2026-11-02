@@ -19,6 +19,7 @@ import {
 } from '@/features/history'
 import type { TxState } from '@/features/send'
 import {
+  cancelMined,
   clearTestTx,
   explorerHash,
   ownHashes,
@@ -358,7 +359,8 @@ export function TxDetailPage() {
   const explorer =
     explorerUrl(chain, explorerHash(tx)) ??
     (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${explorerHash(tx)}` : null)
-  const copy = resultCopy(tx.state, tx.kind)
+  const cancelled = cancelMined(tx)
+  const copy = resultCopy(tx.state, cancelled)
   const test = testMode && isPolled(tx.state)
   const final = isFinal(tx.state)
   const [figure, unit] = showAmount(tx.amount, tx.asset, 'exact').split(' ')
@@ -402,7 +404,7 @@ export function TxDetailPage() {
         asset={tx.asset === 'USDC' ? 'USDC' : 'ETH'}
         amount={figure ?? tx.amount}
         unit={unit ?? tx.asset}
-        struck={tx.state === 'Replaced' && tx.kind === 'cancel'}
+        struck={cancelled}
         lines={(test ? t('result.testBody') : t(copy.body)).split('\n')}
       />
       {!test ? <PendingActions tx={tx} onDone={reload} /> : null}

@@ -1,11 +1,17 @@
 import { txHash, type ChainSnapshot, type Hex } from '@vaultme/wallet-core'
-import { Mnemonic } from '@vaultme/wallet-core/signer'
+import { Mnemonic, signReplacement } from '@vaultme/wallet-core/signer'
 import { describe, expect, it, vi } from 'vitest'
 import { canCancel, quoteCancel, runCancel } from '../src/features/send/model/cancel'
-import { cancelIndexOf, explorerHash, processedBeforeCancel } from '../src/features/send/model/hashes'
+import { cancelIndexOf, cancelMined, explorerHash, processedBeforeCancel } from '../src/features/send/model/hashes'
 import { canSpeedUp, quoteSpeedUp, type SpeedUpDeps } from '../src/features/send/model/speedUp'
 import type { SentTx } from '../src/shared/chain/port'
 import type { PendingTx } from '../src/shared/storage'
+
+// The real signer runs; the spy only records what the app asks it to sign.
+vi.mock('@vaultme/wallet-core/signer', async (importOriginal) => {
+  const m = await importOriginal<typeof import('@vaultme/wallet-core/signer')>()
+  return { ...m, signReplacement: vi.fn(m.signReplacement) }
+})
 
 // Published BIP39 test vector (all-zero entropy). Not a wallet phrase.
 const VECTOR = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
@@ -113,7 +119,11 @@ describe('runCancel (ADR-0031)', () => {
     const approved = await quoteCancel(record(), FROM, d.chain)
     const out = await runCancel(record(), approved, FROM, d)
     expect(out.status).toBe('Sent')
-    expect(raws).toHaveLength(1) // the raw fields (nonce, gas 21000, value 0, to self) are checked in wallet-core `signReplacement`
+    expect(raws).toHaveLength(1)
+    expect(signReplacement).toHaveBeenLastCalledWith(
+      expect.objectContaining({ asset: 'ETH', to: FROM, amount: 0n, gasLimit: 21000n, nonce: record().nonce }),
+      expect.anything(),
+    )
     expect(saved[0]).toMatchObject({
       hash: H1,
       to: TO,
@@ -222,5 +232,16 @@ describe('processedBeforeCancel', () => {
     expect(processedBeforeCancel(c)).toBe(false) // nothing mined yet
     expect(processedBeforeCancel({ ...record(), minedHash: H1 })).toBe(false) // no cancel
     expect(explorerHash({ ...c, minedHash: '0x3' })).toBe('0x3')
+  })
+})
+
+describe('cancelMined', () => {
+  const c = record({ hashes: [H1, '0x3'], kind: 'cancel', state: 'Replaced' })
+  it('is true only when the cancel hash itself was mined', () => {
+    expect(cancelMined({ ...c, minedHash: '0x3' })).toBe(true)
+    expect(cancelMined(c)).toBe(false) // Replaced with no receipt of ours: another tx took the nonce
+    expect(cancelMined({ ...c, minedHash: H1 })).toBe(false) // the original ran
+    expect(cancelMined({ ...c, kind: 'speedUp', minedHash: '0x3' })).toBe(false)
+    expect(cancelMined({ ...c, state: 'Pending', minedHash: '0x3' })).toBe(false) // not final yet
   })
 })
