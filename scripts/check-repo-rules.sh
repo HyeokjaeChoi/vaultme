@@ -236,7 +236,8 @@ if grep -nE '^[[:space:]]*minimumReleaseAgeExclude' pnpm-workspace.yaml; then
 fi
 
 # R14. The decision ledger covers every requirements decision (#304): docs/decisions.md has one row per Q1-Q81 with a
-# valid status; a GAP row links an issue; a SUPERSEDED row names its record (ADR, issue/PR or commit). The ADR-0021
+# valid status; a GAP row links an issue; a SUPERSEDED row names its record (ADR, issue/PR or commit); an IMPLEMENTED row
+# does not say a part is unbuilt or superseded. The ADR-0021
 # libraries stay installed, so the state decision cannot silently drop again (Q62 and Q65 were lost this way).
 if ! python3 - <<'PY'
 import json, re, sys
@@ -251,6 +252,8 @@ for line in open("docs/decisions.md", encoding="utf-8"):
         if status not in ("IMPLEMENTED", "SUPERSEDED", "GAP", "NOT-APPROVED"): bad.append(f"Q{q}: unknown status {status}")
         if status == "GAP" and not re.search(r"#\d+", record): bad.append(f"Q{q}: GAP needs an issue (#N)")
         if status == "SUPERSEDED" and not re.search(r"ADR-\d{4}|#\d+|\b[0-9a-f]{7,40}\b|\bQ\d+\b", record): bad.append(f"Q{q}: SUPERSEDED needs its record")
+        # An IMPLEMENTED row whose notes name unbuilt or replaced parts contradicts itself (#338, #320): use GAP or SUPERSEDED.
+        if status == "IMPLEMENTED" and re.search(r"not (yet )?(built|implemented|done)|\bmissing\b|\btodo\b|supersed", record, re.I): bad.append(f"Q{q}: IMPLEMENTED, but the notes say a part is not built or superseded; use GAP or SUPERSEDED")
 bad += [f"Q{q}: no row" for q in range(1, 82) if q not in rows]
 deps = {
     "apps/mobile/package.json": ["@tanstack/react-query", "zustand", "react-hook-form", "zod"],

@@ -3,7 +3,7 @@
 One row per approved requirements decision (Q1–Q81, requirements session 2026-10-13, file outputs/vaultme-requirements-session.md at commit 1623a53, read it with git show).
 The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/adr/` record later decisions and changes.
 
-`scripts/check-repo-rules.sh` R14 checks this file: every Q id has one row, the status is valid, a GAP row links an issue, and a SUPERSEDED row names its record.
+`scripts/check-repo-rules.sh` R14 checks this file: every Q id has one row, the status is valid, a GAP row links an issue, a SUPERSEDED row names its record, and an IMPLEMENTED row does not say a part is unbuilt or superseded.
 
 ## Status
 
