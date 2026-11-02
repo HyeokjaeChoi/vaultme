@@ -111,7 +111,6 @@ export function prepare(intent: SendIntent, chain: ChainSnapshot): PrepareResult
   }
 }
 
-/** Sends the signed raw tx. Returns the hash the node reports. */
 /** Node answers that mean the node refused the tx: it is not in the pool, so nothing is recorded (ADR-0031). "already known" is NOT one: the tx is out there. */
 const REFUSED =
   /underpriced|nonce too low|insufficient funds|intrinsic gas|exceeds block gas limit|less than block base fee|invalid sender/i
@@ -124,6 +123,7 @@ export function isNodeRejection(e: unknown): boolean {
   return !KNOWN.test(m) && REFUSED.test(m)
 }
 
+/** Sends the signed raw tx. Returns the hash the node reports. */
 export type SubmitFn = (rawTx: Hex) => Promise<Hash>
 
 export type SubmitResult =
