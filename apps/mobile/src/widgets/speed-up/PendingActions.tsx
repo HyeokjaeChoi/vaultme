@@ -10,7 +10,8 @@ import { SpeedUp } from './SpeedUp'
 
 /**
  * The area under the status of S23 and S41 (ADR-0031): an info line about the last replacement, and while Pending (and before a cancel) "속도 올리기" + "거래 취소" side by side.
- * After a cancel is sent both buttons are gone and the state stays Pending: the line says the cancel was only requested. When the original was processed first the line says so.
+ * After a cancel is sent the state stays Pending: the line says the cancel was only requested, speed up is gone and "거래 취소" stays, so a stuck
+ * cancel can be sent again with a higher fee (Figma 888:6647). When the original was processed first the line says so.
  */
 export function PendingActions({ tx, onDone }: { tx: PendingTx; onDone: () => void }) {
   const { t } = useTranslation()
@@ -25,7 +26,7 @@ export function PendingActions({ tx, onDone }: { tx: PendingTx; onDone: () => vo
         : tx.kind === 'cancel'
           ? 'cancel.requestedLine'
           : null
-  const buttons = pending && tx.kind !== 'cancel'
+  const buttons = pending
   if (!line && !buttons) return null
   return (
     <View
@@ -38,7 +39,7 @@ export function PendingActions({ tx, onDone }: { tx: PendingTx; onDone: () => vo
       {line ? <StatusNotice tone="info" title={t(line)} /> : null}
       {buttons ? (
         <View style={{ flexDirection: 'row', gap: th.semantic.layout.fieldGap }}>
-          <SpeedUp tx={tx} onDone={onDone} />
+          {tx.kind === 'cancel' ? null : <SpeedUp tx={tx} onDone={onDone} />}
           <Cancel tx={tx} onDone={onDone} />
         </View>
       ) : null}

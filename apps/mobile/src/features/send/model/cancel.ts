@@ -1,10 +1,13 @@
 import type { Address, SpeedUpPlan } from '@vaultme/wallet-core'
 import type { PendingTx } from '@/shared/storage'
 import type { ChainPort } from '@/shared/chain'
-import { canSpeedUp, quoteReplace, runReplace, type SpeedUpDeps } from './speedUp'
+import { quoteReplace, runReplace, type SpeedUpDeps } from './speedUp'
 
-/** Cancel is offered in the same cases as speed up: Pending, nothing replaced it yet (ADR-0031 D3). */
-export const canCancel = canSpeedUp
+/**
+ * Cancel is offered while the send is Pending (ADR-0031 D3), also after a cancel was sent: a cancel that never reached the node or is
+ * underpriced can be sent again with a higher fee (no count limit; Figma 888:6647, owner 2026-11-03).
+ */
+export const canCancel = (tx: PendingTx, broadcasts: boolean): boolean => broadcasts && tx.state === 'Pending'
 
 type Snapshotter = Pick<ChainPort, 'getSnapshot' | 'getTransaction'>
 

@@ -287,7 +287,7 @@ function LookupDetail({
  * B-S41 거래 상세 for the send in the kv. State comes from the chain (ARCHITECTURE.md#invariants): receipt + `safe` block = Confirmed or Failed.
  * Hero shares the S23 copy (`resultCopy`); a send the fake adapter never broadcast is a test send ("테스트 거래예요", state "예시", no fee row, 테스트 거래 지우기 with a confirm sheet).
  * Blocks: 받는 주소 / 거래 정보 (시각, 상태, 보낸 계정 from the record — hidden for a record saved before #32, 네트워크, 네트워크 수수료) / 거래 해시 + Etherscan row (real network only). 상태 다시 확인 asks the chain; a Pending or Included send is also re-checked every 15 s while focused.
- * `?demo=<state>` | `?row=in|out` (history row) | `?internal=list|many|loading|error` (내부 이동 states) | `?lookup=loading|failed|none` (S41 lookup states) (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
+ * `?demo=<state>` (+ `&kind=cancel|speedUp`) | `?row=in|out` (history row) | `?internal=list|many|loading|error` (내부 이동 states) | `?lookup=loading|failed|none` (S41 lookup states) (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
  */
 export function TxDetailPage() {
   const { t } = useTranslation()
@@ -295,6 +295,7 @@ export function TxDetailPage() {
   const {
     hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash), or a bare hash
     demo,
+    kind: devKind,
     row: devRow,
     caution: devCaution,
     lookup: devLookup,
@@ -309,6 +310,7 @@ export function TxDetailPage() {
     lookup?: string
     internal?: string
     demo?: string
+    kind?: string
     real?: string
     sheet?: string
     err?: string
@@ -322,7 +324,7 @@ export function TxDetailPage() {
   // The local record wins over a history row with the same hash.
   const tx =
     __DEV__ && demo
-      ? demoTx(demo as TxState)
+      ? demoTx(demo as TxState, devKind === 'cancel' || devKind === 'speedUp' ? devKind : undefined)
       : localRecordMatches(stored ? ownHashes(stored) : undefined, id)
         ? stored
         : null

@@ -72,7 +72,7 @@ export function Cancel({ tx, onDone }: { tx: PendingTx; onDone: () => void }) {
         close()
         onDone()
       } else if (out.status === 'Unknown') {
-        // The answer was unclear: the sheet says so and cannot send a second cancel. The record is read again (it may hold the hash).
+        // The answer was unclear: the sheet says so. The record is read again (it may hold the hash); a second cancel bumps from the signed fees.
         setNotice('unknown')
         onDone()
       } else if (out.status === 'NeedsReview') {

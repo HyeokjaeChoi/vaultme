@@ -94,14 +94,28 @@ describe('quoteCancel', () => {
     const { d } = setup(record(), snap({ nativeBalance: 1n }))
     expect((await quoteCancel(record(), FROM, d.chain)).shortBy).toBeGreaterThan(0n)
   })
-  it('is offered only while Pending and before any cancel; speed up is hidden after a cancel', () => {
+  it('is offered while Pending, also after a cancel (a stuck cancel can be sent again); speed up is hidden after a cancel', () => {
     expect(canCancel(record(), true)).toBe(true)
     expect(canCancel(record(), false)).toBe(false)
     expect(canCancel(record({ state: 'Included' }), true)).toBe(false)
     const cancelled = record({ hashes: [H1, '0x2'], kind: 'cancel' })
-    expect(canCancel(cancelled, true)).toBe(false)
+    expect(canCancel(cancelled, true)).toBe(true)
+    expect(canCancel({ ...cancelled, state: 'Included' }, true)).toBe(false)
     expect(canSpeedUp(cancelled, true)).toBe(false)
     expect(canSpeedUp(record({ kind: 'speedUp' }), true)).toBe(true)
+  })
+  it('a second cancel bumps from the first cancel fee', async () => {
+    const { d } = setup()
+    const first = await quoteCancel(record(), FROM, d.chain)
+    const sent = record({
+      hashes: [H1, '0x2'],
+      kind: 'cancel',
+      maxFeePerGas: String(first.maxFeePerGas),
+      maxPriorityFeePerGas: String(first.maxPriorityFeePerGas),
+    })
+    const again = await quoteCancel(sent, FROM, d.chain)
+    expect(again.maxFeePerGas).toBeGreaterThanOrEqual((first.maxFeePerGas * 11n + 9n) / 10n + 1n)
+    expect(again.gasLimit).toBe(21000n)
   })
   it('a cancel after a speed up bases on the speed-up fee', async () => {
     const { d } = setup()

@@ -19,7 +19,7 @@ import type { SendDeps } from './runSend'
 
 /** Speed up is offered only while the send is Pending (ADR-0031 D3). */
 export const canSpeedUp = (tx: PendingTx, broadcasts: boolean): boolean =>
-  broadcasts && tx.state === 'Pending' && tx.kind !== 'cancel' // after a cancel was sent there is no second action (Figma 888:6647)
+  broadcasts && tx.state === 'Pending' && tx.kind !== 'cancel' // after a cancel was sent only a new cancel is offered (Figma 888:6647)
 
 type Snapshotter = Pick<ChainPort, 'getSnapshot' | 'getTransaction'>
 export type SpeedUpDeps = Omit<SendDeps, 'chain'> & { chain: SendDeps['chain'] & Pick<ChainPort, 'getTransaction'> }
