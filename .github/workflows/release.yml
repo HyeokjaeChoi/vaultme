@@ -274,8 +274,40 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
+  # Release version rule (ADR-0034, #396): version name from the tag, build number = UTC date + count of release runs that day.
+  version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read # count today's release.yml runs
+    outputs:
+      version: ${{ steps.v.outputs.VERSION }}
+      build: ${{ steps.v.outputs.BUILD }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # A dry run (from a branch) checks the rule with a sample tag; only a v* tag run builds.
+          TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v0.0.0' }}
+        shell: bash # -eo pipefail: a rejected tag fails the step even through tee
+        # The day and the count come from this run's own creation: a run that starts after midnight keeps its day, and two tags
+        # on one day get different counts (runs created that day up to this one). A re-run of the same run keeps its number.
+        run: |
+          created="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .created_at)"
+          day="${created%%T*}"
+          count="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release.yml --created "$day" --limit 200 --json databaseId --jq "[.[] | select(.databaseId <= $GITHUB_RUN_ID)] | length")"
+          scripts/release-version.sh "$TAG" "$day" "$count" | tee -a "$GITHUB_OUTPUT"
+
+  # The k6 API benchmark of staging (ADR-0019, ADR-0020): a tier 1 SLO miss stops the release like a failed flow.
+  api-slo:
+    uses: ./.github/workflows/api-bench.yml
+
   eas-build:
-    needs: [balance, ios-critical, android-critical]
+    needs: [version, api-slo, balance, ios-critical, android-critical]
     # Only a v* tag builds (a manual run from a branch never does).
     if: ${{ startsWith(github.ref, 'refs/tags/v') && inputs.dry_run != true }}
     runs-on: ubuntu-latest
@@ -300,4 +332,11 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - name: EAS build (Android APK internal, iOS simulator)
         working-directory: apps/mobile
-        run: eas build --platform all --profile release-staging --non-interactive
+        # appVersionSource local (eas.json): EAS reads app.json, and the archive includes this uncommitted change (docs.expo.dev/build-reference/project-upload).
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          BUILD: ${{ needs.version.outputs.build }}
+        run: |
+          jq --arg v "$VERSION" --arg b "$BUILD" '.expo.version = $v | .expo.ios.buildNumber = $b | .expo.android.versionCode = ($b | tonumber)' app.json > app.json.tmp
+          mv app.json.tmp app.json
+          eas build --platform all --profile release-staging --non-interactive --message "$VERSION ($BUILD)"

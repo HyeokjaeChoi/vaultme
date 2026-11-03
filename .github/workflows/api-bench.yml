@@ -9,6 +9,7 @@ on:
     # Monday 04:17 UTC, after api-latency (03:23). Not at the start of an hour: GitHub delays or drops scheduled runs at :00.
     - cron: '17 4 * * 1'
   workflow_dispatch:
+  workflow_call: # the release gate (release.yml job api-slo, #396): tier 1 SLO blocks the EAS build
 
 permissions:
   contents: read
