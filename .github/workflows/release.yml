@@ -147,6 +147,13 @@ jobs:
           echo "$RUNNER_TEMP/maestro/maestro/bin" >> "$GITHUB_PATH"
       - name: Build the Release APK (staging API)
         run: apps/mobile/.maestro/build-android.sh
+      # The Gradle build fills the 14 GB runner disk and the system image download then failed with "No space left on device" (run 4).
+      # Keep the APK; delete the build caches and big preinstalled toolchains this job does not use.
+      - name: Free disk space
+        run: |
+          rm -rf ~/.gradle apps/mobile/android/.gradle apps/mobile/android/build apps/mobile/android/app/build/intermediates apps/mobile/android/app/.cxx
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/lib/android/sdk/ndk /opt/hostedtoolcache/CodeQL
+          df -h /
       # The runner image has no /dev/kvm access for the runner user by default (rule from the action's README).
       - name: Enable KVM
         run: |
