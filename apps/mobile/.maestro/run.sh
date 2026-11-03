@@ -25,4 +25,20 @@ include=smoke
 export MAESTRO_CLI_NO_ANALYTICS=1
 # The first start of the XCTest driver on a fresh CI simulator took 2.5 min (run 1) and timed out at the default (run 2).
 export MAESTRO_DRIVER_STARTUP_TIMEOUT=600000
-maestro --udid "$udid" test flows --include-tags "$include" --format junit --output ../e2e-report.xml --test-output-dir ../e2e-artifacts
+rm -f ../e2e-report.xml ../e2e-report-retry.xml # a report left from an earlier local run must not pick the flows to retry
+maestro --udid "$udid" test flows --include-tags "$include" --format junit --output ../e2e-report.xml --test-output-dir ../e2e-artifacts && exit 0
+# One retry of the failed flows only (owner decision 2026-11-03, #376): the CI simulator sometimes loses a flow to its own
+# hiccups (driver unreachable, a label not found on a screen that shows it). A flow that fails twice fails the job; a pass on
+# the retry is reported as flaky. A run with no report (e.g. the driver never started) fails at once.
+[ -f ../e2e-report.xml ] || exit 1
+retry=()
+while IFS= read -r name; do
+  for f in flows/*.yaml; do
+    if grep -qxF "name: $name" "$f"; then retry+=("$f"); fi # an if, not &&: a non-matching last file must not end the loop with status 1 (set -e)
+  done
+done < <(python3 -I -c 'import sys, xml.etree.ElementTree as E
+for t in E.parse(sys.argv[1]).iter("testcase"):
+    if t.find("failure") is not None or t.find("error") is not None: print(t.get("name"))' ../e2e-report.xml)
+[ ${#retry[@]} -gt 0 ] || exit 1
+echo "::warning::flaky: retrying ${retry[*]}"
+maestro --udid "$udid" test "${retry[@]}" --format junit --output ../e2e-report-retry.xml --test-output-dir ../e2e-artifacts/retry
