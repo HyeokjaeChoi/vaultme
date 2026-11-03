@@ -2,56 +2,46 @@
 appId: dev.stackline.vaultme
 ---
 - tapOn: '기존 지갑 복구'
+# Each cell is tapped and filled without a trailing space. A space makes the app move focus to the next cell, and on the
+# slow CI runner the next word's keys landed before that move, so words were lost (#376). After each word a tap on the
+# plain description text closes the keyboard (the ScrollView has keyboardShouldPersistTaps="handled"), so the lower cells
+# are not under it. Not hideKeyboard: it is flaky on iOS (Maestro known issue); the focused selector does not see a multiline TextInput.
 - tapOn: '1번째 단어'
-# One word per command; a trailing space commits the word and the app moves focus to the next cell. On the slow CI runner
-# the next word's first keys landed before that move, so words were lost (#376). Each word now waits until the next cell
-# has focus (Maestro `focused` selector). hideKeyboard per word was tried and is flaky on iOS (Maestro known issue).
-- inputText: 'abandon '
-- assertVisible:
-    text: '2번째 단어'
-    focused: true
-- inputText: 'abandon '
-- assertVisible:
-    text: '3번째 단어'
-    focused: true
-- inputText: 'abandon '
-- assertVisible:
-    text: '4번째 단어'
-    focused: true
-- inputText: 'abandon '
-- assertVisible:
-    text: '5번째 단어'
-    focused: true
-- inputText: 'abandon '
-- assertVisible:
-    text: '6번째 단어'
-    focused: true
-- inputText: 'abandon '
-- assertVisible:
-    text: '7번째 단어'
-    focused: true
-- inputText: 'abandon '
-- assertVisible:
-    text: '8번째 단어'
-    focused: true
-- inputText: 'abandon '
-- assertVisible:
-    text: '9번째 단어'
-    focused: true
-- inputText: 'abandon '
-- assertVisible:
-    text: '10번째 단어'
-    focused: true
-- inputText: 'abandon '
-- assertVisible:
-    text: '11번째 단어'
-    focused: true
-- inputText: 'abandon '
-- assertVisible:
-    text: '12번째 단어'
-    focused: true
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '2번째 단어'
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '3번째 단어'
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '4번째 단어'
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '5번째 단어'
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '6번째 단어'
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '7번째 단어'
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '8번째 단어'
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '9번째 단어'
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '10번째 단어'
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '11번째 단어'
+- inputText: 'abandon'
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- tapOn: '12번째 단어'
 - inputText: 'about'
-- hideKeyboard
+- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
 - tapOn: '복구'
 - assertVisible: '복구 완료'
 - assertVisible: '.*0x9858.*'
