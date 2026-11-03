@@ -1,14 +1,12 @@
 # Mobile E2E with Maestro on the iOS simulator (#316, Q54). docs/testing/e2e.md explains the gate.
 # PR: the smoke flows (create, restore, send up to the amount screen) when the PR touches the app or a package it uses.
-# Nightly on main + manual run: every flow. It becomes the release hard gate once a production environment exists (ADR-0025).
+# Manual run (workflow_dispatch): every flow. No nightly run (owner decision 2026-11-03, #381); the release gate is release.yml (ADR-0032).
 # Required check = the job `e2e`. It is always created, so it always reports: on a PR that touches no app file it is skipped,
 # and GitHub counts a skipped job as passed for branch protection (a workflow-level `paths:` filter would leave the check missing and block the merge).
 name: e2e
 
 on:
   pull_request:
-  schedule:
-    - cron: '0 18 * * *' # 03:00 Asia/Seoul
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,7 @@
+# Taps one amount keypad key (KEY = a digit, or 소수점 for the dot). `below: 25%` keeps the match to the keypad: the amount above it
+# also shows the digit "0" as text (Android lists that text view next to the key).
+appId: dev.stackline.vaultme
+---
+- tapOn:
+    text: '${KEY}'
+    below: '25%'

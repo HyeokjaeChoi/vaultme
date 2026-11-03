@@ -1,0 +1,80 @@
+# Restores the funded E2E wallet and lands on Home (#381). Params: PASSPHRASE ("" = none), PREFIX (first 6 characters of the expected address).
+# The phrase comes from the shell env MAESTRO_PHRASE (Maestro docs: shell variables prefixed MAESTRO_ are readable in flows); 12 words.
+appId: dev.stackline.vaultme
+---
+- tapOn: '기존 지갑 복구'
+- extendedWaitUntil:
+    visible: '1번째 단어'
+    timeout: 15000
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 1
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 2
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 3
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 4
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 5
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 6
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 7
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 8
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 9
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 10
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 11
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 12
+# Optional BIP39 passphrase: the row is collapsed; on the small Android screen scroll to it first.
+- runFlow:
+    when:
+      true: ${PASSPHRASE.length > 0}
+    commands:
+      - scrollUntilVisible:
+          element: '고급 · 패스프레이즈 입력'
+          direction: DOWN
+      - tapOn: '고급 · 패스프레이즈 입력'
+      - tapOn:
+          below: '고급 · 패스프레이즈 입력'
+      - inputText: ${PASSPHRASE}
+      # iOS only: on Android hideKeyboard presses Back and would leave the screen (#382). Optional: it is flaky on iOS.
+      - runFlow:
+          when:
+            platform: iOS
+          commands:
+            - hideKeyboard:
+                optional: true
+- tapOn: '복구'
+- assertVisible: '복구 완료'
+- assertVisible: '(?i).*${PREFIX}.*'
+- tapOn: '지갑 열기'
+- assertVisible: 'Sepolia ETH'
