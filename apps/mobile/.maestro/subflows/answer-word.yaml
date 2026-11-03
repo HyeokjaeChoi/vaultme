@@ -8,5 +8,10 @@ appId: dev.stackline.vaultme
       - tapOn:
           below: '${N}번째 단어'
       - inputText: ${output.words[N]}
-      - hideKeyboard:
-          optional: true
+      # iOS only: on Android hideKeyboard presses Back and would leave the screen (#382).
+      - runFlow:
+          when:
+            platform: iOS
+          commands:
+            - hideKeyboard:
+                optional: true

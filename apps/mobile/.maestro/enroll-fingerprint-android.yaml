@@ -1,0 +1,20 @@
+# Enrolls a fingerprint on the throwaway CI emulator (run.sh, PLATFORM=android). The screen lock PIN is already set and the
+# enrollment screen is open; the touch loop of run.sh feeds the sensor. Not in flows/, so `maestro test flows` never picks it up.
+appId: com.android.settings
+---
+# Confirm the PIN set by run.sh (test value 1234); a screen that does not ask for it ignores the keys.
+- extendedWaitUntil:
+    visible: '.*(PIN|pin).*'
+    timeout: 30000
+    optional: true
+- inputText: '1234'
+- pressKey: Enter
+# Intro, "touch the sensor" and "all set" screens: press whatever forward button shows.
+- repeat:
+    times: 12
+    commands:
+      - tapOn:
+          text: 'I agree|Agree|More|Next|Done|Start|Got it'
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 2000
