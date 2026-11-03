@@ -281,6 +281,9 @@ fi
 if ! bash scripts/check-migrations.test.sh; then
   err "R16: scripts/check-migrations.test.sh failed"
 fi
+if ! bash scripts/release-version.test.sh; then
+  err "R16: scripts/release-version.test.sh failed (release version rule, ADR-0034)"
+fi
 if ! bash scripts/check-migrations.sh; then
   err "R16: a migration drops or renames without '-- contract-ok: <reason>' (see above)"
 fi
