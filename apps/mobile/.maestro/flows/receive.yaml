@@ -1,6 +1,6 @@
 appId: dev.stackline.vaultme
 name: receive shows the restored address
-tags: [full]
+tags: [full, critical]
 ---
 - runFlow: ../subflows/start-fresh.yaml
 - runFlow: ../subflows/restore-vector.yaml

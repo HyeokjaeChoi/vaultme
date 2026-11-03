@@ -1,6 +1,6 @@
 appId: dev.stackline.vaultme
 name: send flow up to the amount screen (never broadcasts)
-tags: [smoke]
+tags: [smoke, critical]
 ---
 - runFlow: ../subflows/start-fresh.yaml
 - runFlow: ../subflows/restore-vector.yaml

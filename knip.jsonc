@@ -7,7 +7,7 @@
   // Run as binaries from .githooks/ and lint-staged.config.mjs, which knip does not read.
   "ignoreDependencies": ["eslint", "lint-staged"],
   "workspaces": {
-    ".": { "entry": ["scripts/*.mjs"] },
+    ".": { "entry": ["scripts/*.{mjs,mts}"] },
     "apps/api": {
       // The vitest plugin cannot load this config from the repo root (readD1Migrations reads ./migrations).
       "vitest": false,

@@ -8,11 +8,11 @@ Files: `apps/mobile/.maestro/flows/`. Shared steps: `apps/mobile/.maestro/subflo
 
 | Flow | Tag | What it proves |
 |---|---|---|
-| `create.yaml` | smoke | New wallet (3 checks, OS auth), reveal the phrase, word check, Receive opens |
-| `restore.yaml` | smoke | Restore the public test vector (R10); address `0x9858…da94` shows |
-| `send.yaml` | smoke | Home, Send, recipient address, amount screen |
-| `lock.yaml` | full | Cold start shows the lock gate; OS auth opens Home |
-| `receive.yaml` | full | Receive shows the restored address |
+| `create.yaml` | smoke, critical | New wallet (3 checks, OS auth), reveal the phrase, word check, Receive opens |
+| `restore.yaml` | smoke, critical | Restore the public test vector (R10); address `0x9858…da94` shows |
+| `send.yaml` | smoke, critical | Home, Send, recipient address, amount screen |
+| `lock.yaml` | full, critical | Cold start shows the lock gate; OS auth opens Home |
+| `receive.yaml` | full, critical | Receive shows the restored address |
 
 Known limit: `send.yaml` stops at the amount screen, not Review. The test vector has 0 ETH on Sepolia, and the amount screen only
 opens Review for an amount above 0 that the balance covers. Review needs a funded test wallet (owner decision; its phrase would be a CI secret, never in the repo).
@@ -42,7 +42,9 @@ Workflow: `.github/workflows/e2e.yml`. Required check: job `e2e` (add it to the 
 - Other PRs: the job `changes` finds no such file and the job `e2e` is skipped. A skipped job counts as passed for a required check, so these PRs merge without a macOS run. A workflow-level `paths:` filter would not work: the check would never report and the PR would wait forever.
 - Retry: `run.sh` runs each failed flow once more (owner decision 2026-11-03, #376). A flow that fails twice fails the job. A pass on the retry shows a `flaky` warning in the job log, and the retry report is `e2e-report-retry.xml` in the `e2e-report` artifact.
 - Nightly (03:00 Asia/Seoul) on `main` and `workflow_dispatch`: all flows. A red nightly is a bug to fix before the next release.
-- Release gate (ADR-0032, #378; not built yet: #380, #381, #382): a `v*` tag will run the critical path (flows tagged `critical`) on iOS and Android; only a pass will build the app with EAS. The release run broadcasts real Sepolia sends from a funded wallet; its phrase (`E2E_RELEASE_PHRASE`, GitHub Environment `release`) and those flows' artifacts never reach a log or an upload.
+- Release gate (ADR-0032, #378; Android #382 and the funded send flows #381 not built yet): a `v*` tag runs the critical path (flows tagged `critical`); only a pass builds the app with EAS. The release run will broadcast real Sepolia sends from a funded wallet (#381); its phrase (`E2E_RELEASE_PHRASE`, GitHub Environment `release`) and those flows' artifacts never reach a log or an upload.
+- Release workflow: `.github/workflows/release.yml` (#380). Job `balance` checks the funded wallet (`scripts/release-balance.mts`), job `ios-critical` runs `run.sh critical`, job `eas-build` (profile `release-staging`) runs only after both pass. A manual run with `dry_run` runs only `ios-critical` (no Environment, no EAS). A retry pass opens a "flaky e2e" issue.
+- Release owner setup (ADR-0032 Consequences): a funded Sepolia wallet (ETH and USDC on account 1); GitHub Environment `release` that admits only `v*` tags, with secrets `E2E_RELEASE_PHRASE` and `EXPO_TOKEN`; Android signing credentials on Expo (`eas credentials`, once); `e2e` as a required check of `protect-main`; a tag ruleset so only the owner creates `v*` tags.
 - Runner: GitHub-hosted `macos-26` (the repository is public). Maestro is pinned (2.11.0, zip checked against its SHA-256). Build: Release, staging API, no test flag.
 
 Sources: Maestro docs (install a version with `MAESTRO_VERSION`, `launchApp` `clearState`/`clearKeychain`, `--include-tags`) read through ctx7 on 2026-11-01; GitHub Docs on skipped required jobs.
