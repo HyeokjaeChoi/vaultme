@@ -10,9 +10,11 @@ phrase="$(printf '%s' "${E2E_RELEASE_PHRASE:?E2E_RELEASE_PHRASE is missing}" | t
 while IFS= read -r line; do export "$line"; done < <(cd "$root" && pnpm exec tsx scripts/release-wallet-env.mts "$sender")
 export MAESTRO_PHRASE="$phrase"
 unset E2E_RELEASE_PHRASE
-# Unique amounts per run, so a deposit row of an earlier run cannot satisfy the receive check: ETH 0.000NNN (NNN 100-999), USDC 0.NN (NN 01-98).
+# Amounts per run, so a deposit row of an earlier run cannot satisfy the receive check: ETH 0.000NNN, USDC 0.NN.
 n=$(( ${GITHUB_RUN_NUMBER:-1} * 3 + ${GITHUB_RUN_ATTEMPT:-1} ))
-export MAESTRO_ETH_SUFFIX=$(( 100 + n % 900 ))
-MAESTRO_USDC_SUFFIX="$(printf '%02d' $(( 1 + n % 98 )))"
+# The last digit is never 0: Activity rows trim trailing zeros (0.000120 shows as 0.00012), and the flows match the digits as typed.
+# ETH repeats after 810 runs, the ETH + USDC pair after 72,090.
+k=$(( n % 810 )); export MAESTRO_ETH_SUFFIX=$(( 100 + k / 9 * 10 + k % 9 + 1 ))
+k=$(( n % 89 )); MAESTRO_USDC_SUFFIX="$(printf '%02d' $(( k / 9 * 10 + k % 9 + 1 )))"
 export MAESTRO_USDC_SUFFIX
 "$(dirname "$0")/run.sh" release
