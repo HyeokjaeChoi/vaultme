@@ -143,6 +143,12 @@ typography:
     fontWeight: 500
     lineHeight: 20px
     letterSpacing: -0.0143em
+  value:
+    fontFamily: Pretendard
+    fontSize: 14px
+    fontWeight: 400
+    lineHeight: 20px
+    letterSpacing: -0.0143em
   caption:
     fontFamily: Pretendard
     fontSize: 12px

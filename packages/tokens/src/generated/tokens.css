@@ -357,6 +357,11 @@
   --primitive-type-product-b-label-font-size: var(--primitive-font-size-sm);
   --primitive-type-product-b-label-line-height: var(--primitive-font-line-height-px20);
   --primitive-type-product-b-label-letter-spacing: var(--primitive-font-tracking-label);
+  --primitive-type-product-b-value-font-family: var(--primitive-font-family-pretendard);
+  --primitive-type-product-b-value-font-weight: var(--primitive-font-weight-regular);
+  --primitive-type-product-b-value-font-size: var(--primitive-font-size-sm);
+  --primitive-type-product-b-value-line-height: var(--primitive-font-line-height-px20);
+  --primitive-type-product-b-value-letter-spacing: var(--primitive-font-tracking-label);
   --primitive-type-product-b-caption-font-family: var(--primitive-font-family-pretendard);
   --primitive-type-product-b-caption-font-weight: var(--primitive-font-weight-regular);
   --primitive-type-product-b-caption-font-size: var(--primitive-font-size-xs);

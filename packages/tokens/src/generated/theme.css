@@ -253,6 +253,10 @@
   --text-product-b-label--line-height: var(--primitive-type-product-b-label-line-height);
   --text-product-b-label--letter-spacing: var(--primitive-type-product-b-label-letter-spacing);
   --text-product-b-label--font-weight: var(--primitive-type-product-b-label-font-weight);
+  --text-product-b-value: var(--primitive-type-product-b-value-font-size);
+  --text-product-b-value--line-height: var(--primitive-type-product-b-value-line-height);
+  --text-product-b-value--letter-spacing: var(--primitive-type-product-b-value-letter-spacing);
+  --text-product-b-value--font-weight: var(--primitive-type-product-b-value-font-weight);
   --text-product-b-caption: var(--primitive-type-product-b-caption-font-size);
   --text-product-b-caption--line-height: var(--primitive-type-product-b-caption-line-height);
   --text-product-b-caption--letter-spacing: var(--primitive-type-product-b-caption-letter-spacing);
