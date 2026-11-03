@@ -5,4 +5,8 @@ tags: [full, critical]
 - runFlow: ../subflows/start-fresh.yaml
 - runFlow: ../subflows/restore-vector.yaml
 - tapOn: '받기'
-- assertVisible: '0 x 9 8 5 8, .*|.*0x9858.*' # the address itself: iOS reads its label (spelled out by group), Android its text; the QR is also named "받기 주소 QR 코드" (#382)
+# The address itself: iOS reads its label (spelled out by group), Android its text; the QR is also named "받기 주소 QR 코드".
+# On the small CI emulator the address sits under the footer, so scroll to it (#382).
+- scrollUntilVisible:
+    element: '0 x 9 8 5 8, .*|.*0x9858.*'
+    direction: DOWN

@@ -42,4 +42,8 @@ tags: [smoke, critical]
 - runFlow: { file: ../subflows/answer-word.yaml, env: { N: '12' } }
 - tapOn: '확인'
 # Right words: backup done, Receive opens (S30) with the wallet address.
-- assertVisible: '0 x( [0-9a-fA-F]){4}, .*|.*0x[0-9a-fA-F]{4}.*' # the new address itself: iOS reads its label (spelled out by group), Android its text; the QR is also named "받기 주소 QR 코드" (#382)
+# The address itself: iOS reads its label (spelled out by group), Android its text; the QR is also named "받기 주소 QR 코드".
+# On the small CI emulator the address sits under the footer, so scroll to it (#382).
+- scrollUntilVisible:
+    element: '0 x( [0-9a-fA-F]){4}, .*|.*0x[0-9a-fA-F]{4}.*'
+    direction: DOWN
