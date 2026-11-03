@@ -1,6 +1,8 @@
 # 0025. Deployment environments and chain networks are separate axes; production is created at the first public release
 
 Status: Accepted (2026-11-01 from issue #316, owner decision of 2026-11-01)
+
+Superseded in part by [0032](0032-release-gate-maestro-critical-path.md): the release tag and the E2E release gate (a `v*` tag runs the Maestro critical path before production exists). The rest still binds.
 Supersedes/Aliases: Q52 in part (production environment, EAS production channel), Q53 in part (gradual deploy), Q55 in part (release tag, manual approval, gradual deploy)
 
 ## Context
