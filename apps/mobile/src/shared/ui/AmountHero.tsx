@@ -23,10 +23,12 @@ type Props = {
   link?: { label: string; onPress: () => void }
   /** Kind=Confirmed (S23 only): logo 96, a 32 pt check badge that scales 0.6 -> 1.0 in 400 ms (Reduce Motion: no scale), Title 1. */
   celebrate?: boolean
+  /** Cancelled send: the amount is muted (text/tertiary) and struck through (Figma 888:6726). */
+  struck?: boolean
 }
 
 /** Amount hero. Review (S22): logo 48, Figure + unit, sentence. Result (S23, S41): logo 56 + row badge, Title 2, Figure + unit, sentence, all centered. The figure is the only 700 weight. */
-export function AmountHero({ asset, amount, unit, lines, result, note, link, celebrate }: Props) {
+export function AmountHero({ asset, amount, unit, lines, result, note, link, celebrate, struck }: Props) {
   const t = useTheme()
   const pop = useCheckPop(!!celebrate && !!result)
   const big = !!celebrate && !!result
@@ -83,10 +85,20 @@ export function AmountHero({ asset, amount, unit, lines, result, note, link, cel
           justifyContent: align,
         }}
       >
-        <Text variant="figure" tabular>
+        <Text
+          variant="figure"
+          tabular
+          {...(struck
+            ? { color: t.semantic.text.tertiary, style: { textDecorationLine: 'line-through' as const } }
+            : {})}
+        >
           {amount}
         </Text>
-        <Text variant="figureUnit" color={t.semantic.text.secondary}>
+        <Text
+          variant="figureUnit"
+          color={struck ? t.semantic.text.tertiary : t.semantic.text.secondary}
+          {...(struck ? { style: { textDecorationLine: 'line-through' as const } } : {})}
+        >
           {unit}
         </Text>
       </View>

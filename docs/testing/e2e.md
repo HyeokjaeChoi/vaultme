@@ -1,6 +1,6 @@
 # Mobile E2E with Maestro
 
-Owner decision C (2026-11-01, issue #316, Q54): Maestro drives the real Release app on an iOS simulator. No transaction is ever broadcast.
+Owner decision C (2026-11-01, issue #316, Q54): Maestro drives the real Release app on an iOS simulator. The PR smoke and the nightly run never broadcast a transaction.
 
 ## Flows
 
@@ -42,8 +42,8 @@ Workflow: `.github/workflows/e2e.yml`. Required check: job `e2e` (add it to the 
 - Other PRs: the job `changes` finds no such file and the job `e2e` is skipped. A skipped job counts as passed for a required check, so these PRs merge without a macOS run. A workflow-level `paths:` filter would not work: the check would never report and the PR would wait forever.
 - Retry: `run.sh` runs each failed flow once more (owner decision 2026-11-03, #376). A flow that fails twice fails the job. A pass on the retry shows a `flaky` warning in the job log, and the retry report is `e2e-report-retry.xml` in the `e2e-report` artifact.
 - Nightly (03:00 Asia/Seoul) on `main` and `workflow_dispatch`: all flows. A red nightly is a bug to fix before the next release.
-- Release: `.github/workflows/release.yml` runs on a `v*` tag (#380). Job `balance` checks the funded wallet (`scripts/release-balance.mts`, secret `E2E_RELEASE_PHRASE` in Environment `release`), job `ios-critical` runs `run.sh critical` (flows tagged `critical`), job `eas-build` (profile `release-staging`) runs only after both pass. A manual run with `dry_run` runs only `ios-critical` (no Environment, no EAS). A retry pass opens a "flaky e2e" issue.
-- Once a production environment exists (ADR-0025), the full run becomes the hard gate of the release pipeline.
+- Release gate (ADR-0032, #378; Android #382 and the funded send flows #381 not built yet): a `v*` tag runs the critical path (flows tagged `critical`); only a pass builds the app with EAS. The release run will broadcast real Sepolia sends from a funded wallet (#381); its phrase (`E2E_RELEASE_PHRASE`, GitHub Environment `release`) and those flows' artifacts never reach a log or an upload.
+- Release workflow: `.github/workflows/release.yml` (#380). Job `balance` checks the funded wallet (`scripts/release-balance.mts`), job `ios-critical` runs `run.sh critical`, job `eas-build` (profile `release-staging`) runs only after both pass. A manual run with `dry_run` runs only `ios-critical` (no Environment, no EAS). A retry pass opens a "flaky e2e" issue.
 - Runner: GitHub-hosted `macos-26` (the repository is public). Maestro is pinned (2.11.0, zip checked against its SHA-256). Build: Release, staging API, no test flag.
 
 Sources: Maestro docs (install a version with `MAESTRO_VERSION`, `launchApp` `clearState`/`clearKeychain`, `--include-tags`) read through ctx7 on 2026-11-01; GitHub Docs on skipped required jobs.

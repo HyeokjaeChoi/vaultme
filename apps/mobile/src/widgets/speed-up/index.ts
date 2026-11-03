@@ -1,1 +1,1 @@
-export { SpeedUp } from './SpeedUp'
+export { PendingActions } from './PendingActions'

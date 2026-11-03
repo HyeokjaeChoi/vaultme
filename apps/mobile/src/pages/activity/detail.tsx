@@ -19,6 +19,7 @@ import {
 } from '@/features/history'
 import type { TxState } from '@/features/send'
 import {
+  cancelMined,
   clearTestTx,
   explorerHash,
   ownHashes,
@@ -61,7 +62,7 @@ import { AddressText } from '@/shared/ui'
 import { fakeHistoryItems } from '@/widgets/activity-list'
 import { InternalTransfers } from '@/widgets/internal-transfers'
 import { NetworkChips } from '@/widgets/network-chips'
-import { SpeedUp } from '@/widgets/speed-up'
+import { PendingActions } from '@/widgets/speed-up'
 import { Loading } from './Loading'
 
 // __DEV__ capture only (`?row=in|out`): a history row as in Figma Flow 4 A 742:2487 / B 742:2584.
@@ -343,7 +344,7 @@ function LookupDetail({
  * B-S41 거래 상세 for the send in the kv. State comes from the chain (ARCHITECTURE.md#invariants): receipt + `safe` block = Confirmed or Failed.
  * Hero shares the S23 copy (`resultCopy`); a send the fake adapter never broadcast is a test send ("테스트 거래예요", state "예시", no fee row, 테스트 거래 지우기 with a confirm sheet).
  * Blocks: 받는 주소 / 거래 정보 (시각, 상태, 보낸 계정 from the record — hidden for a record saved before #32, 네트워크, 네트워크 수수료) / 거래 해시 + Etherscan row (real network only). 상태 다시 확인 asks the chain; a Pending or Included send is also re-checked every 15 s while focused.
- * `?demo=<state>` | `?row=in|out` (history row) | `?internal=list|many|loading|error` (내부 이동 states) | `?lookup=loading|failed|none` (S41 lookup states) (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
+ * `?demo=<state>` (+ `&kind=cancel|speedUp`) | `?row=in|out` (history row) | `?internal=list|many|loading|error` (내부 이동 states) | `?lookup=loading|failed|none` (S41 lookup states) (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
  */
 export function TxDetailPage() {
   const { t } = useTranslation()
@@ -351,6 +352,7 @@ export function TxDetailPage() {
   const {
     hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash), or a bare hash
     demo,
+    kind: devKind,
     row: devRow,
     caution: devCaution,
     lookup: devLookup,
@@ -365,6 +367,7 @@ export function TxDetailPage() {
     lookup?: string
     internal?: string
     demo?: string
+    kind?: string
     real?: string
     sheet?: string
     err?: string
@@ -378,7 +381,7 @@ export function TxDetailPage() {
   // The local record wins over a history row with the same hash.
   const tx =
     __DEV__ && demo
-      ? demoTx(demo as TxState)
+      ? demoTx(demo as TxState, devKind === 'cancel' || devKind === 'speedUp' ? devKind : undefined)
       : localRecordMatches(stored ? ownHashes(stored) : undefined, id)
         ? stored
         : null
@@ -415,7 +418,8 @@ export function TxDetailPage() {
   const explorer =
     explorerUrl(chain, explorerHash(tx)) ??
     (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${explorerHash(tx)}` : null)
-  const copy = resultCopy(tx.state)
+  const cancelled = cancelMined(tx)
+  const copy = resultCopy(tx.state, cancelled)
   const test = testMode && isPolled(tx.state)
   const final = isFinal(tx.state)
   const [figure, unit] = showAmount(tx.amount, tx.asset, 'exact').split(' ')
@@ -459,20 +463,10 @@ export function TxDetailPage() {
         asset={tx.asset === 'USDC' ? 'USDC' : 'ETH'}
         amount={figure ?? tx.amount}
         unit={unit ?? tx.asset}
+        struck={cancelled}
         lines={(test ? t('result.testBody') : t(copy.body)).split('\n')}
       />
-      {!test && tx.state === 'Pending' ? (
-        <View
-          style={{
-            paddingHorizontal: th.semantic.layout.screen.padding,
-            paddingBottom: th.semantic.layout.sectionGap.product,
-            gap: th.semantic.layout.fieldGap,
-          }}
-        >
-          {tx.kind === 'speedUp' ? <StatusNotice tone="info" title={t('speedUp.sentLine')} /> : null}
-          <SpeedUp tx={tx} onDone={reload} />
-        </View>
-      ) : null}
+      {!test ? <PendingActions tx={tx} onDone={reload} /> : null}
       <SectionBand />
       <Block>
         <DetailRow
