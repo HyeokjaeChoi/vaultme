@@ -57,6 +57,7 @@ import {
   StatusNotice,
   Text,
 } from '@/shared/ui'
+import { AddressText } from '@/shared/ui'
 import { fakeHistoryItems } from '@/widgets/activity-list'
 import { InternalTransfers } from '@/widgets/internal-transfers'
 import { NetworkChips } from '@/widgets/network-chips'
@@ -224,15 +225,21 @@ function RowDetail({
       <SectionBand />
       {row.counterparty ? (
         <>
-          <Block>
-            <DetailRow
-              label={t(copy.counterpartyTitle)}
-              value={shortAddress(row.counterparty)}
-              // A caution row (look-alike address) offers no copy: the banner above says not to copy it. Figma 883:4375 draws the icon; owner decision in the PR.
-              {...(row.caution ? {} : { copy: copyOf(t, t(copy.counterpartyTitle), row.counterparty) })}
-            />
-            {row.caution ? <NewSenderLine row={row} /> : null}
-          </Block>
+          {row.caution ? (
+            // A look-alike sender: the full address, no copy (the banner says not to copy it), so the middle can be compared. Figma 883:4375 draws the short row with a copy icon; deviation on purpose (PR #375).
+            <Block title={t(copy.counterpartyTitle)}>
+              <AddressText address={row.counterparty} />
+              <NewSenderLine row={row} />
+            </Block>
+          ) : (
+            <Block>
+              <DetailRow
+                label={t(copy.counterpartyTitle)}
+                value={shortAddress(row.counterparty)}
+                copy={copyOf(t, t(copy.counterpartyTitle), row.counterparty)}
+              />
+            </Block>
+          )}
           <SectionBand />
         </>
       ) : null}
