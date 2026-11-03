@@ -1,7 +1,7 @@
 # Release gate (#380, #378). A release is a `v*` tag. The tag run checks the funded wallet, runs the Maestro critical path on the
 # iOS simulator, and only when both pass builds the app with EAS. Failed flows retry once (run.sh); a retry pass continues and opens
 # a "flaky e2e" issue; two failures stop the build. Android flows (#382) and funded real-send flows (#381) come later.
-# `dry_run` skips EAS (no EXPO_TOKEN needed) and lets a missing E2E_RELEASE_PHRASE pass with a notice.
+# `dry_run` runs only the iOS critical path: no balance check (no Environment), no EAS build.
 name: release
 
 on:
@@ -28,13 +28,14 @@ env:
 
 jobs:
   balance:
+    # A dry run skips this job: the release Environment admits only v* tags, so a dispatch from a branch could not read it.
+    if: ${{ inputs.dry_run != true }}
     runs-on: ubuntu-latest
     environment: release # E2E_RELEASE_PHRASE lives only here
     timeout-minutes: 10
     env:
       MIN_ETH: '0.01'
       MIN_USDC: '1'
-      DRY_RUN: ${{ inputs.dry_run == true }}
       E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -106,6 +107,7 @@ jobs:
           name: e2e-report
           path: |
             apps/mobile/e2e-report.xml
+            apps/mobile/e2e-report-retry.xml
             apps/mobile/e2e-artifacts
             !apps/mobile/e2e-artifacts/**/create wallet through backup/**
           retention-days: 14

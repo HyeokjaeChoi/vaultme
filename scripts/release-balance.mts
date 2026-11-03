@@ -1,7 +1,7 @@
 // Release gate (#380): the funded E2E wallet must hold enough Sepolia ETH and USDC. Reads E2E_RELEASE_PHRASE from the env,
 // derives account 1 (m/44'/60'/0'/0/0) with wallet-core, reads both balances over a public Sepolia RPC (eth_getBalance and
 // ERC-20 balanceOf by eth_call). Prints the address and balances only, never the phrase. Exit 1 on short funds or a bad phrase.
-// Env: E2E_RELEASE_PHRASE, MIN_ETH (default 0.01), MIN_USDC (default 1), SEPOLIA_RPC_URL, DRY_RUN=true (a missing phrase passes with a notice).
+// Env: E2E_RELEASE_PHRASE, MIN_ETH (default 0.01), MIN_USDC (default 1), SEPOLIA_RPC_URL. A dry run does not run this script (release.yml).
 import { ASSETS } from '../packages/wallet-core/src/constants.ts'
 import { deriveAddress, toMnemonic } from '../packages/wallet-core/src/signer.ts'
 
@@ -10,13 +10,8 @@ const fail = (msg: string): never => {
   process.exit(1)
 }
 const phrase = process.env.E2E_RELEASE_PHRASE?.trim()
-if (!phrase) {
-  if (process.env.DRY_RUN === 'true') {
-    console.log('::notice::E2E_RELEASE_PHRASE is not set; dry run, balance check skipped.')
-    process.exit(0)
-  }
+if (!phrase)
   fail('E2E_RELEASE_PHRASE is missing in the GitHub Environment `release`. A tag run needs the funded wallet.')
-}
 const mnemonic = toMnemonic(phrase as string)
 if (!mnemonic) fail('E2E_RELEASE_PHRASE is not a valid recovery phrase (12 or 24 words).')
 const address = deriveAddress(mnemonic!)
