@@ -1,7 +1,8 @@
 # Release gate (#380, #378). A release is a `v*` tag. The tag run checks the funded wallet, runs the Maestro critical path on the
 # iOS simulator and the Android emulator, and only when all pass builds the app with EAS. Failed flows retry once (run.sh); a retry
-# pass continues and opens a "flaky e2e" issue; two failures stop the build. Funded real-send flows (#381) come later.
-# `dry_run` runs only the two critical paths: no balance check (no Environment), no EAS build.
+# pass continues and opens a "flaky e2e" issue; two failures stop the build. A tag run also runs the funded flows (#381): real Sepolia
+# sends between two wallets of one phrase (iOS: A sends to B, Android: B sends to A), then the other wallet is restored and lists them.
+# `dry_run` runs only the two critical paths: no balance check, no Environment (so no phrase), no funded flows, no EAS build.
 name: release
 
 on:
@@ -55,6 +56,8 @@ jobs:
     needs: balance
     if: ${{ !cancelled() && (needs.balance.result == 'success' || (inputs.dry_run == true && needs.balance.result == 'skipped')) }}
     runs-on: macos-26
+    # A tag run reads the secret phrase for the funded flows, so it needs the Environment; a dry run (dispatch from a branch) has none.
+    environment: ${{ inputs.dry_run != true && 'release' || '' }}
     timeout-minutes: 90
     permissions:
       contents: read
@@ -72,7 +75,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21 # Maestro needs Java 17 or newer
-      - run: pnpm install --frozen-lockfile --filter @vaultme/mobile...
+      - run: pnpm install --frozen-lockfile --filter vaultme --filter @vaultme/mobile... # root: tsx for the funded wallet addresses
       - name: Install Maestro ${{ env.MAESTRO_VERSION }}
         run: |
           curl -fsSL -o "$RUNNER_TEMP/maestro.zip" "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
@@ -89,9 +92,23 @@ jobs:
           xcrun simctl boot "$udid"
           xcrun simctl bootstatus "$udid" -b
           echo "SIM_UDID=$udid" >> "$GITHUB_ENV"
-      - name: Run the critical flows
+      - name: Run the critical flows (dry run)
+        if: ${{ inputs.dry_run == true }}
         shell: bash # -eo pipefail: a failed run.sh fails the step even through tee
         run: apps/mobile/.maestro/run.sh critical 2>&1 | tee "$RUNNER_TEMP/critical.log"
+      # The secret is set on the next two steps only, never on the job. Masks last for the rest of the job, so they get a step of their own
+      # (the Maestro output is tee'd to a file, and the mask lines must not land in it).
+      - name: Mask the recovery phrase
+        if: ${{ inputs.dry_run != true }}
+        env:
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
+        run: apps/mobile/.maestro/mask-phrase.sh
+      - name: Run the critical and funded flows (wallet A sends to B)
+        if: ${{ inputs.dry_run != true }}
+        shell: bash # -eo pipefail: a failed run.sh fails the step even through tee
+        env:
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
+        run: apps/mobile/.maestro/release-run.sh a 2>&1 | tee "$RUNNER_TEMP/critical.log"
       # run.sh prints `::warning::flaky ...` when a flow failed once and passed on the retry (#377).
       - name: Open a flaky e2e issue
         if: ${{ success() }}
@@ -104,7 +121,7 @@ jobs:
           gh issue create --repo "$GITHUB_REPOSITORY" --title "flaky e2e in release $REF_NAME" \
             --body "A critical flow failed once and passed on the retry in release run $url. Find the flow in the step log (lines with \`flaky\`) and fix the cause."
       # The create flow shows a generated recovery phrase: its screenshots and commands stay out of the public artifact (testnet-only, but never published).
-      - if: ${{ !cancelled() }}
+      - if: ${{ !cancelled() && inputs.dry_run == true }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-report
@@ -115,12 +132,33 @@ jobs:
             !apps/mobile/e2e-artifacts/**/create wallet through backup/**
           retention-days: 14
           if-no-files-found: warn
+      # A tag run uploads only the JUnit reports: the funded flows type the real phrase, so their screenshots and command logs never leave the runner.
+      # The check fails (and nothing is uploaded) when a phrase word is in a report; it prints the file, never the word.
+      - name: Check the reports for phrase words
+        id: guard
+        if: ${{ !cancelled() && inputs.dry_run != true }}
+        # A hit skips the upload, not the release: BIP39 has words like "wallet", "address", "home" that flow names also use.
+        continue-on-error: true
+        env:
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
+        run: apps/mobile/.maestro/check-no-phrase.sh apps/mobile/e2e-report.xml apps/mobile/e2e-report-retry.xml
+      - if: ${{ !cancelled() && inputs.dry_run != true && steps.guard.outcome == 'success' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-report
+          path: |
+            apps/mobile/e2e-report.xml
+            apps/mobile/e2e-report-retry.xml
+          retention-days: 14
+          if-no-files-found: warn
 
   android-critical:
     # Same gate as ios-critical; the two run in parallel. GitHub-hosted ubuntu has KVM, so the emulator is hardware accelerated.
     needs: balance
     if: ${{ !cancelled() && (needs.balance.result == 'success' || (inputs.dry_run == true && needs.balance.result == 'skipped')) }}
     runs-on: ubuntu-latest
+    # A tag run reads the secret phrase for the funded flows, so it needs the Environment; a dry run (dispatch from a branch) has none.
+    environment: ${{ inputs.dry_run != true && 'release' || '' }}
     timeout-minutes: 90
     permissions:
       contents: read
@@ -138,7 +176,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21 # Gradle (React Native) and Maestro
-      - run: pnpm install --frozen-lockfile --filter @vaultme/mobile...
+      - run: pnpm install --frozen-lockfile --filter vaultme --filter @vaultme/mobile... # root: tsx for the funded wallet addresses
       - name: Install Maestro ${{ env.MAESTRO_VERSION }}
         run: |
           curl -fsSL -o "$RUNNER_TEMP/maestro.zip" "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
@@ -161,7 +199,8 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       # The action runs each line of `script` in its own shell, so the logic lives in run.sh. bash -o pipefail: a failed run.sh fails the step even through tee.
-      - name: Run the critical flows on an emulator
+      - name: Run the critical flows on an emulator (dry run)
+        if: ${{ inputs.dry_run == true }}
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           api-level: 34
@@ -172,6 +211,26 @@ jobs:
           ram-size: 4096M
           enable-hw-keyboard: true # no on-screen keyboard: it would cover the lower recovery phrase cells
           script: bash -o pipefail -c 'PLATFORM=android apps/mobile/.maestro/run.sh critical 2>&1 | tee "$RUNNER_TEMP/critical.log"'
+      - name: Mask the recovery phrase
+        if: ${{ inputs.dry_run != true }}
+        env:
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
+        run: apps/mobile/.maestro/mask-phrase.sh
+      - name: Run the critical and funded flows on an emulator (wallet B sends to A)
+        if: ${{ inputs.dry_run != true }}
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
+          PLATFORM: android
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: Nexus 4 # 768x1280: the default 320x640 hid Receive and the word check (run 1); pixel_7 (1080x2400) froze the launcher on the software GPU (run 2)
+          cores: 4
+          ram-size: 4096M
+          enable-hw-keyboard: true # no on-screen keyboard: it would cover the lower recovery phrase cells
+          script: bash -o pipefail -c 'apps/mobile/.maestro/release-run.sh b 2>&1 | tee "$RUNNER_TEMP/critical.log"'
       # run.sh prints `::warning::flaky ...` when a flow failed once and passed on the retry (#377).
       - name: Open a flaky e2e issue
         if: ${{ success() }}
@@ -184,7 +243,7 @@ jobs:
           gh issue create --repo "$GITHUB_REPOSITORY" --title "flaky e2e in release $REF_NAME (Android)" \
             --body "A critical flow failed once and passed on the retry on Android in release run $url. Find the flow in the step log (lines with \`flaky\`) and fix the cause."
       # Same artifact rule as ios-critical: the create flow shows a generated recovery phrase, so its output stays out of the public artifact.
-      - if: ${{ !cancelled() }}
+      - if: ${{ !cancelled() && inputs.dry_run == true }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-report-android
@@ -193,6 +252,25 @@ jobs:
             apps/mobile/e2e-report-retry.xml
             apps/mobile/e2e-artifacts
             !apps/mobile/e2e-artifacts/**/create wallet through backup/**
+          retention-days: 14
+          if-no-files-found: warn
+      # A tag run uploads only the JUnit reports: the funded flows type the real phrase, so their screenshots and command logs never leave the runner.
+      # The check fails (and nothing is uploaded) when a phrase word is in a report; it prints the file, never the word.
+      - name: Check the reports for phrase words
+        id: guard
+        if: ${{ !cancelled() && inputs.dry_run != true }}
+        # A hit skips the upload, not the release: BIP39 has words like "wallet", "address", "home" that flow names also use.
+        continue-on-error: true
+        env:
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
+        run: apps/mobile/.maestro/check-no-phrase.sh apps/mobile/e2e-report.xml apps/mobile/e2e-report-retry.xml
+      - if: ${{ !cancelled() && inputs.dry_run != true && steps.guard.outcome == 'success' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-report-android
+          path: |
+            apps/mobile/e2e-report.xml
+            apps/mobile/e2e-report-retry.xml
           retention-days: 14
           if-no-files-found: warn
 

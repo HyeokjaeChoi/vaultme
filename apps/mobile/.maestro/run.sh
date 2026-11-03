@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Runs the Maestro flows on an iOS simulator, or with PLATFORM=android on an Android emulator (docs/testing/e2e.md). Usage: .maestro/run.sh smoke|full|critical [path/to/VaultMe.app|app-release.apk]
-# smoke = flows tagged smoke (the PR gate). full = every flow (nightly). critical = flows tagged critical (the release gate, release.yml). Target: SIM_UDID (default: the only booted simulator), or ANDROID_SERIAL (default emulator-5554).
+# Runs the Maestro flows on an iOS simulator, or with PLATFORM=android on an Android emulator (docs/testing/e2e.md). Usage: .maestro/run.sh smoke|full|critical|release [path/to/VaultMe.app|app-release.apk]
+# smoke = flows tagged smoke (the PR gate). full = every flow (nightly). critical = flows tagged critical (release.yml dry run). release = critical + funded: the funded flows (real Sepolia sends, #381) need the MAESTRO_* env of release-run.sh. Target: SIM_UDID (default: the only booted simulator), or ANDROID_SERIAL (default emulator-5554).
 # Device auth (ADR-0016): no bypass in the app. The simulator gets Face ID enrolled, and while the flows run a loop sends the
 # Face ID "match" event every second; it matters only while an OS auth sheet is up (create, reveal, lock gate), else it is ignored.
 # Android: the emulator gets a PIN and a fingerprint, and the loop touches finger 1 every second (scripts/sim-auth.sh match android).
 set -euo pipefail
 cd "$(dirname "$0")"
 tags="${1:-}"
-case "$tags" in smoke | full | critical) ;; *) echo "usage: $0 smoke|full|critical [VaultMe.app]" >&2; exit 2 ;; esac
+case "$tags" in smoke | full | critical | release) ;; *) echo "usage: $0 smoke|full|critical|release [VaultMe.app]" >&2; exit 2 ;; esac
 export MAESTRO_CLI_NO_ANALYTICS=1
 # The first driver start on a fresh CI device is slow: the XCTest driver took 2.5 min (run 1) and timed out at the default (run 2).
 # Set before the Android enrollment, which is the first driver start there.
@@ -54,6 +54,7 @@ esac
 include=smoke
 [ "$tags" = full ] && include=smoke,full
 [ "$tags" = critical ] && include=critical
+[ "$tags" = release ] && include=critical,funded
 rm -f ../e2e-report.xml ../e2e-report-retry.xml # a report left from an earlier local run must not pick the flows to retry
 maestro --udid "$udid" test flows --include-tags "$include" --format junit --output ../e2e-report.xml --test-output-dir ../e2e-artifacts && exit 0
 # One retry of the failed flows only (owner decision 2026-11-03, #376): the CI simulator sometimes loses a flow to its own
