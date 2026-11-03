@@ -3,7 +3,7 @@
 // ERC-20 balanceOf by eth_call). Prints the address and balances only, never the phrase. Exit 1 on short funds or a bad phrase.
 // Env: E2E_RELEASE_PHRASE, MIN_ETH (default 0.01), MIN_USDC (default 1), SEPOLIA_RPC_URL. A dry run does not run this script (release.yml).
 import { ASSETS } from '../packages/wallet-core/src/constants.ts'
-import { deriveAddress, toMnemonic } from '../packages/wallet-core/src/signer.ts'
+import { deriveAddress, toMnemonic } from '../packages/wallet-core/src/mnemonic.ts'
 
 const fail = (msg: string): never => {
   console.error(`::error::${msg}`)
@@ -19,15 +19,20 @@ console.log(`Funded wallet (account 1): ${address}`)
 
 const rpc = process.env.SEPOLIA_RPC_URL ?? 'https://ethereum-sepolia-rpc.publicnode.com'
 const call = async (method: string, params: unknown[]): Promise<bigint> => {
-  const res = await fetch(rpc, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-  })
-  const body = (await res.json()) as { result?: string; error?: { message: string } }
-  if (!res.ok || body.result === undefined)
-    return fail(`Sepolia RPC ${method} failed: ${body.error?.message ?? res.status}`)
-  return BigInt(body.result)
+  try {
+    const res = await fetch(rpc, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+      signal: AbortSignal.timeout(15_000),
+    })
+    const body = (await res.json()) as { result?: unknown; error?: { message: string } }
+    if (!res.ok || typeof body.result !== 'string' || !/^0x[0-9a-f]+$/i.test(body.result))
+      return fail(`Sepolia RPC ${method} failed: ${body.error?.message ?? `HTTP ${res.status}`}`)
+    return BigInt(body.result)
+  } catch (e) {
+    return fail(`Sepolia RPC ${method} failed: ${e instanceof Error ? e.message : String(e)}`)
+  }
 }
 const units = (v: string, decimals: number): bigint => {
   const [i = '0', f = ''] = v.split('.')

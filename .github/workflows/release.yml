@@ -24,7 +24,6 @@ concurrency:
 env:
   MAESTRO_VERSION: 2.11.0 # same pin as e2e.yml
   MAESTRO_ZIP_SHA256: 5384593cb4e7a106489e75a821d157dd43f4e438df6bc308b72e82c685e1283a # GitHub release asset digest of cli-2.11.0 maestro.zip
-  EAS_CLI_VERSION: 26.0.0 # published 2026-10-26; 27.x waits for the 7-day rule used for dependencies
 
 jobs:
   balance:
@@ -33,10 +32,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: release # E2E_RELEASE_PHRASE lives only here
     timeout-minutes: 10
-    env:
-      MIN_ETH: '0.01'
-      MIN_USDC: '1'
-      E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -48,9 +43,17 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile --filter vaultme --filter @vaultme/wallet-core...
       - name: Funded wallet balance (ETH and USDC on Sepolia)
+        # The secret is set on this step only, never on the job: install scripts of dependencies must not see it.
+        env:
+          MIN_ETH: '0.01'
+          MIN_USDC: '1'
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: pnpm exec tsx scripts/release-balance.mts
 
   ios-critical:
+    # After the balance check (no macOS minutes on a release that cannot send); a dry run skips the balance job.
+    needs: balance
+    if: ${{ !cancelled() && (needs.balance.result == 'success' || (inputs.dry_run == true && needs.balance.result == 'skipped')) }}
     runs-on: macos-26
     timeout-minutes: 90
     permissions:
@@ -115,12 +118,11 @@ jobs:
 
   eas-build:
     needs: [balance, ios-critical]
-    if: ${{ inputs.dry_run != true }}
+    # Only a v* tag builds (a manual run from a branch never does).
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && inputs.dry_run != true }}
     runs-on: ubuntu-latest
     environment: release
     timeout-minutes: 90
-    env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -133,6 +135,8 @@ jobs:
       - run: pnpm install --frozen-lockfile --filter @vaultme/mobile...
       - name: EAS build (Android APK internal, iOS simulator)
         working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }} # this step only: install scripts must not see it
         run: |
           [ -n "$EXPO_TOKEN" ] || { echo "::error::EXPO_TOKEN is missing"; exit 1; }
-          npx --yes "eas-cli@${EAS_CLI_VERSION}" build --platform all --profile release-staging --non-interactive
+          pnpm exec eas build --platform all --profile release-staging --non-interactive
