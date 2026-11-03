@@ -1,24 +1,49 @@
 #!/usr/bin/env bash
-# Runs the Maestro flows on an iOS simulator (docs/testing/e2e.md). Usage: .maestro/run.sh smoke|full|critical [path/to/VaultMe.app]
-# smoke = flows tagged smoke (the PR gate). full = every flow (nightly). critical = flows tagged critical (the release gate, release.yml). Target: SIM_UDID (default: the only booted simulator).
+# Runs the Maestro flows on an iOS simulator, or with PLATFORM=android on an Android emulator (docs/testing/e2e.md). Usage: .maestro/run.sh smoke|full|critical [path/to/VaultMe.app|app-release.apk]
+# smoke = flows tagged smoke (the PR gate). full = every flow (nightly). critical = flows tagged critical (the release gate, release.yml). Target: SIM_UDID (default: the only booted simulator), or ANDROID_SERIAL (default emulator-5554).
 # Device auth (ADR-0016): no bypass in the app. The simulator gets Face ID enrolled, and while the flows run a loop sends the
 # Face ID "match" event every second; it matters only while an OS auth sheet is up (create, reveal, lock gate), else it is ignored.
+# Android: the emulator gets a PIN and a fingerprint, and the loop touches finger 1 every second (scripts/sim-auth.sh match android).
 set -euo pipefail
 cd "$(dirname "$0")"
 tags="${1:-}"
 case "$tags" in smoke | full | critical) ;; *) echo "usage: $0 smoke|full|critical [VaultMe.app]" >&2; exit 2 ;; esac
-app="${2:-../ios/build/Build/Products/Release-iphonesimulator/VaultMe.app}"
-# Every flow clears the app data of its target: with several booted simulators, ask for SIM_UDID instead of guessing.
-udid="${SIM_UDID:-$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' || true)}"
-[ -n "$udid" ] || { echo "no booted simulator; boot one or set SIM_UDID" >&2; exit 2; }
-[ "$(printf '%s\n' "$udid" | wc -l)" -eq 1 ] || { echo "several simulators are booted; set SIM_UDID to one of: $udid" >&2; exit 2; }
-xcrun simctl install "$udid" "$app"
-# Enroll Face ID (same commands as apps/mobile/AGENTS.md, for a simulator made for E2E).
-xcrun simctl spawn "$udid" notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
-xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit.enrollmentChanged
-( while true; do xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit_Sim.pearl.match >/dev/null 2>&1 || true; sleep 1; done ) &
-loop=$!
-trap 'kill $loop 2>/dev/null || true' EXIT
+# PLATFORM=android runs the same flows on an Android emulator (release.yml job android-critical, #382); default ios.
+platform="${PLATFORM:-ios}"
+case "$platform" in
+  ios)
+    app="${2:-../ios/build/Build/Products/Release-iphonesimulator/VaultMe.app}"
+    # Every flow clears the app data of its target: with several booted simulators, ask for SIM_UDID instead of guessing.
+    udid="${SIM_UDID:-$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' || true)}"
+    [ -n "$udid" ] || { echo "no booted simulator; boot one or set SIM_UDID" >&2; exit 2; }
+    [ "$(printf '%s\n' "$udid" | wc -l)" -eq 1 ] || { echo "several simulators are booted; set SIM_UDID to one of: $udid" >&2; exit 2; }
+    xcrun simctl install "$udid" "$app"
+    # Enroll Face ID (same commands as apps/mobile/AGENTS.md, for a simulator made for E2E).
+    xcrun simctl spawn "$udid" notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
+    xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit.enrollmentChanged
+    ( while true; do xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit_Sim.pearl.match >/dev/null 2>&1 || true; sleep 1; done ) &
+    loop=$!
+    trap 'kill $loop 2>/dev/null || true' EXIT
+    ;;
+  android)
+    app="${2:-../android/app/build/outputs/apk/release/app-release.apk}"
+    export ANDROID_SERIAL="${ANDROID_SERIAL:-emulator-5554}" # scripts/sim-auth.sh reads it; the emulator console needs an emulator, never a phone
+    udid="$ANDROID_SERIAL"
+    case "$udid" in emulator-*) ;; *) echo "PLATFORM=android runs on an emulator only (got $udid)" >&2; exit 2 ;; esac
+    adb -s "$udid" install -r "$app"
+    # Screen lock PIN + fingerprint for the throwaway CI emulator (same setup as apps/mobile/AGENTS.md; the PIN is a test value).
+    adb -s "$udid" shell locksettings set-pin 1234
+    adb -s "$udid" shell svc power stayon true
+    # The touch loop starts first: enrollment asks for several touches, and later the OS auth sheets need one each.
+    ( while true; do ../../../scripts/sim-auth.sh match android >/dev/null 2>&1 || true; sleep 1; done ) &
+    loop=$!
+    trap 'kill $loop 2>/dev/null || true' EXIT
+    adb -s "$udid" shell am start -a android.settings.BIOMETRIC_ENROLL >/dev/null
+    MAESTRO_CLI_NO_ANALYTICS=1 maestro --udid "$udid" test enroll-fingerprint-android.yaml --test-output-dir ../e2e-artifacts/enroll
+    adb -s "$udid" shell dumpsys fingerprint | grep -i -m5 'enrolled\|fingerprints' || true # log only, to read a failed enrollment
+    adb -s "$udid" shell input keyevent KEYCODE_HOME
+    ;;
+esac
 include=smoke
 [ "$tags" = full ] && include=smoke,full
 [ "$tags" = critical ] && include=critical
