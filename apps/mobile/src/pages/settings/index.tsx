@@ -30,7 +30,7 @@ export function SettingsPage() {
       icon="info"
       iconColor={th.component.icon.status.info}
       title={t('settings.version')}
-      factValue
+      detailValue
       trailing={{ kind: 'value', text: `v${Constants.expoConfig?.version ?? ''}` }}
     />
   )
@@ -84,7 +84,7 @@ export function SettingsPage() {
         <ListItem
           icon="network"
           title={t('settings.network')}
-          factValue
+          detailValue
           trailing={{ kind: 'value', text: networkFact }}
         />
         <ListItem

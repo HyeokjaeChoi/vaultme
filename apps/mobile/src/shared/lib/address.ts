@@ -26,6 +26,9 @@ export const shortAddress = (address: string) => {
   return `${a.slice(0, 6)}…${a.slice(-4)}`
 }
 
+/** "0xa1b2…8f90": first 6 and last 4 characters of a tx hash (not an address: no checksum). Copy gives the full hash. */
+export const shortHash = (hash: string) => `${hash.slice(0, 6)}…${hash.slice(-4)}`
+
 /** 4-char groups of the EIP-55 form, for showing an address. Stored and compared values stay as they are. */
 export const displayGroups = (address: string): string[] => groupAddress(toChecksumAddress(address))
 

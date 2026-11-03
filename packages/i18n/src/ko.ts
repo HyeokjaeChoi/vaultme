@@ -400,7 +400,13 @@ export const ko = {
     },
     infoTitle: '거래 정보',
     time: '시각',
+    // B-S41 time value: "2026년 10월 16일 오전 9:41" (no zone).
+    timeAm: '{{year}}년 {{month}}월 {{day}}일 오전 {{hour}}:{{minute}}',
+    timePm: '{{year}}년 {{month}}월 {{day}}일 오후 {{hour}}:{{minute}}',
     block: '블록',
+    chainId: '체인 ID',
+    more: '자세히',
+    copyLabel: '{{label}} 복사',
     state: { confirmed: '확정', unknown: '확인 못 함', test: '예시', success: '성공' },
     hashTitle: '거래 해시',
     // Figma B-S41 423:16381: "마지막 확인 09:41." The second sentence only while the app polls (Pending, Included).
