@@ -8,11 +8,11 @@ Files: `apps/mobile/.maestro/flows/`. Shared steps: `apps/mobile/.maestro/subflo
 
 | Flow | Tag | What it proves |
 |---|---|---|
-| `create.yaml` | smoke | New wallet (3 checks, OS auth), reveal the phrase, word check, Receive opens |
-| `restore.yaml` | smoke | Restore the public test vector (R10); address `0x9858…da94` shows |
-| `send.yaml` | smoke | Home, Send, recipient address, amount screen |
-| `lock.yaml` | full | Cold start shows the lock gate; OS auth opens Home |
-| `receive.yaml` | full | Receive shows the restored address |
+| `create.yaml` | smoke, critical | New wallet (3 checks, OS auth), reveal the phrase, word check, Receive opens |
+| `restore.yaml` | smoke, critical | Restore the public test vector (R10); address `0x9858…da94` shows |
+| `send.yaml` | smoke, critical | Home, Send, recipient address, amount screen |
+| `lock.yaml` | full, critical | Cold start shows the lock gate; OS auth opens Home |
+| `receive.yaml` | full, critical | Receive shows the restored address |
 
 Known limit: `send.yaml` stops at the amount screen, not Review. The test vector has 0 ETH on Sepolia, and the amount screen only
 opens Review for an amount above 0 that the balance covers. Review needs a funded test wallet (owner decision; its phrase would be a CI secret, never in the repo).
@@ -41,6 +41,7 @@ Workflow: `.github/workflows/e2e.yml`. Required check: job `e2e` (add it to the 
 - A PR that changes `apps/mobile/**`, `packages/{wallet-core,history,i18n,tokens,contracts,api-client}/**`, `pnpm-lock.yaml` or the workflow runs the smoke flows. A failure blocks the merge.
 - Other PRs: the job `changes` finds no such file and the job `e2e` is skipped. A skipped job counts as passed for a required check, so these PRs merge without a macOS run. A workflow-level `paths:` filter would not work: the check would never report and the PR would wait forever.
 - Nightly (03:00 Asia/Seoul) on `main` and `workflow_dispatch`: all flows. A red nightly is a bug to fix before the next release.
+- Release: `.github/workflows/release.yml` runs on a `v*` tag (#380). Job `balance` checks the funded wallet (`scripts/release-balance.mts`, secret `E2E_RELEASE_PHRASE` in Environment `release`), job `ios-critical` runs `run.sh critical` (flows tagged `critical`), job `eas-build` (profile `release-staging`) runs only after both pass. A manual run with `dry_run` skips EAS. A retry pass opens a "flaky e2e" issue.
 - Once a production environment exists (ADR-0025), the full run becomes the hard gate of the release pipeline.
 - Runner: GitHub-hosted `macos-26` (the repository is public). Maestro is pinned (2.11.0, zip checked against its SHA-256). Build: Release, staging API, no test flag.
 

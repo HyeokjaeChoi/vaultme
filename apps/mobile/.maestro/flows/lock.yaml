@@ -1,6 +1,6 @@
 appId: dev.stackline.vaultme
 name: cold start asks OS auth, then opens Home
-tags: [full]
+tags: [full, critical]
 ---
 - runFlow: ../subflows/start-fresh.yaml
 - runFlow: ../subflows/restore-vector.yaml

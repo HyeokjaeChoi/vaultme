@@ -1,6 +1,6 @@
 appId: dev.stackline.vaultme
 name: create wallet through backup
-tags: [smoke]
+tags: [smoke, critical]
 ---
 - runFlow: ../subflows/start-fresh.yaml
 - tapOn: '새 지갑 만들기'
