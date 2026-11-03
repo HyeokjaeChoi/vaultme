@@ -2,19 +2,43 @@
 appId: dev.stackline.vaultme
 ---
 - tapOn: '기존 지갑 복구'
+# Each cell is tapped and filled without a trailing space: a space moves focus to the next cell, and on the slow CI runner
+# the next word's first keys landed before the move, so words were lost (#376). The keyboard is closed after each word so
+# the lower cells are not under it when tapped.
 - tapOn: '1번째 단어'
-# One word per command: typing all 12 at once lost characters on the slow CI runner (a space moves focus to the next cell).
-- inputText: 'abandon '
-- inputText: 'abandon '
-- inputText: 'abandon '
-- inputText: 'abandon '
-- inputText: 'abandon '
-- inputText: 'abandon '
-- inputText: 'abandon '
-- inputText: 'abandon '
-- inputText: 'abandon '
-- inputText: 'abandon '
-- inputText: 'abandon '
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '2번째 단어'
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '3번째 단어'
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '4번째 단어'
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '5번째 단어'
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '6번째 단어'
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '7번째 단어'
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '8번째 단어'
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '9번째 단어'
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '10번째 단어'
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '11번째 단어'
+- inputText: 'abandon'
+- hideKeyboard
+- tapOn: '12번째 단어'
 - inputText: 'about'
 - hideKeyboard
 - tapOn: '복구'
