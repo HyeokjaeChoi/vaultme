@@ -88,6 +88,7 @@ jobs:
           name: e2e-report
           path: |
             apps/mobile/e2e-report.xml
+            apps/mobile/e2e-report-retry.xml
             apps/mobile/e2e-artifacts
             !apps/mobile/e2e-artifacts/**/create wallet through backup/**
           retention-days: 14

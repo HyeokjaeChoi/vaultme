@@ -40,6 +40,7 @@ Workflow: `.github/workflows/e2e.yml`. Required check: job `e2e` (add it to the 
 
 - A PR that changes `apps/mobile/**`, `packages/{wallet-core,history,i18n,tokens,contracts,api-client}/**`, `pnpm-lock.yaml` or the workflow runs the smoke flows. A failure blocks the merge.
 - Other PRs: the job `changes` finds no such file and the job `e2e` is skipped. A skipped job counts as passed for a required check, so these PRs merge without a macOS run. A workflow-level `paths:` filter would not work: the check would never report and the PR would wait forever.
+- Retry: `run.sh` runs each failed flow once more (owner decision 2026-11-03, #376). A flow that fails twice fails the job. A pass on the retry shows a `flaky` warning in the job log, and the retry report is `e2e-report-retry.xml` in the `e2e-report` artifact.
 - Nightly (03:00 Asia/Seoul) on `main` and `workflow_dispatch`: all flows. A red nightly is a bug to fix before the next release.
 - Release gate (ADR-0032, #378; not built yet: #380, #381, #382): a `v*` tag will run the critical path (flows tagged `critical`) on iOS and Android; only a pass will build the app with EAS. The release run broadcasts real Sepolia sends from a funded wallet; its phrase (`E2E_RELEASE_PHRASE`, GitHub Environment `release`) and those flows' artifacts never reach a log or an upload.
 - Runner: GitHub-hosted `macos-26` (the repository is public). Maestro is pinned (2.11.0, zip checked against its SHA-256). Build: Release, staging API, no test flag.
