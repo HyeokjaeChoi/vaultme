@@ -42,4 +42,4 @@ tags: [smoke, critical]
 - runFlow: { file: ../subflows/answer-word.yaml, env: { N: '12' } }
 - tapOn: '확인'
 # Right words: backup done, Receive opens (S30) with the wallet address.
-- assertVisible: '받기 주소'
+- assertVisible: '받기 주소.*' # Android names the QR "받기 주소 QR 코드" (#382)
