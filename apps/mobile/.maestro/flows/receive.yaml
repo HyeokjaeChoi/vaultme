@@ -5,4 +5,4 @@ tags: [full, critical]
 - runFlow: ../subflows/start-fresh.yaml
 - runFlow: ../subflows/restore-vector.yaml
 - tapOn: '받기'
-- assertVisible: '받기 주소.*' # Android names the QR "받기 주소 QR 코드" (#382)
+- assertVisible: '0 x 9 8 5 8, .*' # the address itself (its label spells it out by group); the QR is also named "받기 주소 QR 코드" (#382)

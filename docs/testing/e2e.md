@@ -23,6 +23,7 @@ Flows match visible Korean text (button labels are also accessibility labels). A
 
 The app has no auth bypass (ADR-0016). `run.sh` enrolls Face ID on the simulator, then sends the Face ID `match` event every second while the flows run.
 The event matters only while an OS auth sheet is up (create, phrase reveal, lock gate); at any other time the simulator ignores it.
+Android (`PLATFORM=android`, #382): a PIN and a fingerprint on the emulator; the loop touches finger 1 every second, and `run.sh` stops at once when `dumpsys fingerprint` shows no fingerprint.
 The enrollment commands change the security state of a simulator that exists only for E2E. Never run `run.sh` against your daily simulator.
 
 ## Run locally
@@ -46,8 +47,8 @@ Workflow: `.github/workflows/e2e.yml`. Required check: job `e2e` (add it to the 
 - Release workflow: `.github/workflows/release.yml` (#380). Job `balance` checks the funded wallet (`scripts/release-balance.mts`), jobs `ios-critical` (simulator) and `android-critical` (emulator, `PLATFORM=android run.sh critical`) run in parallel, job `eas-build` (profile `release-staging`) runs only after all pass. A manual run with `dry_run` runs only the two critical jobs (no Environment, no EAS). A retry pass opens a "flaky e2e" issue.
 - Release owner setup (ADR-0032 Consequences): a funded Sepolia wallet (ETH and USDC on account 1); GitHub Environment `release` that admits only `v*` tags, with secrets `E2E_RELEASE_PHRASE` and `EXPO_TOKEN`; Android signing credentials on Expo (`eas credentials`, once); `e2e` as a required check of `protect-main`; a tag ruleset so only the owner creates `v*` tags.
 - Android (#382): `android-critical` builds a Release APK with `build-android.sh` (staging API, no test flag), boots an API 34 `google_apis` x86_64 emulator with `reactivecircus/android-emulator-runner` v2.38.0 on `ubuntu-latest` (KVM enabled by the udev rule from the action README), sets a PIN, enrolls a fingerprint (`apps/mobile/.maestro/enroll-fingerprint-android.yaml`) and touches finger 1 every second (`scripts/sim-auth.sh match android`) while the flows run. Same retry and flaky issue as iOS; artifact `e2e-report-android`.
-- Runner: GitHub-hosted `macos-26` (the repository is public). Maestro is pinned (2.11.0, zip checked against its SHA-256). Build: Release, staging API, no test flag.
+- Runner: GitHub-hosted `macos-26` for the iOS jobs, `ubuntu-latest` for `android-critical` (the repository is public). Maestro is pinned (2.11.0, zip checked against its SHA-256). Build: Release, staging API, no test flag.
 
 Sources: Maestro docs (install a version with `MAESTRO_VERSION`, `launchApp` `clearState`/`clearKeychain`, `--include-tags`) read through ctx7 on 2026-11-01; GitHub Docs on skipped required jobs.
 Android: ReactiveCircus/android-emulator-runner README at v2.38.0 (published 2026-07-05; `script` lines run one by one, KVM rule, `enable-hw-keyboard`); Maestro docs `platform` condition and `launchApp` (ctx7, `/mobile-dev-inc/maestro-docs`).
-Not checked locally (also the whole Android path: no emulator was run on this Mac, the dry run is the first check): the `macos-26` image, its simulator runtime and its build time (first PR run shows them).
+Not checked locally (the Android path ran on CI only: no emulator was run on this Mac; dry run 41611437457 passed all five critical flows on Android): the `macos-26` image, its simulator runtime and its build time (first PR run shows them).

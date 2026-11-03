@@ -8,6 +8,10 @@ set -euo pipefail
 cd "$(dirname "$0")"
 tags="${1:-}"
 case "$tags" in smoke | full | critical) ;; *) echo "usage: $0 smoke|full|critical [VaultMe.app]" >&2; exit 2 ;; esac
+export MAESTRO_CLI_NO_ANALYTICS=1
+# The first driver start on a fresh CI device is slow: the XCTest driver took 2.5 min (run 1) and timed out at the default (run 2).
+# Set before the Android enrollment, which is the first driver start there.
+export MAESTRO_DRIVER_STARTUP_TIMEOUT=600000
 # PLATFORM=android runs the same flows on an Android emulator (release.yml job android-critical, #382); default ios.
 platform="${PLATFORM:-ios}"
 case "$platform" in
@@ -39,17 +43,17 @@ case "$platform" in
     loop=$!
     trap 'kill $loop 2>/dev/null || true' EXIT
     adb -s "$udid" shell am start -a android.settings.BIOMETRIC_ENROLL >/dev/null
-    MAESTRO_CLI_NO_ANALYTICS=1 maestro --udid "$udid" test enroll-fingerprint-android.yaml --test-output-dir ../e2e-artifacts/enroll
-    adb -s "$udid" shell dumpsys fingerprint | grep -i -m5 'enrolled\|fingerprints' || true # log only, to read a failed enrollment
+    maestro --udid "$udid" test enroll-fingerprint-android.yaml --test-output-dir ../e2e-artifacts/enroll
+    # The enroll flow taps optional buttons, so it can end without a fingerprint: fail here with the cause, not later in every auth flow.
+    prints="$(adb -s "$udid" shell dumpsys fingerprint)"
+    echo "$prints"
+    grep -qE '"count":[1-9]' <<<"$prints" || { echo "::error::no fingerprint enrolled on $udid (dumpsys fingerprint above); check enroll-fingerprint-android.yaml"; exit 1; }
     adb -s "$udid" shell input keyevent KEYCODE_HOME
     ;;
 esac
 include=smoke
 [ "$tags" = full ] && include=smoke,full
 [ "$tags" = critical ] && include=critical
-export MAESTRO_CLI_NO_ANALYTICS=1
-# The first start of the XCTest driver on a fresh CI simulator took 2.5 min (run 1) and timed out at the default (run 2).
-export MAESTRO_DRIVER_STARTUP_TIMEOUT=600000
 rm -f ../e2e-report.xml ../e2e-report-retry.xml # a report left from an earlier local run must not pick the flows to retry
 maestro --udid "$udid" test flows --include-tags "$include" --format junit --output ../e2e-report.xml --test-output-dir ../e2e-artifacts && exit 0
 # One retry of the failed flows only (owner decision 2026-11-03, #376): the CI simulator sometimes loses a flow to its own
