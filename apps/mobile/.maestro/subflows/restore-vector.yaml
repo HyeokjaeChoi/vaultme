@@ -6,6 +6,9 @@ appId: dev.stackline.vaultme
 # slow CI runner the next word's keys landed before that move, so words were lost (#376). After each word a tap on the
 # plain description text closes the keyboard (the ScrollView has keyboardShouldPersistTaps="handled"), so the lower cells
 # are not under it. Not hideKeyboard: it is flaky on iOS (Maestro known issue); the focused selector does not see a multiline TextInput.
+- extendedWaitUntil:
+    visible: '1번째 단어'
+    timeout: 15000
 - tapOn: '1번째 단어'
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
