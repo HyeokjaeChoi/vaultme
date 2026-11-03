@@ -8,16 +8,17 @@ type Props = {
   /** The notice on top (banner): info by default; `danger` with a title for a blocking reason (ETH short, Figma 888:6136). */
   notice: string
   noticeTitle?: string
-  noticeTone?: 'info' | 'danger'
+  noticeTone?: 'info' | 'warning' | 'danger'
   currentLabel: string
   currentValue: string
-  newLabel: string
-  newValue: string
+  /** Without the new row ("Show new fee" off, the cancel sheet) only the first row shows. */
+  newLabel?: string
+  newValue?: string
   /** The difference under the new fee (Product B/Label). */
-  newSub: string
+  newSub?: string
 }
 
-/** Fee comparison of the speed-up sheet: notice, current fee row, new fee row (emphasis) with the difference. Built from the notice and the detail row. */
+/** Fee comparison of the speed-up and cancel sheets: notice, current fee row, new fee row (emphasis) with the difference. Built from the notice and the detail row. */
 export function FeeCompare({
   notice,
   noticeTitle = '',
@@ -26,14 +27,16 @@ export function FeeCompare({
   currentValue,
   newLabel,
   newValue,
-  newSub,
+  newSub = '',
 }: Props) {
   const t = useTheme()
   return (
     <View style={{ gap: t.semantic.layout.fieldGap, alignSelf: 'stretch' }}>
       <StatusNotice tier="banner" tone={noticeTone} title={noticeTitle} body={notice} />
       <SummaryRow label={currentLabel} value={currentValue} />
-      <SummaryRow format="total" label={newLabel} value={newValue} sub={newSub} />
+      {newLabel !== undefined && newValue !== undefined ? (
+        <SummaryRow format="total" label={newLabel} value={newValue} sub={newSub} />
+      ) : null}
     </View>
   )
 }

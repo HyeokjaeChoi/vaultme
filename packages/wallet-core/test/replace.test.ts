@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { planSpeedUp } from '../src'
+import { planCancel, planSpeedUp } from '../src'
 
 const GWEI = 1_000_000_000n
 const f = (maxFeePerGas: bigint, maxPriorityFeePerGas: bigint) => ({ maxFeePerGas, maxPriorityFeePerGas })
@@ -81,5 +81,28 @@ describe('planSpeedUp', () => {
   })
   test('a fee cap above the absolute cap is flagged', () => {
     expect(planSpeedUp({ ...base, latestSent: f(10n ** 15n, GWEI) }).overAbsCap).toBe(true)
+  })
+})
+
+describe('planCancel (ADR-0031: 0 ETH to self, gas 21000)', () => {
+  const i = {
+    latestSent: f(2n * GWEI, GWEI),
+    market: f(GWEI, GWEI / 2n),
+    baseFeePerGas: GWEI / 2n,
+    nativeBalance: 10n ** 18n,
+  }
+  test('fees follow the speed-up rule; the cost is the fee only (no amount)', () => {
+    const p = planCancel(i)
+    expect(p.gasLimit).toBe(21_000n)
+    expect(p.maxFeePerGas).toBe(2_200_000_001n)
+    expect(p.maxPriorityFeePerGas).toBe(1_100_000_001n)
+    expect(p.needed).toBe(p.newFeeCap)
+    expect(p.newFeeCap).toBe(21_000n * 2_200_000_001n)
+    expect(p.shortBy).toBe(0n)
+  })
+  test('market wins per field; short ETH is the missing fee', () => {
+    expect(planCancel({ ...i, market: f(5n * GWEI, 1n) }).maxFeePerGas).toBe(5n * GWEI)
+    const p = planCancel({ ...i, nativeBalance: 1n })
+    expect(p.shortBy).toBe(p.newFeeCap - 1n)
   })
 })

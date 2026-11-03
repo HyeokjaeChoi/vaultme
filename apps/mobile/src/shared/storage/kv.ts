@@ -92,6 +92,8 @@ export type PendingTx = {
   hashes?: string[]
   /** Kind of the latest replacement; absent when none was sent. PR 2 adds 'cancel' to the UI; the record already holds it. */
   kind?: 'speedUp' | 'cancel'
+  /** Index in `hashes` of the first cancel; it and every later hash is a cancel (a cancel can be sent again, but nothing else follows one). */
+  cancelFrom?: number
   /** Fee fields of the latest sent tx (decimal wei strings), the base of the next speed up. Absent in older records: the market value is the base. */
   maxFeePerGas?: string
   maxPriorityFeePerGas?: string
@@ -154,6 +156,12 @@ export function parsePendingTx(raw: string): PendingTx | null {
       ? { hashes: o.hashes }
       : {}),
     ...(o.kind === 'speedUp' || o.kind === 'cancel' ? { kind: o.kind } : {}),
+    ...(Number.isInteger(o.cancelFrom) &&
+    (o.cancelFrom as number) >= 1 &&
+    Array.isArray(o.hashes) &&
+    (o.cancelFrom as number) < o.hashes.length
+      ? { cancelFrom: o.cancelFrom as number }
+      : {}),
     ...(isWei(o.maxFeePerGas) ? { maxFeePerGas: o.maxFeePerGas } : {}),
     ...(isWei(o.maxPriorityFeePerGas) ? { maxPriorityFeePerGas: o.maxPriorityFeePerGas } : {}),
     ...(isWei(o.gasLimit) ? { gasLimit: o.gasLimit } : {}),

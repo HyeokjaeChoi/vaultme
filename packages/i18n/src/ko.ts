@@ -354,6 +354,26 @@ export const ko = {
       busy: '다시 보내는 중…',
     },
   },
+  // Cancel of a Pending send (ADR-0031, issue #365): Figma Flow 3 888:5798 (actions 888:5799, sheet 888:6228, requested 888:6647, cancelled 888:6726, processed first 888:6776 / 888:6852). sheet.busy is new.
+  cancel: {
+    action: '거래 취소',
+    /** Info line in the status area once a cancel was sent (the state stays Pending). */
+    requestedLine: '취소를 요청했어요. 아직 확정되지 않았어요',
+    /** Info line when the original was processed although a cancel was sent. */
+    processedFirstLine: '취소하기 전에 거래가 처리됐어요',
+    /** Result headline and sentence of a mined cancel (state Replaced). */
+    cancelledTitle: '거래를 취소했어요',
+    cancelledBody: '네트워크 수수료는 나갔어요.',
+    sheet: {
+      title: '거래를 취소할까요?',
+      body: '0 ETH 거래를 내 계정으로 보내 원래 거래를 대신해요.',
+      notice: '원래 거래가 먼저 처리되면 취소되지 않아요.\n실패해도 네트워크 수수료는 나가요.',
+      fee: '예상 네트워크 수수료',
+      confirm: '취소하기',
+      back: '돌아가기',
+      busy: '취소하는 중…',
+    },
+  },
   // S41: Figma C2b-S41.
   detail: {
     title: '거래 상세',
