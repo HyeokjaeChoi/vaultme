@@ -41,6 +41,17 @@ import { classifySaveFailure, deviceLockSet } from '@/shared/auth'
 beforeEach(() => vi.mocked(LA.getEnrolledLevelAsync).mockReset())
 
 describe('deviceLockSet', () => {
+  it('says true when the OS does not answer within 3 s (#386: the restore grid stayed hidden on CI)', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.mocked(LA.getEnrolledLevelAsync).mockReturnValueOnce(new Promise(() => undefined))
+      const answer = deviceLockSet()
+      await vi.advanceTimersByTimeAsync(3000)
+      expect(await answer).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
   it('is false only for SecurityLevel.NONE', async () => {
     vi.mocked(LA.getEnrolledLevelAsync).mockResolvedValueOnce(0)
     expect(await deviceLockSet()).toBe(false)
