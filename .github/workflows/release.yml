@@ -293,9 +293,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           # A dry run (from a branch) checks the rule with a sample tag; only a v* tag run builds.
           TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v0.0.0' }}
+        shell: bash # -eo pipefail: a rejected tag fails the step even through tee
+        # The day and the count come from this run's own creation: a run that starts after midnight keeps its day, and two tags
+        # on one day get different counts (runs created that day up to this one). A re-run of the same run keeps its number.
         run: |
-          day="$(date -u +%F)"
-          count="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release.yml --created "$day" --limit 200 --json databaseId --jq length)"
+          created="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .created_at)"
+          day="${created%%T*}"
+          count="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release.yml --created "$day" --limit 200 --json databaseId --jq "[.[] | select(.databaseId <= $GITHUB_RUN_ID)] | length")"
           scripts/release-version.sh "$TAG" "$day" "$count" | tee -a "$GITHUB_OUTPUT"
 
   # The k6 API benchmark of staging (ADR-0019, ADR-0020): a tier 1 SLO miss stops the release like a failed flow.
