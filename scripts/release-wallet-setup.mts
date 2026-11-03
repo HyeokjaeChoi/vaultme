@@ -9,12 +9,10 @@ const repo = process.env.GITHUB_REPOSITORY ?? 'HyeokjaeChoi/vaultme'
 const gh = (args: string[], input?: string) =>
   execFileSync('gh', [...args, '--repo', repo], { input, encoding: 'utf8', stdio: ['pipe', 'pipe', 'inherit'] })
 
-if (
-  gh(['secret', 'list', '--env', 'release', '--json', 'name', '--jq', '.[].name'])
-    .split('\n')
-    .includes('E2E_RELEASE_PHRASE')
-) {
-  console.error('E2E_RELEASE_PHRASE already exists in Environment `release`. Nothing changed.')
+// A repository secret of the same name counts too: the new Environment secret would shadow its funded wallet.
+const names = (scope: string[]) => gh(['secret', 'list', ...scope, '--json', 'name', '--jq', '.[].name']).split('\n')
+if ([...names(['--env', 'release']), ...names([])].includes('E2E_RELEASE_PHRASE')) {
+  console.error('E2E_RELEASE_PHRASE already exists (Environment `release` or repository). Nothing changed.')
   process.exit(1)
 }
 const mnemonic = generateMnemonic()
