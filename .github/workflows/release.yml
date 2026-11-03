@@ -137,6 +137,8 @@ jobs:
       - name: Check the reports for phrase words
         id: guard
         if: ${{ !cancelled() && inputs.dry_run != true }}
+        # A hit skips the upload, not the release: BIP39 has words like "wallet", "address", "home" that flow names also use.
+        continue-on-error: true
         env:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: apps/mobile/.maestro/check-no-phrase.sh apps/mobile/e2e-report.xml apps/mobile/e2e-report-retry.xml
@@ -257,6 +259,8 @@ jobs:
       - name: Check the reports for phrase words
         id: guard
         if: ${{ !cancelled() && inputs.dry_run != true }}
+        # A hit skips the upload, not the release: BIP39 has words like "wallet", "address", "home" that flow names also use.
+        continue-on-error: true
         env:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: apps/mobile/.maestro/check-no-phrase.sh apps/mobile/e2e-report.xml apps/mobile/e2e-report-retry.xml
