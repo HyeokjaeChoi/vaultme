@@ -4,7 +4,7 @@ export function StepItem({ number, title, body }: { number: number; title: strin
     <li className="flex flex-col items-start gap-3">
       <span
         aria-hidden="true"
-        className="bg-action-primary-bg-default text-text-on-brand text-product-b-label rounded-pill size-pill-sm flex shrink-0 items-center justify-center"
+        className="bg-surface-pressed text-text-primary text-product-b-label rounded-pill size-pill-sm flex shrink-0 items-center justify-center"
       >
         {number}
       </span>

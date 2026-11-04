@@ -1,5 +1,5 @@
 export { ActivityRow } from './ActivityRow'
-export { AddressText } from './AddressBlock'
+export { AddressBlock, AddressText } from './AddressBlock'
 export { AssetIcon } from './AssetIcon'
 export { AssetRow } from './AssetRow'
 export { AssetSelector } from './AssetSelector'

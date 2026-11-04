@@ -34,8 +34,8 @@ export function QrCode({ value, label }: { value: string; label: string }) {
           size={size}
           quietZone={quiet}
           ecl="M"
-          backgroundColor={t.primitive.color.neutral[0]}
-          color={t.primitive.color.neutral[950]}
+          backgroundColor={t.component.qr.bg}
+          color={t.component.qr.fg}
         />
       </View>
     </View>

@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router'
 import { clock, dayHeader, relativeTime, signed } from '../lib/history'
 import { txPath } from '../lib/locale'
 import { AssetIcon } from './AssetIcon'
+import { pressTransition } from './ButtonLink'
 import { RowBadge } from './RowBadge'
 
 type Props = {
@@ -63,7 +64,10 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
       </thead>
       <tbody>
         {items.map((i) => (
-          <tr key={i.id} className={`h-row-b-height relative ${fresh.has(i.id) ? 'fade-in' : ''}`}>
+          <tr
+            key={i.id}
+            className={`h-row-b-height hover:bg-surface-hover ${pressTransition} relative ${fresh.has(i.id) ? 'fade-in' : ''}`}
+          >
             <td className="pl-row-b-padding-x px-1-5">
               {/* The link covers the whole row (::after). Its name starts with the visible status and adds what the other cells say. */}
               <Link
@@ -93,11 +97,13 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
                   }
                 }}
               >
-                {short(i.counterparty)}
+                <span aria-hidden="true">{short(i.counterparty)}</span>
+                {/* Screen readers get the full address; a hover title reached nobody else. */}
+                <span className="sr-only">{i.counterparty || t.history.noCounterparty}</span>
               </code>
             </td>
             <td
-              className={`text-product-b-row-title px-1-5 text-right break-all ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
+              className={`text-product-b-row-title px-1-5 text-right break-words ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
             >
               {/* A failed transaction moved no value: no sign, as the cards and the mobile row. */}
               {failed(i) ? `${i.amount} ${i.asset}` : signed(i)}
@@ -141,7 +147,7 @@ export function HistoryCards({ items, now, t, locale, address, fresh }: Props) {
                 <li key={i.id} className={fresh.has(i.id) ? 'fade-in' : undefined}>
                   <Link
                     {...txLink(i, locale, address)}
-                    className="min-h-row-b-height px-row-b-padding-x flex items-center gap-3 py-2"
+                    className={`min-h-row-b-height px-row-b-padding-x hover:bg-surface-hover active:bg-surface-pressed ${pressTransition} flex items-center gap-3 py-2`}
                   >
                     <div className="relative shrink-0">
                       <AssetIcon asset={assetKey(i)} large />
@@ -158,7 +164,7 @@ export function HistoryCards({ items, now, t, locale, address, fresh }: Props) {
                       </p>
                     </div>
                     <p
-                      className={`text-product-b-headline max-w-1/2 text-right break-all ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
+                      className={`text-product-b-headline max-w-1/2 text-right break-words ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
                     >
                       {failed(i) ? `${i.amount} ${i.asset}` : signed(i)}
                     </p>

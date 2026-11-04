@@ -44,6 +44,7 @@ colors:
   border-focus: "#3152FF"
   border-danger: "#B93340"
   border-selected: "#3152FF"
+  border-control: "#808D9D"
   action-primary-bg-default: "#3152FF"
   action-primary-bg-hover: "#2944DB"
   action-primary-bg-pressed: "#2138B8"
@@ -142,19 +143,18 @@ typography:
     fontSize: 14px
     fontWeight: 500
     lineHeight: 20px
-    letterSpacing: -0.0143em
+    letterSpacing: -0.0071em
   value:
     fontFamily: Pretendard
     fontSize: 14px
     fontWeight: 400
     lineHeight: 20px
-    letterSpacing: -0.0143em
+    letterSpacing: -0.0071em
   caption:
     fontFamily: Pretendard
     fontSize: 12px
     fontWeight: 400
     lineHeight: 17px
-    letterSpacing: -0.0083em
   address:
     fontFamily: "IBM Plex Mono"
     fontSize: 14px
@@ -173,23 +173,21 @@ typography:
     lineHeight: 32px
     letterSpacing: -0.0208em
   fact:
-    fontFamily: "IBM Plex Mono"
+    fontFamily: Pretendard
     fontSize: 12px
     fontWeight: 400
     lineHeight: 16px
-    letterSpacing: 0.02em
   fact-upper:
-    fontFamily: "IBM Plex Mono"
+    fontFamily: Pretendard
     fontSize: 12px
-    fontWeight: 500
+    fontWeight: 400
     lineHeight: 16px
-    letterSpacing: 0.02em
   link:
     fontFamily: Pretendard
     fontSize: 14px
     fontWeight: 500
     lineHeight: 20px
-    letterSpacing: -0.0143em
+    letterSpacing: -0.0071em
 rounded:
   none: 0px
   xs: 4px
@@ -353,11 +351,11 @@ Rules:
 - Disabled Primary is `surface.disabled` with `text.disabled`.
 - Landing-page artwork and the dark closing call to action belong to marketing. They are not product themes.
 
-Dark theme: `semanticDark` overrides `semantic` for surface, text, icon, border, status and a few more roles. Component values follow by alias. Canvas is neutral 950. Default surface is neutral 900. Raised surface is neutral 800. Primary text is neutral 50. Brand blue does not change. Dark status tints use the 950 steps of red and amber for body-text contrast. `frontMatter(tokens, 'dark')` in `packages/tokens/design-md.mjs` gives the dark values for tools.
+Dark theme: `semanticDark` overrides `semantic` for surface, text, icon, border, status and a few more roles. Component values follow by alias. Canvas is neutral 950. Default surface is neutral 900. Raised surface is neutral 800. Primary text is neutral 50. Brand blue does not change, except the focus border, which is brand 300 for 3:1 on the input fill. Dark status tints use the 950 steps of red and amber for body-text contrast. `frontMatter(tokens, 'dark')` in `packages/tokens/design-md.mjs` gives the dark values for tools.
 
 ## Typography
 
-The UI uses **Pretendard** (400, 500, 600) for text. It uses **IBM Plex Mono** for addresses, hashes and facts. Weight 700 is only for the large figure (`figure`, a balance or an amount).
+The UI uses **Pretendard** (400, 500, 600) for text. It uses **IBM Plex Mono** only for addresses and hashes. Weight 700 is only for the large figure (`figure`, a balance or an amount).
 
 - **Figure:** 44/52, weight 700. Use it for one balance or one amount per screen. The unit beside it is `figure-unit`, 24/32, weight 600, secondary colour.
 - **Display and titles:** `display-l`, `display-m`, `title1` to `title3`. Weight 600.
@@ -366,11 +364,11 @@ The UI uses **Pretendard** (400, 500, 600) for text. It uses **IBM Plex Mono** f
 - **Body and label:** `body` 16/24, `body-small` 15/22, `label` 14/20. Money-out sentences use `body-small` in Ink. They are the most visible sentences on the screen.
 - **Caption:** 12/17. Only for small support text.
 - **Address:** 14/20 mono. Always show the full address.
-- **Fact and fact-upper:** 12/16 mono. Use them for facts: network, chain ID, block, hash, version, time. Feelings and explanations use the sans face. `fact-upper` is uppercase, for English fact lines.
+- **Fact and fact-upper:** 12/16 Pretendard Regular, letter spacing 0. Use them for fact lines: network, chain ID, version. `fact-upper` is uppercase, for English fact lines. Full addresses and hashes stay in mono (`address`). A detail row can use mono for a hash or a short address (`DetailRow mono`); a time stays in Pretendard because Plex Mono has no Hangul.
 
 Rules:
 
-- Letter spacing is negative at every size, because it suits Hangul. The front matter shows it in `em`. The token JSON stores percent.
+- Letter spacing is negative at most sizes, because it suits Hangul. `caption` and the fact styles use 0; `label` and `value` use -0.1 px. The front matter shows it in `em`. The token JSON stores percent.
 - Show numbers with tabular figures where the platform allows it. Right-align them and show the unit.
 - Never cut an amount with an ellipsis. If a long name and a value collide, move the value to the next line.
 - Show tiny amounts with full precision on the review screen. Never show a rounded zero.

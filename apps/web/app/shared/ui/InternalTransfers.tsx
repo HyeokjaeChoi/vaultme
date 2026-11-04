@@ -42,12 +42,17 @@ function Row({ i, t }: { i: InternalTransfer; t: WebTxMessages }) {
           translate="no"
           title={`${full(i.from)} → ${full(i.to)}`}
         >
-          {short(i.from)} → {short(i.to)}
+          <span aria-hidden="true">
+            {short(i.from)} → {short(i.to)}
+          </span>
+          <span className="sr-only">
+            {full(i.from)} → {full(i.to)}
+          </span>
         </p>
       </div>
       {/* A failed call moved nothing: the amount it named is grey, as in the history rows. */}
       <p
-        className={`text-product-b-headline max-w-1/2 text-right break-all ${i.ok ? 'text-text-primary' : 'text-text-tertiary'}`}
+        className={`text-product-b-headline max-w-1/2 text-right break-words ${i.ok ? 'text-text-primary' : 'text-text-tertiary'}`}
       >
         {fromUnits(i.value, 'ETH')} ETH
       </p>

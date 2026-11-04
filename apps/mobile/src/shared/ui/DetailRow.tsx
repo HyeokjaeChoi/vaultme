@@ -10,19 +10,21 @@ type Props = {
   value: string
   /** Medium, text/primary value (the 상태 row). */
   emphasis?: boolean
+  /** IBM Plex Mono value, for a hash or a short address only (Plex Mono has no Hangul). */
+  mono?: boolean
   /** Show the copy icon at the end of the value. `text` is what lands on the clipboard (the full address or hash); the row shows the short `value`. */
   copy?: { text: string; label: string; announce: string }
 }
 
-/** One value style for a detail list: label Body Small tertiary (160 wide), value Product B/Value secondary, right aligned, optional copy icon. At about 150% text the label sits above the value. */
-export function DetailRow({ label, value, emphasis, copy }: Props) {
+/** One value style for a detail list: label Body Small tertiary (160 wide), value Product B/Value secondary (`mono`: Product B/Address for a hash or short address), right aligned, optional copy icon. At about 150% text the label sits above the value. */
+export function DetailRow({ label, value, emphasis, mono, copy }: Props) {
   const t = useTheme()
   const { fontScale } = useWindowDimensions()
   const stacked = fontScale >= 1.5
   const { copied, copy: doCopy } = useCopy(copy?.announce ?? '')
   const text = (
     <Text
-      variant={emphasis ? 'label' : 'value'}
+      variant={mono ? 'address' : emphasis ? 'label' : 'value'}
       color={emphasis ? t.semantic.text.primary : t.semantic.text.secondary}
       style={stacked ? undefined : { flex: 1, textAlign: 'right' }}
     >

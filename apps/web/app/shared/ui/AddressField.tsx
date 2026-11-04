@@ -19,7 +19,7 @@ export function AddressField({ label, helper, error, ...input }: Props) {
         className={`bg-input-bg-default text-input-fg placeholder:text-input-placeholder rounded-input-radius px-input-padding-x min-h-button-b-height-lg font-mono text-product-b-address w-full border py-4 ${error ? 'border-input-border-error' : 'border-transparent'}`}
       />
       {error ? (
-        <p id={`${id}-help`} role="alert" className="text-product-b-caption text-input-error-text">
+        <p id={`${id}-help`} role="alert" className="text-product-b-label text-input-error-text">
           {error}
         </p>
       ) : (
