@@ -2,11 +2,10 @@ import type { ComponentProps } from 'react'
 
 // Figma: B/Button 398:247 (a link that looks like a button: navigation, not an action; Button.tsx is the action)
 // States: hover and active on every variant; a disabled one (`disabled` or `aria-disabled`) is grey and shows why it does not react.
-// ponytail: Primary has no hover/pressed color token yet, so it dims (opacity) until the design system adds them.
 const disabled =
   'aria-disabled:cursor-not-allowed aria-disabled:bg-surface-disabled aria-disabled:text-text-disabled disabled:cursor-not-allowed disabled:bg-surface-disabled disabled:text-text-disabled'
 const variants = {
-  primary: `bg-button-b-primary-bg text-button-b-primary-fg hover:opacity-90 active:opacity-80 aria-disabled:cursor-not-allowed aria-disabled:bg-button-b-primary-bg-disabled aria-disabled:text-button-b-primary-fg-disabled aria-disabled:opacity-100 disabled:cursor-not-allowed disabled:bg-button-b-primary-bg-disabled disabled:text-button-b-primary-fg-disabled disabled:opacity-100 h-button-b-height-lg px-button-b-padding-x-lg`,
+  primary: `bg-button-b-primary-bg text-button-b-primary-fg hover:bg-button-primary-bg-hover active:bg-button-primary-bg-pressed aria-disabled:cursor-not-allowed aria-disabled:bg-button-b-primary-bg-disabled aria-disabled:text-button-b-primary-fg-disabled disabled:cursor-not-allowed disabled:bg-button-b-primary-bg-disabled disabled:text-button-b-primary-fg-disabled h-button-b-height-lg px-button-b-padding-x-lg`,
   secondary: `bg-button-b-secondary-bg hover:bg-surface-hover active:bg-button-b-secondary-bg-pressed text-button-b-secondary-fg ${disabled} h-button-b-height-lg px-button-b-padding-x-lg`,
   // Header link: 48px pill, no fill. 12 px side padding below 768 px: with the 20 px of Figma the header is wider than 375 px
   // when the system font is wider than Pretendard (Linux CI Chrome, before the web font loads).

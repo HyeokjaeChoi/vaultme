@@ -10,7 +10,8 @@ import { AppMockup, AppMockupPreload } from '../shared/ui/AppMockup'
 import { ButtonLink } from '../shared/ui/ButtonLink'
 import { FaqItem } from '../shared/ui/FaqItem'
 import { FeatureCard } from '../shared/ui/FeatureCard'
-import { IconEye, IconKey, IconSend } from '../shared/ui/icons'
+import { IconEye, IconInfo, IconKey, IconSend, IconWarning } from '../shared/ui/icons'
+import { NoticeBanner } from '../shared/ui/NoticeBanner'
 import { StepItem } from '../shared/ui/StepItem'
 import { StoreButton } from '../shared/ui/StoreButton'
 
@@ -134,6 +135,20 @@ export default function Landing() {
             <StepItem key={item.title} number={i + 1} title={item.title} body={item.body} />
           ))}
         </ol>
+      </Section>
+
+      <Section id="security-title" title={t.security.title}>
+        <ul className="tablet:grid-cols-2 grid gap-3">
+          {t.security.items.map((item, i) => (
+            <NoticeBanner
+              key={item.title}
+              tone={i === t.security.items.length - 1 ? 'warning' : 'info'}
+              icon={i === t.security.items.length - 1 ? <IconWarning /> : <IconInfo />}
+              title={item.title}
+              body={item.body}
+            />
+          ))}
+        </ul>
       </Section>
 
       <Section id="faq-title" title={t.faq.title} narrow>

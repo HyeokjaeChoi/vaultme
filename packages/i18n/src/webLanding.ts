@@ -36,16 +36,29 @@ const ko = {
         { title: '테스트 자금을 받아요', body: '받기 주소로 Sepolia 파우셋에서 테스트 ETH를 받아요.' },
       ],
     },
+    security: {
+      title: '보안은 이렇게 다뤄요',
+      items: [
+        {
+          title: '복구 구문은 묻지 않아요',
+          body: '앱, 웹, 메시지 어디서도 묻지 않아요. 누가 물으면 알려 주지 마세요.',
+        },
+        {
+          title: '테스트넷 전용, 테스트 자금만',
+          body: 'Sepolia 테스트넷의 자산은 실제 가치가 없어요. 실제 자금은 보내지 마세요.',
+        },
+      ],
+    },
     faq: {
       title: '자주 묻는 질문',
       items: [
         {
           question: '키를 VaultMe가 가지고 있나요?',
-          answer: '아니요. 키와 복구 구문은 내 기기에만 있어요.',
+          answer: '아니요. 키는 내 기기에만 있어요.',
         },
         {
           question: '실제 돈을 써도 되나요?',
-          answer: '아니요. 실제 자금은 보내지 마세요.',
+          answer: '아니요. 테스트넷 전용이라 실제 자금은 쓸 수 없어요.',
         },
         {
           question: '웹에서 보내기도 되나요?',
@@ -113,16 +126,29 @@ const en: WebLandingMessages = {
         { title: 'Get test funds', body: 'Use your receive address to get test ETH from a Sepolia faucet.' },
       ],
     },
+    security: {
+      title: 'How we handle security',
+      items: [
+        {
+          title: 'We never ask for your recovery phrase',
+          body: 'Not in the app, on the web or in messages. If someone asks, do not share it.',
+        },
+        {
+          title: 'Testnet only, test funds only',
+          body: 'Assets on the Sepolia testnet have no real value. Do not deposit real funds.',
+        },
+      ],
+    },
     faq: {
       title: 'Frequently asked questions',
       items: [
         {
           question: 'Does VaultMe hold my keys?',
-          answer: 'No. Your keys and recovery phrase stay on your device.',
+          answer: 'No. Your keys stay on your device.',
         },
         {
           question: 'Can I use real money?',
-          answer: 'No. Do not send real funds.',
+          answer: 'No. It is testnet only, so real funds cannot be used.',
         },
         {
           question: 'Can I send from the web?',

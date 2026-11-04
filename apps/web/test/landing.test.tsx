@@ -25,8 +25,8 @@ describe('landing page', () => {
     const t = webLanding.ko.landing
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(t.hero.title.join(''))
     const h2 = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
-    expect(h2).toEqual([t.features.title, t.steps.title, t.faq.title, t.closing.title])
-    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3 + 3)
+    expect(h2).toEqual([t.features.title, t.steps.title, t.security.title, t.faq.title, t.closing.title])
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3 + 3 + 2)
     expect(screen.getAllByRole('listitem').length).toBeGreaterThanOrEqual(9)
   })
 
@@ -73,6 +73,13 @@ describe('landing page', () => {
   it('links the viewer CTA to /address (the viewer is a later ticket)', () => {
     at('/')
     expect(screen.getByRole('link', { name: webLanding.ko.landing.closing.viewer })).toHaveAttribute('href', '/address')
+  })
+
+  it('shows the two ADR-0014 statements: no recovery phrase asked, testnet only', () => {
+    at('/')
+    const t = webLanding.ko.landing.security
+    expect(t.items).toHaveLength(2)
+    for (const item of t.items) expect(screen.getByText(item.body)).toBeInTheDocument()
   })
 
   it('says why the store buttons do nothing, and links the reason to both', () => {

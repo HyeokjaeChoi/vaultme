@@ -52,7 +52,7 @@ const FIRST_PAGE = [
 const SECOND_PAGE = [mkTx(13, 30 * DAY), mkTx(14, 31 * DAY), mkTx(15, 32 * DAY)]
 
 /** The transaction answers: `ok` = 0.05 ETH 3 minutes ago, `usdc` = a 12.5 USDC transfer, `failed` = reverted, `unknown` = no such tx, `pending` = no block yet, `down` = 503. */
-export type TxMode = 'ok' | 'usdc' | 'failed' | 'unknown' | 'pending' | 'creation' | 'down'
+export type TxMode = 'ok' | 'usdc' | 'failed' | 'unknown' | 'pending' | 'creation' | 'down' | 'big'
 /** The internal transfers answers: `none`, `list` = one done and one failed transfer, `many` = 6, `capped` = 24 (the page draws 10 and a link for the other 14), `long` = one with 18 decimals, `down` = 503. */
 export type InternalMode = 'none' | 'list' | 'many' | 'capped' | 'long' | 'down'
 export const TX = hex(0x8f3b) // the hash of every fixture transaction answer
@@ -140,7 +140,8 @@ export async function fixtureApi(page: Page) {
                 hash: body.params[0],
                 from: SENDER,
                 to,
-                value: api.tx === 'usdc' ? '0x0' : '0xb1a2bc2ec50000',
+                value:
+                  api.tx === 'usdc' ? '0x0' : api.tx === 'big' ? `0x${(10n ** 42n).toString(16)}` : '0xb1a2bc2ec50000',
                 input,
                 blockNumber: '0x713a27',
               }
