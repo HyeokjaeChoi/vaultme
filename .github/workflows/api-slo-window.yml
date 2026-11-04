@@ -4,9 +4,10 @@ name: api-slo-window
 # 28 days (weekly runs, manual runs and the release gate runs of release.yml) and checks good / total >= 95% per case and mode.
 # A breach opens an issue (or comments on the open one). It never blocks a release; the release gate is the own-time check in api-bench.
 on:
-  # After each api-bench run of its own workflow (weekly or manual), so a delayed scheduled run is never missed.
+  # After each run that writes an api-bench artifact (weekly or manual api-bench, and release, which calls it), so a delayed
+  # scheduled run is never missed.
   workflow_run:
-    workflows: [api-bench]
+    workflows: [api-bench, release]
     types: [completed]
   workflow_dispatch:
 
@@ -32,22 +33,28 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          since="$(date -u -d '28 days ago' +%Y-%m-%d)"
+          # Exactly 28 days back to the second, not from midnight of that day.
+          since="$(date -u -d '28 days ago' +%Y-%m-%dT%H:%M:%SZ)"
           mkdir runs
+          listed=0
           for wf in api-bench.yml release.yml; do
             for id in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$wf" --created ">=$since" --status completed --limit 200 --json databaseId --jq '.[].databaseId'); do
-              # A run without the artifact (cancelled, or a release run that stopped before api-slo) adds nothing.
-              gh run download "$id" --repo "$GITHUB_REPOSITORY" --name api-bench --dir "runs/$id" 2>/dev/null || rmdir "runs/$id" 2>/dev/null || true
+              listed=$((listed + 1))
+              # A run without the artifact (cancelled, or a release run that stopped before api-slo) adds nothing. Any other
+              # download error stays visible in the log and in the count below.
+              gh run download "$id" --repo "$GITHUB_REPOSITORY" --name api-bench --dir "runs/$id" || rmdir "runs/$id" 2>/dev/null || true
             done
           done
+          echo "Runs in the window: $listed; with an api-bench artifact: $(find runs -mindepth 1 -maxdepth 1 -type d | wc -l)." | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Check the window
         id: check
         run: |
           rc=0
           node packages/perf/src/cli.ts slo-window --runs runs > window.md || rc=$?
           { echo '### API SLO, 4-week window'; echo; cat window.md; } >> "$GITHUB_STEP_SUMMARY"
-          echo "breach=$([ "$rc" = 1 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-          [ "$rc" = 0 ] || [ "$rc" = 1 ]
+          # Exit 3 = a breach (cli.ts); 1 is any crash (an uncaught throw), which fails the job and opens no issue.
+          echo "breach=$([ "$rc" = 3 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          [ "$rc" = 0 ] || [ "$rc" = 3 ]
       - name: Open or update the breach issue
         if: steps.check.outputs.breach == 'true'
         env:

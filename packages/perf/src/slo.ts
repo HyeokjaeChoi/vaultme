@@ -23,7 +23,8 @@ export const SLO_GOAL = 0.95
 export const SLO_WINDOW_DAYS = 28
 /**
  * The release gate (ADR-0036): p95 of our own server time in ms, Worker time minus upstream time from the Server-Timing header.
- * A latency budget, not a UX number: a quarter of the tightest user-action SLO (200 ms). It leaves out the upstreams and the network,
+ * Covers the middleware and route code outside `proxyRpc` (limiters, token check); `proxyRpc` itself sits
+ * inside the upstream span. A latency budget, not a UX number: a quarter of the tightest user-action SLO (200 ms). It leaves out the upstreams and the network,
  * so their noise cannot fail a release. A limit here fails the `api-bench` job.
  */
 export const OWN_P95_MS = 50

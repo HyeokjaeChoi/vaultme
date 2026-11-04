@@ -71,7 +71,7 @@ const T = {
   // From the Server-Timing header of /v1/rpc (#399): worker = Worker time (`total`), upstream = Infura/Alchemy. Other routes send none.
   worker: new Trend('ok_worker', true),
   upstream: new Trend('ok_upstream', true),
-  // worker minus upstream: our own server time (limiters, token check, proxy code), the release gate (ADR-0036).
+  // worker minus upstream: our own server time outside `proxyRpc` (limiters, token check), the release gate (ADR-0036).
   own: new Trend('ok_own', true),
 }
 const callOk = new Rate('call_ok')
