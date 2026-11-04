@@ -36,20 +36,6 @@ const ko = {
         { title: '테스트 자금을 받아요', body: '받기 주소로 Sepolia 파우셋에서 테스트 ETH를 받아요.' },
       ],
     },
-    security: {
-      title: '보안은 이렇게 다뤄요',
-      items: [
-        { title: '키는 앱 안에만 있어요', body: '웹 뷰어는 키를 만들지도, 서명하지도 않아요.' },
-        {
-          title: '복구 구문은 묻지 않아요',
-          body: 'VaultMe는 어디서도 복구 구문을 묻지 않아요. 누가 물으면 알려 주지 마세요.',
-        },
-        {
-          title: '테스트넷 전용, 테스트 자금만',
-          body: 'Sepolia 테스트넷의 자산은 실제 가치가 없어요.',
-        },
-      ],
-    },
     faq: {
       title: '자주 묻는 질문',
       items: [
@@ -125,23 +111,6 @@ const en: WebLandingMessages = {
         { title: 'Install the app', body: 'Get VaultMe from the App Store or Google Play.' },
         { title: 'Create a wallet', body: 'Write down your recovery phrase. VaultMe cannot recover it for you.' },
         { title: 'Get test funds', body: 'Use your receive address to get test ETH from a Sepolia faucet.' },
-      ],
-    },
-    security: {
-      title: 'How we handle security',
-      items: [
-        {
-          title: 'Keys stay in the app',
-          body: 'The web viewer never creates keys and never signs.',
-        },
-        {
-          title: 'We never ask for your recovery phrase',
-          body: 'VaultMe never asks for a recovery phrase anywhere. If someone asks, do not share it.',
-        },
-        {
-          title: 'Testnet only, test funds only',
-          body: 'Assets on the Sepolia testnet have no real value.',
-        },
       ],
     },
     faq: {
