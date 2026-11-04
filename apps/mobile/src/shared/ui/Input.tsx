@@ -1,18 +1,11 @@
 // Figma: Input 67:231 (B/Input 421:805)
-import { useEffect, useState, type Ref } from 'react'
-import {
-  AccessibilityInfo,
-  Platform,
-  Pressable,
-  TextInput,
-  View,
-  type TextInputInstance,
-  type TextInputProps,
-} from 'react-native'
+import { useState, type Ref } from 'react'
+import { Platform, Pressable, TextInput, View, type TextInputInstance, type TextInputProps } from 'react-native'
 import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
 import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
+import { useAnnounce } from './useAnnounce'
 
 type Props = Pick<
   TextInputProps,
@@ -49,10 +42,7 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
   const t = useTheme()
   const c = t.component.input
   const [focused, setFocused] = useState(false)
-  useEffect(() => {
-    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- a screen reader announcement is a side effect of the message appearing, not a render value
-    if (error) AccessibilityInfo.announceForAccessibility(error) // an RN `alert` is not announced on iOS when it mounts (WCAG 4.1.3)
-  }, [error])
+  useAnnounce(error)
   const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
   const textFont = textStyle(actions ? t.primitive.type.productB.address : t.primitive.type.productB.body)
   // iOS draws a single-line TextInput's text off center when lineHeight is set (#261): the field's height centers it instead.
@@ -65,7 +55,7 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
       ref={inputRef}
       editable={editable}
       accessibilityLabel={label}
-      accessibilityHint={error ?? helper}
+      accessibilityHint={helper}
       placeholderTextColor={c.placeholder}
       onFocus={(e) => {
         setFocused(true)
