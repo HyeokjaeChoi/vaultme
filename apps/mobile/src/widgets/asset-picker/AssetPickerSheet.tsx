@@ -30,7 +30,7 @@ export function AssetPickerSheet({ visible, onClose, onPick, balances, selected 
             accessibilityLabel={`${a.name}, ${balances[a.symbol] ?? '—'} ${a.symbol}`}
             onPress={() => onPick(a.symbol)}
             style={({ pressed }) => ({
-              backgroundColor: pressed ? th.semantic.surface.pressed : undefined,
+              backgroundColor: pressed ? th.semantic.surface.pressedOnRaised : undefined,
               minHeight: th.component.rowB.height,
               flexDirection: 'row',
               alignItems: 'center',

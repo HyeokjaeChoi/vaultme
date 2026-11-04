@@ -466,7 +466,7 @@ State and action rules:
 - "No issues found in available checks" is a neutral notice and no safety guarantee. A readable message and a good simulation are not safety guarantees either.
 - Do not show a "Verified" badge without a verification system.
 - Disabled controls say why, near the control.
-- Every pressable row or control shows `surface.pressed` (rows, tabs, chips) or a 0.7 opacity (text links, switch, filled panels) while pressed. Figma shows pressed states only on the components that have a Press property.
+- Every pressable row or control shows `surface.pressed` (rows, tabs, chips; `surface.pressedOnRaised` inside a sheet) or a 0.72 opacity (`opacity/72`) (text links, switch, filled panels) while pressed. Figma shows pressed states only on the components that have a Press property.
 - Loading keeps the button width and blocks repeat taps.
 - Inputs have a label, helper or error text, and a link to the field through `aria-describedby` (web) or an accessible description (native). A wrapper shows the inner invalid state.
 - Each state has its own fixed copy. Editable text (names, amounts) is separate from state copy.

@@ -34,7 +34,7 @@ export function Chip({ label, selected, disabled, disabledReason, onPress }: Pro
           onPress?.()
         }}
         hitSlop={{ top: slop, bottom: slop }}
-        {...(disabled ? {} : handlers)}
+        {...handlers}
         style={({ pressed }) => ({
           height: t.component.buttonB.height.sm,
           paddingHorizontal: t.primitive.space[4],

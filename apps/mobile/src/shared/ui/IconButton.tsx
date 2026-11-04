@@ -31,7 +31,7 @@ export function IconButton({ icon, label, onPress, disabled, variant = 'filled',
         accessibilityState={{ disabled: !!disabled }}
         disabled={disabled}
         onPress={onPress}
-        {...(disabled ? {} : handlers)}
+        {...handlers}
         style={({ pressed }) => ({
           width: c.hitTarget,
           height: c.hitTarget,
