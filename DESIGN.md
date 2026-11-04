@@ -351,7 +351,7 @@ Rules:
 - Disabled Primary is `surface.disabled` with `text.disabled`.
 - Landing-page artwork and the dark closing call to action belong to marketing. They are not product themes.
 
-Dark theme: `semanticDark` overrides `semantic` for surface, text, icon, border, status and a few more roles. Component values follow by alias. Canvas is neutral 950. Default surface is neutral 900. Raised surface is neutral 800. Primary text is neutral 50. Brand blue does not change. Dark status tints use the 950 steps of red and amber for body-text contrast. `frontMatter(tokens, 'dark')` in `packages/tokens/design-md.mjs` gives the dark values for tools.
+Dark theme: `semanticDark` overrides `semantic` for surface, text, icon, border, status and a few more roles. Component values follow by alias. Canvas is neutral 950. Default surface is neutral 900. Raised surface is neutral 800. Primary text is neutral 50. Brand blue does not change, except the focus border, which is brand 300 for 3:1 on the input fill. Dark status tints use the 950 steps of red and amber for body-text contrast. `frontMatter(tokens, 'dark')` in `packages/tokens/design-md.mjs` gives the dark values for tools.
 
 ## Typography
 
@@ -364,7 +364,7 @@ The UI uses **Pretendard** (400, 500, 600) for text. It uses **IBM Plex Mono** o
 - **Body and label:** `body` 16/24, `body-small` 15/22, `label` 14/20. Money-out sentences use `body-small` in Ink. They are the most visible sentences on the screen.
 - **Caption:** 12/17. Only for small support text.
 - **Address:** 14/20 mono. Always show the full address.
-- **Fact and fact-upper:** 12/16 Pretendard Regular, letter spacing 0. Use them for fact lines: network, chain ID, version. `fact-upper` is uppercase, for English fact lines. Full addresses and hashes stay in mono (`address`). A detail row can use mono for a hash, a short address or a time (`DetailRow mono`).
+- **Fact and fact-upper:** 12/16 Pretendard Regular, letter spacing 0. Use them for fact lines: network, chain ID, version. `fact-upper` is uppercase, for English fact lines. Full addresses and hashes stay in mono (`address`). A detail row can use mono for a hash or a short address (`DetailRow mono`); a time stays in Pretendard because Plex Mono has no Hangul.
 
 Rules:
 

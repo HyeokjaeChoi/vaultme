@@ -117,8 +117,16 @@ const copyOf = (t: T, label: string, text: string) => ({
 
 /** The full recipient or sender address (never shortened) with a copy action. */
 function FullAddress({ label, address, copy }: { label: string; address: string; copy: ReturnType<typeof copyOf> }) {
-  const { copy: doCopy } = useCopy(copy.announce)
-  return <AddressBlock label={label} address={address} copyLabel={copy.label} onCopy={() => void doCopy(copy.text)} />
+  const { copied, copy: doCopy } = useCopy(copy.announce)
+  return (
+    <AddressBlock
+      label={label}
+      address={address}
+      copyLabel={copy.label}
+      copied={copied}
+      onCopy={() => void doCopy(copy.text)}
+    />
+  )
 }
 
 /** 자세히: chain ID and block, hidden until opened (Figma 934:9123 open, 934:9154 row). */
@@ -252,7 +260,7 @@ function RowDetail({
         </>
       ) : null}
       <Block title={t('detail.infoTitle')}>
-        <DetailRow mono label={t('detail.time')} value={whenText(t, row.at)} />
+        <DetailRow label={t('detail.time')} value={whenText(t, row.at)} />
         <DetailRow
           emphasis
           label={t('result.statusLabel')}
@@ -486,7 +494,7 @@ export function TxDetailPage() {
       </Block>
       <SectionBand />
       <Block title={t('detail.infoTitle')}>
-        <DetailRow mono label={t('detail.time')} value={whenText(t, tx.createdAt)} />
+        <DetailRow label={t('detail.time')} value={whenText(t, tx.createdAt)} />
         <DetailRow emphasis label={t('result.statusLabel')} value={stateWord} />
         <DetailRow
           mono

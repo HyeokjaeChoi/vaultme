@@ -75,10 +75,17 @@ export function AddressText({ address, highlight = [], color, markColor, size = 
   )
 }
 
-type Props = { address: string; label?: string; highlight?: number[]; copyLabel?: string; onCopy?: () => void }
+type Props = {
+  address: string
+  label?: string
+  highlight?: number[]
+  copyLabel?: string
+  /** Shows the check icon while true (useCopy). */ copied?: boolean
+  onCopy?: () => void
+}
 
 /** C26 Address block. Label (Label, secondary) over the full address; optional 44 px copy action with a visible label. */
-export function AddressBlock({ address, label, highlight, copyLabel, onCopy }: Props) {
+export function AddressBlock({ address, label, highlight, copyLabel, copied, onCopy }: Props) {
   const t = useTheme()
   const c = t.component.addressBlock
   return (
@@ -97,7 +104,11 @@ export function AddressBlock({ address, label, highlight, copyLabel, onCopy }: P
           style={{ flexDirection: 'row', alignItems: 'center', gap: c.gap, minHeight: c.copyTarget }}
         >
           <View style={{ width: c.copyTarget, height: c.copyTarget, alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="copy" size={t.component.icon.size.control} color={t.component.icon.action.fg} />
+            <Icon
+              name={copied ? 'check' : 'copy'}
+              size={t.component.icon.size.control}
+              color={t.component.icon.action.fg}
+            />
           </View>
           <Text variant="body" color={t.semantic.text.secondary}>
             {copyLabel}

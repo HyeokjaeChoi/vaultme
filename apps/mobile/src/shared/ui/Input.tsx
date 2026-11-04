@@ -36,7 +36,7 @@ type Props = Pick<
   action?: { icon: IconName; label: string; onPress: () => void }
 }
 
-/** C03 Input (Redesign B). Label (Label 14/500) over a 56 pt field (Body 16/24), helper and error in Caption. Border is functional (editable recognition, focus, error). */
+/** C03 Input (Redesign B). Label (Label 14/500) over a 56 pt field (Body 16/24), helper in Caption, error in Label 14. Border is functional (editable recognition, focus, error). */
 export function Input({ label, helper, error, editable = true, onBlur, actions, action, inputRef, ...field }: Props) {
   const t = useTheme()
   const c = t.component.input
