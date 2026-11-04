@@ -41,15 +41,18 @@ function LanguageSwitch({ locale, t }: { locale: WebLocale; t: WebMessages['head
 export function SiteHeader({ locale }: { locale: WebLocale }) {
   const t = webMessages[locale]
   return (
-    <header className="bg-screen-b-bg px-layout-screen-padding tablet:px-8 web-desktop:px-20 min-h-web-header-height flex py-3">
-      <div className="max-w-layout-content-max-width tablet:gap-3 mx-auto flex w-full flex-wrap items-center gap-x-1 gap-y-2">
+    <header className="bg-screen-b-bg px-layout-screen-padding tablet:px-8 web-desktop:px-20 h-web-header-height flex py-3">
+      <div className="max-w-layout-content-max-width tablet:gap-3 mx-auto flex w-full items-center gap-1">
         <a href={homeOf(locale)} className="-m-3 flex shrink-0 items-center gap-2 p-3" aria-label={t.siteName}>
           <BrandMark />
           <span translate="no" className="text-product-b-headline text-text-primary tablet:inline hidden">
             {t.siteName}
           </span>
         </a>
-        <StatusChip>{t.header.network}</StatusChip>
+        {/* Below 768 px the chip would push the header past 320 px (and wrap when the font loads): the hero already says Sepolia. */}
+        <span className="tablet:inline hidden">
+          <StatusChip>{t.header.network}</StatusChip>
+        </span>
         <div className="min-w-px flex-1" />
         <ThemeToggle t={t.header} />
         <LanguageSwitch locale={locale} t={t.header} />

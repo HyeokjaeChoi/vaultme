@@ -117,6 +117,18 @@ test.describe('transaction page', () => {
     })
   }
 
+  test('a 25-digit amount stays inside the page at 375px', async ({ page }) => {
+    const api = await fixtureApi(page)
+    api.tx = 'big'
+    await page.setViewportSize({ width: 375, height: 900 })
+    await page.goto(hash)
+    const amount = page.getByText('1000000000000000000000000')
+    await expect(amount).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    const box = await amount.boundingBox()
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(375)
+  })
+
   test('internal transfers: a long amount wraps in its column, nothing runs past the row (375px)', async ({ page }) => {
     const api = await fixtureApi(page)
     api.internal = 'long'
