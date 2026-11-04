@@ -6,7 +6,7 @@
 //   node packages/perf/src/cli.ts slo-window --runs <dir with the downloaded api-bench artifacts of the window>    (pools the SLO counts, ADR-0036; exit 1 on a breach)
 //   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text>
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { parseArgs } from 'node:util'
 import { aggregate, benchTable, limitsJs, MODES, type K6Result } from './bench.ts'
 import { buildBaseline, latencyTable, renderBaseline, type Baseline, type JsBudgetRow } from './baseline.ts'
@@ -145,7 +145,7 @@ if (cmd === 'hermes') {
       },
   )
   const rows = sloWindow(results)
-  console.log(windowMarkdown(rows, new Set(files.map((f) => f.split('/')[0])).size))
+  console.log(windowMarkdown(rows, new Set(files.map((f) => dirname(f))).size))
   if (rows.some((r) => r.ok === false)) process.exitCode = 1
 } else {
   throw new Error('usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window')

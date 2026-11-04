@@ -4,9 +4,10 @@ name: api-slo-window
 # 28 days (weekly runs, manual runs and the release gate runs of release.yml) and checks good / total >= 95% per case and mode.
 # A breach opens an issue (or comments on the open one). It never blocks a release; the release gate is the own-time check in api-bench.
 on:
-  schedule:
-    # Monday 05:07 UTC, after api-bench (04:17, about 15 minutes). Not at the start of an hour.
-    - cron: '7 5 * * 1'
+  # After each api-bench run of its own workflow (weekly or manual), so a delayed scheduled run is never missed.
+  workflow_run:
+    workflows: [api-bench]
+    types: [completed]
   workflow_dispatch:
 
 permissions:

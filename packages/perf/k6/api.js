@@ -7,7 +7,7 @@
 import { check, sleep } from 'k6'
 import { b64encode } from 'k6/encoding'
 import http from 'k6/http'
-import { Rate, Trend } from 'k6/metrics'
+import { Counter, Rate, Trend } from 'k6/metrics'
 import { CASES, evaluate, OWN_P95_MS, SLO_MS, tierMarkdown, warnings } from '../src/slo.ts'
 
 const BASE_URL = (__ENV.BASE_URL || '').replace(/\/+$/, '')
@@ -34,7 +34,7 @@ export const options = {
   tags: { mode: MODE },
   // One scenario with one iteration, so the cases run strictly one after the other (a slow response cannot overlap the next case).
   scenarios: { bench: { executor: 'per-vu-iterations', vus: 1, iterations: 1, exec: 'bench', maxDuration: '15m' } },
-  summaryTrendStats: ['min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
+  summaryTrendStats: ['count', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
   thresholds: {},
 }
 
@@ -53,6 +53,8 @@ for (const e of ENDPOINTS) {
   if (SLO_MS[MODE][e] !== undefined) options.thresholds[`slo_good{endpoint:${e}}`] = ['rate>=0']
   // The release gate (ADR-0036): our own server time, without the upstreams and the network. Only rpc sends Server-Timing.
   options.thresholds[`ok_own{endpoint:${e}}`] = [e === 'rpc' ? `p(95)<=${OWN_P95_MS}` : 'max>=0']
+  // k6 reports an empty Trend as zeros, so the gate also needs at least one own-time sample (a Server-Timing header).
+  options.thresholds[`own_n{endpoint:${e}}`] = [e === 'rpc' ? 'count>0' : 'count>=0']
   // At least one 200 per case: a case that never answered is a failed run, not a fast one.
   options.thresholds[`call_ok{endpoint:${e}}`] = ['rate>0']
 }
@@ -74,6 +76,7 @@ const T = {
 }
 const callOk = new Rate('call_ok')
 const sloGood = new Rate('slo_good')
+const ownN = new Counter('own_n')
 
 const b64u = (buf) => b64encode(buf, 'rawurl')
 
@@ -146,7 +149,10 @@ function call(name, timed, method, path, token, body) {
     const upstream = dur('upstream')
     if (worker !== null) T.worker.add(worker, tags)
     if (upstream !== null) T.upstream.add(upstream, tags)
-    if (worker !== null && upstream !== null) T.own.add(Math.max(0, worker - upstream), tags)
+    if (worker !== null && upstream !== null) {
+      T.own.add(Math.max(0, worker - upstream), tags)
+      ownN.add(1, tags)
+    }
   } else {
     console.error(`${name}: HTTP ${res.status} ${res.error_code || ''}`)
   }
@@ -203,8 +209,9 @@ const v = (data, name) => {
   return m ? m.values : null
 }
 const ms = (x) => (x === undefined || x === null ? null : Math.round(x * 100) / 100)
+// An empty Trend (no sample, e.g. no Server-Timing header) is null, not a row of zeros.
 const trend = (x) =>
-  x
+  x && x.count > 0
     ? { min: ms(x.min), p50: ms(x.med), p90: ms(x['p(90)']), p95: ms(x['p(95)']), p99: ms(x['p(99)']), max: ms(x.max) }
     : null
 
