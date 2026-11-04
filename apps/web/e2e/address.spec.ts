@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { type Route, expect, test } from '@playwright/test'
+import { settled } from './settle'
 import { A, fixtureApi } from './fixture-api'
 
 type LayoutShift = PerformanceEntry & { value: number; sources: { node: Node | null }[] }
@@ -94,6 +95,7 @@ test.describe('viewer', () => {
     expect(await amount.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true)
     await amount.focus()
     await expect(amount).toBeFocused()
+    await settled(page)
     const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag22aa']).analyze()
     expect(violations).toEqual([])
   })
@@ -211,6 +213,7 @@ for (const s of states) {
         await page.emulateMedia({ colorScheme: scheme })
         await page.goto(s.path)
         await expect(page.getByText(s.ready).first()).toBeVisible()
+        await settled(page)
         const { violations } = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'])
           .analyze()

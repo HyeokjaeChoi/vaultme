@@ -8,6 +8,7 @@ import { clearHeld, restoredWithPassphrase } from '@/features/restore'
 import { removeRestoredWallet } from '@/features/restore'
 import { disableTxPush } from '@/features/push'
 import { View } from 'react-native'
+import { haptic } from '@/shared/lib/haptics'
 import { useCopy } from '@/shared/lib/useCopy'
 import { useTheme } from '@/shared/theme'
 import { Button, Screen, StatusNotice, SummaryRow, Text } from '@/shared/ui'
@@ -43,6 +44,11 @@ export function RestoreDonePage({
     return () => sub.remove()
   }, [])
   const address = stored ?? (demo ? (passphraseDemo ? DEMO_PASSPHRASE_ADDRESS : account.address) : null)
+  const ready = address !== null
+  useEffect(() => {
+    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- a one-time cue when the screen shows the restored wallet (a device output, not state)
+    if (ready) haptic.success() // the wallet is back: one success cue (motion audit M5; no visual change, the Figma frame has no check badge)
+  }, [ready])
   const different = async () => {
     setRemoving(true)
     // Wrong wallet: remove it, go back to S05. The words stay (in memory, via the hand-off), the passphrase does not.

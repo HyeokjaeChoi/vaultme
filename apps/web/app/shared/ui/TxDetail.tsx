@@ -33,9 +33,11 @@ export function TxDetail({ tx, now, t, locale, internal, retryInternal }: Props)
     <>
       <div className="flex flex-col items-start gap-3">
         <StatusBadge kind={tx.ok ? 'confirmed' : 'failed'} label={tx.ok ? t.status.confirmed : t.status.failed} />
-        <p className="flex items-end gap-2 break-all">
+        <p className="flex max-w-full min-w-0 flex-wrap items-end gap-x-2 break-words">
           {/* A reverted call moved nothing: the amount it asked for is grey, as in the history rows. */}
-          <span className={`text-product-b-figure ${tx.ok ? 'text-text-primary' : 'text-text-tertiary'}`}>
+          <span
+            className={`text-product-b-figure min-w-0 wrap-anywhere ${tx.ok ? 'text-text-primary' : 'text-text-tertiary'}`}
+          >
             {fromUnits(tx.amount, tx.asset)}
           </span>
           <span className="text-product-b-figure-unit text-text-secondary">{tx.asset}</span>
@@ -80,7 +82,7 @@ export function TxDetail({ tx, now, t, locale, internal, retryInternal }: Props)
   )
 }
 
-const bar = 'bg-skeleton-bg rounded-skeleton-radius'
+const bar = 'bg-skeleton-bg rounded-skeleton-radius skeleton-pulse'
 // Row heights of the loaded rows (app.css): the two address rows, the three one-line rows and the hash row.
 const rows = ['tx-row-address', 'tx-row-address', 'tx-row-line', 'tx-row-line', 'tx-row-line', 'tx-row-hash']
 

@@ -106,7 +106,7 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
         ) : null}
       </View>
       {error ? (
-        <Text variant="caption" color={c.errorText}>
+        <Text variant="label" color={c.errorText}>
           {error}
         </Text>
       ) : null}

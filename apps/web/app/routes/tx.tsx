@@ -92,7 +92,7 @@ export default function TxPage() {
           {(!hydrated || !txHash) && (
             <div data-boot-form>
               <EmptyState
-                icon={<TxIcon name="warning" className="size-avatar-lg text-icon-tertiary" />}
+                icon="warning"
                 title={x.invalid.title}
                 body={x.invalid.body}
                 action={
@@ -171,17 +171,19 @@ function Detail({
     >
       {tx.status === 'loading' && <TxSkeleton t={x} />}
       {tx.status === 'ok' && (
-        <TxDetail
-          tx={tx.tx}
-          now={now}
-          t={x}
-          locale={locale}
-          internal={internal}
-          retryInternal={() => {
-            retried.current = true // the button leaves with the error: the focus goes to the section once the answer is there
-            retryInternal()
-          }}
-        />
+        <div className="fade-in flex flex-col gap-6">
+          <TxDetail
+            tx={tx.tx}
+            now={now}
+            t={x}
+            locale={locale}
+            internal={internal}
+            retryInternal={() => {
+              retried.current = true // the button leaves with the error: the focus goes to the section once the answer is there
+              retryInternal()
+            }}
+          />
+        </div>
       )}
       {tx.status === 'notfound' && (
         <div role="status">
