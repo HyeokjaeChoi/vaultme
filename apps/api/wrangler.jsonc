@@ -51,7 +51,13 @@
         "WEB_ORIGINS": "https://vaultme-staging.stack-line.dev",
         "ENVIRONMENT": "staging",
         "SENTRY_DSN": "https://d539efbe04f78c6b05458cd5f7133138@o4512355457433600.ingest.us.sentry.io/4512355519102976",
+        // #423 experiment: the Etherscan bucket instance in Eastern North America, next to Etherscan (all its servers are in Tampa).
+        "ETHERSCAN_BUCKET_LOCATION": "enam",
       },
+      // #423 experiment, staging only: run the Worker close to Etherscan (Hivelocity, Tampa; no CDN). From the HKG colo a history
+      // fetch took 665 ms p50, from a US runner 289 ms (#412). Keep for production only if api-bench and a Korea run both get
+      // faster for history and rpc; else remove, as #407 did for #403.
+      "placement": { "hostname": "api.etherscan.io" },
       "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "vaultme_api_staging" }],
       "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],

@@ -20,10 +20,20 @@ type Bindings = Env['Bindings']
 export type EtherscanStats = { calls: number; fetchMs: number; waitMs: number; bucketMs: number; upstreamMs: number }
 export const newStats = (): EtherscanStats => ({ calls: 0, fetchMs: 0, waitMs: 0, bucketMs: 0, upstreamMs: 0 })
 
+// #423 experiment (staging only): a location hint takes effect only when an instance is first made, so a hinted bucket is a new
+// instance with its own name. One instance per environment still holds all calls (ADR-0009). Remove the var and this branch if
+// the experiment is reverted.
+const bucket = (env: Bindings) => {
+  const loc = env.ETHERSCAN_BUCKET_LOCATION
+  return loc
+    ? env.ETHERSCAN_BUCKET.getByName(`global-${loc}`, { locationHint: loc })
+    : env.ETHERSCAN_BUCKET.getByName('global')
+}
+
 /** Waits for a token of the global bucket. Throws when the wait would be over 2 s. */
 async function acquire(env: Bindings, stats?: EtherscanStats): Promise<void> {
   const t0 = Date.now()
-  const wait = await env.ETHERSCAN_BUCKET.getByName('global').acquire()
+  const wait = await bucket(env).acquire()
   if (stats) stats.bucketMs = Math.max(stats.bucketMs, Date.now() - t0)
   if (wait === null) {
     logEvent('warn', 'etherscan_throttled')
