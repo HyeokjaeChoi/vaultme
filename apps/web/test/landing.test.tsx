@@ -25,8 +25,8 @@ describe('landing page', () => {
     const t = webLanding.ko.landing
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(t.hero.title.join(''))
     const h2 = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
-    expect(h2).toEqual([t.features.title, t.steps.title, t.security.title, t.faq.title, t.closing.title])
-    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3 + 3 + 3)
+    expect(h2).toEqual([t.features.title, t.steps.title, t.faq.title, t.closing.title])
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3 + 3)
     expect(screen.getAllByRole('listitem').length).toBeGreaterThanOrEqual(9)
   })
 
@@ -75,11 +75,14 @@ describe('landing page', () => {
     expect(screen.getByRole('link', { name: webLanding.ko.landing.closing.viewer })).toHaveAttribute('href', '/address')
   })
 
-  it('shows the testnet and no-recovery-phrase notes', () => {
+  it('says why the store buttons do nothing, and links the reason to both', () => {
     at('/')
-    const t = webLanding.ko.landing
-    expect(screen.getByText(t.security.items[2].body)).toBeInTheDocument()
-    expect(screen.getByText(t.security.items[1].body)).toBeInTheDocument()
+    const t = webLanding.ko.landing.hero
+    const reason = screen.getByText(t.storeSoon)
+    for (const name of [t.appStore, t.googlePlay]) {
+      expect(screen.getByRole('button', { name })).toHaveAccessibleDescription(t.storeSoon)
+    }
+    expect(reason).toBeVisible()
   })
 })
 

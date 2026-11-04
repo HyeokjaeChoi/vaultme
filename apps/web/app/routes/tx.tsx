@@ -92,7 +92,7 @@ export default function TxPage() {
           {(!hydrated || !txHash) && (
             <div data-boot-form>
               <EmptyState
-                icon={<TxIcon name="warning" className="size-avatar-lg text-icon-tertiary" />}
+                icon="warning"
                 title={x.invalid.title}
                 body={x.invalid.body}
                 action={
