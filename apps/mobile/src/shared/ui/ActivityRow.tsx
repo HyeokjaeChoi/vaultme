@@ -103,7 +103,13 @@ export function ActivityRow({
     </View>
   )
   return onPress ? (
-    <Pressable accessible accessibilityRole="button" accessibilityLabel={label} onPress={onPress}>
+    <Pressable
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => ({ backgroundColor: pressed ? t.semantic.surface.pressed : undefined })}
+    >
       {row}
     </Pressable>
   ) : (

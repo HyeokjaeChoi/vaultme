@@ -215,13 +215,20 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
       revealRef={reveal}
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/')} />}
       footer={
-        <Button
-          label={t('restore.submit')}
-          disabled={!ready || showChecksum || noLock || checking}
-          busy={busy}
-          busyLabel={t('busy.restore')}
-          onPress={() => void submit()}
-        />
+        <>
+          <Button
+            label={t('restore.submit')}
+            disabled={!ready || showChecksum || noLock || checking}
+            busy={busy}
+            busyLabel={t('busy.restore')}
+            onPress={() => void submit()}
+          />
+          {!ready && !noLock && !checking ? (
+            <Text variant="caption" color={th.semantic.text.tertiary} style={{ textAlign: 'center' }}>
+              {t('restore.submitHint')}
+            </Text>
+          ) : null}
+        </>
       }
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>

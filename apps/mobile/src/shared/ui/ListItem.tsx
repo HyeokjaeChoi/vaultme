@@ -28,7 +28,7 @@ type Props = {
   onPress?: () => void
 }
 
-/** C31 List item (Redesign B Settings row / Switch row). Flat, no fill and no divider, min-height rowB.height 64, title Row title 500, trailing value Body Small tertiary (Caption on a compact license row), 20 pt chevron. A pressable row scales to 0.97 over 100 ms. */
+/** C31 List item (Redesign B Settings row / Switch row). Flat, no fill and no divider, min-height rowB.height 64, title Row title 500, trailing value Body Small tertiary (Caption on a compact license row), 20 pt chevron. A pressable row scales to 0.97 over motion.duration.fastMs. */
 export function ListItem({ title, icon, iconColor, mono, compact, detailValue, trailing, onPress }: Props) {
   const t = useTheme()
   const { style, handlers } = usePressScale()
@@ -74,7 +74,13 @@ export function ListItem({ title, icon, iconColor, mono, compact, detailValue, t
   )
   return onPress ? (
     <Animated.View style={style}>
-      <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} {...handlers}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        onPress={onPress}
+        {...handlers}
+        style={({ pressed }) => ({ backgroundColor: pressed ? t.semantic.surface.pressed : undefined })}
+      >
         {row}
       </Pressable>
     </Animated.View>

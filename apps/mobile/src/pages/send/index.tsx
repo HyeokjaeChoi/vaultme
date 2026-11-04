@@ -65,11 +65,18 @@ export function SendPage() {
       gap="group"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} chips={<NetworkChips />} />}
       footer={
-        <Button
-          label={t('send.next')}
-          disabled={!valid}
-          onPress={() => router.push({ pathname: '/send/amount', params: { to } })}
-        />
+        <>
+          <Button
+            label={t('send.next')}
+            disabled={!valid}
+            onPress={() => router.push({ pathname: '/send/amount', params: { to } })}
+          />
+          {!valid ? (
+            <Text variant="caption" color={th.semantic.text.tertiary} style={{ textAlign: 'center' }}>
+              {t('send.recipientHelper')}
+            </Text>
+          ) : null}
+        </>
       }
     >
       <View style={{ paddingVertical: th.primitive.space[2] }}>
