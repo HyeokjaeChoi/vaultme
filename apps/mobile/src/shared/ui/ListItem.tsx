@@ -17,7 +17,7 @@ type Props = {
   mono?: boolean
   /** 52 pt row (S64 license list, Figma 526:54525) instead of 64. */
   compact?: boolean
-  /** The trailing value uses Product B/Value (Regular 14, one value style for detail lists): network, version. */
+  /** The trailing value uses Product B/Fact (Pretendard Regular 12): network, version. */
   detailValue?: boolean
   /** `value` = text only, `disclosure` = optional value + chevron, `external` = optional value + the open-in-browser icon (link row), `custom` = any node, e.g. a Switch (Switch row). */
   trailing?:
@@ -33,7 +33,7 @@ export function ListItem({ title, icon, iconColor, mono, compact, detailValue, t
   const t = useTheme()
   const { style, handlers } = usePressScale()
   const value = (text: string) => (
-    <Text variant={detailValue ? 'value' : compact ? 'caption' : 'bodySmall'} color={t.semantic.text.tertiary} tabular>
+    <Text variant={detailValue ? 'fact' : compact ? 'caption' : 'bodySmall'} color={t.semantic.text.tertiary} tabular>
       {text}
     </Text>
   )
