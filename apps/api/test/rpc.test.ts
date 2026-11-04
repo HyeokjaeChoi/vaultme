@@ -167,3 +167,77 @@ describe('POST /v1/rpc', () => {
     expect(r.status).toBe(429)
   })
 })
+
+// #399: Infura's latency swings run to run. A read that Infura has not answered in HEDGE_MS also goes to Alchemy; the first valid answer wins.
+describe('hedged reads', () => {
+  const slow = (ms: number, res: () => Response) => () => new Promise<Response>((r) => setTimeout(() => r(res()), ms))
+
+  it('a slow primary read is answered by alchemy; the slow call is aborted and not logged as failed', async () => {
+    let signal: AbortSignal | undefined
+    const f = vi.fn()
+    f.mockImplementationOnce((_u: string, init: RequestInit) => {
+      signal = init.signal ?? undefined
+      return new Promise<Response>((res, rej) => {
+        const t = setTimeout(() => res(ok('0x1')), 1000)
+        signal?.addEventListener('abort', () => {
+          clearTimeout(t)
+          rej(new Error('aborted'))
+        })
+      })
+    })
+    f.mockImplementationOnce(() => Promise.resolve(ok('0x2')))
+    vi.stubGlobal('fetch', f)
+    const logs: string[] = []
+    vi.spyOn(console, 'log').mockImplementation((...a) => void logs.push(a.join(' ')))
+    vi.spyOn(console, 'error').mockImplementation((...a) => void logs.push(a.join(' ')))
+    const t0 = Date.now()
+    const r = await rpc(req('eth_blockNumber'))
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0x2' })
+    expect(Date.now() - t0).toBeLessThan(800)
+    expect(String(f.mock.calls[1]![0])).toContain('alchemy')
+    await new Promise((res) => setTimeout(res, 0))
+    expect(signal?.aborted).toBe(true)
+    expect(logs.join('\n')).not.toContain('rpc_upstream_failed')
+    expect(logs.join('\n')).toMatch(/rpc_hedged.*alchemy/)
+    vi.restoreAllMocks()
+  })
+
+  it('a fast null from alchemy waits for the slow primary receipt', async () => {
+    const receipt = { status: '0x1' }
+    mock(
+      slow(400, () => ok(receipt)),
+      () => ok(null),
+    )
+    const r = await rpc(req('eth_getTransactionReceipt', [`0x${'ab'.repeat(32)}`]))
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: receipt })
+  })
+
+  it('a hedged null is used when the primary then fails', async () => {
+    mock(
+      slow(300, () => new Response('x', { status: 502 })),
+      () => ok(null),
+    )
+    const r = await rpc(req('eth_getTransactionReceipt', [`0x${'ab'.repeat(32)}`]))
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: null })
+  })
+
+  it('a fast primary read sends nothing to alchemy', async () => {
+    const f = mock(
+      () => ok('0x1'),
+      () => ok('0x2'),
+    )
+    await rpc(req('eth_blockNumber'))
+    await new Promise((r) => setTimeout(r, 300))
+    expect(f).toHaveBeenCalledTimes(1)
+  })
+
+  it('never hedges eth_sendRawTransaction: the second node could answer "already known" for a send that worked', async () => {
+    const f = mock(
+      slow(400, () => ok('0xhash')),
+      () => ok('0xother'),
+    )
+    const r = await rpc(req('eth_sendRawTransaction', ['0x02']))
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0xhash' })
+    expect(f).toHaveBeenCalledTimes(1)
+  })
+})

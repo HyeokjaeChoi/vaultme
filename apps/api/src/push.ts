@@ -398,12 +398,16 @@ async function withFailures(
   await Promise.all(
     hashes.map(async (hash) => {
       try {
-        const text = await proxyRpc(env, {
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'eth_getTransactionReceipt',
-          params: [hash],
-        })
+        const text = await proxyRpc(
+          env,
+          {
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getTransactionReceipt',
+            params: [hash],
+          },
+          false,
+        ) // background work: no hedge, so a webhook with many hashes does not double the upstream calls
         const r = text === null ? null : Receipt.safeParse(JSON.parse(text))
         if (!r?.success || r.data.error !== undefined || !r.data.result) throw new Error('no receipt')
         if (r.data.result.status === '0x0') failed.add(hash)
@@ -452,12 +456,16 @@ async function recordLatencies(env: Bindings, handoffs: Handoff[]): Promise<void
   await Promise.all(
     [...new Set(handoffs.flatMap((h) => (h.blockNum ? [h.blockNum] : [])))].map(async (blockNum) => {
       try {
-        const text = await proxyRpc(env, {
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'eth_getBlockByNumber',
-          params: [blockNum, false],
-        })
+        const text = await proxyRpc(
+          env,
+          {
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getBlockByNumber',
+            params: [blockNum, false],
+          },
+          false,
+        )
         const r = BlockTime.safeParse(JSON.parse(text ?? 'null'))
         if (r.success) stamps.set(blockNum, Number(BigInt(r.data.result.timestamp)))
       } catch {
