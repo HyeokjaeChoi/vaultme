@@ -4,7 +4,7 @@ import { goBack } from '@/shared/lib/nav'
 import { useTheme } from '@/shared/theme'
 import { BrandScreen, Button, Icon } from '@/shared/ui'
 
-/** B-S92 기기 보안 경고. Opens from the S60 row; the root/jailbreak detection that would raise it on its own is not built. */
+/** B-S92 기기 보안 경고. Opens from the S60 row, and once on its own when `expo-device` experimental root/jailbreak check says yes (warn only, ADR-0028). */
 export function DeviceWarningPage() {
   const { t } = useTranslation()
   const th = useTheme()

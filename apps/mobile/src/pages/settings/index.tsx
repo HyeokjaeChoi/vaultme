@@ -56,7 +56,7 @@ export function SettingsPage() {
           trailing={{ kind: 'disclosure' }}
           onPress={() => router.push('/settings/phrase')}
         />
-        {/* The Figma value "확인됨" is left out: root/jailbreak detection is not built, so the app cannot claim the device was checked. */}
+        {/* The Figma value "확인됨" is left out: the root/jailbreak check (`expo-device`, experimental, warn only, ADR-0028) can miss a rooted device, so the app never claims the device was checked. */}
         <ListItem
           icon="deviceWarning"
           title={t('settings.device')}
