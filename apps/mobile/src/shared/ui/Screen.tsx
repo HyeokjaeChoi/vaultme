@@ -10,8 +10,9 @@ import {
   View,
   type ScrollViewInstance,
 } from 'react-native'
+import Animated, { LayoutAnimationConfig } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useTheme } from '../theme'
+import { useTheme, useToastMotion } from '../theme'
 import { Toast, ToastContext } from './Toast'
 
 const TOAST_MS = 3000
@@ -57,6 +58,11 @@ export function Screen({
 }: Props) {
   const t = useTheme()
   const l = t.semantic.layout
+  const toastMotion = useToastMotion(
+    t.primitive.space[2],
+    t.primitive.motion.duration.enterMs,
+    t.primitive.motion.duration.exitMs,
+  )
   const scrollRef = useRef<ScrollViewInstance>(null)
   const [layoutHeight, setLayoutHeight] = useState(0)
   // Form screens: with the keyboard up the safe-area inset is gone, so the footer keeps its top padding (12) below the button too, not 4 (#261).
@@ -157,14 +163,22 @@ export function Screen({
         >
           <ToastContext value={showToast}>{children}</ToastContext>
         </ScrollView>
-        {toast ? (
-          <View
-            pointerEvents="none"
-            style={{ position: 'absolute', left: l.screen.padding, right: l.screen.padding, bottom: l.screen.padding }}
-          >
-            <Toast message={toast} />
-          </View>
-        ) : null}
+        <LayoutAnimationConfig skipExiting>
+          {toast ? (
+            <Animated.View
+              {...toastMotion}
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                left: l.screen.padding,
+                right: l.screen.padding,
+                bottom: l.screen.padding,
+              }}
+            >
+              <Toast message={toast} />
+            </Animated.View>
+          ) : null}
+        </LayoutAnimationConfig>
       </View>
       {footer ? (
         // Fixed-footer boundary (Borderless functional exception, DESIGN.md): Figma draws the 1 px line above the actions on every screen with a footer.

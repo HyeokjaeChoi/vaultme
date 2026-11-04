@@ -1,7 +1,8 @@
 // Figma: B/Amount hero 494:1142 (Kind=Review | Result; Figure 44/700 + Figure unit 24/600, baseline)
-import Animated from 'react-native-reanimated'
+import Animated, { FadeIn, FadeOut, LayoutAnimationConfig, useReducedMotion } from 'react-native-reanimated'
+import { useState } from 'react'
 import { View } from 'react-native'
-import { useTheme } from '../theme'
+import { EASE_OUT, useTheme } from '../theme'
 import { useCheckPop } from '../theme/motion'
 import { AssetIcon, type AssetSymbol } from './AssetIcon'
 import { RowBadge, type RowBadgeKind } from './RowBadge'
@@ -31,6 +32,17 @@ type Props = {
 export function AmountHero({ asset, amount, unit, lines, result, note, link, celebrate, struck }: Props) {
   const t = useTheme()
   const pop = useCheckPop(!!celebrate && !!result)
+  // Motion audit M3: when the status changes, only the badge cross-fades (baseMs). Title, amount and sentence render at once, and the first frame never fades.
+  // Confirmed and Pending fade in; Failed, Unknown, Replaced and warnings appear at once. Reduce Motion: no fade.
+  const reduce = useReducedMotion()
+  const kind = result?.badge
+  const [prevKind, setPrevKind] = useState(kind)
+  const [changed, setChanged] = useState(false)
+  if (kind !== prevKind) {
+    setPrevKind(kind)
+    setChanged(true)
+  }
+  const ms = t.primitive.motion.duration.baseMs
   const big = !!celebrate && !!result
   const logo = big
     ? t.primitive.size.avatar_lg * 2
@@ -62,12 +74,22 @@ export function AmountHero({ asset, amount, unit, lines, result, note, link, cel
               transform: [{ translateX: t.component.rowBadge.ring }, { translateY: t.component.rowBadge.ring }],
             }}
           >
-            <Animated.View style={big ? pop : undefined}>
-              <RowBadge
-                kind={result.badge}
-                {...(big ? { size: t.primitive.size.icon_xl - t.component.rowBadge.ring * 2 } : {})}
-              />
-            </Animated.View>
+            {/* skipExiting: leaving the screen must not wait for the badge to fade; only a changed badge exits. */}
+            <LayoutAnimationConfig skipExiting>
+              <Animated.View
+                key={result.badge}
+                style={big ? pop : undefined}
+                {...(changed && !reduce && (result.badge === 'confirmed' || result.badge === 'pending')
+                  ? { entering: FadeIn.duration(ms).easing(EASE_OUT) }
+                  : {})}
+                {...(reduce ? {} : { exiting: FadeOut.duration(ms).easing(EASE_OUT) })}
+              >
+                <RowBadge
+                  kind={result.badge}
+                  {...(big ? { size: t.primitive.size.icon_xl - t.component.rowBadge.ring * 2 } : {})}
+                />
+              </Animated.View>
+            </LayoutAnimationConfig>
           </View>
         ) : null}
       </View>

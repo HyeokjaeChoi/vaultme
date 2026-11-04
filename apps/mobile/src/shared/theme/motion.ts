@@ -1,7 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   cancelAnimation,
+  cubicBezier,
   Easing,
+  FadeIn,
+  FadeOut,
+  Keyframe,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -12,6 +16,7 @@ import {
 
 // DESIGN motion (emil-design-eng): strong ease-out for UI. No tokens exist for these values yet.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
+export const EASE_OUT_CSS = cubicBezier(0.23, 1, 0.32, 1) // same curve as EASE_OUT, for Reanimated CSS transitions
 const PRESS_SCALE = 0.97
 const PRESS_MS = 100
 
@@ -89,4 +94,33 @@ export function useShake(amplitude: number) {
     )
   }
   return { style, shake }
+}
+
+/**
+ * Toast enter/exit (motion audit M1): rises `rise` px while it fades in over `enterMs`, fades out over `exitMs`. Spread both on the toast's Animated.View.
+ * Reduce Motion: opacity only, no travel.
+ */
+export function useToastMotion(rise: number, enterMs: number, exitMs: number) {
+  const reduce = useReducedMotion()
+  return {
+    entering: reduce
+      ? FadeIn.duration(enterMs)
+      : new Keyframe({
+          0: { opacity: 0, transform: [{ translateY: rise }] },
+          100: { opacity: 1, transform: [{ translateY: 0 }], easing: EASE_OUT },
+        }).duration(enterMs),
+    exiting: FadeOut.duration(exitMs),
+  }
+}
+
+/**
+ * Skeleton -> content fade (motion audit M2): the props (`{ entering }`, or `{}`) to spread on the Animated.View that wraps the loaded content (a container, never a virtualized row).
+ * Set only when this screen showed `loading` first, so content that was already there does not fade in. Reduce Motion: `{}`, the swap is instant.
+ * The skeleton leaves at once. Read at mount only, so call it where the wrapper mounts when `loading` turns false.
+ */
+export function useRevealEntering(loading: boolean, ms: number) {
+  const reduce = useReducedMotion()
+  const [sawLoading, setSawLoading] = useState(loading)
+  if (loading && !sawLoading) setSawLoading(true)
+  return reduce || !sawLoading ? {} : { entering: FadeIn.duration(ms).easing(EASE_OUT) }
 }

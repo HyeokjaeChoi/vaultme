@@ -72,6 +72,7 @@ export function BackupCheckPage({
   const filled = answersFilled(answers)
   const onRight = () => {
     if (!demo) appStore().getState().setBackupDone(true) // the dev fixture never records a real backup
+    haptic.success() // the check passed: one success cue (motion audit M5)
     clearCheck()
     router.dismissTo('/home')
     router.push('/receive') // S04 ok -> S30; back from Receive lands on Home

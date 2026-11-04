@@ -1,9 +1,10 @@
 // Figma: B-S41 내부 이동 (Flow 4 · Activity, #239): list 804:39671 / many 804:39832 / many capped 833:334 (dark 833:651) / loading 804:40085 / error 804:40202 (dark 805:3260 / 805:3421 / 805:3674 / 805:3791); rows are Activity row 36:48
 import { Linking, Pressable, View } from 'react-native'
+import Animated from 'react-native-reanimated'
 import { capInternal } from '@vaultme/api-client/cap'
 import { useTranslation } from 'react-i18next'
 import { internalRow, type Internal } from '@/features/history'
-import { useTheme } from '@/shared/theme'
+import { useRevealEntering, useTheme } from '@/shared/theme'
 import { AssetIcon, Block, Button, Icon, RowBadge, SectionBand, StatusNotice, Text } from '@/shared/ui'
 
 function Row({ i }: { i: ReturnType<typeof internalRow> }) {
@@ -95,6 +96,7 @@ export function InternalTransfers({
 }) {
   const { t } = useTranslation()
   const th = useTheme()
+  const reveal = useRevealEntering(internal.status === 'loading', th.primitive.motion.duration.baseMs)
   if (internal.status === 'ok' && internal.items.length === 0) return null
   const { shown, more } = capInternal(internal.status === 'ok' ? internal.items : [])
   return (
@@ -111,7 +113,7 @@ export function InternalTransfers({
             <Button label={t('common.retry')} variant="secondary" size="md" onPress={retry} />
           </View>
         ) : (
-          <>
+          <Animated.View {...reveal} style={{ gap: th.primitive.space[2] }}>
             {/* "The ETH moved here" is true only if one of them went through. */}
             {internal.items.some((i) => i.ok) ? (
               <Text variant="bodySmall" color={th.semantic.text.tertiary}>
@@ -137,7 +139,7 @@ export function InternalTransfers({
                 <Icon name="external" size={th.component.icon.size.control} color={th.component.icon.action.fg} />
               </Pressable>
             ) : null}
-          </>
+          </Animated.View>
         )}
       </Block>
     </>
