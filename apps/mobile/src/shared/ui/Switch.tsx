@@ -25,7 +25,10 @@ export function Switch({ value, onValueChange, label, disabled }: Props) {
       disabled={disabled}
       onPress={() => onValueChange(!value)}
       hitSlop={slop}
-      style={{ justifyContent: 'center', opacity: disabled ? t.primitive.opacity[40] : t.primitive.opacity[100] }}
+      style={({ pressed }) => ({
+        justifyContent: 'center',
+        opacity: disabled ? t.primitive.opacity[40] : pressed ? t.primitive.opacity[72] : t.primitive.opacity[100],
+      })}
     >
       <View
         style={{

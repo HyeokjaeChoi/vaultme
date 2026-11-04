@@ -142,12 +142,13 @@ function EtherscanRow({ url }: { url: string }) {
         accessibilityRole="link"
         accessibilityLabel={t('detail.etherscan')}
         onPress={() => void Linking.openURL(url)}
-        style={{
+        style={({ pressed }) => ({
+          backgroundColor: pressed ? th.semantic.surface.pressed : undefined,
           minHeight: th.primitive.size.touch_min,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-        }}
+        })}
       >
         <Text variant="headline">{t('detail.etherscan')}</Text>
         <Icon name="external" size={th.component.icon.size.control} color={th.component.icon.action.fg} />
@@ -514,7 +515,11 @@ export function TxDetailPage() {
                 haptic.warning()
                 setConfirmClear(true)
               }}
-              style={{ minHeight: th.primitive.size.touch_min, justifyContent: 'center' }}
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? th.semantic.surface.pressed : undefined,
+                minHeight: th.primitive.size.touch_min,
+                justifyContent: 'center',
+              })}
             >
               <Text variant="headline" color={th.semantic.status.danger.fg}>
                 {t('detail.clearTest')}

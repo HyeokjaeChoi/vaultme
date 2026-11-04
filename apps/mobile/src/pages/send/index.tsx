@@ -126,13 +126,14 @@ export function SendPage() {
               key={r.address}
               accessibilityRole="button"
               onPress={() => setTo(r.address)}
-              style={{
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? th.semantic.surface.pressed : undefined,
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: th.semantic.layout.rowGap,
                 minHeight: th.primitive.size.touch_min,
                 paddingVertical: th.primitive.space[2],
-              }}
+              })}
             >
               <View style={{ flex: 1, gap: th.primitive.space[1] }}>
                 <AddressText address={r.address} />

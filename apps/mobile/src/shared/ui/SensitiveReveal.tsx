@@ -33,7 +33,8 @@ export function SensitiveReveal({ words, onReveal, hint, busy }: Props) {
       accessibilityState={{ disabled: shown || busy === true, busy: busy === true }}
       disabled={shown || busy}
       onPress={onReveal}
-      style={{
+      style={({ pressed }) => ({
+        opacity: pressed ? t.primitive.opacity[72] : t.primitive.opacity[100],
         gap: t.semantic.layout.fieldGap,
         padding: t.primitive.space[3],
         borderRadius: t.component.sensitiveReveal.radius,
@@ -47,7 +48,7 @@ export function SensitiveReveal({ words, onReveal, hint, busy }: Props) {
               alignItems: 'center' as const,
               justifyContent: 'center' as const,
             }),
-      }}
+      })}
     >
       {shown ? (
         rows.map((row, r) => (

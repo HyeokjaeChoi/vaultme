@@ -22,12 +22,13 @@ export function AssetSelector({ name, symbol, label, hint, onPress }: Props) {
       accessibilityLabel={`${label}, ${name} ${symbol}`}
       accessibilityHint={hint}
       onPress={onPress}
-      style={{
+      style={({ pressed }) => ({
+        backgroundColor: pressed ? t.semantic.surface.pressed : undefined,
         minHeight: t.component.rowB.height,
         flexDirection: 'row',
         alignItems: 'center',
         gap: t.semantic.layout.rowGap,
-      }}
+      })}
     >
       <View
         style={{
