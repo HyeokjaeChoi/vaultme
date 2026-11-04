@@ -44,6 +44,7 @@ colors:
   border-focus: "#3152FF"
   border-danger: "#B93340"
   border-selected: "#3152FF"
+  border-control: "#808D9D"
   action-primary-bg-default: "#3152FF"
   action-primary-bg-hover: "#2944DB"
   action-primary-bg-pressed: "#2138B8"

@@ -153,103 +153,24 @@ export const dark = {
     "type": {
       "body": {
         "lg": {
-          "fontFamily": "Inter",
+          "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 18,
           "lineHeight": 27,
           "letterSpacing": 0
         },
         "md": {
-          "fontFamily": "Inter",
+          "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 16,
           "lineHeight": 24,
           "letterSpacing": 0
         },
         "sm": {
-          "fontFamily": "Inter",
+          "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 14,
           "lineHeight": 21,
-          "letterSpacing": 0
-        }
-      },
-      "product": {
-        "title": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 24,
-          "lineHeight": 32,
-          "letterSpacing": -0.24
-        },
-        "section": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 16,
-          "lineHeight": 24,
-          "letterSpacing": 0
-        },
-        "balance": {
-          "fontFamily": "Inter",
-          "fontWeight": "500",
-          "fontSize": 40,
-          "lineHeight": 48,
-          "letterSpacing": -0.8
-        },
-        "amountHero": {
-          "fontFamily": "Inter",
-          "fontWeight": "700",
-          "fontSize": 40,
-          "lineHeight": 48,
-          "letterSpacing": -0.8
-        },
-        "amount": {
-          "fontFamily": "Inter",
-          "fontWeight": "500",
-          "fontSize": 32,
-          "lineHeight": 40,
-          "letterSpacing": -0.32
-        },
-        "reviewAmount": {
-          "fontFamily": "Inter",
-          "fontWeight": "500",
-          "fontSize": 28,
-          "lineHeight": 36,
-          "letterSpacing": -0.28
-        },
-        "row": {
-          "fontFamily": "Inter",
-          "fontWeight": "500",
-          "fontSize": 16,
-          "lineHeight": 24,
-          "letterSpacing": 0
-        },
-        "body": {
-          "fontFamily": "Inter",
-          "fontWeight": "400",
-          "fontSize": 14,
-          "lineHeight": 20,
-          "letterSpacing": 0
-        },
-        "label": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 14,
-          "lineHeight": 20,
-          "letterSpacing": 0
-        },
-        "meta": {
-          "fontFamily": "Inter",
-          "fontWeight": "500",
-          "fontSize": 12,
-          "lineHeight": 18,
-          "letterSpacing": 0
-        },
-        "address": {
-          "fontFamily": "IBM Plex Mono",
-          "fontWeight": "400",
-          "fontSize": 14,
-          "lineHeight": 20,
           "letterSpacing": 0
         }
       },
@@ -513,11 +434,12 @@ export const dark = {
     },
     "border": {
       "subtle": "#28313C",
-      "default": "#6B7788",
+      "default": "#505C6C",
       "strong": "#6B7788",
       "focus": "#96B8F8",
       "danger": "#E3636E",
-      "selected": "#3152FF"
+      "selected": "#3152FF",
+      "control": "#6B7788"
     },
     "action": {
       "primary": {
@@ -615,73 +537,73 @@ export const dark = {
     },
     "typography": {
       "title": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "600",
-        "fontSize": 24,
-        "lineHeight": 32,
-        "letterSpacing": -0.24
+        "fontSize": 22,
+        "lineHeight": 30,
+        "letterSpacing": -0.5
       },
       "section": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "600",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
-      "balance": {
-        "fontFamily": "Inter",
-        "fontWeight": "500",
+      "portfolioBalance": {
+        "fontFamily": "Pretendard",
+        "fontWeight": "600",
         "fontSize": 40,
         "lineHeight": 48,
-        "letterSpacing": -0.8
+        "letterSpacing": -1.2
       },
       "amountHero": {
-        "fontFamily": "Inter",
-        "fontWeight": "700",
+        "fontFamily": "Pretendard",
+        "fontWeight": "600",
         "fontSize": 40,
         "lineHeight": 48,
-        "letterSpacing": -0.8
+        "letterSpacing": -1.2
       },
       "amount": {
-        "fontFamily": "Inter",
-        "fontWeight": "500",
+        "fontFamily": "Pretendard",
+        "fontWeight": "600",
         "fontSize": 32,
         "lineHeight": 40,
-        "letterSpacing": -0.32
+        "letterSpacing": -0.8
       },
       "reviewAmount": {
-        "fontFamily": "Inter",
-        "fontWeight": "500",
-        "fontSize": 28,
-        "lineHeight": 36,
-        "letterSpacing": -0.28
+        "fontFamily": "Pretendard",
+        "fontWeight": "600",
+        "fontSize": 26,
+        "lineHeight": 34,
+        "letterSpacing": -0.6
       },
       "row": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "body": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "label": {
-        "fontFamily": "Inter",
-        "fontWeight": "600",
+        "fontFamily": "Pretendard",
+        "fontWeight": "500",
         "fontSize": 14,
         "lineHeight": 20,
-        "letterSpacing": 0
+        "letterSpacing": -0.1
       },
       "meta": {
-        "fontFamily": "Inter",
-        "fontWeight": "500",
+        "fontFamily": "Pretendard",
+        "fontWeight": "400",
         "fontSize": 12,
-        "lineHeight": 18,
+        "lineHeight": 17,
         "letterSpacing": 0
       },
       "address": {
@@ -791,33 +713,33 @@ export const dark = {
           "height": 36,
           "paddingX": 12,
           "label": {
-            "fontFamily": "Inter",
-            "fontWeight": "600",
+            "fontFamily": "Pretendard",
+            "fontWeight": "500",
             "fontSize": 14,
             "lineHeight": 20,
-            "letterSpacing": 0
+            "letterSpacing": -0.1
           }
         },
         "md": {
           "height": 44,
           "paddingX": 16,
           "label": {
-            "fontFamily": "Inter",
-            "fontWeight": "600",
+            "fontFamily": "Pretendard",
+            "fontWeight": "500",
             "fontSize": 14,
             "lineHeight": 20,
-            "letterSpacing": 0
+            "letterSpacing": -0.1
           }
         },
         "lg": {
           "height": 52,
           "paddingX": 16,
           "label": {
-            "fontFamily": "Inter",
+            "fontFamily": "Pretendard",
             "fontWeight": "600",
-            "fontSize": 16,
-            "lineHeight": 24,
-            "letterSpacing": 0
+            "fontSize": 17,
+            "lineHeight": 25,
+            "letterSpacing": -0.3
           }
         }
       },
@@ -838,7 +760,7 @@ export const dark = {
       "errorText": "#E98B95",
       "focusRing": "#96B8F8",
       "border": {
-        "default": "#6B7788",
+        "default": "#505C6C",
         "hover": "#6B7788",
         "focus": "#96B8F8",
         "error": "#E3636E"
@@ -847,26 +769,26 @@ export const dark = {
       "paddingX": 16,
       "radius": 12,
       "textStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "fieldGap": 8,
       "helperStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "labelStyle": {
-        "fontFamily": "Inter",
-        "fontWeight": "600",
+        "fontFamily": "Pretendard",
+        "fontWeight": "500",
         "fontSize": 14,
         "lineHeight": 20,
-        "letterSpacing": 0
+        "letterSpacing": -0.1
       },
       "borderWidth": 1
     },
@@ -893,18 +815,18 @@ export const dark = {
         "shadowOpacity": 1
       },
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "600",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "group": {
         "radius": 16,
@@ -920,11 +842,11 @@ export const dark = {
       "paddingX": 12,
       "paddingY": 4,
       "textStyle": {
-        "fontFamily": "Inter",
-        "fontWeight": "600",
+        "fontFamily": "Pretendard",
+        "fontWeight": "500",
         "fontSize": 14,
         "lineHeight": 20,
-        "letterSpacing": 0
+        "letterSpacing": -0.1
       },
       "success": {
         "fg": "#74D9A9",
@@ -978,11 +900,11 @@ export const dark = {
       "value": "#F6F8FB",
       "address": "#F6F8FB",
       "amountStyle": {
-        "fontFamily": "Inter",
-        "fontWeight": "500",
-        "fontSize": 28,
-        "lineHeight": 36,
-        "letterSpacing": -0.28
+        "fontFamily": "Pretendard",
+        "fontWeight": "600",
+        "fontSize": 26,
+        "lineHeight": 34,
+        "letterSpacing": -0.6
       },
       "dataStyle": {
         "fontFamily": "IBM Plex Mono",
@@ -1033,32 +955,32 @@ export const dark = {
         }
       },
       "labelStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "valueStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "600",
-        "fontSize": 24,
-        "lineHeight": 32,
-        "letterSpacing": -0.24
+        "fontSize": 22,
+        "lineHeight": 30,
+        "letterSpacing": -0.5
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "paddingMobile": 16,
       "paddingDesktop": 24,
@@ -1087,11 +1009,11 @@ export const dark = {
       "radius": 16,
       "padding": 24,
       "valueStyle": {
-        "fontFamily": "Inter",
-        "fontWeight": "500",
-        "fontSize": 28,
-        "lineHeight": 36,
-        "letterSpacing": -0.28
+        "fontFamily": "Pretendard",
+        "fontWeight": "600",
+        "fontSize": 26,
+        "lineHeight": 34,
+        "letterSpacing": -0.6
       },
       "addressStyle": {
         "fontFamily": "IBM Plex Mono",
@@ -1101,18 +1023,18 @@ export const dark = {
         "letterSpacing": 0
       },
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": 0
     },
@@ -1131,25 +1053,25 @@ export const dark = {
       "padding": 16,
       "radius": 12,
       "nameStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "balanceStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "metaStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "list": {
         "radius": 0,
@@ -1173,7 +1095,7 @@ export const dark = {
         "selected": "#273966"
       },
       "border": {
-        "default": "#6B7788",
+        "default": "#505C6C",
         "selected": "#3152FF"
       },
       "name": "#F6F8FB",
@@ -1183,18 +1105,18 @@ export const dark = {
       "padding": 16,
       "height": 80,
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": {
         "default": 0,
@@ -1207,7 +1129,7 @@ export const dark = {
         "active": "#273966",
         "unavailable": "#0B0F15"
       },
-      "border": "#6B7788",
+      "border": "#505C6C",
       "name": "#F6F8FB",
       "detail": "#C7D1DD",
       "warning": "#FFC65D",
@@ -1215,18 +1137,18 @@ export const dark = {
       "padding": 16,
       "height": 80,
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": {
         "default": 0,
@@ -1247,25 +1169,25 @@ export const dark = {
       "padding": 16,
       "height": 80,
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "amountStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "metaStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "list": {
         "radius": 0,
@@ -1296,25 +1218,25 @@ export const dark = {
       "radius": 16,
       "padding": 24,
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": 0
     },
     "recipientField": {
       "bg": "#11161D",
       "border": {
-        "default": "#6B7788",
+        "default": "#505C6C",
         "warning": "#FFC65D",
         "error": "#E98B95"
       },
@@ -1333,25 +1255,25 @@ export const dark = {
         "letterSpacing": 0
       },
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": 1
     },
     "amountField": {
       "bg": "#11161D",
       "border": {
-        "default": "#6B7788",
+        "default": "#505C6C",
         "error": "#E98B95"
       },
       "label": "#C7D1DD",
@@ -1361,25 +1283,25 @@ export const dark = {
       "radius": 12,
       "padding": 16,
       "valueStyle": {
-        "fontFamily": "Inter",
-        "fontWeight": "500",
+        "fontFamily": "Pretendard",
+        "fontWeight": "600",
         "fontSize": 32,
         "lineHeight": 40,
-        "letterSpacing": -0.32
+        "letterSpacing": -0.8
       },
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": 1,
       "innerBorderWidth": 0
@@ -1395,34 +1317,34 @@ export const dark = {
       "radius": 12,
       "padding": 16,
       "amountStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "noteStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "total": "#F6F8FB",
       "deductionNote": "#C7D1DD",
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": 0,
       "dividerWidth": 0
@@ -1441,18 +1363,18 @@ export const dark = {
       "radius": 20,
       "padding": 24,
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": 0
     },
@@ -1473,18 +1395,18 @@ export const dark = {
       "radius": 20,
       "padding": 24,
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": 0
     },
@@ -1505,24 +1427,24 @@ export const dark = {
       "padding": 24,
       "height": 240,
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": 0
     },
     "connectedAppRow": {
       "bg": "#11161D",
-      "border": "#6B7788",
+      "border": "#505C6C",
       "origin": "#F6F8FB",
       "scope": "#C7D1DD",
       "action": "#F6F8FB",
@@ -1530,24 +1452,24 @@ export const dark = {
       "padding": 16,
       "height": 120,
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": 0
     },
     "allowanceRow": {
       "bg": "#11161D",
-      "border": "#6B7788",
+      "border": "#505C6C",
       "spender": "#F6F8FB",
       "detail": "#C7D1DD",
       "limited": "#C7D1DD",
@@ -1557,18 +1479,18 @@ export const dark = {
       "padding": 16,
       "height": 120,
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "borderWidth": 0,
       "table": {
@@ -1578,18 +1500,18 @@ export const dark = {
     },
     "portfolioBalance": {
       "valueStyle": {
-        "fontFamily": "Inter",
-        "fontWeight": "500",
+        "fontFamily": "Pretendard",
+        "fontWeight": "600",
         "fontSize": 40,
         "lineHeight": 48,
-        "letterSpacing": -0.8
+        "letterSpacing": -1.2
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "value": "#F6F8FB",
       "note": "#F6F8FB",
@@ -1626,18 +1548,18 @@ export const dark = {
       "bg": "#11161D",
       "border": "#28313C",
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "500",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "padding": 16,
       "borderWidth": 0
@@ -1650,11 +1572,11 @@ export const dark = {
       "default": "#C7D1DD",
       "focus": "#96B8F8",
       "labelStyle": {
-        "fontFamily": "Inter",
-        "fontWeight": "600",
+        "fontFamily": "Pretendard",
+        "fontWeight": "500",
         "fontSize": 14,
         "lineHeight": 20,
-        "letterSpacing": 0
+        "letterSpacing": -0.1
       },
       "borderWidth": 1,
       "itemBorderWidth": 0
@@ -1665,29 +1587,29 @@ export const dark = {
       "padding": 16,
       "gap": 8,
       "noteStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "actionHeight": 52,
       "borderWidth": 1
     },
     "statusNotice": {
       "titleStyle": {
-        "fontFamily": "Inter",
-        "fontWeight": "600",
+        "fontFamily": "Pretendard",
+        "fontWeight": "500",
         "fontSize": 14,
         "lineHeight": 20,
-        "letterSpacing": 0
+        "letterSpacing": -0.1
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "radius": 16,
       "padding": 16,
@@ -1739,29 +1661,29 @@ export const dark = {
       },
       "value": "#F6F8FB",
       "helperStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "gap": 8,
       "copyTarget": 44
     },
     "emptyState": {
       "titleStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "600",
-        "fontSize": 16,
-        "lineHeight": 24,
-        "letterSpacing": 0
+        "fontSize": 17,
+        "lineHeight": 25,
+        "letterSpacing": -0.3
       },
       "bodyStyle": {
-        "fontFamily": "Inter",
+        "fontFamily": "Pretendard",
         "fontWeight": "400",
-        "fontSize": 14,
-        "lineHeight": 20,
-        "letterSpacing": 0
+        "fontSize": 15,
+        "lineHeight": 22,
+        "letterSpacing": -0.2
       },
       "title": "#F6F8FB",
       "body": "#C7D1DD",
@@ -1848,7 +1770,7 @@ export const dark = {
       "paddingY": 12
     },
     "bottomSheet": {
-      "grabber": "#6B7788"
+      "grabber": "#505C6C"
     },
     "sensitiveReveal": {
       "bg": "#0B0F15",
@@ -1941,6 +1863,10 @@ export const dark = {
     "chip": {
       "bg": "#28313C",
       "fg": "#C7D1DD"
+    },
+    "qr": {
+      "bg": "#FFFFFF",
+      "fg": "#0B0F15"
     }
   }
 } as const
