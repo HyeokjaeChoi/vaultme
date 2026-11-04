@@ -117,37 +117,60 @@ export function buildLicenses({ root = appDir } = {}) {
     texts[id] = text
     return id
   }
-  const entry = (name, version, license, text, copyright, extra = {}) => ({
-    name,
-    ...(DISPLAY[name] ? { display: DISPLAY[name] } : {}),
-    version,
+  // One entry per package name; `variants` = one per distinct (license, text), each naming the versions that share it (S65 shows every variant).
+  const variant = (versions, license, text, copyright) => ({
+    versions,
     license,
     copyright: copyright ?? copyrightLine(text),
     text: text ? idOf(text) : null,
+  })
+  const entry = (name, license, variants, extra = {}) => ({
+    name,
+    ...(DISPLAY[name] ? { display: DISPLAY[name] } : {}),
+    license,
+    variants,
     ...extra,
   })
-  const libs = []
+  const byName = new Map() // name -> [{ version, license, text }]
   const emitted = new Set() // pnpm can hold one name@version in several dirs
   for (const [dir, pkg] of seen) {
     if (pkg.name.startsWith('@vaultme/') || EXCLUDE.has(pkg.name) || emitted.has(`${pkg.name}@${pkg.version}`)) continue
     emitted.add(`${pkg.name}@${pkg.version}`) // this repo's own packages (their dependencies are in the list)
-    libs.push(entry(pkg.name, pkg.version, licenseId(pkg), licenseText(dir), null, { direct: direct.has(pkg.name) }))
+    byName.set(pkg.name, [
+      ...(byName.get(pkg.name) ?? []),
+      { version: pkg.version, license: licenseId(pkg), text: licenseText(dir) },
+    ])
   }
+  const libs = [...byName].map(([name, found]) => {
+    found.sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true })) // newest first
+    const groups = new Map()
+    for (const f of found) {
+      const key = `${f.license}\0${f.text ?? ''}`
+      groups.set(key, { ...f, versions: [...(groups.get(key)?.versions ?? []), f.version] })
+    }
+    const variants = [...groups.values()].map((g) => variant(g.versions, g.license, g.text))
+    return entry(name, [...new Set(variants.map((v) => v.license))].join(' · '), variants, { direct: direct.has(name) })
+  })
   const rank = (p) => {
     const i = FIRST.indexOf(p.name)
     return i >= 0 ? [0, i, ''] : p.direct ? [1, 0, p.name] : [2, 0, p.name]
   }
   libs.sort((a, b) => {
     const [x, y] = [rank(a), rank(b)]
-    return x[0] - y[0] || x[1] - y[1] || x[2].localeCompare(y[2]) || a.version.localeCompare(b.version)
+    return x[0] - y[0] || x[1] - y[1] || x[2].localeCompare(y[2])
   })
   const assets = ASSETS.map((a) =>
     entry(
       a.name,
-      a.version,
       a.license,
-      reflow(readFileSync(join(root, a.file), 'utf8').replace(/\r\n/g, '\n').trim()),
-      a.copyright ?? null,
+      [
+        variant(
+          [],
+          a.license,
+          reflow(readFileSync(join(root, a.file), 'utf8').replace(/\r\n/g, '\n').trim()),
+          a.copyright,
+        ),
+      ],
       a.url ? { url: a.url } : {},
     ),
   )
@@ -159,7 +182,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   mkdirSync(dirname(out), { recursive: true })
   const data = buildLicenses()
   writeFileSync(out, `${JSON.stringify(data)}\n`)
-  const missing = data.libs.filter((l) => !l.text).length
+  const missing = data.libs.filter((l) => l.variants.some((v) => !v.text)).length
   process.stdout.write(
     `licenses: ${data.libs.length} packages, ${Object.keys(data.texts).length} distinct texts, ${missing} without a license file -> src/generated/licenses.json\n`,
   )
