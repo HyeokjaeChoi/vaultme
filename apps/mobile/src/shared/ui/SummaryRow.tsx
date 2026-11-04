@@ -13,7 +13,7 @@ type Props = {
   sub?: string
   /** Marks the 4-char groups of an `address` value that differ (look-alike check). */
   highlight?: number[]
-  /** Value as a Fact (Product B/Fact, IBM Plex Mono 12, text/secondary): network + chainId, block, time. Facts are mono, feelings and explanations are sans. */
+  /** Value as a Fact (Product B/Fact, Pretendard Regular 12, text/secondary): network + chainId. Only full addresses and hashes are mono. */
   fact?: boolean
   /** `address` only: one color, no strong ends, 14/20 (B/Detail row Address, emphasis Off: S11 contract address). */
   plain?: boolean
