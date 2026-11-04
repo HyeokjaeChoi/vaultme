@@ -129,11 +129,13 @@ function call(name, timed, method, path, token, body) {
   if (!timed) return res
   const tags = { endpoint: name }
   callOk.add(ok, tags)
+  // A failed request (non-200, timeout) is a bad event for the SLO window, never left out of its total.
+  const slo = SLO_MS[MODE][name]
+  if (slo !== undefined && !ok) sloGood.add(false, tags)
   if (ok) {
     const t = res.timings
     const total = t.looking_up + t.connecting + t.tls_handshaking + t.duration
     T.total.add(total, tags)
-    const slo = SLO_MS[MODE][name]
     if (slo !== undefined) sloGood.add(total <= slo, tags)
     T.duration.add(t.duration, tags)
     T.dns.add(t.looking_up, tags)
@@ -215,7 +217,7 @@ const trend = (x) =>
     ? { min: ms(x.min), p50: ms(x.med), p90: ms(x['p(90)']), p95: ms(x['p(95)']), p99: ms(x['p(99)']), max: ms(x.max) }
     : null
 
-// Good / total timed 200 responses of a case with an SLO (`sloWindow` in src/slo.ts pools them); null for a case with no SLO.
+// Good (a 200 at or under the limit) / total timed requests, failed ones included, of a case with an SLO (`sloWindow` in src/slo.ts pools them); null for a case with no SLO.
 const sloCount = (x) => (x ? { good: x.passes, total: x.passes + x.fails } : null)
 
 /** Pure: the k6 end-of-test data to the compact result of one mode. */
@@ -256,7 +258,7 @@ function markdown(r) {
     ...rows,
     '',
     'Times in ms. Only HTTP 200 responses are timed. p50 to max = total (DNS + TCP + TLS + request + response). TTFB = `http_req_waiting`. Worker and upstream: Server-Timing of `/v1/rpc` only (#399); TTFB minus Worker = network and edge. own = Worker minus upstream; its p95 for `rpc` is the release gate (ADR-0036, ' +
-      `${OWN_P95_MS} ms). SLO good = requests at or under the tier 1 limit.`,
+      `${OWN_P95_MS} ms). SLO good = 200 responses at or under the tier 1 limit, of all timed requests.`,
     '',
   ].join('\n')
 }

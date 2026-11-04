@@ -97,7 +97,7 @@ export function tierMarkdown(mode: Mode, rows: Row[]): string {
   ].join('\n')
 }
 
-/** Requests of one run at or under the SLO limit (`good`) of all timed 200 responses (`total`), per case with an SLO. */
+/** 200 responses of one run at or under the SLO limit (`good`) of all timed requests, failed ones included (`total`), per case with an SLO. */
 export type SloCount = { good: number; total: number }
 export type WindowRow = {
   case: Case
