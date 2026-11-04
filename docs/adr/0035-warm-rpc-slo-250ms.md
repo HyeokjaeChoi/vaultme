@@ -18,5 +18,5 @@ Warm `rpc` p95 in the 7 hedged runs: 173.1, 190.07, 166.73, 206.64, 215.59, 177.
 ## Consequences
 - 250 ms is not a UX standard number. It is above INP "good" (200 ms), so the "user action" budget for a balance read on a reused connection now leaves less room for processing and paint.
 - The release gate stops failing on upstream noise for warm `rpc`.
-- 250 ms stays under the tier 2 watch (280 ms), so a real regression still shows as a warning and then a failure.
+- For warm `rpc` the tier 2 watch (280 ms) is now above the SLO, so it gives no early warning: a regression fails tier 1 at 250 ms first. The watch still adds a warning when the p95 goes past 280 ms.
 - Revisit when the upstream plan changes (a paid RPC plan) or when hedged runs keep warm `rpc` under 200 ms.
