@@ -42,7 +42,7 @@ describe('landing page', () => {
     expect(imgs).toHaveLength(1)
     const img = imgs[0]
     expect(img).toHaveAttribute('width', '320')
-    expect(img).toHaveAttribute('height', '568')
+    expect(img).toHaveAttribute('height', '452')
     expect(img).toHaveAttribute('fetchpriority', 'high')
     expect(img).toHaveAttribute('alt', webLanding.ko.landing.hero.mockupAlt)
     expect(container.querySelectorAll('source[type="image/avif"]').length).toBeGreaterThan(0)
