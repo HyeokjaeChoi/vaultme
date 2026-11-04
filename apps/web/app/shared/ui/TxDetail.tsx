@@ -33,7 +33,7 @@ export function TxDetail({ tx, now, t, locale, internal, retryInternal }: Props)
     <>
       <div className="flex flex-col items-start gap-3">
         <StatusBadge kind={tx.ok ? 'confirmed' : 'failed'} label={tx.ok ? t.status.confirmed : t.status.failed} />
-        <p className="flex items-end gap-2 break-all">
+        <p className="flex items-end gap-2 break-words">
           {/* A reverted call moved nothing: the amount it asked for is grey, as in the history rows. */}
           <span className={`text-product-b-figure ${tx.ok ? 'text-text-primary' : 'text-text-tertiary'}`}>
             {fromUnits(tx.amount, tx.asset)}

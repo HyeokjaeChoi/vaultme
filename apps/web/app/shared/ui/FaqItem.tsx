@@ -6,7 +6,7 @@ export function FaqItem({ question, answer, open }: { question: string; answer: 
   return (
     <li>
       <details open={open} className="group">
-        <summary className="text-product-b-row-title text-text-primary group-open:pb-2 flex cursor-pointer list-none items-center gap-4 py-4">
+        <summary className="text-product-b-row-title text-text-primary group-open:pb-2 hover:bg-surface-hover rounded-button-b-radius -mx-3 flex cursor-pointer list-none items-center gap-4 px-3 py-4">
           <span className="min-w-px flex-1">{question}</span>
           <IconExpand className="text-icon-action-fg group-open:hidden" />
           <IconCollapse className="text-icon-action-fg hidden group-open:block" />

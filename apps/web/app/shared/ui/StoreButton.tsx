@@ -7,11 +7,14 @@ export function StoreButton({
   href,
   variant,
   className = '',
+  describedBy,
   children,
 }: {
   href: string | null
   variant: ButtonVariant
   className?: string
+  /** The id of the text that says why the button does nothing (shown while `href` is null). */
+  describedBy?: string
   children: ReactNode
 }) {
   if (href) {
@@ -22,7 +25,12 @@ export function StoreButton({
     )
   }
   return (
-    <button type="button" aria-disabled="true" className={buttonClass(variant, `cursor-not-allowed ${className}`)}>
+    <button
+      type="button"
+      aria-disabled="true"
+      aria-describedby={describedBy}
+      className={buttonClass(variant, className)}
+    >
       {children}
     </button>
   )

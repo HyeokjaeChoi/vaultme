@@ -55,7 +55,7 @@ export function HistoryTable({ items, now, t, locale, address }: Props) {
       </thead>
       <tbody>
         {items.map((i) => (
-          <tr key={i.id} className="h-row-b-height relative">
+          <tr key={i.id} className="h-row-b-height hover:bg-surface-hover relative">
             <td className="pl-row-b-padding-x px-1-5">
               {/* The link covers the whole row (::after). Its name starts with the visible status and adds what the other cells say. */}
               <Link
@@ -85,11 +85,13 @@ export function HistoryTable({ items, now, t, locale, address }: Props) {
                   }
                 }}
               >
-                {short(i.counterparty)}
+                <span aria-hidden="true">{short(i.counterparty)}</span>
+                {/* Screen readers get the full address; a hover title reached nobody else. */}
+                <span className="sr-only">{i.counterparty}</span>
               </code>
             </td>
             <td
-              className={`text-product-b-row-title px-1-5 text-right break-all ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
+              className={`text-product-b-row-title px-1-5 text-right break-words ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
             >
               {/* A failed transaction moved no value: no sign, as the cards and the mobile row. */}
               {failed(i) ? `${i.amount} ${i.asset}` : signed(i)}
@@ -133,7 +135,7 @@ export function HistoryCards({ items, now, t, locale, address }: Props) {
                 <li key={i.id}>
                   <Link
                     {...txLink(i, locale, address)}
-                    className="min-h-row-b-height px-row-b-padding-x flex items-center gap-3 py-2"
+                    className="min-h-row-b-height px-row-b-padding-x hover:bg-surface-hover active:bg-surface-pressed flex items-center gap-3 py-2"
                   >
                     <div className="relative shrink-0">
                       <AssetIcon asset={assetKey(i)} large />
@@ -150,7 +152,7 @@ export function HistoryCards({ items, now, t, locale, address }: Props) {
                       </p>
                     </div>
                     <p
-                      className={`text-product-b-headline max-w-1/2 text-right break-all ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
+                      className={`text-product-b-headline max-w-1/2 text-right break-words ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
                     >
                       {failed(i) ? `${i.amount} ${i.asset}` : signed(i)}
                     </p>

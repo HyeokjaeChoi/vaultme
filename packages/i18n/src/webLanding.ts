@@ -14,6 +14,7 @@ const ko = {
       value: 'Sepolia 테스트넷 전용 셀프 커스터디 지갑이에요. 테스트 자금만 다뤄요.',
       appStore: 'App Store에서 받기',
       googlePlay: 'Google Play에서 받기',
+      storeSoon: '출시 준비 중이에요',
       mockupAlt: 'VaultMe 앱의 자산 화면. Sepolia ETH 1.2847개와 USDC 12.5개를 보여 줘요.',
     },
     features: {
@@ -101,6 +102,7 @@ const en: WebLandingMessages = {
       value: 'A self-custody wallet for the Sepolia testnet only. It handles test funds only.',
       appStore: 'Get it on the App Store',
       googlePlay: 'Get it on Google Play',
+      storeSoon: 'Coming soon',
       mockupAlt: 'The VaultMe app assets screen, showing 1.2847 Sepolia ETH and 12.5 USDC.',
     },
     features: {

@@ -10,8 +10,7 @@ import { AppMockup, AppMockupPreload } from '../shared/ui/AppMockup'
 import { ButtonLink } from '../shared/ui/ButtonLink'
 import { FaqItem } from '../shared/ui/FaqItem'
 import { FeatureCard } from '../shared/ui/FeatureCard'
-import { IconEye, IconInfo, IconKey, IconSend, IconWarning } from '../shared/ui/icons'
-import { NoticeBanner } from '../shared/ui/NoticeBanner'
+import { IconEye, IconKey, IconSend } from '../shared/ui/icons'
 import { StepItem } from '../shared/ui/StepItem'
 import { StoreButton } from '../shared/ui/StoreButton'
 
@@ -100,13 +99,19 @@ export default function Landing() {
             </h1>
             <p className="text-product-b-body tablet:text-product-b-title3 text-text-secondary">{t.hero.value}</p>
             <div id="get-app" className="tablet:flex-row tablet:flex-wrap flex w-full flex-col gap-3 scroll-mt-6">
-              <StoreButton href={STORE_URLS.ios} variant="primary">
+              <StoreButton href={STORE_URLS.ios} variant="primary" describedBy="store-soon">
                 {t.hero.appStore}
               </StoreButton>
-              <StoreButton href={STORE_URLS.android} variant="secondary">
+              <StoreButton href={STORE_URLS.android} variant="secondary" describedBy="store-soon">
                 {t.hero.googlePlay}
               </StoreButton>
             </div>
+            {/* Disabled controls say why, near the control. Gone once a store URL is set. */}
+            {(!STORE_URLS.ios || !STORE_URLS.android) && (
+              <p id="store-soon" className="text-product-b-body-small text-text-tertiary">
+                {t.hero.storeSoon}
+              </p>
+            )}
           </div>
           <div className="bg-surface-subtle rounded-card-radius web-desktop:shrink-0 flex justify-center px-6 py-10">
             <AppMockup alt={t.hero.mockupAlt} />
@@ -128,20 +133,6 @@ export default function Landing() {
             <StepItem key={item.title} number={i + 1} title={item.title} body={item.body} />
           ))}
         </ol>
-      </Section>
-
-      <Section id="security-title" title={t.security.title}>
-        <ul className="web-desktop:grid-cols-3 grid gap-3">
-          {t.security.items.map((item, i) => (
-            <NoticeBanner
-              key={item.title}
-              tone={i === t.security.items.length - 1 ? 'warning' : 'info'}
-              icon={i === t.security.items.length - 1 ? <IconWarning /> : <IconInfo />}
-              title={item.title}
-              body={item.body}
-            />
-          ))}
-        </ul>
       </Section>
 
       <Section id="faq-title" title={t.faq.title} narrow>

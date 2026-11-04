@@ -125,6 +125,29 @@
   }
 }
 
+/* ThemeToggle shows the sun in light and the moon in dark; the dark rules mirror tokens.css (system dark unless data-theme="light"). */
+.theme-icon-moon {
+  display: none;
+}
+
+html[data-theme='dark'] .theme-icon-sun {
+  display: none;
+}
+
+html[data-theme='dark'] .theme-icon-moon {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme='light']) .theme-icon-sun {
+    display: none;
+  }
+
+  html:not([data-theme='light']) .theme-icon-moon {
+    display: block;
+  }
+}
+
 @layer base {
   html {
     font-family: 'Pretendard Variable', 'Pretendard Fallback', system-ui, sans-serif;
@@ -137,6 +160,22 @@
     /* Safari has no unprefixed text-size-adjust. Remove the disable when it ships. */
     /* stylelint-disable-next-line property-no-vendor-prefix */
     -webkit-text-size-adjust: 100%;
+  }
+
+  /* Korean breaks between words, not inside them (mobile uses hangul-word). */
+  html:lang(ko) {
+    word-break: keep-all;
+  }
+
+  /* Headings balance their lines and body text avoids a one-word last line. Plain CSS: the Tailwind `text-balance`
+     class is taken by a typography token (--text-balance). */
+  h1,
+  h2 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   /* Addresses and hashes. Tailwind's `font-mono` would use the token family (IBM Plex Mono) without the fallback chain. */
