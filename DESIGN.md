@@ -345,13 +345,15 @@ Rules:
 - Failure and warning states use status colours, not blue. A screen whose Primary button is disabled has no blue.
 - Links are Ink with an underline. They are not blue.
 - Chips are neutral, including the Sepolia network chip. A chip is never amber, blue, green or red.
-- Status colours appear only on status badges and warnings. A received amount is Ink with a "+" sign. A sent amount is Ink with a minus sign. Do not read them as profit or loss.
+- Status colours appear only on status badges and warnings. The received badge is neutral. A received amount is Ink with a "+" sign. A sent amount is Ink with a minus sign. Do not read them as profit or loss.
 - Colour never carries meaning alone. Pair it with an icon, a label and a reason.
 - `check.clear` means "the checks that ran found no problem". It uses a neutral surface. Only a confirmed outcome uses `status.success`.
 - Blue text on the Secondary tint gives 4.4967:1. This fails the 4.5:1 text target. Use Ink there.
 - Contrast targets: 4.5:1 for normal text, 3:1 for controls and focus. Static contrast does not prove WCAG or screen reader support.
 - Disabled Primary is `surface.disabled` with `text.disabled`.
-- Landing-page artwork and the dark closing call to action belong to marketing. They are not product themes.
+- In dark mode, the focus border, disabled state and switch control keep 3:1 contrast against their surface (`border.control` for the control edge).
+- Step numbers and decoration are not blue.
+- Landing-page artwork belongs to marketing. It is not a product theme. The closing call to action is light. A landing page has one Primary. Store buttons are disabled with a visible reason until the store URLs exist.
 
 Dark theme: `semanticDark` overrides `semantic` for surface, text, icon, border, status and a few more roles. Component values follow by alias. Canvas is neutral 950. Default surface is neutral 900. Raised surface is neutral 800. Primary text is neutral 50. Brand blue does not change. Dark status tints use the 950 steps of red and amber for body-text contrast. `frontMatter(tokens, 'dark')` in `packages/tokens/design-md.mjs` gives the dark values for tools.
 
@@ -423,7 +425,7 @@ Shapes are soft but not playful.
 
 Icons:
 
-- Function and status icons are **Solar** (`@solar-icons/react-native`). Linear is the default. Bold marks the selected tab and status badges. Bold Duotone is for empty-state and result heroes (48 px). Do not mix icon libraries.
+- Function and status icons are **Solar** (`@solar-icons/react-native`). Linear is the default. Bold marks the selected tab and status badges. Bold Duotone is for empty-state and result heroes (48 px), including the web invalid-transaction warning. The theme toggle is a Solar sun or moon icon. Do not mix icon libraries.
 - Asset identity (ETH, USDC) is a separate original colour SVG. Never recolour it to the action blue. Show a neutral fallback for an unknown asset.
 - Sizes: inline 16, control 20, feature 24, asset 32.
 - Money actions have an icon and a visible label. A tooltip alone is not enough.
