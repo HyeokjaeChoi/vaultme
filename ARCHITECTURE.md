@@ -60,7 +60,7 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 
 - `app.ts`: Hono `OpenAPIHono` app. All routes, middleware order, the webhook route, `onError`.
 - `auth.ts`: `requireSigned` (device signature), `issueToken`, `requireToken`, `limitInstall`.
-- `rpc.ts`: `rpcAllowed` (allow-list) and `proxyRpc` (Infura, then Alchemy).
+- `rpc.ts`: `rpcAllowed` (allow-list) and `proxyRpc` (Infura, then Alchemy on a failure; a read that Infura has not answered in 100 ms also goes to Alchemy and the first valid answer wins, #399; `eth_sendRawTransaction` is never hedged).
 - `etherscan.ts`, `history.ts`, `bucket.ts`: `getHistory` calls Etherscan through the `EtherscanBucket` token bucket. `history.ts` is pure: merge, dedupe, order, cursor.
 - `push.ts`: subscribe, unsubscribe, `verifyAlchemySignature`, `notificationsFor` (pure), `handleActivity`, `sweep`.
 - `log.ts`, `metrics.ts`, `sentry.ts`, `alerts.ts`: observability (see Observability).

@@ -167,3 +167,40 @@ describe('POST /v1/rpc', () => {
     expect(r.status).toBe(429)
   })
 })
+
+// #399: Infura's latency swings run to run. A read that Infura has not answered in HEDGE_MS also goes to Alchemy; the first valid answer wins.
+describe('hedged reads', () => {
+  const slow = (ms: number, res: () => Response) => () => new Promise<Response>((r) => setTimeout(() => r(res()), ms))
+
+  it('a slow primary read is answered by alchemy', async () => {
+    const f = mock(
+      slow(1000, () => ok('0x1')),
+      () => ok('0x2'),
+    )
+    const t0 = Date.now()
+    const r = await rpc(req('eth_blockNumber'))
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0x2' })
+    expect(Date.now() - t0).toBeLessThan(800)
+    expect(String(f.mock.calls[1]![0])).toContain('alchemy')
+  })
+
+  it('a fast primary read sends nothing to alchemy', async () => {
+    const f = mock(
+      () => ok('0x1'),
+      () => ok('0x2'),
+    )
+    await rpc(req('eth_blockNumber'))
+    await new Promise((r) => setTimeout(r, 300))
+    expect(f).toHaveBeenCalledTimes(1)
+  })
+
+  it('never hedges eth_sendRawTransaction: the second node could answer "already known" for a send that worked', async () => {
+    const f = mock(
+      slow(400, () => ok('0xhash')),
+      () => ok('0xother'),
+    )
+    const r = await rpc(req('eth_sendRawTransaction', ['0x02']))
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0xhash' })
+    expect(f).toHaveBeenCalledTimes(1)
+  })
+})
