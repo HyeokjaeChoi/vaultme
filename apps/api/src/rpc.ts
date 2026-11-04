@@ -11,8 +11,9 @@ import { logEvent } from './log.ts'
 
 const UPSTREAM_TIMEOUT_MS = 5000
 // #399: Infura's latency swings from run to run (staging upstream p50 12.5 to 94 ms, p95 64 to 735 ms). A read still open after this also
-// goes to Alchemy. Near the warm upstream p50, so it adds a second call to roughly the slower half of reads. Tune from api-bench runs.
-const HEDGE_MS = 100
+// goes to Alchemy. 100 ms left warm rpc p95 at 166.73 to 206.64 ms (SLO 200, api-bench 2026-11-04): the slowest reads took the delay
+// plus Alchemy's time. 60 ms hedges more reads (a second call) to cut that tail. Tune from api-bench runs.
+const HEDGE_MS = 60
 const ARG_32_BYTES = new RegExp(`^${BALANCE_OF_SELECTOR}[0-9a-fA-F]{64}$`)
 
 const TX_HASH = /^0x[0-9a-fA-F]{64}$/
