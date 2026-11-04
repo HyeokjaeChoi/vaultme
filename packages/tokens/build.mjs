@@ -253,6 +253,7 @@ const STRIP = {
     'font.lineHeight',
     'font.tracking',
     'motion.easing',
+    'motion.duration',
   ],
   semantic: ['typography', 'shape'],
   component: [],
@@ -281,7 +282,9 @@ for (const t of cssLight.allTokens) {
         : 'container'
       : t.type === 'other' && group === 'motion'
         ? 'ease'
-        : NAMESPACE[t.type]
+        : group === 'motion' && tokenPath(t)[2] === 'duration'
+          ? 'transition-duration'
+          : NAMESPACE[t.type]
   if (!ns || (layer === 'primitive' && (t.type === 'color' || group === 'grid'))) continue // grid: Figma layout source, Semantic layout.* aliases it
   const name = `--${ns}-${twName(t)}`
   const varName = cssName(tokenPath(t))
@@ -294,6 +297,8 @@ for (const t of cssLight.allTokens) {
       tw(`${name}--${kebab(part)}`, `var(${varName}-${kebab(part)})`, layer)
   } else if (t.type === 'dimension')
     tw(name, t.value, layer) // media and container queries cannot read var(), so Tailwind needs the literal value
+  else if (ns === 'transition-duration')
+    tw(name.replace(/-ms$/, ''), `calc(var(${varName}) * 1ms)`, layer) // the token is unitless ms (shared with mobile); `duration-fast` needs a time
   else tw(name, `var(${varName})`, layer)
 }
 writeFileSync(

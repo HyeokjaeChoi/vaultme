@@ -206,6 +206,12 @@
   --breakpoint-mobile: 375px;
   --breakpoint-tablet: 768px;
   --breakpoint-desktop: 1440px;
+  --transition-duration-instant: calc(var(--primitive-motion-duration-instant-ms) * 1ms);
+  --transition-duration-fast: calc(var(--primitive-motion-duration-fast-ms) * 1ms);
+  --transition-duration-base: calc(var(--primitive-motion-duration-base-ms) * 1ms);
+  --transition-duration-slow: calc(var(--primitive-motion-duration-slow-ms) * 1ms);
+  --transition-duration-enter: calc(var(--primitive-motion-duration-enter-ms) * 1ms);
+  --transition-duration-exit: calc(var(--primitive-motion-duration-exit-ms) * 1ms);
   --ease-standard: var(--primitive-motion-easing-standard);
   --ease-enter: var(--primitive-motion-easing-enter);
   --ease-exit: var(--primitive-motion-easing-exit);

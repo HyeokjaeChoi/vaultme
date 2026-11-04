@@ -110,13 +110,17 @@ describe('theme.css (Tailwind v4)', () => {
     expect(themeDecls.map(([n]) => n)).not.toContain('--spacing')
   })
 
-  it('maps only tokens: var() references that exist in tokens.css, or a breakpoint/container literal that equals its token', () => {
+  it('maps only tokens: var() references that exist in tokens.css, a duration as calc(ms * 1ms), or a breakpoint/container literal that equals its token', () => {
     expect(themeDecls.length).toBeGreaterThan(200)
     for (const [n, v] of themeDecls) {
       if (/^--(breakpoint|container)-/.test(n)) {
         // Media and container queries cannot read var(), so these hold the resolved px value.
         expect(v, n).toMatch(/^\d+px$/)
         expect([...light$.values()].filter((x) => x === v).length, n).toBeGreaterThan(0)
+      } else if (n.startsWith('--transition-duration-')) {
+        // Motion durations are unitless ms in Primitive (shared with mobile); `duration-*` utilities need a time.
+        expect(v, n).toMatch(/^calc\(var\(--primitive-motion-duration-[\w-]+-ms\) \* 1ms\)$/)
+        expect(light$.has(refs(v)[0]!), `${n} -> ${v}`).toBe(true)
       } else {
         expect(v, n).toMatch(/^var\(--(primitive|semantic|component)-[\w-]+\)$/)
         expect(light$.has(refs(v)[0]!), `${n} -> ${v}`).toBe(true)

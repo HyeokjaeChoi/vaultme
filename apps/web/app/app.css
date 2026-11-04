@@ -125,6 +125,95 @@
   }
 }
 
+/* Motion (#434, motion audit W1-W6). Every rule sits in `prefers-reduced-motion: no-preference` (or is switched off in `reduce`), so reduced
+   motion shows the final state at once. Durations and easings come from the motion tokens (tokens.css), which hold unitless ms. */
+@keyframes skeleton-pulse {
+  to {
+    opacity: var(--primitive-opacity-56);
+  }
+}
+
+/* Skeleton bars breathe as the mobile SkeletonRow does: opacity 1 <-> 56 %, slow x 2 per half cycle. */
+@utility skeleton-pulse {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: skeleton-pulse calc(var(--primitive-motion-duration-slow-ms) * 2 * 1ms) linear infinite alternate;
+  }
+}
+
+/* Hover and press fill of buttons: background-color only (text and border keep their colors). Out is 160 ms; the hover class in `pressTransition` makes in 120 ms. */
+@utility press-fill {
+  @media (prefers-reduced-motion: no-preference) {
+    transition: background-color calc(var(--primitive-motion-duration-exit-ms) * 1ms)
+      var(--primitive-motion-easing-standard);
+  }
+}
+
+/* Loaded content (and the rows of a 더 보기) fades in as one block when it mounts. Opacity only: no blur, move or stagger on amounts
+   and addresses. A browser without @starting-style shows it at once. */
+@utility fade-in {
+  @media (prefers-reduced-motion: no-preference) {
+    transition: opacity calc(var(--primitive-motion-duration-base-ms) * 1ms) var(--primitive-motion-easing-enter);
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+
+/* A pressable row that also fades in (a table row from 더 보기): one `transition` for both, since two utilities would override each other. */
+@utility fade-in-press {
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      opacity calc(var(--primitive-motion-duration-base-ms) * 1ms) var(--primitive-motion-easing-enter),
+      background-color calc(var(--primitive-motion-duration-exit-ms) * 1ms) var(--primitive-motion-easing-standard);
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+
+/* FAQ answer opens with a fade, and grows in browsers with interpolate-size (Chrome 129+). Browsers without ::details-content
+   (before Chrome 131, Safari 18.4, Firefox 143) open at once, as before. Closing is quicker than opening. */
+@media (prefers-reduced-motion: no-preference) {
+  details {
+    interpolate-size: allow-keywords;
+  }
+
+  details::details-content {
+    block-size: 0;
+    opacity: 0;
+    overflow: clip;
+    transition:
+      block-size calc(var(--primitive-motion-duration-exit-ms) * 1ms) var(--primitive-motion-easing-exit),
+      opacity calc(var(--primitive-motion-duration-exit-ms) * 1ms) var(--primitive-motion-easing-exit),
+      content-visibility calc(var(--primitive-motion-duration-exit-ms) * 1ms) allow-discrete;
+  }
+
+  details[open]::details-content {
+    block-size: auto;
+    opacity: 1;
+    transition-duration: calc(var(--primitive-motion-duration-enter-ms) * 1ms);
+    transition-timing-function: var(--primitive-motion-easing-enter);
+  }
+}
+
+/* Route change (React <ViewTransition> in root.tsx): the page cross-fades. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(.page-fade) {
+    animation-duration: calc(var(--primitive-motion-duration-base-ms) * 1ms);
+    animation-timing-function: var(--primitive-motion-easing-standard);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(.page-fade),
+  ::view-transition-old(.page-fade),
+  ::view-transition-new(.page-fade) {
+    animation-duration: 0s;
+  }
+}
+
 /* ThemeToggle shows the sun in light and the moon in dark; the dark rules mirror tokens.css (system dark unless data-theme="light"). */
 .theme-icon-moon {
   display: none;

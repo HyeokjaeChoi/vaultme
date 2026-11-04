@@ -28,6 +28,7 @@ type Props = {
 export function HistorySection({ t, locale, address, history, actions }: Props) {
   const [limit, setLimit] = useState(FIRST)
   const moveFocus = useRef(false)
+  const freshFrom = useRef<number | null>(null) // rows from here on arrived with the last 더 보기
   const followed = useRef(0)
   // Another address starts again from the first rows.
   const shownFor = useRef(address)
@@ -35,6 +36,7 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
     if (shownFor.current !== address) {
       shownFor.current = address
       moveFocus.current = false
+      freshFrom.current = null
       followed.current = 0
       setLimit(FIRST)
     }
@@ -67,10 +69,13 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
     }
   })
   const rows = ok?.items.slice(0, limit) ?? []
+  // Rows that a 더 보기 click revealed fade in together (no stagger, amounts do not move); never rows that were there before.
+  const fresh = new Set(freshFrom.current === null ? [] : rows.slice(freshFrom.current).map((r) => r.id))
   const hasMore = ok !== null && (limit < ok.items.length || ok.nextCursor !== null)
 
   function showMore() {
     if (!ok || ok.more === 'loading') return
+    freshFrom.current = Math.min(limit, ok.items.length)
     moveFocus.current = true // the button may go with the last rows: the effect above moves the focus if it is lost
     // Not past the rows that exist plus one step, so failed tries do not pile up a big jump for the one that works.
     setLimit(Math.min(limit, ok.items.length) + STEP)
@@ -143,9 +148,9 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
           />
         )}
         {ok && !showEmpty && (
-          <>
-            <HistoryCards items={rows} now={now} t={t} locale={locale} address={address} />
-            <HistoryTable items={rows} now={now} t={t} locale={locale} address={address} />
+          <div className="fade-in">
+            <HistoryCards items={rows} now={now} t={t} locale={locale} address={address} fresh={fresh} />
+            <HistoryTable items={rows} now={now} t={t} locale={locale} address={address} fresh={fresh} />
             {ok.more === 'failed' && (
               <div className="pt-6" role="alert">
                 <Notice tone="danger" tier="banner">
@@ -166,7 +171,7 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
                 </Button>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </section>
