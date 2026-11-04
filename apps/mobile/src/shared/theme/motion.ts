@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   cancelAnimation,
   cubicBezier,
@@ -102,15 +102,18 @@ export function useShake(amplitude: number) {
  */
 export function useToastMotion(rise: number, enterMs: number, exitMs: number) {
   const reduce = useReducedMotion()
-  return {
-    entering: reduce
-      ? FadeIn.duration(enterMs)
-      : new Keyframe({
-          0: { opacity: 0, transform: [{ translateY: rise }] },
-          100: { opacity: 1, transform: [{ translateY: 0 }], easing: EASE_OUT },
-        }).duration(enterMs),
-    exiting: FadeOut.duration(exitMs),
-  }
+  return useMemo(
+    () => ({
+      entering: reduce
+        ? FadeIn.duration(enterMs)
+        : new Keyframe({
+            0: { opacity: 0, transform: [{ translateY: rise }] },
+            100: { opacity: 1, transform: [{ translateY: 0 }], easing: EASE_OUT },
+          }).duration(enterMs),
+      exiting: FadeOut.duration(exitMs),
+    }),
+    [reduce, rise, enterMs, exitMs],
+  )
 }
 
 /**

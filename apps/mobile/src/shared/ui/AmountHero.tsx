@@ -1,5 +1,5 @@
 // Figma: B/Amount hero 494:1142 (Kind=Review | Result; Figure 44/700 + Figure unit 24/600, baseline)
-import Animated, { FadeIn, FadeOut, LayoutAnimationConfig, useReducedMotion } from 'react-native-reanimated'
+import Animated, { FadeIn, FadeOut, useReducedMotion } from 'react-native-reanimated'
 import { useState } from 'react'
 import { View } from 'react-native'
 import { EASE_OUT, useTheme } from '../theme'
@@ -44,6 +44,8 @@ export function AmountHero({ asset, amount, unit, lines, result, note, link, cel
   }
   const ms = t.primitive.motion.duration.baseMs
   const big = !!celebrate && !!result
+  const bigGlyph = t.primitive.size.icon_xl - t.component.rowBadge.ring * 2 // Confirmed hero badge (32)
+  const badgeBox = (big ? bigGlyph : t.component.rowBadge.size) + t.component.rowBadge.ring * 2
   const logo = big
     ? t.primitive.size.avatar_lg * 2
     : result
@@ -66,30 +68,28 @@ export function AmountHero({ asset, amount, unit, lines, result, note, link, cel
       <View style={{ width: logo, height: logo }}>
         <AssetIcon symbol={asset} size={logo} />
         {result ? (
+          // Fixed-size box at the logo corner; each badge is anchored bottom-right inside it, so a badge that is leaving stays where it was.
+          // The new badge is drawn after (above) the leaving one: an opaque badge (Failed, Unknown, Replaced) covers it at once, a fading-in one (Pending, Confirmed) cross-fades with it.
           <View
             style={{
               position: 'absolute',
               right: 0,
               bottom: 0,
+              width: badgeBox,
+              height: badgeBox,
               transform: [{ translateX: t.component.rowBadge.ring }, { translateY: t.component.rowBadge.ring }],
             }}
           >
-            {/* skipExiting: leaving the screen must not wait for the badge to fade; only a changed badge exits. */}
-            <LayoutAnimationConfig skipExiting>
-              <Animated.View
-                key={result.badge}
-                style={big ? pop : undefined}
-                {...(changed && !reduce && (result.badge === 'confirmed' || result.badge === 'pending')
-                  ? { entering: FadeIn.duration(ms).easing(EASE_OUT) }
-                  : {})}
-                {...(reduce ? {} : { exiting: FadeOut.duration(ms).easing(EASE_OUT) })}
-              >
-                <RowBadge
-                  kind={result.badge}
-                  {...(big ? { size: t.primitive.size.icon_xl - t.component.rowBadge.ring * 2 } : {})}
-                />
-              </Animated.View>
-            </LayoutAnimationConfig>
+            <Animated.View
+              key={result.badge}
+              style={[{ position: 'absolute', right: 0, bottom: 0 }, big ? pop : undefined]}
+              {...(changed && !reduce && (result.badge === 'confirmed' || result.badge === 'pending')
+                ? { entering: FadeIn.duration(ms).easing(EASE_OUT) }
+                : {})}
+              {...(reduce ? {} : { exiting: FadeOut.duration(ms).easing(EASE_OUT) })}
+            >
+              <RowBadge kind={result.badge} {...(big ? { size: bigGlyph } : {})} />
+            </Animated.View>
           </View>
         ) : null}
       </View>

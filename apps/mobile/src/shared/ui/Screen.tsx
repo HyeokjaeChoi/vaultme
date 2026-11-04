@@ -10,7 +10,7 @@ import {
   View,
   type ScrollViewInstance,
 } from 'react-native'
-import Animated, { LayoutAnimationConfig } from 'react-native-reanimated'
+import Animated from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme, useToastMotion } from '../theme'
 import { Toast, ToastContext } from './Toast'
@@ -163,22 +163,20 @@ export function Screen({
         >
           <ToastContext value={showToast}>{children}</ToastContext>
         </ScrollView>
-        <LayoutAnimationConfig skipExiting>
-          {toast ? (
-            <Animated.View
-              {...toastMotion}
-              pointerEvents="none"
-              style={{
-                position: 'absolute',
-                left: l.screen.padding,
-                right: l.screen.padding,
-                bottom: l.screen.padding,
-              }}
-            >
-              <Toast message={toast} />
-            </Animated.View>
-          ) : null}
-        </LayoutAnimationConfig>
+        {toast ? (
+          <Animated.View
+            {...toastMotion}
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              left: l.screen.padding,
+              right: l.screen.padding,
+              bottom: l.screen.padding,
+            }}
+          >
+            <Toast message={toast} />
+          </Animated.View>
+        ) : null}
       </View>
       {footer ? (
         // Fixed-footer boundary (Borderless functional exception, DESIGN.md): Figma draws the 1 px line above the actions on every screen with a footer.
