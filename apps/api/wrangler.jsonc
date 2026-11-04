@@ -57,7 +57,10 @@
       // #423 experiment, staging only: run the Worker close to Etherscan (Hivelocity, Tampa; no CDN). From the HKG colo a history
       // fetch took 665 ms p50, from a US runner 289 ms (#412). Keep for production only if api-bench and a Korea run both get
       // faster for history and rpc; else remove, as #407 did for #403.
-      "placement": { "hostname": "api.etherscan.io" },
+      // A hostname probe stayed `cf-placement: local-*` for 10 minutes: Cloudflare says probes "do not work correctly for ...
+      // replicated resources", and api.etherscan.io answers from 5 IPs. An explicit region is used instead: AWS us-east-1 is near
+      // Tampa, and near Infura (rpc).
+      "placement": { "region": "aws:us-east-1" },
       "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "vaultme_api_staging" }],
       "durable_objects": { "bindings": [{ "name": "ETHERSCAN_BUCKET", "class_name": "EtherscanBucket" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EtherscanBucket"] }],
