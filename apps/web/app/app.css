@@ -160,6 +160,19 @@
   }
 }
 
+/* A pressable row that also fades in (a table row from 더 보기): one `transition` for both, since two utilities would override each other. */
+@utility fade-in-press {
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      opacity calc(var(--primitive-motion-duration-base-ms) * 1ms) var(--primitive-motion-easing-enter),
+      background-color calc(var(--primitive-motion-duration-exit-ms) * 1ms) var(--primitive-motion-easing-standard);
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+
 /* FAQ answer opens with a fade, and grows in browsers with interpolate-size (Chrome 129+). Browsers without ::details-content
    (before Chrome 131, Safari 18.4, Firefox 143) open at once, as before. Closing is quicker than opening. */
 @media (prefers-reduced-motion: no-preference) {

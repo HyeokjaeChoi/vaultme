@@ -66,7 +66,7 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
         {items.map((i) => (
           <tr
             key={i.id}
-            className={`h-row-b-height hover:bg-surface-hover ${pressTransition} relative ${fresh.has(i.id) ? 'fade-in' : ''}`}
+            className={`h-row-b-height hover:bg-surface-hover relative ${fresh.has(i.id) ? 'fade-in-press' : pressTransition}`}
           >
             <td className="pl-row-b-padding-x px-1-5">
               {/* The link covers the whole row (::after). Its name starts with the visible status and adds what the other cells say. */}
