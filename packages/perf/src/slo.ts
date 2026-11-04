@@ -6,12 +6,13 @@ export type Case = (typeof CASES)[number]
 
 /**
  * Tier 1, the UX SLO: p95 of the total time in ms. Absolute and taken from UX standards, not from our own measurements
- * (docs/perf/slo.md has the sources). rpc and history_hit are user-action reads: INP "good" 200 ms on a warm connection,
+ * (docs/perf/slo.md has the sources). rpc and history_hit are user-action reads: INP "good" 200 ms on a warm connection (warm rpc:
+ * 250 ms, owner decision in ADR-0035, because two upstreams set its tail),
  * the INP "needs improvement" edge 500 ms on a new one. history_miss is screen-load data: RAIL / Nielsen 1 s on both.
  * `health` is not user-facing: it has no SLO. A limit here fails the `api-bench` job.
  */
 export const SLO_MS: Record<Mode, Partial<Record<Case, number>>> = {
-  warm: { rpc: 200, history_hit: 200, history_miss: 1000 },
+  warm: { rpc: 250, history_hit: 200, history_miss: 1000 },
   cold: { rpc: 500, history_hit: 500, history_miss: 1000 },
 }
 

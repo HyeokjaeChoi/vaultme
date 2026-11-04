@@ -6,8 +6,8 @@ const p95 = (over: Partial<Record<Case, number | null>>) =>
   ({ health: 50, rpc: 50, history_hit: 50, history_miss: 90, ...over }) as Record<Case, number | null>
 
 describe('SLO_MS', () => {
-  it('has the UX limits: INP 200 / 500 for user actions, 1 s for screen load, none for health', () => {
-    expect(SLO_MS.warm).toEqual({ rpc: 200, history_hit: 200, history_miss: 1000 })
+  it('has the UX limits: INP 200 / 500 for user actions (warm rpc 250, ADR-0035), 1 s for screen load, none for health', () => {
+    expect(SLO_MS.warm).toEqual({ rpc: 250, history_hit: 200, history_miss: 1000 })
     expect(SLO_MS.cold).toEqual({ rpc: 500, history_hit: 500, history_miss: 1000 })
   })
 })
@@ -48,21 +48,21 @@ describe('warnings and markdown', () => {
     expect(tierMarkdown('warm', rows)).not.toContain('⚠️ tier')
   })
   it('writes a ⚠️ line for tier 2 and a ❌ line for tier 1', () => {
-    const rows = evaluate('warm', p95({ health: 130, rpc: 250 }), watch)
+    const rows = evaluate('warm', p95({ health: 130, rpc: 300 }), watch)
     const w = warnings('warm', rows)
     expect(w).toHaveLength(3)
     expect(w[0]).toBe(
       '⚠️ tier 2 (regression watch, does not fail the job): warm health p95 130 ms is over 100 ms (1.5 x the highest p95 of the calibration runs)',
     )
-    expect(w[1]).toBe('❌ tier 1 (UX SLO): warm rpc p95 250 ms is over 200 ms')
+    expect(w[1]).toBe('❌ tier 1 (UX SLO): warm rpc p95 300 ms is over 250 ms')
     const md = tierMarkdown('warm', rows)
-    expect(md).toContain('| `rpc` | warm | 250 | 200 | FAIL | 100 | ⚠️ over |')
+    expect(md).toContain('| `rpc` | warm | 300 | 250 | FAIL | 100 | ⚠️ over |')
     expect(md).toContain('| `health` | warm | 130 | n/a | no SLO | 100 | ⚠️ over |')
   })
-  it('judges the raw p95: 200.004 fails 200 although it is shown as 200', () => {
-    const rows = evaluate('warm', p95({ rpc: 200.004 }), watch)
+  it('judges the raw p95: 250.004 fails 250 although it is shown as 250', () => {
+    const rows = evaluate('warm', p95({ rpc: 250.004 }), watch)
     expect(rows.find((r) => r.case === 'rpc')?.sloOk).toBe(false)
-    expect(tierMarkdown('warm', rows)).toContain('| `rpc` | warm | 200 | 200 | FAIL |')
+    expect(tierMarkdown('warm', rows)).toContain('| `rpc` | warm | 250 | 250 | FAIL |')
   })
   it('prints n/a for a case with no response', () => {
     expect(warnings('cold', evaluate('cold', p95({ rpc: null }), watch))[0]).toContain('p95 n/a ms is over 500 ms')
