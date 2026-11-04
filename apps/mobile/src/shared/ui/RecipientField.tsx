@@ -1,11 +1,13 @@
 // Figma: Recipient field 40:17; Redesign B: B/Input Kind=Address 421:773 (Default), 421:781 (Focus), 421:789 (Invalid); Show scan icon (Icon / action / qr 434:230, S20a 618:102090)
-import { useState } from 'react'
-import { Pressable, TextInput, View } from 'react-native'
+import { useEffect, useState } from 'react'
+import { AccessibilityInfo, Pressable, TextInput, View } from 'react-native'
+import { ko } from '@vaultme/i18n'
 import { isAddressFormat } from '../lib/address'
 import { textStyle } from '../theme/fonts'
 import { useTheme } from '../theme'
 import { AddressText } from './AddressBlock'
 import { Icon } from './Icon'
+import { recipientA11yLabel } from './recipientA11y'
 import { Text } from './Text'
 
 type Action = { label: string; onPress: () => void }
@@ -24,6 +26,10 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
   const [focused, setFocused] = useState(false)
   const t = useTheme()
   const c = t.component.input
+  useEffect(() => {
+    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- a screen reader announcement is a side effect of the message appearing, not a render value
+    if (error) AccessibilityInfo.announceForAccessibility(error) // an RN `alert` is not announced on iOS when it mounts (WCAG 4.1.3)
+  }, [error])
   const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
   return (
     <View style={{ gap: c.fieldGap }}>
@@ -44,12 +50,18 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
       >
         {isAddressFormat(value) && !focused ? (
           // Shown address: first and last group strong, grouped in 4 (Figma B/Address). Tapping it edits the raw text.
-          <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => setFocused(true)}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={recipientA11yLabel(label, value)}
+            accessibilityHint={ko.a11y.tapToEdit}
+            onPress={() => setFocused(true)}
+          >
             <AddressText address={value} emphasis={false} />
           </Pressable>
         ) : (
           <TextInput
             accessibilityLabel={label}
+            accessibilityHint={error}
             value={value}
             autoFocus={focused}
             onFocus={() => setFocused(true)}

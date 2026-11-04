@@ -137,6 +137,7 @@ export function BottomSheet({
         </Animated.View>
         <Animated.View
           accessibilityViewIsModal
+          onAccessibilityEscape={dismiss}
           onLayout={(e) => void (sheetH.current = e.nativeEvent.layout.height)}
           style={[
             {

@@ -137,7 +137,6 @@ export function Button({
           ) : null}
           <Text
             variant={link ? 'link' : size === 'sm' ? 'label' : rowTitle ? 'rowTitle' : 'headline'}
-            numberOfLines={2}
             color={fg}
             style={{ textAlign: 'center', flexShrink: 1 }}
           >

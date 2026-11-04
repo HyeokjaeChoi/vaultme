@@ -1,6 +1,6 @@
 // Figma: B/Notice inline 399:122 (Tier=Inline | Banner, Tone, Title + Show title; Status notice 73:169)
-import type { ReactNode } from 'react'
-import { Pressable, View } from 'react-native'
+import { useEffect, type ReactNode } from 'react'
+import { AccessibilityInfo, Pressable, View } from 'react-native'
 import { useTheme } from '../theme'
 import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
@@ -39,6 +39,11 @@ export function StatusNotice({ tone, tier = 'inline', title, heading, body, icon
   const c = t.component.statusNotice
   const banner = tier === 'banner'
   const b = t.component.noticeBanner
+  const danger = tone === 'danger'
+  useEffect(() => {
+    // eslint-disable-next-line react-you-might-not-need-an-effect/no-event-handler -- a screen reader announcement is a side effect of the message appearing, not a render value
+    if (danger && title) AccessibilityInfo.announceForAccessibility(title) // an RN `alert` is not announced on iOS when it mounts (WCAG 4.1.3)
+  }, [danger, title])
   const quiet = tone === 'info' || tone === 'unknown' || tone === 'clear'
   return (
     <View
