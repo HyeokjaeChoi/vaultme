@@ -2,6 +2,8 @@
 
 Status: Accepted (2026-11-04, issue #399, owner decision of 2026-11-04: "250ms로 올림"). Supersedes in part [0020](0020-api-ux-slo-and-regression-watch.md): the warm `rpc` limit (200 ms). The rest of 0020 still binds, including warm `history_hit` at 200 ms and all cold limits.
 
+Superseded in part by [0036](0036-api-release-gate-own-time-slo-window.md): a tier 1 miss no longer fails a run; the 4-week window judges it. The 250 ms limit still binds.
+
 ## Context
 The release gate runs `api-bench` (ADR-0034, #397). Its first run failed cold `rpc`. Server-Timing on `/v1/rpc` (#401) showed that the Worker time is all upstream time: the limiters and the token check add nothing measurable.
 

@@ -302,7 +302,8 @@ jobs:
           count="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release.yml --created "$day" --limit 200 --json databaseId --jq "[.[] | select(.databaseId <= $GITHUB_RUN_ID)] | length")"
           scripts/release-version.sh "$TAG" "$day" "$count" | tee -a "$GITHUB_OUTPUT"
 
-  # The k6 API benchmark of staging (ADR-0019, ADR-0020): a tier 1 SLO miss stops the release like a failed flow.
+  # The k6 API benchmark of staging (ADR-0019, ADR-0036): no answer or our own server time over budget stops the release like a
+  # failed flow. The UX SLO is judged over 4 weeks by api-slo-window.yml and never blocks.
   api-slo:
     uses: ./.github/workflows/api-bench.yml
 
