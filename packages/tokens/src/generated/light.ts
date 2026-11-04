@@ -151,54 +151,6 @@ export const light = {
       "100": 1
     },
     "type": {
-      "display": {
-        "desktop": {
-          "fontFamily": "Inter",
-          "fontWeight": "700",
-          "fontSize": 72,
-          "lineHeight": 79,
-          "letterSpacing": -1.44
-        },
-        "mobile": {
-          "fontFamily": "Inter",
-          "fontWeight": "700",
-          "fontSize": 36,
-          "lineHeight": 43,
-          "letterSpacing": -0.36
-        }
-      },
-      "heading": {
-        "h1": {
-          "desktop": {
-            "fontFamily": "Inter",
-            "fontWeight": "700",
-            "fontSize": 48,
-            "lineHeight": 58,
-            "letterSpacing": -0.48
-          },
-          "mobile": {
-            "fontFamily": "Inter",
-            "fontWeight": "700",
-            "fontSize": 30,
-            "lineHeight": 36,
-            "letterSpacing": -0.3
-          }
-        },
-        "h2": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 30,
-          "lineHeight": 36,
-          "letterSpacing": -0.3
-        },
-        "h3": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 24,
-          "lineHeight": 32,
-          "letterSpacing": 0
-        }
-      },
       "body": {
         "lg": {
           "fontFamily": "Inter",
@@ -221,36 +173,6 @@ export const light = {
           "lineHeight": 21,
           "letterSpacing": 0
         }
-      },
-      "label": {
-        "lg": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 16,
-          "lineHeight": 22,
-          "letterSpacing": 0
-        },
-        "md": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 14,
-          "lineHeight": 19,
-          "letterSpacing": 0
-        }
-      },
-      "caption": {
-        "fontFamily": "Inter",
-        "fontWeight": "500",
-        "fontSize": 12,
-        "lineHeight": 18,
-        "letterSpacing": 0
-      },
-      "data": {
-        "fontFamily": "IBM Plex Mono",
-        "fontWeight": "500",
-        "fontSize": 14,
-        "lineHeight": 19,
-        "letterSpacing": 0
       },
       "product": {
         "title": {
@@ -400,21 +322,21 @@ export const light = {
           "fontWeight": "500",
           "fontSize": 14,
           "lineHeight": 20,
-          "letterSpacing": -0.2
+          "letterSpacing": -0.1
         },
         "value": {
           "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 14,
           "lineHeight": 20,
-          "letterSpacing": -0.2
+          "letterSpacing": -0.1
         },
         "caption": {
           "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 12,
           "lineHeight": 17,
-          "letterSpacing": -0.1
+          "letterSpacing": 0
         },
         "address": {
           "fontFamily": "IBM Plex Mono",
@@ -438,25 +360,25 @@ export const light = {
           "letterSpacing": -0.5
         },
         "fact": {
-          "fontFamily": "IBM Plex Mono",
+          "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 12,
           "lineHeight": 16,
-          "letterSpacing": 0.24
+          "letterSpacing": 0
         },
         "factUpper": {
-          "fontFamily": "IBM Plex Mono",
-          "fontWeight": "500",
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
           "fontSize": 12,
           "lineHeight": 16,
-          "letterSpacing": 0.24
+          "letterSpacing": 0
         },
         "link": {
           "fontFamily": "Pretendard",
           "fontWeight": "500",
           "fontSize": 14,
           "lineHeight": 20,
-          "letterSpacing": -0.2
+          "letterSpacing": -0.1
         }
       }
     },
@@ -2007,7 +1929,7 @@ export const light = {
         "fg": "#505C6C"
       },
       "received": {
-        "fg": "#116D48"
+        "fg": "#505C6C"
       },
       "pending": {
         "fg": "#A9660A"

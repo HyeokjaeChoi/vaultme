@@ -33,7 +33,7 @@ export function ListItem({ title, icon, iconColor, mono, compact, detailValue, t
   const t = useTheme()
   const { style, handlers } = usePressScale()
   const value = (text: string) => (
-    <Text variant={detailValue ? 'value' : compact ? 'caption' : 'bodySmall'} color={t.semantic.text.tertiary} tabular>
+    <Text variant={detailValue ? 'fact' : compact ? 'caption' : 'bodySmall'} color={t.semantic.text.tertiary} tabular>
       {text}
     </Text>
   )

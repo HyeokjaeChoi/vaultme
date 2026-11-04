@@ -151,54 +151,6 @@ export const dark = {
       "100": 1
     },
     "type": {
-      "display": {
-        "desktop": {
-          "fontFamily": "Inter",
-          "fontWeight": "700",
-          "fontSize": 72,
-          "lineHeight": 79,
-          "letterSpacing": -1.44
-        },
-        "mobile": {
-          "fontFamily": "Inter",
-          "fontWeight": "700",
-          "fontSize": 36,
-          "lineHeight": 43,
-          "letterSpacing": -0.36
-        }
-      },
-      "heading": {
-        "h1": {
-          "desktop": {
-            "fontFamily": "Inter",
-            "fontWeight": "700",
-            "fontSize": 48,
-            "lineHeight": 58,
-            "letterSpacing": -0.48
-          },
-          "mobile": {
-            "fontFamily": "Inter",
-            "fontWeight": "700",
-            "fontSize": 30,
-            "lineHeight": 36,
-            "letterSpacing": -0.3
-          }
-        },
-        "h2": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 30,
-          "lineHeight": 36,
-          "letterSpacing": -0.3
-        },
-        "h3": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 24,
-          "lineHeight": 32,
-          "letterSpacing": 0
-        }
-      },
       "body": {
         "lg": {
           "fontFamily": "Inter",
@@ -221,36 +173,6 @@ export const dark = {
           "lineHeight": 21,
           "letterSpacing": 0
         }
-      },
-      "label": {
-        "lg": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 16,
-          "lineHeight": 22,
-          "letterSpacing": 0
-        },
-        "md": {
-          "fontFamily": "Inter",
-          "fontWeight": "600",
-          "fontSize": 14,
-          "lineHeight": 19,
-          "letterSpacing": 0
-        }
-      },
-      "caption": {
-        "fontFamily": "Inter",
-        "fontWeight": "500",
-        "fontSize": 12,
-        "lineHeight": 18,
-        "letterSpacing": 0
-      },
-      "data": {
-        "fontFamily": "IBM Plex Mono",
-        "fontWeight": "500",
-        "fontSize": 14,
-        "lineHeight": 19,
-        "letterSpacing": 0
       },
       "product": {
         "title": {
@@ -400,21 +322,21 @@ export const dark = {
           "fontWeight": "500",
           "fontSize": 14,
           "lineHeight": 20,
-          "letterSpacing": -0.2
+          "letterSpacing": -0.1
         },
         "value": {
           "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 14,
           "lineHeight": 20,
-          "letterSpacing": -0.2
+          "letterSpacing": -0.1
         },
         "caption": {
           "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 12,
           "lineHeight": 17,
-          "letterSpacing": -0.1
+          "letterSpacing": 0
         },
         "address": {
           "fontFamily": "IBM Plex Mono",
@@ -438,25 +360,25 @@ export const dark = {
           "letterSpacing": -0.5
         },
         "fact": {
-          "fontFamily": "IBM Plex Mono",
+          "fontFamily": "Pretendard",
           "fontWeight": "400",
           "fontSize": 12,
           "lineHeight": 16,
-          "letterSpacing": 0.24
+          "letterSpacing": 0
         },
         "factUpper": {
-          "fontFamily": "IBM Plex Mono",
-          "fontWeight": "500",
+          "fontFamily": "Pretendard",
+          "fontWeight": "400",
           "fontSize": 12,
           "lineHeight": 16,
-          "letterSpacing": 0.24
+          "letterSpacing": 0
         },
         "link": {
           "fontFamily": "Pretendard",
           "fontWeight": "500",
           "fontSize": 14,
           "lineHeight": 20,
-          "letterSpacing": -0.2
+          "letterSpacing": -0.1
         }
       }
     },
@@ -577,7 +499,7 @@ export const dark = {
       "tertiary": "#98A4B3",
       "inverse": "#11161D",
       "link": "#F6F8FB",
-      "disabled": "#6B7788",
+      "disabled": "#98A4B3",
       "onBrand": "#FFFFFF",
       "onStatusTint": "#F6F8FB"
     },
@@ -591,9 +513,9 @@ export const dark = {
     },
     "border": {
       "subtle": "#28313C",
-      "default": "#505C6C",
+      "default": "#6B7788",
       "strong": "#6B7788",
-      "focus": "#3152FF",
+      "focus": "#96B8F8",
       "danger": "#E3636E",
       "selected": "#3152FF"
     },
@@ -657,7 +579,7 @@ export const dark = {
     "focus": {
       "width": 3,
       "offset": 2,
-      "color": "#3152FF"
+      "color": "#96B8F8"
     },
     "layout": {
       "sectionGap": {
@@ -825,7 +747,7 @@ export const dark = {
           "pressed": "#FFFFFF",
           "disabled": "#6B7788"
         },
-        "focusColor": "#3152FF",
+        "focusColor": "#96B8F8",
         "radius": 12,
         "borderWidth": 0
       },
@@ -840,9 +762,9 @@ export const dark = {
           "default": "#F6F8FB",
           "hover": "#F6F8FB",
           "pressed": "#F6F8FB",
-          "disabled": "#6B7788"
+          "disabled": "#98A4B3"
         },
-        "focusColor": "#3152FF",
+        "focusColor": "#96B8F8",
         "radius": 12,
         "border": "#505C6C",
         "borderWidth": 0
@@ -858,9 +780,9 @@ export const dark = {
           "default": "#EEF2F7",
           "hover": "#EEF2F7",
           "pressed": "#EEF2F7",
-          "disabled": "#6B7788"
+          "disabled": "#98A4B3"
         },
-        "focusColor": "#3152FF",
+        "focusColor": "#96B8F8",
         "radius": 12,
         "borderWidth": 0
       },
@@ -914,11 +836,11 @@ export const dark = {
       "label": "#C7D1DD",
       "helper": "#98A4B3",
       "errorText": "#E98B95",
-      "focusRing": "#3152FF",
+      "focusRing": "#96B8F8",
       "border": {
-        "default": "#505C6C",
+        "default": "#6B7788",
         "hover": "#6B7788",
-        "focus": "#3152FF",
+        "focus": "#96B8F8",
         "error": "#E3636E"
       },
       "height": 52,
@@ -955,7 +877,7 @@ export const dark = {
         "hover": "#0B0F15"
       },
       "border": "#28313C",
-      "focusRing": "#3152FF",
+      "focusRing": "#96B8F8",
       "radius": 20,
       "padding": {
         "mobile": 20,
@@ -1037,7 +959,7 @@ export const dark = {
         "default": "#C7D1DD",
         "hover": "#F6F8FB",
         "active": "#F6F8FB",
-        "focus": "#3152FF"
+        "focus": "#96B8F8"
       },
       "height": {
         "desktop": 80,
@@ -1239,7 +1161,7 @@ export const dark = {
           "hover": "#11161D",
           "selected": "#273966"
         },
-        "focusColor": "#3152FF"
+        "focusColor": "#96B8F8"
       },
       "minHeight": 64,
       "borderWidth": 0,
@@ -1251,7 +1173,7 @@ export const dark = {
         "selected": "#273966"
       },
       "border": {
-        "default": "#505C6C",
+        "default": "#6B7788",
         "selected": "#3152FF"
       },
       "name": "#F6F8FB",
@@ -1285,7 +1207,7 @@ export const dark = {
         "active": "#273966",
         "unavailable": "#0B0F15"
       },
-      "border": "#505C6C",
+      "border": "#6B7788",
       "name": "#F6F8FB",
       "detail": "#C7D1DD",
       "warning": "#FFC65D",
@@ -1355,7 +1277,7 @@ export const dark = {
           "hover": "#11161D",
           "selected": "#273966"
         },
-        "focusColor": "#3152FF"
+        "focusColor": "#96B8F8"
       },
       "minHeight": 80,
       "unknown": "#C7D1DD",
@@ -1392,7 +1314,7 @@ export const dark = {
     "recipientField": {
       "bg": "#11161D",
       "border": {
-        "default": "#505C6C",
+        "default": "#6B7788",
         "warning": "#FFC65D",
         "error": "#E98B95"
       },
@@ -1429,7 +1351,7 @@ export const dark = {
     "amountField": {
       "bg": "#11161D",
       "border": {
-        "default": "#505C6C",
+        "default": "#6B7788",
         "error": "#E98B95"
       },
       "label": "#C7D1DD",
@@ -1600,7 +1522,7 @@ export const dark = {
     },
     "connectedAppRow": {
       "bg": "#11161D",
-      "border": "#505C6C",
+      "border": "#6B7788",
       "origin": "#F6F8FB",
       "scope": "#C7D1DD",
       "action": "#F6F8FB",
@@ -1625,7 +1547,7 @@ export const dark = {
     },
     "allowanceRow": {
       "bg": "#11161D",
-      "border": "#505C6C",
+      "border": "#6B7788",
       "spender": "#F6F8FB",
       "detail": "#C7D1DD",
       "limited": "#C7D1DD",
@@ -1726,7 +1648,7 @@ export const dark = {
       "border": "#28313C",
       "active": "#96B8F8",
       "default": "#C7D1DD",
-      "focus": "#3152FF",
+      "focus": "#96B8F8",
       "labelStyle": {
         "fontFamily": "Inter",
         "fontWeight": "600",
@@ -1856,7 +1778,7 @@ export const dark = {
       "iconSize": 20,
       "radius": 12,
       "fg": "#EEF2F7",
-      "focusColor": "#3152FF",
+      "focusColor": "#96B8F8",
       "bg": {
         "default": "#11161D",
         "hover": "#11161D",
@@ -1903,7 +1825,7 @@ export const dark = {
     "switch": {
       "track": {
         "on": "#3152FF",
-        "off": "#505C6C"
+        "off": "#6B7788"
       },
       "thumb": "#FFFFFF",
       "radius": 999
@@ -1926,7 +1848,7 @@ export const dark = {
       "paddingY": 12
     },
     "bottomSheet": {
-      "grabber": "#505C6C"
+      "grabber": "#6B7788"
     },
     "sensitiveReveal": {
       "bg": "#0B0F15",
@@ -1952,7 +1874,7 @@ export const dark = {
         "bg": "#3152FF",
         "fg": "#FFFFFF",
         "bgDisabled": "#28313C",
-        "fgDisabled": "#6B7788"
+        "fgDisabled": "#98A4B3"
       },
       "secondary": {
         "bg": "#28313C",
@@ -2007,7 +1929,7 @@ export const dark = {
         "fg": "#98A4B3"
       },
       "received": {
-        "fg": "#74D9A9"
+        "fg": "#98A4B3"
       },
       "pending": {
         "fg": "#A9660A"

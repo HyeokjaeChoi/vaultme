@@ -118,7 +118,7 @@ export function ReviewPanel({
               : {})}
           />
         ) : null}
-        <Text variant="caption" color={th.semantic.text.tertiary}>
+        <Text variant="label" color={th.semantic.text.tertiary}>
           {t(token ? 'review.feeNoteToken' : 'review.feeNote')}
         </Text>
         {feeShortBy !== null ? null : rechecking ? (

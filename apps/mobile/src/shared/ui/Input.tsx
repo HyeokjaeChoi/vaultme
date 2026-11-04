@@ -145,7 +145,7 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
         input
       )}
       {error ? (
-        <Text variant="caption" color={c.errorText}>
+        <Text variant="label" color={c.errorText}>
           {error}
         </Text>
       ) : helper ? (

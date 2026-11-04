@@ -1,6 +1,7 @@
 // Figma: B-S41 Transaction detail (Pending + actions 888:5913, Confirmed 423:16327, real chain 460:4988, Unknown 423:16381, API error 457:17668, test mode + clear sheet)
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
+import { useCopy } from '@/shared/lib/useCopy'
 import { Linking, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account'
@@ -58,7 +59,7 @@ import {
   StatusNotice,
   Text,
 } from '@/shared/ui'
-import { AddressText } from '@/shared/ui'
+import { AddressBlock, AddressText } from '@/shared/ui'
 import { fakeHistoryItems } from '@/widgets/activity-list'
 import { InternalTransfers } from '@/widgets/internal-transfers'
 import { NetworkChips } from '@/widgets/network-chips'
@@ -113,6 +114,12 @@ const copyOf = (t: T, label: string, text: string) => ({
   label: t('detail.copyLabel', { label }),
   announce: t('receive.copied'),
 })
+
+/** The full recipient or sender address (never shortened) with a copy action. */
+function FullAddress({ label, address, copy }: { label: string; address: string; copy: ReturnType<typeof copyOf> }) {
+  const { copy: doCopy } = useCopy(copy.announce)
+  return <AddressBlock label={label} address={address} copyLabel={copy.label} onCopy={() => void doCopy(copy.text)} />
+}
 
 /** 자세히: chain ID and block, hidden until opened (Figma 934:9123 open, 934:9154 row). */
 function MoreRows({ blockNumber }: { blockNumber: number | undefined }) {
@@ -171,7 +178,7 @@ function NewSenderLine({ row }: { row: HistoryItem }) {
       : null
   if (!cautionOf(row, known)?.newSender) return null
   return (
-    <Text variant="caption" color={th.component.badge.warning.fg}>
+    <Text variant="label" color={th.component.badge.warning.fg}>
       {t('detail.caution.newSender')}
     </Text>
   )
@@ -234,9 +241,9 @@ function RowDetail({
             </Block>
           ) : (
             <Block>
-              <DetailRow
+              <FullAddress
                 label={t(copy.counterpartyTitle)}
-                value={shortAddress(row.counterparty)}
+                address={row.counterparty}
                 copy={copyOf(t, t(copy.counterpartyTitle), row.counterparty)}
               />
             </Block>
@@ -245,7 +252,7 @@ function RowDetail({
         </>
       ) : null}
       <Block title={t('detail.infoTitle')}>
-        <DetailRow label={t('detail.time')} value={whenText(t, row.at)} />
+        <DetailRow mono label={t('detail.time')} value={whenText(t, row.at)} />
         <DetailRow
           emphasis
           label={t('result.statusLabel')}
@@ -253,6 +260,7 @@ function RowDetail({
         />
         {/^0x[0-9a-fA-F]{64}$/.test(row.hash) ? (
           <DetailRow
+            mono
             label={t('detail.hashTitle')}
             value={shortHash(row.hash)}
             copy={copyOf(t, t('detail.hashTitle'), row.hash)}
@@ -260,6 +268,7 @@ function RowDetail({
         ) : null}
         {address ? (
           <DetailRow
+            mono
             label={t(copy.accountLabel)}
             value={shortAddress(address)}
             copy={copyOf(t, t(copy.accountLabel), address)}
@@ -469,17 +478,18 @@ export function TxDetailPage() {
       {!test ? <PendingActions tx={tx} onDone={reload} /> : null}
       <SectionBand />
       <Block>
-        <DetailRow
+        <FullAddress
           label={t('detail.recipientTitle')}
-          value={shortAddress(tx.to)}
+          address={tx.to}
           copy={copyOf(t, t('detail.recipientTitle'), tx.to)}
         />
       </Block>
       <SectionBand />
       <Block title={t('detail.infoTitle')}>
-        <DetailRow label={t('detail.time')} value={whenText(t, tx.createdAt)} />
+        <DetailRow mono label={t('detail.time')} value={whenText(t, tx.createdAt)} />
         <DetailRow emphasis label={t('result.statusLabel')} value={stateWord} />
         <DetailRow
+          mono
           label={t('detail.hashTitle')}
           value={shortHash(explorerHash(tx))}
           copy={copyOf(t, t('detail.hashTitle'), explorerHash(tx))}
