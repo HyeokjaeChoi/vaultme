@@ -1,6 +1,6 @@
 # Service level objectives
 
-What "fast enough" means for VaultMe, where each limit comes from, and how far we are from it. Decision: [ADR-0020](../adr/0020-api-ux-slo-and-regression-watch.md). Measurements: [baseline.md](baseline.md).
+What "fast enough" means for VaultMe, where each limit comes from, and how far we are from it. Decision: [ADR-0020](../adr/0020-api-ux-slo-and-regression-watch.md); warm `rpc` limit: [ADR-0035](../adr/0035-warm-rpc-slo-250ms.md). Measurements: [baseline.md](baseline.md).
 
 ## Web: already gated
 
@@ -21,7 +21,7 @@ p95 of the total time (DNS + TCP + TLS + request + response), from GitHub runner
 
 | Endpoint | Mode | SLO | Source | p95 of the 5 runs (ms) | Runs within SLO |
 | --- | --- | --- | --- | --- | --- |
-| `rpc` | warm | 200 ms | INP "good" | 140, 155, 186, 68, 68 | 5 / 5 |
+| `rpc` | warm | 250 ms | owner decision, ADR-0035 (was INP "good" 200 ms) | 140, 155, 186, 68, 68 | 5 / 5 |
 | `rpc` | cold | 500 ms | INP "needs improvement" edge | 184, 183, 658, 397, 271 | 4 / 5 |
 | `history_hit` | warm | 200 ms | INP "good" | 73, 52, 33, 29, 28 | 5 / 5 |
 | `history_hit` | cold | 500 ms | INP "needs improvement" edge | 115, 109, 142, 98, 440 | 5 / 5 |
@@ -35,7 +35,7 @@ Two gaps: `history_miss` misses its SLO in every run (the API makes 3 Etherscan 
 
 | Endpoint | Called by | Class | SLO used |
 | --- | --- | --- | --- |
-| `POST /v1/rpc` | Mobile Home balances on focus and pull-to-refresh (`apps/mobile/src/features/balances/useLiveBalances.ts`, `chain.getBalances`); send review and the re-check before send (`apps/mobile/src/features/send/model/useReviewCore.ts`, `runSend.ts`, `chain.getSnapshot`, 6 parallel calls); submit | user action | 200 / 500 ms |
+| `POST /v1/rpc` | Mobile Home balances on focus and pull-to-refresh (`apps/mobile/src/features/balances/useLiveBalances.ts`, `chain.getBalances`); send review and the re-check before send (`apps/mobile/src/features/send/model/useReviewCore.ts`, `runSend.ts`, `chain.getSnapshot`, 6 parallel calls); submit | user action | 250 / 500 ms (warm rpc, ADR-0035) |
 | `POST /v1/rpc` | Web viewer balances and transaction page (`apps/web/app/shared/api/useBalances.ts`, `useTransaction.ts`) | page load | proxy only (see below) |
 | `POST /v1/history` cache hit (30 s Worker cache) | Mobile Activity on focus (`apps/mobile/src/features/history/model/useHistory.ts`); web viewer history (`apps/web/app/shared/api/useHistory.ts`) when the same address was read shortly before | user action (navigation) | 200 / 500 ms |
 | `POST /v1/history` cache miss | the same callers when no read is in the cache; first read of an address | screen load | 1000 ms |
