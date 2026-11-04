@@ -81,5 +81,5 @@ appId: dev.stackline.vaultme
 - extendedWaitUntil:
     visible: '보냈어요'
     timeout: 240000
-- tapOn: '확인'
+- tapOn: '홈으로'
 - assertVisible: 'Sepolia ETH'
