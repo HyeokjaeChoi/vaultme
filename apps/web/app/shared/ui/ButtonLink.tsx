@@ -17,8 +17,7 @@ const variants = {
 export type ButtonVariant = keyof typeof variants
 
 /** Hover and press fill ease in 120 ms and out 160 ms (color only, no scale on the web). Off under reduced motion. Shared with the icon buttons. */
-export const pressTransition =
-  'motion-safe:transition-colors motion-safe:duration-exit motion-safe:ease-standard motion-safe:hover:duration-fast'
+export const pressTransition = 'press-fill motion-safe:hover:duration-fast'
 
 /** The B/Button look, shared by links (ButtonLink, router Link) and buttons (Button). */
 export const buttonClass = (variant: ButtonVariant, className = '') =>

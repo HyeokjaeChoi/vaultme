@@ -140,6 +140,14 @@
   }
 }
 
+/* Hover and press fill of buttons: background-color only (text and border keep their colors). Out is 160 ms; the hover class in `pressTransition` makes in 120 ms. */
+@utility press-fill {
+  @media (prefers-reduced-motion: no-preference) {
+    transition: background-color calc(var(--primitive-motion-duration-exit-ms) * 1ms)
+      var(--primitive-motion-easing-standard);
+  }
+}
+
 /* Loaded content (and the rows of a 더 보기) fades in as one block when it mounts. Opacity only: no blur, move or stagger on amounts
    and addresses. A browser without @starting-style shows it at once. */
 @utility fade-in {
