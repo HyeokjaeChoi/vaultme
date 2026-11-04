@@ -60,7 +60,7 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 
 - `app.ts`: Hono `OpenAPIHono` app. All routes, middleware order, the webhook route, `onError`.
 - `auth.ts`: `requireSigned` (device signature), `issueToken`, `requireToken`, `limitInstall`.
-- `rpc.ts`: `rpcAllowed` (allow-list) and `proxyRpc` (Infura, then Alchemy on a failure; a read that Infura has not answered in 100 ms also goes to Alchemy and the first valid answer wins, #399; `eth_sendRawTransaction` is never hedged).
+- `rpc.ts`: `rpcAllowed` (allow-list) and `proxyRpc` (Infura, then Alchemy on a failure; a read that Infura has not answered in 60 ms also goes to Alchemy and the first valid answer wins, #399; `eth_sendRawTransaction` is never hedged).
 - `etherscan.ts`, `history.ts`, `bucket.ts`: `getHistory` calls Etherscan through the `EtherscanBucket` token bucket. `history.ts` is pure: merge, dedupe, order, cursor.
 - `push.ts`: subscribe, unsubscribe, `verifyAlchemySignature`, `notificationsFor` (pure), `handleActivity`, `sweep`.
 - `log.ts`, `metrics.ts`, `sentry.ts`, `alerts.ts`: observability (see Observability).
@@ -198,7 +198,7 @@ Decisions Q26, Q50, Q56, Q69 (#315, ADR-0024). One rule for all of it: no addres
 
 - Error body: `{code, message, retryable}`. `code` comes from `ERROR_CODES` in `contracts`. The app maps an unknown code to `Unknown`.
 - v1 allows added fields only. A breaking change needs `/v2`.
-- `/v1/rpc` accepts one JSON-RPC request (no batch). Allowed methods are in `RPC_ALLOWED_METHODS`. `eth_call` only for USDC `balanceOf`. `eth_getBlockByNumber` only without full transactions. `eth_getTransactionByHash` only with one 32-byte hash. Upstream order: Infura, Alchemy, 5 s timeout; a read still open after 100 ms also goes to Alchemy (not for `eth_sendRawTransaction` or push.ts, #399). A JSON-RPC error inside a 200 is returned as is.
+- `/v1/rpc` accepts one JSON-RPC request (no batch). Allowed methods are in `RPC_ALLOWED_METHODS`. `eth_call` only for USDC `balanceOf`. `eth_getBlockByNumber` only without full transactions. `eth_getTransactionByHash` only with one 32-byte hash. Upstream order: Infura, Alchemy, 5 s timeout; a read still open after 60 ms also goes to Alchemy (not for `eth_sendRawTransaction` or push.ts, #399). A JSON-RPC error inside a 200 is returned as is.
 - `/webhooks/alchemy` is outside `/v1` and is not in the OpenAPI file. It uses an HMAC, not a token.
 
 ## Security model
