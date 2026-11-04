@@ -318,3 +318,29 @@ describe('POST /v1/history Server-Timing', () => {
     expect(t.total?.dur).toMatch(/^[\d.]+$/)
   })
 })
+
+// #423: a location hint makes a separate, named bucket instance; without it the one global instance is used.
+describe('Etherscan bucket instance', () => {
+  const spy = () => {
+    const calls: unknown[][] = []
+    const ns = {
+      getByName: (...a: unknown[]) => {
+        calls.push(a)
+        return { acquire: () => Promise.resolve(0) }
+      },
+    } as unknown as typeof env.ETHERSCAN_BUCKET
+    return { ns, calls }
+  }
+  it('uses `global` with no hint', async () => {
+    const { ns, calls } = spy()
+    mock({})
+    await post({ address: newAddress() }, { ...E, ETHERSCAN_BUCKET: ns })
+    expect(calls[0]).toEqual(['global'])
+  })
+  it('uses a named instance with the location hint when ETHERSCAN_BUCKET_LOCATION is set', async () => {
+    const { ns, calls } = spy()
+    mock({})
+    await post({ address: newAddress() }, { ...E, ETHERSCAN_BUCKET: ns, ETHERSCAN_BUCKET_LOCATION: 'enam' } as typeof E)
+    expect(calls[0]).toEqual(['global-enam', { locationHint: 'enam' }])
+  })
+})
