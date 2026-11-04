@@ -323,7 +323,7 @@ Source order:
 
 Token layers: Primitive holds raw values. Semantic aliases Primitive by role. Component aliases Semantic. App code uses `@vaultme/tokens` only. A new raw value goes in Primitive only.
 
-Dark mode: the app follows the OS setting. There is no in-app toggle. The front matter shows the light theme. See "Colors" for dark.
+Dark mode: the app follows the OS setting. The web also has a theme toggle. The front matter shows the light theme. See "Colors" for dark.
 
 The product language is Korean. Terms are in `CONTEXT.md`.
 
