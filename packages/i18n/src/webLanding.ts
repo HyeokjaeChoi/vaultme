@@ -39,10 +39,9 @@ const ko = {
     security: {
       title: '보안은 이렇게 다뤄요',
       items: [
-        { title: '키는 앱 안에만 있어요', body: '웹 뷰어는 키를 만들지도, 서명하지도 않아요. 로그인도 없어요.' },
         {
           title: '복구 구문은 묻지 않아요',
-          body: 'VaultMe는 어디서도 복구 구문을 묻지 않아요. 누가 물으면 알려 주지 마세요.',
+          body: '앱, 웹, 메시지 어디서도 묻지 않아요. 누가 물으면 알려 주지 마세요.',
         },
         {
           title: '테스트넷 전용, 테스트 자금만',
@@ -55,12 +54,11 @@ const ko = {
       items: [
         {
           question: '키를 VaultMe가 가지고 있나요?',
-          answer: '아니요. 복구 구문과 키는 내 기기에만 있어요. VaultMe는 되찾아 드릴 수 없어요.',
+          answer: '아니요. 키는 내 기기에만 있어요.',
         },
         {
           question: '실제 돈을 넣어도 되나요?',
-          answer:
-            '아니요. VaultMe는 Sepolia 테스트넷 전용이에요. 테스트넷 자산은 실제 가치가 없으니 실제 자금은 넣지 마세요.',
+          answer: '아니요. 테스트넷 전용이라 실제 자금은 쓸 수 없어요.',
         },
         {
           question: '웹에서 보내기도 되나요?',
@@ -132,12 +130,8 @@ const en: WebLandingMessages = {
       title: 'How we handle security',
       items: [
         {
-          title: 'Keys stay in the app',
-          body: 'The web viewer never creates keys and never signs. There is no sign-in.',
-        },
-        {
           title: 'We never ask for your recovery phrase',
-          body: 'VaultMe never asks for a recovery phrase anywhere. If someone asks, do not share it.',
+          body: 'Not in the app, on the web or in messages. If someone asks, do not share it.',
         },
         {
           title: 'Testnet only, test funds only',
@@ -150,12 +144,11 @@ const en: WebLandingMessages = {
       items: [
         {
           question: 'Does VaultMe hold my keys?',
-          answer: 'No. Your recovery phrase and keys stay on your device. VaultMe cannot recover them for you.',
+          answer: 'No. Your keys stay on your device.',
         },
         {
           question: 'Can I deposit real money?',
-          answer:
-            'No. VaultMe is for the Sepolia testnet only. Testnet assets have no real value, so do not deposit real funds.',
+          answer: 'No. It is testnet only, so real funds cannot be used.',
         },
         {
           question: 'Can I send from the web?',
