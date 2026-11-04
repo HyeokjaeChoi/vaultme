@@ -39,6 +39,8 @@ export const options = {
 }
 
 const ENDPOINTS = CASES
+// The parts of a history miss from its Server-Timing header (#412): slowest Etherscan fetch, longest bucket wait, slowest bucket call.
+const HISTORY_PARTS = ['etherscan', 'bucket_wait', 'bucket_call']
 // Tier 2, the regression watch (ADR-0020): 1.5 times the highest run p95 of the 5 calibration runs, in ms. Warning only, never a
 // k6 threshold (a threshold sets the exit code). `node packages/perf/src/cli.ts bench` prints this constant.
 const WATCH_P95_MS = {
@@ -47,11 +49,12 @@ const WATCH_P95_MS = {
 }
 // k6 keeps a sub-metric only when a threshold names it, so every case gets one; the parts have one that always passes (collect only).
 for (const e of ENDPOINTS) {
-  for (const m of ['total', 'duration', 'dns', 'connecting', 'tls', 'waiting', 'worker', 'upstream'])
+  for (const m of ['total', 'duration', 'dns', 'connecting', 'tls', 'waiting', 'worker', 'upstream', ...HISTORY_PARTS])
     options.thresholds[`ok_${m}{endpoint:${e}}`] = ['max>=0']
   // Tier 1, the UX SLO: each request is counted good or not; the 4-week window judges the counts (ADR-0036), never one run.
   if (SLO_MS[MODE][e] !== undefined) options.thresholds[`slo_good{endpoint:${e}}`] = ['rate>=0']
-  // The release gate (ADR-0036): our own server time, without the upstreams and the network. Only rpc sends Server-Timing.
+  // The release gate (ADR-0036): our own server time, without the upstreams and the network. It gates rpc only; history sends
+  // Server-Timing too (#412), and its own time is shown, not gated, until staging runs show its size.
   options.thresholds[`ok_own{endpoint:${e}}`] = [e === 'rpc' ? `p(95)<=${OWN_P95_MS}` : 'max>=0']
   // k6 reports an empty Trend as zeros, so the gate also needs at least one own-time sample (a Server-Timing header).
   options.thresholds[`own_n{endpoint:${e}}`] = [e === 'rpc' ? 'count>0' : 'count>=0']
@@ -68,11 +71,13 @@ const T = {
   connecting: new Trend('ok_connecting', true),
   tls: new Trend('ok_tls', true),
   waiting: new Trend('ok_waiting', true),
-  // From the Server-Timing header of /v1/rpc (#399): worker = Worker time (`total`), upstream = Infura/Alchemy. Other routes send none.
+  // From the Server-Timing header of /v1/rpc (#399) and /v1/history (#412): worker = Worker time (`total`), upstream = Infura/Alchemy
+  // or the Etherscan part of a history miss (0 on a hit). health sends none.
   worker: new Trend('ok_worker', true),
   upstream: new Trend('ok_upstream', true),
   // worker minus upstream: our own server time outside `proxyRpc` (limiters, token check), the release gate (ADR-0036).
   own: new Trend('ok_own', true),
+  ...Object.fromEntries(HISTORY_PARTS.map((m) => [m, new Trend(`ok_${m}`, true)])),
 }
 const callOk = new Rate('call_ok')
 const sloGood = new Rate('slo_good')
@@ -151,6 +156,10 @@ function call(name, timed, method, path, token, body) {
     const upstream = dur('upstream')
     if (worker !== null) T.worker.add(worker, tags)
     if (upstream !== null) T.upstream.add(upstream, tags)
+    for (const m of HISTORY_PARTS) {
+      const d = dur(m)
+      if (d !== null) T[m].add(d, tags)
+    }
     if (worker !== null && upstream !== null) {
       T.own.add(Math.max(0, worker - upstream), tags)
       ownN.add(1, tags)
@@ -241,6 +250,7 @@ export function summarize(data) {
       upstream: trend(v(data, `ok_upstream{endpoint:${e}}`)),
       own: trend(v(data, `ok_own{endpoint:${e}}`)),
       slo: sloCount(v(data, `slo_good{endpoint:${e}}`)),
+      ...Object.fromEntries(HISTORY_PARTS.map((m) => [m, trend(v(data, `ok_${m}{endpoint:${e}}`))])),
     }
   }
   return { mode: MODE, measuredAt: new Date().toISOString(), address: ADDRESS, endpoints }
@@ -257,7 +267,13 @@ function markdown(r) {
     `| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |`,
     ...rows,
     '',
-    'Times in ms. Only HTTP 200 responses are timed. p50 to max = total (DNS + TCP + TLS + request + response). TTFB = `http_req_waiting`. Worker and upstream: Server-Timing of `/v1/rpc` only (#399); TTFB minus Worker = network and edge. own = Worker minus upstream; its p95 for `rpc` is the release gate (ADR-0036, ' +
+    ...(r.endpoints.history_miss.etherscan
+      ? [
+          `history_miss parts, p50 / p95: ${HISTORY_PARTS.map((m) => `${m} ${cell(r.endpoints.history_miss[m]?.p50)} / ${cell(r.endpoints.history_miss[m]?.p95)}`).join(', ')} (slowest of the parallel calls, #412).`,
+          '',
+        ]
+      : []),
+    'Times in ms. Only HTTP 200 responses are timed. p50 to max = total (DNS + TCP + TLS + request + response). TTFB = `http_req_waiting`. Worker and upstream: Server-Timing of `/v1/rpc` (#399) and `/v1/history` (#412); TTFB minus Worker = network and edge. own = Worker minus upstream; its p95 for `rpc` is the release gate (ADR-0036, ' +
       `${OWN_P95_MS} ms). SLO good = 200 responses at or under the tier 1 limit, of all timed requests.`,
     '',
   ].join('\n')

@@ -30,7 +30,7 @@ import { eq } from 'drizzle-orm'
 import type { Context, ErrorHandler, MiddlewareHandler } from 'hono'
 import { cors } from 'hono/cors'
 import { routePath } from 'hono/route'
-import { endTime, startTime, timing } from 'hono/timing'
+import { endTime, setMetric, startTime, timing } from 'hono/timing'
 import pkg from '../package.json' with { type: 'json' }
 import { getDb } from './db/index.ts'
 import { installs } from './db/schema.ts'
@@ -45,7 +45,7 @@ import {
 } from './auth.ts'
 import { recordServerError } from './alerts.ts'
 import type { Env } from './env.ts'
-import { getHistory, getTxInternal } from './etherscan.ts'
+import { getHistory, getTxInternal, newStats } from './etherscan.ts'
 import { HTTPException } from 'hono/http-exception'
 import { InvalidCursorError, UpstreamError, fail } from './errors.ts'
 import { logEvent, withRequestId } from './log.ts'
@@ -95,6 +95,9 @@ app.use('*', (c, next) =>
 // Server-Timing on /v1/rpc only (#399): `total` = Worker time from here on (limiters, token, upstream), `upstream` = the Infura/Alchemy
 // fetches. The bench reads it to split the cold wait. Remove with the bench columns once #399 is closed and no regression watch needs it.
 app.use('/v1/rpc', timing())
+// Server-Timing on /v1/history (#412): `upstream` = the Etherscan part of a miss (0 on a cache hit), `etherscan` = the slowest
+// Etherscan fetch, `bucket_wait` = the longest wait the global bucket asked for, `bucket_call` = the slowest Durable Object call.
+app.use('/v1/history', timing())
 
 // WEB_ORIGINS is a comma-separated var: the exact browser origins allowed (ADR-0011). Empty = no browser.
 const webOrigins = (c: { env: Env['Bindings'] }) =>
@@ -290,7 +293,16 @@ app.openapi(
   async (c) => {
     const { address, cursor } = c.req.valid('json')
     try {
-      return c.json(await getHistory(c.env, address, cursor), 200)
+      const stats = newStats()
+      const out = await getHistory(c.env, address, cursor, stats)
+      setMetric(c, 'upstream', stats.upstreamMs)
+      if (stats.calls > 0) {
+        setMetric(c, 'etherscan', stats.fetchMs)
+        setMetric(c, 'bucket_wait', stats.waitMs)
+        setMetric(c, 'bucket_call', stats.bucketMs)
+        setMetric(c, 'etherscan_calls', String(stats.calls))
+      }
+      return c.json(out, 200)
     } catch (e) {
       if (e instanceof InvalidCursorError) return c.json(errorEnvelope('invalid_cursor', 'Invalid cursor'), 400)
       if (e instanceof UpstreamError) return c.json(errorEnvelope('unavailable', 'History unavailable'), 503)
