@@ -22,7 +22,7 @@ Three deploy units (the app, the Worker, the web site). Everything else is a lib
 ```text
  phone (trusted)                      Cloudflare (partly trusted)             outside (untrusted)
 ┌─────────────────────────┐          ┌───────────────────────────┐
-│ apps/mobile (Expo)      │  HTTPS   │ apps/api (one Worker)     │──► Infura -> Alchemy (RPC)
+│ apps/mobile (Expo)      │  HTTPS   │ apps/api (one Worker)     │──► Infura -> Alchemy (RPC, hedged reads)
 │  wallet-core: key, sign │ ───────► │  Hono routes, D1,         │──► Etherscan V2 (history)
 │  Keychain: phrase       │ install  │  EtherscanBucket (DO),    │──► Expo Push ──► phone
 │  MMKV: cache, tx record │ token    │  Cron 17 * * * *          │──► Alchemy Notify (address list)
@@ -198,7 +198,7 @@ Decisions Q26, Q50, Q56, Q69 (#315, ADR-0024). One rule for all of it: no addres
 
 - Error body: `{code, message, retryable}`. `code` comes from `ERROR_CODES` in `contracts`. The app maps an unknown code to `Unknown`.
 - v1 allows added fields only. A breaking change needs `/v2`.
-- `/v1/rpc` accepts one JSON-RPC request (no batch). Allowed methods are in `RPC_ALLOWED_METHODS`. `eth_call` only for USDC `balanceOf`. `eth_getBlockByNumber` only without full transactions. `eth_getTransactionByHash` only with one 32-byte hash. Upstream order: Infura, Alchemy, 5 s timeout. A JSON-RPC error inside a 200 is returned as is.
+- `/v1/rpc` accepts one JSON-RPC request (no batch). Allowed methods are in `RPC_ALLOWED_METHODS`. `eth_call` only for USDC `balanceOf`. `eth_getBlockByNumber` only without full transactions. `eth_getTransactionByHash` only with one 32-byte hash. Upstream order: Infura, Alchemy, 5 s timeout; a read still open after 100 ms also goes to Alchemy (not for `eth_sendRawTransaction` or push.ts, #399). A JSON-RPC error inside a 200 is returned as is.
 - `/webhooks/alchemy` is outside `/v1` and is not in the OpenAPI file. It uses an HMAC, not a token.
 
 ## Security model
