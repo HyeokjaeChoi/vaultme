@@ -241,7 +241,13 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
           />
         ) : null}
         {outcome === 'exists' ? (
-          <StatusNotice tone="danger" tier="banner" title={t('restore.exists.title')} body={t('restore.exists.body')} />
+          <StatusNotice
+            tone="danger"
+            tier="banner"
+            title={t('restore.exists.title')}
+            body={t('restore.exists.body')}
+            link={{ label: t('restore.exists.cta'), onPress: () => router.replace('/home') }}
+          />
         ) : null}
         {outcome === 'error' ? (
           <StatusNotice

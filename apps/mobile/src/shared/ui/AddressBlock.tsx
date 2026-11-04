@@ -20,7 +20,7 @@ type Kind = 'mid' | 'end' | 'hit'
 
 /**
  * Full address (Figma B/Address 494:1090): one contiguous run in IBM Plex Mono, no group spaces, natural wrap, never truncated. The head (0x + 4) and tail (4) are strong (600, text/primary),
- * the middle regular in text/secondary. Characters in `highlight` (look-alike diff) are marked one by one: strong + danger color (not color alone).
+ * the middle regular in text/secondary. Characters in `highlight` (look-alike diff) are marked one by one: strong + underline + danger color (not color alone).
  */
 export function AddressText({ address, highlight = [], color, markColor, size = 'M', emphasis = true }: TextProps) {
   const t = useTheme()
@@ -56,7 +56,7 @@ export function AddressText({ address, highlight = [], color, markColor, size = 
     else runs.push({ kind, text: c })
   })
   const style = {
-    hit: { ...strong, color: markColor ?? t.semantic.status.danger.fg },
+    hit: { ...strong, color: markColor ?? t.semantic.status.danger.fg, textDecorationLine: 'underline' },
     end: { ...strong, color: ends },
     mid: null,
   } as const

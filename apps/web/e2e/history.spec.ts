@@ -266,5 +266,5 @@ test('en: the history is in English', async ({ page }) => {
   await page.goto(`/en/address#${A}`)
   await expect(page.getByRole('heading', { level: 2, name: 'Transactions' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Show more' })).toBeVisible()
-  await expect(page.getByRole('columnheader', { name: 'Counterparty' })).toBeVisible()
+  await expect(page.getByRole('columnheader', { name: 'Other address' })).toBeVisible()
 })
