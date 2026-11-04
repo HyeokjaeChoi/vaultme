@@ -15,7 +15,7 @@ const ko = {
       appStore: 'App Store에서 받기',
       googlePlay: 'Google Play에서 받기',
       storeSoon: '출시 준비 중이에요',
-      mockupAlt: 'VaultMe 앱의 자산 화면. Sepolia ETH 1.2847개와 USDC 12.5개를 보여 줘요.',
+      mockupAlt: 'VaultMe 앱의 홈 화면. Sepolia ETH 1.284732개와 USDC 12.5개를 보여 줘요.',
     },
     features: {
       title: '한 앱으로 지갑과 뷰어를 써요',
@@ -89,7 +89,7 @@ const en: WebLandingMessages = {
       appStore: 'Get it on the App Store',
       googlePlay: 'Get it on Google Play',
       storeSoon: 'Coming soon',
-      mockupAlt: 'The VaultMe app assets screen, showing 1.2847 Sepolia ETH and 12.5 USDC.',
+      mockupAlt: 'The VaultMe app home screen, showing 1.284732 Sepolia ETH and 12.5 USDC.',
     },
     features: {
       title: 'One app for your wallet and a viewer',

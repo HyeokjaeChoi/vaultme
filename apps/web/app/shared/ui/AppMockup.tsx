@@ -1,8 +1,9 @@
-// Figma: Web/App mockup 759:150 (the Home screen, 320 x 568: the single LCP image of the landing page)
+// Figma: B-S10 Home 404:163 (light) / 430:14606 (dark), the current Home screen (the Web/App mockup component 759:150 still draws the old
+// one). The top 452 of its 844 pt, scaled to 320 wide, with round top corners: the phone runs off the bottom edge of the hero. The single LCP image of the landing page.
 // AVIF with a WebP fallback, light and dark. The dark sources come first; the theme script (shared/lib/theme.ts) flips
 // their `media` when the chosen theme differs from the system one.
-// 640 x 1136 files shown at 320 x 568 (2x, so phones stay sharp: Lighthouse image-size-responsive). The Figma export is 1x only,
-// so the 2x files are the same screen rendered from the same tokens and Figma values (mean pixel difference to the 1x export: 3 of 255).
+// 640 x 904 files shown at 320 x 452 (2x, so phones stay sharp: Lighthouse image-size-responsive). Made from the Figma PNG export at 2x
+// (780 x 1688), resized to 640 wide, cropped and masked with sharp (AVIF q60, WebP q82).
 import darkAvif from '../../assets/hero-mockup-dark.avif'
 import darkWebp from '../../assets/hero-mockup-dark.webp'
 import lightAvif from '../../assets/hero-mockup-light.avif'
@@ -23,12 +24,11 @@ export function AppMockupPreload() {
 
 export function AppMockup({ alt }: { alt: string }) {
   return (
-    // shrink-0: Figma lets the 320 px screen overflow the card padding at 375 px (card 343, padding 24); it stays 320.
-    <picture className="shrink-0">
+    <picture className="block shrink-0">
       <source type="image/avif" srcSet={darkAvif} media={DARK_MEDIA} data-theme-media />
       <source type="image/webp" srcSet={darkWebp} media={DARK_MEDIA} data-theme-media />
       <source type="image/avif" srcSet={lightAvif} />
-      <img src={lightWebp} width={320} height={568} alt={alt} fetchPriority="high" decoding="async" />
+      <img src={lightWebp} width={320} height={452} alt={alt} fetchPriority="high" decoding="async" />
     </picture>
   )
 }
