@@ -16,9 +16,13 @@ const variants = {
 
 export type ButtonVariant = keyof typeof variants
 
+/** Hover and press fill ease in 120 ms and out 160 ms (color only, no scale on the web). Off under reduced motion. Shared with the icon buttons. */
+export const pressTransition =
+  'motion-safe:transition-colors motion-safe:duration-exit motion-safe:ease-standard motion-safe:hover:duration-fast'
+
 /** The B/Button look, shared by links (ButtonLink, router Link) and buttons (Button). */
 export const buttonClass = (variant: ButtonVariant, className = '') =>
-  `text-product-b-headline rounded-button-b-radius inline-flex items-center justify-center gap-2 whitespace-nowrap ${variants[variant]} ${className}`
+  `text-product-b-headline rounded-button-b-radius inline-flex items-center justify-center gap-2 whitespace-nowrap ${pressTransition} ${variants[variant]} ${className}`
 
 type Props = ComponentProps<'a'> & { variant: ButtonVariant }
 

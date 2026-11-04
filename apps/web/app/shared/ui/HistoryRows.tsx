@@ -7,7 +7,15 @@ import { txPath } from '../lib/locale'
 import { AssetIcon } from './AssetIcon'
 import { RowBadge } from './RowBadge'
 
-type Props = { items: HistoryItem[]; now: number; t: WebMessages; locale: WebLocale; address: string | null }
+type Props = {
+  items: HistoryItem[]
+  now: number
+  t: WebMessages
+  locale: WebLocale
+  address: string | null
+  /** Ids of rows that arrived with a 더 보기: they fade in. */
+  fresh: ReadonlySet<string>
+}
 
 /** A row opens the transaction page (#197). The viewer's address goes in the router state (memory, not the URL), for the page's back link, and the asset of the row: one transaction can have an ETH row and a USDC row. */
 const txLink = (i: HistoryItem, locale: WebLocale, address: string | null) => ({
@@ -21,7 +29,7 @@ const failed = (i: HistoryItem) => i.status === 'failed'
 const assetKey = (i: HistoryItem) => (i.asset === 'USDC' ? 'USDC' : 'ETH')
 
 /** 768 px and wider: one real table. Columns as Figma (status 140, direction 80, counterparty rest, amount 140, time 88). */
-export function HistoryTable({ items, now, t, locale, address }: Props) {
+export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
   const th = 'text-product-b-caption text-text-tertiary px-1-5 py-2 font-normal'
   const navigate = useNavigate()
   return (
@@ -55,7 +63,7 @@ export function HistoryTable({ items, now, t, locale, address }: Props) {
       </thead>
       <tbody>
         {items.map((i) => (
-          <tr key={i.id} className="h-row-b-height relative">
+          <tr key={i.id} className={`h-row-b-height relative ${fresh.has(i.id) ? 'fade-in' : ''}`}>
             <td className="pl-row-b-padding-x px-1-5">
               {/* The link covers the whole row (::after). Its name starts with the visible status and adds what the other cells say. */}
               <Link
@@ -105,7 +113,7 @@ export function HistoryTable({ items, now, t, locale, address }: Props) {
 }
 
 /** Below 768 px: Activity rows under date headers. */
-export function HistoryCards({ items, now, t, locale, address }: Props) {
+export function HistoryCards({ items, now, t, locale, address, fresh }: Props) {
   const days: { key: string; at: number; rows: HistoryItem[] }[] = []
   for (const i of items) {
     const key = new Date(i.at).toDateString() // the day, not its label: the same date of two years is two groups
@@ -130,7 +138,7 @@ export function HistoryCards({ items, now, t, locale, address }: Props) {
                   ? t.history.cardTitle.send
                   : t.history.cardTitle.receive
               return (
-                <li key={i.id}>
+                <li key={i.id} className={fresh.has(i.id) ? 'fade-in' : undefined}>
                   <Link
                     {...txLink(i, locale, address)}
                     className="min-h-row-b-height px-row-b-padding-x flex items-center gap-3 py-2"

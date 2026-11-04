@@ -67,6 +67,8 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
     }
   })
   const rows = ok?.items.slice(0, limit) ?? []
+  // Rows past the first page came from a 더 보기: they fade in together as one block (no stagger, amounts do not move).
+  const fresh = new Set(rows.slice(FIRST).map((r) => r.id))
   const hasMore = ok !== null && (limit < ok.items.length || ok.nextCursor !== null)
 
   function showMore() {
@@ -143,9 +145,9 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
           />
         )}
         {ok && !showEmpty && (
-          <>
-            <HistoryCards items={rows} now={now} t={t} locale={locale} address={address} />
-            <HistoryTable items={rows} now={now} t={t} locale={locale} address={address} />
+          <div className="fade-in">
+            <HistoryCards items={rows} now={now} t={t} locale={locale} address={address} fresh={fresh} />
+            <HistoryTable items={rows} now={now} t={t} locale={locale} address={address} fresh={fresh} />
             {ok.more === 'failed' && (
               <div className="pt-6" role="alert">
                 <Notice tone="danger" tier="banner">
@@ -166,7 +168,7 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
                 </Button>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </section>
