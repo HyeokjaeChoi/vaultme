@@ -2,6 +2,8 @@
 
 Status: Accepted (2026-11-04 from issue #396, owner decision of 2026-11-04)
 
+Superseded in part by [0036](0036-api-release-gate-own-time-slo-window.md): the `api-slo` job fails on our own server time, not on a tier 1 SLO miss. The rest still binds.
+
 ## Context
 A release is a `v*` tag (ADR-0032). The owner wants a version that tells when and which build it is. The stores take digits only in the version name (`X.Y.Z`), and the build number must grow with every upload (Android `versionCode` at most 2,100,000,000).
 

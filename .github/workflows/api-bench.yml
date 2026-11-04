@@ -3,13 +3,14 @@ name: api-bench
 # Weekly k6 benchmark of the staging API (ADR-0019): warm (connection reuse) and cold (new TCP + TLS per request) runs.
 # The script registers its own temporary install, so it needs no secret. The GitHub Environment `staging` is used only for
 # the variable STAGING_API_URL (the Worker URL, no trailing slash). Results stay in GitHub (artifact + job summary), no k6 Cloud.
-# Tier 1 (UX SLO, ADR-0020) fails this job; tier 2 (regression watch) only writes a warning line in the job summary.
+# It fails on a case with no 200 response and on our own server time over budget (ADR-0036). Tier 1 (UX SLO) of one run and tier 2
+# (regression watch) only write warning lines; api-slo-window.yml judges tier 1 over 4 weeks from these artifacts.
 on:
   schedule:
     # Monday 04:17 UTC, after api-latency (03:23). Not at the start of an hour: GitHub delays or drops scheduled runs at :00.
     - cron: '17 4 * * 1'
   workflow_dispatch:
-  workflow_call: # the release gate (release.yml job api-slo, #396): tier 1 SLO blocks the EAS build
+  workflow_call: # the release gate (release.yml job api-slo, #396): its failure blocks the EAS build
 
 permissions:
   contents: read

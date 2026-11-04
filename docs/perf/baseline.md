@@ -70,7 +70,7 @@ History reads the public test address `0x9858EfFD232B4033E47d90003D41EC34EcaEda9
 
 Measured 2026-10-30 on commit `5827dde` (GitHub Actions ubuntu-latest, k6 2.3.0), 5 runs of `api-bench` ([README](../../packages/perf/README.md)). Times in ms, total = DNS + TCP + TLS + request + response (HTTP 200 only).
 p50 and p95 are the median over the runs; the range columns are the lowest and highest run value (the spread). TCP, TLS and TTFB are medians of the run p50 (0 TCP and TLS in the warm mode: the connection is reused).
-Tier 1 SLO: absolute UX limit on the p95, from web.dev and Nielsen ([slo.md](slo.md), [ADR-0020](../adr/0020-api-ux-slo-and-regression-watch.md)); it fails the `api-bench` job only. Tier 2 limit: 1.5 times the highest run p95 of the range column, rounded up; it only warns.
+Tier 1 SLO: absolute UX limit on the p95, from web.dev and Nielsen ([slo.md](slo.md), [ADR-0020](../adr/0020-api-ux-slo-and-regression-watch.md)); it is judged over 4 weeks of pooled requests and fails no job ([ADR-0036](../adr/0036-api-release-gate-own-time-slo-window.md)). Tier 2 limit: 1.5 times the highest run p95 of the range column, rounded up; it only warns.
 The `history_hit` case has no cache marker in the response; a cold-mode hit that reached another Cloudflare server shows up as a slow outlier.
 
 | Endpoint | Mode | ok / sent | p50 | p50 range | p95 | p95 range | TCP p50 | TLS p50 | TTFB p50 | Tier 1 SLO | Tier 2 limit |

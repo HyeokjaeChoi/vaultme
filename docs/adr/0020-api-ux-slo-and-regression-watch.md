@@ -3,6 +3,7 @@
 Status: Accepted (2026-10-31, issue #285, owner decision of 2026-10-31: "two tiers, and derive the SLO from UX standards so it means seamless to a user, not from our own measurements"). Supersedes the threshold part of [0019](0019-performance-measurements-and-baseline.md) (the second amendment, "CI baseline and thresholds for the k6 benchmark"). The rest of 0019 still binds.
 
 Superseded in part by [0035](0035-warm-rpc-slo-250ms.md): the warm `rpc` limit is 250 ms, not 200 ms. The rest still binds.
+Superseded in part by [0036](0036-api-release-gate-own-time-slo-window.md): tier 1 is judged over a 4-week window of pooled requests and never fails `api-bench`; the release gate checks our own server time. The limits still bind.
 
 ## Context
 The thresholds of ADR-0019 were 1.5 times the median p95 of 5 runs. They were our own numbers, not a user need, and they were too tight for noise: in the 5 calibration runs, 3 cases went over them in some run (warm health 87.6 ms against 73, warm history hit 73 against 50, cold rpc 658 against 410). The weekly `api-bench` job would fail most weeks for nothing. The same limit also could not tell "slower than before" from "too slow for a user".

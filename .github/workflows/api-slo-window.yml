@@ -1,0 +1,66 @@
+name: api-slo-window
+
+# The UX SLO of the API over a 4-week window (ADR-0036): pools the per-request counts of every `api-bench` artifact of the last
+# 28 days (weekly runs, manual runs and the release gate runs of release.yml) and checks good / total >= 95% per case and mode.
+# A breach opens an issue (or comments on the open one). It never blocks a release; the release gate is the own-time check in api-bench.
+on:
+  # After each run that writes an api-bench artifact (weekly or manual api-bench, and release, which calls it), so a delayed
+  # scheduled run is never missed.
+  workflow_run:
+    workflows: [api-bench, release]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  window:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read # list runs and download their artifacts
+      issues: write # open or comment on the breach issue
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Download the api-bench artifacts of the window
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Exactly 28 days back to the second, not from midnight of that day.
+          since="$(date -u -d '28 days ago' +%Y-%m-%dT%H:%M:%SZ)"
+          mkdir runs
+          listed=0
+          for wf in api-bench.yml release.yml; do
+            for id in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$wf" --created ">=$since" --status completed --limit 200 --json databaseId --jq '.[].databaseId'); do
+              listed=$((listed + 1))
+              # A run without the artifact (cancelled, or a release run that stopped before api-slo) adds nothing. Any other
+              # download error stays visible in the log and in the count below.
+              gh run download "$id" --repo "$GITHUB_REPOSITORY" --name api-bench --dir "runs/$id" || rmdir "runs/$id" 2>/dev/null || true
+            done
+          done
+          echo "Runs in the window: $listed; with an api-bench artifact: $(find runs -mindepth 1 -maxdepth 1 -type d | wc -l)." | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Check the window
+        id: check
+        run: |
+          rc=0
+          node packages/perf/src/cli.ts slo-window --runs runs > window.md || rc=$?
+          { echo '### API SLO, 4-week window'; echo; cat window.md; } >> "$GITHUB_STEP_SUMMARY"
+          # Exit 3 = a breach (cli.ts); 1 is any crash (an uncaught throw), which fails the job and opens no issue.
+          echo "breach=$([ "$rc" = 3 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          [ "$rc" = 0 ] || [ "$rc" = 3 ]
+      - name: Open or update the breach issue
+        if: steps.check.outputs.breach == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'perf: API SLO breach (4-week window)'
+        run: |
+          { cat window.md; echo; echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (ADR-0036)."; } > body.md
+          n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
+          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body-file body.md; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file body.md; fi
