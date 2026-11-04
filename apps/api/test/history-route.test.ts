@@ -282,3 +282,39 @@ describe('Etherscan failures -> 503 retryable, nothing leaks', () => {
     expect(Date.now() - t0).toBeGreaterThanOrEqual(55)
   })
 })
+
+// #412: the bench splits a history miss into Worker, Etherscan, bucket wait and Durable Object time from this header.
+describe('POST /v1/history Server-Timing', () => {
+  const timing = (r: Response) =>
+    Object.fromEntries(
+      (r.headers.get('server-timing') ?? '').split(',').map((m) => {
+        const [name = '', ...p] = m.split(';')
+        const get = (k: string) => p.find((x) => x.startsWith(`${k}=`))?.slice(k.length + 1)
+        return [name, { dur: get('dur'), desc: get('desc') }]
+      }),
+    )
+  it('a miss names the upstream span, the slowest Etherscan call, bucket wait and bucket call, and the call count', async () => {
+    const a = newAddress()
+    mock({ txlist: () => ok([row(a, 100)]) })
+    const t = timing(await post({ address: a }, { ...E, ETHERSCAN_BUCKET: grant(0) }))
+    for (const k of ['upstream', 'etherscan', 'bucket_wait', 'bucket_call', 'total'])
+      expect(t[k]?.dur).toMatch(/^[\d.]+$/)
+    expect(t.etherscan_calls?.desc).toBe('"3"')
+  })
+  it('a failed miss (503) still names its parts', async () => {
+    mock({ txlist: () => notok('Query Timeout occured') })
+    const r = await post({ address: newAddress() })
+    expect(r.status).toBe(503)
+    const t = timing(r)
+    for (const k of ['upstream', 'bucket_wait', 'bucket_call', 'total']) expect(t[k]?.dur).toMatch(/^[\d.]+$/)
+  })
+  it('a cache hit sends upstream 0 and no Etherscan metrics', async () => {
+    const a = newAddress()
+    mock({ txlist: () => ok([row(a, 100)]) })
+    await post({ address: a })
+    const t = timing(await post({ address: a }))
+    expect(Number(t.upstream?.dur)).toBe(0)
+    expect(t.etherscan).toBeUndefined()
+    expect(t.total?.dur).toMatch(/^[\d.]+$/)
+  })
+})

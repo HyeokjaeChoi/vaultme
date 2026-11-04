@@ -69,7 +69,7 @@ Core Web Vitals judge the 75th percentile of field data. We judge the p95 of syn
 
 ## API: the release gate (fails `api-bench`)
 
-Our own server time: Server-Timing `total` minus `upstream` (limiters, token check and route code around `proxyRpc`; `proxyRpc` itself, the upstreams and the network are left out). p95 <= 50 ms per run (`OWN_P95_MS` in `packages/perf/src/slo.ts`), a quarter of the tightest user-action SLO. Only `/v1/rpc` sends Server-Timing, so it covers the `rpc` path. A case with no 200 response also fails the run.
+Our own server time: Server-Timing `total` minus `upstream` (limiters, token check and route code around `proxyRpc`; `proxyRpc` itself, the upstreams and the network are left out). p95 <= 50 ms per run (`OWN_P95_MS` in `packages/perf/src/slo.ts`), a quarter of the tightest user-action SLO. It gates the `rpc` path. `/v1/history` also sends Server-Timing (#412); its own time is shown in the bench table and not gated yet. A case with no 200 response also fails the run.
 
 ## API: tier 2, the regression watch (warning only)
 
