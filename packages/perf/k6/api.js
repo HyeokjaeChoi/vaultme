@@ -47,7 +47,7 @@ const WATCH_P95_MS = {
 }
 // k6 keeps a sub-metric only when a threshold names it, so every case gets one; the parts have one that always passes (collect only).
 for (const e of ENDPOINTS) {
-  for (const m of ['duration', 'dns', 'connecting', 'tls', 'waiting'])
+  for (const m of ['duration', 'dns', 'connecting', 'tls', 'waiting', 'worker', 'upstream'])
     options.thresholds[`ok_${m}{endpoint:${e}}`] = ['max>=0']
   // Tier 1, the UX SLO (ADR-0020): it fails the api-bench job only, this script runs nowhere else (never in PR CI).
   // A case with no SLO (health) only collects.
@@ -66,6 +66,9 @@ const T = {
   connecting: new Trend('ok_connecting', true),
   tls: new Trend('ok_tls', true),
   waiting: new Trend('ok_waiting', true),
+  // From the Server-Timing header of /v1/rpc (#399): worker = Worker time (`total`), upstream = Infura/Alchemy. Other routes send none.
+  worker: new Trend('ok_worker', true),
+  upstream: new Trend('ok_upstream', true),
 }
 const callOk = new Rate('call_ok')
 
@@ -128,6 +131,14 @@ function call(name, timed, method, path, token, body) {
     T.connecting.add(res.timings.connecting, tags)
     T.tls.add(res.timings.tls_handshaking, tags)
     T.waiting.add(res.timings.waiting, tags)
+    const st = res.headers['Server-Timing'] || ''
+    for (const [k, name] of [
+      ['worker', 'total'],
+      ['upstream', 'upstream'],
+    ]) {
+      const m = new RegExp(`(?:^|,)\\s*${name};dur=([\\d.]+)`).exec(st)
+      if (m) T[k].add(Number(m[1]), tags)
+    }
   } else {
     console.error(`${name}: HTTP ${res.status} ${res.error_code || ''}`)
   }
@@ -206,6 +217,8 @@ export function summarize(data) {
       connecting: trend(v(data, `ok_connecting{endpoint:${e}}`)),
       tls: trend(v(data, `ok_tls{endpoint:${e}}`)),
       waiting: trend(v(data, `ok_waiting{endpoint:${e}}`)),
+      worker: trend(v(data, `ok_worker{endpoint:${e}}`)),
+      upstream: trend(v(data, `ok_upstream{endpoint:${e}}`)),
     }
   }
   return { mode: MODE, measuredAt: new Date().toISOString(), address: ADDRESS, endpoints }
@@ -215,14 +228,14 @@ const cell = (x) => (x === null || x === undefined ? 'n/a' : String(x))
 function markdown(r) {
   const rows = Object.entries(r.endpoints).map(([name, e]) => {
     const d = e.total
-    return `| \`${name}\` | ${r.mode} | ${e.ok} / ${e.calls} | ${cell(d?.p50)} | ${cell(d?.p90)} | ${cell(d?.p95)} | ${cell(d?.p99)} | ${cell(d?.max)} | ${cell(e.dns?.p50)} | ${cell(e.connecting?.p50)} | ${cell(e.tls?.p50)} | ${cell(e.waiting?.p50)} | ${cell(e.waiting?.p95)} |`
+    return `| \`${name}\` | ${r.mode} | ${e.ok} / ${e.calls} | ${cell(d?.p50)} | ${cell(d?.p90)} | ${cell(d?.p95)} | ${cell(d?.p99)} | ${cell(d?.max)} | ${cell(e.dns?.p50)} | ${cell(e.connecting?.p50)} | ${cell(e.tls?.p50)} | ${cell(e.waiting?.p50)} | ${cell(e.waiting?.p95)} | ${cell(e.worker?.p50)} | ${cell(e.worker?.p95)} | ${cell(e.upstream?.p50)} | ${cell(e.upstream?.p95)} |`
   })
   return [
-    `| Endpoint | Mode | ok / sent | p50 | p90 | p95 | p99 | max | DNS p50 | connect p50 | TLS p50 | TTFB p50 | TTFB p95 |`,
-    `| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |`,
+    `| Endpoint | Mode | ok / sent | p50 | p90 | p95 | p99 | max | DNS p50 | connect p50 | TLS p50 | TTFB p50 | TTFB p95 | Worker p50 | Worker p95 | upstream p50 | upstream p95 |`,
+    `| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |`,
     ...rows,
     '',
-    'Times in ms. Only HTTP 200 responses are timed. p50 to max = total (DNS + TCP + TLS + request + response). TTFB = `http_req_waiting`.',
+    'Times in ms. Only HTTP 200 responses are timed. p50 to max = total (DNS + TCP + TLS + request + response). TTFB = `http_req_waiting`. Worker and upstream: Server-Timing of `/v1/rpc` only (#399); TTFB minus Worker = network and edge.',
     '',
   ].join('\n')
 }

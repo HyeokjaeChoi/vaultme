@@ -19,7 +19,7 @@ Each case has 1 untimed warm-up request first. A run has one mode:
 - `MODE=warm`: connections are reused (HTTP keep-alive).
 - `MODE=cold`: `noConnectionReuse`, a new TCP and TLS connection for every request. k6 sets this for a whole run, so the two modes are two runs.
 
-Output per case: p50, p90, p95, p99, max of the total time (DNS + TCP + TLS + request + response), error rate, and the parts: DNS, TCP connect, TLS handshake and TTFB (`http_req_waiting`).
+Output per case: p50, p90, p95, p99, max of the total time (DNS + TCP + TLS + request + response), error rate, and the parts: DNS, TCP connect, TLS handshake and TTFB (`http_req_waiting`). `rpc` also gets Worker and upstream (Infura/Alchemy) time from its `Server-Timing` header (#399); `n/a` there means the deployed Worker sent no header.
 Only HTTP 200 responses are timed; any other response counts as an error. k6 `http_req_duration` leaves out DNS, TCP and TLS, so the script records its own `ok_total`.
 `handleSummary` writes `k6-api-<mode>.json` and `k6-api-<mode>.md` to `OUT_DIR`.
 

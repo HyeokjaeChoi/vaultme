@@ -30,6 +30,7 @@ import { eq } from 'drizzle-orm'
 import type { Context, ErrorHandler, MiddlewareHandler } from 'hono'
 import { cors } from 'hono/cors'
 import { routePath } from 'hono/route'
+import { endTime, startTime, timing } from 'hono/timing'
 import pkg from '../package.json' with { type: 'json' }
 import { getDb } from './db/index.ts'
 import { installs } from './db/schema.ts'
@@ -90,6 +91,10 @@ app.use('*', (c, next) =>
     if (status >= 500) await after(c, recordServerError(c.env)) // the hourly cron reports a spike (Q69); not on the failing request's time
   }),
 )
+
+// Server-Timing on /v1/rpc only (#399): `total` = Worker time from here on (limiters, token, upstream), `upstream` = the Infura/Alchemy
+// fetches. The bench reads it to split the cold wait. Remove with the bench columns once #399 is closed and no regression watch needs it.
+app.use('/v1/rpc', timing())
 
 // WEB_ORIGINS is a comma-separated var: the exact browser origins allowed (ADR-0011). Empty = no browser.
 const webOrigins = (c: { env: Env['Bindings'] }) =>
@@ -259,7 +264,9 @@ app.openapi(
   async (c) => {
     const req = c.req.valid('json')
     if (!rpcAllowed(req)) return c.json(errorEnvelope('method_not_allowed', 'Method not allowed'), 403)
+    startTime(c, 'upstream')
     const text = await proxyRpc(c.env, req)
+    endTime(c, 'upstream')
     if (text === null) return c.json(errorEnvelope('unavailable', 'RPC upstream unavailable'), 503)
     return c.body(text, 200, { 'content-type': 'application/json' }) as never
   },
