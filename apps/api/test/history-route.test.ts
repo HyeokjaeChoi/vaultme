@@ -301,6 +301,13 @@ describe('POST /v1/history Server-Timing', () => {
       expect(t[k]?.dur).toMatch(/^[\d.]+$/)
     expect(t.etherscan_calls?.desc).toBe('"3"')
   })
+  it('a failed miss (503) still names its parts', async () => {
+    mock({ txlist: () => notok('Query Timeout occured') })
+    const r = await post({ address: newAddress() })
+    expect(r.status).toBe(503)
+    const t = timing(r)
+    for (const k of ['upstream', 'bucket_wait', 'bucket_call', 'total']) expect(t[k]?.dur).toMatch(/^[\d.]+$/)
+  })
   it('a cache hit sends upstream 0 and no Etherscan metrics', async () => {
     const a = newAddress()
     mock({ txlist: () => ok([row(a, 100)]) })

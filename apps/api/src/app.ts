@@ -292,9 +292,15 @@ app.openapi(
   }),
   async (c) => {
     const { address, cursor } = c.req.valid('json')
+    const stats = newStats()
     try {
-      const stats = newStats()
-      const out = await getHistory(c.env, address, cursor, stats)
+      return c.json(await getHistory(c.env, address, cursor, stats), 200)
+    } catch (e) {
+      if (e instanceof InvalidCursorError) return c.json(errorEnvelope('invalid_cursor', 'Invalid cursor'), 400)
+      if (e instanceof UpstreamError) return c.json(errorEnvelope('unavailable', 'History unavailable'), 503)
+      throw e
+    } finally {
+      // Also on a 503: a throttled or failed miss still shows where its time went.
       setMetric(c, 'upstream', stats.upstreamMs)
       if (stats.calls > 0) {
         setMetric(c, 'etherscan', stats.fetchMs)
@@ -302,11 +308,6 @@ app.openapi(
         setMetric(c, 'bucket_call', stats.bucketMs)
         setMetric(c, 'etherscan_calls', String(stats.calls))
       }
-      return c.json(out, 200)
-    } catch (e) {
-      if (e instanceof InvalidCursorError) return c.json(errorEnvelope('invalid_cursor', 'Invalid cursor'), 400)
-      if (e instanceof UpstreamError) return c.json(errorEnvelope('unavailable', 'History unavailable'), 503)
-      throw e
     }
   },
 )

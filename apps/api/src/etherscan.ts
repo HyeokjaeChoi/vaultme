@@ -127,8 +127,12 @@ export async function getHistory(
   const hit = await cache.match(cacheKey)
   if (hit) return await hit.json<HistoryResponse>()
   const t0 = Date.now()
-  const out = await loadHistory(fetchList, address, cursor)
-  if (stats) stats.upstreamMs = Date.now() - t0
+  let out: HistoryResponse
+  try {
+    out = await loadHistory(fetchList, address, cursor)
+  } finally {
+    if (stats) stats.upstreamMs = Date.now() - t0
+  }
   await cache.put(cacheKey, Response.json(out, { headers: { 'Cache-Control': `max-age=${String(CACHE_SECONDS)}` } }))
   return out
 }
