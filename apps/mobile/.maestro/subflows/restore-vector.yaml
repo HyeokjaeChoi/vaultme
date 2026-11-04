@@ -68,9 +68,7 @@ appId: dev.stackline.vaultme
     timeout: 3000
 - tapOn: '12번째 단어'
 - inputText: 'about'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
+# The title scrolls out of view while the 12th cell is focused (the submit hint makes the footer taller), so do not tap it; the footer Button stays visible and keyboardShouldPersistTaps="handled" lets the tap through.
 - tapOn: '복구'
 - assertVisible: '복구 완료'
 - assertVisible: '.*0x9858.*'
