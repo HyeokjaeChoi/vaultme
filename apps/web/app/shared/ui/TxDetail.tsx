@@ -82,7 +82,7 @@ export function TxDetail({ tx, now, t, locale, internal, retryInternal }: Props)
   )
 }
 
-const bar = 'bg-skeleton-bg rounded-skeleton-radius'
+const bar = 'bg-skeleton-bg rounded-skeleton-radius skeleton-pulse'
 // Row heights of the loaded rows (app.css): the two address rows, the three one-line rows and the hash row.
 const rows = ['tx-row-address', 'tx-row-address', 'tx-row-line', 'tx-row-line', 'tx-row-line', 'tx-row-hash']
 

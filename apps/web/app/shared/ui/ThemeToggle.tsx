@@ -1,6 +1,7 @@
-import { type WebMessages } from '@vaultme/i18n/web'
-
 // Figma: Web/Icon button 756:94 (theme toggle: auto -> light -> dark; the Figma glyph is a hand-drawn half circle, audit P3-11 swaps it for Solar sun/moon)
+import { type WebMessages } from '@vaultme/i18n/web'
+import { pressTransition } from './ButtonLink'
+
 // Static markup: THEME_SCRIPT (shared/lib/theme.ts) handles the click and keeps aria-label in step with the choice.
 export function ThemeToggle({ t }: { t: WebMessages['header'] }) {
   return (
@@ -10,7 +11,7 @@ export function ThemeToggle({ t }: { t: WebMessages['header'] }) {
       data-label={t.themeLabel}
       data-names={JSON.stringify(t.theme)}
       aria-label={`${t.themeLabel}: ${t.theme.auto}`}
-      className="bg-icon-button-bg-default hover:bg-icon-button-bg-hover active:bg-icon-button-bg-pressed text-icon-button-fg rounded-icon-button-radius size-icon-button-hit-target inline-flex shrink-0 cursor-pointer items-center justify-center"
+      className={`${pressTransition} bg-icon-button-bg-default hover:bg-icon-button-bg-hover active:bg-icon-button-bg-pressed text-icon-button-fg rounded-icon-button-radius size-icon-button-hit-target inline-flex shrink-0 cursor-pointer items-center justify-center`}
     >
       {/* Solar Sun 2 / Moon (Linear): the icon shows the theme on screen now (auto follows the system, via tokens.css). */}
       <svg

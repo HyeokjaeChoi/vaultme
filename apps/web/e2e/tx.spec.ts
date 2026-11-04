@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
+import { settled } from './settle'
 import { A, fixtureApi, TX, type InternalMode, type TxMode } from './fixture-api'
 
 type LayoutShift = PerformanceEntry & { value: number; sources: { node: Node | null }[] }
@@ -346,6 +347,7 @@ test.describe('transaction page', () => {
           await page.emulateMedia({ colorScheme: scheme })
           await page.goto(mode === 'invalid' ? '/tx#0x12' : hash)
           await expect(page.getByText(ready).first()).toBeAttached()
+          await settled(page) // the loaded content fades in: axe must read the final colors
           const { violations } = await new AxeBuilder({ page }).analyze()
           expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([])
         })

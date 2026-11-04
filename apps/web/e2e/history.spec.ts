@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+import { settled } from './settle'
 import { A, fixtureApi, type HistoryMode } from './fixture-api'
 
 type LayoutShift = PerformanceEntry & { value: number; sources: { node: Node | null }[] }
@@ -251,6 +252,7 @@ for (const s of states) {
         await page.emulateMedia({ colorScheme: scheme })
         await page.goto(`/address#${A}`)
         await expect(page.getByText(s.ready).first()).toBeVisible()
+        await settled(page)
         const { violations } = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'])
           .analyze()

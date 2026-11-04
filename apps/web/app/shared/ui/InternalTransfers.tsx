@@ -22,7 +22,7 @@ const short = (a: string | null) => {
 
 type Props = { internal: Internal; retry: () => void; t: WebTxMessages; moreHref: string }
 
-const bar = 'bg-skeleton-bg rounded-skeleton-radius'
+const bar = 'bg-skeleton-bg rounded-skeleton-radius skeleton-pulse'
 
 function Row({ i, t }: { i: InternalTransfer; t: WebTxMessages }) {
   return (
@@ -102,7 +102,7 @@ export function InternalTransfers({ internal, retry, t, moreHref }: Props) {
         </>
       )}
       {internal.status === 'ok' && (
-        <>
+        <div className="fade-in gap-layout-field-gap flex flex-col">
           {/* "The ETH moved here" is true only if one of them went through. */}
           {internal.items.some((i) => i.ok) && (
             <p className="text-product-b-body-small text-text-tertiary">{t.internal.note}</p>
@@ -126,7 +126,7 @@ export function InternalTransfers({ internal, retry, t, moreHref }: Props) {
               </ButtonLink>
             </div>
           )}
-        </>
+        </div>
       )}
     </section>
   )
