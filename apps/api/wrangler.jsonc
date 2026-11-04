@@ -44,9 +44,6 @@
       "name": "vaultme-api-staging",
       // Workers Logs (#183): per-request logs and console output, kept by Cloudflare. Staging only.
       "observability": { "enabled": true },
-      // #399 experiment, staging only: run the Worker close to Infura, the primary rpc upstream (Server-Timing showed the upstream call is
-      // all of the Worker time). Keep or move to production only after the api-bench runs compare; remove if upstream time does not drop.
-      "placement": { "hostname": "sepolia.infura.io" },
       "triggers": { "crons": ["17 * * * *"] },
       "vars": {
         "MIN_APP_VERSION": "0.0.0",
