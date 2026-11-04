@@ -403,7 +403,7 @@ The product is flat. Depth comes from the surface colour, spacing and type, not 
 
 - Surfaces: Canvas, then white `surface.default`, then white or neutral-800 `surface.raised` (dark) for sheets. `surface.subtle` and `surface.inset` give quiet wells.
 - Lists, fields, review groups and notices have no shadow.
-- Only a floating dialog or popover uses a shadow: `elevation.md` (0 8 24, Ink at 10%). `elevation.sm` and `elevation.lg` exist in Primitive.
+- A floating dialog, popover or bottom sheet uses a shadow: `elevation.md` (0 8 24, Ink at 10%). The bottom sheet follows Figma Redesign B. `elevation.sm` and `elevation.lg` exist in Primitive.
 - A modal uses a scrim: neutral 950 at 40% opacity. A nonmodal popover has no scrim. A scrim is not a theme.
 - No gradient, glow, texture or decorative illustration on product surfaces.
 - A small temporary toast may use the inverse surface. Information needed to judge a transaction stays on a light reading surface, never in a toast.
@@ -413,7 +413,7 @@ The product is flat. Depth comes from the surface colour, spacing and type, not 
 Shapes are soft but not playful.
 
 - Buttons and chips are pills (`full`).
-- Inputs and controls use `md` (12). Groups and notice banners use `lg` (16). Overlays and sheets use `2xl` (24). Rows have no radius.
+- Inputs and controls use `md` (12). Groups and notice banners use `lg` (16). Overlays use `2xl` (24). The bottom sheet uses 32 (Figma Redesign B). Rows have no radius.
 - Do not mix sharp and rounded corners on one screen.
 - Borderless is the default for containers and rows. Group by type, alignment and spacing. Do not fill the space left by a removed line with a shadow or a large gap.
 - A line must have a job. Allowed jobs: an editable input, focus, invalid or selected state, a dense table comparison, a fixed footer or toolbar over a scroll body, a drawer edge. You must be able to say what the line separates.

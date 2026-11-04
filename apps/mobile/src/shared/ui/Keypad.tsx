@@ -32,12 +32,13 @@ function Key({ cell, labels, onKey }: { cell: Cell; labels: Labels; onKey: OnKey
         accessibilityLabel={label}
         onPress={press}
         {...handlers}
-        style={{
+        style={({ pressed }) => ({
+          backgroundColor: pressed ? t.semantic.surface.pressed : undefined,
           height: t.component.buttonB.height.lg,
           borderRadius: t.component.buttonB.radius,
           alignItems: 'center',
           justifyContent: 'center',
-        }}
+        })}
       >
         {cell === 'backspace' ? (
           <Icon name="backspace" size={t.component.icon.size.feature} color={t.semantic.text.primary} />
