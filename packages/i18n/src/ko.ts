@@ -497,7 +497,7 @@ export const ko = {
       body: '전에 보낸 주소와 앞뒤는 같고 가운데가 달라요.\n주소 오염 공격일 수 있어요.',
       sheetTitle: '비슷한 주소로 보내려고 해요',
       sheetBody: '전에 보낸 주소와 앞뒤는 같고 가운데가 달라요.\n주소 오염 공격일 수 있어요.',
-      compareTitle: '아래 주소에서 밑줄 친 글자가 다른 부분이에요',
+      compareTitle: '아래 주소에서 굵은 글자가 다른 부분이에요',
       previous: '전에 보낸 주소',
       current: '지금 받는 주소',
     },
