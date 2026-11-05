@@ -53,7 +53,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q29 | Push text names only the event; no tx hash in the payload | SUPERSEDED | ADR-0023, #314 (owner chose B): payload is `kind` only, no opaque id; a tap opens the 내역 list, no per-tx link. Copy fixed in #298 |
 | Q30 | App calls the history provider directly | SUPERSEDED | By Q32 in the same session; ADR-0007 |
 | Q31 | Idle subscriptions deleted; events 7 d; installs 90 d | IMPLEMENTED | `INSTALL_KEEP_SECONDS` in `apps/api/src/push.ts` `sweep` (#317). Subscription expiry is ADR-0010 (30 d) |
-| Q32 | Stateless proxy, no address logs, rate limits, privacy notice | GAP | #311: no privacy notice. Proxy: ADR-0007 |
+| Q32 | Stateless proxy, no address logs, rate limits, privacy notice | IMPLEMENTED | ADR-0007; notice: `apps/mobile/src/pages/settings/privacy.tsx`, `apps/web/app/routes/address.tsx` (#311) |
 | Q33 | Expo dev build + EAS Build, no Expo Go | IMPLEMENTED | `apps/mobile/eas.json` |
 | Q34 | Keychain `BIOMETRY_ANY_OR_DEVICE_PASSCODE`, this device only | IMPLEMENTED | ADR-0004 |
 | Q35 | Sepolia | IMPLEMENTED | `packages/wallet-core/src/constants.ts` |

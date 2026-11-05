@@ -15,7 +15,7 @@ export function AddressField({ label, helper, error, ...input }: Props) {
         {...input}
         id={id}
         aria-invalid={error !== null}
-        aria-describedby={`${id}-help`}
+        aria-describedby={[`${id}-help`, input['aria-describedby']].filter(Boolean).join(' ')}
         className={`bg-input-bg-default text-input-fg placeholder:text-input-placeholder rounded-input-radius px-input-padding-x min-h-button-b-height-lg font-mono text-product-b-address w-full border py-4 ${error ? 'border-input-border-error' : 'border-transparent'}`}
       />
       {error ? (
