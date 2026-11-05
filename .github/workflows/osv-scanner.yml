@@ -35,3 +35,21 @@ jobs:
     with:
       scan-args: |-
         --lockfile=pnpm-lock.yaml
+
+  # A failed weekly scan opens an issue (or comments on the open one), so it is not left only in the Actions tab (#444).
+  alert:
+    needs: scan-full
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the vulnerability issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'deps: weekly osv-scanner found known vulnerabilities'
+        run: |
+          body="Weekly osv-scanner failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (Q74). Open Dependabot alerts: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/security/dependabot"
+          n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
+          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body "$body"; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$body"; fi
