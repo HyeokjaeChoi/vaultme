@@ -10,7 +10,9 @@
       "bundleIdentifier": "dev.stackline.vaultme",
       "supportsTablet": false,
       "infoPlist": {
-        "NSFaceIDUsageDescription": "지갑을 열고 거래에 서명할 때 Face ID를 사용해요."
+        "NSFaceIDUsageDescription": "지갑을 열고 거래에 서명할 때 Face ID를 사용해요.",
+        "CFBundleDevelopmentRegion": "ko",
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "android": {
@@ -65,7 +67,8 @@
       "expo-font",
       "expo-status-bar",
       "expo-system-ui",
-      ["expo-navigation-bar", { "enforceContrast": false }]
+      ["expo-navigation-bar", { "enforceContrast": false }],
+      ["expo-localization", { "supportedLocales": ["ko", "en"] }]
     ],
     "icon": "./assets/icon.png",
     "extra": {
@@ -74,6 +77,10 @@
         "projectId": "ebb84cd1-35eb-4aca-9702-cf1a03faa4b5"
       }
     },
-    "owner": "gurwo1007"
+    "owner": "gurwo1007",
+    "locales": {
+      "ko": "./locales/ko.json",
+      "en": "./locales/en.json"
+    }
   }
 }

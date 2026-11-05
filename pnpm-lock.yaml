@@ -333,6 +333,9 @@ importers:
       expo-local-authentication:
         specifier: ~58.0.2
         version: 58.0.2(expo@58.0.14)
+      expo-localization:
+        specifier: ~58.0.5
+        version: 58.0.5(expo@58.0.14)(react@19.3.0)
       expo-navigation-bar:
         specifier: ~58.0.4
         version: 58.0.4(expo@58.0.14)(react-native@0.88.0)(react@19.3.0)(supports-color@10.2.2)
@@ -5265,6 +5268,12 @@ packages:
     peerDependencies:
       expo: '*'
 
+  expo-localization@58.0.5:
+    resolution: {integrity: sha512-2wyZl/5wn95l38AAtdaUAq2VMJWbGbgQQDEuIEkkemmsA/BZ8gS21Nq+7I2X9hDfL5Z+4hlyLVdPtDIH0vvt1A==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+
   expo-manifests@58.0.1:
     resolution: {integrity: sha512-fVeJJ71Fj8FJgcAUggn6QIsm7CTxsXFgekLl4pEPHgON6fmcxog63FGO0sisQ3F6yUWFR4nn8iJmgBp1Exs7ew==}
     peerDependencies:
@@ -7338,6 +7347,9 @@ packages:
     resolution: {integrity: sha512-6odND+fel5zVw3I4Yc2e69gvguDnX0CAAGiNDZSq4ik5WUcaLrkD2GLuog0XcODbor31hZ5ayEMgVDno+KPV5g==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
+
+  rtl-detect@1.1.2:
+    resolution: {integrity: sha512-PGMBq03+TTG/p/cRB7HCLKJ1MgDIi07+QU1faSjiYRfmY5UsAttV9Hs08jDAHVwcOwmVLcSJkpwyfXszVjWfIQ==}
 
   run-async@2.4.1:
     resolution: {integrity: sha512-tvVnVv01b8c1RrA6Ep7JkStj85Guv/YrMcwqYQnwjsAS2cTmmPGBBjAjpCW7RrSodNSoE2/qg9O4bceNvUuDgQ==}
@@ -13103,6 +13115,12 @@ snapshots:
       expo: 58.0.14(@babel/core@7.29.7)(@expo/metro-runtime@58.0.14)(expo-router@58.0.23)(react-dom@19.3.0)(react-native-worklets@0.13.0)(react-native@0.88.0)(react@19.3.0)(supports-color@10.2.2)(typescript@6.0.3)
       invariant: 2.2.4
 
+  expo-localization@58.0.5(expo@58.0.14)(react@19.3.0):
+    dependencies:
+      expo: 58.0.14(@babel/core@7.29.7)(@expo/metro-runtime@58.0.14)(expo-router@58.0.23)(react-dom@19.3.0)(react-native-worklets@0.13.0)(react-native@0.88.0)(react@19.3.0)(supports-color@10.2.2)(typescript@6.0.3)
+      react: 19.3.0
+      rtl-detect: 1.1.2
+
   expo-manifests@58.0.1(expo@58.0.14):
     dependencies:
       expo: 58.0.14(@babel/core@7.29.7)(@expo/metro-runtime@58.0.14)(expo-router@58.0.23)(react-dom@19.3.0)(react-native-worklets@0.13.0)(react-native@0.88.0)(react@19.3.0)(supports-color@10.2.2)(typescript@6.0.3)
@@ -15654,6 +15672,8 @@ snapshots:
       '@rolldown/binding-openharmony-arm64': 1.2.15
       '@rolldown/binding-win32-arm64-msvc': 1.2.15
       '@rolldown/binding-win32-x64-msvc': 1.2.15
+
+  rtl-detect@1.1.2: {}
 
   run-async@2.4.1: {}
 

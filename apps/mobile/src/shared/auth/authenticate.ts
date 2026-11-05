@@ -1,4 +1,5 @@
 import * as LocalAuthentication from 'expo-local-authentication'
+import { i18n } from '@vaultme/i18n'
 import { withAuthInProgress } from './inProgress'
 
 export type AuthResult = 'ok' | 'cancelled' | 'error' | 'unavailable'
@@ -16,7 +17,7 @@ export function mapAuthResult(r: { success: true } | { success: false; error: st
 
 /**
  * OS auth (ADR-0004): biometrics, with the device passcode as fallback (`disableDeviceFallback: false`).
- * `reason` is the Korean text on the OS sheet. Never throws. Used by the lock gate (S90); send (#23) reuses it per send (ADR-0004).
+ * `reason` is the text on the OS sheet, in the app language. Never throws. Used by the lock gate (S90); send (#23) reuses it per send (ADR-0004).
  */
 export async function authenticate(reason: string): Promise<AuthResult> {
   try {
@@ -26,7 +27,7 @@ export async function authenticate(reason: string): Promise<AuthResult> {
     const r = await withAuthInProgress(() =>
       LocalAuthentication.authenticateAsync({
         promptMessage: reason,
-        cancelLabel: '취소',
+        cancelLabel: i18n.t('common.cancel'),
         disableDeviceFallback: false,
       }),
     )

@@ -5,11 +5,15 @@ import { NavigationBar } from 'expo-navigation-bar'
 import { StatusBar } from 'expo-status-bar'
 import { focusManager } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
-import { i18n } from '@vaultme/i18n'
+import { getLocales } from 'expo-localization'
+import { i18n, pickLanguage } from '@vaultme/i18n'
 import { queryClient, persistOptions } from '@/shared/query'
 import { queryStorage } from '@/shared/storage'
 import { ThemeProvider } from '@/shared/theme'
 import { UpdateGate } from './UpdateGate'
+
+// App language = the first supported device language, else ko (ADR-0037). Read once at start: iOS restarts the app on a language change.
+void i18n.changeLanguage(pickLanguage(getLocales().map((l) => l.languageCode)))
 
 // The cache lives in the encrypted MMKV (ADR-0004, ADR-0021). `Providers` renders only after `openKv()` resolved (RootLayout), so the storage is open.
 const persist = persistOptions(queryStorage)

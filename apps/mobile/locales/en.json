@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSFaceIDUsageDescription": "VaultMe uses Face ID to open your wallet and sign transactions.",
+    "NSCameraUsageDescription": "VaultMe uses the camera to scan a recipient address QR code."
+  }
+}
