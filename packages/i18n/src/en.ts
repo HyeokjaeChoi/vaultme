@@ -37,19 +37,19 @@ export const en: Messages = {
     },
     authPrompt: 'Authenticate to unlock',
     error: { title: 'Could not unlock', body: 'Please try again.' },
-    unavailable: { title: 'Screen lock is not available', body: 'Set a screen lock on this device, then try again.' },
+    unavailable: { title: 'Device lock is not available', body: 'Set a device lock on this device, then try again.' },
   },
   deviceLock: {
-    title: 'A screen lock is required',
+    title: 'A device lock is required',
     link: 'Open Settings',
     create: {
       android:
-        'To create a wallet, this device needs a screen lock (PIN, pattern or password). Set one, then come back.',
+        'To create a wallet, this device needs a device lock (PIN, pattern or password). Set one, then come back.',
       ios: 'To create a wallet, this device needs a passcode. Turn on the passcode in Settings, then come back.',
     },
     restore: {
       android:
-        'To restore a wallet, this device needs a screen lock (PIN, pattern or password). Set one, then come back.',
+        'To restore a wallet, this device needs a device lock (PIN, pattern or password). Set one, then come back.',
       ios: 'To restore a wallet, this device needs a passcode. Turn on the passcode in Settings, then come back.',
     },
   },
@@ -61,7 +61,7 @@ export const en: Messages = {
       body: 'VaultMe does not store your recovery phrase\nand cannot get it back for you.',
     },
     scam: {
-      title: 'We never ask for your recovery phrase',
+      title: 'We never ask for your recovery phrase in alerts',
       body: 'Any message that asks for your recovery phrase is a scam.',
     },
     testnet: { title: 'Testnet only', body: 'Sepolia assets only. They have no real value.' },
@@ -252,7 +252,7 @@ export const en: Messages = {
       faceId: 'A send cannot be undone · You confirm with Face ID next',
       touchId: 'A send cannot be undone · You confirm with Touch ID next',
       fingerprint: 'A send cannot be undone · You confirm with your fingerprint next',
-      device: 'A send cannot be undone · You confirm with your screen lock next',
+      device: 'A send cannot be undone · You confirm with your device lock next',
     },
     authPrompt: 'Authenticate to send',
     authError: { title: 'Could not authenticate', body: 'Please try again.' },
@@ -398,7 +398,7 @@ export const en: Messages = {
       rowFailed: 'Internal transfer failed',
       loading: 'Loading internal transfers',
       failed: 'Could not load internal transfers. Please try again.',
-      loaded: 'Loaded {{n}} internal transfers',
+      loaded: 'Internal transfers loaded: {{n}}',
       none: 'No internal transfers',
       more: '{{n}} more · View on Etherscan',
     },

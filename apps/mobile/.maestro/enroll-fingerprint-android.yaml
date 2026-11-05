@@ -9,12 +9,13 @@ appId: com.android.settings
     optional: true
 - inputText: '1234'
 - pressKey: Enter
-# Intro, "touch the sensor" and "all set" screens: press whatever forward button shows.
+# Intro, "touch the sensor" and "all set" screens: press whatever forward button shows. The emulator boots in Korean
+# (release.yml -change-locale ko-KR, ADR-0037), so the Korean labels are listed too.
 - repeat:
     times: 12
     commands:
       - tapOn:
-          text: 'I agree|Agree|More|Next|Done|Start|Got it'
+          text: 'I agree|Agree|More|Next|Done|Start|Got it|동의|더보기|다음|완료|시작|확인'
           optional: true
       - waitForAnimationToEnd:
           timeout: 2000
