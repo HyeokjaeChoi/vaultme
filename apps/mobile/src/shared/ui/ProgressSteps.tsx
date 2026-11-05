@@ -40,6 +40,7 @@ export function ProgressSteps({ state, labels }: Props) {
       accessible
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: phase.length, now: phase.filter((p) => p === 'done').length }}
       style={{ flexDirection: 'row' }}
     >
       {phase.map((p, i) => (

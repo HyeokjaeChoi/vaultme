@@ -1,7 +1,7 @@
 // Figma: R-S20A 누구에게 보낼까요? (423:848 empty, 423:885 valid)
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { AccessibilityInfo, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
@@ -48,6 +48,7 @@ export function SendPage() {
       if (r.fromQr) AccessibilityInfo.announceForAccessibility(t('send.qr.announce')) // VoiceOver: the scan screen closes with no other cue
     }, [t, setTo]),
   )
+  const reveal = useRef<((y: number | 'end', height?: number) => void) | null>(null) // form screen: keeps the footer above the keyboard
   const recents = useRecents()
   const valid = form.formState.isValid
   const fromQr = qr !== null && to === qr.address
@@ -61,6 +62,7 @@ export function SendPage() {
   }
   return (
     <Screen
+      revealRef={reveal}
       topGap="group"
       gap="group"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack()} chips={<NetworkChips />} />}
