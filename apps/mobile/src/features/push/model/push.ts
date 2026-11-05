@@ -73,7 +73,7 @@ export function enablePush(d: PushDeps): Promise<EnableResult> {
 
 /**
  * S62 switch off, or the wallet was removed. The setting turns off and the DELETE is recorded as owed before it is sent;
- * a failed or interrupted DELETE is retried at the next launch. The privacy line promises the server forgets the address and token right away.
+ * a failed or interrupted DELETE is retried at the next launch. The privacy line (B-S66) says so: removed when turned off, or at the next launch when offline.
  */
 export function disablePush(d: PushDeps): Promise<void> {
   return serial(async () => {
