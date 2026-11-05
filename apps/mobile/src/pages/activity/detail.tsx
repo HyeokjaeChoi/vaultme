@@ -243,7 +243,7 @@ function RowDetail({
       {row.counterparty ? (
         <>
           {row.caution ? (
-            // A look-alike sender: the full address, no copy (the banner says not to copy it), so the middle can be compared. Figma 883:4375 draws the short row with a copy icon; deviation on purpose (PR #375).
+            // A look-alike sender: the full address, no copy (the banner says not to copy it), so the middle can be compared. Figma 883:4375 / 883:4459 hide the copy action too (#446).
             <Block title={t(copy.counterpartyTitle)}>
               <AddressText address={row.counterparty} />
               <NewSenderLine row={row} />
