@@ -98,6 +98,38 @@ _Avoid_: 소각(burn) 주소
 The address of the token's own contract, not of a person. Sending tokens to it can lose them.
 _Avoid_: 토큰 계약 주소
 
+### Wording
+
+One word per concept in all copy (app and web, ko and en).
+
+**파우셋** (faucet):
+The external site that gives free test ETH. In English copy: "faucet".
+_Avoid_: faucet (in Korean copy)
+
+**키** (key):
+The private key that signs. Write "키". For the secret words, write **복구 구문**.
+_Avoid_: 열쇠
+
+**화면 잠금** (device lock):
+The generic word for the device's own lock. Name the method (Face ID, Touch ID, 지문, 기기 암호) only where the platform shows it.
+_Avoid_: 기기 인증
+
+**입력** (enter):
+The user types or pastes a value ("주소를 입력해요"). Do not use 넣다 for it.
+_Avoid_: 넣다
+
+**되돌릴 수 없어요** (cannot be undone):
+Says a send is final. Do not write "취소할 수 없어요": **거래 취소** is a feature.
+_Avoid_: 취소할 수 없어요
+
+**잠시 후**, **다시 시도해 주세요**:
+The fixed wording for a retry hint. Use 해요체. Write "줘요" or "해요", not "드려요".
+_Avoid_: 잠시 뒤, 다시 시도하세요, 드려요
+
+**Other address** (web history column, en):
+The address on the other side of a transaction. Korean: **상대 주소**.
+_Avoid_: Counterparty
+
 ## Terms kept in English
 
 **Etherscan**, **Sepolia**, **ETH**, **USDC** and **Face ID** are names. Do not translate them.

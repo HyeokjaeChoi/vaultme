@@ -105,10 +105,10 @@ export function SendResultPage() {
           ) : failed ? (
             <Button label={t('result.resend')} onPress={resend} />
           ) : (
-            <Button label={t('result.ok')} onPress={toHome} />
+            <Button label={t('result.home')} onPress={toHome} />
           )}
           {failed ? (
-            <Button label={t('result.ok')} variant="secondary" onPress={toHome} />
+            <Button label={t('result.home')} variant="secondary" onPress={toHome} />
           ) : (
             <Button label={t('result.details')} variant="ghost" size="sm" link onPress={toDetail} />
           )}

@@ -98,7 +98,7 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
                 }}
               >
                 <span aria-hidden="true">{short(i.counterparty)}</span>
-                {/* Screen readers get the full address; a hover title reached nobody else. */}
+                {/* The title above shows the full address on mouse hover only; screen readers get it from this sr-only text. */}
                 <span className="sr-only">{i.counterparty || t.history.noCounterparty}</span>
               </code>
             </td>
