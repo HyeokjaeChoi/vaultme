@@ -349,9 +349,9 @@ Rules:
 - Blue text on the Secondary tint gives 4.4967:1. This fails the 4.5:1 text target. Use Ink there.
 - Contrast targets: 4.5:1 for normal text, 3:1 for controls and focus. Static contrast does not prove WCAG or screen reader support.
 - Disabled Primary is `surface.disabled` with `text.disabled`.
-- In dark mode, the focus border, disabled state and switch control keep 3:1 contrast against their surface (`border.control` for the control edge).
+- In dark mode, the focus border (`border.focus`) and the off switch track (`border.control`) keep 3:1 contrast against their surface.
 - Step numbers and decoration are not blue.
-- Landing-page artwork belongs to marketing. It is not a product theme. The closing call to action is light. A landing page has one Primary. Store buttons are disabled with a visible reason until the store URLs exist.
+- Landing-page artwork belongs to marketing. It is not a product theme. The closing call to action is light. The hero App Store button and the closing viewer link are Primary, but the store button is disabled until its URL exists, so one Primary is active. A disabled store button has a visible reason ("Coming soon") linked with `aria-describedby`.
 
 Dark theme: `semanticDark` overrides `semantic` for surface, text, icon, border, status and a few more roles. Component values follow by alias. Canvas is neutral 950. Default surface is neutral 900. Raised surface is neutral 800. Primary text is neutral 50. Brand blue does not change, except the focus border, which is brand 300 for 3:1 on the input fill. Dark status tints use the 950 steps of red and amber for body-text contrast. `frontMatter(tokens, 'dark')` in `packages/tokens/design-md.mjs` gives the dark values for tools.
 
