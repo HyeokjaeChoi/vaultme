@@ -596,7 +596,7 @@ export const ko = {
     failed: '알림을 켜지 못했어요.\n다시 시도해 주세요.',
     denied: '기기 설정에서 알림을 켤 수 있어요',
   },
-  a11y: { addressGroup: '주소를 4글자씩 읽어요', reveal: '탭해서 보기' },
+  a11y: { addressGroup: '주소를 4글자씩 읽어요', reveal: '탭해서 보기', tapToEdit: '탭해서 수정' },
 } as const
 
 export type Ko = typeof ko

@@ -151,6 +151,7 @@ export function Screen({
           }}
           scrollEventThrottle={16}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag" // iOS: a swipe on the form closes the keyboard (Maestro hideKeyboard relies on it)
           onLayout={(e) => setLayoutHeight(e.nativeEvent.layout.height)}
           onContentSizeChange={(_, h) => setContentHeight(h)}
           contentContainerStyle={{

@@ -16,11 +16,7 @@ appId: dev.stackline.vaultme
     commands:
       - tapOn: '0x…'
 - inputText: ${MAESTRO_RECIPIENT}
-- runFlow:
-    when:
-      platform: iOS
-    commands:
-      - hideKeyboard
+# No hideKeyboard: '다음' stays above the keyboard (see flows/send.yaml).
 - tapOn: '다음'
 - assertVisible: '얼마를 보낼까요?'
 - runFlow:
