@@ -1,7 +1,7 @@
 // Figma: Recipient field 40:17; Redesign B: B/Input Kind=Address 421:773 (Default), 421:781 (Focus), 421:789 (Invalid); Show scan icon (Icon / action / qr 434:230, S20a 618:102090)
 import { useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
-import { ko } from '@vaultme/i18n'
+import { i18n } from '@vaultme/i18n'
 import { isAddressFormat } from '../lib/address'
 import { textStyle } from '../theme/fonts'
 import { useTheme } from '../theme'
@@ -51,7 +51,7 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={recipientA11yLabel(label, value)}
-            accessibilityHint={ko.a11y.tapToEdit}
+            accessibilityHint={i18n.t('a11y.tapToEdit')}
             onPress={() => setFocused(true)}
           >
             <AddressText address={value} emphasis={false} />

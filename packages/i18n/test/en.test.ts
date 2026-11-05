@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { i18n, ko, pickLanguage } from '../src'
+import { i18n, pickLanguage } from '../src'
+import { ko } from '../src/ko'
 import { en } from '../src/en'
 
 const leaves = (o: object, prefix = ''): [string, string][] =>

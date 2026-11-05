@@ -3,7 +3,6 @@ import { initReactI18next } from 'react-i18next'
 import { en } from './en'
 import { ko } from './ko'
 
-export { ko }
 export const defaultNS = 'ko'
 // One namespace (named `ko` for the typed keys) in each language (ADR-0037).
 export const resources = { ko: { ko }, en: { ko: en } } as const

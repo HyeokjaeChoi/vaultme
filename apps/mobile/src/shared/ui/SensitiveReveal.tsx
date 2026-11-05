@@ -1,6 +1,6 @@
 // Figma: Sensitive reveal 301:668 (Icon / account / backup 137:385)
 import { Pressable, View } from 'react-native'
-import { ko } from '@vaultme/i18n'
+import { i18n } from '@vaultme/i18n'
 import { useTheme } from '../theme'
 import { Icon } from './Icon'
 import { Text } from './Text'
@@ -29,7 +29,7 @@ export function SensitiveReveal({ words, onReveal, hint, busy }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={shown ? list.map((w, i) => `${String(i + 1)}, ${w}`).join(', ') : ko.a11y.reveal}
+      accessibilityLabel={shown ? list.map((w, i) => `${String(i + 1)}, ${w}`).join(', ') : i18n.t('a11y.reveal')}
       accessibilityState={{ disabled: shown || busy === true, busy: busy === true }}
       disabled={shown || busy}
       onPress={onReveal}
@@ -72,7 +72,7 @@ export function SensitiveReveal({ words, onReveal, hint, busy }: Props) {
         <>
           <Icon name="backup" size={t.component.icon.size.control} color={t.component.icon.action.fg} />
           <Text variant="label" color={t.component.sensitiveReveal.fg}>
-            {ko.a11y.reveal}
+            {i18n.t('a11y.reveal')}
           </Text>
           {hint ? (
             <Text variant="caption" color={t.component.sensitiveReveal.hint}>
