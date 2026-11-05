@@ -79,7 +79,9 @@ jobs:
           echo "SIM_UDID=$udid" >> "$GITHUB_ENV"
       - name: Run flows (${{ github.event_name == 'pull_request' && 'smoke' || 'full' }})
         run: apps/mobile/.maestro/run.sh ${{ github.event_name == 'pull_request' && 'smoke' || 'full' }}
-      # The create flow shows a generated recovery phrase: its screenshots and commands stay out of the public artifact (testnet-only, but never published).
+      # The create flow shows a generated recovery phrase: its whole output directory stays out of the public artifact (testnet-only, but never published).
+      # Checked locally (Maestro 2.11.0, #440): a failure screenshot, the failure view-hierarchy JSON, commands.json and maestro.log all hold typed or revealed words, so no file of that directory is safe to upload.
+      # A create failure is read from the JUnit report (failed step and message) and a local re-run.
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

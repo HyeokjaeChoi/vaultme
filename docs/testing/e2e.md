@@ -39,6 +39,8 @@ The enrollment commands change the security state of a simulator that exists onl
 3. Build the app (about 20 minutes the first time): `apps/mobile/.maestro/build-ios.sh`. It uses the staging API like `eas.json`.
 4. Run: `SIM_UDID=<udid> apps/mobile/.maestro/run.sh smoke` (or `full`). Report: `apps/mobile/e2e-report.xml`; screenshots of a failure: `apps/mobile/e2e-artifacts/`.
 
+The `e2e-report` artifact leaves out the whole `create wallet through backup` directory (#440). That flow shows a generated recovery phrase, and a local failing run (Maestro 2.11.0) showed that every file Maestro writes for it can hold phrase words: the failure screenshot and the view-hierarchy JSON (the word-check screen shows typed words, the reveal screen all 12), `commands.json` and `logs/maestro.log` (`Input text <word>`). A create failure is read from the JUnit report (failed step and message) and a local re-run on a simulator. The wallet is a throwaway that is never funded, but the phrase is still never published (R10).
+
 Every flow starts with `clearState` and `clearKeychain`, so it needs a clean app. It wipes the app data on the target simulator.
 
 ## Gate rules
