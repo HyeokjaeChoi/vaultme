@@ -41,7 +41,7 @@ export function SettingsPage() {
       </View>
       <View style={{ paddingHorizontal: pad, paddingVertical: th.semantic.layout.groupGap }}>
         <AccountBlock
-          name={account.name}
+          name={t('home.account')}
           {...(address ? { address: shortAddress(address) } : {})}
           copyLabel={copied ? t('settings.copied') : t('asset.copy')}
           copied={copied}

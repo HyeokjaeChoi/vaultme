@@ -30,7 +30,7 @@ Figma source와 token 원본은 `packages/tokens/tokens.json`입니다. 현재 �
 
 ## Capabilities and Constraints
 
-지원 범위(Sepolia ETH, USDC)와 제외 범위는 [ARCHITECTURE](ARCHITECTURE.md#goals-and-non-goals)가 정합니다. 화면 copy는 한국어이고 `packages/i18n`의 `ko.ts`에서 관리합니다. 다른 locale은 미정입니다.
+지원 범위(Sepolia ETH, USDC)와 제외 범위는 [ARCHITECTURE](ARCHITECTURE.md#goals-and-non-goals)가 정합니다. 앱 화면 copy는 한국어와 영어이고 `packages/i18n`의 `ko.ts`, `en.ts`에서 관리합니다. 기기 언어를 따르고, 지원하지 않는 언어면 한국어를 씁니다 ([ADR-0037](docs/adr/0037-app-english-locale-device-language.md)).
 
 Connection, message signing, token approval, on-chain transaction을 구분합니다. Disconnect는 allowance revoke가 아닙니다. Readable signature와 simulation은 safety guarantee가 아닙니다. 실제 recovery phrase와 private key를 저장소에 넣지 않습니다. 확인되지 않은 QR·network·보안 인증·기능을 추가하지 않습니다.
 

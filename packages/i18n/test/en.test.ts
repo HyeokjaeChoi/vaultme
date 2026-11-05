@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { en, i18n, ko, pickLanguage } from '../src'
+import { i18n, ko, pickLanguage } from '../src'
+import { en } from '../src/en'
 
 const leaves = (o: object, prefix = ''): [string, string][] =>
   Object.entries(o).flatMap(([k, v]: [string, unknown]) =>

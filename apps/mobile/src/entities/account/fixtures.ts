@@ -2,7 +2,6 @@
 import { CHAIN } from '@vaultme/wallet-core'
 
 export const account = {
-  name: '계정 1',
   network: 'Sepolia',
   chainId: CHAIN.id,
   address: '0x9858EfFD232B4033E47d90003D41EC34EcaEda94',

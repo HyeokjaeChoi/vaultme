@@ -38,7 +38,7 @@ VaultMe는 seed phrase 기반 지갑입니다. Ethereum Sepolia에서 EVM 계정
 | `packages/api-client` | 설치 신원 API client(`createApiClient`) |
 | `packages/history` | 내역 목록과 행 조회 모듈 |
 | `packages/tokens` | Style Dictionary로 token 원본에서 생성하는 디자인 토큰 |
-| `packages/i18n` | i18next 기반의 타입 있는 한국어 문구 |
+| `packages/i18n` | i18next 기반의 타입 있는 한국어·영어 문구 |
 | `packages/config` | 공유 ESLint, TypeScript 설정 |
 | `ARCHITECTURE.md` | 지금 코드가 하는 일: 구성, 데이터 흐름, 불변 조건, 보안 모델 |
 | `docs/` | 작업 workflow, ADR(`docs/adr/`), OpenAPI 파일 |

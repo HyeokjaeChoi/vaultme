@@ -3,14 +3,13 @@ import { initReactI18next } from 'react-i18next'
 import { en } from './en'
 import { ko } from './ko'
 
-export { en, ko }
-export type { Messages } from './messages'
+export { ko }
 export const defaultNS = 'ko'
 // One namespace (named `ko` for the typed keys) in each language (ADR-0037).
 export const resources = { ko: { ko }, en: { ko: en } } as const
 
 /** App languages, fallback first (ADR-0037). */
-export const appLanguages = ['ko', 'en'] as const
+const appLanguages = ['ko', 'en'] as const
 export type AppLanguage = (typeof appLanguages)[number]
 
 /** The first device language the app supports, else ko. `codes` = device language codes, most preferred first (expo-localization `getLocales()`). */
