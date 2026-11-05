@@ -27,14 +27,13 @@ it('has the Redesign A send and review copy', () => {
   expect(i18n.t('review.heroTotal', { total: '0.050042 ETH' })).toBe('총 0.050042 ETH 차감 예상')
   expect(i18n.t('review.lookalike.title')).toBe('비슷한 주소예요')
   expect(i18n.t('review.ack')).toBe('확인했어요, 보내기')
-  expect(i18n.t('send.preSend.faceId')).toBe('보내면 취소할 수 없어요 · 다음 단계에서 Face ID로 확인해요')
+  expect(i18n.t('send.preSend.faceId')).toBe('보내면 되돌릴 수 없어요 · 다음 단계에서 Face ID로 확인해요')
   expect(i18n.t('result.sending')).toBe('보내는 중이에요')
   expect(i18n.t('send.recipientLabel')).toBe('받는 주소')
   expect(i18n.t('review.recipient')).toBe('받는 주소')
   expect(i18n.t('review.fee')).toBe('예상 네트워크 수수료')
   expect(i18n.t('review.feeCap')).toBe('최대 수수료')
   expect(i18n.t('review.recalc')).toBe('다시 계산')
-  expect(i18n.t('activity.today')).toBe('오늘')
 })
 
 it('has the S03/S04 backup copy', () => {

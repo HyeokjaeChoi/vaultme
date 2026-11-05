@@ -149,7 +149,7 @@ export function KitPage() {
       </View>
       <View style={{ gap: th.semantic.layout.fieldGap }}>
         <StatusNotice tone="info" title="주소 형식만 확인했어요" body="받는 사람이 맞는지는 직접 확인해 주세요." />
-        <StatusNotice tone="warning" title="보내면 취소할 수 없어요" body="다음 단계에서 Face ID로 확인해요." />
+        <StatusNotice tone="warning" title="보내면 되돌릴 수 없어요" body="다음 단계에서 Face ID로 확인해요." />
         <StatusNotice tone="danger" title="보낼 수 있는 금액보다 많아요" />
       </View>
       <AmountDisplay amount="0.05" ticker="ETH" sub="보낼 수 있는 금액 1.284732 ETH" />

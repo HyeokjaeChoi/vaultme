@@ -150,7 +150,7 @@ describe('viewer', () => {
     const router = open(`/address#${A}`)
     await userEvent.click(screen.getByRole('link', { name: '다른 주소 보기' }))
     await waitFor(() => expect(router.state.location.hash).toBe(''))
-    expect(screen.getByRole('heading', { level: 1, name: '주소를 넣어 보세요' })).toHaveFocus()
+    expect(screen.getByRole('heading', { level: 1, name: '주소를 입력해 보세요' })).toHaveFocus()
   })
 
   it('copies the full address', async () => {

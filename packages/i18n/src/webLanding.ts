@@ -7,11 +7,11 @@ const ko = {
     meta: {
       title: 'VaultMe · Sepolia 테스트넷 셀프 커스터디 지갑',
       description:
-        'VaultMe는 Sepolia 테스트넷에서 안전하게 연습하는 셀프 커스터디 지갑이에요. 키는 내 기기에만 있고, 웹에서는 로그인 없이 주소만 넣어 잔액과 거래 내역을 볼 수 있어요.',
+        'VaultMe는 Sepolia 테스트넷 전용 셀프 커스터디 지갑이에요. 테스트 자금만 다뤄요. 웹에서는 로그인 없이 주소만 입력해 잔액과 거래 내역을 볼 수 있어요.',
     },
     hero: {
       title: ['내 키는', '내 기기에만 있어요'],
-      value: 'Sepolia 테스트넷에서 안전하게 연습하는 셀프 커스터디 지갑이에요.',
+      value: 'Sepolia 테스트넷 전용 셀프 커스터디 지갑이에요. 테스트 자금만 다뤄요.',
       appStore: 'App Store에서 받기',
       googlePlay: 'Google Play에서 받기',
       storeSoon: '출시 준비 중이에요',
@@ -20,19 +20,19 @@ const ko = {
     features: {
       title: '한 앱으로 지갑과 뷰어를 써요',
       items: [
-        { title: '셀프 커스터디', body: '키는 내 기기에만 있어요. VaultMe 서버는 키도 복구 구문도 가지지 않아요.' },
+        { title: '셀프 커스터디', body: 'VaultMe 서버는 키도 복구 구문도 가지지 않아요.' },
         {
           title: '보내기·받기',
-          body: 'Sepolia ETH와 USDC를 보내고 받아요. 보내기 전에 받는 주소와 수수료를 보여 드려요.',
+          body: 'Sepolia ETH와 USDC를 보내고 받아요. 보내기 전에 받는 주소와 수수료를 보여 줘요.',
         },
-        { title: '웹 뷰어', body: '주소만 넣으면 잔액과 거래 내역을 볼 수 있어요. 로그인이 없는 조회 전용이에요.' },
+        { title: '웹 뷰어', body: '주소만 입력하면 잔액과 거래 내역을 볼 수 있어요.' },
       ],
     },
     steps: {
       title: '이렇게 시작해요',
       items: [
         { title: '앱을 설치해요', body: '앱스토어나 구글 플레이에서 VaultMe를 받아요.' },
-        { title: '지갑을 만들어요', body: '복구 구문을 적어 두세요. VaultMe는 되찾아 드릴 수 없어요.' },
+        { title: '지갑을 만들어요', body: '복구 구문을 적어 두세요. VaultMe는 되찾아 줄 수 없어요.' },
         { title: '테스트 자금을 받아요', body: '받기 주소로 Sepolia 파우셋에서 테스트 ETH를 받아요.' },
       ],
     },
@@ -45,7 +45,7 @@ const ko = {
         },
         {
           title: '테스트넷 전용, 테스트 자금만',
-          body: 'Sepolia 테스트넷의 자산은 실제 가치가 없어요. 실제 자금은 넣지 마세요.',
+          body: 'Sepolia 테스트넷의 자산은 실제 가치가 없어요. 실제 자금은 보내지 마세요.',
         },
       ],
     },
@@ -57,22 +57,22 @@ const ko = {
           answer: '아니요. 키는 내 기기에만 있어요.',
         },
         {
-          question: '실제 돈을 넣어도 되나요?',
-          answer: '아니요. 테스트넷 전용이라 실제 자금은 쓸 수 없어요.',
+          question: '실제 돈을 써도 되나요?',
+          answer: '아니요. 실제 자금은 쓸 수 없어요.',
         },
         {
           question: '웹에서 보내기도 되나요?',
-          answer: '아니요. 웹은 조회 전용이에요. 키를 만들거나 서명하지 않아서, 보내기는 앱에서만 할 수 있어요.',
+          answer: '아니요. 웹은 조회 전용이라 보내기는 앱에서만 할 수 있어요.',
         },
         {
           question: 'ENS 이름도 되나요?',
-          answer: '아직 지원하지 않아요. 0x로 시작하는 주소를 넣어 주세요.',
+          answer: '아직 지원하지 않아요. 0x로 시작하는 주소를 입력해 주세요.',
         },
       ],
     },
     closing: {
       title: '주소부터 확인해 보세요',
-      body: '로그인 없이, 키 없이, 주소만 넣어 잔액과 내역을 볼 수 있어요.',
+      body: '주소만 입력하면 잔액과 내역을 볼 수 있어요.',
       viewer: '주소 보기',
       app: '앱 받기',
     },
@@ -80,7 +80,7 @@ const ko = {
   notFound: {
     code: '404',
     title: '페이지를 찾을 수 없어요',
-    help: '주소가 바뀌었거나 없는 페이지예요. 조회할 주소를 넣거나 처음으로 돌아가 보세요.',
+    help: '주소가 바뀌었거나 없는 페이지예요. 조회할 주소를 입력하거나 처음으로 돌아가 보세요.',
     viewer: '주소 보기',
     home: '홈으로',
   },
@@ -94,11 +94,11 @@ const en: WebLandingMessages = {
     meta: {
       title: 'VaultMe · A self-custody wallet for the Sepolia testnet',
       description:
-        'VaultMe is a self-custody wallet for safe practice on the Sepolia testnet. Your keys stay on your device. On the web, enter an address to see balances and history, with no sign-in.',
+        'VaultMe is a self-custody wallet for the Sepolia testnet only. It handles test funds only. On the web, enter an address to see balances and history, with no sign-in.',
     },
     hero: {
       title: ['Your keys', 'stay on your device'],
-      value: 'A self-custody wallet for safe practice on the Sepolia testnet.',
+      value: 'A self-custody wallet for the Sepolia testnet only. It handles test funds only.',
       appStore: 'Get it on the App Store',
       googlePlay: 'Get it on Google Play',
       storeSoon: 'Coming soon',
@@ -109,13 +109,13 @@ const en: WebLandingMessages = {
       items: [
         {
           title: 'Self-custody',
-          body: 'Your keys stay on your device. The VaultMe server has no keys and no recovery phrase.',
+          body: 'The VaultMe server has no keys and no recovery phrase.',
         },
         {
           title: 'Send and receive',
           body: 'Send and receive Sepolia ETH and USDC. Before you send, we show the recipient address and the fee.',
         },
-        { title: 'Web viewer', body: 'Enter an address to see its balances and history. Read-only, with no sign-in.' },
+        { title: 'Web viewer', body: 'Enter an address to see its balances and history.' },
       ],
     },
     steps: {
@@ -147,12 +147,12 @@ const en: WebLandingMessages = {
           answer: 'No. Your keys stay on your device.',
         },
         {
-          question: 'Can I deposit real money?',
-          answer: 'No. It is testnet only, so real funds cannot be used.',
+          question: 'Can I use real money?',
+          answer: 'No. Real funds cannot be used.',
         },
         {
           question: 'Can I send from the web?',
-          answer: 'No. The web is read-only. It creates no keys and signs nothing, so you can send only in the app.',
+          answer: 'No. The web is read-only, so you can send only in the app.',
         },
         {
           question: 'Does it support ENS names?',
@@ -162,7 +162,7 @@ const en: WebLandingMessages = {
     },
     closing: {
       title: 'Start by checking an address',
-      body: 'No sign-in, no keys. Enter an address to see its balances and history.',
+      body: 'Enter an address to see its balances and history.',
       viewer: 'View an address',
       app: 'Get the app',
     },

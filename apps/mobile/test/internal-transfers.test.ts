@@ -84,7 +84,7 @@ describe('shownInternal', () => {
 
 describe('retryAnnouncement', () => {
   it('says the result of a retry; silent for the first read', () => {
-    expect(retryAnnouncement({ status: 'failed' }, 1)).toBe('내부 이동을 불러오지 못했어요. 다시 시도하세요.')
+    expect(retryAnnouncement({ status: 'failed' }, 1)).toBe('내부 이동을 불러오지 못했어요. 다시 시도해 주세요.')
     expect(retryAnnouncement({ status: 'ok', items: [{ from: A, to: B, value: 1n, ok: true }] }, 2)).toBe(
       '내부 이동 1건을 불러왔어요',
     )

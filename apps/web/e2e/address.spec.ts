@@ -115,7 +115,7 @@ test.describe('viewer', () => {
     test('a plain form link paints the form', async ({ page }) => {
       await page.goto('/address')
       await expect(page.locator('html')).not.toHaveAttribute('data-boot', 'viewer')
-      await expect(page.getByRole('heading', { level: 1, name: '주소를 넣어 보세요' })).toBeVisible()
+      await expect(page.getByRole('heading', { level: 1, name: '주소를 입력해 보세요' })).toBeVisible()
     })
   })
 
@@ -198,7 +198,7 @@ test.describe('viewer', () => {
 })
 
 const states = [
-  { name: 'form', path: '/address', ready: '주소를 넣어 보세요' },
+  { name: 'form', path: '/address', ready: '주소를 입력해 보세요' },
   { name: 'invalid', path: '/address#0x1234abcd', ready: '올바른 주소가 아니에요' },
   { name: 'viewer', path: `/address#${A}`, ready: '12.5 USDC' },
   { name: 'en viewer', path: `/en/address#${A}`, ready: '12.5 USDC' },

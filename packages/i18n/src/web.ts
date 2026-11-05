@@ -17,10 +17,10 @@ export const webKo = {
   },
   address: {
     pageTitle: '주소 보기',
-    title: '주소를 넣어 보세요',
+    title: '주소를 입력해 보세요',
     lead: 'Sepolia 테스트넷 주소의 잔액과 거래 내역을 볼 수 있어요.',
     label: 'Sepolia 주소',
-    helper: '0x로 시작하는 42자리 주소를 넣어 주세요.',
+    helper: '0x로 시작하는 42자리 주소를 입력해 주세요.',
     invalid: '올바른 주소가 아니에요. 0x로 시작하는 42자리 주소를 확인해 주세요.',
     paste: '붙여넣기',
     submit: '주소 보기',
@@ -38,7 +38,7 @@ export const webKo = {
     eth: 'Sepolia ETH',
     usdc: 'USD Coin',
     failedTitle: '잔액을 불러오지 못했어요',
-    failedBody: '연결을 확인하고 다시 시도하세요.',
+    failedBody: '연결을 확인하고 다시 시도해 주세요.',
     retry: '다시 시도',
     updateTitle: '새로고침해 주세요',
     updateBody: '사이트가 새 버전으로 바뀌었어요.',
@@ -55,13 +55,13 @@ export const webKo = {
     // Card title (Figma Activity row): a failed send has its own words; the receive twin is not in Figma yet.
     cardTitle: { receive: '받음', send: '보냄', sendFailed: '보내기 실패', receiveFailed: '받기 실패' },
     more: '더 보기',
-    moreFailed: '더 불러오지 못했어요. 다시 시도하세요.',
+    moreFailed: '더 불러오지 못했어요. 다시 시도해 주세요.',
     empty: {
       title: '아직 거래가 없어요',
       body: '이 주소에는 Sepolia 거래가 없어요. 테스트 ETH가 필요하면 파우셋에서 받을 수 있어요.',
       faucet: 'Sepolia 파우셋 열기',
     },
-    failed: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요.', retry: '다시 시도' },
+    failed: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도해 주세요.', retry: '다시 시도' },
   },
 } as const
 
@@ -115,8 +115,8 @@ export const webEn: WebMessages = {
     title: 'Transactions',
     etherscan: 'View on Etherscan',
     loading: 'Loading the transactions',
-    columns: { status: 'Status', direction: 'Type', counterparty: 'Counterparty', amount: 'Amount', time: 'Time' },
-    noCounterparty: 'No counterparty, contract creation',
+    columns: { status: 'Status', direction: 'Type', counterparty: 'Other address', amount: 'Amount', time: 'Time' },
+    noCounterparty: 'No other address, contract creation',
     status: { confirmed: 'Confirmed', failed: 'Failed' },
     direction: { receive: 'Received', send: 'Sent' },
     cardTitle: { receive: 'Received', send: 'Sent', sendFailed: 'Send failed', receiveFailed: 'Receive failed' },
