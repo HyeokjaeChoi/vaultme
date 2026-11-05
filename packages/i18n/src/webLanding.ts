@@ -58,7 +58,7 @@ const ko = {
         },
         {
           question: '실제 돈을 써도 되나요?',
-          answer: '아니요. 테스트넷 전용이라 실제 자금은 쓸 수 없어요.',
+          answer: '아니요. 실제 자금은 쓸 수 없어요.',
         },
         {
           question: '웹에서 보내기도 되나요?',
@@ -148,7 +148,7 @@ const en: WebLandingMessages = {
         },
         {
           question: 'Can I use real money?',
-          answer: 'No. It is testnet only, so real funds cannot be used.',
+          answer: 'No. Real funds cannot be used.',
         },
         {
           question: 'Can I send from the web?',
