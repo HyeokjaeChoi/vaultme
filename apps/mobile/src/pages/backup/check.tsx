@@ -1,7 +1,7 @@
 import { Redirect, useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useForm, useWatch, type SubmitErrorHandler } from 'react-hook-form'
-import { AppState, Keyboard, Platform, View, type TextInputInstance } from 'react-native'
+import { AppState, Platform, View, type TextInputInstance } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { WRONG_ANSWER, answersFilled, checkResolver, clearCheck, getCheck, type CheckForm } from '@/features/backup'
 import { appStore } from '@/shared/app-store'
@@ -41,15 +41,11 @@ export function BackupCheckPage({
   const fieldsY = useRef(0)
   const cellBoxes = useRef<{ y: number; h: number }[]>([])
   const focused = useRef<number | null>(null)
-  // The focused field (with its helper line) stays in view above the footer, also once the keyboard has finished opening.
+  // The focused field (with its helper line) stays in view above the footer (Screen shows it again once the keyboard has finished opening).
   const revealFocused = useCallback(() => {
     const box = focused.current === null ? undefined : cellBoxes.current[focused.current]
     if (box) reveal.current?.(fieldsY.current + box.y, box.h)
   }, [])
-  useEffect(() => {
-    const sub = Keyboard.addListener('keyboardDidShow', revealFocused)
-    return () => sub.remove()
-  }, [revealFocused])
 
   useEffect(() => {
     // __DEV__ capture preset only: show cells as already judged wrong on arrival
@@ -139,6 +135,9 @@ export function BackupCheckPage({
                 focused.current = i
                 revealFocused()
               }}
+              returnKeyType={i < session.positions.length - 1 ? 'next' : 'done'} // like the restore grid: Return moves on, the last one closes the keyboard
+              submitBehavior={i < session.positions.length - 1 ? 'submit' : 'blurAndSubmit'}
+              onSubmitEditing={() => cells.current[i + 1]?.focus()}
             />
           </View>
         ))}

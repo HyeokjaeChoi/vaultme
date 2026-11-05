@@ -24,6 +24,9 @@ type Props = Pick<
   | 'onFocus'
   | 'testID'
   | 'secureTextEntry'
+  | 'returnKeyType'
+  | 'submitBehavior'
+  | 'onSubmitEditing'
 > & {
   label: string
   helper?: string

@@ -1,6 +1,6 @@
 # On the word check screen (S04): if it asks for word N, type that word. The 3 asked positions are random, so the flow tries all 12.
-# Return (single-line field: it blurs and closes the keyboard) instead of hideKeyboard, which is flaky on iOS and presses Back on Android (#382). A keyboard that stays up
-# can cover the next asked cell, and the "visible" check would then skip it (#424: the hint under 확인 never cleared in CI).
+# Return instead of hideKeyboard, which is flaky on iOS and presses Back on Android (#382): on the first 2 cells it moves to the next asked cell
+# (returnKeyType next, Screen scrolls it into view), on the last one it closes the keyboard (#449).
 appId: dev.stackline.vaultme
 ---
 - runFlow:

@@ -118,10 +118,14 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
     return () => sub.remove()
   }, [clearAll])
 
-  const cellH = th.primitive.space[3] * 2 + th.primitive.type.productB.body.lineHeight
   const half = count / 2
-  const revealCell = (i: number) =>
-    reveal.current?.(phraseY.current + gridY.current + (i % half) * (cellH + th.semantic.layout.fieldGap), cellH)
+  // Measured, not computed from the cell's minHeight: the text line and the border make a cell taller, and the error added up row by row (#449).
+  const columnH = useRef(0)
+  const revealCell = (i: number) => {
+    const gap = th.semantic.layout.fieldGap
+    const cellH = (columnH.current - (half - 1) * gap) / half
+    reveal.current?.(phraseY.current + gridY.current + (i % half) * (cellH + gap), cellH)
+  }
   useEffect(() => {
     // judge the starting words (hand-off or dev preset) once, so a wrong word shows on arrival as before
     void trigger()
@@ -195,7 +199,10 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   }
 
   const column = (from: number, to: number) => (
-    <View style={{ flex: 1, gap: th.semantic.layout.fieldGap }}>
+    <View
+      style={{ flex: 1, gap: th.semantic.layout.fieldGap }}
+      onLayout={(e) => (columnH.current = e.nativeEvent.layout.height)}
+    >
       {Array.from({ length: to - from }, (_, k) => from + k).map((i) => (
         <WordCell
           key={i}

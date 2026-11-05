@@ -66,14 +66,19 @@ export function Screen({
   const scrollRef = useRef<ScrollViewInstance>(null)
   const [layoutHeight, setLayoutHeight] = useState(0)
   // Form screens: with the keyboard up the safe-area inset is gone, so the footer keeps its top padding (12) below the button too, not 4 (#261).
-  const [keyboardUp, setKeyboardUp] = useState(false)
+  const [keyboardH, setKeyboardH] = useState(0)
+  const keyboardUp = keyboardH > 0
+  // iOS: the body shrinks with the keyboard animation, and a scroll asked for during it is clamped to the old, taller frame
+  // (SE: a cell tapped with the keyboard down stayed under the footer, #449). Room of the keyboard's height below the content keeps
+  // that scroll unclamped. The user never sees it: a drag closes the keyboard (keyboardDismissMode), which removes it.
+  const keyboardRoom = Platform.OS === 'ios' ? keyboardH : 0
   useEffect(() => {
     if (!revealRef) return
-    const shown = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () =>
-      setKeyboardUp(true),
+    const shown = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) =>
+      setKeyboardH(e.endCoordinates.height),
     )
     const hidden = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () =>
-      setKeyboardUp(false),
+      setKeyboardH(0),
     )
     return () => {
       shown.remove()
@@ -82,7 +87,7 @@ export function Screen({
   }, [revealRef])
   const [contentHeight, setContentHeight] = useState(0)
   const scrollY = useRef(0)
-  const overflows = contentHeight > layoutHeight + 1
+  const overflows = contentHeight - keyboardRoom > layoutHeight + 1
   const [refreshing, setRefreshing] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -120,7 +125,11 @@ export function Screen({
       scrollRef.current?.scrollTo({ y: y + h + clear - layoutHeight, animated: true })
   }
   useImperativeHandle(revealRef, () => (y, h = 0) => {
-    if (y === 'end') return scrollRef.current?.scrollToEnd({ animated: true })
+    if (y === 'end')
+      return scrollRef.current?.scrollTo({
+        y: Math.max(0, contentHeight - keyboardRoom - layoutHeight),
+        animated: true,
+      }) // the end of the content, not of the keyboard room
     lastReveal.current = { y, h }
     scrollIntoView(y, h)
   })
@@ -157,7 +166,7 @@ export function Screen({
           contentContainerStyle={{
             paddingHorizontal: bleed ? 0 : l.screen.padding,
             paddingTop: bleed || topGap === 'none' ? 0 : topGap === 'group' ? l.groupGap : t.primitive.space[2],
-            paddingBottom: bleed ? l.groupGap : t.primitive.space[2], // bleed: last row keeps 16 clearance above the footer line / tab bar
+            paddingBottom: (bleed ? l.groupGap : t.primitive.space[2]) + keyboardRoom, // bleed: last row keeps 16 clearance above the footer line / tab bar
             gap: gap === 'none' ? 0 : gap === 'group' ? l.groupGap : gap === 'row' ? l.rowGap : l.sectionGap.product,
             flexGrow: 1,
           }}
