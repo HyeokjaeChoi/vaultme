@@ -325,6 +325,25 @@ Dark mode: the app follows the OS setting. The web also has a theme toggle. The 
 
 The app languages are Korean (the fallback) and English (ADR-0037). Terms are in `CONTEXT.md`: the bold Korean term, then the English term in parentheses. The Korean flow pages are the source for Korean. Figma page "Flows · English (ADR-0037)" (`980:18337`) holds the English frames of the main screens, light and dark: copies of the Korean frames with English instance text overrides (Q81). A new screen gets both languages before the app changes.
 
+| English screen | Light | Dark |
+|---|---|---|
+| S01 Start | `980:18338` | `980:18362` |
+| S02 Before you start | `980:18386` | `980:18413` |
+| S03 Recovery phrase | `980:18440` | `980:18466` |
+| S04 Check words | `980:18492` | `980:18519` |
+| S05 Restore | `980:18546` | `980:18592` |
+| S06 Restored | `980:18638` | `980:18662` |
+| S10 Home | `980:19044` | `980:19074` |
+| S20a Recipient | `980:19344` | `980:19370` |
+| S20b Amount | `980:19396` | `980:19428` |
+| S22 Review | `980:19460` | `980:19504` |
+| S23 Result | `980:19548` | `980:19578` |
+| S30 Receive | `980:19608` | `980:19879` |
+| S40 Activity | `980:20570` | `980:20596` |
+| S41 Detail | `980:20622` | `980:20661` |
+| S60 Settings | `980:21046` | `980:21084` |
+| S90 Lock | `980:21122` | `980:21146` |
+
 ## Colors
 
 The theme is light and quiet. White and pale grey surfaces carry data. One blue carries action.
