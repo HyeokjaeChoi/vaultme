@@ -139,6 +139,7 @@ export const ko = {
       position: '{{n}}번째 단어',
       placeholder: '단어 입력',
       confirm: '확인',
+      confirmHint: '단어를 모두 입력하면 확인할 수 있어요.',
       wrong: '{{n}}번째 단어가 달라요',
     },
   },
@@ -163,6 +164,7 @@ export const ko = {
       hide: '패스프레이즈 숨기기',
     },
     submit: '복구',
+    submitHint: '복구 구문 단어를 모두 입력하면 복구할 수 있어요.',
     authPrompt: '지갑을 복구하려면 인증하세요',
     exists: {
       title: '이 기기에 이미 지갑이 있어요',

@@ -35,14 +35,15 @@ export function Chip({ label, selected, disabled, disabledReason, onPress }: Pro
         }}
         hitSlop={{ top: slop, bottom: slop }}
         {...handlers}
-        style={{
+        style={({ pressed }) => ({
           height: t.component.buttonB.height.sm,
           paddingHorizontal: t.primitive.space[4],
           borderRadius: t.component.buttonB.radius,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: bg,
-        }}
+          backgroundColor: pressed && !disabled && !selected ? t.semantic.surface.pressed : bg,
+          opacity: pressed && !disabled && selected ? t.primitive.opacity[72] : t.primitive.opacity[100],
+        })}
       >
         <Text variant="label" color={fg}>
           {label}

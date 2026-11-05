@@ -87,11 +87,18 @@ export function BackupCheckPage({
       revealRef={reveal}
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/backup')} />}
       footer={
-        <Button
-          label={t('backup.check.confirm')}
-          disabled={!filled}
-          onPress={() => void form.handleSubmit(onRight, onWrong)()}
-        />
+        <>
+          <Button
+            label={t('backup.check.confirm')}
+            disabled={!filled}
+            onPress={() => void form.handleSubmit(onRight, onWrong)()}
+          />
+          {!filled ? (
+            <Text variant="caption" color={th.semantic.text.tertiary} style={{ textAlign: 'center' }}>
+              {t('backup.check.confirmHint')}
+            </Text>
+          ) : null}
+        </>
       }
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>

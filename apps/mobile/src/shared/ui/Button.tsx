@@ -7,8 +7,6 @@ import { useOnRaised } from '../theme/sheet'
 import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
 
-const COPIED_FADE_MS = 150 // Figma Copied contract: 150 ms crossfade (no token for motion yet)
-
 type Props = {
   label: string
   onPress?: () => void
@@ -25,7 +23,7 @@ type Props = {
   icon?: IconName
   /** Progressive label shown while busy under Reduce Motion (the spinner does not rotate): "보내는 중…". */
   busyLabel?: string
-  /** State=Copied (Figma 555:64682, 555:68322, 555:68334): check icon in place of the icon; the caller passes the "복사했어요" label. Content fades in over 150 ms (no fade under Reduce Motion). */
+  /** State=Copied (Figma 555:64682, 555:68322, 555:68334): check icon in place of the icon; the caller passes the "복사했어요" label. Content fades in over motion.duration.baseMs (no fade under Reduce Motion). */
   copied?: boolean
   style?: StyleProp<ViewStyle>
 }
@@ -37,7 +35,7 @@ type Props = {
  * With an icon: icon at the leading edge, label centered in the remaining space (Figma "Optional action icon").
  * The control is at least hitTarget (44) tall: a small visual control sits inside it and extends its touch area with hitSlop.
  * Busy: the icon is the loading glyph (3/4 ring), rotating 800 ms linear. Under Reduce Motion it is static and the label switches to `busyLabel`.
- * Press feedback: scale 0.97, 100 ms ease-out (off under Reduce Motion), plus the pressed color.
+ * Press feedback: scale 0.97, motion.duration.fastMs ease-out (off under Reduce Motion), plus the pressed color.
  */
 export function Button({
   label,
@@ -117,7 +115,7 @@ export function Button({
       >
         <Animated.View
           key={copied ? 'copied' : 'rest'}
-          {...(copied && !reduce ? { entering: FadeIn.duration(COPIED_FADE_MS) } : {})}
+          {...(copied && !reduce ? { entering: FadeIn.duration(t.primitive.motion.duration.baseMs) } : {})}
           style={{
             flexDirection: 'row',
             alignItems: 'center',

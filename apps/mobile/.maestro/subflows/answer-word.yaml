@@ -1,4 +1,6 @@
 # On the word check screen (S04): if it asks for word N, type that word. The 3 asked positions are random, so the flow tries all 12.
+# Return (single-line field: it blurs and closes the keyboard) instead of hideKeyboard, which is flaky on iOS and presses Back on Android (#382). A keyboard that stays up
+# can cover the next asked cell, and the "visible" check would then skip it (#424: the hint under 확인 never cleared in CI).
 appId: dev.stackline.vaultme
 ---
 - runFlow:
@@ -7,11 +9,9 @@ appId: dev.stackline.vaultme
     commands:
       - tapOn:
           below: '${N}번째 단어'
+      - waitForAnimationToEnd:
+          timeout: 3000
       - inputText: ${output.words[N]}
-      # iOS only: on Android hideKeyboard presses Back and would leave the screen (#382).
-      - runFlow:
-          when:
-            platform: iOS
-          commands:
-            - hideKeyboard:
-                optional: true
+      - pressKey: Enter
+      - waitForAnimationToEnd:
+          timeout: 3000

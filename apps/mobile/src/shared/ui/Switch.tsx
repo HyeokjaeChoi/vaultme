@@ -28,7 +28,10 @@ export function Switch({ value, onValueChange, label, disabled }: Props) {
       disabled={disabled}
       onPress={() => onValueChange(!value)}
       hitSlop={slop}
-      style={{ justifyContent: 'center', opacity: disabled ? t.primitive.opacity[40] : t.primitive.opacity[100] }}
+      style={({ pressed }) => ({
+        justifyContent: 'center',
+        opacity: disabled ? t.primitive.opacity[40] : pressed ? t.primitive.opacity[72] : t.primitive.opacity[100],
+      })}
     >
       {/* Motion audit M4: the thumb travels and the colors ease over fastMs. Reduce Motion: the thumb jumps, the colors still ease. */}
       <Animated.View

@@ -51,7 +51,11 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
         disabled={!!busy || !onReveal}
         onPress={onReveal}
         onLayout={(e) => setPanelW(e.nativeEvent.layout.width)}
-        style={{ ...panel, justifyContent: 'center' }}
+        style={({ pressed }) => ({
+          opacity: pressed ? t.primitive.opacity[72] : t.primitive.opacity[100],
+          ...panel,
+          justifyContent: 'center',
+        })}
       >
         <Svg
           width="100%"

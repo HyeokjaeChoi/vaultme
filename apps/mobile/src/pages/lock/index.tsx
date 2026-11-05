@@ -97,7 +97,7 @@ export function LockPage({
               }}
             >
               {key === 'faceId' || key === 'face' ? (
-                <Icon name="face" size={(th.primitive.size.icon_xl * 2) / 3} color={th.semantic.icon.primary} />
+                <Icon name="face" size={th.primitive.size.icon_md} color={th.semantic.icon.primary} />
               ) : null}
               {key ? (
                 <Text variant="label" color={th.semantic.text.secondary}>

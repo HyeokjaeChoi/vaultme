@@ -13,14 +13,15 @@ import {
   withSequence,
   withTiming,
 } from 'react-native-reanimated'
+import { light } from '@vaultme/tokens'
 
-// DESIGN motion (emil-design-eng): strong ease-out for UI. No tokens exist for these values yet.
+// DESIGN motion (emil-design-eng): strong ease-out for UI. Press = motion.duration.fastMs, fades = baseMs. Bloom, pop, spin, shake and the sheet open (250) have no token, so they keep their own ms.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
 export const EASE_OUT_CSS = cubicBezier(0.23, 1, 0.32, 1) // same curve as EASE_OUT, for Reanimated CSS transitions
 const PRESS_SCALE = 0.97
-const PRESS_MS = 100
+const PRESS_MS = light.primitive.motion.duration.fastMs // same in dark
 
-/** Press feedback: scale 0.97 over 100 ms ease-out. Off under Reduce Motion (the pressed color still shows). Spread `handlers` on the Pressable, `style` on its Animated.View wrapper. */
+/** Press feedback: scale 0.97 over motion.duration.fastMs ease-out. Off under Reduce Motion (the pressed color still shows). Spread `handlers` on the Pressable, `style` on its Animated.View wrapper. */
 export function usePressScale() {
   const reduce = useReducedMotion()
   const scale = useSharedValue(1)

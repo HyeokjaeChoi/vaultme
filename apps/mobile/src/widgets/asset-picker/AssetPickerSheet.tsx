@@ -29,13 +29,14 @@ export function AssetPickerSheet({ visible, onClose, onPick, balances, selected 
             accessibilityState={{ selected: a.symbol === selected }}
             accessibilityLabel={`${a.name}, ${balances[a.symbol] ?? '—'} ${a.symbol}`}
             onPress={() => onPick(a.symbol)}
-            style={{
+            style={({ pressed }) => ({
+              backgroundColor: pressed ? th.semantic.surface.pressedOnRaised : undefined,
               minHeight: th.component.rowB.height,
               flexDirection: 'row',
               alignItems: 'center',
               gap: th.semantic.layout.rowGap,
               paddingHorizontal: th.component.rowB.paddingX,
-            }}
+            })}
           >
             <AssetIcon symbol={a.symbol} size={th.primitive.size.avatar_md} />
             <View style={{ flex: 1 }}>

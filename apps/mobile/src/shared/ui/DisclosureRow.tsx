@@ -15,12 +15,13 @@ export function DisclosureRow({ title, expanded, onToggle }: Props) {
       accessibilityLabel={title}
       accessibilityState={{ expanded }}
       onPress={onToggle}
-      style={{
+      style={({ pressed }) => ({
+        backgroundColor: pressed ? t.semantic.surface.pressed : undefined,
         minHeight: t.component.rowB.height,
         flexDirection: 'row',
         alignItems: 'center',
         gap: t.semantic.layout.rowGap,
-      }}
+      })}
     >
       <Text variant="label" style={{ flex: 1 }}>
         {title}

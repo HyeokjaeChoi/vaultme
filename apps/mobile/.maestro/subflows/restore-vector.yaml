@@ -2,14 +2,9 @@
 appId: dev.stackline.vaultme
 ---
 - tapOn: '기존 지갑 복구'
-# Each cell is tapped and filled without a trailing space. A space makes the app move focus to the next cell, and on the
-# slow CI runner the next word's keys landed before that move, so words were lost (#376). After each word a tap on the
-# plain description text closes the keyboard (the ScrollView has keyboardShouldPersistTaps="handled"), so the lower cells
-# are not under it. The flow then waits for the keyboard to finish closing: a tap on cell 12 while it was still
-# closing hit the keyboard's "i" key and the word went into cell 11 (#386).
-# A wait after each cell tap: focusing cell 12 shrinks the body above the keyboard and scrolls the cell into view (Screen revealRef); on the slow CI runner
-# the first key of 'about' landed before that finished and was lost ('bout', #417 run 41854256184).
-# Not hideKeyboard: it is flaky on iOS (Maestro known issue); the focused selector does not see a multiline TextInput.
+# Only cell 1 is tapped. After each word the Return key ("next") moves focus to the next cell and Screen scrolls it into view;
+# after word 12 Return ("done") closes the keyboard. Tapping the description text to close the keyboard does not work (#424
+# run 41953979353: the keyboard stays up, and cell 12 sits under the footer so a tap on it hit cell 11, run 41932921187).
 - extendedWaitUntil:
     visible: '1번째 단어'
     timeout: 15000
@@ -17,84 +12,51 @@ appId: dev.stackline.vaultme
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '2번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '3번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '4번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '5번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '6번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '7번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '8번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '9번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '10번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '11번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'abandon'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
-- waitForAnimationToEnd:
-    timeout: 3000
-- tapOn: '12번째 단어'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'about'
-- tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '복구'

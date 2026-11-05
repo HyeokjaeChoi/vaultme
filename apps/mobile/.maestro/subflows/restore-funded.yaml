@@ -6,6 +6,9 @@ appId: dev.stackline.vaultme
 - extendedWaitUntil:
     visible: '1번째 단어'
     timeout: 15000
+- tapOn: '1번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
 - runFlow:
     file: type-word.yaml
     env:

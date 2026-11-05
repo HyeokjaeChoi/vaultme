@@ -34,13 +34,14 @@ export function ProductNavigation({ items }: { items: NavItem[] }) {
               accessibilityLabel={i.label}
               accessibilityState={{ selected: i.active }}
               onPress={i.onPress}
-              style={{
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? t.semantic.surface.pressed : undefined,
                 flex: 1,
                 minHeight: t.primitive.size.touch_min,
                 alignItems: 'center',
                 gap: t.semantic.layout.fieldGap,
                 borderWidth: nav.itemBorderWidth,
-              }}
+              })}
             >
               {i.active ? (
                 <Icon name={i.icon} weight="bold" size={t.component.icon.size.feature} color={nav.active} />
