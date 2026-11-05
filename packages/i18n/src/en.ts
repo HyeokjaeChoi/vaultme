@@ -16,7 +16,7 @@ export const en: Messages = {
   chip: { network: 'Sepolia', testData: 'Sepolia · Test data' },
   start: {
     title: 'VaultMe',
-    body: 'No account. Your keys stay on this device.\nBefore you send, you see the full\nrecipient address and network fee.',
+    body: 'No account needed.\nYour keys stay on this device.\nBefore you send, you see the full\nrecipient address and network fee.',
     create: 'Create a new wallet',
     restore: 'Restore a wallet',
   },
@@ -102,7 +102,7 @@ export const en: Messages = {
     faucet: {
       title: 'Get test ETH',
       value: 'QuickNode',
-      caption: 'Copies your receive address and opens the faucet (an external site).',
+      caption: 'Copies your address, then opens the faucet site.',
     },
   },
   asset: {
