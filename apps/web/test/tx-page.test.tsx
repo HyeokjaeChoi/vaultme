@@ -209,7 +209,7 @@ describe('transaction page', () => {
     it('a long amount wraps in its own column, not past the row', async () => {
       chain.internal = { items: [{ from: lower(B), to: lower(A), value: '49873451234567891', ok: true }] }
       open(`/tx#${H}`)
-      expect(await screen.findByText('0.049873451234567891 ETH')).toHaveClass('break-all', 'max-w-1/2')
+      expect(await screen.findByText('0.049873451234567891 ETH')).toHaveClass('break-words', 'max-w-1/2')
     })
 
     it('a retry that answers with no transfers keeps the focus in the page', async () => {

@@ -49,7 +49,10 @@ export function SiteHeader({ locale }: { locale: WebLocale }) {
             {t.siteName}
           </span>
         </a>
-        <StatusChip>{t.header.network}</StatusChip>
+        {/* Below 768 px the chip would push the header past 320 px (and wrap when the font loads): the hero already says Sepolia. */}
+        <span className="tablet:inline hidden">
+          <StatusChip>{t.header.network}</StatusChip>
+        </span>
         <div className="min-w-px flex-1" />
         <ThemeToggle t={t.header} />
         <LanguageSwitch locale={locale} t={t.header} />

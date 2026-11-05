@@ -1,12 +1,15 @@
 // Figma: Recipient field 40:17; Redesign B: B/Input Kind=Address 421:773 (Default), 421:781 (Focus), 421:789 (Invalid); Show scan icon (Icon / action / qr 434:230, S20a 618:102090)
 import { useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
+import { ko } from '@vaultme/i18n'
 import { isAddressFormat } from '../lib/address'
 import { textStyle } from '../theme/fonts'
 import { useTheme } from '../theme'
 import { AddressText } from './AddressBlock'
 import { Icon } from './Icon'
+import { recipientA11yLabel } from './recipientA11y'
 import { Text } from './Text'
+import { useAnnounce } from './useAnnounce'
 
 type Action = { label: string; onPress: () => void }
 type Props = {
@@ -24,6 +27,7 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
   const [focused, setFocused] = useState(false)
   const t = useTheme()
   const c = t.component.input
+  useAnnounce(error)
   const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
   return (
     <View style={{ gap: c.fieldGap }}>
@@ -44,7 +48,12 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
       >
         {isAddressFormat(value) && !focused ? (
           // Shown address: first and last group strong, grouped in 4 (Figma B/Address). Tapping it edits the raw text.
-          <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => setFocused(true)}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={recipientA11yLabel(label, value)}
+            accessibilityHint={ko.a11y.tapToEdit}
+            onPress={() => setFocused(true)}
+          >
             <AddressText address={value} emphasis={false} />
           </Pressable>
         ) : (
@@ -97,7 +106,7 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
         ) : null}
       </View>
       {error ? (
-        <Text variant="caption" color={c.errorText}>
+        <Text variant="label" color={c.errorText}>
           {error}
         </Text>
       ) : null}

@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
+import { settled } from './settle'
 import { A, fixtureApi, TX, type InternalMode, type TxMode } from './fixture-api'
 
 type LayoutShift = PerformanceEntry & { value: number; sources: { node: Node | null }[] }
@@ -116,6 +117,18 @@ test.describe('transaction page', () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
     })
   }
+
+  test('a 25-digit amount stays inside the page at 375px', async ({ page }) => {
+    const api = await fixtureApi(page)
+    api.tx = 'big'
+    await page.setViewportSize({ width: 375, height: 900 })
+    await page.goto(hash)
+    const amount = page.getByText('1000000000000000000000000')
+    await expect(amount).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    const box = await amount.boundingBox()
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(375)
+  })
 
   test('internal transfers: a long amount wraps in its column, nothing runs past the row (375px)', async ({ page }) => {
     const api = await fixtureApi(page)
@@ -334,6 +347,7 @@ test.describe('transaction page', () => {
           await page.emulateMedia({ colorScheme: scheme })
           await page.goto(mode === 'invalid' ? '/tx#0x12' : hash)
           await expect(page.getByText(ready).first()).toBeAttached()
+          await settled(page) // the loaded content fades in: axe must read the final colors
           const { violations } = await new AxeBuilder({ page }).analyze()
           expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([])
         })

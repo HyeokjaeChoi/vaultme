@@ -1,5 +1,5 @@
 import { webMessages } from '@vaultme/i18n/web'
-import { useContext } from 'react'
+import { useContext, ViewTransition } from 'react'
 import {
   UNSAFE_FrameworkContext as FrameworkContext,
   Links,
@@ -61,7 +61,10 @@ export default function App() {
     <>
       <SkipLink t={webMessages[locale].header} />
       <SiteHeader locale={locale} />
-      <Outlet />
+      {/* React 19.3 <ViewTransition> (React Router 8 deprecates its own `viewTransition` prop): /address <-> /tx cross-fade, styled in app.css. */}
+      <ViewTransition default="page-fade">
+        <Outlet />
+      </ViewTransition>
       <SiteFooter locale={locale} />
     </>
   )
