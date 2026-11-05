@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ko } from '@vaultme/i18n'
+import { i18n } from '@vaultme/i18n'
 import { activityRowLook } from '../src/shared/ui/activityRowLook'
 
 // B/Row State=Caution (Figma 877:631, 877:659): an incoming zero-value row (Q71, #313). The rendering itself is checked against Figma (ActivityRow.tsx).
@@ -36,6 +36,6 @@ describe('activityRowLook', () => {
     })
   })
   it('the caution line is Korean copy from i18n', () => {
-    expect(ko.activity.row.caution).toBe('주의 · 주소를 사칭한 거래일 수 있어요')
+    expect(i18n.t('activity.row.caution')).toBe('주의 · 주소를 사칭한 거래일 수 있어요')
   })
 })

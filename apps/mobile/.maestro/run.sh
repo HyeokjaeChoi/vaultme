@@ -22,6 +22,10 @@ case "$platform" in
     [ -n "$udid" ] || { echo "no booted simulator; boot one or set SIM_UDID" >&2; exit 2; }
     [ "$(printf '%s\n' "$udid" | wc -l)" -eq 1 ] || { echo "several simulators are booted; set SIM_UDID to one of: $udid" >&2; exit 2; }
     xcrun simctl install "$udid" "$app"
+    # The app follows the device language (ADR-0037) and the flows match Korean text: pin this E2E simulator to Korean.
+    # The global domain is read when the app starts, so the next launchApp picks it up without a reboot.
+    xcrun simctl spawn "$udid" defaults write -g AppleLanguages -array ko-KR
+    xcrun simctl spawn "$udid" defaults write -g AppleLocale ko_KR
     # Enroll Face ID (same commands as apps/mobile/AGENTS.md, for a simulator made for E2E).
     xcrun simctl spawn "$udid" notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
     xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit.enrollmentChanged
@@ -35,6 +39,11 @@ case "$platform" in
     udid="$ANDROID_SERIAL"
     case "$udid" in emulator-*) ;; *) echo "PLATFORM=android runs on an emulator only (got $udid)" >&2; exit 2 ;; esac
     adb -s "$udid" install -r "$app"
+    # The flows match Korean text (ADR-0037). A per-app locale is wiped by clearState (pm clear), so the emulator itself must be
+    # Korean: release.yml boots it with -change-locale ko-KR. Android uses persist.sys.locale when set, else ro.product.locale.
+    loc="$(adb -s "$udid" shell getprop persist.sys.locale | tr -d '\r')"
+    [ -n "$loc" ] || loc="$(adb -s "$udid" shell getprop ro.product.locale | tr -d '\r')"
+    case "$loc" in ko*) ;; *) echo "::error::emulator locale is '$loc', the flows need Korean: boot it with -change-locale ko-KR" >&2; exit 2 ;; esac
     # Screen lock PIN + fingerprint for the throwaway CI emulator (same setup as apps/mobile/AGENTS.md; the PIN is a test value).
     adb -s "$udid" shell locksettings set-pin 1234
     adb -s "$udid" shell svc power stayon true

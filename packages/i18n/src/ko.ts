@@ -613,6 +613,14 @@ export const ko = {
     denied: '기기 설정에서 알림을 켤 수 있어요',
   },
   a11y: { addressGroup: '주소를 4글자씩 읽어요', reveal: '탭해서 보기', tapToEdit: '탭해서 수정' },
+  // Date words of shared/lib/time.ts and the chain names of the QR mismatch sheet, moved here from the mobile code (ADR-0037).
+  time: {
+    monthDay: '{{monthName}} {{day}}일',
+    weekdayDate: '{{monthName}} {{day}}일 ({{weekday}})',
+    months: '1월,2월,3월,4월,5월,6월,7월,8월,9월,10월,11월,12월',
+    weekdays: '일,월,화,수,목,금,토',
+  },
+  chainName: { mainnet: 'Ethereum 메인넷' },
 } as const
 
 export type Ko = typeof ko

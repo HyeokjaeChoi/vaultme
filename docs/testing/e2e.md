@@ -23,7 +23,7 @@ Funded flows (#381, ADR-0033): tag `funded`, run only by `run.sh release` (criti
 
 Secret safety: `mask-phrase.sh` emits `::add-mask::` for the phrase and each word (GitHub masks exact strings only; Maestro prints `Input text <word>`). The secret is set only on the mask, run and check steps. A tag run uploads only the JUnit reports (no screenshots, no command logs) and only after `check-no-phrase.sh` finds no phrase word in them. A dry run has no Environment: it runs the five critical flows and uploads as before.
 
-Flows match visible Korean text (button labels are also accessibility labels). A copy change in `packages/i18n` can break a flow: update the flow in the same PR.
+Flows match visible Korean text (button labels are also accessibility labels). A copy change in `packages/i18n` can break a flow: update the flow in the same PR. The app follows the device language (ADR-0037), so `run.sh` pins the iOS simulator to Korean (`AppleLanguages`, `AppleLocale`) and stops on an Android emulator that is not Korean; `release.yml` boots the emulator with `-change-locale ko-KR`. Use a simulator made for E2E: the pin changes its system language.
 
 ## Device auth
 

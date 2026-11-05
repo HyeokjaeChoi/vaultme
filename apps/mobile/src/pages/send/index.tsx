@@ -7,7 +7,7 @@ import { AccessibilityInfo, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { recipientResolver, takeScanResult, useRecents, type RecipientForm } from '@/features/send'
 import { goBack } from '@/shared/lib/nav'
-import { dateLabel } from '@/shared/lib/time'
+import { monthDay } from '@/shared/lib/time'
 import { showAmount } from '@/shared/lib/amount'
 import { useTheme } from '@/shared/theme'
 import { Button, Icon, RecipientField, Screen, ScreenHeader, StatusNotice, Text } from '@/shared/ui'
@@ -141,7 +141,7 @@ export function SendPage() {
                 <AddressText address={r.address} />
                 <Text variant="caption" color={th.semantic.text.tertiary}>
                   {t('send.recentRow', {
-                    date: dateLabel(r.at).replace(/ \(.\)$/, ''),
+                    date: monthDay(r.at),
                     amount: showAmount(r.amount, r.asset, 'floor'),
                   })}
                 </Text>

@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSFaceIDUsageDescription": "지갑을 열고 거래에 서명할 때 Face ID를 사용해요.",
+    "NSCameraUsageDescription": "받는 주소 QR을 스캔할 때 카메라를 사용해요."
+  }
+}

@@ -5,7 +5,7 @@ Expo app. Read `ARCHITECTURE.md` (code map) and `DESIGN.md` before you change a 
 - Layers in `src/`, top to bottom: `shell` (FSD app layer; Expo Router reserves `src/app`), `pages`, `widgets`, `features`, `entities`, `shared`. `eslint.config.mjs` (boundaries) and `steiger.config.mjs` enforce the import rules; read the message when one fails.
 - `app/` is the expo-router tree. A route file only re-exports from `src/shell` or `src/pages`.
 - Screen work follows the `vaultme-design-to-code` skill: Figma first, then code, then light and dark comparison images in the PR.
-- Copy lives in `packages/i18n`. Use the terms in `CONTEXT.md`.
+- Copy lives in `packages/i18n`, in `ko` and `en` (same keys, ADR-0037). Use the terms in `CONTEXT.md`. The language follows the device (`expo-localization`); see `docs/testing/e2e.md` for the Korean pin of the E2E runs.
 
 ## Testing OS auth on a simulator (ADR-0016)
 

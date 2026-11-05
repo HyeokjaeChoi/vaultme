@@ -79,7 +79,7 @@ export function ReviewPanel({
         amount={figure ?? values.amount}
         unit={unit ?? values.asset}
         lines={[
-          t('review.heroTo', { account: account.name }),
+          t('review.heroTo', { account: t('home.account') }),
           ...(feeUnknown
             ? [t('review.heroFeeAgain')]
             : values.total
@@ -140,7 +140,7 @@ export function ReviewPanel({
           value={(assets.find((a) => a.symbol === values.asset) ?? assets[0]).name}
         />
         <SummaryRow label={t('review.network')} value={account.network} />
-        <SummaryRow label={t('review.account')} value={account.name} />
+        <SummaryRow label={t('review.account')} value={t('home.account')} />
       </Block>
     </>
   )

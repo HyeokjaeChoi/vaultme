@@ -56,7 +56,6 @@
   "packages/history/src/index.ts:LocalSend",
   "packages/i18n/src/index.ts:defaultNS",
   "packages/i18n/src/index.ts:resources",
-  "packages/i18n/src/ko.ts:Ko",
   "packages/i18n/src/web.ts:webEn",
   "packages/i18n/src/web.ts:webKo"
 ]

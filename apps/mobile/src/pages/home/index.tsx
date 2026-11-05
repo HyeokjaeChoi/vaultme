@@ -106,7 +106,7 @@ export function HomePage() {
       onRefresh={() => Promise.all([refreshBalances(), refreshHistory()])}
     >
       <ProductHeader
-        title={account.name}
+        title={t('home.account')}
         chips={<NetworkChips onPress={(test) => setSheet(test ? 'testData' : 'intro')} />}
       />
       <PortfolioBalance

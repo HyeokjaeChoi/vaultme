@@ -3,7 +3,7 @@ import * as Notifications from 'expo-notifications'
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
 import { PUSH_CHANNEL_ID } from '@vaultme/contracts'
-import { ko } from '@vaultme/i18n'
+import { i18n } from '@vaultme/i18n'
 import { api } from '@/shared/api'
 import { appStore } from '@/shared/app-store'
 import { getAccountAddress, getPushUnregisterPending, setPushUnregisterPending } from '@/shared/storage'
@@ -16,7 +16,7 @@ const toPermission = (r: Notifications.NotificationPermissionsStatus): Permissio
 const ensureChannel = () =>
   Platform.OS === 'android'
     ? Notifications.setNotificationChannelAsync(PUSH_CHANNEL_ID, {
-        name: ko.settings.pushScreen.title,
+        name: i18n.t('settings.pushScreen.title'),
         importance: Notifications.AndroidImportance.DEFAULT,
       })
     : Promise.resolve(null)

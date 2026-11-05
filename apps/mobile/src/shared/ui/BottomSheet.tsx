@@ -10,7 +10,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 import { scheduleOnRN } from 'react-native-worklets'
-import { ko } from '@vaultme/i18n'
+import { i18n } from '@vaultme/i18n'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useIsFocused } from 'expo-router'
 import { useTheme } from '../theme'
@@ -130,7 +130,7 @@ export function BottomSheet({
         <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }, scrim]}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={ko.common.close}
+            accessibilityLabel={i18n.t('common.close')}
             onPress={dismiss}
             style={{ flex: 1, backgroundColor: t.component.overlay.scrimBg, opacity: t.component.overlay.scrimOpacity }}
           />

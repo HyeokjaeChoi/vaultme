@@ -38,7 +38,7 @@ The product keeps wallet actions readable: it shows the account, network, asset,
 | `packages/api-client` | The install-identity API client (`createApiClient`) |
 | `packages/history` | The history list and row lookup module |
 | `packages/tokens` | Design tokens generated from the token source with Style Dictionary |
-| `packages/i18n` | Typed Korean strings with i18next |
+| `packages/i18n` | Typed Korean and English strings with i18next |
 | `packages/config` | Shared ESLint and TypeScript settings |
 | `ARCHITECTURE.md` | What the code does today: parts, data flows, invariants, security model |
 | `docs/` | Work workflow, ADRs (`docs/adr/`), and the OpenAPI file |

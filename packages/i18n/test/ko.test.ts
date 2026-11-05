@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest'
-import { i18n, ko } from '../src'
+import { i18n } from '../src'
+import { ko } from '../src/ko'
 
 it('resolves ko keys synchronously', () => {
   expect(i18n.t('start.create')).toBe(ko.start.create)

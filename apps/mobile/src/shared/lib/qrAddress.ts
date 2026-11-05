@@ -1,3 +1,4 @@
+import { i18n } from '@vaultme/i18n'
 import { CHAIN, toChecksumAddress } from '@vaultme/wallet-core'
 import { isAddressFormat } from './address'
 import { at } from './at'
@@ -72,12 +73,16 @@ export function parseAddressQr(data: string): QrParse {
 export const chainIdCopula = (chainId: number): '이에요' | '예요' =>
   '2459'.includes(String(chainId).slice(-1)) ? '예요' : '이에요'
 
+// Proper names stay as they are; a translated name is a `chainName.*` key in packages/i18n (ADR-0037).
 const CHAIN_NAMES: Record<number, string> = {
-  1: 'Ethereum 메인넷',
+  1: 'mainnet',
   8453: 'Base',
   137: 'Polygon',
   42161: 'Arbitrum One',
   10: 'OP Mainnet',
 }
 /** Display name of a well-known chain id for the chain-mismatch sheet; null = unknown (the sheet shows the id). */
-export const chainName = (chainId: number): string | null => CHAIN_NAMES[chainId] ?? null
+export const chainName = (chainId: number): string | null => {
+  const name = CHAIN_NAMES[chainId]
+  return name === 'mainnet' ? i18n.t('chainName.mainnet') : (name ?? null)
+}
