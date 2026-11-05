@@ -15,7 +15,7 @@ type Props = {
   iconColor?: string
   /** Label in Product B / Address (mono), for a recent address. */
   mono?: boolean
-  /** 52 pt row (S64 license list, Figma 526:54525) instead of 64. */
+  /** 52 pt row (S64 license list, Figma 526:54525) instead of 64; the value uses Product B/Value. */
   compact?: boolean
   /** The trailing value uses Product B/Fact (Pretendard Regular 12): network, version. */
   detailValue?: boolean
@@ -28,12 +28,12 @@ type Props = {
   onPress?: () => void
 }
 
-/** C31 List item (Redesign B Settings row / Switch row). Flat, no fill and no divider, min-height rowB.height 64, title Row title 500, trailing value Body Small tertiary (Caption on a compact license row), 20 pt chevron. A pressable row scales to 0.97 over motion.duration.fastMs. */
+/** C31 List item (Redesign B Settings row / Switch row). Flat, no fill and no divider, min-height rowB.height 64, title Row title 500, trailing value Body Small tertiary (Product B/Value on a compact license row), 20 pt chevron. A pressable row scales to 0.97 over motion.duration.fastMs. */
 export function ListItem({ title, icon, iconColor, mono, compact, detailValue, trailing, onPress }: Props) {
   const t = useTheme()
   const { style, handlers } = usePressScale()
   const value = (text: string) => (
-    <Text variant={detailValue ? 'fact' : compact ? 'caption' : 'bodySmall'} color={t.semantic.text.tertiary} tabular>
+    <Text variant={detailValue ? 'fact' : compact ? 'value' : 'bodySmall'} color={t.semantic.text.tertiary} tabular>
       {text}
     </Text>
   )
