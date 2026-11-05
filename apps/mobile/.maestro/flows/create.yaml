@@ -40,6 +40,10 @@ tags: [smoke, critical]
 - runFlow: { file: ../subflows/answer-word.yaml, env: { N: '10' } }
 - runFlow: { file: ../subflows/answer-word.yaml, env: { N: '11' } }
 - runFlow: { file: ../subflows/answer-word.yaml, env: { N: '12' } }
+# The hint under the disabled 확인 button goes away once all 3 words are in; wait for that so a slow runner does not tap 확인 with a word still missing (#424).
+- extendedWaitUntil:
+    notVisible: '단어를 모두 입력하면 확인할 수 있어요.'
+    timeout: 10000
 - tapOn: '확인'
 # Right words: backup done, Receive opens (S30) with the wallet address.
 # The address itself: iOS reads its label (spelled out by group), Android its text; the QR is also named "받기 주소 QR 코드".
