@@ -118,10 +118,15 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
     return () => sub.remove()
   }, [clearAll])
 
-  const cellH = th.primitive.space[3] * 2 + th.primitive.type.productB.body.lineHeight
   const half = count / 2
-  const revealCell = (i: number) =>
-    reveal.current?.(phraseY.current + gridY.current + (i % half) * (cellH + th.semantic.layout.fieldGap), cellH)
+  // Each cell's own box (y within its column), not one height from the cell's minHeight: the text line and the border make a cell taller,
+  // and a long wrapped entry makes one cell taller than the rest (#449). A cell not laid out yet (just added by a 12 -> 24 switch) uses cell 1's height per row.
+  const cellBoxes = useRef<{ y: number; h: number }[]>([])
+  const revealCell = (i: number) => {
+    const first = cellBoxes.current[0] ?? { y: 0, h: 0 }
+    const box = cellBoxes.current[i] ?? { y: (i % half) * (first.h + th.semantic.layout.fieldGap), h: first.h }
+    reveal.current?.(phraseY.current + gridY.current + box.y, box.h)
+  }
   useEffect(() => {
     // judge the starting words (hand-off or dev preset) once, so a wrong word shows on arrival as before
     void trigger()
@@ -197,26 +202,32 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const column = (from: number, to: number) => (
     <View style={{ flex: 1, gap: th.semantic.layout.fieldGap }}>
       {Array.from({ length: to - from }, (_, k) => from + k).map((i) => (
-        <WordCell
+        <View
           key={i}
-          number={i + 1}
-          label={t('restore.word', { n: i + 1 })}
-          value={words[i] ?? ''}
-          focused={focus === i}
-          error={unknown.includes(i)}
-          last={i === count - 1}
-          inputRef={(r) => {
-            cells.current[i] = r
+          onLayout={(e) => {
+            cellBoxes.current[i] = { y: e.nativeEvent.layout.y, h: e.nativeEvent.layout.height }
           }}
-          onChangeText={(v) => apply(i, v)}
-          onFocus={() => {
-            setFocus(i)
-            revealCell(i)
-          }}
-          onBlur={() => setFocus((f) => (f === i ? null : f))}
-          onNext={() => (i + 1 < count ? go(i + 1) : Keyboard.dismiss())}
-          onBackspaceEmpty={() => i > 0 && go(i - 1)}
-        />
+        >
+          <WordCell
+            number={i + 1}
+            label={t('restore.word', { n: i + 1 })}
+            value={words[i] ?? ''}
+            focused={focus === i}
+            error={unknown.includes(i)}
+            last={i === count - 1}
+            inputRef={(r) => {
+              cells.current[i] = r
+            }}
+            onChangeText={(v) => apply(i, v)}
+            onFocus={() => {
+              setFocus(i)
+              revealCell(i)
+            }}
+            onBlur={() => setFocus((f) => (f === i ? null : f))}
+            onNext={() => (i + 1 < count ? go(i + 1) : Keyboard.dismiss())}
+            onBackspaceEmpty={() => i > 0 && go(i - 1)}
+          />
+        </View>
       ))}
     </View>
   )
