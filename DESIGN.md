@@ -323,7 +323,7 @@ Token layers: Primitive holds raw values. Semantic aliases Primitive by role. Co
 
 Dark mode: the app follows the OS setting. The web also has a theme toggle. The front matter shows the light theme. See "Colors" for dark.
 
-The product language is Korean. Terms are in `CONTEXT.md`.
+The app languages are Korean (the fallback) and English (ADR-0037). Terms are in `CONTEXT.md`: the bold Korean term, then the English term in parentheses. The Korean flow pages are the source for Korean. Figma page "Flows · English (ADR-0037)" (`980:18337`) holds the English frames of the main screens, light and dark: copies of the Korean frames with English instance text overrides (Q81). A new screen gets both languages before the app changes.
 
 ## Colors
 
