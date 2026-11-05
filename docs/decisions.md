@@ -102,4 +102,4 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q78 | Infura primary, Alchemy fallback | IMPLEMENTED | ADR-0007 |
 | Q79 | Burn and token-contract warnings | IMPLEMENTED | `packages/wallet-core/src/risk.ts` |
 | Q80 | Dark mode and the added components | IMPLEMENTED | `shared/theme/index.tsx` |
-| Q81 | Foundation in English; screens in Korean | SUPERSEDED | ADR-0037 (#452): screens get English frames too. The English Foundation and instance text overrides still hold: `DESIGN.md` |
+| Q81 | Foundation in English; screens in Korean | SUPERSEDED | ADR-0037 (#452): screens get English frames too. The English Library and instance text overrides still hold (requirements record 1623a53, line 159) |
