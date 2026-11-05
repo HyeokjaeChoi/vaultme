@@ -17,7 +17,7 @@ type Props = {
 /**
  * C02 Icon button. 44 px target, radius 12. `filled` = white chip (iconButton.bg); `plain` = no background at rest
  * (bare back / details control), pressed uses iconButton.bg.pressed. `label` is the action-specific accessible name.
- * Press feedback: scale 0.97, 160 ms ease-out (off under Reduce Motion).
+ * Press feedback: scale 0.97, motion.duration.fastMs ease-out (off under Reduce Motion).
  */
 export function IconButton({ icon, label, onPress, disabled, variant = 'filled', color }: Props) {
   const t = useTheme()

@@ -1,7 +1,8 @@
 // Figma: B/Amount hero 494:1142 (Kind=Review | Result; Figure 44/700 + Figure unit 24/600, baseline)
-import Animated from 'react-native-reanimated'
+import Animated, { FadeIn, FadeOut, useReducedMotion } from 'react-native-reanimated'
+import { useState } from 'react'
 import { View } from 'react-native'
-import { useTheme } from '../theme'
+import { EASE_OUT, useTheme } from '../theme'
 import { useCheckPop } from '../theme/motion'
 import { AssetIcon, type AssetSymbol } from './AssetIcon'
 import { RowBadge, type RowBadgeKind } from './RowBadge'
@@ -23,13 +24,28 @@ type Props = {
   link?: { label: string; onPress: () => void }
   /** Kind=Confirmed (S23 only): logo 96, a 32 pt check badge that scales 0.6 -> 1.0 in 400 ms (Reduce Motion: no scale), Title 1. */
   celebrate?: boolean
+  /** Cancelled send: the amount is muted (text/tertiary) and struck through (Figma 888:6726). */
+  struck?: boolean
 }
 
 /** Amount hero. Review (S22): logo 48, Figure + unit, sentence. Result (S23, S41): logo 56 + row badge, Title 2, Figure + unit, sentence, all centered. The figure is the only 700 weight. */
-export function AmountHero({ asset, amount, unit, lines, result, note, link, celebrate }: Props) {
+export function AmountHero({ asset, amount, unit, lines, result, note, link, celebrate, struck }: Props) {
   const t = useTheme()
   const pop = useCheckPop(!!celebrate && !!result)
+  // Motion audit M3: when the status changes, only the badge cross-fades (baseMs). Title, amount and sentence render at once, and the first frame never fades.
+  // Confirmed and Pending fade in; Failed, Unknown, Replaced and warnings appear at once. Reduce Motion: no fade.
+  const reduce = useReducedMotion()
+  const kind = result?.badge
+  const [prevKind, setPrevKind] = useState(kind)
+  const [changed, setChanged] = useState(false)
+  if (kind !== prevKind) {
+    setPrevKind(kind)
+    setChanged(true)
+  }
+  const ms = t.primitive.motion.duration.baseMs
   const big = !!celebrate && !!result
+  const bigGlyph = t.primitive.size.icon_xl - t.component.rowBadge.ring * 2 // Confirmed hero badge (32)
+  const badgeBox = (big ? bigGlyph : t.component.rowBadge.size) + t.component.rowBadge.ring * 2
   const logo = big
     ? t.primitive.size.avatar_lg * 2
     : result
@@ -52,19 +68,27 @@ export function AmountHero({ asset, amount, unit, lines, result, note, link, cel
       <View style={{ width: logo, height: logo }}>
         <AssetIcon symbol={asset} size={logo} />
         {result ? (
+          // Fixed-size box at the logo corner; each badge is anchored bottom-right inside it, so a badge that is leaving stays where it was.
+          // The new badge is drawn after (above) the leaving one: an opaque badge (Failed, Unknown, Replaced) covers it at once, a fading-in one (Pending, Confirmed) cross-fades with it.
           <View
             style={{
               position: 'absolute',
               right: 0,
               bottom: 0,
+              width: badgeBox,
+              height: badgeBox,
               transform: [{ translateX: t.component.rowBadge.ring }, { translateY: t.component.rowBadge.ring }],
             }}
           >
-            <Animated.View style={big ? pop : undefined}>
-              <RowBadge
-                kind={result.badge}
-                {...(big ? { size: t.primitive.size.icon_xl - t.component.rowBadge.ring * 2 } : {})}
-              />
+            <Animated.View
+              key={result.badge}
+              style={[{ position: 'absolute', right: 0, bottom: 0 }, big ? pop : undefined]}
+              {...(changed && !reduce && (result.badge === 'confirmed' || result.badge === 'pending')
+                ? { entering: FadeIn.duration(ms).easing(EASE_OUT) }
+                : {})}
+              {...(reduce ? {} : { exiting: FadeOut.duration(ms).easing(EASE_OUT) })}
+            >
+              <RowBadge kind={result.badge} {...(big ? { size: bigGlyph } : {})} />
             </Animated.View>
           </View>
         ) : null}
@@ -83,10 +107,20 @@ export function AmountHero({ asset, amount, unit, lines, result, note, link, cel
           justifyContent: align,
         }}
       >
-        <Text variant="figure" tabular>
+        <Text
+          variant="figure"
+          tabular
+          {...(struck
+            ? { color: t.semantic.text.tertiary, style: { textDecorationLine: 'line-through' as const } }
+            : {})}
+        >
           {amount}
         </Text>
-        <Text variant="figureUnit" color={t.semantic.text.secondary}>
+        <Text
+          variant="figureUnit"
+          color={struck ? t.semantic.text.tertiary : t.semantic.text.secondary}
+          {...(struck ? { style: { textDecorationLine: 'line-through' as const } } : {})}
+        >
           {unit}
         </Text>
       </View>

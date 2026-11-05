@@ -17,8 +17,8 @@ type Props = {
   mono?: boolean
   /** 52 pt row (S64 license list, Figma 526:54525) instead of 64. */
   compact?: boolean
-  /** The trailing value is a Fact (Product B/Fact mono): network + chainId, version. */
-  factValue?: boolean
+  /** The trailing value uses Product B/Fact (Pretendard Regular 12): network, version. */
+  detailValue?: boolean
   /** `value` = text only, `disclosure` = optional value + chevron, `external` = optional value + the open-in-browser icon (link row), `custom` = any node, e.g. a Switch (Switch row). */
   trailing?:
     | { kind: 'value'; text: string }
@@ -28,16 +28,12 @@ type Props = {
   onPress?: () => void
 }
 
-/** C31 List item (Redesign B Settings row / Switch row). Flat, no fill and no divider, min-height rowB.height 64, title Row title 500, trailing value Body Small tertiary (Caption on a compact license row), 20 pt chevron. A pressable row scales to 0.97 over 100 ms. */
-export function ListItem({ title, icon, iconColor, mono, compact, factValue, trailing, onPress }: Props) {
+/** C31 List item (Redesign B Settings row / Switch row). Flat, no fill and no divider, min-height rowB.height 64, title Row title 500, trailing value Body Small tertiary (Caption on a compact license row), 20 pt chevron. A pressable row scales to 0.97 over motion.duration.fastMs. */
+export function ListItem({ title, icon, iconColor, mono, compact, detailValue, trailing, onPress }: Props) {
   const t = useTheme()
   const { style, handlers } = usePressScale()
   const value = (text: string) => (
-    <Text
-      variant={factValue ? 'fact' : compact ? 'caption' : 'bodySmall'}
-      color={factValue ? t.semantic.text.secondary : t.semantic.text.tertiary}
-      tabular
-    >
+    <Text variant={detailValue ? 'fact' : compact ? 'caption' : 'bodySmall'} color={t.semantic.text.tertiary} tabular>
       {text}
     </Text>
   )
@@ -78,7 +74,13 @@ export function ListItem({ title, icon, iconColor, mono, compact, factValue, tra
   )
   return onPress ? (
     <Animated.View style={style}>
-      <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} {...handlers}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        onPress={onPress}
+        {...handlers}
+        style={({ pressed }) => ({ backgroundColor: pressed ? t.semantic.surface.pressed : undefined })}
+      >
         {row}
       </Pressable>
     </Animated.View>

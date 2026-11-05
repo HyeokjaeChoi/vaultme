@@ -16,7 +16,7 @@ import {
   toQuantity as toBig,
   type RpcCall,
 } from '@vaultme/api-client'
-import type { ChainPort, Receipt } from './port'
+import type { ChainPort, Receipt, SentTx } from './port'
 
 export type { RpcCall }
 
@@ -93,6 +93,18 @@ export function createRpcChain(rpc: RpcCall): ChainPort {
     },
     async getSafeNonce(address) {
       return toBig(await rpc('eth_getTransactionCount', [address, 'safe']))
+    },
+    async getTransaction(hash: Hash): Promise<SentTx | null> {
+      const r = await rpc('eth_getTransactionByHash', [hash])
+      if (r === null) return null
+      const o = r as { maxFeePerGas?: unknown; maxPriorityFeePerGas?: unknown; gas?: unknown }
+      if (o.maxFeePerGas == null || o.maxPriorityFeePerGas == null || o.gas == null)
+        throw new Error('rpc: bad transaction')
+      return {
+        maxFeePerGas: toBig(o.maxFeePerGas),
+        maxPriorityFeePerGas: toBig(o.maxPriorityFeePerGas),
+        gasLimit: toBig(o.gas),
+      }
     },
     async getReceipt(hash: Hash): Promise<Receipt | null> {
       const r = await rpc('eth_getTransactionReceipt', [hash])

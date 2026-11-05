@@ -1,8 +1,10 @@
 export * from './constants'
-export * from './mnemonic'
+// Key and signing code (Mnemonic, generateMnemonic, toMnemonic, deriveAddress, signAndSubmit) lives in `./signer` (Q59, #312).
+export { isMnemonicWord, validateMnemonic } from './mnemonic'
 export * from './amount'
 export * from './risk'
 export * from './state'
 export * from './send'
 export * from './address'
 export * from './format'
+export * from './replace'

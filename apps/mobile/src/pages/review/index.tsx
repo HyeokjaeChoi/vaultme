@@ -31,7 +31,7 @@ import { chain } from '@/shared/chain'
 import { useDevEthShort } from '@/shared/chain'
 import { loadPhrase } from '@/shared/storage'
 
-/** B/Address compare (Figma 477:5145, inside the S22L sheet): Info line, then the previous and the current address (differing chunks marked red + underline), left edge on the sheet's 16 line. */
+/** B/Address compare (Figma 477:5145, inside the S22L sheet): Info line, then the previous and the current address (differing chunks marked bold + danger color), left edge on the sheet's 16 line. */
 function Compare({ current, previous }: { current: string; previous: string }) {
   const { t } = useTranslation()
   const th = useTheme()

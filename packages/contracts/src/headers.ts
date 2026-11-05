@@ -9,8 +9,6 @@ export const WEB_CLIENT = 'web'
 export const AppVersion = z.string().regex(/^\d+(\.\d+){0,2}$/)
 export type AppVersion = z.infer<typeof AppVersion>
 
-export const AppVersionHeader = z.object({ 'x-app-version': AppVersion })
-
 /** True when `version` is lower than `min`. Missing parts count as 0. */
 export function isBelow(version: string, min: string): boolean {
   const a = version.split('.').map(Number)

@@ -13,7 +13,12 @@ export function TextLink({ label, onPress, accessibilityLabel, align = 'flex-sta
       accessibilityRole="link"
       accessibilityLabel={accessibilityLabel ?? label}
       onPress={onPress}
-      style={{ minHeight: t.primitive.size.touch_min, justifyContent: 'center', alignSelf: align }}
+      style={({ pressed }) => ({
+        opacity: pressed ? t.primitive.opacity[72] : t.primitive.opacity[100],
+        minHeight: t.primitive.size.touch_min,
+        justifyContent: 'center',
+        alignSelf: align,
+      })}
     >
       <Text variant="link" color={t.semantic.text.link}>
         {label}

@@ -1,13 +1,16 @@
 // Usage (from the repo root, node 24):
 //   node packages/perf/src/cli.ts hermes <expo export dir> <out.json>
 //   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts latency <out.json>    (prints the table; CI adds it to the job summary)
+//   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts smoke    (post-deploy: one balance read and one history read; exit 1 on failure)
 //   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha> --origin <text>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the tier-2 limits for api.js)
+//   node packages/perf/src/cli.ts slo-window --runs <dir with the downloaded api-bench artifacts of the window>    (pools the SLO counts, ADR-0036; exit 3 on a breach, so a crash (exit 1) is not one)
 //   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text>
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { parseArgs } from 'node:util'
 import { aggregate, benchTable, limitsJs, MODES, type K6Result } from './bench.ts'
 import { buildBaseline, latencyTable, renderBaseline, type Baseline, type JsBudgetRow } from './baseline.ts'
+import { sloWindow, windowMarkdown, type Case, type Mode, type SloCount } from './slo.ts'
 import { hermesSizes, readLhrDir, type HermesSizes } from './summarize.ts'
 
 // N per endpoint (ADR-0019): 20 + 20 + 5 calls plus 1 warm-up rpc and 1 token. The install limit is 60 per 60 s, the IP limit 300.
@@ -42,6 +45,13 @@ if (cmd === 'hermes') {
   console.log(latencyTable(api))
   // A run where an endpoint never answered is a failed run, not a baseline.
   if (Object.values(api).some((e) => e.ok === 0)) process.exitCode = 1
+} else if (cmd === 'smoke') {
+  const baseUrl = process.env.STAGING_API_URL
+  if (!baseUrl) throw new Error('usage: STAGING_API_URL=<url> smoke')
+  const web = readJson(new URL('../../../apps/web/package.json', import.meta.url).pathname) as { version: string }
+  const { smokeApi } = await import('./smoke.ts')
+  await smokeApi({ baseUrl: baseUrl.replace(/\/+$/, ''), appVersion: web.version })
+  console.log('smoke ok: balance read and history read')
 } else if (cmd === 'baseline') {
   const { values: v } = parseArgs({
     args: rest,
@@ -119,6 +129,25 @@ if (cmd === 'hermes') {
   writeFileSync(file, `${JSON.stringify(baseline, null, 2)}\n`)
   writeFileSync(join(v.out, 'baseline.md'), renderBaseline(baseline))
   console.log(`${benchTable(apiBench.results)}\n\n${limitsJs(apiBench.results)}`)
+} else if (cmd === 'slo-window') {
+  const { values: v } = parseArgs({ args: rest, options: { runs: { type: 'string' } } })
+  const runs = v.runs
+  if (!runs) throw new Error('slo-window: --runs is required')
+  // Every k6 result file at any depth (`gh run download` puts each run in its own folder).
+  const files = (readdirSync(runs, { recursive: true }) as string[]).filter((f) =>
+    /(^|\/)k6-api-(warm|cold)\.json$/.test(f),
+  )
+  const results = files.map(
+    (f) =>
+      readJson(join(runs, f)) as {
+        mode: Mode
+        endpoints: Partial<Record<Case, { slo?: SloCount | null }>>
+      },
+  )
+  const rows = sloWindow(results)
+  console.log(windowMarkdown(rows, new Set(files.map((f) => dirname(f))).size))
+  // 3, not 1: Node exits 1 on an uncaught throw, and api-slo-window.yml must not report a crash as a breach.
+  if (rows.some((r) => r.ok === false)) process.exitCode = 3
 } else {
-  throw new Error('usage: cli.ts hermes | latency | baseline | bench')
+  throw new Error('usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window')
 }

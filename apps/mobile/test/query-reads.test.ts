@@ -8,6 +8,7 @@ const m = vi.hoisted(() => ({
   view: vi.fn(),
   findRow: vi.fn(),
   pending: null as object | string | null,
+  zero: false,
 }))
 vi.mock('@/shared/chain', () => ({ chain: { broadcasts: true, getSnapshot: m.getSnapshot } }))
 vi.mock('@/shared/storage', () => ({ getAccountAddress: () => null }))
@@ -16,6 +17,7 @@ vi.mock('@/entities/transaction', () => ({ readPendingTx: () => m.pending }))
 vi.mock('../src/features/history/model/loader', () => ({
   history: { view: m.view, findRow: m.findRow },
   accountAddress: () => ME,
+  showZero: () => m.zero,
 }))
 
 import { historyKey, historyQuery, rowLookupQuery } from '../src/features/history/model/historyQuery'
@@ -40,6 +42,7 @@ beforeEach(() => {
   m.view.mockReset()
   m.findRow.mockReset()
   m.pending = null
+  m.zero = false
 })
 
 describe('history reads', () => {
@@ -58,11 +61,13 @@ describe('history reads', () => {
     m.view.mockResolvedValue(failed)
     expect(await qc().query(historyQuery(ME))).toBe(failed)
   })
-  it('each account has its own list view; a row lookup is keyed by account, id and direction', () => {
-    expect(historyQuery(ME).queryKey).toEqual(['history', ME])
-    expect(historyKey(null)).toEqual(['history', null])
-    expect(rowLookupQuery('0xh:0', undefined).queryKey).toEqual(['historyRow', ME, '0xh:0', null])
-    expect(rowLookupQuery('0xh', 'in').queryKey).toEqual(['historyRow', ME, '0xh', 'in'])
+  it('each account has its own list view; a row lookup is keyed by account and id', () => {
+    expect(historyQuery(ME).queryKey).toEqual(['history', ME, false])
+    expect(historyKey(null)).toEqual(['history', null, false])
+    expect(rowLookupQuery('0xh:0').queryKey).toEqual(['historyRow', ME, '0xh:0', false])
+    m.zero = true
+    expect(historyKey(ME)).toEqual(['history', ME, true]) // a flip of S63 is a new view
+    m.zero = false
   })
   it('a send that settled while the page was fetched is merged again (the list never keeps "보내는 중")', async () => {
     m.pending = { hash: '0x1', state: 'Pending' }
@@ -75,6 +80,17 @@ describe('history reads', () => {
     expect(m.view).toHaveBeenCalledTimes(2)
     expect(v.local.state).toBe('Confirmed')
   })
+  it('a speed up that added an own hash during the fetch merges again (the API row of the replacement must not stay beside the send)', async () => {
+    m.pending = { hash: '0x1', state: 'Pending', hashes: ['0x1'] }
+    m.view.mockImplementationOnce((_a: unknown, local: unknown) => {
+      m.pending = { hash: '0x1', state: 'Pending', hashes: ['0x1', '0x2'] }
+      return Promise.resolve({ local, failed: false })
+    })
+    m.view.mockImplementationOnce((_a: unknown, local: unknown) => Promise.resolve({ local, failed: false }))
+    await qc().query(historyQuery(ME))
+    expect(m.view).toHaveBeenCalledTimes(2)
+    expect(m.view).toHaveBeenLastCalledWith(ME, { hash: '0x1', state: 'Pending', hashes: ['0x1', '0x2'] })
+  })
   it('a send that did not change is merged once', async () => {
     m.pending = { hash: '0x1', state: 'Pending' }
     m.view.mockResolvedValue({ items: [], updatedAt: 1, failed: false, nextCursor: null })
@@ -82,14 +98,14 @@ describe('history reads', () => {
     expect(m.view).toHaveBeenCalledTimes(1)
   })
   it('a row lookup is read on mount and retry only (no app-return refetch)', () => {
-    const q = rowLookupQuery('0xh', undefined)
+    const q = rowLookupQuery('0xh')
     expect(q.refetchOnWindowFocus).toBe(false)
     expect(q.refetchOnReconnect).toBe(false)
   })
   it('a row lookup goes through findRow (seam cache first, else a fresh page)', async () => {
     m.findRow.mockResolvedValue({ status: 'none' })
-    expect(await qc().query(rowLookupQuery('0xh', 'out'))).toEqual({ status: 'none' })
-    expect(m.findRow).toHaveBeenCalledWith(ME, '0xh', 'out')
+    expect(await qc().query(rowLookupQuery('0xh'))).toEqual({ status: 'none' })
+    expect(m.findRow).toHaveBeenCalledWith(ME, '0xh')
   })
 })
 
@@ -176,7 +192,7 @@ describe('what is persisted (ADR-0021 PR 3)', () => {
     m.getSnapshot.mockResolvedValue(snap)
     await Promise.all([
       c.query(historyQuery(ME)),
-      c.query(rowLookupQuery('0xh', undefined)),
+      c.query(rowLookupQuery('0xh')),
       c.query({ ...sendableQuery(FROM, TO, 'ETH'), gcTime: Infinity }),
       c.query({ ...reviewQuery(FROM, TO, '0.1', 'ETH', []), gcTime: Infinity }),
     ])

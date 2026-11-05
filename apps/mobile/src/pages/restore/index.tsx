@@ -14,6 +14,7 @@ import {
   type RestoreForm,
   type WordCount,
 } from '@/features/restore'
+import { createWallet } from '@/features/backup'
 import { fromPhrase, holdRestore, takeWords } from '@/features/restore'
 import { restoreWallet } from '@/features/restore'
 import { goBack } from '@/shared/lib/nav'
@@ -78,6 +79,16 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
   const [passOpen, setPassOpen] = useState(dev?.passOpen ?? false)
   const [showPass, setShowPass] = useState(dev?.showPass ?? false)
   const [busy, setBusy] = useState(dev?.busy ?? false)
+  // The wallet exists: go Home. An interrupted creation has a phrase but no address; `createWallet` recovers it after OS auth.
+  // A cancelled or failed auth throws: stay here.
+  const openExisting = async () => {
+    try {
+      await createWallet({ title: t('restore.authPrompt'), cancel: t('common.cancel') })
+      router.replace('/home')
+    } catch {
+      /* stay on the notice */
+    }
+  }
   const [outcome, setOutcome] = useState<'exists' | 'error' | null>(dev?.outcome ?? null)
   const lock = useDeviceLock()
   const noLock = lock.set === false || dev?.noLock === true
@@ -215,13 +226,20 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
       revealRef={reveal}
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/')} />}
       footer={
-        <Button
-          label={t('restore.submit')}
-          disabled={!ready || showChecksum || noLock || checking}
-          busy={busy}
-          busyLabel={t('busy.restore')}
-          onPress={() => void submit()}
-        />
+        <>
+          <Button
+            label={t('restore.submit')}
+            disabled={!ready || showChecksum || noLock || checking}
+            busy={busy}
+            busyLabel={t('busy.restore')}
+            onPress={() => void submit()}
+          />
+          {!ready && !noLock && !checking ? (
+            <Text variant="caption" color={th.semantic.text.tertiary} style={{ textAlign: 'center' }}>
+              {t('restore.submitHint')}
+            </Text>
+          ) : null}
+        </>
       }
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>
@@ -241,7 +259,13 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
           />
         ) : null}
         {outcome === 'exists' ? (
-          <StatusNotice tone="danger" tier="banner" title={t('restore.exists.title')} body={t('restore.exists.body')} />
+          <StatusNotice
+            tone="danger"
+            tier="banner"
+            title={t('restore.exists.title')}
+            body={t('restore.exists.body')}
+            link={{ label: t('restore.exists.cta'), onPress: () => void openExisting() }}
+          />
         ) : null}
         {outcome === 'error' ? (
           <StatusNotice

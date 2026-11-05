@@ -6,6 +6,9 @@ import type { Address, AssetId, ChainSnapshot, Hash, Hex } from '@vaultme/wallet
  */
 export type Receipt = { status: 'success' | 'reverted'; blockNumber: bigint }
 
+/** What the node knows of a sent tx (pending or mined): the fields a replacement must start from. */
+export type SentTx = { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint; gasLimit: bigint }
+
 export type ChainPort = {
   /** `amount` is the decimal string the user typed (gas estimation input). */
   getSnapshot(address: Address, asset: AssetId, to: Address, amount: string): Promise<ChainSnapshot>
@@ -15,6 +18,8 @@ export type ChainPort = {
   getBalances(address: Address): Promise<Record<AssetId, bigint>>
   /** eth_getTransactionReceipt: null while the tx is not in a block. */
   getReceipt(hash: Hash): Promise<Receipt | null>
+  /** eth_getTransactionByHash: null when the node does not know the tx. A speed up of a record without saved fees starts from this. */
+  getTransaction(hash: Hash): Promise<SentTx | null>
   /** eth_getBlockByNumber('safe', false): the number of the newest `safe` block (ADR-0006). A receipt at or below it is final. */
   getSafeBlock(): Promise<bigint>
   /** eth_getTransactionCount(address, 'safe'): the account nonce as of the `safe` block (Replaced, ADR-0006). */

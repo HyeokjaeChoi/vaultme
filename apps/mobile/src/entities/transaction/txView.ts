@@ -23,7 +23,13 @@ export const txNotice = (state: TxState) => NOTICE[state]
 
 type ResultCopy = {
   tone: 'pending' | 'confirmed' | 'failed' | 'unknown' | 'replaced'
-  title: 'result.sending' | 'result.sent' | 'result.failedTitle' | 'result.unknownTitle' | 'result.replacedTitle'
+  title:
+    | 'result.sending'
+    | 'result.sent'
+    | 'result.failedTitle'
+    | 'result.unknownTitle'
+    | 'result.replacedTitle'
+    | 'cancel.cancelledTitle'
   body:
     | 'result.pendingBody'
     | 'result.includedBody'
@@ -31,6 +37,7 @@ type ResultCopy = {
     | 'detail.confirmed.body'
     | 'detail.failed.body'
     | 'detail.replaced.body'
+    | 'cancel.cancelledBody'
   /** Warning line under the progress: a send that may still go through says not to send again (two lines, Figma S23). */
   warn: 'result.sendAgainWarn' | null
 }
@@ -45,7 +52,15 @@ const RESULT: Record<TxState, ResultCopy> = {
   Replaced: { tone: 'replaced', title: 'result.replacedTitle', body: 'detail.replaced.body', warn: null },
 }
 
-export const resultCopy = (state: TxState): ResultCopy => RESULT[state]
+const CANCELLED: ResultCopy = {
+  tone: 'replaced',
+  title: 'cancel.cancelledTitle',
+  body: 'cancel.cancelledBody',
+  warn: null,
+}
+
+/** `cancelled` = the cancel tx itself was mined (features/send `cancelMined`, ADR-0031): cancel copy (Figma 888:6726). */
+export const resultCopy = (state: TxState, cancelled = false): ResultCopy => (cancelled ? CANCELLED : RESULT[state])
 
 /** S40 row title key (Redesign B): direction plus progress. Received rows are always Confirmed (no incoming pending row). */
 export function rowTitleKey(kind: 'send' | 'receive', label: ReturnType<typeof txView>['label']) {

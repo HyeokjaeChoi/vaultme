@@ -3,8 +3,8 @@ import { at } from '@/shared/lib/at'
 // S04 word check: pure logic + a tiny in-memory hand-off from S03 to S04.
 // The hand-off holds only the 3 asked words (never the 12), and is cleared on leaving S04.
 
-export const PHRASE_LENGTH = 12
-export const CHECK_COUNT = 3
+const PHRASE_LENGTH = 12
+const CHECK_COUNT = 3
 
 /** `count` distinct 1-based positions in 1..`length`, ascending. `rand` is injectable for tests. */
 export function pickPositions(rand: () => number = Math.random, length = PHRASE_LENGTH, count = CHECK_COUNT): number[] {

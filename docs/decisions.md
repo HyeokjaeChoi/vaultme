@@ -44,15 +44,15 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q20 | App estimates the fee; no speed picker | IMPLEMENTED | `packages/wallet-core/src/send.ts` |
 | Q21 | Max amount (native keeps the fee; ERC-20 checks native) | IMPLEMENTED | `packages/wallet-core/src/amount.ts` |
 | Q22 | Re-check, last-checked time, explorer link; no auto resend | IMPLEMENTED | ADR-0006 |
-| Q23 | Push when an own transaction completes or fails | GAP | #314: no failure push |
-| Q24 | Push for own results and deposits, by address | GAP | #314: address webhook is ADR-0010; failures are not pushed |
+| Q23 | Push when an own transaction completes or fails | IMPLEMENTED | #314: `failed` push from the receipt status (`apps/api/src/push.ts` `withFailures`). Not verified: that Alchemy reports every reverted tx |
+| Q24 | Push for own results and deposits, by address | IMPLEMENTED | ADR-0010 address webhook; failures added in #314 |
 | Q25 | Deposit push once, after `safe` | SUPERSEDED | ADR-0010: push at Alchemy report, before `safe` |
-| Q26 | Detection p95 ≤ 2 min, reported only after measuring | GAP | #315: not measured |
+| Q26 | Detection p95 ≤ 2 min, reported only after measuring | GAP | #335: measured since #315 (`push_latency` log line and data point, `recordLatencies` in `apps/api/src/push.ts`), p95 not read yet (needs the owner's Cloudflare token). The clock starts at the block timestamp: ADR-0024 |
 | Q27 | Push off by default; explainer; Settings toggle; off deletes the link | SUPERSEDED | #67 decision 5: explainer after first copy or share on Receive |
 | Q28 | SIWE ownership proof + device session | SUPERSEDED | ADR-0010: no proof, accepted risk |
-| Q29 | Push text names only the event; no tx hash in the payload | GAP | #314: payload carries the hash. Copy fixed in #298 |
+| Q29 | Push text names only the event; no tx hash in the payload | SUPERSEDED | ADR-0023, #314 (owner chose B): payload is `kind` only, no opaque id; a tap opens the 내역 list, no per-tx link. Copy fixed in #298 |
 | Q30 | App calls the history provider directly | SUPERSEDED | By Q32 in the same session; ADR-0007 |
-| Q31 | Idle subscriptions deleted; events 7 d; installs 90 d | GAP | #317: installs are never purged. Subscription expiry is ADR-0010 (30 d) |
+| Q31 | Idle subscriptions deleted; events 7 d; installs 90 d | IMPLEMENTED | `INSTALL_KEEP_SECONDS` in `apps/api/src/push.ts` `sweep` (#317). Subscription expiry is ADR-0010 (30 d) |
 | Q32 | Stateless proxy, no address logs, rate limits, privacy notice | IMPLEMENTED | ADR-0007; notice: `apps/mobile/src/pages/settings/privacy.tsx`, `apps/web/app/routes/address.tsx` (#311) |
 | Q33 | Expo dev build + EAS Build, no Expo Go | IMPLEMENTED | `apps/mobile/eas.json` |
 | Q34 | Keychain `BIOMETRY_ANY_OR_DEVICE_PASSCODE`, this device only | IMPLEMENTED | ADR-0004 |
@@ -60,7 +60,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q36 | Etherscan V2 for history; Infura/QuickNode for RPC | SUPERSEDED | RPC fallback is Alchemy, not QuickNode (Q78, ADR-0007). Etherscan history still used; rate: rolling window (#290) |
 | Q37 | Confirmed = `safe` for push, send result and UI | SUPERSEDED | Push part: ADR-0010 (push before `safe`). Send result and UI still follow ADR-0006 |
 | Q38 | Workers + Hono + 1-min cron watcher + Queues + D1 | SUPERSEDED | ADR-0009, ADR-0010 |
-| Q39 | Expo Push ticket and receipt check; `DeviceNotRegistered` deletes | GAP | #314: receipts are not polled |
+| Q39 | Expo Push ticket and receipt check; `DeviceNotRegistered` deletes | IMPLEMENTED | #314: `push_receipts` in D1, cron `checkReceipts` (`apps/api/src/push.ts`) |
 | Q40 | 12 words new, 12/24 restore, one path, no passphrase | SUPERSEDED | Optional restore passphrase: ADR-0003. Words and path still follow ADR-0002 |
 | Q41 | Circle Sepolia USDC, 6 decimals | IMPLEMENTED | `packages/wallet-core/src/constants.ts` |
 | Q42 | QR = address only; EIP-681 accepted; other chain stops | IMPLEMENTED | `shared/lib/qrAddress.ts` |
@@ -71,34 +71,34 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q47 | Pending or Unknown blocks a new send | IMPLEMENTED | ADR-0006 |
 | Q48 | No fiat value | IMPLEMENTED | `shared/ui/PortfolioBalance.tsx` |
 | Q49 | Korean only; strings in i18n | IMPLEMENTED | `packages/i18n/src/ko.ts` |
-| Q50 | Sentry crash and performance, PII scrubbed | GAP | #315 |
+| Q50 | Sentry crash and performance, PII scrubbed | SUPERSEDED | ADR-0024: performance monitoring dropped. Still holds and is built (#315): errors and crashes on the app (`apps/mobile/src/shared/lib/sentry.ts`) and the Worker (`apps/api/src/sentry.ts`), PII scrubbed (`packages/contracts/src/scrub.ts`). Source maps: #337 |
 | Q51 | pnpm + Turborepo monorepo | IMPLEMENTED | `turbo.json` |
-| Q52 | local/staging/prod; separate D1, secrets, EAS channel; web previews | GAP | #316: no EAS channels. Web previews off (`apps/web/AGENTS.md`) |
-| Q53 | Zero-downtime release rules | GAP | #316: v1 add-only is done; EAS Update, gradual deploy, migration lint are not |
-| Q54 | Risk-based tests; mobile E2E; device checklist | GAP | #316 |
-| Q55 | CI/CD gates and release pipeline | GAP | #316 |
-| Q56 | 3 SLOs, alerts, JSON logs with request id, Analytics Engine | GAP | #315. SLO targets: ADR-0020 |
-| Q57 | Anonymous install id; never linked to an address | GAP | #317: push subscriptions link them. ADR-0008 |
+| Q52 | local/staging/prod; separate D1, secrets, EAS channel; web previews | SUPERSEDED | ADR-0025: production environment and EAS production channel wait for the first public release. Still open: EAS channels for staging (#316). Web previews off (`apps/web/AGENTS.md`) |
+| Q53 | Zero-downtime release rules | SUPERSEDED | ADR-0025: gradual deploy waits for the first public release. Still open (#316): EAS Update. Done: v1 add-only, migration lint (R16) |
+| Q54 | Risk-based tests; mobile E2E; device checklist | GAP | #316: Maestro smoke gate (full run: manual dispatch, no nightly, ADR-0033) and device checklist are built (`docs/testing/e2e.md`, `docs/testing/device-checklist.md`, #348). ADR-0032: a `v*` tag runs the critical path (iOS + Android, real Sepolia sends with a funded wallet) before the EAS build. Built: release workflow with the iOS critical path (#380) and the Android critical path (#382); funded send flows with two passphrase wallets (#381, ADR-0033), not yet run on a real tag |
+| Q55 | CI/CD gates and release pipeline | SUPERSEDED | ADR-0032: release = `v*` tag gated by the Maestro critical path (#378). ADR-0025: manual approval and gradual deploy wait for the first public release. The other gates are decided one by one (#316). Done: OpenAPI breaking-change diff (`ci.yml` `verify`), migration lint (R16), post-deploy staging smoke (`api-staging.yml`) |
+| Q56 | 3 SLOs, alerts, JSON logs with request id, Analytics Engine | GAP | #336, #335. Built (#315): JSON logs with a request id (`apps/api/src/log.ts`), data points (`apps/api/src/metrics.ts`). Not built: reading the SLOs (#335), two of three alert conditions (#336). SLO targets: ADR-0020 |
+| Q57 | Anonymous install id; never linked to an address | SUPERSEDED | ADR-0022: the link exists only while push is on |
 | Q58 | All RPC via the proxy with failover; history cached on device | IMPLEMENTED | ADR-0007 |
-| Q59 | `wallet-core` signing boundary; lint limits its importers | GAP | #312: no import lint |
+| Q59 | `wallet-core` signing boundary; lint limits its importers | SUPERSEDED | #312: scope widened by the owner (2026-11-01) from send and backup to send, backup, restore and `shared/storage/keychain.ts`. The rest holds: `@vaultme/wallet-core/signer`, lint in `apps/mobile/eslint.config.mjs` and `apps/web/eslint.config.js`, test `apps/mobile/test/signer-import.test.ts` |
 | Q60 | viem in `wallet-core`; explicit path; bigint units | IMPLEMENTED | `packages/wallet-core/package.json` |
-| Q61 | zod + OpenAPI; breaking-change diff; generated client | GAP | #316: stale check only, no diff vs main |
+| Q61 | zod + OpenAPI; breaking-change diff; generated client | SUPERSEDED | ADR-0027 (#350): the client stays hand-written on the shared `@vaultme/contracts` zod schemas. Stale check and oasdiff diff vs the PR base are done (`ci.yml` `verify`, #316); path and method drift is caught by `packages/api-client/test/openapi-paths.test.ts` |
 | Q62 | TanStack Query + persist; send state from `wallet-core`; one Zustand store | IMPLEMENTED | ADR-0021 (send state is the pure `deriveState`, not a reducer) |
 | Q63 | Encrypted MMKV; key and token in Keychain | IMPLEMENTED | ADR-0004 |
 | Q64 | Style Dictionary tokens; raw-value lint; web CSS Modules; light only | SUPERSEDED | #189: Tailwind theme from tokens. Dark mode: Q80 |
 | Q65 | react-hook-form + zod resolver; rules from `wallet-core` | IMPLEMENTED | ADR-0021 |
-| Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | GAP | #319 |
-| Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | GAP | #316: no oasdiff, anvil, Maestro |
-| Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | GAP | #319: no Stylelint |
-| Q69 | Slack alerts with dedupe and recovery | GAP | #315 |
+| Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | IMPLEMENTED | ADR-0029 (#355): Drizzle schema and queries, generated migrations, `db:check` drift check in CI; R16 lints the SQL |
+| Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | IMPLEMENTED | oasdiff (`ci.yml` `verify`, #343), anvil reorg tests (`apps/api/test-reorg`, #345), Maestro (`apps/mobile/.maestro`, #348) |
+| Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | IMPLEMENTED | `apps/web/stylelint.config.mjs`, `lint:css` (#319) |
+| Q69 | Slack alerts with dedupe and recovery | GAP | #336. Channel is Sentry email, not Slack: ADR-0024. Built (#315): the 5xx spike (`apps/api/src/alerts.ts`). Not built: watcher stall, dead-letter, recovery message |
 | Q70 | Library list | SUPERSEDED | #63: Solar icons. Sentry part: Q50 |
-| Q71 | Address poisoning defenses; zero-value switch | GAP | #313: switch not wired |
+| Q71 | Address poisoning defenses; zero-value switch | IMPLEMENTED | `packages/history/src/items.ts` (`showZero`); S40 `ActivityRow` State=Caution (#313); S41 caution state `pages/activity/detail.tsx`, `cautionOf` (#334) |
 | Q72 | Paste shows a compare notice | IMPLEMENTED | `packages/i18n/src/ko.ts` |
 | Q73 | Safety values compiled in; hash on device; fee cap | IMPLEMENTED | ADR-0005 |
-| Q74 | Supply chain: release age, scripts, `wallet-core` allow-list, osv-scanner, pinned actions | GAP | #312: no allow-list, no osv-scanner |
+| Q74 | Supply chain: release age, scripts, `wallet-core` allow-list, osv-scanner, pinned actions | IMPLEMENTED | `pnpm-workspace.yaml`; `scripts/check-repo-rules.sh` R15; `.github/workflows/osv-scanner.yml` |
 | Q75 | Push hardening: token enforcement, payload check, re-read on tap | IMPLEMENTED | `packages/contracts/src/push.ts` |
 | Q76 | WCAG 2.2 AA, address a11y label, text size, motion | IMPLEMENTED | `shared/lib/address.ts`; screen reader run not recorded |
-| Q77 | Replaced state unblocks send; push notifies | GAP | #314: no replaced push. State: ADR-0006 |
+| Q77 | Replaced state unblocks send; push notifies | SUPERSEDED | Push part: ADR-0030 (no replaced push, #331). The Replaced state still holds: ADR-0006 |
 | Q78 | Infura primary, Alchemy fallback | IMPLEMENTED | ADR-0007 |
 | Q79 | Burn and token-contract warnings | IMPLEMENTED | `packages/wallet-core/src/risk.ts` |
 | Q80 | Dark mode and the added components | IMPLEMENTED | `shared/theme/index.tsx` |

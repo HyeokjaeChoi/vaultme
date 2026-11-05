@@ -1,16 +1,26 @@
 import { Stack } from 'expo-router'
 import { useEffect, useState } from 'react'
+import { AccessibilityInfo } from 'react-native'
 import { useFonts } from 'expo-font'
 import { Providers } from './providers'
 import { fontAssets, useTheme } from '@/shared/theme'
 import { initAppStore } from '@/shared/app-store'
+import { initSentry, wrapRoot } from '@/shared/lib/sentry'
 import { hasPhrase, openKv } from '@/shared/storage'
 import { LockGate } from './LockGate'
 import { usePushBoot } from '@/features/push'
 
+initSentry() // before the first render, so a crash while the app starts is collected (Q50)
+
 function Navigator() {
   const th = useTheme()
   usePushBoot()
+  const [reduceMotion, setReduceMotion] = useState(false)
+  useEffect(() => {
+    void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion)
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion)
+    return () => sub.remove()
+  }, [])
   return (
     <Stack
       screenOptions={{
@@ -20,13 +30,12 @@ function Navigator() {
     >
       <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
       <Stack.Screen name="send/result" options={{ gestureEnabled: false }} />
-      <Stack.Screen name="send/scan" options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="send/scan" options={{ animation: reduceMotion ? 'fade' : 'slide_from_bottom' }} />
     </Stack>
   )
 }
 
-/** Root layout of the expo-router tree (app/_layout.tsx renders it). */
-export function RootLayout() {
+function Root() {
   const [loaded, error] = useFonts(fontAssets)
   const [kvReady, setKvReady] = useState(false)
   useEffect(() => {
@@ -51,3 +60,6 @@ export function RootLayout() {
     </Providers>
   )
 }
+
+/** Root layout of the expo-router tree (app/_layout.tsx renders it), wrapped for Sentry. */
+export const RootLayout = wrapRoot(Root)

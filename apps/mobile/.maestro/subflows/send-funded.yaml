@@ -1,0 +1,81 @@
+# One real Sepolia send from Home to MAESTRO_RECIPIENT, up to Confirmed on the result screen (#381). Params: ASSET (ETH|USDC),
+# D1..D3 (the digits after "0.000" for ETH; D1 D2 = cents for USDC, D3 unused), so every run sends an amount no earlier run sent.
+appId: dev.stackline.vaultme
+---
+- tapOn: '보내기'
+- assertVisible: '누구에게 보낼까요?'
+# iOS reads the field as one label ("받는 주소 0x…"); Android keeps the label "받는 주소" and the hint "0x…" apart (#382).
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: '받는 주소 0x.*'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: '0x…'
+- inputText: ${MAESTRO_RECIPIENT}
+# No hideKeyboard: '다음' stays above the keyboard (see flows/send.yaml).
+- tapOn: '다음'
+- assertVisible: '얼마를 보낼까요?'
+- runFlow:
+    when:
+      true: ${ASSET == 'USDC'}
+    commands:
+      - tapOn: '보낼 자산.*'
+      - tapOn: 'USD Coin.*'
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: '0'
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: '소수점'
+- runFlow:
+    when:
+      true: ${ASSET == 'ETH'}
+    commands:
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: '0'
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: '0'
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: '0'
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: ${D1}
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: ${D2}
+- runFlow:
+    when:
+      true: ${ASSET == 'ETH'}
+    commands:
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: ${D3}
+- tapOn: '검토'
+# The fee is read from the API first: the confirm button is on only after that.
+- extendedWaitUntil:
+    visible:
+      text: '확인하고 보내기'
+      enabled: true
+    timeout: 60000
+- tapOn: '확인하고 보내기'
+# OS auth (the touch loop in run.sh answers it), sign, broadcast; then the result screen polls every 15 s. Sepolia takes about 15 to 60 s.
+- extendedWaitUntil:
+    visible: '보냈어요'
+    timeout: 240000
+- tapOn: '홈으로'
+- assertVisible: 'Sepolia ETH'

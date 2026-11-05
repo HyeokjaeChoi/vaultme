@@ -5,7 +5,7 @@ import { getHistoryCache, getInstallId, setHistoryCache, setInstallId } from '..
 import { nobleSigner } from './deviceKey'
 import { markUpdateRequired } from './updateGate'
 
-export { ApiError, RpcError, isApiError, type ApiClient } from '@vaultme/api-client'
+export { ApiError, type ApiClient } from '@vaultme/api-client'
 export { apiErrorKey } from './errorCopy'
 export { useUpdateRequired } from './updateGate'
 

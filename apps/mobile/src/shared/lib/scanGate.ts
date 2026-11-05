@@ -3,7 +3,7 @@
  * again only when a different code is seen, or when this one was out of view for longer than `quietMs`. `touch` marks "still looking at it"
  * while detection is paused (e.g. the chain-mismatch sheet is open), so closing the sheet does not reopen it for the same code.
  */
-export const SCAN_QUIET_MS = 1500
+const SCAN_QUIET_MS = 1500
 
 export function createScanGate(quietMs: number = SCAN_QUIET_MS) {
   let data: string | null = null

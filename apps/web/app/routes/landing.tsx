@@ -84,10 +84,10 @@ export default function Landing() {
 
       <section
         aria-labelledby="hero-title"
-        className="px-layout-screen-padding tablet:px-8 tablet:py-16 web-desktop:p-20 py-10"
+        className="bg-surface-subtle px-layout-screen-padding tablet:px-8 tablet:pt-16 web-desktop:px-20 web-desktop:pt-20 pt-10"
       >
-        <div className="max-w-layout-content-max-width web-desktop:flex-row web-desktop:items-center web-desktop:gap-20 mx-auto flex w-full flex-col gap-8">
-          <div className="web-desktop:min-w-px web-desktop:flex-1 flex flex-col items-start gap-6">
+        <div className="max-w-layout-content-max-width web-desktop:flex-row web-desktop:items-end web-desktop:gap-20 mx-auto flex w-full flex-col gap-8">
+          <div className="web-desktop:min-w-px web-desktop:flex-1 web-desktop:self-center web-desktop:pb-20 flex flex-col items-start gap-6">
             <h1
               id="hero-title"
               className="text-product-b-title1 tablet:text-product-b-display-m web-desktop:text-product-b-display-l text-text-primary"
@@ -100,15 +100,22 @@ export default function Landing() {
             </h1>
             <p className="text-product-b-body tablet:text-product-b-title3 text-text-secondary">{t.hero.value}</p>
             <div id="get-app" className="tablet:flex-row tablet:flex-wrap flex w-full flex-col gap-3 scroll-mt-6">
-              <StoreButton href={STORE_URLS.ios} variant="primary">
+              <StoreButton href={STORE_URLS.ios} variant="primary" describedBy="store-soon">
                 {t.hero.appStore}
               </StoreButton>
-              <StoreButton href={STORE_URLS.android} variant="secondary">
+              <StoreButton href={STORE_URLS.android} variant="secondary" describedBy="store-soon">
                 {t.hero.googlePlay}
               </StoreButton>
             </div>
+            {/* Disabled controls say why, near the control. Gone once a store URL is set. */}
+            {(!STORE_URLS.ios || !STORE_URLS.android) && (
+              <p id="store-soon" className="text-product-b-body-small text-text-tertiary">
+                {t.hero.storeSoon}
+              </p>
+            )}
           </div>
-          <div className="bg-surface-subtle rounded-card-radius web-desktop:shrink-0 flex justify-center px-6 py-10">
+          {/* The phone runs off the bottom edge of the hero: no plate, no bottom padding. */}
+          <div className="web-desktop:shrink-0 flex justify-center">
             <AppMockup alt={t.hero.mockupAlt} />
           </div>
         </div>
@@ -131,7 +138,7 @@ export default function Landing() {
       </Section>
 
       <Section id="security-title" title={t.security.title}>
-        <ul className="web-desktop:grid-cols-3 grid gap-3">
+        <ul className="tablet:grid-cols-2 grid gap-3">
           {t.security.items.map((item, i) => (
             <NoticeBanner
               key={item.title}

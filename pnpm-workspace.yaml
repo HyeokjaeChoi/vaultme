@@ -11,7 +11,17 @@ allowBuilds:
   esbuild: true # wrangler and vitest-plugin platform binary
   unrs-resolver: false # eslint-import-resolver-typescript; its platform binary is an optional dependency, the script is only a fallback download
   workerd: true # Workers runtime binary for wrangler dev and tests
+  '@sentry/cli': false # postinstall downloads the sentry-cli binary; it only uploads source maps, which are off (#315)
 
 # Peer suffixes by name@version only. Without it, @babel/core 8 (from @vitest/coverage-istanbul 5) gave packages/i18n
 # its own react-native peer path and a second react-i18next copy in the app bundle (two i18next contexts).
 dedupePeers: true
+
+# drizzle-kit 0.31 depends on @esbuild-kit/core-utils, which pins esbuild 0.18.20 (GHSA-67mh-4wv8-2f99, esbuild dev server; fixed in 0.25.0).
+# Same esbuild drizzle-kit itself uses. Remove when drizzle-kit drops @esbuild-kit (1.0 line).
+overrides:
+  '@esbuild-kit/core-utils>esbuild': 0.25.12
+  # Same-major security fixes for transitive pins (Dependabot, 2026-11-05). Remove each once its parent ships the fixed version.
+  'handlebars@<4.7.10': ^4.7.10 # GHSA-p8wg-vrv2-v86f, GHSA-8r5x-fm3f-whwj; via eslint-plugin-boundaries
+  'undici@>=7 <7.30.1': ^7.30.1 # GHSA-2m5v-pch6-74hx and 7 more; via miniflare (wrangler)
+  'zod@>=4 <4.6.6': ^4.6.7 # GHSA-mrhx-c7xc-m3w5; via abitype (viem) and @cloudflare/vitest-plugin

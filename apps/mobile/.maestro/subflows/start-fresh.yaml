@@ -1,0 +1,7 @@
+# Cold start of a clean install: no app data, no Keychain item. The wallet-less app opens on the start screen.
+appId: dev.stackline.vaultme
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- assertVisible: '새 지갑 만들기'

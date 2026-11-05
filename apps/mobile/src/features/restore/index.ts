@@ -1,4 +1,4 @@
-export { removeRestoredWallet, restoreWallet, type RestoreResult } from './model/restoreWallet'
+export { removeRestoredWallet, restoreWallet } from './model/restoreWallet'
 export { useRestored } from './model/useRestored'
 export { applyCellInput, emptyWords, fromPhrase, joinWords, togglePassphrase } from './model/cells'
 export type { WordCount } from './model/cells'

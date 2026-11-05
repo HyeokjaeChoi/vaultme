@@ -3,17 +3,18 @@ import { useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { AppState } from 'react-native'
 import { chain } from '@/shared/chain'
-import { type PendingTx } from '@/shared/storage'
+import type { PendingTx } from '@/shared/storage'
 import { sendFrom } from './useReviewCore'
 import { needsFacts, isPolled, settleTx, startPolling, type TxState } from './txState'
 import { txFactsQuery } from './txQuery'
 import { readPendingTx, writePendingTx } from '@/entities/transaction'
+import { ownHashes } from './hashes'
 import { usePendingTx } from './usePendingTx'
 
 /** ARCHITECTURE.md#send: re-check a Pending or Included send every 15 s while its screen is focused. */
-export const POLL_MS = 15_000
+const POLL_MS = 15_000
 /** Test-data mode polls faster, so a fake send is seen settling (fakeSettle). */
-export const FAKE_POLL_MS = 3_000
+const FAKE_POLL_MS = 3_000
 
 /**
  * Re-reads the kv record and checks it against the chain. Returns the new state, or null when there was nothing to check. Throws when the network
@@ -28,7 +29,8 @@ export async function checkStored(qc: QueryClient): Promise<TxState | null> {
   const next = settleTx(cur, facts, chain.broadcasts, Date.now)
   // A new send may have replaced the record while the chain was asked: never write an old tx over it.
   const latest = readPendingTx()
-  if (latest === 'corrupt' || latest?.hash !== cur.hash) return null
+  if (latest === 'corrupt' || latest?.hash !== cur.hash || ownHashes(latest).length !== ownHashes(cur).length)
+    return null
   writePendingTx(next)
   return next.state
 }
@@ -48,6 +50,8 @@ export function useTrackedTx(onStateChange?: () => void): {
   checking: boolean
   error: unknown
   recheck: () => Promise<void>
+  /** Re-reads the kv record without asking the network (after a speed up changed it). */
+  reload: () => void
 } {
   const qc = useQueryClient()
   const { tx, blocked, reload } = usePendingTx()
@@ -93,5 +97,5 @@ export function useTrackedTx(onStateChange?: () => void): {
       return startPolling(run, chain.broadcasts ? POLL_MS : FAKE_POLL_MS)
     }, [active, polled, run]),
   )
-  return { tx, blocked, checking, error, recheck }
+  return { tx, blocked, checking, error, recheck, reload }
 }

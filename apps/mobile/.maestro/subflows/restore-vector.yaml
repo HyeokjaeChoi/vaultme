@@ -1,0 +1,66 @@
+# Restores the public BIP39 test vector (R10), address 0x9858EfFD232B4033E47d90003D41EC34EcaEda94, and lands on Home.
+appId: dev.stackline.vaultme
+---
+- tapOn: '기존 지갑 복구'
+# Only cell 1 is tapped. After each word the Return key ("next") moves focus to the next cell and Screen scrolls it into view;
+# after word 12 Return ("done") closes the keyboard. Tapping the description text to close the keyboard does not work (#424
+# run 41953979353: the keyboard stays up, and cell 12 sits under the footer so a tap on it hit cell 11, run 41932921187).
+- extendedWaitUntil:
+    visible: '1번째 단어'
+    timeout: 15000
+- tapOn: '1번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'abandon'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'about'
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: '복구'
+- assertVisible: '복구 완료'
+- assertVisible: '.*0x9858.*'
+- tapOn: '지갑 열기'
+- assertVisible: 'Sepolia ETH'

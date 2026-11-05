@@ -21,7 +21,8 @@ export function FaucetAction({ address }: { address: string }) {
         void copy(address)
         void Linking.openURL(FAUCET_URL).catch(() => undefined)
       }}
-      style={{
+      style={({ pressed }) => ({
+        opacity: pressed ? th.primitive.opacity[72] : th.primitive.opacity[100],
         marginTop: th.semantic.layout.groupGap,
         flexDirection: 'row',
         alignItems: 'center',
@@ -29,7 +30,7 @@ export function FaucetAction({ address }: { address: string }) {
         padding: th.primitive.space[4],
         borderRadius: th.primitive.radius.lg,
         backgroundColor: th.semantic.surface.pressed,
-      }}
+      })}
     >
       <View
         style={{

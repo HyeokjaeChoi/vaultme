@@ -1,0 +1,23 @@
+appId: dev.stackline.vaultme
+name: send flow up to the amount screen (never broadcasts)
+tags: [smoke, critical]
+---
+- runFlow: ../subflows/start-fresh.yaml
+- runFlow: ../subflows/restore-vector.yaml
+- tapOn: '보내기'
+- assertVisible: '누구에게 보낼까요?'
+# iOS reads the field as one label ("받는 주소 0x…"); Android keeps the label "받는 주소" and the hint "0x…" apart (#382).
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: '받는 주소 0x.*'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: '0x…'
+- inputText: '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
+# No hideKeyboard: the form screen shrinks above the keyboard (KeyboardAvoidingView, #417), so '다음' stays visible and tappable. On the slow CI runner hideKeyboard failed ("Couldn't hide the keyboard").
+- tapOn: '다음'
+- assertVisible: '얼마를 보낼까요?'

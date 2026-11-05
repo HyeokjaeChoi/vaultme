@@ -6,7 +6,7 @@ import { at } from '@/shared/lib/at'
 /** Lower-case words split on any whitespace (paste may bring newlines or no-break spaces). */
 export const toWords = (text: string): string[] => text.trim().toLowerCase().split(/\s+/).filter(Boolean)
 
-export const isPhraseLength = (count: number): boolean => count === 12 || count === 24
+const isPhraseLength = (count: number): boolean => count === 12 || count === 24
 
 export type PhraseIssue =
   | { kind: 'unknownWord'; word: string } // first word outside the BIP39 list (the user's own typed token)

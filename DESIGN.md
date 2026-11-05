@@ -44,6 +44,7 @@ colors:
   border-focus: "#3152FF"
   border-danger: "#B93340"
   border-selected: "#3152FF"
+  border-control: "#808D9D"
   action-primary-bg-default: "#3152FF"
   action-primary-bg-hover: "#2944DB"
   action-primary-bg-pressed: "#2138B8"
@@ -142,13 +143,18 @@ typography:
     fontSize: 14px
     fontWeight: 500
     lineHeight: 20px
-    letterSpacing: -0.0143em
+    letterSpacing: -0.0071em
+  value:
+    fontFamily: Pretendard
+    fontSize: 14px
+    fontWeight: 400
+    lineHeight: 20px
+    letterSpacing: -0.0071em
   caption:
     fontFamily: Pretendard
     fontSize: 12px
     fontWeight: 400
     lineHeight: 17px
-    letterSpacing: -0.0083em
   address:
     fontFamily: "IBM Plex Mono"
     fontSize: 14px
@@ -167,23 +173,21 @@ typography:
     lineHeight: 32px
     letterSpacing: -0.0208em
   fact:
-    fontFamily: "IBM Plex Mono"
+    fontFamily: Pretendard
     fontSize: 12px
     fontWeight: 400
     lineHeight: 16px
-    letterSpacing: 0.02em
   fact-upper:
-    fontFamily: "IBM Plex Mono"
+    fontFamily: Pretendard
     fontSize: 12px
-    fontWeight: 500
+    fontWeight: 400
     lineHeight: 16px
-    letterSpacing: 0.02em
   link:
     fontFamily: Pretendard
     fontSize: 14px
     fontWeight: 500
     lineHeight: 20px
-    letterSpacing: -0.0143em
+    letterSpacing: -0.0071em
 rounded:
   none: 0px
   xs: 4px
@@ -317,7 +321,7 @@ Source order:
 
 Token layers: Primitive holds raw values. Semantic aliases Primitive by role. Component aliases Semantic. App code uses `@vaultme/tokens` only. A new raw value goes in Primitive only.
 
-Dark mode: the app follows the OS setting. There is no in-app toggle. The front matter shows the light theme. See "Colors" for dark.
+Dark mode: the app follows the OS setting. The web also has a theme toggle. The front matter shows the light theme. See "Colors" for dark.
 
 The product language is Korean. Terms are in `CONTEXT.md`.
 
@@ -339,19 +343,21 @@ Rules:
 - Failure and warning states use status colours, not blue. A screen whose Primary button is disabled has no blue.
 - Links are Ink with an underline. They are not blue.
 - Chips are neutral, including the Sepolia network chip. A chip is never amber, blue, green or red.
-- Status colours appear only on status badges and warnings. A received amount is Ink with a "+" sign. A sent amount is Ink with a minus sign. Do not read them as profit or loss.
+- Status colours appear only on status badges and warnings. The received badge is neutral. A received amount is Ink with a "+" sign. A sent amount is Ink with a minus sign. Do not read them as profit or loss.
 - Colour never carries meaning alone. Pair it with an icon, a label and a reason.
 - `check.clear` means "the checks that ran found no problem". It uses a neutral surface. Only a confirmed outcome uses `status.success`.
 - Blue text on the Secondary tint gives 4.4967:1. This fails the 4.5:1 text target. Use Ink there.
 - Contrast targets: 4.5:1 for normal text, 3:1 for controls and focus. Static contrast does not prove WCAG or screen reader support.
 - Disabled Primary is `surface.disabled` with `text.disabled`.
-- Landing-page artwork and the dark closing call to action belong to marketing. They are not product themes.
+- In dark mode, the focus border (`border.focus`) and the off switch track (`border.control`) keep 3:1 contrast against their surface.
+- Step numbers and decoration are not blue.
+- Landing-page artwork belongs to marketing. It is not a product theme. The closing call to action is light. The hero App Store button and the closing viewer link are Primary, but the store button is disabled until its URL exists, so one Primary is active. A disabled store button has a visible reason ("Coming soon") linked with `aria-describedby`.
 
-Dark theme: `semanticDark` overrides `semantic` for surface, text, icon, border, status and a few more roles. Component values follow by alias. Canvas is neutral 950. Default surface is neutral 900. Raised surface is neutral 800. Primary text is neutral 50. Brand blue does not change. Dark status tints use the 950 steps of red and amber for body-text contrast. `frontMatter(tokens, 'dark')` in `packages/tokens/design-md.mjs` gives the dark values for tools.
+Dark theme: `semanticDark` overrides `semantic` for surface, text, icon, border, status and a few more roles. Component values follow by alias. Canvas is neutral 950. Default surface is neutral 900. Raised surface is neutral 800. Primary text is neutral 50. Brand blue does not change, except the focus border, which is brand 300 for 3:1 on the input fill. Dark status tints use the 950 steps of red and amber for body-text contrast. `frontMatter(tokens, 'dark')` in `packages/tokens/design-md.mjs` gives the dark values for tools.
 
 ## Typography
 
-The UI uses **Pretendard** (400, 500, 600) for text. It uses **IBM Plex Mono** for addresses, hashes and facts. Weight 700 is only for the large figure (`figure`, a balance or an amount).
+The UI uses **Pretendard** (400, 500, 600) for text. It uses **IBM Plex Mono** only for addresses and hashes. Weight 700 is only for the large figure (`figure`, a balance or an amount).
 
 - **Figure:** 44/52, weight 700. Use it for one balance or one amount per screen. The unit beside it is `figure-unit`, 24/32, weight 600, secondary colour.
 - **Display and titles:** `display-l`, `display-m`, `title1` to `title3`. Weight 600.
@@ -360,11 +366,11 @@ The UI uses **Pretendard** (400, 500, 600) for text. It uses **IBM Plex Mono** f
 - **Body and label:** `body` 16/24, `body-small` 15/22, `label` 14/20. Money-out sentences use `body-small` in Ink. They are the most visible sentences on the screen.
 - **Caption:** 12/17. Only for small support text.
 - **Address:** 14/20 mono. Always show the full address.
-- **Fact and fact-upper:** 12/16 mono. Use them for facts: network, chain ID, block, hash, version, time. Feelings and explanations use the sans face. `fact-upper` is uppercase, for English fact lines.
+- **Fact and fact-upper:** 12/16 Pretendard Regular, letter spacing 0. Use them for fact lines: network, chain ID, version. `fact-upper` is uppercase, for English fact lines. Full addresses and hashes stay in mono (`address`). A detail row can use mono for a hash or a short address (`DetailRow mono`); a time stays in Pretendard because Plex Mono has no Hangul.
 
 Rules:
 
-- Letter spacing is negative at every size, because it suits Hangul. The front matter shows it in `em`. The token JSON stores percent.
+- Letter spacing is negative at most sizes, because it suits Hangul. `caption` and the fact styles use 0; `label` and `value` use -0.1 px. The front matter shows it in `em`. The token JSON stores percent.
 - Show numbers with tabular figures where the platform allows it. Right-align them and show the unit.
 - Never cut an amount with an ellipsis. If a long name and a value collide, move the value to the next line.
 - Show tiny amounts with full precision on the review screen. Never show a rounded zero.
@@ -397,7 +403,7 @@ The product is flat. Depth comes from the surface colour, spacing and type, not 
 
 - Surfaces: Canvas, then white `surface.default`, then white or neutral-800 `surface.raised` (dark) for sheets. `surface.subtle` and `surface.inset` give quiet wells.
 - Lists, fields, review groups and notices have no shadow.
-- Only a floating dialog or popover uses a shadow: `elevation.md` (0 8 24, Ink at 10%). `elevation.sm` and `elevation.lg` exist in Primitive.
+- A floating dialog, popover or bottom sheet uses a shadow: `elevation.md` (0 8 24, Ink at 10%). The bottom sheet follows Figma Redesign B. `elevation.sm` and `elevation.lg` exist in Primitive.
 - A modal uses a scrim: neutral 950 at 40% opacity. A nonmodal popover has no scrim. A scrim is not a theme.
 - No gradient, glow, texture or decorative illustration on product surfaces.
 - A small temporary toast may use the inverse surface. Information needed to judge a transaction stays on a light reading surface, never in a toast.
@@ -407,7 +413,7 @@ The product is flat. Depth comes from the surface colour, spacing and type, not 
 Shapes are soft but not playful.
 
 - Buttons and chips are pills (`full`).
-- Inputs and controls use `md` (12). Groups and notice banners use `lg` (16). Overlays and sheets use `2xl` (24). Rows have no radius.
+- Inputs and controls use `md` (12). Groups and notice banners use `lg` (16). Overlays use `2xl` (24). The bottom sheet uses 32 (Figma Redesign B). Rows have no radius.
 - Do not mix sharp and rounded corners on one screen.
 - Borderless is the default for containers and rows. Group by type, alignment and spacing. Do not fill the space left by a removed line with a shadow or a large gap.
 - A line must have a job. Allowed jobs: an editable input, focus, invalid or selected state, a dense table comparison, a fixed footer or toolbar over a scroll body, a drawer edge. You must be able to say what the line separates.
@@ -417,7 +423,7 @@ Shapes are soft but not playful.
 
 Icons:
 
-- Function and status icons are **Solar** (`@solar-icons/react-native`). Linear is the default. Bold marks the selected tab and status badges. Bold Duotone is for empty-state and result heroes (48 px). Do not mix icon libraries.
+- Function and status icons are **Solar** (`@solar-icons/react-native`). Linear is the default. Bold marks the selected tab and status badges. Bold Duotone is for empty-state and result heroes (48 px), including the web invalid-transaction warning. The theme toggle is a Solar sun or moon icon. Do not mix icon libraries.
 - Asset identity (ETH, USDC) is a separate original colour SVG. Never recolour it to the action blue. Show a neutral fallback for an unknown asset.
 - Sizes: inline 16, control 20, feature 24, asset 32.
 - Money actions have an icon and a visible label. A tooltip alone is not enough.
@@ -460,6 +466,7 @@ State and action rules:
 - "No issues found in available checks" is a neutral notice and no safety guarantee. A readable message and a good simulation are not safety guarantees either.
 - Do not show a "Verified" badge without a verification system.
 - Disabled controls say why, near the control.
+- Every pressable row or control shows `surface.pressed` (rows, tabs, chips; `surface.pressedOnRaised` inside a sheet) or a 0.72 opacity (`opacity/72`) (text links, switch, filled panels) while pressed. Figma shows pressed states only on the components that have a Press property.
 - Loading keeps the button width and blocks repeat taps.
 - Inputs have a label, helper or error text, and a link to the field through `aria-describedby` (web) or an accessible description (native). A wrapper shows the inner invalid state.
 - Each state has its own fixed copy. Editable text (names, amounts) is separate from state copy.

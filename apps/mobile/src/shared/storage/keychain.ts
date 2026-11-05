@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto'
 import * as Keychain from 'react-native-keychain'
-import { Mnemonic } from '@vaultme/wallet-core'
+import { Mnemonic } from '@vaultme/wallet-core/signer'
 import { loadFailureStatus } from '../auth/cancel'
 import { withAuthInProgress } from '../auth/inProgress'
 
@@ -34,8 +34,8 @@ export type AuthPrompt = { title: string; cancel: string }
 
 // One item, same tier for words and BIP39 passphrase. No passphrase: the words alone (the original format).
 // With passphrase: words + "\n" + passphrase (words never contain a newline; the passphrase may, so split at the first one).
-export const encodePhrase = (m: Mnemonic): string => (m.passphrase() ? `${m.reveal()}\n${m.passphrase()}` : m.reveal())
-export function decodePhrase(stored: string): Mnemonic {
+const encodePhrase = (m: Mnemonic): string => (m.passphrase() ? `${m.reveal()}\n${m.passphrase()}` : m.reveal())
+function decodePhrase(stored: string): Mnemonic {
   const i = stored.indexOf('\n')
   return i < 0 ? new Mnemonic(stored) : new Mnemonic(stored.slice(0, i), stored.slice(i + 1))
 }
@@ -48,8 +48,6 @@ export async function savePhrase(m: Mnemonic, prompt: AuthPrompt): Promise<void>
 }
 
 export type LoadPhraseResult = { status: 'ok'; mnemonic: Mnemonic } | { status: 'cancelled' } | { status: 'error' }
-
-export { loadFailureStatus }
 
 /** Asks the OS for auth. Never throws: the UI gets `ok`, `cancelled` (user dismissed auth) or `error` (missing/corrupt item, keychain failure). */
 export async function loadPhrase(prompt: AuthPrompt): Promise<LoadPhraseResult> {

@@ -31,8 +31,8 @@ vi.mock('react-native-mmkv', () => ({
   },
 }))
 vi.mock('expo-crypto', () => ({ getRandomBytes: (n: number) => Uint8Array.from({ length: n }, (_, i) => i + 1) }))
-vi.mock('@vaultme/wallet-core', async (orig) => {
-  const real = await orig<typeof import('@vaultme/wallet-core')>()
+vi.mock('@vaultme/wallet-core/signer', async (orig) => {
+  const real = await orig<typeof import('@vaultme/wallet-core/signer')>()
   return { ...real, generateMnemonic: () => new real.Mnemonic(VECTOR) }
 })
 

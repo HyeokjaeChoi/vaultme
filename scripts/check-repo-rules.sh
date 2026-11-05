@@ -266,4 +266,26 @@ then
   err "R14: docs/decisions.md or ADR-0021 libraries (see above)"
 fi
 
+# R15. wallet-core runs only viem and @scure/bip39 (Q74, #312): a new dependency (also optional or peer) there is a supply-chain change
+# that needs an owner decision, so it fails here until this list changes.
+if ! node -e '
+const p = require("./packages/wallet-core/package.json")
+const d = ["dependencies", "optionalDependencies", "peerDependencies"].flatMap((k) => Object.keys(p[k] ?? {})).sort().join(",")
+if (d !== "@scure/bip39,viem") { console.error("packages/wallet-core dependencies: " + d); process.exit(1) }
+'; then
+  err "R15: packages/wallet-core dependencies must be exactly viem and @scure/bip39"
+fi
+
+# R16. D1 migrations do not break the old Worker (Q53, #316): no DROP COLUMN, DROP TABLE or RENAME without `-- contract-ok: <reason>`.
+# The test file holds the negative cases.
+if ! bash scripts/check-migrations.test.sh; then
+  err "R16: scripts/check-migrations.test.sh failed"
+fi
+if ! bash scripts/release-version.test.sh; then
+  err "R16: scripts/release-version.test.sh failed (release version rule, ADR-0034)"
+fi
+if ! bash scripts/check-migrations.sh; then
+  err "R16: a migration drops or renames without '-- contract-ok: <reason>' (see above)"
+fi
+
 exit "$fail"

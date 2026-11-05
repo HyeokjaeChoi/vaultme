@@ -33,14 +33,15 @@ export const dayKey = (ms: number): string => {
 
 export const clock = (ms: number): string => hhmm(new Date(ms))
 
-/** Zone label of the device clock for a Fact time: KST at +9, otherwise "UTC+N" (no zone database needed). */
-const zoneLabel = (d: Date): string => {
-  const off = -d.getTimezoneOffset() / 60
-  return off === 9 ? 'KST' : `UTC${off < 0 ? '-' : '+'}${String(Math.abs(off))}`
-}
-
-/** Time as a Fact (Product B/Fact): "2026-10-16 09:41 KST". Device local time. */
-export const factTime = (ms: number): string => {
+/** Parts of a detail-screen time ("2026년 10월 16일 오전 9:41": 12-hour clock, no zone). Device local time. The words come from `detail.timeAm` / `detail.timePm`. */
+export const dateParts = (ms: number) => {
   const d = new Date(ms)
-  return `${String(d.getFullYear())}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${hhmm(d)} ${zoneLabel(d)}`
+  return {
+    year: d.getFullYear(),
+    month: d.getMonth() + 1,
+    day: d.getDate(),
+    pm: d.getHours() >= 12,
+    hour: d.getHours() % 12 || 12,
+    minute: pad(d.getMinutes()),
+  }
 }

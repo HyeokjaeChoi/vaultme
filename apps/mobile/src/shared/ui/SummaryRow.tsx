@@ -9,11 +9,11 @@ type Props = {
   value: string
   /** `text` = label left, value right (Body). `address` = label above, full mono address below in 4-char groups, wraps. `total` = emphasis: Headline value. */
   format?: 'text' | 'address' | 'total'
-  /** Caption line under the value (right aligned), e.g. "최대 0.050063 ETH". */
+  /** Line under the value (right aligned, Product B/Label, text/secondary: B/Detail row 419:554), e.g. "지금보다 0.000042 ETH 많아요". */
   sub?: string
   /** Marks the 4-char groups of an `address` value that differ (look-alike check). */
   highlight?: number[]
-  /** Value as a Fact (Product B/Fact, IBM Plex Mono 12, text/secondary): network + chainId, block, time. Facts are mono, feelings and explanations are sans. */
+  /** Value as a Fact (Product B/Fact, Pretendard Regular 12, text/secondary): network + chainId. Only full addresses and hashes are mono. */
   fact?: boolean
   /** `address` only: one color, no strong ends, 14/20 (B/Detail row Address, emphasis Off: S11 contract address). */
   plain?: boolean
@@ -23,7 +23,7 @@ type Props = {
   onEdit?: () => void
 }
 
-/** C35 Summary row (Redesign B detail row, center aligned): label Body Small tertiary, value Body right; address stacks under its label. Flat, no divider: group rows in <Group>. */
+/** C35 Summary row (Redesign B detail row, center aligned): label Body Small tertiary, value Body right; address stacks under its label. Flat, no divider. */
 export function SummaryRow({
   label,
   value,
@@ -101,9 +101,9 @@ export function SummaryRow({
           </Text>
           {sub ? (
             <Text
-              variant="caption"
+              variant="label"
               tabular
-              color={t.semantic.text.tertiary}
+              color={t.semantic.text.secondary}
               style={{ textAlign: stacked ? 'left' : 'right' }}
             >
               {sub}

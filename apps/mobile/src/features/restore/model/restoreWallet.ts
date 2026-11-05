@@ -1,4 +1,4 @@
-import { deriveAddress, toMnemonic } from '@vaultme/wallet-core'
+import { deriveAddress, toMnemonic } from '@vaultme/wallet-core/signer'
 import { appStore } from '@/shared/app-store'
 import { classifySaveFailure } from '@/shared/auth'
 import { QUERY_CACHE_KEY, queryClient } from '@/shared/query'

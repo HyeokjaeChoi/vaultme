@@ -1,5 +1,6 @@
 import { BALANCE_OF_SELECTOR, USDC_SEPOLIA } from '@vaultme/contracts'
-import { Mnemonic, prepare, txHash, type Hex } from '@vaultme/wallet-core'
+import { prepare, txHash, type Hex } from '@vaultme/wallet-core'
+import { Mnemonic } from '@vaultme/wallet-core/signer'
 import { describe, expect, it, vi } from 'vitest'
 import { RpcError } from '@vaultme/api-client'
 import { runSend, type SendDeps } from '../src/features/send/model/runSend'
@@ -119,6 +120,23 @@ describe('real ChainPort', () => {
         node({ eth_getTransactionReceipt: () => ({ status: '0x0', blockNumber: '0x10' }) }).rpc,
       ).getReceipt(h),
     ).toMatchObject({ status: 'reverted' })
+  })
+
+  it('getTransaction: the fee fields and gas of a known tx (a speed up of an old record starts from them), null when unknown', async () => {
+    const h = ('0x' + 'cd'.repeat(32)) as `0x${string}`
+    expect(await createRpcChain(node({ eth_getTransactionByHash: () => null }).rpc).getTransaction(h)).toBeNull()
+    const ok = node({
+      eth_getTransactionByHash: () => ({ maxFeePerGas: '0x10', maxPriorityFeePerGas: '0x2', gas: '0x5208' }),
+    })
+    expect(await createRpcChain(ok.rpc).getTransaction(h)).toEqual({
+      maxFeePerGas: 16n,
+      maxPriorityFeePerGas: 2n,
+      gasLimit: 21_000n,
+    })
+    expect(ok.calls).toEqual([['eth_getTransactionByHash', [h]]])
+    await expect(
+      createRpcChain(node({ eth_getTransactionByHash: () => ({ gas: '0x1' }) }).rpc).getTransaction(h),
+    ).rejects.toThrow()
   })
 })
 

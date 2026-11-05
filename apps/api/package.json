@@ -7,26 +7,32 @@
     "dev": "wrangler dev",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "test": "vitest run",
+    "test:reorg": "vitest run --config vitest.reorg.config.ts",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint . --max-warnings=0",
     "openapi": "node scripts/openapi.ts",
-    "openapi:check": "node scripts/openapi.ts --check"
+    "openapi:check": "node scripts/openapi.ts --check",
+    "db:generate": "drizzle-kit generate",
+    "db:check": "node scripts/db-check.ts"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.0",
+    "@sentry/cloudflare": "11.9.0",
     "@vaultme/contracts": "workspace:*",
+    "drizzle-orm": "0.45.4",
     "hono": "^4.13.0",
     "zod": "^4.6.0"
   },
   "devDependencies": {
-    "@cloudflare/vitest-plugin": "1.4.4",
-    "@cloudflare/workers-types": "5.20261018.1",
+    "@cloudflare/vitest-plugin": "1.4.7",
+    "@cloudflare/workers-types": "5.20261025.1",
     "@types/node": "^24.19.1",
     "@vaultme/config": "workspace:*",
     "@vitest/coverage-istanbul": "5.0.5",
+    "drizzle-kit": "0.31.11",
     "eslint": "^10.12.0",
     "typescript": "^6.0.3",
     "vitest": "^5.0.3",
-    "wrangler": "4.151.1"
+    "wrangler": "4.152.0"
   }
 }

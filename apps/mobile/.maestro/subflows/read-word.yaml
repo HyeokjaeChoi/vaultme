@@ -1,0 +1,6 @@
+# Reads word N (1-12) from the revealed recovery phrase into output.words. Each word has the accessibility label "N, word" (SecretGrid).
+appId: dev.stackline.vaultme
+---
+- copyTextFrom:
+    text: '${N}, .*'
+- evalScript: ${output.words[N] = maestro.copiedText.split(', ')[1]}

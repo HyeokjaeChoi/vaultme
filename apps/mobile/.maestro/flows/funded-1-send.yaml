@@ -1,0 +1,35 @@
+appId: dev.stackline.vaultme
+name: funded sends to the paired wallet
+tags: [funded]
+---
+# Real Sepolia sends (#381, ADR-0032). The sender is wallet A (iOS job) or B (Android job): shell env from release-run.sh.
+- runFlow: ../subflows/start-fresh.yaml
+- runFlow:
+    file: ../subflows/restore-funded.yaml
+    env:
+      PASSPHRASE: ${MAESTRO_SENDER_PASSPHRASE}
+      PREFIX: ${MAESTRO_SENDER_PREFIX}
+- runFlow:
+    file: ../subflows/send-funded.yaml
+    env:
+      ASSET: ETH
+      D1: ${MAESTRO_ETH_SUFFIX[0]}
+      D2: ${MAESTRO_ETH_SUFFIX[1]}
+      D3: ${MAESTRO_ETH_SUFFIX[2]}
+- tapOn: '내역'
+# Row label: "<title>, <time>, <amount>, <status>" (ActivityRow). The minus is U+2212.
+- extendedWaitUntil:
+    visible: '보냄, .*, −0\.000${MAESTRO_ETH_SUFFIX} ETH, 확정'
+    timeout: 120000
+- tapOn: '자산'
+- runFlow:
+    file: ../subflows/send-funded.yaml
+    env:
+      ASSET: USDC
+      D1: ${MAESTRO_USDC_SUFFIX[0]}
+      D2: ${MAESTRO_USDC_SUFFIX[1]}
+      D3: '0'
+- tapOn: '내역'
+- extendedWaitUntil:
+    visible: '보냄, .*, −0\.${MAESTRO_USDC_SUFFIX} USDC, 확정'
+    timeout: 120000

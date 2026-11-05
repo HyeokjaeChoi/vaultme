@@ -1,6 +1,7 @@
 import { inspect } from 'node:util'
 import { describe, expect, test } from 'vitest'
-import { deriveAddress, generateMnemonic, isMnemonicWord, toMnemonic, validateMnemonic, Mnemonic } from '../src'
+import { isMnemonicWord, validateMnemonic } from '../src'
+import { deriveAddress, generateMnemonic, toMnemonic, Mnemonic } from '../src/signer'
 import { mnemonicToSeedSync } from '@scure/bip39'
 import {
   BIP39_12,

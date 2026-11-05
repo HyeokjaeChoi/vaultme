@@ -5,6 +5,7 @@ import { useTheme } from '../theme'
 import { textStyle } from '../theme/fonts'
 import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
+import { useAnnounce } from './useAnnounce'
 
 type Props = Pick<
   TextInputProps,
@@ -36,11 +37,12 @@ type Props = Pick<
   action?: { icon: IconName; label: string; onPress: () => void }
 }
 
-/** C03 Input (Redesign B). Label (Label 14/500) over a 56 pt field (Body 16/24), helper and error in Caption. Border is functional (editable recognition, focus, error). */
+/** C03 Input (Redesign B). Label (Label 14/500) over a 56 pt field (Body 16/24), helper in Caption, error in Label 14. Border is functional (editable recognition, focus, error). */
 export function Input({ label, helper, error, editable = true, onBlur, actions, action, inputRef, ...field }: Props) {
   const t = useTheme()
   const c = t.component.input
   const [focused, setFocused] = useState(false)
+  useAnnounce(error)
   const border = error ? c.border.error : focused ? c.border.focus : 'transparent' // quiet: tone fill, the border only marks focus and error (Borderless rule 10)
   const textFont = textStyle(actions ? t.primitive.type.productB.address : t.primitive.type.productB.body)
   // iOS draws a single-line TextInput's text off center when lineHeight is set (#261): the field's height centers it instead.
@@ -53,6 +55,7 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
       ref={inputRef}
       editable={editable}
       accessibilityLabel={label}
+      accessibilityHint={helper}
       placeholderTextColor={c.placeholder}
       onFocus={(e) => {
         setFocused(true)
@@ -145,7 +148,7 @@ export function Input({ label, helper, error, editable = true, onBlur, actions, 
         input
       )}
       {error ? (
-        <Text variant="caption" color={c.errorText}>
+        <Text variant="label" color={c.errorText}>
           {error}
         </Text>
       ) : helper ? (

@@ -2,12 +2,12 @@
 import type { WebMessages } from '@vaultme/i18n/web'
 
 // The same boxes as the rows they stand for, so rows arriving move nothing (CLS 0): 5 rows and the 더 보기 button.
-const bar = 'bg-skeleton-bg rounded-skeleton-radius'
+const bar = 'bg-skeleton-bg rounded-skeleton-radius skeleton-pulse'
 
 function Row() {
   return (
     <div className="h-row-b-height px-row-b-padding-x flex items-center gap-3">
-      <div className="bg-skeleton-bg rounded-pill size-avatar-md shrink-0" />
+      <div className="bg-skeleton-bg skeleton-pulse rounded-pill size-avatar-md shrink-0" />
       <div className="gap-skeleton-gap flex min-w-px flex-1 flex-col">
         <div className={`${bar} skeleton-title`} />
         <div className={`${bar} skeleton-subtitle`} />

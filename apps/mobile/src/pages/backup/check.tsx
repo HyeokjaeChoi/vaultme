@@ -72,6 +72,7 @@ export function BackupCheckPage({
   const filled = answersFilled(answers)
   const onRight = () => {
     if (!demo) appStore().getState().setBackupDone(true) // the dev fixture never records a real backup
+    haptic.success() // the check passed: one success cue (motion audit M5)
     clearCheck()
     router.dismissTo('/home')
     router.push('/receive') // S04 ok -> S30; back from Receive lands on Home
@@ -86,11 +87,18 @@ export function BackupCheckPage({
       revealRef={reveal}
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/backup')} />}
       footer={
-        <Button
-          label={t('backup.check.confirm')}
-          disabled={!filled}
-          onPress={() => void form.handleSubmit(onRight, onWrong)()}
-        />
+        <>
+          <Button
+            label={t('backup.check.confirm')}
+            disabled={!filled}
+            onPress={() => void form.handleSubmit(onRight, onWrong)()}
+          />
+          {!filled ? (
+            <Text variant="caption" color={th.semantic.text.tertiary} style={{ textAlign: 'center' }}>
+              {t('backup.check.confirmHint')}
+            </Text>
+          ) : null}
+        </>
       }
     >
       <View style={{ gap: th.semantic.layout.fieldGap }}>

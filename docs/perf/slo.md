@@ -1,6 +1,6 @@
 # Service level objectives
 
-What "fast enough" means for VaultMe, where each limit comes from, and how far we are from it. Decision: [ADR-0020](../adr/0020-api-ux-slo-and-regression-watch.md). Measurements: [baseline.md](baseline.md).
+What "fast enough" means for VaultMe, where each limit comes from, and how far we are from it. Decision: [ADR-0020](../adr/0020-api-ux-slo-and-regression-watch.md); warm `rpc` limit: [ADR-0035](../adr/0035-warm-rpc-slo-250ms.md); how tier 1 is judged and the release gate: [ADR-0036](../adr/0036-api-release-gate-own-time-slo-window.md). Measurements: [baseline.md](baseline.md).
 
 ## Web: already gated
 
@@ -11,17 +11,17 @@ What "fast enough" means for VaultMe, where each limit comes from, and how far w
 | CLS <= 0.1 | same | [web.dev CLS](https://web.dev/articles/cls) | 0 to 0.001 |
 | TBT <= 200 ms | same | [web.dev TBT](https://web.dev/articles/tbt) | 0 ms |
 | JS: static pages <= 100 KB, viewer (`/address`, `/tx`) <= 150 KB, gzip body | `apps/web/scripts/js-budget.ts` | [ADR-0017](../adr/0017-web-analytics-beacon-and-js-budgets.md), [ADR-0018](../adr/0018-js-budgets-count-compressed-body.md) | Static 0 B; viewer 138.4 KB (141,673 B) |
-| Hermes bundle <= 9 MiB | `export:check` in `apps/mobile/package.json` | `AGENTS.md` "Enforced rules" | 7.75 MiB (iOS), 7.74 MiB (Android) |
+| Hermes bundle <= 11 MiB | `export:check` in `apps/mobile/package.json` | `AGENTS.md` "Enforced rules" | 7.75 MiB (iOS), 7.74 MiB (Android) |
 
 Attainment is from [baseline.md](baseline.md) (a local run of 2026-10-30) and the LHRs of CI run 41076156239 (mobile LCP).
 
-## API: tier 1, the UX SLO (fails the `api-bench` job)
+## API: tier 1, the UX SLO (judged over 4 weeks)
 
-p95 of the total time (DNS + TCP + TLS + request + response), from GitHub runners to staging. Limits are absolute and come from UX standards. Source of the ms numbers: the "p95 of 5 runs" columns are the 5 calibration runs of `api-bench` on `main` (commit `5827dde`).
+Limit on the total time (DNS + TCP + TLS + request + response), from GitHub runners to staging. Limits are absolute and come from UX standards. The SLO is met when at least 95% of the timed requests of the last 28 days are at or under the limit, per case and mode (`.github/workflows/api-slo-window.yml`, weekly; a breach opens an issue and never blocks a release, ADR-0036). One run's p95 over the limit is a warning only. Source of the ms numbers: the "p95 of 5 runs" columns are the 5 calibration runs of `api-bench` on `main` (commit `5827dde`).
 
 | Endpoint | Mode | SLO | Source | p95 of the 5 runs (ms) | Runs within SLO |
 | --- | --- | --- | --- | --- | --- |
-| `rpc` | warm | 200 ms | INP "good" | 140, 155, 186, 68, 68 | 5 / 5 |
+| `rpc` | warm | 250 ms | owner decision, ADR-0035 (was INP "good" 200 ms) | 140, 155, 186, 68, 68 | 5 / 5 |
 | `rpc` | cold | 500 ms | INP "needs improvement" edge | 184, 183, 658, 397, 271 | 4 / 5 |
 | `history_hit` | warm | 200 ms | INP "good" | 73, 52, 33, 29, 28 | 5 / 5 |
 | `history_hit` | cold | 500 ms | INP "needs improvement" edge | 115, 109, 142, 98, 440 | 5 / 5 |
@@ -35,7 +35,7 @@ Two gaps: `history_miss` misses its SLO in every run (the API makes 3 Etherscan 
 
 | Endpoint | Called by | Class | SLO used |
 | --- | --- | --- | --- |
-| `POST /v1/rpc` | Mobile Home balances on focus and pull-to-refresh (`apps/mobile/src/features/balances/useLiveBalances.ts`, `chain.getBalances`); send review and the re-check before send (`apps/mobile/src/features/send/model/useReviewCore.ts`, `runSend.ts`, `chain.getSnapshot`, 6 parallel calls); submit | user action | 200 / 500 ms |
+| `POST /v1/rpc` | Mobile Home balances on focus and pull-to-refresh (`apps/mobile/src/features/balances/useLiveBalances.ts`, `chain.getBalances`); send review and the re-check before send (`apps/mobile/src/features/send/model/useReviewCore.ts`, `runSend.ts`, `chain.getSnapshot`, 6 parallel calls); submit | user action | 250 / 500 ms (warm rpc, ADR-0035) |
 | `POST /v1/rpc` | Web viewer balances and transaction page (`apps/web/app/shared/api/useBalances.ts`, `useTransaction.ts`) | page load | proxy only (see below) |
 | `POST /v1/history` cache hit (30 s Worker cache) | Mobile Activity on focus (`apps/mobile/src/features/history/model/useHistory.ts`); web viewer history (`apps/web/app/shared/api/useHistory.ts`) when the same address was read shortly before | user action (navigation) | 200 / 500 ms |
 | `POST /v1/history` cache miss | the same callers when no read is in the cache; first read of an address | screen load | 1000 ms |
@@ -66,6 +66,10 @@ Limits of this method: the shell time is a proxy (the viewer with a fragment was
 - Nielsen, response-time limits (0.1 s, 1 s, 10 s): https://www.nngroup.com/articles/response-times-3-important-limits/
 
 Core Web Vitals judge the 75th percentile of field data. We judge the p95 of synthetic runs, which is stricter. With 30 samples per run the p95 is close to the maximum, so one slow request can decide a run. INP covers input delay, processing and paint, so giving the network call alone 200 ms leaves no room for the rest: the limit is a ceiling, not a target.
+
+## API: the release gate (fails `api-bench`)
+
+Our own server time: Server-Timing `total` minus `upstream` (limiters, token check and route code around `proxyRpc`; `proxyRpc` itself, the upstreams and the network are left out). p95 <= 50 ms per run (`OWN_P95_MS` in `packages/perf/src/slo.ts`), a quarter of the tightest user-action SLO. It gates the `rpc` path. `/v1/history` also sends Server-Timing (#412); its own time is shown in the bench table and not gated yet. A case with no 200 response also fails the run.
 
 ## API: tier 2, the regression watch (warning only)
 

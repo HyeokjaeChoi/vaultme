@@ -1,4 +1,4 @@
-// Figma: B-S23 Send result (Pending 423:15795, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode; 보낸 계정 row 723:5774)
+// Figma: B-S23 Send result (Pending 423:15795, Pending + actions 888:5799, Pending + speed-up line 888:6568, cancel sheet 888:6228, cancel requested 888:6647, Replaced / cancelled 888:6726, processed before cancel 888:6776 / 888:6852, Included 423:15852, Confirmed 423:15909, Failed 423:15959 + Reason, Unknown 423:16009, Replaced 423:16059, Pending test mode; 보낸 계정 row 723:5774)
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef } from 'react'
 import { Redirect } from 'expo-router'
@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { networkFact } from '@/entities/account'
 import { demoTx } from '@/entities/transaction'
 import type { TxState } from '@/features/send'
-import { isPolled, resultCopy, useTrackedTx } from '@/features/send'
+import { cancelMined, isPolled, resultCopy, useTrackedTx } from '@/features/send'
 import { haptic } from '@/shared/lib/haptics'
 import { showAmount } from '@/shared/lib/amount'
 import { useTestMode } from '@/shared/chain'
@@ -24,6 +24,7 @@ import {
 } from '@/shared/ui'
 import { BackHandler, View } from 'react-native'
 import { NetworkChips } from '@/widgets/network-chips'
+import { PendingActions } from '@/widgets/speed-up'
 
 /**
  * B-S23 보내기 결과: a centered end moment (asset logo + status badge, headline, Figure amount, sentence), the 보냄 -> 블록 포함 -> 확정 progress for Pending / Included / Confirmed only,
@@ -39,7 +40,7 @@ export function SendResultPage() {
   const router = useRouter()
   const { demo, reason, real } = useLocalSearchParams<{ demo?: string; reason?: string; real?: string }>()
   const tracked = useTrackedTx()
-  const { checking, recheck } = tracked
+  const { checking, recheck, reload } = tracked
   const testMode = useTestMode()
   const tx =
     __DEV__ && demo
@@ -66,7 +67,8 @@ export function SendResultPage() {
     }, [router]),
   )
   if (!tx) return <Redirect href="/home" />
-  const copy = resultCopy(tx.state)
+  const cancelled = cancelMined(tx)
+  const copy = resultCopy(tx.state, cancelled)
   const test = testMode && !(__DEV__ && real === '1') && isPolled(tx.state) // the fake adapter keeps a send Pending forever: it was never on the network
   const toHome = () => {
     router.dismissAll()
@@ -103,10 +105,10 @@ export function SendResultPage() {
           ) : failed ? (
             <Button label={t('result.resend')} onPress={resend} />
           ) : (
-            <Button label={t('result.ok')} onPress={toHome} />
+            <Button label={t('result.home')} onPress={toHome} />
           )}
           {failed ? (
-            <Button label={t('result.ok')} variant="secondary" onPress={toHome} />
+            <Button label={t('result.home')} variant="secondary" onPress={toHome} />
           ) : (
             <Button label={t('result.details')} variant="ghost" size="sm" link onPress={toDetail} />
           )}
@@ -118,6 +120,7 @@ export function SendResultPage() {
         asset={tx.asset === 'USDC' ? 'USDC' : 'ETH'}
         amount={figure ?? tx.amount}
         unit={unit ?? tx.asset}
+        struck={cancelled}
         lines={lines}
         celebrate={tx.state === 'Confirmed' && !test}
         {...(failed ? { link: { label: t('result.details'), onPress: toDetail } } : {})}
@@ -131,6 +134,7 @@ export function SendResultPage() {
           />
         </View>
       ) : null}
+      {!test ? <PendingActions tx={tx} onDone={reload} /> : null}
       <SectionBand />
       <Block>
         {!test && copy.warn ? <StatusNotice tone="warning" title={t(copy.warn)} /> : null}

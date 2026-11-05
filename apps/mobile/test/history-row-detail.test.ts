@@ -1,18 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { detailRoute, hashOfId, localRecordMatches, rowCopy } from '../src/features/history/model/detail'
+import { cautionOf, detailRoute, hashOfId, localRecordMatches, rowCopy } from '../src/features/history/model/detail'
 import { explorerUrl } from '../src/shared/chain/port'
 
-// The row lookup (cache, fresh page, push direction, poisoning filter) is tested in packages/history.
+// The row lookup (cache, fresh page, poisoning filter) is tested in packages/history.
 const H = '0x' + '1'.repeat(64)
 
 describe('local record (S41)', () => {
-  it('the local own-send record wins unless the push says in (a self-send deposit)', () => {
-    expect(localRecordMatches(H, H)).toBe(true)
-    expect(localRecordMatches(H.toUpperCase().replace('0X', '0x'), H, 'out')).toBe(true)
-    expect(localRecordMatches(H, H, 'in')).toBe(false)
-    expect(localRecordMatches(H, `${H}:1`)).toBe(true)
+  it('the local own-send record wins for its own hash', () => {
+    expect(localRecordMatches([H], H)).toBe(true)
+    expect(localRecordMatches([H.toUpperCase().replace('0X', '0x')], H)).toBe(true)
+    expect(localRecordMatches([H], `${H}:1`)).toBe(true)
     expect(localRecordMatches(undefined, H)).toBe(false)
-    expect(localRecordMatches('0x' + '3'.repeat(64), H)).toBe(false)
+    expect(localRecordMatches(['0x' + '3'.repeat(64)], H)).toBe(false)
+  })
+  it('matches any own hash of a sped-up send, not only the first', () => {
+    const R = '0x' + '2'.repeat(64)
+    expect(localRecordMatches([H, R], R)).toBe(true)
+    expect(localRecordMatches([H, R], `${R}:0`)).toBe(true)
   })
 })
 
@@ -64,5 +68,39 @@ describe('routes and links', () => {
   it('Etherscan row: link on a broadcasting chain, hidden (null) in test-data mode', () => {
     expect(explorerUrl({ broadcasts: true }, H)).toBe(`https://sepolia.etherscan.io/tx/${H}`)
     expect(explorerUrl({ broadcasts: false }, H)).toBeNull()
+  })
+})
+
+// S41 State caution (Figma 883:4375, Q71, #334): an incoming zero-value row opened from S40 with the S63 switch on.
+describe('cautionOf', () => {
+  const A = '0x' + 'a'.repeat(40)
+  const B = '0x' + 'b'.repeat(40)
+  const row = (o: { caution?: true; counterparty?: string } = {}) => ({ counterparty: A, ...o })
+  it('no caution flag: no caution state', () => {
+    expect(cautionOf(row(), [])).toBeNull()
+  })
+  it('a sender this wallet never sent to is new', () => {
+    expect(cautionOf(row({ caution: true }), [])).toEqual({ newSender: true })
+    expect(cautionOf(row({ caution: true }), [B])).toEqual({ newSender: true })
+  })
+  it('a sender among the known recipients is not called new (any case)', () => {
+    expect(cautionOf(row({ caution: true }), [B, A.toUpperCase().replace('0X', '0x')])).toEqual({ newSender: false })
+  })
+  it('the known addresses are not loaded (null): no claim', () => {
+    expect(cautionOf(row({ caution: true }), null)).toEqual({ newSender: false })
+  })
+  it('no sender address: the notice stays, no claim about the sender', () => {
+    expect(cautionOf(row({ caution: true, counterparty: '' }), [])).toEqual({ newSender: false })
+  })
+})
+
+describe('rowCopy with caution', () => {
+  it('the hero keeps 받았어요 and the success badge but drops the success sentence', () => {
+    expect(rowCopy({ kind: 'receive', status: 'confirmed', caution: true })).toMatchObject({
+      badge: 'confirmed',
+      title: 'detail.received',
+      body: null,
+      statusWord: 'detail.state.success',
+    })
   })
 })

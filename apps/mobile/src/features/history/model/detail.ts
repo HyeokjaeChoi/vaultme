@@ -1,4 +1,4 @@
-import type { HistoryItem, PushDir } from '@vaultme/history'
+import type { HistoryItem } from '@vaultme/history'
 
 /** `<hash>:<seq>` -> `<hash>`. The local send's id is its hash. */
 export const hashOfId = (id: string): string => id.split(':')[0] ?? id
@@ -10,7 +10,7 @@ export const detailRoute = (item: Pick<HistoryItem, 'id'>) => ({
 })
 
 /** S41 copy of a history row without a local record (ARCHITECTURE.md#history: history has no confirmation state, so no "확정", no fee, no recheck). */
-export function rowCopy(row: Pick<HistoryItem, 'kind' | 'status'>) {
+export function rowCopy(row: Pick<HistoryItem, 'kind' | 'status' | 'caution'>) {
   const incoming = row.kind === 'receive'
   const ok = row.status === 'confirmed'
   const failed = row.status === 'failed'
@@ -28,13 +28,16 @@ export function rowCopy(row: Pick<HistoryItem, 'kind' | 'status'>) {
           : ('result.failedTitle' as const)
         : ('result.sending' as const),
     // A failed incoming row: the existing failure body says the sender's fee left, which is not ours to claim.
-    body: ok
-      ? ('detail.success.body' as const)
-      : failed
-        ? incoming
-          ? null
-          : ('detail.failed.body' as const)
-        : ('result.pendingBody' as const),
+    // A caution row (incoming zero-value, Figma 883:4375) has no success sentence: nothing was received.
+    body: row.caution
+      ? null
+      : ok
+        ? ('detail.success.body' as const)
+        : failed
+          ? incoming
+            ? null
+            : ('detail.failed.body' as const)
+          : ('result.pendingBody' as const),
     statusWord: ok
       ? ('detail.state.success' as const)
       : failed
@@ -46,8 +49,20 @@ export function rowCopy(row: Pick<HistoryItem, 'kind' | 'status'>) {
 const sameHash = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 
 /**
- * The send recorded on this device wins for its own hash (full S41), unless the push says `in`: a self-send's deposit leg is a history row.
- * `id` is a row id or a bare hash.
+ * The send recorded on this device wins for any of its own hashes (full S41; a sped-up send has several, ADR-0031).
+ * `own` = the record's hashes; `id` is a row id or a bare hash.
  */
-export const localRecordMatches = (storedHash: string | undefined, id: string, dir?: PushDir): boolean =>
-  storedHash !== undefined && sameHash(storedHash, hashOfId(id)) && dir !== 'in'
+export const localRecordMatches = (own: readonly string[] | undefined, id: string): boolean =>
+  own?.some((h) => sameHash(h, hashOfId(id))) ?? false
+
+/**
+ * S41 State caution (Q71): the row is an incoming zero-value transfer. `newSender` = the sender is not among `known` (addresses this wallet sent to:
+ * the send recents and the sends of the loaded history; null = the history is not loaded, nothing can be claimed). It is a claim ("처음 보는 주소예요"), so it needs a sender and no match. No `caution` = null.
+ */
+export function cautionOf(
+  row: Pick<HistoryItem, 'caution' | 'counterparty'>,
+  known: string[] | null,
+): { newSender: boolean } | null {
+  if (!row.caution) return null
+  return { newSender: known !== null && row.counterparty !== '' && !known.some((a) => sameHash(a, row.counterparty)) }
+}

@@ -5,7 +5,9 @@ export default defineConfig({
   plugins: [
     cloudflareTest({
       wrangler: { configPath: './wrangler.jsonc' },
-      miniflare: { bindings: { TEST_MIGRATIONS: await readD1Migrations('./migrations') } },
+      miniflare: {
+        bindings: { TEST_MIGRATIONS: await readD1Migrations('./migrations'), SENTRY_DSN: '' }, // an empty DSN turns Sentry off in tests
+      },
     }),
   ],
   test: {
@@ -16,6 +18,7 @@ export default defineConfig({
       enabled: true,
       provider: 'istanbul',
       include: ['src/**'],
+      exclude: ['src/db/schema.ts'], // declarative; its callbacks run only in drizzle-kit, and `pnpm db:check` guards it against the migrations
       reporter: ['text-summary'],
       thresholds: { statements: 96, branches: 93, functions: 98, lines: 97 },
     },

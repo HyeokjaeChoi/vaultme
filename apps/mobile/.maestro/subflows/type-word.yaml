@@ -1,0 +1,8 @@
+# Types word N (1-based) of the funded wallet's phrase (shell env MAESTRO_PHRASE, set by release-run.sh) into the focused restore cell, then Return moves to the next cell (see restore-vector.yaml). Cell 1 must be tapped by the caller.
+# The value is masked in the CI log (::add-mask:: in mask-phrase.sh, a step of its own before release-run.sh); the flows' test-output dir is never uploaded.
+appId: dev.stackline.vaultme
+---
+- inputText: ${MAESTRO_PHRASE.split(' ')[N - 1]}
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000

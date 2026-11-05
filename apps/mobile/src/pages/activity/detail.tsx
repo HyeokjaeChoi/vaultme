@@ -1,25 +1,39 @@
-// Figma: B-S41 Transaction detail (Confirmed 423:16327, real chain 460:4988, Unknown 423:16381, API error 457:17668, test mode + clear sheet)
+// Figma: B-S41 Transaction detail (Pending + actions 888:5913, Confirmed 423:16327, real chain 460:4988, Unknown 423:16381, API error 457:17668, test mode + clear sheet)
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
+import { useCopy } from '@/shared/lib/useCopy'
 import { Linking, Pressable, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { networkFact } from '@/entities/account'
+import { account } from '@/entities/account'
 import { demoTx } from '@/entities/transaction'
 import {
+  cautionOf,
   findCachedRow,
   localRecordMatches,
-  parseDir,
   rowCopy,
+  useHistory,
   useInternalTransfers,
   useRowLookup,
   type HistoryItem,
   type Internal,
-  type PushDir,
   type RowLookup,
 } from '@/features/history'
 import type { TxState } from '@/features/send'
-import { clearTestTx, isFinal, isPolled, resultCopy, txView, useTrackedTx, writePendingTx } from '@/features/send'
+import {
+  cancelMined,
+  clearTestTx,
+  explorerHash,
+  ownHashes,
+  isFinal,
+  isPolled,
+  resultCopy,
+  txView,
+  useRecents,
+  useTrackedTx,
+  writePendingTx,
+} from '@/features/send'
 import { ApiError, apiErrorKey } from '@/shared/api'
+import { useAppStore } from '@/shared/app-store'
 import { chain } from '@/shared/chain'
 import { explorerUrl } from '@/shared/chain'
 import { useTestMode } from '@/shared/chain'
@@ -27,41 +41,46 @@ import { haptic } from '@/shared/lib/haptics'
 import { goBack } from '@/shared/lib/nav'
 import { showAmount } from '@/shared/lib/amount'
 import { getAccountAddress } from '@/shared/storage'
-import { factTime } from '@/shared/lib/time'
+import { shortAddress, shortHash } from '@/shared/lib/address'
+import { dateParts } from '@/shared/lib/time'
 import { useTheme } from '@/shared/theme'
 import {
   AmountHero,
   BottomSheet,
   Block,
   Button,
+  DetailRow,
+  DisclosureRow,
   EmptyState,
   Icon,
   Screen,
   ScreenHeader,
   SectionBand,
   StatusNotice,
-  SummaryRow,
   Text,
 } from '@/shared/ui'
-import { AddressText } from '@/shared/ui'
+import { AddressBlock, AddressText } from '@/shared/ui'
 import { fakeHistoryItems } from '@/widgets/activity-list'
 import { InternalTransfers } from '@/widgets/internal-transfers'
 import { NetworkChips } from '@/widgets/network-chips'
+import { PendingActions } from '@/widgets/speed-up'
 import { Loading } from './Loading'
 
 // __DEV__ capture only (`?row=in|out`): a history row as in Figma Flow 4 A 742:2487 / B 742:2584.
 const DEV_ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
-const devHistoryRow = (dir: 'in' | 'out', amount = '0.05'): HistoryItem => ({
+// `?caution=1` adds the caution state (incoming zero-value, Figma B-S41 883:4375).
+const devHistoryRow = (dir: 'in' | 'out', amount = '0.05', caution = false): HistoryItem => ({
   id: 'dev:0',
   hash: '0xa1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90',
   kind: dir === 'in' ? 'receive' : 'send',
   asset: 'ETH',
   amount,
-  counterparty: '0x123456789aBCdef0123456789AbCDEF012345678',
+  counterparty: caution ? '0x4444a91c07de33f2b8e05c17d4a692bf6e084444' : '0x123456789aBCdef0123456789AbCDEF012345678',
   at: new Date(2026, 9, 16, 9, 41).getTime(),
   ...txView('Confirmed'),
   local: false,
   blockNumber: 5812044,
+  ...(caution ? { caution: true as const } : {}),
 })
 
 // __DEV__ capture only (`?internal=list|many|capped|loading|error`): the 내부 이동 states of Figma Flow 4 B-S41 (804:39671 list, 804:39832 many, 804:40085 loading, 804:40202 error).
@@ -83,6 +102,52 @@ const devInternal = (state: string): Internal => {
 
 const hhmm = (at: number) => new Date(at).toTimeString().slice(0, 5)
 
+type T = ReturnType<typeof useTranslation>['t']
+/** "2026년 10월 16일 오전 9:41" (B-S41 시각, no zone). */
+const whenText = (t: T, at: number) => {
+  const { pm, ...parts } = dateParts(at)
+  return t(pm ? 'detail.timePm' : 'detail.timeAm', parts)
+}
+/** The copy icon of a detail row: the clipboard gets the full value, the row shows the short one. */
+const copyOf = (t: T, label: string, text: string) => ({
+  text,
+  label: t('detail.copyLabel', { label }),
+  announce: t('receive.copied'),
+})
+
+/** The full recipient or sender address (never shortened) with a copy action. */
+function FullAddress({ label, address, copy }: { label: string; address: string; copy: ReturnType<typeof copyOf> }) {
+  const { copied, copy: doCopy } = useCopy(copy.announce)
+  return (
+    <AddressBlock
+      label={label}
+      address={address}
+      copyLabel={copy.label}
+      copied={copied}
+      onCopy={() => void doCopy(copy.text)}
+    />
+  )
+}
+
+/** 자세히: chain ID and block, hidden until opened (Figma 934:9123 open, 934:9154 row). */
+function MoreRows({ blockNumber }: { blockNumber: number | undefined }) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <DisclosureRow title={t('detail.more')} expanded={open} onToggle={() => setOpen((o) => !o)} />
+      {open ? (
+        <>
+          <DetailRow label={t('detail.chainId')} value={String(account.chainId)} />
+          {blockNumber !== undefined ? (
+            <DetailRow label={t('detail.block')} value={String(blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} />
+          ) : null}
+        </>
+      ) : null}
+    </>
+  )
+}
+
 function EtherscanRow({ url }: { url: string }) {
   const { t } = useTranslation()
   const th = useTheme()
@@ -92,17 +157,39 @@ function EtherscanRow({ url }: { url: string }) {
         accessibilityRole="link"
         accessibilityLabel={t('detail.etherscan')}
         onPress={() => void Linking.openURL(url)}
-        style={{
+        style={({ pressed }) => ({
+          backgroundColor: pressed ? th.semantic.surface.pressed : undefined,
           minHeight: th.primitive.size.touch_min,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-        }}
+        })}
       >
         <Text variant="headline">{t('detail.etherscan')}</Text>
         <Icon name="external" size={th.component.icon.size.control} color={th.component.icon.action.fg} />
       </Pressable>
     </Block>
+  )
+}
+
+/**
+ * "주의 · 처음 보는 주소예요" under the sender of a caution row (Figma 883:4375). It is a claim, so it shows only after the history has loaded without error:
+ * until then (or when the read failed) the wallet cannot tell, and says nothing. Own component: a normal row never subscribes to the history.
+ */
+function NewSenderLine({ row }: { row: HistoryItem }) {
+  const { t } = useTranslation()
+  const th = useTheme()
+  const recents = useRecents()
+  const { view } = useHistory()
+  const known =
+    view && !view.failed
+      ? [...recents.map((r) => r.address), ...view.items.filter((i) => i.kind === 'send').map((i) => i.counterparty)]
+      : null
+  if (!cautionOf(row, known)?.newSender) return null
+  return (
+    <Text variant="label" color={th.component.badge.warning.fg}>
+      {t('detail.caution.newSender')}
+    </Text>
   )
 }
 
@@ -125,6 +212,7 @@ function RowDetail({
   devInternalState?: string | undefined
 }) {
   const { t } = useTranslation()
+  const th = useTheme()
   const copy = rowCopy(row)
   const explorer =
     explorerUrl(chain, row.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${row.hash}` : null)
@@ -139,6 +227,11 @@ function RowDetail({
       gap="none"
       header={<ScreenHeader backLabel={t('common.back')} onBack={() => goBack('/activity')} chips={<NetworkChips />} />}
     >
+      {row.caution ? (
+        <View style={{ paddingTop: th.semantic.layout.groupGap, paddingHorizontal: th.semantic.layout.screen.padding }}>
+          <StatusNotice tone="warning" heading title={t('detail.caution.title')} body={t('detail.caution.body')} />
+        </View>
+      ) : null}
       <AmountHero
         result={{ badge: example ? 'info' : copy.badge, title: example ? t('result.testTitle') : t(copy.title) }}
         asset={row.asset === 'USDC' ? 'USDC' : 'ETH'}
@@ -149,23 +242,49 @@ function RowDetail({
       <SectionBand />
       {row.counterparty ? (
         <>
-          <Block title={t(copy.counterpartyTitle)}>
-            <AddressText address={row.counterparty} />
-          </Block>
+          {row.caution ? (
+            // A look-alike sender: the full address, no copy (the banner says not to copy it), so the middle can be compared. Figma 883:4375 draws the short row with a copy icon; deviation on purpose (PR #375).
+            <Block title={t(copy.counterpartyTitle)}>
+              <AddressText address={row.counterparty} />
+              <NewSenderLine row={row} />
+            </Block>
+          ) : (
+            <Block>
+              <FullAddress
+                label={t(copy.counterpartyTitle)}
+                address={row.counterparty}
+                copy={copyOf(t, t(copy.counterpartyTitle), row.counterparty)}
+              />
+            </Block>
+          )}
           <SectionBand />
         </>
       ) : null}
       <Block title={t('detail.infoTitle')}>
-        <SummaryRow label={t('detail.time')} fact value={factTime(row.at)} />
-        <SummaryRow label={t('result.statusLabel')} value={example ? t('detail.state.test') : t(copy.statusWord)} />
+        <DetailRow label={t('detail.time')} value={whenText(t, row.at)} />
+        <DetailRow
+          emphasis
+          label={t('result.statusLabel')}
+          value={example ? t('detail.state.test') : t(copy.statusWord)}
+        />
         {/^0x[0-9a-fA-F]{64}$/.test(row.hash) ? (
-          <SummaryRow format="address" plain fact label={t('detail.hashTitle')} value={row.hash} />
+          <DetailRow
+            mono
+            label={t('detail.hashTitle')}
+            value={shortHash(row.hash)}
+            copy={copyOf(t, t('detail.hashTitle'), row.hash)}
+          />
         ) : null}
-        {address ? <SummaryRow format="address" plain label={t(copy.accountLabel)} value={address} /> : null}
-        <SummaryRow label={t('result.network')} fact value={networkFact} />
-        {row.blockNumber !== undefined ? (
-          <SummaryRow label={t('detail.block')} fact value={String(row.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} />
+        {address ? (
+          <DetailRow
+            mono
+            label={t(copy.accountLabel)}
+            value={shortAddress(address)}
+            copy={copyOf(t, t(copy.accountLabel), address)}
+          />
         ) : null}
+        <DetailRow label={t('result.network')} value={account.network} />
+        <MoreRows blockNumber={row.blockNumber} />
       </Block>
       {internal ? (
         <InternalTransfers
@@ -186,24 +305,22 @@ function RowDetail({
 
 /**
  * S41 for a route param with no local record, no cached row and not an example row: looks the row up (cache, then a fresh history page).
- * Loading = Figma 749:2651, load failed 749:2738, not found 749:2800. Several rows with one hash: back to the list, which a push tap has below S41.
+ * Loading = Figma 749:2651, load failed 749:2738, not found 749:2800. Several rows with one hash: back to the list, which a deep link has below S41.
  * `?lookup=loading|failed|none` is a __DEV__ capture override of the three states.
  */
 function LookupDetail({
   id,
   address,
   real,
-  dir,
   dev,
 }: {
   id: string
   address: string | null
   real: string | undefined
-  dir: PushDir | undefined
   dev?: string
 }) {
   const { t } = useTranslation()
-  const { lookup, retry } = useRowLookup(id, dir)
+  const { lookup, retry } = useRowLookup(id)
   const state: RowLookup | null =
     __DEV__ && dev ? (dev === 'loading' ? null : { status: dev === 'failed' ? 'failed' : 'none' }) : lookup
   if (state?.status === 'row') return <RowDetail row={state.row} address={address} real={real} example={false} />
@@ -245,16 +362,17 @@ function LookupDetail({
  * B-S41 거래 상세 for the send in the kv. State comes from the chain (ARCHITECTURE.md#invariants): receipt + `safe` block = Confirmed or Failed.
  * Hero shares the S23 copy (`resultCopy`); a send the fake adapter never broadcast is a test send ("테스트 거래예요", state "예시", no fee row, 테스트 거래 지우기 with a confirm sheet).
  * Blocks: 받는 주소 / 거래 정보 (시각, 상태, 보낸 계정 from the record — hidden for a record saved before #32, 네트워크, 네트워크 수수료) / 거래 해시 + Etherscan row (real network only). 상태 다시 확인 asks the chain; a Pending or Included send is also re-checked every 15 s while focused.
- * `?demo=<state>` | `?row=in|out` (history row) | `?internal=list|many|loading|error` (내부 이동 states) | `?lookup=loading|failed|none` (S41 lookup states) (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
+ * `?demo=<state>` (+ `&kind=cancel|speedUp`) | `?row=in|out` (history row) | `?internal=list|many|loading|error` (내부 이동 states) | `?lookup=loading|failed|none` (S41 lookup states) (+ `&real=1`, `&err=1`, `&sheet=1`) is a __DEV__ capture override: a synthetic send in that state.
  */
 export function TxDetailPage() {
   const { t } = useTranslation()
   const th = useTheme()
   const {
-    hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash), or a bare hash from a push
-    dir: dirParam, // `in` | `out`: the direction a push named (a tx can have a row of each)
+    hash: id, // the row id (`<hash>:<seq>`; the local send's id is its hash), or a bare hash
     demo,
+    kind: devKind,
     row: devRow,
+    caution: devCaution,
     lookup: devLookup,
     internal: devInternalParam,
     real,
@@ -262,33 +380,39 @@ export function TxDetailPage() {
     err,
   } = useLocalSearchParams<{
     hash: string
-    dir?: string
     row?: string
+    caution?: string
     lookup?: string
     internal?: string
     demo?: string
+    kind?: string
     real?: string
     sheet?: string
     err?: string
   }>()
   const router = useRouter()
+  useAppStore((s) => s.zeroSetting) // S63 flip: render again, so `findCachedRow` below follows the switch (a row it hides must not stay on screen)
   const [confirmClear, setConfirmClear] = useState(__DEV__ && sheet === '1')
-  const { tx: stored, checking, error: trackedError, recheck } = useTrackedTx()
+  const { tx: stored, checking, error: trackedError, recheck, reload } = useTrackedTx()
   const testMode = useTestMode()
   const error = __DEV__ && err === '1' ? new ApiError('network', 0, true, 'offline') : trackedError // `?err=1` is a __DEV__ capture override (Figma 457:17668)
-  const dir = parseDir(dirParam)
-  // The local record wins over a history row with the same hash (not for the deposit leg of a self-send: `dir` = in).
-  const tx = __DEV__ && demo ? demoTx(demo as TxState) : localRecordMatches(stored?.hash, id, dir) ? stored : null
+  // The local record wins over a history row with the same hash.
+  const tx =
+    __DEV__ && demo
+      ? demoTx(demo as TxState, devKind === 'cancel' || devKind === 'speedUp' ? devKind : undefined)
+      : localRecordMatches(stored ? ownHashes(stored) : undefined, id)
+        ? stored
+        : null
   const [readInternal, retryInternal] = useInternalTransfers(
-    tx && !testMode && tx.state === 'Confirmed' ? tx.hash : null,
+    tx && !testMode && tx.state === 'Confirmed' ? explorerHash(tx) : null,
   )
   const internal = __DEV__ && devInternalParam ? devInternal(devInternalParam) : readInternal
   if (!tx) {
     const address = __DEV__ && devRow ? DEV_ADDRESS : getAccountAddress()
-    const cached = findCachedRow(address, id, dir)
+    const cached = findCachedRow(address, id)
     const row =
       (__DEV__ && (devRow === 'in' || devRow === 'out')
-        ? devHistoryRow(devRow, devInternalParam ? '0' : undefined)
+        ? devHistoryRow(devRow, devInternalParam || devCaution ? '0' : undefined, devCaution === '1')
         : null) ??
       cached ??
       (testMode ? fakeHistoryItems(null).find((i) => i.id === id) : undefined)
@@ -306,18 +430,14 @@ export function TxDetailPage() {
     return testMode ? (
       <Redirect href="/activity" />
     ) : (
-      <LookupDetail
-        id={id}
-        address={address}
-        real={real}
-        dir={dir}
-        {...(__DEV__ && devLookup ? { dev: devLookup } : {})}
-      />
+      <LookupDetail id={id} address={address} real={real} {...(__DEV__ && devLookup ? { dev: devLookup } : {})} />
     )
   }
   const explorer =
-    explorerUrl(chain, tx.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${tx.hash}` : null)
-  const copy = resultCopy(tx.state)
+    explorerUrl(chain, explorerHash(tx)) ??
+    (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${explorerHash(tx)}` : null)
+  const cancelled = cancelMined(tx)
+  const copy = resultCopy(tx.state, cancelled)
   const test = testMode && isPolled(tx.state)
   const final = isFinal(tx.state)
   const [figure, unit] = showAmount(tx.amount, tx.asset, 'exact').split(' ')
@@ -361,30 +481,39 @@ export function TxDetailPage() {
         asset={tx.asset === 'USDC' ? 'USDC' : 'ETH'}
         amount={figure ?? tx.amount}
         unit={unit ?? tx.asset}
+        struck={cancelled}
         lines={(test ? t('result.testBody') : t(copy.body)).split('\n')}
       />
+      {!test ? <PendingActions tx={tx} onDone={reload} /> : null}
       <SectionBand />
-      <Block title={t('detail.recipientTitle')}>
-        <AddressText address={tx.to} />
+      <Block>
+        <FullAddress
+          label={t('detail.recipientTitle')}
+          address={tx.to}
+          copy={copyOf(t, t('detail.recipientTitle'), tx.to)}
+        />
       </Block>
       <SectionBand />
       <Block title={t('detail.infoTitle')}>
-        <SummaryRow label={t('detail.time')} fact value={factTime(tx.createdAt)} />
-        <SummaryRow label={t('result.statusLabel')} value={stateWord} />
-        <SummaryRow format="address" plain fact label={t('detail.hashTitle')} value={tx.hash} />
+        <DetailRow label={t('detail.time')} value={whenText(t, tx.createdAt)} />
+        <DetailRow emphasis label={t('result.statusLabel')} value={stateWord} />
+        <DetailRow
+          mono
+          label={t('detail.hashTitle')}
+          value={shortHash(explorerHash(tx))}
+          copy={copyOf(t, t('detail.hashTitle'), explorerHash(tx))}
+        />
         {tx.accountIndex !== undefined ? (
-          <SummaryRow label={t('detail.sender')} value={t('detail.accountName', { n: tx.accountIndex + 1 })} />
+          <DetailRow label={t('detail.sender')} value={t('detail.accountName', { n: tx.accountIndex + 1 })} />
         ) : null}
-        <SummaryRow label={t('result.network')} fact value={networkFact} />
-        {tx.blockNumber !== undefined && !test ? (
-          <SummaryRow label={t('detail.block')} fact value={String(tx.blockNumber).replace(/\B(?=(\d{3})+$)/g, ',')} />
-        ) : null}
+        <DetailRow label={t('result.network')} value={account.network} />
         {showFee ? (
-          <SummaryRow
+          <DetailRow
             label={t(tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal')}
             value={tx.fee ? `${tx.fee} ETH` : '—'}
           />
         ) : null}
+        <MoreRows blockNumber={test ? undefined : tx.blockNumber} />
         {final || test ? null : <StatusNotice tone="info" title={lastChecked} />}
       </Block>
       {internal ? (
@@ -404,7 +533,11 @@ export function TxDetailPage() {
                 haptic.warning()
                 setConfirmClear(true)
               }}
-              style={{ minHeight: th.primitive.size.touch_min, justifyContent: 'center' }}
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? th.semantic.surface.pressed : undefined,
+                minHeight: th.primitive.size.touch_min,
+                justifyContent: 'center',
+              })}
             >
               <Text variant="headline" color={th.semantic.status.danger.fg}>
                 {t('detail.clearTest')}

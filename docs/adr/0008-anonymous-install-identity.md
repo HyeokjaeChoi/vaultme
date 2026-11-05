@@ -3,6 +3,7 @@
 Status: Accepted (2026-10-14 derived from the removed LLD, see git history)
 Supersedes/Aliases: Q57
 Superseded in part by [0011](0011-web-client-api-access.md): the "no browser client" part (Origin rejection, no CORS, "A browser client cannot use the API"). The rest still binds.
+Superseded in part by [0022](0022-install-id-linked-to-address-only-while-push-is-on.md): the sentence "The install ID is never linked to a wallet address". The link exists while push is on.
 
 ## Context
 The proxy needs to limit abuse, but the app has no user accounts. Device attestation is out of scope. The only client is a native app.

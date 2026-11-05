@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { backupGateState } from '../src/features/backup/model/gate'
+import { backupGateState, hasDeposit } from '../src/features/backup/model/gate'
 
 const base = { done: false, restored: false, hasIncoming: false, promptShown: false }
 
@@ -19,5 +19,13 @@ describe('backupGateState', () => {
     expect(backupGateState(base).shouldPromptAfterDeposit).toBe(false)
     expect(backupGateState({ ...base, hasIncoming: true, done: true }).shouldPromptAfterDeposit).toBe(false)
     expect(backupGateState({ ...base, hasIncoming: true, restored: true }).shouldPromptAfterDeposit).toBe(false)
+  })
+})
+
+describe('hasDeposit (Q71)', () => {
+  it('an incoming zero-value (caution) row is no deposit, a real incoming row is', () => {
+    expect(hasDeposit([{ kind: 'receive', caution: true }])).toBe(false)
+    expect(hasDeposit([{ kind: 'send' }])).toBe(false)
+    expect(hasDeposit([{ kind: 'receive', caution: true }, { kind: 'receive' }])).toBe(true)
   })
 })

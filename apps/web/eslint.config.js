@@ -32,9 +32,21 @@ const layers = fsdLayers({
   sharedEntries: ['api', 'lib', 'ui'],
 })
 
+// Q59 (#312): the web viewer never signs. Key and signing code stays behind @vaultme/wallet-core/signer.
+const noSigner = {
+  files: ['app/**/*.{ts,tsx}'],
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      { name: '@vaultme/wallet-core/signer', message: 'The web app must not import signing code (Q59, #312).' },
+    ],
+  },
+}
+
 export default [
   { ignores: ['build', '.react-router', '.wrangler', 'playwright-report', 'test-results', '.lighthouseci'] },
   ...config,
   tokensOnly,
+  noSigner,
   ...layers,
 ]

@@ -32,12 +32,13 @@ function Key({ cell, labels, onKey }: { cell: Cell; labels: Labels; onKey: OnKey
         accessibilityLabel={label}
         onPress={press}
         {...handlers}
-        style={{
+        style={({ pressed }) => ({
+          backgroundColor: pressed ? t.semantic.surface.pressed : undefined,
           height: t.component.buttonB.height.lg,
           borderRadius: t.component.buttonB.radius,
           alignItems: 'center',
           justifyContent: 'center',
-        }}
+        })}
       >
         {cell === 'backspace' ? (
           <Icon name="backspace" size={t.component.icon.size.feature} color={t.semantic.text.primary} />
@@ -51,7 +52,7 @@ function Key({ cell, labels, onKey }: { cell: Cell; labels: Labels; onKey: OnKey
   )
 }
 
-/** C34 Keypad (Redesign B). 3x4 text keys on one 56 pt row height, Title 1 digits 26 (capped at 1.3x), no fills, no gaps. The bottom-left key is "." for every asset (ETH and USDC; the asset only changes how many decimals `applyKey` accepts). Backspace is icon-only ("지우기"). Press feedback: scale 0.97, 100 ms, plus a selection haptic (warning haptic when `onKey` returns false). */
+/** C34 Keypad (Redesign B). 3x4 text keys on one 56 pt row height, Title 1 digits 26 (capped at 1.3x), pressed fill `surface.pressed`, no gaps. The bottom-left key is "." for every asset (ETH and USDC; the asset only changes how many decimals `applyKey` accepts). Backspace is icon-only ("지우기"). Press feedback: `surface.pressed` fill (survives Reduce Motion), scale 0.97 over motion.duration.fastMs, plus a selection haptic (warning haptic when `onKey` returns false). */
 export function Keypad({ onKey, labels }: { onKey: OnKey; labels: Labels }) {
   return (
     <View>

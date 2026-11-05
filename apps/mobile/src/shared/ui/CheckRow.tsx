@@ -16,13 +16,14 @@ export function CheckRow({ title, body, checked, onToggle }: Props) {
       accessibilityState={{ checked }}
       accessibilityLabel={body ? `${title}. ${body}` : title}
       onPress={onToggle}
-      style={{
+      style={({ pressed }) => ({
+        backgroundColor: pressed ? t.semantic.surface.pressed : undefined,
         minHeight: t.primitive.size.touch_min,
         flexDirection: 'row',
         alignItems: 'flex-start',
         gap: t.semantic.layout.rowGap,
         paddingVertical: t.primitive.space[2],
-      }}
+      })}
     >
       <View
         style={{

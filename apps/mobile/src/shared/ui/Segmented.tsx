@@ -29,14 +29,18 @@ export function Segmented<T extends string>({ options, value, onChange }: Props<
             accessibilityState={{ checked: on }}
             onPress={() => onChange(o.value)}
             hitSlop={{ top: pad, bottom: pad }}
-            style={{
+            style={({ pressed }) => ({
               flex: 1,
               paddingVertical: t.primitive.space[2],
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: t.component.segmented.radius,
-              backgroundColor: on ? t.component.segmented.selectedBg : t.component.segmented.bg,
-            }}
+              backgroundColor: on
+                ? t.component.segmented.selectedBg
+                : pressed
+                  ? t.semantic.surface.pressed
+                  : t.component.segmented.bg,
+            })}
           >
             <Text variant="label" color={on ? t.component.segmented.selectedFg : t.component.segmented.fg}>
               {o.label}

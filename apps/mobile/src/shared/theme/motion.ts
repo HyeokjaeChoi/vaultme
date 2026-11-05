@@ -1,7 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   cancelAnimation,
+  cubicBezier,
   Easing,
+  FadeIn,
+  FadeOut,
+  Keyframe,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -9,14 +13,15 @@ import {
   withSequence,
   withTiming,
 } from 'react-native-reanimated'
+import { light } from '@vaultme/tokens'
 
-// DESIGN motion (emil-design-eng): strong ease-out for UI. No tokens exist for these values yet.
+// DESIGN motion (emil-design-eng): strong ease-out for UI. Press = motion.duration.fastMs, fades = baseMs. Bloom, pop, spin, shake and the sheet open (250) have no token, so they keep their own ms.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
+export const EASE_OUT_CSS = cubicBezier(0.23, 1, 0.32, 1) // same curve as EASE_OUT, for Reanimated CSS transitions
 const PRESS_SCALE = 0.97
-const PRESS_MS = 100
-const FOLD_MS = 200
+const PRESS_MS = light.primitive.motion.duration.fastMs // same in dark
 
-/** Press feedback: scale 0.97 over 100 ms ease-out. Off under Reduce Motion (the pressed color still shows). Spread `handlers` on the Pressable, `style` on its Animated.View wrapper. */
+/** Press feedback: scale 0.97 over motion.duration.fastMs ease-out. Off under Reduce Motion (the pressed color still shows). Spread `handlers` on the Pressable, `style` on its Animated.View wrapper. */
 export function usePressScale() {
   const reduce = useReducedMotion()
   const scale = useSharedValue(1)
@@ -25,16 +30,6 @@ export function usePressScale() {
     if (!reduce) scale.set(withTiming(v, { duration: PRESS_MS, easing: EASE_OUT }))
   }
   return { style, handlers: { onPressIn: () => to(PRESS_SCALE), onPressOut: () => to(1) } }
-}
-
-/** One-time entrance for an answered-question row: opacity 0 -> 1 and translateY `offset` -> 0 over 200 ms. Off under Reduce Motion. */
-export function useFoldIn(offset: number) {
-  const reduce = useReducedMotion()
-  const p = useSharedValue(reduce ? 1 : 0)
-  useEffect(() => {
-    if (!reduce) p.set(withTiming(1, { duration: FOLD_MS, easing: EASE_OUT }))
-  }, [p, reduce])
-  return useAnimatedStyle(() => ({ opacity: p.get(), transform: [{ translateY: (1 - p.get()) * offset }] }))
 }
 
 const SPIN_MS = 800
@@ -100,4 +95,36 @@ export function useShake(amplitude: number) {
     )
   }
   return { style, shake }
+}
+
+/**
+ * Toast enter/exit (motion audit M1): rises `rise` px while it fades in over `enterMs`, fades out over `exitMs`. Spread both on the toast's Animated.View.
+ * Reduce Motion: opacity only, no travel.
+ */
+export function useToastMotion(rise: number, enterMs: number, exitMs: number) {
+  const reduce = useReducedMotion()
+  return useMemo(
+    () => ({
+      entering: reduce
+        ? FadeIn.duration(enterMs)
+        : new Keyframe({
+            0: { opacity: 0, transform: [{ translateY: rise }] },
+            100: { opacity: 1, transform: [{ translateY: 0 }], easing: EASE_OUT },
+          }).duration(enterMs),
+      exiting: FadeOut.duration(exitMs),
+    }),
+    [reduce, rise, enterMs, exitMs],
+  )
+}
+
+/**
+ * Skeleton -> content fade (motion audit M2): the props (`{ entering }`, or `{}`) to spread on the Animated.View that wraps the loaded content (a container, never a virtualized row).
+ * Set only when this screen showed `loading` first, so content that was already there does not fade in. Reduce Motion: `{}`, the swap is instant.
+ * The skeleton leaves at once. Read at mount only, so call it where the wrapper mounts when `loading` turns false.
+ */
+export function useRevealEntering(loading: boolean, ms: number) {
+  const reduce = useReducedMotion()
+  const [sawLoading, setSawLoading] = useState(loading)
+  if (loading && !sawLoading) setSawLoading(true)
+  return reduce || !sawLoading ? {} : { entering: FadeIn.duration(ms).easing(EASE_OUT) }
 }

@@ -19,7 +19,7 @@ Each case has 1 untimed warm-up request first. A run has one mode:
 - `MODE=warm`: connections are reused (HTTP keep-alive).
 - `MODE=cold`: `noConnectionReuse`, a new TCP and TLS connection for every request. k6 sets this for a whole run, so the two modes are two runs.
 
-Output per case: p50, p90, p95, p99, max of the total time (DNS + TCP + TLS + request + response), error rate, and the parts: DNS, TCP connect, TLS handshake and TTFB (`http_req_waiting`).
+Output per case: p50, p90, p95, p99, max of the total time (DNS + TCP + TLS + request + response), error rate, and the parts: DNS, TCP connect, TLS handshake and TTFB (`http_req_waiting`). `rpc` and the history cases also get Worker and upstream time (Infura/Alchemy, #399; the Etherscan part of a history miss, 0 on a hit, #412) from the `Server-Timing` header; a history response also names its slowest Etherscan fetch, bucket wait and bucket call; `n/a` there means the deployed Worker sent no header. Own time = Worker minus upstream. Each case with an SLO also counts its requests at or under the tier 1 limit (`slo`: good / total).
 Only HTTP 200 responses are timed; any other response counts as an error. k6 `http_req_duration` leaves out DNS, TCP and TLS, so the script records its own `ok_total`.
 `handleSummary` writes `k6-api-<mode>.json` and `k6-api-<mode>.md` to `OUT_DIR`.
 
@@ -49,6 +49,6 @@ The reasons for the counts are in the amendment of ADR-0019.
 It uses the variable `STAGING_API_URL` of the `staging` environment and no secret. Results are not uploaded anywhere else (no k6 Cloud).
 Start it by hand: `gh workflow run api-bench.yml`.
 
-Two tiers ([ADR-0020](../../docs/adr/0020-api-ux-slo-and-regression-watch.md), [docs/perf/slo.md](../../docs/perf/slo.md)), both in `src/slo.ts`: tier 1 is the UX SLO, a k6 threshold that fails the job; tier 2 is the regression watch (1.5 x the highest calibration p95, `WATCH_P95_MS` in `k6/api.js`), which only adds a warning line to the job summary.
+The job fails on a case with no 200 response and on our own server time (`rpc` own p95 over `OWN_P95_MS`, ADR-0036). Two tiers ([ADR-0020](../../docs/adr/0020-api-ux-slo-and-regression-watch.md), [docs/perf/slo.md](../../docs/perf/slo.md)), both in `src/slo.ts`, only warn per run: tier 1 is the UX SLO, judged over 4 weeks by `.github/workflows/api-slo-window.yml` (`cli.ts slo-window`, from the per-request good / total counts in each result file); tier 2 is the regression watch (1.5 x the highest calibration p95, `WATCH_P95_MS` in `k6/api.js`).
 
 The older `latency` command (`pnpm --filter @vaultme/perf latency`) stays as the Node measurement behind the baseline until the baseline moves to k6.

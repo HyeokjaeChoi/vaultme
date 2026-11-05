@@ -1,6 +1,7 @@
 import { USDC_SEPOLIA, type HistoryResponse, type TxInternalResponse } from '@vaultme/contracts'
 import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
+import { logEvent } from './log.ts'
 import { addressHash, checkCursor, loadHistory, type FetchList } from './history.ts'
 import { parseInternalRows } from './tx-internal.ts'
 
@@ -12,13 +13,23 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 type Bindings = Env['Bindings']
 
+/**
+ * Timing of one history request for its Server-Timing header (#412). The calls of a page run in parallel, so the slowest
+ * call of each part is kept, not the sum. `upstreamMs` is the whole Etherscan part of a miss (0 on a cache hit).
+ */
+export type EtherscanStats = { calls: number; fetchMs: number; waitMs: number; bucketMs: number; upstreamMs: number }
+export const newStats = (): EtherscanStats => ({ calls: 0, fetchMs: 0, waitMs: 0, bucketMs: 0, upstreamMs: 0 })
+
 /** Waits for a token of the global bucket. Throws when the wait would be over 2 s. */
-async function acquire(env: Bindings): Promise<void> {
+async function acquire(env: Bindings, stats?: EtherscanStats): Promise<void> {
+  const t0 = Date.now()
   const wait = await env.ETHERSCAN_BUCKET.getByName('global').acquire()
+  if (stats) stats.bucketMs = Math.max(stats.bucketMs, Date.now() - t0)
   if (wait === null) {
-    console.warn('metric etherscan_throttled_total')
+    logEvent('warn', 'etherscan_throttled')
     throw new UpstreamError('throttled')
   }
+  if (stats) stats.waitMs = Math.max(stats.waitMs, wait)
   if (wait > 0) await sleep(wait)
 }
 
@@ -34,14 +45,19 @@ function apiKey(env: Bindings): string {
  * Empty -> []. Rate limit -> one more try through the bucket, then 503. Query Timeout and the rest -> 503.
  * Never log or throw the URL, the key or the body: they can carry the key.
  */
-async function etherscanRows(env: Bindings, params: Record<string, string>): Promise<unknown[]> {
+async function etherscanRows(
+  env: Bindings,
+  params: Record<string, string>,
+  stats?: EtherscanStats,
+): Promise<unknown[]> {
   const key = apiKey(env)
   const url = new URL(BASE)
   url.search = new URLSearchParams({ chainid: SEPOLIA, module: 'account', ...params, apikey: key }).toString()
   const list = params.action ?? '?'
   for (let attempt = 0; attempt < 2; attempt++) {
-    await acquire(env)
+    await acquire(env, stats)
     const t0 = Date.now()
+    if (stats) stats.calls++
     let body: { status?: unknown; message?: unknown; result?: unknown }
     try {
       const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) })
@@ -49,28 +65,32 @@ async function etherscanRows(env: Bindings, params: Record<string, string>): Pro
       const json: unknown = await res.json()
       if (typeof json !== 'object' || json === null || Array.isArray(json)) throw new Error('not an object')
       body = json
+      if (stats) stats.fetchMs = Math.max(stats.fetchMs, Date.now() - t0)
     } catch (e) {
-      console.error('etherscan request failed', list, e instanceof Error ? e.name : 'error')
+      logEvent('error', 'etherscan_request_failed', { list, error: e instanceof Error ? e.name : 'error' })
       throw new UpstreamError('request failed')
     }
     if (body.status === '1' && Array.isArray(body.result)) {
-      console.log('etherscan ok', list, Date.now() - t0) // latency of successful calls only
+      logEvent('info', 'etherscan_ok', { list, duration_ms: Date.now() - t0 }) // latency of successful calls only
       const rows: unknown[] = body.result
       return rows
     }
     if (body.message === 'No transactions found') return []
     if (typeof body.result === 'string' && /rate limit/i.test(body.result)) {
-      console.warn('metric etherscan_429_total')
+      logEvent('warn', 'etherscan_rate_limited')
       continue
     }
     // Query Timeout, bad key, window too large, ...: only the message, never the body.
-    console.error('etherscan error', list, typeof body.message === 'string' ? body.message.slice(0, 60) : '?')
+    logEvent('error', 'etherscan_error', {
+      list,
+      message: typeof body.message === 'string' ? body.message.slice(0, 60) : '?',
+    })
     throw new UpstreamError('upstream error')
   }
   throw new UpstreamError('rate limited')
 }
 
-function etherscanList(env: Bindings, address: string): FetchList {
+function etherscanList(env: Bindings, address: string, stats?: EtherscanStats): FetchList {
   apiKey(env)
   return (list, q) => {
     const params: Record<string, string> = {
@@ -82,7 +102,7 @@ function etherscanList(env: Bindings, address: string): FetchList {
     }
     if (q.endblock !== undefined) params.endblock = String(q.endblock)
     if (list === 'tokentx') params.contractaddress = USDC_SEPOLIA
-    return etherscanRows(env, params)
+    return etherscanRows(env, params, stats)
   }
 }
 
@@ -92,8 +112,13 @@ export async function getTxInternal(env: Bindings, hash: string): Promise<TxInte
 }
 
 /** Cache API, 30 s per (address hash, cursor). The raw address is never part of the key. */
-export async function getHistory(env: Bindings, address: string, cursor: string | undefined): Promise<HistoryResponse> {
-  const fetchList = etherscanList(env, address)
+export async function getHistory(
+  env: Bindings,
+  address: string,
+  cursor: string | undefined,
+  stats?: EtherscanStats,
+): Promise<HistoryResponse> {
+  const fetchList = etherscanList(env, address, stats)
   await checkCursor(address, cursor) // before the cache: a bad cursor must never get a cached 200
   const cache = caches.default
   const cacheKey = new Request(
@@ -101,7 +126,13 @@ export async function getHistory(env: Bindings, address: string, cursor: string 
   )
   const hit = await cache.match(cacheKey)
   if (hit) return await hit.json<HistoryResponse>()
-  const out = await loadHistory(fetchList, address, cursor)
+  const t0 = Date.now()
+  let out: HistoryResponse
+  try {
+    out = await loadHistory(fetchList, address, cursor)
+  } finally {
+    if (stats) stats.upstreamMs = Date.now() - t0
+  }
   await cache.put(cacheKey, Response.json(out, { headers: { 'Cache-Control': `max-age=${String(CACHE_SECONDS)}` } }))
   return out
 }

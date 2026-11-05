@@ -4,6 +4,9 @@ declare namespace Cloudflare {
     MIN_APP_VERSION: string
     MIN_WEB_VERSION: string
     WEB_ORIGINS: string
+    ENVIRONMENT: string
+    SENTRY_DSN: string
+    ANALYTICS: AnalyticsEngineDataset
     DB: D1Database
     TOKEN_SECRET: string
     INSTALL_IP_LIMITER: RateLimit

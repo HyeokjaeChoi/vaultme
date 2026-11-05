@@ -4,6 +4,9 @@ export type Env = {
   Bindings: {
     MIN_APP_VERSION: string
     MIN_WEB_VERSION: string // X-Client: web minimum (ADR-0011)
+    ENVIRONMENT: string // dev | staging | production (var): the Sentry environment; /v1/debug/sentry answers only in dev
+    SENTRY_DSN?: string // var, not a secret (a DSN only allows sending events); empty or unset = Sentry off
+    ANALYTICS: AnalyticsEngineDataset // Workers Analytics Engine, dataset per env (src/metrics.ts)
     WEB_ORIGINS?: string // optional: unset = no browser; comma-separated allowed browser origins (ADR-0011); a var, not a secret
     DB: D1Database
     TOKEN_SECRET: string // wrangler secret; .dev.vars locally

@@ -61,7 +61,11 @@ export function AssetRow({ name, symbol, subtitle, balance, note, onPress }: Pro
     </View>
   )
   return onPress ? (
-    <Pressable accessibilityRole="button" onPress={onPress}>
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => ({ backgroundColor: pressed ? t.semantic.surface.pressed : undefined })}
+    >
       {row}
     </Pressable>
   ) : (

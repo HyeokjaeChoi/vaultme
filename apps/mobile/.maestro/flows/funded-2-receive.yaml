@@ -1,0 +1,38 @@
+appId: dev.stackline.vaultme
+name: funded restored wallet shows deposits
+tags: [funded]
+---
+# The other wallet, restored from scratch, lists the two deposits of funded-1-send (the file name makes it run after it).
+- runFlow: ../subflows/start-fresh.yaml
+- runFlow:
+    file: ../subflows/restore-funded.yaml
+    env:
+      PASSPHRASE: ${MAESTRO_RECEIVER_PASSPHRASE}
+      PREFIX: ${MAESTRO_RECEIVER_PREFIX}
+- tapOn: '내역'
+# The history API can lag behind the chain, and the token transfer can be indexed later than the ETH one:
+# pull to refresh up to 8 times per row until each row shows.
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            notVisible: '받음, .*, \+0\.000${MAESTRO_ETH_SUFFIX} ETH, 확정'
+          commands:
+            - swipe:
+                direction: DOWN
+            - waitForAnimationToEnd:
+                timeout: 10000
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            notVisible: '받음, .*, \+0\.${MAESTRO_USDC_SUFFIX} USDC, 확정'
+          commands:
+            - swipe:
+                direction: DOWN
+            - waitForAnimationToEnd:
+                timeout: 10000
+- assertVisible: '받음, .*, \+0\.000${MAESTRO_ETH_SUFFIX} ETH, 확정'
+- assertVisible: '받음, .*, \+0\.${MAESTRO_USDC_SUFFIX} USDC, 확정'

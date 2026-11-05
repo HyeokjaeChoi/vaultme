@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 // Error codes for the v1 API (ARCHITECTURE.md#api-contract). Clients map any code they do not know to `Unknown`.
 // Names are chosen here; ARCHITECTURE.md#api-contract fixes only the shape and the 426/429/503 cases.
-export const ERROR_CODES = [
+const ERROR_CODES = [
   'invalid_request', // 400
   'invalid_cursor', // 400, history cursor is malformed or belongs to another address
   'origin_forbidden', // 403

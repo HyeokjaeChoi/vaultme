@@ -1,19 +1,12 @@
-// Figma: B/Status hero 422:667 (Tone Pending / Confirmed / Failed / Unknown / Replaced; icons 137:58 / 137:75 / 137:110 / 137:127 / 137:350)
+// Figma: B/Status hero 422:667 (Tone Pending / Confirmed / Failed / Unknown / Replaced; Bold Duotone hero icons 506:26156 / 506:26142 / 506:26149 / 506:26163; Replaced keeps refresh 137:350)
 import { View } from 'react-native'
 import { useTheme } from '../theme'
-import { Icon, type IconName } from './Icon'
+import { Icon } from './Icon'
 import { Text } from './Text'
 
 export type HeroTone = 'pending' | 'confirmed' | 'failed' | 'unknown' | 'replaced'
-const ICON: Record<HeroTone, IconName> = {
-  pending: 'pending',
-  confirmed: 'confirmed',
-  failed: 'failed',
-  unknown: 'unknown',
-  replaced: 'refresh',
-}
 
-/** Result headline: 48 pt status icon, Title 1, Body in text/secondary. Replaced uses the refresh icon in the warning color (Figma). */
+/** Result headline: 48 pt Bold Duotone status icon, Title 1, Body in text/secondary. Replaced uses the refresh icon in the warning color (Figma). */
 export function StatusHero({ tone, title, body }: { tone: HeroTone; title: string; body?: string }) {
   const t = useTheme()
   const s = t.component.icon.status
@@ -28,7 +21,11 @@ export function StatusHero({ tone, title, body }: { tone: HeroTone; title: strin
         paddingBottom: t.semantic.layout.groupGap,
       }}
     >
-      <Icon name={ICON[tone]} size={t.primitive.size.avatar_lg} color={color} />
+      {tone === 'replaced' ? (
+        <Icon name="refresh" size={t.primitive.size.avatar_lg} color={color} />
+      ) : (
+        <Icon name={tone} weight="duotone" size={t.primitive.size.avatar_lg} color={color} />
+      )}
       <Text variant="title1" accessibilityRole="header">
         {title}
       </Text>

@@ -11,6 +11,6 @@ export function usePushBoot(): void {
     installForegroundHandler()
     void syncPush(pushDeps)
   }, [])
-  // Cold start: wait for the `/` → `/home` redirect, else it replaces the opened S41 (#177). The tap stays in the OS until then.
+  // Cold start: wait for the `/` → `/home` redirect, else it replaces the opened list (#177). The tap stays in the OS until then.
   useEffect(() => (launched ? onPushTap((data) => void openPush(data, router)) : undefined), [launched, router])
 }

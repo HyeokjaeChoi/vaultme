@@ -1,0 +1,55 @@
+name: osv-scanner
+
+# Q74 (#312): a known vulnerability in a lockfile dependency fails the job.
+# PR: fails only on vulnerabilities the PR adds (compares with the base branch). Weekly: full scan of main.
+# Official reusable workflows of google/osv-scanner-action v2.7.0 (docs: https://google.github.io/osv-scanner/github-action/).
+on:
+  pull_request:
+  schedule:
+    # Monday 05:41 UTC. Not at the start of an hour: GitHub delays or drops scheduled runs at :00.
+    - cron: '41 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan-pr:
+    if: github.event_name == 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    with:
+      scan-args: |-
+        --lockfile=pnpm-lock.yaml
+
+  scan-full:
+    if: github.event_name != 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    with:
+      scan-args: |-
+        --lockfile=pnpm-lock.yaml
+
+  # A failed weekly scan opens an issue (or comments on the open one), so it is not left only in the Actions tab (#444).
+  alert:
+    needs: scan-full
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the vulnerability issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'deps: weekly osv-scanner found known vulnerabilities'
+        run: |
+          body="Weekly osv-scanner failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (Q74). Open Dependabot alerts: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/security/dependabot"
+          n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
+          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body "$body"; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$body"; fi

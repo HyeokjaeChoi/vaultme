@@ -45,12 +45,14 @@ it('accent rule: link is Ink, received amount is Ink, one neutral chip', () => {
   }
 })
 
-it('mono fact label: Plex Mono 12/16, positive tracking, upper variant', () => {
+it('fact line: Pretendard Regular 12/16, spacing 0, upper variant', () => {
   const { fact, factUpper, link } = light.primitive.type.productB
-  expect(fact.fontFamily).toMatch(/Plex Mono/)
+  expect(fact.fontFamily).toBe('Pretendard')
+  expect(fact.fontWeight).toBe('400')
   expect(fact.fontSize).toBe(12)
   expect(fact.lineHeight).toBe(16)
-  expect(fact.letterSpacing).toBeGreaterThan(0)
+  expect(fact.letterSpacing).toBe(0)
+  expect(light.primitive.type.productB.caption.letterSpacing).toBe(0)
   expect(factUpper.fontFamily).toBe(fact.fontFamily)
   expect(link.fontSize).toBe(14)
 })

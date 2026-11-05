@@ -1,7 +1,6 @@
-import { encodeFunctionData, erc20Abi, isAddress, keccak256, type Address, type Hash, type Hex } from 'viem'
+import { isAddress, keccak256, type Address, type Hash, type Hex } from 'viem'
 import { toUnits, AmountError } from './amount'
-import { ABS_MAX_FEE_WEI, ASSETS, CHAIN, type AssetId } from './constants'
-import type { Mnemonic } from './mnemonic'
+import { ABS_MAX_FEE_WEI, ASSETS, type AssetId } from './constants'
 import { recipientRisk, type RecipientRisk } from './risk'
 
 /** Local tx hash: keccak256 of the signed raw tx (ADR-0005). */
@@ -60,6 +59,12 @@ function fees(s: ChainSnapshot) {
   }
 }
 
+/** The market fee fields of a snapshot (the send fee formula: max fee = 2 * base + tip). Speed up never goes below them (ADR-0031). */
+export const marketFeesOf = (s: ChainSnapshot): { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint } => ({
+  maxFeePerGas: fees(s).maxFeePerGas,
+  maxPriorityFeePerGas: s.maxPriorityFeePerGas,
+})
+
 /** Worst-case fee (gasLimit x maxFeePerGas) for a snapshot: the cap the user approves. */
 export const feeCapOf = (s: ChainSnapshot): bigint => fees(s).feeCap
 
@@ -106,6 +111,21 @@ export function prepare(intent: SendIntent, chain: ChainSnapshot): PrepareResult
   }
 }
 
+/**
+ * Node answers that mean the node refused the tx: it is not in the pool, so nothing is recorded (ADR-0031). "already known" is NOT one: the tx is out there.
+ * Neither is "nonce too low": the API re-sends to a second upstream after a timeout, and if the first one took the tx and it was mined, the second says "nonce too low" about this same tx.
+ */
+const REFUSED =
+  /underpriced|insufficient funds|intrinsic gas|exceeds block gas limit|less than block base fee|invalid sender/i
+const KNOWN = /already known|known transaction/i
+
+/** A JSON-RPC error (it has a numeric `rpcCode`, like api-client `RpcError`) whose message is a definite refusal. A timeout or a network error is not: the tx may be out there. */
+export function isNodeRejection(e: unknown): boolean {
+  if (typeof e !== 'object' || e === null || typeof (e as { rpcCode?: unknown }).rpcCode !== 'number') return false
+  const m = String((e as { message?: unknown }).message)
+  return !KNOWN.test(m) && REFUSED.test(m)
+}
+
 /** Sends the signed raw tx. Returns the hash the node reports. */
 export type SubmitFn = (rawTx: Hex) => Promise<Hash>
 
@@ -114,43 +134,3 @@ export type SubmitResult =
   | { status: 'Blocked' } // absolute cap -> ABS_CAP_EXCEEDED
   | { status: 'Pending'; hash: Hash } // SUBMITTED
   | { status: 'Unknown'; hash: Hash; reason: 'hashMismatch' | 'submitError' } // SUBMIT_UNKNOWN (hash = locally computed)
-
-export async function signAndSubmit(
-  approved: ApprovedSend,
-  latest: ChainSnapshot,
-  deps: { mnemonic: Mnemonic; submit: SubmitFn },
-): Promise<SubmitResult> {
-  const latestCap = fees(latest).feeCap
-  if (approved.feeCap > ABS_MAX_FEE_WEI || latestCap > ABS_MAX_FEE_WEI) return { status: 'Blocked' }
-  if (latestCap > approved.feeCap) return { status: 'NeedsReview' }
-  // The signed tx must match the reviewed model. A new nonce means a new review.
-  if (latest.nonce !== approved.nonce) return { status: 'NeedsReview' }
-
-  const asset = ASSETS[approved.asset]
-  const account = deps.mnemonic.account()
-  const raw = await account.signTransaction({
-    type: 'eip1559',
-    chainId: CHAIN.id,
-    nonce: approved.nonce,
-    gas: approved.gasLimit,
-    maxFeePerGas: approved.maxFeePerGas,
-    maxPriorityFeePerGas: approved.maxPriorityFeePerGas,
-    ...(asset.kind === 'native'
-      ? { to: approved.to, value: approved.amount }
-      : {
-          to: asset.address,
-          value: 0n,
-          data: encodeFunctionData({ abi: erc20Abi, functionName: 'transfer', args: [approved.to, approved.amount] }),
-        }),
-  })
-  const hash = keccak256(raw)
-
-  try {
-    const reported = await deps.submit(raw)
-    return reported.toLowerCase() === hash
-      ? { status: 'Pending', hash }
-      : { status: 'Unknown', hash, reason: 'hashMismatch' }
-  } catch {
-    return { status: 'Unknown', hash, reason: 'submitError' }
-  }
-}

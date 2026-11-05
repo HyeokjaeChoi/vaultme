@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { loadFailureStatus } from '../src/shared/auth/cancel'
 
 // Published BIP39 test vector (all-zero entropy). Not a wallet phrase.
 const VECTOR = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
@@ -70,7 +71,7 @@ beforeEach(() => {
 
 describe('keychain phrase', () => {
   it('round-trips and uses the auth + this-device-only tier', async () => {
-    const { Mnemonic } = await import('@vaultme/wallet-core')
+    const { Mnemonic } = await import('@vaultme/wallet-core/signer')
     const k = await import('../src/shared/storage/keychain')
     expect(await k.hasPhrase()).toBe(false)
     await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
@@ -101,23 +102,22 @@ describe('keychain phrase', () => {
   })
 
   it('maps a user cancel to cancelled and other failures to error', async () => {
-    const { Mnemonic } = await import('@vaultme/wallet-core')
+    const { Mnemonic } = await import('@vaultme/wallet-core/signer')
     const k = await import('../src/shared/storage/keychain')
     await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
     failGet = 'User canceled the operation.'
     expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'cancelled' })
     failGet = 'keychain exploded'
     expect(await k.loadPhrase(PROMPT)).toEqual({ status: 'error' })
-    expect(k.loadFailureStatus('not an Error')).toBe('error')
+    expect(loadFailureStatus('not an Error')).toBe('error')
   })
 
-  it('Android BiometricPrompt cancels are read by code, not by the localized text (#241)', async () => {
+  it('Android BiometricPrompt cancels are read by code, not by the localized text (#241)', () => {
     // Seen on a Korean-locale emulator: "code: 10, msg: 인증이 취소되었습니다." Codes 5 (canceled), 10 (user canceled), 13 (negative button) are cancels.
-    const k = await import('../src/shared/storage/keychain')
     for (const code of ['5', '10', '13'])
-      expect(k.loadFailureStatus(new Error(`code: ${code}, msg: 인증이 취소되었습니다.`))).toBe('cancelled')
-    expect(k.loadFailureStatus(new Error('code: 7, msg: 너무 많은 시도'))).toBe('error') // 7 = lockout
-    expect(k.loadFailureStatus(new Error('code: 110, msg: x'))).toBe('error') // only whole codes
+      expect(loadFailureStatus(new Error(`code: ${code}, msg: 인증이 취소되었습니다.`))).toBe('cancelled')
+    expect(loadFailureStatus(new Error('code: 7, msg: 너무 많은 시도'))).toBe('error') // 7 = lockout
+    expect(loadFailureStatus(new Error('code: 110, msg: x'))).toBe('error') // only whole codes
   })
 
   it('returns error for a stored value that is not a valid phrase', async () => {
@@ -131,7 +131,7 @@ describe('keychain options', () => {
   // react-native-keychain 10.0.0 (iOS) reads `cloudSync: false` as true (oblador/react-native-keychain#800):
   // the phrase save fails (-50) and the no-auth items become synchronizable. Omitted = not synced (#243, ADR-0004).
   it('no call passes cloudSync', async () => {
-    const { Mnemonic } = await import('@vaultme/wallet-core')
+    const { Mnemonic } = await import('@vaultme/wallet-core/signer')
     const k = await import('../src/shared/storage/keychain')
     await k.savePhrase(new Mnemonic(VECTOR), PROMPT)
     await k.hasPhrase()
@@ -226,6 +226,38 @@ describe('kv key + store', () => {
     expect(kv.parsePendingTx(JSON.stringify({ hash: 'x' }))).toBeNull()
   })
 
+  it('pending tx: a record saved before ADR-0031 still loads (one hash); the replacement fields round-trip; bad ones are dropped', async () => {
+    const kv = await import('../src/shared/storage/kv')
+    const old = {
+      hash: '0xabc',
+      nonce: 3,
+      asset: 'ETH',
+      to: '0xdef',
+      amount: '0.1',
+      createdAt: 1,
+      lastCheckedAt: 2,
+      state: 'Pending' as const,
+    }
+    expect(kv.parsePendingTx(JSON.stringify(old))).toEqual(old) // no hashes: readers use [hash]
+    const sped = {
+      ...old,
+      hashes: ['0xabc', '0xdef1'],
+      kind: 'speedUp' as const,
+      maxFeePerGas: '4400000001',
+      maxPriorityFeePerGas: '2200000001',
+      minedHash: '0xdef1',
+    }
+    expect(kv.parsePendingTx(JSON.stringify(sped))).toEqual(sped)
+    const cancelled = { ...sped, kind: 'cancel' as const, cancelFrom: 1 }
+    expect(kv.parsePendingTx(JSON.stringify(cancelled))).toEqual(cancelled)
+    expect(kv.parsePendingTx(JSON.stringify({ ...cancelled, cancelFrom: 2 }))).toEqual({ ...sped, kind: 'cancel' }) // past the list
+    expect(kv.parsePendingTx(JSON.stringify({ ...cancelled, cancelFrom: 0 }))).toEqual({ ...sped, kind: 'cancel' }) // the original is never a cancel
+    const bad = kv.parsePendingTx(
+      JSON.stringify({ ...sped, hashes: ['0xother'], kind: 'x', maxFeePerGas: '-1', minedHash: '' }),
+    )
+    expect(bad).toEqual({ ...old, maxPriorityFeePerGas: '2200000001' }) // the original hash must lead the list
+  })
+
   it('pending tx keeps the sending account index; a record saved before it (or a bad one) has none', async () => {
     const kv = await import('../src/shared/storage/kv')
     const tx = {
@@ -255,7 +287,7 @@ describe('kv key + store', () => {
 
 describe('Mnemonic safety', () => {
   it('error text and masked form never contain the phrase', async () => {
-    const { Mnemonic } = await import('@vaultme/wallet-core')
+    const { Mnemonic } = await import('@vaultme/wallet-core/signer')
     const m = new Mnemonic(VECTOR)
     expect(String(m)).not.toContain('abandon')
     expect(JSON.stringify({ m })).not.toContain('abandon')

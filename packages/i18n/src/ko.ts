@@ -8,7 +8,6 @@ export const ko = {
     edit: '수정',
     back: '뒤로',
     retry: '다시 시도',
-    confirm: '확인',
   },
   // Busy button label under Reduce Motion (no spinner rotation): the progressive form (approved 2026-10-17).
   busy: { send: '보내는 중…', create: '만드는 중…', restore: '복구하는 중…', recheck: '확인하는 중…' },
@@ -16,7 +15,7 @@ export const ko = {
   chip: { network: 'Sepolia', testData: 'Sepolia · 테스트 데이터' },
   start: {
     title: 'VaultMe',
-    body: '계정 없이, 열쇠는 이 기기에만 둬요.\n보내기 전에 받는 주소와 수수료를\n전부 보여 줘요.',
+    body: '계정 없이, 키는 이 기기에만 둬요.\n보내기 전에 받는 주소와 수수료를\n전부 보여 줘요.',
     create: '새 지갑 만들기',
     restore: '기존 지갑 복구',
   },
@@ -38,8 +37,8 @@ export const ko = {
       passcode: '기기 암호로 확인하는 중이에요',
     },
     authPrompt: '잠금을 풀려면 인증하세요',
-    error: { title: '잠금을 풀지 못했어요', body: '다시 시도하세요.' },
-    unavailable: { title: '기기 인증을 쓸 수 없어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도하세요.' },
+    error: { title: '잠금을 풀지 못했어요', body: '다시 시도해 주세요.' },
+    unavailable: { title: '화면 잠금을 쓸 수 없어요', body: '기기에 화면 잠금을 설정한 뒤 다시 시도해 주세요.' },
   },
   // #241 (Figma 808:2460 B-S02, 808:2608 B-S05, owner-approved 2026-10-26): no device screen lock. Android has a settings link, iOS has no public deep link and its menu name differs per device (Face ID, Touch ID, passcode only), so the body names no path (#250, Figma 808:2536, 808:2671, 808:2806, 808:2941).
   deviceLock: {
@@ -104,7 +103,7 @@ export const ko = {
     faucet: {
       title: '테스트 ETH 받기',
       value: 'QuickNode',
-      caption: '받기 주소를 복사하고 외부 사이트(faucet)⁠를 열어요.',
+      caption: '받기 주소를 복사하고 파우셋(외부 사이트)을 열어요.',
     },
   },
   // S11 asset detail (Redesign B 2차).
@@ -128,18 +127,19 @@ export const ko = {
     reveal: '탭해서 보기',
     revealHint: '주변에 아무도 없는지 확인하세요',
     warnTitle: '누구에게도 보여 주지 마세요',
-    warnBody: 'VaultMe도, 고객지원도 복구 구문을 묻지 않아요.',
+    warnBody: 'VaultMe는 누구에게도 복구 구문을 묻지 않아요.',
     done: '다 적었어요',
     ack: '12단어를 순서대로 종이에 적었어요',
     authPrompt: '복구 구문을 보려면 인증하세요',
     authPromptSave: '지갑을 만들려면 인증하세요',
-    loadError: { title: '복구 구문을 불러오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
+    loadError: { title: '복구 구문을 불러오지 못했어요', body: '잠시 후에 다시 시도해 주세요.' },
     check: {
       title: '단어 확인',
       body: '적어 둔 복구 구문에서\n아래 순서의 단어를 입력하세요.',
       position: '{{n}}번째 단어',
       placeholder: '단어 입력',
       confirm: '확인',
+      confirmHint: '단어를 모두 입력하면 확인할 수 있어요.',
       wrong: '{{n}}번째 단어가 달라요',
     },
   },
@@ -164,8 +164,13 @@ export const ko = {
       hide: '패스프레이즈 숨기기',
     },
     submit: '복구',
+    submitHint: '복구 구문 단어를 모두 입력하면 복구할 수 있어요.',
     authPrompt: '지갑을 복구하려면 인증하세요',
-    exists: { title: '이 기기에 이미 지갑이 있어요', body: '한 기기에는 지갑 하나만 둘 수 있어요.' },
+    exists: {
+      title: '이 기기에 이미 지갑이 있어요',
+      body: '한 기기에는 지갑 하나만 둘 수 있어요.\n쓰던 지갑으로 돌아가세요.',
+      cta: '쓰던 지갑 열기',
+    },
     saveError: { title: '지갑을 복구하지 못했어요', body: '다시 시도해 주세요.' },
     done: {
       title: '복구 완료',
@@ -242,7 +247,6 @@ export const ko = {
     checkRisk: '위험 확인하기',
     riskCaption: '위험을 확인해야 보낼 수 있어요',
     editAmount: '금액 수정',
-    account2: '계정 2',
     next: '다음',
     review: '검토',
     amountQuestion: '얼마를 보낼까요?',
@@ -257,17 +261,17 @@ export const ko = {
     maxSendable: '보낼 수 있는 금액',
     insufficient: '보낼 수 있는 금액보다 많아요',
     keypad: { dot: '소수점', delete: '지우기' },
-    // Pre-send notice by device auth name: Face ID / Touch ID / 지문 / 기기 인증.
+    // Pre-send notice by device auth name: Face ID / Touch ID / 지문 / 화면 잠금.
     preSend: {
-      faceId: '보내면 취소할 수 없어요 · 다음 단계에서 Face ID로 확인해요',
-      touchId: '보내면 취소할 수 없어요 · 다음 단계에서 Touch ID로 확인해요',
-      fingerprint: '보내면 취소할 수 없어요 · 다음 단계에서 지문으로 확인해요',
-      device: '보내면 취소할 수 없어요 · 다음 단계에서 기기 인증으로 확인해요',
+      faceId: '보내면 되돌릴 수 없어요 · 다음 단계에서 Face ID로 확인해요',
+      touchId: '보내면 되돌릴 수 없어요 · 다음 단계에서 Touch ID로 확인해요',
+      fingerprint: '보내면 되돌릴 수 없어요 · 다음 단계에서 지문으로 확인해요',
+      device: '보내면 되돌릴 수 없어요 · 다음 단계에서 화면 잠금으로 확인해요',
     },
     // C2b #23. pendingBlock is approved copy (S10P+S24); the rest is new (listed in the PR for approval).
     authPrompt: '보내려면 인증하세요',
-    authError: { title: '인증하지 못했어요', body: '다시 시도하세요.' },
-    chainError: { title: '네트워크 정보를 가져오지 못했어요', body: '잠시 뒤에 다시 시도하세요.' },
+    authError: { title: '인증하지 못했어요', body: '다시 시도해 주세요.' },
+    chainError: { title: '네트워크 정보를 가져오지 못했어요', body: '잠시 후에 다시 시도해 주세요.' },
     // C3 (#44): needsReview, blocked and the retry buttons are the owner-approved Figma frames C3-S22 (379:2099, 379:2187, 379:2279).
     needsReview: {
       title: '내용이 바뀌었어요',
@@ -275,7 +279,7 @@ export const ko = {
     },
     blocked: {
       title: '수수료가 너무 높아요',
-      body: '정해 둔 최대 수수료를 넘어서 보내지 않았어요.\n나중에 다시 시도하세요.',
+      body: '정해 둔 최대 수수료를 넘어서 보내지 않았어요.\n나중에 다시 시도해 주세요.',
     },
     prepareError: { title: '보낼 수 없어요', body: '받는 주소와 금액을 확인하세요.' },
     pendingBlock: {
@@ -286,9 +290,9 @@ export const ko = {
   },
   // C3 (#44): a failed API call, by cause (draft, owner approval pending). Unknown causes use send.chainError. 426 is `updateRequired`.
   apiError: {
-    network: { title: '서버에 연결하지 못했어요', body: '인터넷 연결을 확인하고 다시 시도하세요.' },
-    unavailable: { title: '서버가 지금 바빠요', body: '잠시 뒤에 다시 시도하세요.' },
-    clockSkew: { title: '기기 시간이 맞지 않아요', body: '날짜와 시간을 자동으로 맞춘 뒤 다시 시도하세요.' },
+    network: { title: '서버에 연결하지 못했어요', body: '인터넷 연결을 확인하고 다시 시도해 주세요.' },
+    unavailable: { title: '서버가 지금 바빠요', body: '잠시 후에 다시 시도해 주세요.' },
+    clockSkew: { title: '기기 시간이 맞지 않아요', body: '날짜와 시간을 자동으로 맞춘 뒤 다시 시도해 주세요.' },
   },
   // S91 (Figma C3-S91 377:2528; body line 2 per issue #44 comment).
   updateRequired: {
@@ -331,11 +335,47 @@ export const ko = {
     hash: '거래 해시',
     fee: '예상 네트워크 수수료',
     feeFinal: '네트워크 수수료',
-    ok: '확인',
     resend: '다시 보내기',
     details: '거래 상세 보기',
     history: '내역 보기',
     home: '홈으로',
+  },
+  // Speed up of a Pending send (ADR-0031, issue #361): Figma Flow 3 888:5798 (S23 actions 888:5799, sheet 888:6058, ETH short 888:6136, line 888:6568). Copy: owner decisions D3, D8; sheet.busy is new.
+  speedUp: {
+    action: '속도 올리기',
+    /** Info line in the status area once a replacement was sent. */
+    sentLine: '수수료를 올려 다시 보냈어요',
+    sheet: {
+      title: '수수료를 올려 다시 보낼까요?',
+      body: '더 높은 네트워크 수수료로 같은 거래를 다시 보내요.',
+      notice: '원래 거래가 먼저 처리될 수도 있어요',
+      current: '지금 네트워크 수수료',
+      next: '새 네트워크 수수료',
+      extra: '지금보다 {{amount}} ETH 많아요',
+      back: '돌아가기',
+      confirm: '속도 올리기',
+      busy: '다시 보내는 중…',
+    },
+  },
+  // Cancel of a Pending send (ADR-0031, issue #365): Figma Flow 3 888:5798 (actions 888:5799, sheet 888:6228, requested 888:6647, cancelled 888:6726, processed first 888:6776 / 888:6852). sheet.busy is new.
+  cancel: {
+    action: '거래 취소',
+    /** Info line in the status area once a cancel was sent (the state stays Pending). */
+    requestedLine: '취소를 요청했어요. 아직 확정되지 않았어요',
+    /** Info line when the original was processed although a cancel was sent. */
+    processedFirstLine: '취소하기 전에 거래가 처리됐어요',
+    /** Result headline and sentence of a mined cancel (state Replaced). */
+    cancelledTitle: '거래를 취소했어요',
+    cancelledBody: '네트워크 수수료는 나갔어요.',
+    sheet: {
+      title: '거래를 취소할까요?',
+      body: '0 ETH 거래를 내 계정으로 보내 원래 거래를 대신해요.',
+      notice: '원래 거래가 먼저 처리되면 취소되지 않아요.\n실패해도 네트워크 수수료는 나가요.',
+      fee: '예상 네트워크 수수료',
+      confirm: '취소하기',
+      back: '돌아가기',
+      busy: '취소하는 중…',
+    },
   },
   // S41: Figma C2b-S41.
   detail: {
@@ -344,7 +384,7 @@ export const ko = {
     /** Sending account name from the record's derivation index (n = index + 1). */
     accountName: '계정 {{n}}',
     recipientTitle: '받는 주소',
-    // S41 opened by a push (bare hash) before the history page has the row: Figma 749:2800 (not found). Loading and load failed reuse the S40 strings.
+    // S41 opened by a bare hash (deep link) before the history page has the row: Figma 749:2800 (not found). Loading and load failed reuse the S40 strings.
     notFound: {
       title: '아직 내역에 없어요',
       body: '방금 일어난 거래는 반영되는 데 시간이 걸려요. 잠시 후 다시 확인해 주세요.',
@@ -355,9 +395,21 @@ export const ko = {
     receivedAccount: '받은 계정',
     received: '받았어요',
     success: { body: '이 거래는 성공했어요.' },
+    // B-S41 State caution (Figma 883:4375, #334): an incoming zero-value row. The new-sender line is shown only when this wallet never sent to the address.
+    caution: {
+      title: '주소를 사칭한 거래일 수 있어요',
+      body: '보낸 사람 주소를 복사하거나 이 주소로 보내지 마세요. 주소 앞뒤만 같은 다른 주소일 수 있어요.',
+      newSender: '주의 · 처음 보는 주소예요',
+    },
     infoTitle: '거래 정보',
     time: '시각',
+    // B-S41 time value: "2026년 10월 16일 오전 9:41" (no zone).
+    timeAm: '{{year}}년 {{month}}월 {{day}}일 오전 {{hour}}:{{minute}}',
+    timePm: '{{year}}년 {{month}}월 {{day}}일 오후 {{hour}}:{{minute}}',
     block: '블록',
+    chainId: '체인 ID',
+    more: '자세히',
+    copyLabel: '{{label}} 복사',
     state: { confirmed: '확정', unknown: '확인 못 함', test: '예시', success: '성공' },
     hashTitle: '거래 해시',
     // Figma B-S41 423:16381: "마지막 확인 09:41." The second sentence only while the app polls (Pending, Included).
@@ -376,7 +428,7 @@ export const ko = {
       row: '내부 이동',
       rowFailed: '내부 이동 실패',
       loading: '내부 이동을 불러오고 있어요',
-      failed: '내부 이동을 불러오지 못했어요. 다시 시도하세요.',
+      failed: '내부 이동을 불러오지 못했어요. 다시 시도해 주세요.',
       loaded: '내부 이동 {{n}}건을 불러왔어요',
       none: '내부 이동이 없어요',
       // Capped list (#255, Figma B-S41 내부 이동 · many capped 833:334): the rest are on Etherscan's internal transactions tab.
@@ -447,7 +499,7 @@ export const ko = {
       body: '전에 보낸 주소와 앞뒤는 같고 가운데가 달라요.\n주소 오염 공격일 수 있어요.',
       sheetTitle: '비슷한 주소로 보내려고 해요',
       sheetBody: '전에 보낸 주소와 앞뒤는 같고 가운데가 달라요.\n주소 오염 공격일 수 있어요.',
-      compareTitle: '아래 빨간 글자가 다른 부분이에요',
+      compareTitle: '아래 주소에서 굵은 글자가 다른 부분이에요',
       previous: '전에 보낸 주소',
       current: '지금 받는 주소',
     },
@@ -462,9 +514,6 @@ export const ko = {
     replaced: '실행되지 않음',
     send: '보내기',
     receive: '받기',
-    today: '오늘',
-    oct12: '10월 12일',
-    oct11: '10월 11일',
     // Row titles (S40 행 제목): direction + progress. Status badge words above stay for S41.
     row: {
       sending: '보내는 중',
@@ -474,13 +523,15 @@ export const ko = {
       unknown: '보내기 확인 못 함',
       unknownSub: '상태를 확인해 주세요',
       replaced: '실행되지 않음',
+      // B/Row State=Caution (Figma 877:631): an incoming zero-value transfer, shown only when S63 is on (Q71).
+      caution: '주의 · 주소를 사칭한 거래일 수 있어요',
     },
     // C3 (#44): Figma C3-S40 frames 377:2216 (loading), 377:2261 (empty), 377:2332 (error cached), 377:2388 (normal).
     updatedAt: '마지막 업데이트 {{time}}',
     loading: '내역을 불러오는 중이에요',
     empty: { title: '아직 거래가 없어요', body: '받기 주소를 공유하면 여기에 거래가 보여요.', cta: '받기 주소 보기' },
     error: { title: '내역을 불러오지 못했어요', body: '아래는 {{time}}에 받은 내역이에요.' },
-    errorNoCache: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도하세요.' },
+    errorNoCache: { title: '내역을 불러오지 못했어요', body: '연결을 확인하고 다시 시도해 주세요.' },
   },
   settings: {
     title: '설정',
@@ -519,7 +570,7 @@ export const ko = {
     pushScreen: {
       title: '거래 알림',
       row: '거래 알림 받기',
-      body: '입금과 보낸 거래 확정을 알려 드려요.\n켜면 내 지갑 주소가 VaultMe 알림 서버에 등록돼요.',
+      body: '입금과 보낸 거래 확정을 알려 줘요.\n켜면 내 지갑 주소가 VaultMe 알림 서버에 등록돼요.',
       denied: '기기 설정에서 알림을 켜 주세요',
       failed: '알림을 켜지 못했어요.\n다시 시도해 주세요.',
       openSettings: '설정 열기',
@@ -553,7 +604,7 @@ export const ko = {
     },
   },
   pushSheet: {
-    title: '입금이 오면 알려 드릴까요?',
+    title: '입금이 오면 알려 줄까요?',
     body: '켜면 내 지갑 주소가 VaultMe 알림 서버에 등록돼요.\n언제든 끄면 바로 지워요.',
     enable: '알림 켜기',
     later: '나중에',
@@ -561,7 +612,7 @@ export const ko = {
     failed: '알림을 켜지 못했어요.\n다시 시도해 주세요.',
     denied: '기기 설정에서 알림을 켤 수 있어요',
   },
-  a11y: { addressGroup: '주소를 4글자씩 읽어요', reveal: '탭해서 보기' },
+  a11y: { addressGroup: '주소를 4글자씩 읽어요', reveal: '탭해서 보기', tapToEdit: '탭해서 수정' },
 } as const
 
 export type Ko = typeof ko

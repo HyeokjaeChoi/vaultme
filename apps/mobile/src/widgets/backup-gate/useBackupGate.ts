@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { backupGateState, useBackupDone, type BackupGateState } from '@/features/backup'
+import { backupGateState, hasDeposit, useBackupDone, type BackupGateState } from '@/features/backup'
 import { useHistory } from '@/features/history'
 import { useRestored } from '@/features/restore'
 import { appStore, useAppStore } from '@/shared/app-store'
@@ -18,6 +18,6 @@ export function useBackupGate(): BackupGateState & { markPromptShown: () => void
       appStore().setState({ depositPromptShown: true })
     }
   }, [])
-  const hasIncoming = !!view?.items.some((i) => i.kind === 'receive')
+  const hasIncoming = !!view && hasDeposit(view.items)
   return { ...backupGateState({ done, restored, hasIncoming, promptShown: shown }), markPromptShown }
 }

@@ -28,7 +28,7 @@ function store(): MMKV {
 // --- backup flag ---
 /**
  * Settings toggles (S62 거래 알림, S63 0원 거래 표시). S62 is on only after the user opted in and the OS allowed notifications (#67):
- * the default is off, so the switch never claims a registration that does not exist. The S63 zero-value filter is not wired to its switch yet.
+ * the default is off, so the switch never claims a registration that does not exist.
  */
 export const getPushSetting = (): boolean => store().getBoolean('settings.push') ?? false
 export const setPushSetting = (v: boolean): void => store().set('settings.push', v)
@@ -61,7 +61,7 @@ export const clearAccountAddress = (): void => void store().remove('account.addr
 export type LockSettings = { graceSeconds: number }
 export type LockState = { locked: boolean; backgroundedAt: number | null }
 
-export const DEFAULT_LOCK_SETTINGS: LockSettings = { graceSeconds: 30 }
+const DEFAULT_LOCK_SETTINGS: LockSettings = { graceSeconds: 30 }
 const DEFAULT_LOCK_STATE: LockState = { locked: true, backgroundedAt: null }
 
 export function getLockSettings(): LockSettings {
@@ -86,7 +86,21 @@ export function setLockState(s: LockState): void {
 
 // --- pending tx (ARCHITECTURE.md#invariants; send wiring is #23). amount is a decimal string, never a Number. ---
 export type PendingTx = {
+  /** The hash of the first send. It stays the id of the record (route param, history merge); replacements are in `hashes` (ADR-0031). */
   hash: string
+  /** Every own hash of this send, original first, then each replacement. Absent in a record saved before ADR-0031: that is `[hash]` (`ownHashes` in features/send). */
+  hashes?: string[]
+  /** Kind of the latest replacement; absent when none was sent. PR 2 adds 'cancel' to the UI; the record already holds it. */
+  kind?: 'speedUp' | 'cancel'
+  /** Index in `hashes` of the first cancel; it and every later hash is a cancel (a cancel can be sent again, but nothing else follows one). */
+  cancelFrom?: number
+  /** Fee fields of the latest sent tx (decimal wei strings), the base of the next speed up. Absent in older records: the market value is the base. */
+  maxFeePerGas?: string
+  maxPriorityFeePerGas?: string
+  /** Gas limit the original was signed with (decimal string): a replacement keeps it (an ERC-20 re-estimate can be lower and run out of gas). Absent in older records: read from the chain by hash. */
+  gasLimit?: string
+  /** The own hash a receipt was seen for (Etherscan link, ADR-0031). */
+  minedHash?: string
   nonce: number
   asset: string
   to: string
@@ -104,6 +118,7 @@ export type PendingTx = {
   state: 'Pending' | 'Unknown' | 'Included' | 'Confirmed' | 'Failed' | 'Replaced'
 }
 
+const isWei = (v: unknown): v is string => typeof v === 'string' && /^[0-9]{1,40}$/.test(v)
 const STATES = new Set(['Pending', 'Unknown', 'Included', 'Confirmed', 'Failed', 'Replaced'])
 const isStr = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
@@ -137,6 +152,20 @@ export function parsePendingTx(raw: string): PendingTx | null {
     createdAt: o.createdAt,
     lastCheckedAt: o.lastCheckedAt,
     state: o.state as PendingTx['state'],
+    ...(Array.isArray(o.hashes) && o.hashes.length > 0 && o.hashes.every(isStr) && o.hashes[0] === o.hash
+      ? { hashes: o.hashes }
+      : {}),
+    ...(o.kind === 'speedUp' || o.kind === 'cancel' ? { kind: o.kind } : {}),
+    ...(Number.isInteger(o.cancelFrom) &&
+    (o.cancelFrom as number) >= 1 &&
+    Array.isArray(o.hashes) &&
+    (o.cancelFrom as number) < o.hashes.length
+      ? { cancelFrom: o.cancelFrom as number }
+      : {}),
+    ...(isWei(o.maxFeePerGas) ? { maxFeePerGas: o.maxFeePerGas } : {}),
+    ...(isWei(o.maxPriorityFeePerGas) ? { maxPriorityFeePerGas: o.maxPriorityFeePerGas } : {}),
+    ...(isWei(o.gasLimit) ? { gasLimit: o.gasLimit } : {}),
+    ...(isStr(o.minedHash) ? { minedHash: o.minedHash } : {}),
     ...(isStr(o.fee) ? { fee: o.fee } : {}),
     ...(isNum(o.blockNumber) ? { blockNumber: o.blockNumber } : {}),
     ...(o.failReason === 'outOfGas' ? { failReason: 'outOfGas' as const } : {}),
@@ -188,7 +217,7 @@ export const setFakeNonce = (n: number): void => store().set('fakeChain.nonce', 
 // --- recent recipients (S20a): addresses this device sent to, newest first, at most 3. Local only: never uploaded, never read from the network. ---
 export type RecentRecipient = { address: string; at: number; asset: string; amount: string }
 export const MAX_RECENTS = 3
-export function parseRecents(raw: string | undefined): RecentRecipient[] {
+function parseRecents(raw: string | undefined): RecentRecipient[] {
   if (raw === undefined) return []
   try {
     const v = JSON.parse(raw) as unknown

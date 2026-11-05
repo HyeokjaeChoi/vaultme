@@ -7,8 +7,8 @@
 import { check, sleep } from 'k6'
 import { b64encode } from 'k6/encoding'
 import http from 'k6/http'
-import { Rate, Trend } from 'k6/metrics'
-import { CASES, evaluate, SLO_MS, tierMarkdown, warnings } from '../src/slo.ts'
+import { Counter, Rate, Trend } from 'k6/metrics'
+import { CASES, evaluate, OWN_P95_MS, SLO_MS, tierMarkdown, warnings } from '../src/slo.ts'
 
 const BASE_URL = (__ENV.BASE_URL || '').replace(/\/+$/, '')
 const MODE = __ENV.MODE
@@ -34,11 +34,13 @@ export const options = {
   tags: { mode: MODE },
   // One scenario with one iteration, so the cases run strictly one after the other (a slow response cannot overlap the next case).
   scenarios: { bench: { executor: 'per-vu-iterations', vus: 1, iterations: 1, exec: 'bench', maxDuration: '15m' } },
-  summaryTrendStats: ['min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
+  summaryTrendStats: ['count', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
   thresholds: {},
 }
 
 const ENDPOINTS = CASES
+// The parts of a history miss from its Server-Timing header (#412): slowest Etherscan fetch, longest bucket wait, slowest bucket call.
+const HISTORY_PARTS = ['etherscan', 'bucket_wait', 'bucket_call']
 // Tier 2, the regression watch (ADR-0020): 1.5 times the highest run p95 of the 5 calibration runs, in ms. Warning only, never a
 // k6 threshold (a threshold sets the exit code). `node packages/perf/src/cli.ts bench` prints this constant.
 const WATCH_P95_MS = {
@@ -47,12 +49,15 @@ const WATCH_P95_MS = {
 }
 // k6 keeps a sub-metric only when a threshold names it, so every case gets one; the parts have one that always passes (collect only).
 for (const e of ENDPOINTS) {
-  for (const m of ['duration', 'dns', 'connecting', 'tls', 'waiting'])
+  for (const m of ['total', 'duration', 'dns', 'connecting', 'tls', 'waiting', 'worker', 'upstream', ...HISTORY_PARTS])
     options.thresholds[`ok_${m}{endpoint:${e}}`] = ['max>=0']
-  // Tier 1, the UX SLO (ADR-0020): it fails the api-bench job only, this script runs nowhere else (never in PR CI).
-  // A case with no SLO (health) only collects.
-  const slo = SLO_MS[MODE][e]
-  options.thresholds[`ok_total{endpoint:${e}}`] = [slo === undefined ? 'max>=0' : `p(95)<=${slo}`]
+  // Tier 1, the UX SLO: each request is counted good or not; the 4-week window judges the counts (ADR-0036), never one run.
+  if (SLO_MS[MODE][e] !== undefined) options.thresholds[`slo_good{endpoint:${e}}`] = ['rate>=0']
+  // The release gate (ADR-0036): our own server time, without the upstreams and the network. It gates rpc only; history sends
+  // Server-Timing too (#412), and its own time is shown, not gated, until staging runs show its size.
+  options.thresholds[`ok_own{endpoint:${e}}`] = [e === 'rpc' ? `p(95)<=${OWN_P95_MS}` : 'max>=0']
+  // k6 reports an empty Trend as zeros, so the gate also needs at least one own-time sample (a Server-Timing header).
+  options.thresholds[`own_n{endpoint:${e}}`] = [e === 'rpc' ? 'count>0' : 'count>=0']
   // At least one 200 per case: a case that never answered is a failed run, not a fast one.
   options.thresholds[`call_ok{endpoint:${e}}`] = ['rate>0']
 }
@@ -66,8 +71,17 @@ const T = {
   connecting: new Trend('ok_connecting', true),
   tls: new Trend('ok_tls', true),
   waiting: new Trend('ok_waiting', true),
+  // From the Server-Timing header of /v1/rpc (#399) and /v1/history (#412): worker = Worker time (`total`), upstream = Infura/Alchemy
+  // or the Etherscan part of a history miss (0 on a hit). health sends none.
+  worker: new Trend('ok_worker', true),
+  upstream: new Trend('ok_upstream', true),
+  // worker minus upstream: our own server time outside `proxyRpc` (limiters, token check), the release gate (ADR-0036).
+  own: new Trend('ok_own', true),
+  ...Object.fromEntries(HISTORY_PARTS.map((m) => [m, new Trend(`ok_${m}`, true)])),
 }
 const callOk = new Rate('call_ok')
+const sloGood = new Rate('slo_good')
+const ownN = new Counter('own_n')
 
 const b64u = (buf) => b64encode(buf, 'rawurl')
 
@@ -120,14 +134,36 @@ function call(name, timed, method, path, token, body) {
   if (!timed) return res
   const tags = { endpoint: name }
   callOk.add(ok, tags)
+  // A failed request (non-200, timeout) is a bad event for the SLO window, never left out of its total.
+  const slo = SLO_MS[MODE][name]
+  if (slo !== undefined && !ok) sloGood.add(false, tags)
   if (ok) {
     const t = res.timings
-    T.total.add(t.looking_up + t.connecting + t.tls_handshaking + t.duration, tags)
+    const total = t.looking_up + t.connecting + t.tls_handshaking + t.duration
+    T.total.add(total, tags)
+    if (slo !== undefined) sloGood.add(total <= slo, tags)
     T.duration.add(t.duration, tags)
     T.dns.add(t.looking_up, tags)
     T.connecting.add(res.timings.connecting, tags)
     T.tls.add(res.timings.tls_handshaking, tags)
     T.waiting.add(res.timings.waiting, tags)
+    const st = res.headers['Server-Timing'] || ''
+    const dur = (metric) => {
+      const m = new RegExp(`(?:^|,)\\s*${metric};dur=([\\d.]+)`).exec(st)
+      return m ? Number(m[1]) : null
+    }
+    const worker = dur('total')
+    const upstream = dur('upstream')
+    if (worker !== null) T.worker.add(worker, tags)
+    if (upstream !== null) T.upstream.add(upstream, tags)
+    for (const m of HISTORY_PARTS) {
+      const d = dur(m)
+      if (d !== null) T[m].add(d, tags)
+    }
+    if (worker !== null && upstream !== null) {
+      T.own.add(Math.max(0, worker - upstream), tags)
+      ownN.add(1, tags)
+    }
   } else {
     console.error(`${name}: HTTP ${res.status} ${res.error_code || ''}`)
   }
@@ -184,10 +220,14 @@ const v = (data, name) => {
   return m ? m.values : null
 }
 const ms = (x) => (x === undefined || x === null ? null : Math.round(x * 100) / 100)
+// An empty Trend (no sample, e.g. no Server-Timing header) is null, not a row of zeros.
 const trend = (x) =>
-  x
+  x && x.count > 0
     ? { min: ms(x.min), p50: ms(x.med), p90: ms(x['p(90)']), p95: ms(x['p(95)']), p99: ms(x['p(99)']), max: ms(x.max) }
     : null
+
+// Good (a 200 at or under the limit) / total timed requests, failed ones included, of a case with an SLO (`sloWindow` in src/slo.ts pools them); null for a case with no SLO.
+const sloCount = (x) => (x ? { good: x.passes, total: x.passes + x.fails } : null)
 
 /** Pure: the k6 end-of-test data to the compact result of one mode. */
 export function summarize(data) {
@@ -206,6 +246,11 @@ export function summarize(data) {
       connecting: trend(v(data, `ok_connecting{endpoint:${e}}`)),
       tls: trend(v(data, `ok_tls{endpoint:${e}}`)),
       waiting: trend(v(data, `ok_waiting{endpoint:${e}}`)),
+      worker: trend(v(data, `ok_worker{endpoint:${e}}`)),
+      upstream: trend(v(data, `ok_upstream{endpoint:${e}}`)),
+      own: trend(v(data, `ok_own{endpoint:${e}}`)),
+      slo: sloCount(v(data, `slo_good{endpoint:${e}}`)),
+      ...Object.fromEntries(HISTORY_PARTS.map((m) => [m, trend(v(data, `ok_${m}{endpoint:${e}}`))])),
     }
   }
   return { mode: MODE, measuredAt: new Date().toISOString(), address: ADDRESS, endpoints }
@@ -215,14 +260,21 @@ const cell = (x) => (x === null || x === undefined ? 'n/a' : String(x))
 function markdown(r) {
   const rows = Object.entries(r.endpoints).map(([name, e]) => {
     const d = e.total
-    return `| \`${name}\` | ${r.mode} | ${e.ok} / ${e.calls} | ${cell(d?.p50)} | ${cell(d?.p90)} | ${cell(d?.p95)} | ${cell(d?.p99)} | ${cell(d?.max)} | ${cell(e.dns?.p50)} | ${cell(e.connecting?.p50)} | ${cell(e.tls?.p50)} | ${cell(e.waiting?.p50)} | ${cell(e.waiting?.p95)} |`
+    return `| \`${name}\` | ${r.mode} | ${e.ok} / ${e.calls} | ${cell(d?.p50)} | ${cell(d?.p90)} | ${cell(d?.p95)} | ${cell(d?.p99)} | ${cell(d?.max)} | ${cell(e.dns?.p50)} | ${cell(e.connecting?.p50)} | ${cell(e.tls?.p50)} | ${cell(e.waiting?.p50)} | ${cell(e.waiting?.p95)} | ${cell(e.worker?.p50)} | ${cell(e.worker?.p95)} | ${cell(e.upstream?.p50)} | ${cell(e.upstream?.p95)} | ${cell(e.own?.p95)} | ${e.slo ? `${e.slo.good} / ${e.slo.total}` : 'n/a'} |`
   })
   return [
-    `| Endpoint | Mode | ok / sent | p50 | p90 | p95 | p99 | max | DNS p50 | connect p50 | TLS p50 | TTFB p50 | TTFB p95 |`,
-    `| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |`,
+    `| Endpoint | Mode | ok / sent | p50 | p90 | p95 | p99 | max | DNS p50 | connect p50 | TLS p50 | TTFB p50 | TTFB p95 | Worker p50 | Worker p95 | upstream p50 | upstream p95 | own p95 | SLO good / total |`,
+    `| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |`,
     ...rows,
     '',
-    'Times in ms. Only HTTP 200 responses are timed. p50 to max = total (DNS + TCP + TLS + request + response). TTFB = `http_req_waiting`.',
+    ...(r.endpoints.history_miss.etherscan
+      ? [
+          `history_miss parts, p50 / p95: ${HISTORY_PARTS.map((m) => `${m} ${cell(r.endpoints.history_miss[m]?.p50)} / ${cell(r.endpoints.history_miss[m]?.p95)}`).join(', ')} (slowest of the parallel calls, #412).`,
+          '',
+        ]
+      : []),
+    'Times in ms. Only HTTP 200 responses are timed. p50 to max = total (DNS + TCP + TLS + request + response). TTFB = `http_req_waiting`. Worker and upstream: Server-Timing of `/v1/rpc` (#399) and `/v1/history` (#412); TTFB minus Worker = network and edge. own = Worker minus upstream; its p95 for `rpc` is the release gate (ADR-0036, ' +
+      `${OWN_P95_MS} ms). SLO good = 200 responses at or under the tier 1 limit, of all timed requests.`,
     '',
   ].join('\n')
 }

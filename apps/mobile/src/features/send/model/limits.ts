@@ -11,7 +11,7 @@ import {
 /** Balance of the asset being sent (its own units), the ETH balance that pays the fee, and the worst-case fee cap. */
 export type Sendable = { balance: bigint; nativeBalance: bigint; feeCap: bigint }
 
-export const CHIP_SHARES = [25, 50, 100] as const satisfies readonly ChipShare[]
+const CHIP_SHARES = [25, 50, 100] as const satisfies readonly ChipShare[]
 
 export type SendLimits = {
   /** Most the user may type, as a decimal string. ETH: balance minus the fee cap. USDC: the whole balance (the fee is paid in ETH, never from it). null = not known yet. */

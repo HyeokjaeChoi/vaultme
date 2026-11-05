@@ -59,7 +59,7 @@ export function WordCell({
   return (
     <View
       style={{
-        height: t.primitive.space[3] * 2 + t.primitive.type.productB.body.lineHeight,
+        minHeight: t.primitive.space[3] * 2 + t.primitive.type.productB.body.lineHeight,
         flexDirection: 'row',
         alignItems: 'center',
         gap: t.primitive.space[2],

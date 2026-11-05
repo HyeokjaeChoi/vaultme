@@ -1,4 +1,4 @@
-import { deriveAddress, generateMnemonic } from '@vaultme/wallet-core'
+import { deriveAddress, generateMnemonic } from '@vaultme/wallet-core/signer'
 import { appStore } from '@/shared/app-store'
 import {
   getAccountAddress,

@@ -88,7 +88,7 @@ export function HomePage() {
   const empty =
     !shownTx &&
     [eth, balanceOf('USDC', assets[1].balance)].every(isZero) &&
-    (!chain.broadcasts || (view !== null && items.length === 0))
+    (!chain.broadcasts || (view !== null && items.every((i) => i.caution)))
   const close = () => setSheet(null)
   // Figma 586:97341: the first deposit while not backed up opens the backup sheet once. `markPromptShown` persists it; no other sheet is cut off.
   const { shouldPromptAfterDeposit, markPromptShown } = gate

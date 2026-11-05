@@ -16,7 +16,7 @@ export const QUERY_CACHE_KEY = 'queryCache'
  * A query joins this list only when its data is JSON-safe (balances are decimal strings). Today: `balances`.
  * A query can also opt out with `meta: { persist: false }` (balances read from the fake chain).
  */
-export const PERSISTED_QUERY_ROOTS: readonly string[] = ['balances']
+const PERSISTED_QUERY_ROOTS: ReadonlySet<string> = new Set(['balances'])
 
 /** Change it to drop every stored cache (a data shape change). */
 const BUSTER = 'v1'
@@ -44,7 +44,7 @@ export function persistOptions(
     dehydrateOptions: {
       shouldDehydrateQuery: (q) =>
         q.state.data !== undefined && // not `defaultShouldDehydrateQuery`: it needs status success, and a failed refetch (status error) keeps the old data we must keep storing
-        PERSISTED_QUERY_ROOTS.includes(String(q.queryKey[0])) &&
+        PERSISTED_QUERY_ROOTS.has(String(q.queryKey[0])) &&
         q.meta?.persist !== false,
     },
   }
