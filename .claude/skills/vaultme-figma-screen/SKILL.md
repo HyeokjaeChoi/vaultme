@@ -17,7 +17,7 @@ Also load `figma:figma-use` and `figma:figma-generate-design` before any `use_fi
    - Never use `layout/sectionGap/mobile` or `desktop` in app screens. They are landing-page values.
 3. **Every fill and stroke binds to a color variable.** Prefer Component, then Semantic. Never a hex.
 4. **Every text node uses a text style** (`Product/*`, `h1/*`, `display/*`). No local font size or weight overrides.
-5. **Copy follows** the glossary in `CONTEXT.md`. Foundation components stay English; screens override text in Korean.
+5. **Copy follows** the glossary in `CONTEXT.md`. Foundation components stay English. Screens override instance text per language (ADR-0037): Korean on the Korean flow pages, English (from `packages/i18n` `en`) on page "Flows · English (ADR-0037)" `980:18337`. A new or changed main screen gets both.
 6. **Exempt only OS chrome and synthetic art**: Status bar, Home indicator, Placeholder QR. Name them exactly so the audit can skip them.
 
 ## Component map (master node IDs)
