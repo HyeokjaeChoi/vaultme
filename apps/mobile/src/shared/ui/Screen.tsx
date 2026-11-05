@@ -80,9 +80,18 @@ export function Screen({
     const hidden = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () =>
       setKeyboardH(0),
     )
+    // iOS: a taller or shorter keyboard while it is up (emoji, QuickType bar) sends only a frame change. Ignored while it is down,
+    // so the frame change that comes with a hide never brings the room back.
+    const resized =
+      Platform.OS === 'ios'
+        ? Keyboard.addListener('keyboardWillChangeFrame', (e) =>
+            setKeyboardH((h) => (h > 0 ? e.endCoordinates.height : h)),
+          )
+        : null
     return () => {
       shown.remove()
       hidden.remove()
+      resized?.remove()
     }
   }, [revealRef])
   const [contentHeight, setContentHeight] = useState(0)
