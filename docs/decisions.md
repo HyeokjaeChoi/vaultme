@@ -70,7 +70,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q46 | Review shows expected and max fee; re-review only if the cap rises | IMPLEMENTED | `packages/wallet-core/src/send.ts` |
 | Q47 | Pending or Unknown blocks a new send | IMPLEMENTED | ADR-0006 |
 | Q48 | No fiat value | IMPLEMENTED | `shared/ui/PortfolioBalance.tsx` |
-| Q49 | Korean only; strings in i18n | IMPLEMENTED | `packages/i18n/src/ko.ts` |
+| Q49 | Korean only; strings in i18n | SUPERSEDED | ADR-0037 (#452): the app gets `en` next to `ko`. Strings in i18n, en-US numbers and the `CONTEXT.md` terms still hold |
 | Q50 | Sentry crash and performance, PII scrubbed | SUPERSEDED | ADR-0024: performance monitoring dropped. Still holds and is built (#315): errors and crashes on the app (`apps/mobile/src/shared/lib/sentry.ts`) and the Worker (`apps/api/src/sentry.ts`), PII scrubbed (`packages/contracts/src/scrub.ts`). Source maps: #337 |
 | Q51 | pnpm + Turborepo monorepo | IMPLEMENTED | `turbo.json` |
 | Q52 | local/staging/prod; separate D1, secrets, EAS channel; web previews | SUPERSEDED | ADR-0025: production environment and EAS production channel wait for the first public release. Still open: EAS channels for staging (#316). Web previews off (`apps/web/AGENTS.md`) |
@@ -102,4 +102,4 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q78 | Infura primary, Alchemy fallback | IMPLEMENTED | ADR-0007 |
 | Q79 | Burn and token-contract warnings | IMPLEMENTED | `packages/wallet-core/src/risk.ts` |
 | Q80 | Dark mode and the added components | IMPLEMENTED | `shared/theme/index.tsx` |
-| Q81 | Foundation in English; screens in Korean | IMPLEMENTED | `DESIGN.md` |
+| Q81 | Foundation in English; screens in Korean | SUPERSEDED | ADR-0037 (#452): screens get English frames too. The English Foundation and instance text overrides still hold: `DESIGN.md` |
