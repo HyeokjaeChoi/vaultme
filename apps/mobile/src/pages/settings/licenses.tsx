@@ -37,15 +37,11 @@ export function LicensesPage() {
     { key: 'end-1', kind: 'end' },
     { key: 'band-2', kind: 'band' },
     { key: 'h-libs', kind: 'header', text: t('settings.licensesScreen.groupLibs') },
-    ...libLicenses.map((e): Item => ({ key: `p-${e.name}@${e.version ?? ''}`, kind: 'row', entry: e })),
+    ...libLicenses.map((e): Item => ({ key: `p-${e.name}`, kind: 'row', entry: e })),
   ]
   const pad = th.semantic.layout.screen.padding
   const open = useCallback(
-    (e: LicenseEntry) =>
-      router.push({
-        pathname: '/settings/license',
-        params: e.version ? { name: e.name, version: e.version } : { name: e.name },
-      }),
+    (e: LicenseEntry) => router.push({ pathname: '/settings/license', params: { name: e.name } }),
     [router],
   )
   const render = ({ item }: { item: Item }) => {

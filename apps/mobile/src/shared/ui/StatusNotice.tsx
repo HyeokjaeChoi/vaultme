@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native'
 import { useTheme } from '../theme'
 import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
+import { useAnnounce } from './useAnnounce'
 
 export type Tone = 'info' | 'warning' | 'danger' | 'unknown' | 'confirmed' | 'clear'
 const ICON: Record<Tone, IconName> = {
@@ -39,12 +40,14 @@ export function StatusNotice({ tone, tier = 'inline', title, heading, body, icon
   const c = t.component.statusNotice
   const banner = tier === 'banner'
   const b = t.component.noticeBanner
+  const spoken = typeof body === 'string' ? [title, body].filter(Boolean).join('. ') : title
+  useAnnounce(tone === 'danger' ? spoken : undefined)
   const quiet = tone === 'info' || tone === 'unknown' || tone === 'clear'
   return (
     <View
       accessibilityRole={tone === 'danger' ? 'alert' : undefined}
       accessible={!link}
-      accessibilityLabel={typeof body === 'string' ? [title, body].filter(Boolean).join('. ') : title}
+      accessibilityLabel={spoken}
       style={{
         flexDirection: 'row',
         alignItems: 'flex-start',

@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router'
 import { useEffect, useState } from 'react'
+import { AccessibilityInfo } from 'react-native'
 import { useFonts } from 'expo-font'
 import { Providers } from './providers'
 import { fontAssets, useTheme } from '@/shared/theme'
@@ -14,6 +15,12 @@ initSentry() // before the first render, so a crash while the app starts is coll
 function Navigator() {
   const th = useTheme()
   usePushBoot()
+  const [reduceMotion, setReduceMotion] = useState(false)
+  useEffect(() => {
+    void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion)
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion)
+    return () => sub.remove()
+  }, [])
   return (
     <Stack
       screenOptions={{
@@ -23,7 +30,7 @@ function Navigator() {
     >
       <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
       <Stack.Screen name="send/result" options={{ gestureEnabled: false }} />
-      <Stack.Screen name="send/scan" options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="send/scan" options={{ animation: reduceMotion ? 'fade' : 'slide_from_bottom' }} />
     </Stack>
   )
 }

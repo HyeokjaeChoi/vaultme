@@ -7,66 +7,162 @@ appId: dev.stackline.vaultme
 # plain description text closes the keyboard (the ScrollView has keyboardShouldPersistTaps="handled"), so the lower cells
 # are not under it. The flow then waits for the keyboard to finish closing: a tap on cell 12 while it was still
 # closing hit the keyboard's "i" key and the word went into cell 11 (#386).
+# A wait after each cell tap: focusing cell 12 shrinks the body above the keyboard and scrolls the cell into view (Screen revealRef); on the slow CI runner
+# the first key of 'about' landed before that finished and was lost ('bout', #417 run 41854256184).
+# #424 run 41932921187: 'about' landed in cell 11 because the tap on cell 12 ran while the keyboard was still closing (cell 12 hidden under the footer), so each title tap waits for the keyboard keys to disappear and each cell tap for them to appear.
 # Not hideKeyboard: it is flaky on iOS (Maestro known issue); the focused selector does not see a multiline TextInput.
 - extendedWaitUntil:
     visible: '1번째 단어'
     timeout: 15000
 - tapOn: '1번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '2번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '3번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '4번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '5번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '6번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '7번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '8번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '9번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '10번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '11번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'abandon'
 - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+- extendedWaitUntil:
+    notVisible: 'q'
+    timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: '12번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: 'about'
 # The title scrolls out of view while the 12th cell is focused (the submit hint makes the footer taller), so do not tap it; the footer Button stays visible and keyboardShouldPersistTaps="handled" lets the tap through.
 - tapOn: '복구'

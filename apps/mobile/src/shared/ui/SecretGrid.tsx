@@ -1,5 +1,5 @@
 // Figma: B/Secret grid 426:2044 (State Hidden 515:44624 / Revealed), Panel 515:27638, Reveal pill 515:27639; Icon / settings / eye 516:253
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import Svg, { Defs, FeGaussianBlur, Filter, G, Rect } from 'react-native-svg'
 import { useTheme } from '../theme'
@@ -27,6 +27,7 @@ type Props = {
 export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: Props) {
   const t = useTheme()
   const shown = words ? words.length : count // revealed: the real word count (12 or 24); `count` sizes the hidden placeholder only
+  const [panelW, setPanelW] = useState(0) // measured inner width; 0 until the first layout
   const per = Math.ceil(shown / COLS)
   const rowH = t.primitive.type.productB.headline.lineHeight
   const gap = t.semantic.layout.rowGap
@@ -39,8 +40,9 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
     paddingVertical: t.primitive.space[5],
   }
   if (words === null) {
-    const colW = 155 // (326 - 16) / 2 at a 390 pt screen; the bars stretch with the panel
-    const w = colW * 2 + colGap
+    const w = Math.max(panelW - panel.paddingHorizontal * 2, colGap * 2) // clamp: panelW is 0 before the first layout
+    const colW = (w - colGap) / 2
+    const bar = t.primitive.opacity[24]
     return (
       <Pressable
         accessibilityRole="button"
@@ -48,6 +50,7 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
         accessibilityState={{ disabled: !!busy, busy: !!busy }}
         disabled={!!busy || !onReveal}
         onPress={onReveal}
+        onLayout={(e) => setPanelW(e.nativeEvent.layout.width)}
         style={({ pressed }) => ({
           opacity: pressed ? t.primitive.opacity[72] : t.primitive.opacity[100],
           ...panel,
@@ -84,7 +87,7 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
                     height={10}
                     rx={3}
                     fill={t.semantic.text.tertiary}
-                    opacity={0.3}
+                    opacity={bar}
                   />
                   <Rect
                     x={x + 32}
@@ -93,7 +96,7 @@ export function SecretGrid({ words, count = 12, onReveal, revealLabel, busy }: P
                     height={14}
                     rx={7}
                     fill={t.semantic.text.primary}
-                    opacity={0.3}
+                    opacity={bar}
                   />
                 </Fragment>
               )

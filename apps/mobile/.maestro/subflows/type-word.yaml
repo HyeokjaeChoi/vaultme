@@ -3,6 +3,9 @@
 appId: dev.stackline.vaultme
 ---
 - tapOn: '${N}번째 단어'
+- extendedWaitUntil:
+    visible: 'q'
+    timeout: 10000
 - inputText: ${MAESTRO_PHRASE.split(' ')[N - 1]}
 # Not for word 12: the title scrolls out of view there (see restore-vector.yaml); the footer Button is tapped next.
 - runFlow:
@@ -10,5 +13,8 @@ appId: dev.stackline.vaultme
       true: ${N < 12}
     commands:
       - tapOn: '복구 구문 단어를 순서대로 입력하세요.'
+      - extendedWaitUntil:
+          notVisible: 'q'
+          timeout: 10000
       - waitForAnimationToEnd:
           timeout: 3000

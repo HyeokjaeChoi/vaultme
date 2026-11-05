@@ -52,7 +52,7 @@ export function ProductNavigation({ items }: { items: NavItem[] }) {
                   color={t.component.icon.navigation.fg}
                 />
               )}
-              <Text variant="label" color={color} maxFontSizeMultiplier={1.3} style={{ textAlign: 'center' }}>
+              <Text variant="label" color={color} maxFontSizeMultiplier={2} style={{ textAlign: 'center' }}>
                 {i.label}
               </Text>
             </Pressable>
