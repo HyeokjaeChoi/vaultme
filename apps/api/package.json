@@ -26,7 +26,7 @@
   "devDependencies": {
     "@cloudflare/vitest-plugin": "1.4.7",
     "@cloudflare/workers-types": "5.20261025.1",
-    "@types/node": "^24.19.1",
+    "@types/node": "^26.0.0",
     "@vaultme/config": "workspace:*",
     "@vitest/coverage-istanbul": "5.0.5",
     "drizzle-kit": "0.31.11",
