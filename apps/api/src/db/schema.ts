@@ -31,6 +31,8 @@ export const pushSubscriptions = sqliteTable(
       .references(() => installs.id, { onDelete: 'cascade' }),
     address: text('address').notNull(), // lowercase 0x address
     expoToken: text('expo_token').notNull(),
+    // Push language, ko or en (ADR-0038). Rows from before it and apps that send none get en.
+    locale: text('locale').notNull().default('en'),
     createdAt: integer('created_at').notNull(),
   },
   (t) => [index('push_subscriptions_address').on(t.address)],

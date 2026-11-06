@@ -1,4 +1,11 @@
-import { PUSH_CHANNEL_ID, PUSH_COPY, USDC_SEPOLIA, type PushData } from '@vaultme/contracts'
+import {
+  PUSH_CHANNEL_ID,
+  PUSH_COPY,
+  USDC_SEPOLIA,
+  pushLocale,
+  type PushData,
+  type PushLocale,
+} from '@vaultme/contracts'
 import { and, desc, eq, inArray, lt, notInArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { nowSeconds } from './auth.ts'
@@ -122,6 +129,7 @@ export async function subscribe(
   installId: string,
   address: string,
   expoToken: string,
+  locale: PushLocale,
 ): Promise<boolean> {
   const addr = address.toLowerCase()
   const db = getDb(env.DB)
@@ -138,8 +146,8 @@ export async function subscribe(
   }
   await db
     .insert(pushSubscriptions)
-    .values({ installId, address: addr, expoToken, createdAt: nowSeconds() })
-    .onConflictDoUpdate({ target: pushSubscriptions.installId, set: { address: addr, expoToken } }) // created_at stays
+    .values({ installId, address: addr, expoToken, locale, createdAt: nowSeconds() })
+    .onConflictDoUpdate({ target: pushSubscriptions.installId, set: { address: addr, expoToken, locale } }) // created_at stays
   // A new row for the same address cancels a queued removal.
   await db.delete(pushUnregister).where(eq(pushUnregister.address, addr))
   if (old && old.address !== addr) await unregisterAddresses(env, [old.address])
@@ -520,7 +528,7 @@ export async function handleActivity(
   const list = [...addresses]
   // D1 allows 100 bound parameters per statement, and one payload can carry more addresses than that.
   const db = getDb(env.DB)
-  const subs: { installId: string; address: string; expoToken: string }[] = []
+  const subs: { installId: string; address: string; expoToken: string; locale: string }[] = []
   for (let i = 0; i < list.length; i += D1_MAX_PARAMS) {
     const chunk = list.slice(i, i + D1_MAX_PARAMS)
     subs.push(
@@ -529,6 +537,7 @@ export async function handleActivity(
           installId: pushSubscriptions.installId,
           address: pushSubscriptions.address,
           expoToken: pushSubscriptions.expoToken,
+          locale: pushSubscriptions.locale,
         })
         .from(pushSubscriptions)
         .where(inArray(pushSubscriptions.address, chunk))),
@@ -582,7 +591,7 @@ export async function handleActivity(
           body: JSON.stringify(
             batch.map(({ sub, note }) => ({
               to: sub.expoToken,
-              ...PUSH_COPY[note.kind],
+              ...PUSH_COPY[pushLocale(sub.locale)][note.kind],
               channelId: PUSH_CHANNEL_ID,
               sound: 'default',
               data: { kind: note.kind } satisfies PushData,

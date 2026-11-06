@@ -301,17 +301,17 @@ describe('api client', () => {
     expect(await s.client().txInternal(hash)).toEqual({ items: [] })
     expect(s.server.rpcCalls[0]).toMatchObject({ auth: 'Bearer tok1', body: { hash } })
   })
-  it('push subscription: PUT {address, expoToken}, DELETE without a body, both with the token', async () => {
+  it('push subscription: PUT {address, expoToken, locale}, DELETE without a body, both with the token', async () => {
     const s = setup()
     const addr = '0x' + 'a'.repeat(40)
     const c = s.client()
-    await c.putPushSubscription(addr, 'ExponentPushToken[abcdefgh12345678]')
+    await c.putPushSubscription(addr, 'ExponentPushToken[abcdefgh12345678]', 'en')
     await c.deletePushSubscription()
     expect(s.server.pushCalls).toEqual([
       {
         method: 'PUT',
         auth: 'Bearer tok1',
-        body: JSON.stringify({ address: addr, expoToken: 'ExponentPushToken[abcdefgh12345678]' }),
+        body: JSON.stringify({ address: addr, expoToken: 'ExponentPushToken[abcdefgh12345678]', locale: 'en' }),
       },
       { method: 'DELETE', auth: 'Bearer tok1', body: undefined },
     ])

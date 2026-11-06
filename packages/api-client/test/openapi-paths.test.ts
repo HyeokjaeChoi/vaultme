@@ -18,7 +18,7 @@ const CALLS: Record<string, Row> = {
   history: { call: (c) => c.history(addr), op: 'POST /v1/history' },
   txInternal: { call: (c) => c.txInternal(hash), op: 'POST /v1/tx/internal' },
   putPushSubscription: {
-    call: (c) => c.putPushSubscription(addr, 'ExponentPushToken[abcdefgh12345678]'),
+    call: (c) => c.putPushSubscription(addr, 'ExponentPushToken[abcdefgh12345678]', 'ko'),
     op: 'PUT /v1/push/subscription',
   },
   deletePushSubscription: { call: (c) => c.deletePushSubscription(), op: 'DELETE /v1/push/subscription' },

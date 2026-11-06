@@ -12,6 +12,7 @@ import {
   NONCE_HEADER,
   PushOkResponse,
   PushSubscribeRequest,
+  pushLocale,
   RegisterRequest,
   RegisterResponse,
   RpcRequest,
@@ -353,8 +354,8 @@ app.openapi(
     },
   }),
   async (c) => {
-    const { address, expoToken } = c.req.valid('json')
-    if (!(await subscribe(c.env, c.get('installId'), address, expoToken)))
+    const { address, expoToken, locale } = c.req.valid('json')
+    if (!(await subscribe(c.env, c.get('installId'), address, expoToken, pushLocale(locale))))
       return c.json(errorEnvelope('unavailable', 'Push registration unavailable'), 503)
     return c.json({ ok: true as const }, 200)
   },

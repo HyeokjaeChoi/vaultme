@@ -12,7 +12,7 @@ export type PushPort = {
 }
 
 type PushServer = {
-  putPushSubscription(address: string, expoToken: string): Promise<void>
+  putPushSubscription(address: string, expoToken: string, locale: string): Promise<void>
   deletePushSubscription(): Promise<void>
 }
 
@@ -23,6 +23,8 @@ export type PushDeps = {
   /** EAS project id; null until `eas init` ran. */
   projectId: string | null
   address(): string | null
+  /** The app language (ADR-0037); the server sends push text in it (ADR-0038). */
+  language(): string
   getSetting(): boolean
   setSetting(v: boolean): void
   /** The server may still hold this install's subscription: a DELETE is owed. */
@@ -60,7 +62,7 @@ export function enablePush(d: PushDeps): Promise<EnableResult> {
         if (!d.projectId) return 'unavailable'
         const token = await d.port.token(d.projectId)
         d.setUnregisterPending(true)
-        await d.server.putPushSubscription(address, token)
+        await d.server.putPushSubscription(address, token, d.language())
       }
       d.setUnregisterPending(false)
       d.setSetting(true)
@@ -113,7 +115,7 @@ export function syncPush(d: PushDeps): Promise<void> {
         d.setUnregisterPending(false)
         return
       }
-      await d.server.putPushSubscription(address, await d.port.token(d.projectId))
+      await d.server.putPushSubscription(address, await d.port.token(d.projectId), d.language())
     } catch {
       // retried at the next launch
     }
