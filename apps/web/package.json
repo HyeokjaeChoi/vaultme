@@ -18,7 +18,7 @@
     "lint": "eslint . --max-warnings=0 && steiger ./app && pnpm lint:css"
   },
   "dependencies": {
-    "@tanstack/react-query": "5.104.5",
+    "@tanstack/react-query": "5.105.0",
     "@vaultme/api-client": "workspace:*",
     "@vaultme/history": "workspace:*",
     "@vaultme/i18n": "workspace:*",
