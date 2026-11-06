@@ -28,6 +28,7 @@ function make(over: Partial<PushDeps> & { permission?: Permission; requested?: P
     port,
     projectId: 'proj',
     address: () => ADDRESS,
+    language: () => 'ko',
     getSetting: () => state.setting,
     setSetting: (v) => void (state.setting = v),
     getUnregisterPending: () => state.pending,
@@ -41,7 +42,7 @@ describe('enablePush', () => {
   it('registers address and token, then turns the setting on', async () => {
     const t = make()
     expect(await enablePush(t.deps)).toBe('on')
-    expect(t.server.putPushSubscription).toHaveBeenCalledWith(ADDRESS, 'ExponentPushToken[abcdefgh12345678]')
+    expect(t.server.putPushSubscription).toHaveBeenCalledWith(ADDRESS, 'ExponentPushToken[abcdefgh12345678]', 'ko')
     expect(t.state.setting).toBe(true)
   })
   it('asks the OS when the permission is undetermined, and stops on a refusal', async () => {
@@ -120,11 +121,12 @@ describe('syncPush', () => {
     await syncPush(t.deps)
     expect(t.state.pending).toBe(true)
   })
-  it('re-sends address and token when the setting is on', async () => {
-    const t = make()
+  it('re-sends address, token and the app language when the setting is on', async () => {
+    const t = make({ language: () => 'en' })
     t.state.setting = true
     await syncPush(t.deps)
     expect(t.server.putPushSubscription).toHaveBeenCalledTimes(1)
+    expect(t.server.putPushSubscription).toHaveBeenCalledWith(ADDRESS, 'ExponentPushToken[abcdefgh12345678]', 'en')
   })
   it('does nothing when the setting is off', async () => {
     const t = make()

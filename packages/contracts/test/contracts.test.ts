@@ -6,6 +6,7 @@ import {
   HistoryRequest,
   HistoryResponse,
   PUSH_COPY,
+  pushLocale,
   errorEnvelope,
   isBelow,
 } from '../src/index.ts'
@@ -49,7 +50,21 @@ describe('contracts', () => {
 
 describe('PUSH_COPY', () => {
   it('the send push never says confirmed: it goes out before the safe block (ADR-0006, ADR-0010, #297)', () => {
-    expect(PUSH_COPY.send.title).not.toMatch(/확정됐/)
-    expect(PUSH_COPY.send.title).toBe('보낸 거래가 블록에 담겼어요')
+    expect(PUSH_COPY.ko.send.title).not.toMatch(/확정됐/)
+    expect(PUSH_COPY.ko.send.title).toBe('보낸 거래가 블록에 담겼어요')
+    expect(PUSH_COPY.en.send.title).not.toMatch(/confirmed/i)
+  })
+
+  it('has the same kinds in every language', () => {
+    expect(Object.keys(PUSH_COPY.en)).toEqual(Object.keys(PUSH_COPY.ko))
+  })
+})
+
+describe('pushLocale (#458)', () => {
+  it('keeps ko and en, and gives en for a missing or unknown language', () => {
+    expect(pushLocale('ko')).toBe('ko')
+    expect(pushLocale('en')).toBe('en')
+    expect(pushLocale(undefined)).toBe('en')
+    expect(pushLocale('ja')).toBe('en')
   })
 })

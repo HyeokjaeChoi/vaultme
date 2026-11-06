@@ -117,6 +117,21 @@ describe('push subscription routes', () => {
     expect(await subs()).toMatchObject([{ install_id: id, address: ADDR }])
   })
 
+  it('stores the language: ko and en as sent, anything else or nothing as en (#458)', async () => {
+    const locales = async () =>
+      (await E.DB.prepare('SELECT locale FROM push_subscriptions').all<{ locale: string }>()).results.map(
+        (r) => r.locale,
+      )
+    const id = await newInstall()
+    await put(id, { address: ADDR, expoToken: TOKEN, locale: 'ko' })
+    expect(await locales()).toEqual(['ko'])
+    await put(id, { address: ADDR, expoToken: TOKEN, locale: 'ja' })
+    expect(await locales()).toEqual(['en'])
+    await put(id, { address: ADDR, expoToken: TOKEN, locale: 'ko' })
+    await put(id, { address: ADDR, expoToken: TOKEN })
+    expect(await locales()).toEqual(['en'])
+  })
+
   it('rejects a bad address or token', async () => {
     const id = await newInstall()
     expect((await put(id, { address: '0x12', expoToken: TOKEN })).status).toBe(400)
@@ -264,7 +279,7 @@ describe('POST /webhooks/alchemy', () => {
   let install: string
   beforeEach(async () => {
     install = await newInstall()
-    await put(install, { address: ADDR, expoToken: TOKEN })
+    await put(install, { address: ADDR, expoToken: TOKEN, locale: 'ko' })
     calls.length = 0
   })
 
@@ -290,6 +305,23 @@ describe('POST /webhooks/alchemy', () => {
     expect((calls.find((c) => c.url === expoSend)!.init.headers as Record<string, string>).authorization).toBe(
       `Bearer ${E.EXPO_ACCESS_TOKEN}`,
     )
+  })
+
+  it('pushes the English copy to an en subscription (#458)', async () => {
+    await put(install, { address: ADDR, expoToken: TOKEN, locale: 'en' })
+    await hook(activity([eth()]))
+    expect(sentMessages()).toMatchObject([{ title: 'A deposit arrived', body: 'Open the app to check it.' }])
+  })
+
+  it('pushes the English copy when the app sent no language: an older build (#458)', async () => {
+    await put(install, { address: ADDR, expoToken: TOKEN })
+    await hook(activity([eth({ fromAddress: ADDR, toAddress: OTHER })]))
+    expect(sentMessages()).toMatchObject([
+      {
+        title: 'Your sent transaction is in a block',
+        body: 'Confirmation takes a few minutes. Open the app to check it.',
+      },
+    ])
   })
 
   it('pushes a confirmed send', async () => {

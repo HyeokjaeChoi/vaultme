@@ -4,8 +4,11 @@ import { z } from 'zod'
 const ExpoPushToken = z.string().regex(/^Expo(?:nent)?PushToken\[[A-Za-z0-9_-]{8,64}\]$/)
 const PushAddress = z.string().regex(/^0x[0-9a-fA-F]{40}$/)
 
+/** The app language (ADR-0038). Any short code is accepted so a newer app with another language still registers; the server keeps ko or en. */
+const PushLocaleInput = z.string().max(35)
+
 export const PushSubscribeRequest = z
-  .object({ address: PushAddress, expoToken: ExpoPushToken })
+  .object({ address: PushAddress, expoToken: ExpoPushToken, locale: PushLocaleInput.optional() })
   .meta({ id: 'PushSubscribeRequest' })
 export const PushOkResponse = z.object({ ok: z.literal(true) }).meta({ id: 'PushOkResponse' })
 
@@ -17,9 +20,29 @@ export type PushData = z.infer<typeof PushData>
 /** Android notification channel. The app creates it before it asks for permission; the server sends every push on it (Expo `channelId`). */
 export const PUSH_CHANNEL_ID = 'default'
 
+/** Push languages. A missing or unknown language gets en (ADR-0038; the app UI falls back to ko, ADR-0037). */
+export type PushLocale = 'ko' | 'en'
+export const pushLocale = (v: string | null | undefined): PushLocale => (v === 'ko' ? 'ko' : 'en')
+
 /** Lock-screen text carries no amount and no address (#67 decision 4). Copy: Figma notification spec 652:108108. There is no `replaced` push (Q77, ADR-0030). */
 export const PUSH_COPY = {
-  deposit: { title: '입금이 들어왔어요', body: '앱에서 확인해 주세요.' },
-  send: { title: '보낸 거래가 블록에 담겼어요', body: '확정까지 몇 분 걸려요. 앱에서 확인해 주세요.' },
-  failed: { title: '보낸 거래가 실패했어요', body: '자산은 보내지지 않았고 수수료만 나갔어요. 앱에서 확인해 주세요.' },
-} as const
+  ko: {
+    deposit: { title: '입금이 들어왔어요', body: '앱에서 확인해 주세요.' },
+    send: { title: '보낸 거래가 블록에 담겼어요', body: '확정까지 몇 분 걸려요. 앱에서 확인해 주세요.' },
+    failed: {
+      title: '보낸 거래가 실패했어요',
+      body: '자산은 보내지지 않았고 수수료만 나갔어요. 앱에서 확인해 주세요.',
+    },
+  },
+  en: {
+    deposit: { title: 'A deposit arrived', body: 'Open the app to check it.' },
+    send: {
+      title: 'Your sent transaction is in a block',
+      body: 'Confirmation takes a few minutes. Open the app to check it.',
+    },
+    failed: {
+      title: 'Your sent transaction failed',
+      body: 'No assets were sent. Only the fee was charged. Open the app to check it.',
+    },
+  },
+} as const satisfies Record<PushLocale, Record<PushData['kind'], { title: string; body: string }>>

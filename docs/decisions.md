@@ -50,7 +50,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q26 | Detection p95 ≤ 2 min, reported only after measuring | GAP | #335: measured since #315 (`push_latency` log line and data point, `recordLatencies` in `apps/api/src/push.ts`), p95 not read yet (needs the owner's Cloudflare token). The clock starts at the block timestamp: ADR-0024 |
 | Q27 | Push off by default; explainer; Settings toggle; off deletes the link | SUPERSEDED | #67 decision 5: explainer after first copy or share on Receive |
 | Q28 | SIWE ownership proof + device session | SUPERSEDED | ADR-0010: no proof, accepted risk |
-| Q29 | Push text names only the event; no tx hash in the payload | SUPERSEDED | ADR-0023, #314 (owner chose B): payload is `kind` only, no opaque id; a tap opens the 내역 list, no per-tx link. Copy fixed in #298 |
+| Q29 | Push text names only the event; no tx hash in the payload | SUPERSEDED | ADR-0023, #314 (owner chose B): payload is `kind` only, no opaque id; a tap opens the 내역 list, no per-tx link. Copy fixed in #298. ADR-0038 (#458): the copy is in `ko` and `en`, by the app language |
 | Q30 | App calls the history provider directly | SUPERSEDED | By Q32 in the same session; ADR-0007 |
 | Q31 | Idle subscriptions deleted; events 7 d; installs 90 d | IMPLEMENTED | `INSTALL_KEEP_SECONDS` in `apps/api/src/push.ts` `sweep` (#317). Subscription expiry is ADR-0010 (30 d) |
 | Q32 | Stateless proxy, no address logs, rate limits, privacy notice | IMPLEMENTED | ADR-0007; notice: `apps/mobile/src/pages/settings/privacy.tsx`, `apps/web/app/routes/address.tsx` (#311) |
@@ -70,7 +70,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q46 | Review shows expected and max fee; re-review only if the cap rises | IMPLEMENTED | `packages/wallet-core/src/send.ts` |
 | Q47 | Pending or Unknown blocks a new send | IMPLEMENTED | ADR-0006 |
 | Q48 | No fiat value | IMPLEMENTED | `shared/ui/PortfolioBalance.tsx` |
-| Q49 | Korean only; strings in i18n | SUPERSEDED | ADR-0037 (#452): the app gets `en` next to `ko`. Strings in i18n, en-US numbers and the `CONTEXT.md` terms still hold |
+| Q49 | Korean only; strings in i18n | SUPERSEDED | ADR-0037 (#452): the app gets `en` next to `ko`. Strings in i18n, en-US numbers and the `CONTEXT.md` terms still hold. ADR-0038 (#458): push text follows the app language too |
 | Q50 | Sentry crash and performance, PII scrubbed | SUPERSEDED | ADR-0024: performance monitoring dropped. Still holds and is built (#315): errors and crashes on the app (`apps/mobile/src/shared/lib/sentry.ts`) and the Worker (`apps/api/src/sentry.ts`), PII scrubbed (`packages/contracts/src/scrub.ts`). Source maps: #337 |
 | Q51 | pnpm + Turborepo monorepo | IMPLEMENTED | `turbo.json` |
 | Q52 | local/staging/prod; separate D1, secrets, EAS channel; web previews | SUPERSEDED | ADR-0025: production environment and EAS production channel wait for the first public release. Still open: EAS channels for staging (#316). Web previews off (`apps/web/AGENTS.md`) |

@@ -413,6 +413,10 @@
           "expoToken": {
             "type": "string",
             "pattern": "^Expo(?:nent)?PushToken\\[[A-Za-z0-9_-]{8,64}\\]$"
+          },
+          "locale": {
+            "type": "string",
+            "maxLength": 35
           }
         },
         "required": [

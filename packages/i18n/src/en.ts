@@ -560,7 +560,7 @@ export const en: Messages = {
       },
       push: {
         title: 'Alerts',
-        body: 'When you turn alerts on, the server stores your wallet address and this device’s alert token to send alerts. Turning alerts off deletes them. If you are offline, they are deleted the next time you open the app.',
+        body: 'When you turn alerts on, the server stores your wallet address, this device’s alert token and its language to send alerts. Turning alerts off deletes them. If you are offline, they are deleted the next time you open the app.',
       },
       keys: {
         title: 'Keys',

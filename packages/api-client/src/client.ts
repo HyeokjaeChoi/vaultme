@@ -240,9 +240,9 @@ export function createApiClient(d: ApiDeps) {
     txInternal(hash: string): Promise<unknown> {
       return post('/v1/tx/internal', TxInternalRequest.parse({ hash }), (v) => v)
     },
-    /** PUT /v1/push/subscription: registers this install's address and Expo push token (#67). Replaces any earlier one. */
-    async putPushSubscription(address: string, expoToken: string): Promise<void> {
-      await send('PUT', '/v1/push/subscription', PushSubscribeRequest.parse({ address, expoToken }), (v) =>
+    /** PUT /v1/push/subscription: registers this install's address, Expo push token and app language (#67, ADR-0038). Replaces any earlier one. */
+    async putPushSubscription(address: string, expoToken: string, locale: string): Promise<void> {
+      await send('PUT', '/v1/push/subscription', PushSubscribeRequest.parse({ address, expoToken, locale }), (v) =>
         PushOkResponse.parse(v),
       )
     },

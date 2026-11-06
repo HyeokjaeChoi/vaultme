@@ -45,6 +45,7 @@ export const pushDeps: PushDeps = {
   port: expoPort,
   projectId: extra?.eas?.projectId ?? null,
   address: getAccountAddress,
+  language: () => i18n.language,
   getSetting: () => appStore().getState().pushSetting,
   setSetting: (v) => appStore().getState().setPushSetting(v),
   getUnregisterPending: getPushUnregisterPending,
