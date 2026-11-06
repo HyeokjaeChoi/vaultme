@@ -6,7 +6,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 host=$(jq -r '.expo.extra.sentryDsn' app.json | sed -E 's#^https://[^@]+@([^/]+)/.*$#\1#')
 case "$host" in *.sentry.io) ;; *) echo "::error::no Sentry host in app.json extra.sentryDsn" >&2; exit 1 ;; esac
-echo "0.0.0.0 $host" | sudo tee -a /etc/hosts >/dev/null
+# Both families: a hosts entry for one family does not stop the other (AAAA would still resolve).
+printf '0.0.0.0 %s\n:: %s\n' "$host" "$host" | sudo tee -a /etc/hosts >/dev/null
 sudo dscacheutil -flushcache
 sudo killall -HUP mDNSResponder || true
 echo "Sentry ingest blocked on this runner: $host"
