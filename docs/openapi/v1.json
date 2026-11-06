@@ -416,7 +416,8 @@
           },
           "locale": {
             "type": "string",
-            "maxLength": 35
+            "maxLength": 35,
+            "description": "App language code. ko gets Korean push text; anything else, or none, gets English (ADR-0038)."
           }
         },
         "required": [

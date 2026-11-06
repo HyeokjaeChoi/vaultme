@@ -5,7 +5,10 @@ const ExpoPushToken = z.string().regex(/^Expo(?:nent)?PushToken\[[A-Za-z0-9_-]{8
 const PushAddress = z.string().regex(/^0x[0-9a-fA-F]{40}$/)
 
 /** The app language (ADR-0038). Any short code is accepted so a newer app with another language still registers; the server keeps ko or en. */
-const PushLocaleInput = z.string().max(35)
+const PushLocaleInput = z
+  .string()
+  .max(35)
+  .describe('App language code. ko gets Korean push text; anything else, or none, gets English (ADR-0038).')
 
 export const PushSubscribeRequest = z
   .object({ address: PushAddress, expoToken: ExpoPushToken, locale: PushLocaleInput.optional() })
