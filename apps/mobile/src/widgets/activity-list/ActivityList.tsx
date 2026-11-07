@@ -50,7 +50,7 @@ export function fakeHistoryItems(tx: ReturnType<typeof usePendingTx>['tx']): His
 }
 
 /** `dated`: Home's list has no date headers, so a finished row says its day ("10월 12일"); a row in progress and any row of today say the time. */
-/** `enter` (from `useStaggerReveal`) and the row's `index` in the list: the first-reveal stagger. Without `enter` the row shows at once. */
+/** `enter` (from `useStaggerReveal`) and the row's `index` in the list: the first-reveal stagger. Without `enter`, and for a caution (warning) row, the row shows at once. */
 type Reveal = { enter: ReturnType<typeof useStaggerReveal>; index: number }
 
 function Row({ item, dated, reveal }: { item: HistoryItem; dated?: boolean; reveal?: Reveal | undefined }) {
@@ -75,24 +75,24 @@ function Row({ item, dated, reveal }: { item: HistoryItem; dated?: boolean; reve
       onPress={() => router.push(detailRoute(item))}
     />
   )
-  return reveal ? <Animated.View {...reveal.enter(reveal.index)}>{row}</Animated.View> : row
+  return reveal && !item.caution ? <Animated.View {...reveal.enter(reveal.index)}>{row}</Animated.View> : row
 }
 
 export function ActivityList({ items, enter }: { items: HistoryItem[]; enter?: ReturnType<typeof useStaggerReveal> }) {
-  const groups: { key: string; day: string; items: HistoryItem[] }[] = []
-  for (const item of items) {
+  const groups: { key: string; day: string; items: HistoryItem[]; first: number }[] = []
+  for (const [i, item] of items.entries()) {
     const key = dayKey(item.at)
     const g = groups.find((x) => x.key === key)
     if (g) g.items.push(item)
-    else groups.push({ key, day: dateLabel(item.at), items: [item] })
+    else groups.push({ key, day: dateLabel(item.at), items: [item], first: i })
   }
   return (
     <>
       {groups.map((g) => (
         <View key={g.key}>
           <DateHeader date={g.day} />
-          {g.items.map((item) => (
-            <Row key={item.id} item={item} reveal={enter ? { enter, index: items.indexOf(item) } : undefined} />
+          {g.items.map((item, n) => (
+            <Row key={item.id} item={item} reveal={enter ? { enter, index: g.first + n } : undefined} />
           ))}
         </View>
       ))}
@@ -105,18 +105,15 @@ export function RecentRows({
   items,
   limit = 3,
   enter,
-  firstIndex = 0,
 }: {
   items: HistoryItem[]
   limit?: number
   enter?: ReturnType<typeof useStaggerReveal>
-  /** Index of the first row in the screen's whole list (Home counts the asset rows above), for the stagger delay. */
-  firstIndex?: number
 }) {
   return (
     <>
       {items.slice(0, limit).map((item, i) => (
-        <Row key={item.id} item={item} dated reveal={enter ? { enter, index: firstIndex + i } : undefined} />
+        <Row key={item.id} item={item} dated reveal={enter ? { enter, index: i } : undefined} />
       ))}
     </>
   )

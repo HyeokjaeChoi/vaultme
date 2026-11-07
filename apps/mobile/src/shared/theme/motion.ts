@@ -156,10 +156,8 @@ const riseIn = (delay: number, ms: number) => {
  */
 export function useStaggerReveal(loading: boolean) {
   const reduce = useReducedMotion()
-  const [sawLoading, setSawLoading] = useState(loading)
-  if (loading && !sawLoading) setSawLoading(true)
-  const [closed, setClosed] = useState(false) // the reveal window has passed
-  if (loading && closed) setClosed(false) // a new load opens a new window
+  const [sawLoading] = useState(loading) // read at mount only: a later reload (retry, refetch) is not a first reveal
+  const [closed, setClosed] = useState(false) // the reveal window has passed; it never opens again
   useEffect(() => {
     if (loading) return
     const id = setTimeout(() => setClosed(true), revealWindow(ROW_MS))

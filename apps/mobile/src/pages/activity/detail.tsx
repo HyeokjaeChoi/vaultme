@@ -214,6 +214,8 @@ function RowDetail({
   const { t } = useTranslation()
   const th = useTheme()
   const copy = rowCopy(row)
+  let line = 0 // detail lines count up as they render, so a hidden optional line leaves no gap in the stagger
+  const next = () => line++
   const explorer =
     explorerUrl(chain, row.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${row.hash}` : null)
   const [figure, unit] = showAmount(row.amount, row.asset, 'exact').split(' ')
@@ -263,10 +265,10 @@ function RowDetail({
         </>
       ) : null}
       <Block title={t('detail.infoTitle')}>
-        <StaggerLine index={0}>
+        <StaggerLine index={next()}>
           <DetailRow label={t('detail.time')} value={whenText(t, row.at)} />
         </StaggerLine>
-        <StaggerLine index={1}>
+        <StaggerLine index={next()}>
           <DetailRow
             emphasis
             label={t('result.statusLabel')}
@@ -274,7 +276,7 @@ function RowDetail({
           />
         </StaggerLine>
         {/^0x[0-9a-fA-F]{64}$/.test(row.hash) ? (
-          <StaggerLine index={2}>
+          <StaggerLine index={next()}>
             <DetailRow
               mono
               label={t('detail.hashTitle')}
@@ -284,7 +286,7 @@ function RowDetail({
           </StaggerLine>
         ) : null}
         {address ? (
-          <StaggerLine index={3}>
+          <StaggerLine index={next()}>
             <DetailRow
               mono
               label={t(copy.accountLabel)}
@@ -293,10 +295,10 @@ function RowDetail({
             />
           </StaggerLine>
         ) : null}
-        <StaggerLine index={4}>
+        <StaggerLine index={next()}>
           <DetailRow label={t('result.network')} value={account.network} />
         </StaggerLine>
-        <StaggerLine index={5}>
+        <StaggerLine index={next()}>
           <MoreRows blockNumber={row.blockNumber} />
         </StaggerLine>
       </Block>
@@ -464,6 +466,8 @@ export function TxDetailPage() {
         : t(txView(tx.state).label)
   const lastChecked = `${t('detail.lastChecked', { time: hhmm(tx.lastCheckedAt) })}.${isPolled(tx.state) ? ` ${t('detail.auto')}` : ''}`
   const showFee = !test && tx.state !== 'Replaced'
+  let line = 0 // see RowDetail
+  const next = () => line++
   return (
     <Screen
       bleed
@@ -511,13 +515,13 @@ export function TxDetailPage() {
       </Block>
       <SectionBand />
       <Block title={t('detail.infoTitle')}>
-        <StaggerLine index={0}>
+        <StaggerLine index={next()}>
           <DetailRow label={t('detail.time')} value={whenText(t, tx.createdAt)} />
         </StaggerLine>
-        <StaggerLine index={1}>
+        <StaggerLine index={next()}>
           <DetailRow emphasis label={t('result.statusLabel')} value={stateWord} />
         </StaggerLine>
-        <StaggerLine index={2}>
+        <StaggerLine index={next()}>
           <DetailRow
             mono
             label={t('detail.hashTitle')}
@@ -526,22 +530,22 @@ export function TxDetailPage() {
           />
         </StaggerLine>
         {tx.accountIndex !== undefined ? (
-          <StaggerLine index={3}>
+          <StaggerLine index={next()}>
             <DetailRow label={t('detail.sender')} value={t('detail.accountName', { n: tx.accountIndex + 1 })} />
           </StaggerLine>
         ) : null}
-        <StaggerLine index={4}>
+        <StaggerLine index={next()}>
           <DetailRow label={t('result.network')} value={account.network} />
         </StaggerLine>
         {showFee ? (
-          <StaggerLine index={5}>
+          <StaggerLine index={next()}>
             <DetailRow
               label={t(tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal')}
               value={tx.fee ? `${tx.fee} ETH` : '—'}
             />
           </StaggerLine>
         ) : null}
-        <StaggerLine index={5}>
+        <StaggerLine index={next()}>
           <MoreRows blockNumber={test ? undefined : tx.blockNumber} />
         </StaggerLine>
         {final || test ? null : <StatusNotice tone="info" title={lastChecked} />}

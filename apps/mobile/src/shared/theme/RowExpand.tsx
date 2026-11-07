@@ -37,10 +37,14 @@ export function measureRow(row: HostInstance | null, then: () => void) {
     return
   }
   row.measureInWindow((_x, y, _w, height) => {
+    if (done) return // the push already went without a frame: a late result must not leak to the next detail
     pressed = { frame: { y, height }, at: Date.now() }
     go()
   })
-  setTimeout(go, MEASURE_WAIT_MS)
+  setTimeout(() => {
+    if (!done) pressed = null
+    go()
+  }, MEASURE_WAIT_MS)
 }
 
 /**
