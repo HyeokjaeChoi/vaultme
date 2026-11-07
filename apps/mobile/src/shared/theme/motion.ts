@@ -134,13 +134,20 @@ const ROW_MS = light.primitive.motion.duration.baseMs // same in dark
 const RISE = light.primitive.space[2] // 8, same in dark
 
 /** Opacity 0 -> 1 and a rise of 8 px (nothing else: no scale, no blur) after `delay` ms, over `ms`. Reduce Motion callers do not use it. */
-const riseIn = (delay: number, ms: number) =>
+const build = (delay: number, ms: number) =>
   new Keyframe({
     0: { opacity: 0, transform: [{ translateY: RISE }] },
     100: { opacity: 1, transform: [{ translateY: 0 }], easing: EASE_OUT },
   })
     .delay(delay)
     .duration(ms)
+const rises = new Map<number, ReturnType<typeof build>>() // one per delay (at most 5 + the detail lines): `entering` is read at mount only, so rows can share it
+const riseIn = (delay: number, ms: number) => {
+  const key = delay * 1000 + ms
+  const made = rises.get(key) ?? build(delay, ms)
+  rises.set(key, made)
+  return made
+}
 
 /**
  * First-reveal list stagger (DESIGN.md Motion): returns `enter(index)`, the props to spread on the Animated.View around row `index` (`{ entering }` or `{}`).

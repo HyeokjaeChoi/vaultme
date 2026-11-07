@@ -11,29 +11,36 @@ import { light } from '@vaultme/tokens'
 import { EASE_OUT, useLineEntering } from './motion'
 
 const EXPAND_MS = light.primitive.motion.duration.enterMs // same in dark
+const FALLBACK_MS = 400
 
 /** Where the pressed row was on screen (window points), kept for the detail screen that opens next. */
 type RowFrame = { y: number; height: number }
-let pressed: RowFrame | null = null
-const rememberRowFrame = (frame: RowFrame) => {
-  pressed = frame
-}
+const FRAME_TTL_MS = 1500 // a frame older than this belongs to an open that never came (or a lookup that took long): show the card as it is
+const MEASURE_WAIT_MS = 120 // open the detail even when the measure callback never runs
+let pressed: { frame: RowFrame; at: number } | null = null
 const takeRowFrame = () => {
-  const f = pressed
+  const p = pressed
   pressed = null // used once: a deep link or a later open does not expand from an old row
-  return f
+  return p && Date.now() - p.at < FRAME_TTL_MS ? p.frame : null
 }
 
-/** Measures `row` (window points) and remembers it; call it right before the router push. */
+/** Measures `row` (window points), remembers its frame and calls `then` (the router push) once; `then` runs after MEASURE_WAIT_MS at the latest. */
 export function measureRow(row: HostInstance | null, then: () => void) {
-  if (!row) {
+  let done = false
+  const go = () => {
+    if (done) return
+    done = true
     then()
+  }
+  if (!row) {
+    go()
     return
   }
   row.measureInWindow((_x, y, _w, height) => {
-    rememberRowFrame({ y, height })
-    then()
+    pressed = { frame: { y, height }, at: Date.now() }
+    go()
   })
+  setTimeout(go, MEASURE_WAIT_MS)
 }
 
 /**
@@ -64,6 +71,10 @@ export function ExpandFromRow({ children }: { children: ReactNode }) {
     if (!from || !active || started.current) return
     started.current = true
     const h = e.nativeEvent.layout.height
+    const open = () => {
+      if (!p.get()) p.set(1) // the card is never left hidden if the measure callback does not run
+    }
+    setTimeout(open, FALLBACK_MS)
     outer.current?.measureInWindow((_x, y) => {
       full.set(h)
       dy.set(from.y - y)
