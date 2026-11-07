@@ -130,12 +130,15 @@ function FullAddress({ label, address, copy }: { label: string; address: string;
 }
 
 /** 자세히: chain ID and block, hidden until opened (Figma 934:9123 open, 934:9154 row). */
-function MoreRows({ blockNumber }: { blockNumber: number | undefined }) {
+function MoreRows({ blockNumber, index }: { blockNumber: number | undefined; index: number }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   return (
     <>
-      <DisclosureRow title={t('detail.more')} expanded={open} onToggle={() => setOpen((o) => !o)} />
+      {/* Only the closed row staggers; the opened rows stay direct children of the Block, so its gap holds. */}
+      <StaggerLine index={index}>
+        <DisclosureRow title={t('detail.more')} expanded={open} onToggle={() => setOpen((o) => !o)} />
+      </StaggerLine>
       {open ? (
         <>
           <DetailRow label={t('detail.chainId')} value={String(account.chainId)} />
@@ -298,9 +301,7 @@ function RowDetail({
         <StaggerLine index={next()}>
           <DetailRow label={t('result.network')} value={account.network} />
         </StaggerLine>
-        <StaggerLine index={next()}>
-          <MoreRows blockNumber={row.blockNumber} />
-        </StaggerLine>
+        <MoreRows blockNumber={row.blockNumber} index={next()} />
       </Block>
       {internal ? (
         <InternalTransfers
@@ -545,9 +546,7 @@ export function TxDetailPage() {
             />
           </StaggerLine>
         ) : null}
-        <StaggerLine index={next()}>
-          <MoreRows blockNumber={test ? undefined : tx.blockNumber} />
-        </StaggerLine>
+        <MoreRows blockNumber={test ? undefined : tx.blockNumber} index={next()} />
         {final || test ? null : <StatusNotice tone="info" title={lastChecked} />}
       </Block>
       {internal ? (
