@@ -148,10 +148,10 @@ export function planTravel(reduce: boolean, at: number, target: number, index: n
 
 /**
  * Selection travel (Figma Switch 300:611, Segmented 300:622 motion notes): the knob or pill moves to slot `index` over motion.duration.fastMs ease-out
- * and stretches to STRETCH_MAX at mid-travel. Transform only, on the UI thread. Slot 0 is the rest position; one slot is `step` px, or `'self'` = the element's own width.
+ * and stretches to STRETCH_MAX at mid-travel. Transform only, on the UI thread. Slot 0 is the rest position; one slot is `step` px.
  * Reduce Motion: it jumps, no stretch. A new `index` mid-travel starts from where the element is. Spread `style` on an Animated.View.
  */
-export function useSelectionTravel(index: number, step: number | 'self') {
+export function useSelectionTravel(index: number, step: number) {
   const reduce = useReducedMotion()
   const from = useSharedValue(index)
   const to = useSharedValue(index)
@@ -168,10 +168,7 @@ export function useSelectionTravel(index: number, step: number | 'self') {
   return useAnimatedStyle(() => {
     const x = from.get() + (to.get() - from.get()) * t.get()
     return {
-      transform: [
-        { translateX: step === 'self' ? (`${String(x * 100)}%` as const) : x * step },
-        { scaleX: stretchAt(t.get()) },
-      ],
+      transform: [{ translateX: x * step }, { scaleX: stretchAt(t.get()) }],
     }
   })
 }

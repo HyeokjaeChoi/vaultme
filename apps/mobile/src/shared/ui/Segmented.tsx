@@ -1,4 +1,5 @@
 // Figma: Segmented control 300:622
+import { useState } from 'react'
 import { Pressable, View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { useSelectionTravel, useTheme } from '../theme'
@@ -10,12 +11,17 @@ type Props<T extends string> = { options: readonly { value: T; label: string }[]
 export function Segmented<T extends string>({ options, value, onChange }: Props<T>) {
   const t = useTheme()
   const pad = t.primitive.space[1]
-  const half = t.primitive.space['0_5'] // half of `pad`: the pill slot carries half the gap on each side so one slot = one segment + one gap
   const index = Math.max(
     0,
     options.findIndex((o) => o.value === value),
   )
-  const travel = useSelectionTravel(index, 'self')
+  // Segment x and width come from layout (the segments share the row equally), so the pill matches them exactly. Before the first layout the selected segment paints the pill itself.
+  const [lay, setLay] = useState<{ x: number; w: number }[]>([])
+  const first = lay[0]
+  const second = lay[1]
+  const seg =
+    first && (options.length < 2 || second) ? { x: first.x, w: first.w, step: second ? second.x - first.x : 0 } : null
+  const travel = useSelectionTravel(index, seg?.step ?? 0)
   return (
     <View
       accessibilityRole="radiogroup"
@@ -27,32 +33,25 @@ export function Segmented<T extends string>({ options, value, onChange }: Props<
         backgroundColor: t.component.segmented.bg,
       }}
     >
-      {/* The pill sits behind the labels. Slot 0 holds it; `%` travel of that slot moves it one segment + one gap per step. */}
-      <View
-        style={{
-          pointerEvents: 'none',
-          position: 'absolute',
-          top: pad,
-          bottom: pad,
-          left: half,
-          right: half,
-          flexDirection: 'row',
-        }}
-      >
-        <Animated.View style={[{ flex: 1, paddingHorizontal: half }, travel]}>
-          <View
-            style={{
-              flex: 1,
+      {/* The pill sits behind the labels and travels to the selected segment. */}
+      {seg ? (
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              pointerEvents: 'none',
+              top: pad,
+              bottom: pad,
+              left: seg.x,
+              width: seg.w,
               borderRadius: t.component.segmented.radius,
               backgroundColor: t.component.segmented.selectedBg,
-            }}
-          />
-        </Animated.View>
-        {options.slice(1).map((o) => (
-          <View key={o.value} style={{ flex: 1 }} />
-        ))}
-      </View>
-      {options.map((o) => {
+            },
+            travel,
+          ]}
+        />
+      ) : null}
+      {options.map((o, i) => {
         const on = o.value === value
         return (
           <Pressable
@@ -60,6 +59,10 @@ export function Segmented<T extends string>({ options, value, onChange }: Props<
             accessibilityRole="radio"
             accessibilityState={{ checked: on }}
             onPress={() => onChange(o.value)}
+            onLayout={(e) => {
+              const { x, width } = e.nativeEvent.layout
+              setLay((l) => Object.assign([...l], { [i]: { x, w: width } }))
+            }}
             hitSlop={{ top: pad, bottom: pad }}
             style={({ pressed }) => ({
               flex: 1,
@@ -67,7 +70,12 @@ export function Segmented<T extends string>({ options, value, onChange }: Props<
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: t.component.segmented.radius,
-              backgroundColor: !on && pressed ? t.semantic.surface.pressed : 'transparent', // the pill shows through
+              backgroundColor:
+                !seg && on
+                  ? t.component.segmented.selectedBg
+                  : !on && pressed
+                    ? t.semantic.surface.pressed
+                    : 'transparent', // the pill shows through once measured
             })}
           >
             <Text variant="label" color={on ? t.component.segmented.selectedFg : t.component.segmented.fg}>
