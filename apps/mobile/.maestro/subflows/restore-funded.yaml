@@ -77,7 +77,11 @@ appId: dev.stackline.vaultme
             - hideKeyboard:
                 optional: true
 - tapOn: '복구'
-- assertVisible: '복구 완료'
+# Restore derives the BIP39 seed (PBKDF2), writes the Keychain and asks device auth: it can take longer than the 7 s assertVisible default
+# on the CI simulator (Maestro docs: extendedWaitUntil is for waits longer than 7 s).
+- extendedWaitUntil:
+    visible: '복구 완료'
+    timeout: 30000
 - assertVisible: '(?i).*${PREFIX}.*'
 - tapOn: '지갑 열기'
 - assertVisible: 'Sepolia ETH'
