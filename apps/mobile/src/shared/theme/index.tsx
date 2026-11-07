@@ -19,5 +19,7 @@ export {
   useRevealEntering,
   useSelectionTravel,
   useShake,
+  useStaggerReveal,
   useToastMotion,
 } from './motion'
+export { ExpandFromRow, measureRow, StaggerLine } from './RowExpand'

@@ -43,7 +43,7 @@ import { showAmount } from '@/shared/lib/amount'
 import { getAccountAddress } from '@/shared/storage'
 import { shortAddress, shortHash } from '@/shared/lib/address'
 import { dateParts } from '@/shared/lib/time'
-import { useTheme } from '@/shared/theme'
+import { ExpandFromRow, StaggerLine, useTheme } from '@/shared/theme'
 import {
   AmountHero,
   BottomSheet,
@@ -130,12 +130,15 @@ function FullAddress({ label, address, copy }: { label: string; address: string;
 }
 
 /** 자세히: chain ID and block, hidden until opened (Figma 934:9123 open, 934:9154 row). */
-function MoreRows({ blockNumber }: { blockNumber: number | undefined }) {
+function MoreRows({ blockNumber, index }: { blockNumber: number | undefined; index: number }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   return (
     <>
-      <DisclosureRow title={t('detail.more')} expanded={open} onToggle={() => setOpen((o) => !o)} />
+      {/* Only the closed row staggers; the opened rows stay direct children of the Block, so its gap holds. */}
+      <StaggerLine index={index}>
+        <DisclosureRow title={t('detail.more')} expanded={open} onToggle={() => setOpen((o) => !o)} />
+      </StaggerLine>
       {open ? (
         <>
           <DetailRow label={t('detail.chainId')} value={String(account.chainId)} />
@@ -214,6 +217,8 @@ function RowDetail({
   const { t } = useTranslation()
   const th = useTheme()
   const copy = rowCopy(row)
+  let line = 0 // detail lines count up as they render, so a hidden optional line leaves no gap in the stagger
+  const next = () => line++
   const explorer =
     explorerUrl(chain, row.hash) ?? (__DEV__ && real === '1' ? `https://sepolia.etherscan.io/tx/${row.hash}` : null)
   const [figure, unit] = showAmount(row.amount, row.asset, 'exact').split(' ')
@@ -232,13 +237,15 @@ function RowDetail({
           <StatusNotice tone="warning" heading title={t('detail.caution.title')} body={t('detail.caution.body')} />
         </View>
       ) : null}
-      <AmountHero
-        result={{ badge: example ? 'info' : copy.badge, title: example ? t('result.testTitle') : t(copy.title) }}
-        asset={row.asset === 'USDC' ? 'USDC' : 'ETH'}
-        amount={figure ?? row.amount}
-        unit={unit ?? row.asset}
-        lines={example ? t('result.testBody').split('\n') : copy.body ? t(copy.body).split('\n') : []}
-      />
+      <ExpandFromRow>
+        <AmountHero
+          result={{ badge: example ? 'info' : copy.badge, title: example ? t('result.testTitle') : t(copy.title) }}
+          asset={row.asset === 'USDC' ? 'USDC' : 'ETH'}
+          amount={figure ?? row.amount}
+          unit={unit ?? row.asset}
+          lines={example ? t('result.testBody').split('\n') : copy.body ? t(copy.body).split('\n') : []}
+        />
+      </ExpandFromRow>
       <SectionBand />
       {row.counterparty ? (
         <>
@@ -261,30 +268,40 @@ function RowDetail({
         </>
       ) : null}
       <Block title={t('detail.infoTitle')}>
-        <DetailRow label={t('detail.time')} value={whenText(t, row.at)} />
-        <DetailRow
-          emphasis
-          label={t('result.statusLabel')}
-          value={example ? t('detail.state.test') : t(copy.statusWord)}
-        />
-        {/^0x[0-9a-fA-F]{64}$/.test(row.hash) ? (
+        <StaggerLine index={next()}>
+          <DetailRow label={t('detail.time')} value={whenText(t, row.at)} />
+        </StaggerLine>
+        <StaggerLine index={next()}>
           <DetailRow
-            mono
-            label={t('detail.hashTitle')}
-            value={shortHash(row.hash)}
-            copy={copyOf(t, t('detail.hashTitle'), row.hash)}
+            emphasis
+            label={t('result.statusLabel')}
+            value={example ? t('detail.state.test') : t(copy.statusWord)}
           />
+        </StaggerLine>
+        {/^0x[0-9a-fA-F]{64}$/.test(row.hash) ? (
+          <StaggerLine index={next()}>
+            <DetailRow
+              mono
+              label={t('detail.hashTitle')}
+              value={shortHash(row.hash)}
+              copy={copyOf(t, t('detail.hashTitle'), row.hash)}
+            />
+          </StaggerLine>
         ) : null}
         {address ? (
-          <DetailRow
-            mono
-            label={t(copy.accountLabel)}
-            value={shortAddress(address)}
-            copy={copyOf(t, t(copy.accountLabel), address)}
-          />
+          <StaggerLine index={next()}>
+            <DetailRow
+              mono
+              label={t(copy.accountLabel)}
+              value={shortAddress(address)}
+              copy={copyOf(t, t(copy.accountLabel), address)}
+            />
+          </StaggerLine>
         ) : null}
-        <DetailRow label={t('result.network')} value={account.network} />
-        <MoreRows blockNumber={row.blockNumber} />
+        <StaggerLine index={next()}>
+          <DetailRow label={t('result.network')} value={account.network} />
+        </StaggerLine>
+        <MoreRows blockNumber={row.blockNumber} index={next()} />
       </Block>
       {internal ? (
         <InternalTransfers
@@ -450,6 +467,8 @@ export function TxDetailPage() {
         : t(txView(tx.state).label)
   const lastChecked = `${t('detail.lastChecked', { time: hhmm(tx.lastCheckedAt) })}.${isPolled(tx.state) ? ` ${t('detail.auto')}` : ''}`
   const showFee = !test && tx.state !== 'Replaced'
+  let line = 0 // see RowDetail
+  const next = () => line++
   return (
     <Screen
       bleed
@@ -476,14 +495,16 @@ export function TxDetailPage() {
           />
         </View>
       ) : null}
-      <AmountHero
-        result={{ badge: test ? 'info' : copy.tone, title: test ? t('result.testTitle') : t(copy.title) }}
-        asset={tx.asset === 'USDC' ? 'USDC' : 'ETH'}
-        amount={figure ?? tx.amount}
-        unit={unit ?? tx.asset}
-        struck={cancelled}
-        lines={(test ? t('result.testBody') : t(copy.body)).split('\n')}
-      />
+      <ExpandFromRow>
+        <AmountHero
+          result={{ badge: test ? 'info' : copy.tone, title: test ? t('result.testTitle') : t(copy.title) }}
+          asset={tx.asset === 'USDC' ? 'USDC' : 'ETH'}
+          amount={figure ?? tx.amount}
+          unit={unit ?? tx.asset}
+          struck={cancelled}
+          lines={(test ? t('result.testBody') : t(copy.body)).split('\n')}
+        />
+      </ExpandFromRow>
       {!test ? <PendingActions tx={tx} onDone={reload} /> : null}
       <SectionBand />
       <Block>
@@ -495,25 +516,37 @@ export function TxDetailPage() {
       </Block>
       <SectionBand />
       <Block title={t('detail.infoTitle')}>
-        <DetailRow label={t('detail.time')} value={whenText(t, tx.createdAt)} />
-        <DetailRow emphasis label={t('result.statusLabel')} value={stateWord} />
-        <DetailRow
-          mono
-          label={t('detail.hashTitle')}
-          value={shortHash(explorerHash(tx))}
-          copy={copyOf(t, t('detail.hashTitle'), explorerHash(tx))}
-        />
-        {tx.accountIndex !== undefined ? (
-          <DetailRow label={t('detail.sender')} value={t('detail.accountName', { n: tx.accountIndex + 1 })} />
-        ) : null}
-        <DetailRow label={t('result.network')} value={account.network} />
-        {showFee ? (
+        <StaggerLine index={next()}>
+          <DetailRow label={t('detail.time')} value={whenText(t, tx.createdAt)} />
+        </StaggerLine>
+        <StaggerLine index={next()}>
+          <DetailRow emphasis label={t('result.statusLabel')} value={stateWord} />
+        </StaggerLine>
+        <StaggerLine index={next()}>
           <DetailRow
-            label={t(tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal')}
-            value={tx.fee ? `${tx.fee} ETH` : '—'}
+            mono
+            label={t('detail.hashTitle')}
+            value={shortHash(explorerHash(tx))}
+            copy={copyOf(t, t('detail.hashTitle'), explorerHash(tx))}
           />
+        </StaggerLine>
+        {tx.accountIndex !== undefined ? (
+          <StaggerLine index={next()}>
+            <DetailRow label={t('detail.sender')} value={t('detail.accountName', { n: tx.accountIndex + 1 })} />
+          </StaggerLine>
         ) : null}
-        <MoreRows blockNumber={test ? undefined : tx.blockNumber} />
+        <StaggerLine index={next()}>
+          <DetailRow label={t('result.network')} value={account.network} />
+        </StaggerLine>
+        {showFee ? (
+          <StaggerLine index={next()}>
+            <DetailRow
+              label={t(tx.state === 'Pending' || tx.state === 'Unknown' ? 'result.fee' : 'result.feeFinal')}
+              value={tx.fee ? `${tx.fee} ETH` : '—'}
+            />
+          </StaggerLine>
+        ) : null}
+        <MoreRows blockNumber={test ? undefined : tx.blockNumber} index={next()} />
         {final || test ? null : <StatusNotice tone="info" title={lastChecked} />}
       </Block>
       {internal ? (

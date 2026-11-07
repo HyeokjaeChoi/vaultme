@@ -13,7 +13,7 @@ import { setPreselectedAsset, useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
 import { goBack } from '@/shared/lib/nav'
 import { useCopy } from '@/shared/lib/useCopy'
-import { useTheme } from '@/shared/theme'
+import { StaggerLine, useTheme } from '@/shared/theme'
 import {
   ActionRow,
   AmountHero,
@@ -82,26 +82,34 @@ export function AssetDetailPage() {
       </View>
       <SectionBand />
       <Block title={t('asset.info')}>
-        <SummaryRow label={t('asset.network')} fact value={networkFact} />
-        {usdc ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.semantic.layout.groupGap }}>
-            <View style={{ flex: 1 }}>
-              <SummaryRow label={t('asset.contract')} value={USDC_SEPOLIA} format="address" plain />
+        <StaggerLine index={0}>
+          <SummaryRow label={t('asset.network')} fact value={networkFact} />
+        </StaggerLine>
+        <StaggerLine index={1}>
+          {usdc ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.semantic.layout.groupGap }}>
+              <View style={{ flex: 1 }}>
+                <SummaryRow label={t('asset.contract')} value={USDC_SEPOLIA} format="address" plain />
+              </View>
+              <Button
+                size="sm"
+                variant="secondary"
+                icon="copy"
+                label={copied ? t('asset.copied') : t('asset.copy')}
+                {...(copied ? { copied } : {})}
+                onPress={() => void copy(USDC_SEPOLIA)}
+              />
             </View>
-            <Button
-              size="sm"
-              variant="secondary"
-              icon="copy"
-              label={copied ? t('asset.copied') : t('asset.copy')}
-              {...(copied ? { copied } : {})}
-              onPress={() => void copy(USDC_SEPOLIA)}
-            />
-          </View>
-        ) : (
-          <SummaryRow label={t('asset.contractNative')} value={t('asset.noContract')} />
-        )}
-        <SummaryRow label={t('asset.decimals')} fact value={String(asset.decimals)} />
-        <StatusNotice tone="info" title={t(usdc ? 'asset.feeUsdc' : 'asset.feeEth')} />
+          ) : (
+            <SummaryRow label={t('asset.contractNative')} value={t('asset.noContract')} />
+          )}
+        </StaggerLine>
+        <StaggerLine index={2}>
+          <SummaryRow label={t('asset.decimals')} fact value={String(asset.decimals)} />
+        </StaggerLine>
+        <StaggerLine index={3}>
+          <StatusNotice tone="info" title={t(usdc ? 'asset.feeUsdc' : 'asset.feeEth')} />
+        </StaggerLine>
       </Block>
       {items.length > 0 ? (
         <>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   cancelAnimation,
   cubicBezier,
@@ -14,6 +14,7 @@ import {
   withTiming,
 } from 'react-native-reanimated'
 import { light } from '@vaultme/tokens'
+import { revealWindow, SETTLE_MS, staggerDelay, staggers } from '../lib/stagger'
 import { planTravel, scaleAt } from './selection-travel'
 
 // DESIGN motion (emil-design-eng): strong ease-out for UI. Press = motion.duration.fastMs, fades = baseMs. Bloom, pop, spin, shake and the sheet open (250) have no token, so they keep their own ms.
@@ -128,6 +129,49 @@ export function useRevealEntering(loading: boolean, ms: number) {
   const [sawLoading, setSawLoading] = useState(loading)
   if (loading && !sawLoading) setSawLoading(true)
   return reduce || !sawLoading ? {} : { entering: FadeIn.duration(ms).easing(EASE_OUT) }
+}
+
+const ROW_MS = light.primitive.motion.duration.baseMs // same in dark
+const RISE = light.primitive.space[2] // 8, same in dark
+
+/** Opacity 0 -> 1 and a rise of 8 px (nothing else: no scale, no blur) after `delay` ms, over `ms`. Reduce Motion callers do not use it. */
+const build = (delay: number, ms: number) =>
+  new Keyframe({
+    0: { opacity: 0, transform: [{ translateY: RISE }] },
+    100: { opacity: 1, transform: [{ translateY: 0 }], easing: EASE_OUT },
+  })
+    .delay(delay)
+    .duration(ms)
+const rises = new Map<number, ReturnType<typeof build>>() // one per delay (at most 5 + the detail lines): `entering` is read at mount only, so rows can share it
+const riseIn = (delay: number, ms: number) => {
+  const key = delay * 1000 + ms
+  const made = rises.get(key) ?? build(delay, ms)
+  rises.set(key, made)
+  return made
+}
+
+/**
+ * First-reveal list stagger (DESIGN.md Motion): returns `enter(index)`, the props to spread on the Animated.View around row `index` (`{ entering }` or `{}`).
+ * Only when this screen showed `loading` first and the rows mount inside the reveal window (until the last delay plus the row time after loading ends). Refresh, rows loaded by scrolling and value updates mount later, so they show at once.
+ * Reduce Motion: `{}`. Delay 30 ms per row, the first 5 only (`staggerDelay`).
+ */
+export function useStaggerReveal(loading: boolean) {
+  const reduce = useReducedMotion()
+  const [sawLoading] = useState(loading) // read at mount only: a later reload (retry, refetch) is not a first reveal
+  const [closed, setClosed] = useState(false) // the reveal window has passed; it never opens again
+  useEffect(() => {
+    if (loading) return
+    const id = setTimeout(() => setClosed(true), revealWindow(ROW_MS))
+    return () => clearTimeout(id)
+  }, [loading])
+  const on = staggers({ sawLoading, open: !closed, reduce })
+  return useCallback((index: number) => (on ? { entering: riseIn(staggerDelay(index), ROW_MS) } : {}), [on])
+}
+
+/** Detail-line stagger (DESIGN.md Motion): `entering` for line `index` (0-based) of a read-only detail screen, only while the screen opens; lines after the fifth share its delay. Reduce Motion: none. Read at mount only. */
+export function useLineEntering(index: number) {
+  const reduce = useReducedMotion()
+  return useMemo(() => (reduce ? undefined : riseIn(staggerDelay(index, SETTLE_MS), ROW_MS)), [reduce, index])
 }
 
 /**

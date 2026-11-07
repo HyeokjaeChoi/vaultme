@@ -14,7 +14,7 @@ import { PushOptInSheet } from '@/features/push'
 import { useRestored } from '@/features/restore'
 import { setPreselectedAsset, useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
-import { useTheme } from '@/shared/theme'
+import { useStaggerReveal, useTheme } from '@/shared/theme'
 import {
   ActionRow,
   AssetRow,
@@ -55,6 +55,8 @@ export function HomePage() {
   const onTxSettled = useCallback(() => void refreshHistory(), [refreshHistory]) // the new state replaces its "보내는 중" row (#269)
   const pending = useTrackedTx(onTxSettled)
   const { balances: live, refresh: refreshBalances } = useLiveBalancesState()
+  // First reveal from loading (DESIGN.md Motion, #464): the recent rows rise in 30 ms apart, 5 at most. The asset rows are always mounted and their values update at once, so they do not stagger. The fake adapter has no loading, so nothing staggers there.
+  const enter = useStaggerReveal(chain.broadcasts && view === null)
   const devSheet = (): SheetName =>
     sheetParam === 'intro'
       ? 'intro'
@@ -174,7 +176,7 @@ export function HomePage() {
                 link={t('home.viewAll')}
                 onLinkPress={() => router.push('/activity')}
               />
-              <RecentRows items={items} />
+              <RecentRows items={items} enter={enter} />
             </>
           ) : null}
         </>

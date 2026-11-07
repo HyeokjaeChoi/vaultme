@@ -418,6 +418,7 @@ Motion:
 - In the app, a read-only detail screen (transaction, asset) may stagger its detail lines by 30 ms as its container settles, only when the screen opens: the first 5 lines, opacity and rise only. The top amount and status show with the container.
 - On the web, a read-only screen with several sections (`/address`) may stagger its sections by 30 ms, top to bottom, only when the screen opens: at most 5 sections, opacity and rise only. A list inside a section does not stagger its rows: they come with their section. A list that replaces its skeleton fades in as one block.
 - On the web, the transaction page (`/tx`) shows all its content at once with one fade (opacity only, no rise, no stagger): a person reads it to check values, so no value waits for another. When a history row opens it, the row's status badge and amount may travel into the detail as one object (shared element); everything else fades in together.
+- In the app, a pressed list row may expand into the top card of its read-only detail screen (the same object, owner 2026-11-07): the card opens from the row's frame over the enter token (240 ms), clipped, never scaled, and the card fades in as it opens. Without a pressed row (deep link, push) or with reduced motion, the card shows as it is.
 - Warnings, the review screen and the result screen never stagger. Amounts, addresses and warnings never use blur or bounce.
 - With reduced motion on, show the final state and remove transforms.
 

@@ -1,6 +1,7 @@
 // Figma: Activity row 36:48 (Date list 342:833); Redesign B: B/Row 418:12824 Leading=Asset badge (Title, Subtitle, Value) with B/Row badge 495:358; State=Caution 877:631 (Caution line, Kind=Warning 877:483)
-import { Pressable, View } from 'react-native'
-import { useTheme } from '../theme'
+import { useRef } from 'react'
+import { Pressable, View, type HostInstance } from 'react-native'
+import { measureRow, useTheme } from '../theme'
 import { AssetIcon } from './AssetIcon'
 import { activityRowLook } from './activityRowLook'
 import { RowBadge } from './RowBadge'
@@ -18,7 +19,7 @@ type Props = {
   statusLabel: string
   /** State=Caution (Q71): the caution line under the subtitle, with a warning badge. Set for an incoming zero-value transfer. */
   caution?: string
-  /** Makes the row a button (opens the detail). */ onPress?: () => void
+  /** Makes the row a button (opens the detail). The row's frame is measured first, so the detail card can open from it (`ExpandFromRow`). */ onPress?: () => void
 }
 
 const SIGN = /^[+\-−]/
@@ -41,6 +42,7 @@ export function ActivityRow({
   onPress,
 }: Props) {
   const t = useTheme()
+  const pressable = useRef<HostInstance>(null)
   const c = t.component.activityRow
   const look = activityRowLook({ status, kind, caution: !!caution })
   const struck = look.struck
@@ -104,10 +106,11 @@ export function ActivityRow({
   )
   return onPress ? (
     <Pressable
+      ref={pressable}
       accessible
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={onPress}
+      onPress={() => measureRow(pressable.current, onPress)}
       style={({ pressed }) => ({ backgroundColor: pressed ? t.semantic.surface.pressed : undefined })}
     >
       {row}
