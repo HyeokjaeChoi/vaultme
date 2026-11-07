@@ -139,6 +139,12 @@ export function stretchAt(p: number): number {
   return interpolate(p, [0, 0.5, 1], [1, STRETCH_MAX, 1])
 }
 
+/** scaleX at progress `t` when the travel started with scale `s0` (an interrupted travel): `s0` eases back to the normal curve, never above STRETCH_MAX. Worklet. */
+export function scaleAt(t: number, s0: number): number {
+  'worklet'
+  return Math.min(STRETCH_MAX, stretchAt(t) + (s0 - 1) * (1 - t))
+}
+
 /** Where a travel starts and whether it animates when the target slot is `index`. `at` is the current position (from + (to - from) * t). Pure, so it is unit tested. */
 export function planTravel(reduce: boolean, at: number, target: number, index: number) {
   if (reduce) return { from: index, animate: false }
@@ -149,26 +155,31 @@ export function planTravel(reduce: boolean, at: number, target: number, index: n
 /**
  * Selection travel (Figma Switch 300:611, Segmented 300:622 motion notes): the knob or pill moves to slot `index` over motion.duration.fastMs ease-out
  * and stretches to STRETCH_MAX at mid-travel. Transform only, on the UI thread. Slot 0 is the rest position; one slot is `step` px.
- * Reduce Motion: it jumps, no stretch. A new `index` mid-travel starts from where the element is. Spread `style` on an Animated.View.
+ * Reduce Motion: it jumps, no stretch. A new `index` mid-travel starts from where the element is, at its current width (no pop). Spread `style` on an Animated.View.
  */
 export function useSelectionTravel(index: number, step: number) {
   const reduce = useReducedMotion()
   const from = useSharedValue(index)
   const to = useSharedValue(index)
   const t = useSharedValue(1)
+  const s0 = useSharedValue(1) // scale at the start of the current travel
   useEffect(() => {
     const plan = planTravel(reduce, from.get() + (to.get() - from.get()) * t.get(), to.get(), index)
     from.set(plan.from)
     to.set(index)
     if (plan.animate) {
+      s0.set(scaleAt(t.get(), s0.get()))
       t.set(0)
       t.set(withTiming(1, { duration: PRESS_MS, easing: EASE_OUT }))
-    } else t.set(1)
-  }, [from, to, t, index, reduce])
+    } else {
+      s0.set(1)
+      t.set(1)
+    }
+  }, [from, to, t, s0, index, reduce])
   return useAnimatedStyle(() => {
     const x = from.get() + (to.get() - from.get()) * t.get()
     return {
-      transform: [{ translateX: x * step }, { scaleX: stretchAt(t.get()) }],
+      transform: [{ translateX: x * step }, { scaleX: scaleAt(t.get(), s0.get()) }],
     }
   })
 }

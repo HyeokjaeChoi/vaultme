@@ -13,7 +13,7 @@ vi.mock('react-native-reanimated', () => ({
 }))
 vi.mock('@vaultme/tokens', () => ({ light: { primitive: { motion: { duration: { fastMs: 120 } } } } }))
 
-const { STRETCH_MAX, planTravel, stretchAt } = await import('../src/shared/theme/motion')
+const { STRETCH_MAX, planTravel, scaleAt, stretchAt } = await import('../src/shared/theme/motion')
 
 describe('selection travel stretch (DESIGN.md Motion)', () => {
   it('stays at rest scale at both ends of the travel', () => {
@@ -24,6 +24,19 @@ describe('selection travel stretch (DESIGN.md Motion)', () => {
     expect(STRETCH_MAX).toBeLessThanOrEqual(1.12)
     expect(stretchAt(0.5)).toBe(STRETCH_MAX)
     for (let p = 0; p <= 1; p += 0.05) expect(stretchAt(p)).toBeLessThanOrEqual(1.12)
+  })
+})
+
+describe('scaleAt (interrupted travel)', () => {
+  it('equals the normal curve when the travel started at rest', () => {
+    expect(scaleAt(0.5, 1)).toBe(STRETCH_MAX)
+  })
+  it('starts at the width where the last travel was interrupted, with no pop', () => {
+    expect(scaleAt(0, 1.1)).toBeCloseTo(1.1)
+  })
+  it('never exceeds 12% and ends at rest', () => {
+    for (let t = 0; t <= 1; t += 0.05) expect(scaleAt(t, 1.12)).toBeLessThanOrEqual(1.12)
+    expect(scaleAt(1, 1.12)).toBe(1)
   })
 })
 
