@@ -70,6 +70,7 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
   })
   const rows = ok?.items.slice(0, limit) ?? []
   // Rows that a 더 보기 click revealed fade in together (no stagger, amounts do not move); never rows that were there before.
+  // The rows never stagger by themselves: the whole section rises with the other sections when the page opens (`rise-3`, #466).
   const fresh = new Set(freshFrom.current === null ? [] : rows.slice(freshFrom.current).map((r) => r.id))
   const hasMore = ok !== null && (limit < ok.items.length || ok.nextCursor !== null)
 
@@ -89,7 +90,7 @@ export function HistorySection({ t, locale, address, history, actions }: Props) 
       tabIndex={-1}
       aria-labelledby="history-title"
       aria-busy={history.status === 'loading'}
-      className="web-desktop:col-span-2 flex flex-col"
+      className="web-desktop:col-span-2 rise-in rise-3 flex flex-col"
     >
       <div className="px-row-b-padding-x flex items-center gap-2 pt-4 pb-2">
         <h2 id="history-title" className="text-product-b-title2 text-text-primary min-w-px flex-1">

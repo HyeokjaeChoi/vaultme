@@ -155,6 +155,7 @@ test.describe('viewer history', () => {
         await page.goto(`/address#${A}`)
         await page.reload()
         await expect(page.getByText(ready).first()).toBeVisible()
+        await settled(page) // the sections rise when the viewer opens (rise-in): a translated box reads a float off
         const small = await page.evaluate(() =>
           [...document.querySelectorAll<HTMLElement>('a, button')]
             .filter((el) => !el.matches('a[href="#main"]') && el.getClientRects().length > 0)
