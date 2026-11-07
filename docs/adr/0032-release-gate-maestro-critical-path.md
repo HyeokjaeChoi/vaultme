@@ -1,6 +1,7 @@
 # 0032. A release is a `v*` tag, gated by the Maestro critical path
 
 Status: Accepted (2026-11-03 from issue #378, owner decisions of 2026-11-03)
+Superseded in part by: [0039](0039-e2e-runs-on-the-release-pr-only.md) (PRs no longer run the smoke gate; only the release PR runs E2E)
 Supersedes/Aliases: ADR-0025 in part (the release tag and the E2E release gate no longer wait for production), Q54 in part (the release hard gate), Q55 in part (release tag)
 
 ## Context

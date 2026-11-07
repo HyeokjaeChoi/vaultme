@@ -1,6 +1,6 @@
 # Mobile E2E with Maestro
 
-Owner decision C (2026-11-01, issue #316, Q54): Maestro drives the real Release app on an iOS simulator. The PR smoke and the manual full run never broadcast a transaction; only the `funded` flows of a release tag do (#381).
+Owner decision C (2026-11-01, issue #316, Q54): Maestro drives the real Release app on an iOS simulator. The release-PR run and the manual full run never broadcast a transaction; only the `funded` flows of a release tag do (#381).
 
 ## Flows
 
@@ -47,8 +47,8 @@ Every flow starts with `clearState` and `clearKeychain`, so it needs a clean app
 
 Workflow: `.github/workflows/e2e.yml`. Required check: job `e2e` (add it to the branch ruleset).
 
-- A PR that changes `apps/mobile/**`, `packages/{wallet-core,history,i18n,tokens,contracts,api-client}/**`, `pnpm-lock.yaml` or the workflow runs the smoke flows. A failure blocks the merge.
-- Other PRs: the job `changes` finds no such file and the job `e2e` is skipped. A skipped job counts as passed for a required check, so these PRs merge without a macOS run. A workflow-level `paths:` filter would not work: the check would never report and the PR would wait forever.
+- Only a PR with the label `release` (the PR that starts a release) runs the flows tagged `critical` (ADR-0039). A failure blocks the merge. Adding the label starts the run.
+- Other PRs: the job `changes` finds no label and the job `e2e` is skipped. A skipped job counts as passed for a required check, so these PRs merge without a macOS run. A workflow-level `paths:` filter would not work: the check would never report and the PR would wait forever.
 - Retry: `run.sh` runs each failed flow once more (owner decision 2026-11-03, #376). A flow that fails twice fails the job. A pass on the retry shows a `flaky` warning in the job log, and the retry report is `e2e-report-retry.xml` in the `e2e-report` artifact.
 - `workflow_dispatch`: all flows. There is no nightly run (owner decision 2026-11-03, #381).
 - Release gate (ADR-0032, #378, #381): a `v*` tag runs the critical path (flows tagged `critical`) and the funded flows; only a pass builds the app with EAS. The release run broadcasts real Sepolia sends; its phrase (`E2E_RELEASE_PHRASE`, GitHub Environment `release`) and those flows' artifacts never reach a log or an upload. There is no separate test path: the first real tag run is the first check of the funded flows (a dry run cannot read the Environment, which admits only `v*` tags). A failure is fixed, merged and re-tagged.
