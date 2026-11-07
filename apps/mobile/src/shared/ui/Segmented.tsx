@@ -11,7 +11,10 @@ export function Segmented<T extends string>({ options, value, onChange }: Props<
   const t = useTheme()
   const pad = t.primitive.space[1]
   const half = t.primitive.space['0_5'] // half of `pad`: the pill slot carries half the gap on each side so one slot = one segment + one gap
-  const index = options.findIndex((o) => o.value === value)
+  const index = Math.max(
+    0,
+    options.findIndex((o) => o.value === value),
+  )
   const travel = useSelectionTravel(index, 'self')
   return (
     <View

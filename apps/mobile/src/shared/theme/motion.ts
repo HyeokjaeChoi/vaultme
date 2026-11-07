@@ -139,6 +139,13 @@ export function stretchAt(p: number): number {
   return interpolate(p, [0, 0.5, 1], [1, STRETCH_MAX, 1])
 }
 
+/** Where a travel starts and whether it animates when the target slot is `index`. `at` is the current position (from + (to - from) * t). Pure, so it is unit tested. */
+export function planTravel(reduce: boolean, at: number, target: number, index: number) {
+  if (reduce) return { from: index, animate: false }
+  if (target === index) return { from: index, animate: false } // mount or a re-render with the same slot: no travel, no stretch
+  return { from: at, animate: true }
+}
+
 /**
  * Selection travel (Figma Switch 300:611, Segmented 300:622 motion notes): the knob or pill moves to slot `index` over motion.duration.fastMs ease-out
  * and stretches to STRETCH_MAX at mid-travel. Transform only, on the UI thread. Slot 0 is the rest position; one slot is `step` px, or `'self'` = the element's own width.
@@ -150,16 +157,13 @@ export function useSelectionTravel(index: number, step: number | 'self') {
   const to = useSharedValue(index)
   const t = useSharedValue(1)
   useEffect(() => {
-    if (reduce) {
-      from.set(index)
-      to.set(index)
-      t.set(1)
-      return
-    }
-    from.set(from.get() + (to.get() - from.get()) * t.get())
+    const plan = planTravel(reduce, from.get() + (to.get() - from.get()) * t.get(), to.get(), index)
+    from.set(plan.from)
     to.set(index)
-    t.set(0)
-    t.set(withTiming(1, { duration: PRESS_MS, easing: EASE_OUT }))
+    if (plan.animate) {
+      t.set(0)
+      t.set(withTiming(1, { duration: PRESS_MS, easing: EASE_OUT }))
+    } else t.set(1)
   }, [from, to, t, index, reduce])
   return useAnimatedStyle(() => {
     const x = from.get() + (to.get() - from.get()) * t.get()
