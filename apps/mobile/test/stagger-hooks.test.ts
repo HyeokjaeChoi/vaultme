@@ -15,7 +15,13 @@ import { revealWindow, SETTLE_MS } from '@/shared/lib/stagger'
 // DESIGN.md Motion: 30 ms stagger, first 5 only, first reveal from loading only, final state under Reduce Motion.
 const ROW_MS = light.primitive.motion.duration.baseMs
 const WINDOW = revealWindow(ROW_MS)
-type Entering = { entering?: { delayMs: number; durationMs: number } }
+type Entering = { entering?: { delayMs: number; durationMs: number; frames: unknown } }
+// DESIGN.md Motion: opacity and a rise only (no scale, no blur).
+const RISE = light.primitive.space[2]
+const riseFrames = {
+  0: { opacity: 0, transform: [{ translateY: RISE }] },
+  100: { opacity: 1, transform: [{ translateY: 0 }], easing: 'bezier' },
+}
 const delayOf = (p: object) => (p as Entering).entering?.delayMs
 
 beforeEach(() => {
@@ -32,6 +38,7 @@ describe('useStaggerReveal', () => {
     h.rerender(false)
     expect([0, 1, 2, 3, 4].map((i) => delayOf(h.result.current(i)))).toEqual([0, 30, 60, 90, 120])
     expect((h.result.current(0) as Entering).entering?.durationMs).toBe(ROW_MS)
+    expect((h.result.current(0) as Entering).entering?.frames).toEqual(riseFrames)
   })
 
   it('rows after the fifth share the fifth delay', () => {
@@ -95,6 +102,11 @@ describe('useLineEntering', () => {
 
   it('starts after the container settles and steps 30 ms', () => {
     expect([0, 1, 4].map((i) => line(i)?.delayMs)).toEqual([SETTLE_MS, SETTLE_MS + 30, SETTLE_MS + 120])
+  })
+
+  it('rises with opacity and translateY only', () => {
+    expect(line(0)?.frames).toEqual(riseFrames)
+    expect(line(0)?.durationMs).toBe(ROW_MS)
   })
 
   it('lines after the fifth share the fifth delay', () => {
