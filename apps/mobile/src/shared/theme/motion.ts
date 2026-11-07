@@ -15,6 +15,7 @@ import {
 } from 'react-native-reanimated'
 import { light } from '@vaultme/tokens'
 import { revealWindow, SETTLE_MS, staggerDelay, staggers } from '../lib/stagger'
+import { planTravel, scaleAt } from './selection-travel'
 
 // DESIGN motion (emil-design-eng): strong ease-out for UI. Press = motion.duration.fastMs, fades = baseMs. Bloom, pop, spin, shake and the sheet open (250) have no token, so they keep their own ms.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
@@ -171,4 +172,36 @@ export function useStaggerReveal(loading: boolean) {
 export function useLineEntering(index: number) {
   const reduce = useReducedMotion()
   return useMemo(() => (reduce ? undefined : riseIn(staggerDelay(index, SETTLE_MS), ROW_MS)), [reduce, index])
+}
+
+/**
+ * Selection travel (Figma Switch 300:611, Segmented 300:622 motion notes): the knob or pill moves to slot `index` over motion.duration.fastMs ease-out
+ * and stretches to STRETCH_MAX at mid-travel. Transform only, on the UI thread. Slot 0 is the rest position; one slot is `step` px.
+ * Reduce Motion: it jumps, no stretch. A new `index` mid-travel starts from where the element is, at its current width (no pop). Spread `style` on an Animated.View.
+ */
+export function useSelectionTravel(index: number, step: number) {
+  const reduce = useReducedMotion()
+  const from = useSharedValue(index)
+  const to = useSharedValue(index)
+  const t = useSharedValue(1)
+  const s0 = useSharedValue(1) // scale at the start of the current travel
+  useEffect(() => {
+    const plan = planTravel(reduce, from.get() + (to.get() - from.get()) * t.get(), to.get(), index)
+    from.set(plan.from)
+    to.set(index)
+    if (plan.animate) {
+      s0.set(scaleAt(t.get(), s0.get()))
+      t.set(0)
+      t.set(withTiming(1, { duration: PRESS_MS, easing: EASE_OUT }))
+    } else {
+      s0.set(1)
+      t.set(1)
+    }
+  }, [from, to, t, s0, index, reduce])
+  return useAnimatedStyle(() => {
+    const x = from.get() + (to.get() - from.get()) * t.get()
+    return {
+      transform: [{ translateX: x * step }, { scaleX: scaleAt(t.get(), s0.get()) }],
+    }
+  })
 }

@@ -11,6 +11,7 @@ import { ButtonLink, buttonClass } from '../shared/ui/ButtonLink'
 import { EmptyState } from '../shared/ui/EmptyState'
 import { TxIcon } from '../shared/ui/TxIcon'
 import { TxDetail, TxSkeleton } from '../shared/ui/TxDetail'
+import { txShareName } from '../shared/ui/TxShared'
 
 // Figma: Tx detail · 375 / 768 / 1280 · Light + Dark (page "Web", section 768:4422; loading, load failed, not found, invalid hash)
 // One prerendered page per locale (ADR-0012): the hash is in the URL fragment (/tx#0x...), so it never reaches the web host, its
@@ -129,6 +130,9 @@ function Detail({
   row?: 'ETH' | 'USDC' | undefined
 }) {
   const [tx, retry] = useTransaction(hash, row)
+  // The row that opened this page (router state) is the other half of the shared element; a direct link has no row, so nothing to pair.
+  const share =
+    hash && row ? { status: txShareName(hash, row, 'status'), amount: txShareName(hash, row, 'amount') } : null
   // Read beside the transaction, not after it: the detail shows when the RPC reads are done; the section has its own loading and error.
   const [internal, retryInternal] = useInternalTransfers(hash)
   // "3분 전" stays true while the tab is open: `now` is renewed each minute.
@@ -169,11 +173,12 @@ function Detail({
       aria-busy={tx.status === 'loading'}
       className="flex flex-col gap-6"
     >
-      {tx.status === 'loading' && <TxSkeleton t={x} />}
+      {tx.status === 'loading' && <TxSkeleton t={x} share={share} />}
       {tx.status === 'ok' && (
         <div className="fade-in flex flex-col gap-6">
           <TxDetail
             tx={tx.tx}
+            share={share}
             now={now}
             t={x}
             locale={locale}

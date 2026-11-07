@@ -17,6 +17,7 @@ export {
   EASE_OUT,
   EASE_OUT_CSS,
   useRevealEntering,
+  useSelectionTravel,
   useShake,
   useStaggerReveal,
   useToastMotion,

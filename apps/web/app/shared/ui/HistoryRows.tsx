@@ -7,6 +7,7 @@ import { txPath } from '../lib/locale'
 import { AssetIcon } from './AssetIcon'
 import { pressTransition } from './ButtonLink'
 import { RowBadge } from './RowBadge'
+import { rowShareNames, Shared } from './TxShared'
 
 type Props = {
   items: HistoryItem[]
@@ -28,11 +29,17 @@ const txLink = (i: HistoryItem, locale: WebLocale, address: string | null) => ({
 const short = (a: string) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '—')
 const failed = (i: HistoryItem) => i.status === 'failed'
 const assetKey = (i: HistoryItem) => (i.asset === 'USDC' ? 'USDC' : 'ETH')
+/** The shared-element name of a row part (see TxShared); a hash and asset that repeats in the list gets none. */
+const namer = (items: HistoryItem[]) => {
+  const name = rowShareNames(items.map((i) => ({ hash: i.hash, asset: assetKey(i) })))
+  return (i: HistoryItem, part: 'status' | 'amount') => name(i.hash, assetKey(i), part)
+}
 
 /** 768 px and wider: one real table. Columns as Figma (status 140, direction 80, counterparty rest, amount 140, time 88). */
 export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
   const th = 'text-product-b-caption text-text-tertiary px-1-5 py-2 font-normal'
   const navigate = useNavigate()
+  const nameOf = namer(items)
   return (
     <table className="tablet:table hidden w-full table-fixed border-collapse">
       <caption className="sr-only">{t.history.title}</caption>
@@ -75,7 +82,9 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
                 aria-label={`${failed(i) ? t.history.status.failed : t.history.status.confirmed} · ${i.kind === 'send' ? t.history.direction.send : t.history.direction.receive} ${failed(i) ? `${i.amount} ${i.asset}` : signed(i)}`}
                 className="min-h-touch-min flex items-center gap-2 after:absolute after:inset-0"
               >
-                <RowBadge kind={failed(i) ? 'failed' : 'confirmed'} />
+                <Shared name={nameOf(i, 'status')}>
+                  <RowBadge kind={failed(i) ? 'failed' : 'confirmed'} />
+                </Shared>
                 <span className="text-product-b-label text-text-primary">
                   {failed(i) ? t.history.status.failed : t.history.status.confirmed}
                 </span>
@@ -106,7 +115,9 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
               className={`text-product-b-row-title px-1-5 text-right break-words ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
             >
               {/* A failed transaction moved no value: no sign, as the cards and the mobile row. */}
-              {failed(i) ? `${i.amount} ${i.asset}` : signed(i)}
+              <Shared name={nameOf(i, 'amount')}>
+                <span className="inline-block">{failed(i) ? `${i.amount} ${i.asset}` : signed(i)}</span>
+              </Shared>
             </td>
             <td className="text-product-b-body-small text-text-tertiary pr-row-b-padding-x px-1-5 text-right">
               <time dateTime={new Date(i.at).toISOString()}>{relativeTime(i.at, now, locale)}</time>
@@ -120,6 +131,7 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
 
 /** Below 768 px: Activity rows under date headers. */
 export function HistoryCards({ items, now, t, locale, address, fresh }: Props) {
+  const nameOf = namer(items)
   const days: { key: string; at: number; rows: HistoryItem[] }[] = []
   for (const i of items) {
     const key = new Date(i.at).toDateString() // the day, not its label: the same date of two years is two groups
@@ -152,7 +164,9 @@ export function HistoryCards({ items, now, t, locale, address, fresh }: Props) {
                     <div className="relative shrink-0">
                       <AssetIcon asset={assetKey(i)} large />
                       <span className="absolute -right-0-5 -bottom-0-5">
-                        <RowBadge kind={failed(i) ? 'failed' : i.kind === 'send' ? 'sent' : 'received'} />
+                        <Shared name={nameOf(i, 'status')}>
+                          <RowBadge kind={failed(i) ? 'failed' : i.kind === 'send' ? 'sent' : 'received'} />
+                        </Shared>
                       </span>
                     </div>
                     <div className="flex min-w-px flex-1 flex-col">
@@ -163,11 +177,13 @@ export function HistoryCards({ items, now, t, locale, address, fresh }: Props) {
                         </time>
                       </p>
                     </div>
-                    <p
-                      className={`text-product-b-headline max-w-1/2 text-right break-words ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
-                    >
-                      {failed(i) ? `${i.amount} ${i.asset}` : signed(i)}
-                    </p>
+                    <Shared name={nameOf(i, 'amount')}>
+                      <p
+                        className={`text-product-b-headline max-w-1/2 text-right break-words ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
+                      >
+                        {failed(i) ? `${i.amount} ${i.asset}` : signed(i)}
+                      </p>
+                    </Shared>
                   </Link>
                 </li>
               )

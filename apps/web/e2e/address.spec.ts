@@ -89,7 +89,11 @@ test.describe('viewer', () => {
     await page.goto(`/address#${A}`)
     const cards = page.getByRole('region', { name: '잔액' }).locator('> div')
     await expect(cards).toHaveCount(2)
-    const heights = () => cards.evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height))
+    // The cards rise when the page opens (rise-in): measure once that has settled, a translated box reads a float off.
+    const heights = async () => {
+      await settled(page)
+      return cards.evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height))
+    }
     const skeleton = await heights()
     release()
     await expect(page.getByText('1000000000000000000000000 ETH')).toBeVisible()
@@ -231,6 +235,7 @@ for (const s of states) {
       await page.setViewportSize({ width, height: 900 })
       await page.goto(s.path)
       await expect(page.getByText(s.ready).first()).toBeVisible()
+      await settled(page) // the sections rise when the viewer opens (rise-in): a translated box reads a float off
       const small = await page.evaluate(() =>
         [...document.querySelectorAll<HTMLElement>('a, button')]
           // Not the skip link (hidden until focused), not an element that is not rendered (before hydration the page
