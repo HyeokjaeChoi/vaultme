@@ -2,20 +2,30 @@ import { describe, expect, it } from 'vitest'
 import { rowShareNames, txShareName } from '../app/shared/ui/TxShared'
 
 const H = `0x${'1'.repeat(64)}`
+const G = `0x${'2'.repeat(64)}`
 
 describe('rowShareNames', () => {
-  it('names the first row of a hash and asset, then no later one (two boxes with one name end a view transition)', () => {
-    const name = rowShareNames()
-    expect(name(H, 'USDC', 'amount')).toBe(txShareName(H, 'USDC', 'amount'))
+  it('names a hash and asset that appears once', () => {
+    const name = rowShareNames([{ hash: H, asset: 'ETH' }])
+    expect(name(H, 'ETH', 'amount')).toBe(txShareName(H, 'ETH', 'amount'))
+    expect(name(H, 'ETH', 'status')).toBe(txShareName(H, 'ETH', 'status'))
+  })
+  it('names none of the rows of a repeated hash and asset (/tx cannot tell which row was opened)', () => {
+    const name = rowShareNames([
+      { hash: H, asset: 'USDC' },
+      { hash: H, asset: 'USDC' },
+      { hash: G, asset: 'USDC' },
+    ])
     expect(name(H, 'USDC', 'amount')).toBeUndefined()
-    expect(name(H, 'USDC', 'status')).toBe(txShareName(H, 'USDC', 'status')) // another part is its own name
+    expect(name(H, 'USDC', 'status')).toBeUndefined()
+    expect(name(G, 'USDC', 'amount')).toBe(txShareName(G, 'USDC', 'amount'))
   })
   it('keeps an ETH row and a USDC row of one hash apart', () => {
-    const name = rowShareNames()
+    const name = rowShareNames([
+      { hash: H, asset: 'ETH' },
+      { hash: H, asset: 'USDC' },
+    ])
     expect(name(H, 'ETH', 'amount')).not.toBe(name(H, 'USDC', 'amount'))
-  })
-  it('starts again on the next render', () => {
-    expect(rowShareNames()(H, 'ETH', 'status')).toBe(txShareName(H, 'ETH', 'status'))
-    expect(rowShareNames()(H, 'ETH', 'status')).toBe(txShareName(H, 'ETH', 'status'))
+    expect(name(H, 'ETH', 'amount')).toBeDefined()
   })
 })

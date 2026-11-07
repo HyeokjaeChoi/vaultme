@@ -6,17 +6,18 @@ export const txShareName = (hash: string, asset: 'ETH' | 'USDC', part: 'status' 
   `tx-${part}-${hash.toLowerCase()}-${asset}`
 
 /**
- * A name function for one render of a list: the first row of a hash and asset gets the names, a later row of the same pair gets none.
- * Two visible boxes with one name make the browser skip the whole view transition (a tx can have two ETH or two USDC rows).
+ * A name function for the rows of one render: a hash and asset that appears once gets names, one that repeats gets none. /tx
+ * names its side by hash and asset alone, so a repeated pair would send the morph from the wrong row, and two visible boxes with
+ * one name make the browser skip the whole view transition (a tx can have two ETH or two USDC rows).
  */
-export function rowShareNames() {
-  const seen = new Set<string>()
-  return (hash: string, asset: 'ETH' | 'USDC', part: 'status' | 'amount') => {
-    const name = txShareName(hash, asset, part)
-    if (seen.has(name)) return undefined
-    seen.add(name)
-    return name
+export function rowShareNames(rows: { hash: string; asset: 'ETH' | 'USDC' }[]) {
+  const count = new Map<string, number>()
+  for (const r of rows) {
+    const k = `${r.hash.toLowerCase()}-${r.asset}`
+    count.set(k, (count.get(k) ?? 0) + 1)
   }
+  return (hash: string, asset: 'ETH' | 'USDC', part: 'status' | 'amount') =>
+    count.get(`${hash.toLowerCase()}-${asset}`) === 1 ? txShareName(hash, asset, part) : undefined
 }
 
 /**

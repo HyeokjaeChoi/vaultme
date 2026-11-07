@@ -246,6 +246,12 @@ function BalanceSection({ t, balances, retry }: { t: WebMessages; balances: Bala
   // Retry removes the banner and its button: focus moves to the balances, not back to <body>.
   const section = useRef<HTMLElement>(null)
   const retried = useRef(false)
+  // The cards rise when the page opens only: Retry mounts them again, and that is not the page opening.
+  const opened = useRef(false)
+  useEffect(() => {
+    opened.current = true
+  }, [])
+  const enter = (n: 1 | 2) => (opened.current ? '' : n === 1 ? 'rise-in rise-1' : 'rise-in rise-2')
   useEffect(() => {
     if (!retried.current || !section.current) return
     retried.current = false
@@ -287,8 +293,8 @@ function BalanceSection({ t, balances, retry }: { t: WebMessages; balances: Bala
       aria-busy={!ok}
       className="tablet:grid-cols-2 web-desktop:flex grid grid-cols-1 gap-3 web-desktop:flex-col"
     >
-      <BalanceCard asset="ETH" name={t.viewer.eth} amount={ok ? balances.ETH : null} className="rise-in rise-1" />
-      <BalanceCard asset="USDC" name={t.viewer.usdc} amount={ok ? balances.USDC : null} className="rise-in rise-2" />
+      <BalanceCard asset="ETH" name={t.viewer.eth} amount={ok ? balances.ETH : null} enter={enter(1)} />
+      <BalanceCard asset="USDC" name={t.viewer.usdc} amount={ok ? balances.USDC : null} enter={enter(2)} />
       <p role="status" className="sr-only">
         {ok ? '' : t.viewer.loading}
       </p>

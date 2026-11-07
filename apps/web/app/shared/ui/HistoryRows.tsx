@@ -29,9 +29,9 @@ const txLink = (i: HistoryItem, locale: WebLocale, address: string | null) => ({
 const short = (a: string) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '—')
 const failed = (i: HistoryItem) => i.status === 'failed'
 const assetKey = (i: HistoryItem) => (i.asset === 'USDC' ? 'USDC' : 'ETH')
-/** The shared-element name of a row part (see TxShared); one function per render, so a repeated hash and asset is named once. */
-const namer = () => {
-  const name = rowShareNames()
+/** The shared-element name of a row part (see TxShared); a hash and asset that repeats in the list gets none. */
+const namer = (items: HistoryItem[]) => {
+  const name = rowShareNames(items.map((i) => ({ hash: i.hash, asset: assetKey(i) })))
   return (i: HistoryItem, part: 'status' | 'amount') => name(i.hash, assetKey(i), part)
 }
 
@@ -39,7 +39,7 @@ const namer = () => {
 export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
   const th = 'text-product-b-caption text-text-tertiary px-1-5 py-2 font-normal'
   const navigate = useNavigate()
-  const nameOf = namer()
+  const nameOf = namer(items)
   return (
     <table className="tablet:table hidden w-full table-fixed border-collapse">
       <caption className="sr-only">{t.history.title}</caption>
@@ -131,7 +131,7 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
 
 /** Below 768 px: Activity rows under date headers. */
 export function HistoryCards({ items, now, t, locale, address, fresh }: Props) {
-  const nameOf = namer()
+  const nameOf = namer(items)
   const days: { key: string; at: number; rows: HistoryItem[] }[] = []
   for (const i of items) {
     const key = new Date(i.at).toDateString() // the day, not its label: the same date of two years is two groups

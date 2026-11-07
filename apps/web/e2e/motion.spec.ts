@@ -89,6 +89,19 @@ for (const reduce of [false, true]) {
       else expect(delays.map((d) => d.delay)).toEqual(['0s', '0.03s', '0.06s', '0.09s'])
     })
 
+    test('Retry after a failed balance read does not replay the page-open rise (#466)', async ({ page }) => {
+      const api = await fixtureApi(page)
+      api.mode = 'down'
+      await page.goto(`/address#${A}`)
+      await expect(page.getByRole('alert').first()).toBeVisible()
+      // Failed: the cards are gone, only the address block and History carry the rise.
+      await expect(page.locator('.rise-in')).toHaveCount(2)
+      api.mode = 'ok'
+      await page.getByRole('button', { name: '다시 시도' }).click()
+      await expect(page.getByText('12.5 USDC')).toBeVisible()
+      await expect(page.locator('.rise-in')).toHaveCount(2)
+    })
+
     test('the transaction page fades as one block, no stagger (#466)', async ({ page }) => {
       await fixtureApi(page)
       await page.goto(`/address#${A}`)
