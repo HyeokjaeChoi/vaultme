@@ -63,7 +63,10 @@ export function ExpandFromRow({ children }: { children: ReactNode }) {
   const dy = useSharedValue(0)
   const active = from !== null && !reduce
   const box = useAnimatedStyle(() => {
-    if (!from || !active || p.get() === 1) return {}
+    if (!from || !active) return {}
+    // Explicit end values: a removed style prop is not reset on the native side, and the card's height changes with its text (Pending to Confirmed).
+    if (p.get() === 1)
+      return { height: 'auto' as const, overflow: 'visible' as const, opacity: 1, transform: [{ translateY: 0 }] }
     return {
       height: full.get() < 0 ? from.height : interpolate(p.get(), [0, 1], [from.height, full.get()]),
       overflow: 'hidden' as const,
