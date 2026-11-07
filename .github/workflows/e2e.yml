@@ -32,17 +32,12 @@ jobs:
     steps:
       - id: diff
         env:
-          GH_TOKEN: ${{ github.token }}
           EVENT: ${{ github.event_name }}
-          PR: ${{ github.event.pull_request.number }}
+          # The event payload carries the PR's current labels (all of them, no API call to fail or page through).
+          RELEASE: ${{ contains(github.event.pull_request.labels.*.name, 'release') }}
         run: |
-          if [ "$EVENT" != pull_request ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
-          # ADR-0039: only the release PR (label `release`) runs the flows.
-          if gh api "repos/$GITHUB_REPOSITORY/issues/$PR/labels" --jq '.[].name' | grep -qxF release; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-          fi
+          # ADR-0039: a manual run runs every flow; on a PR only the release PR (label `release`) runs the flows.
+          if [ "$EVENT" != pull_request ] || [ "$RELEASE" = true ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
 
   e2e:
     needs: changes
