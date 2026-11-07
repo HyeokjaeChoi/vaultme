@@ -6,6 +6,20 @@ export const txShareName = (hash: string, asset: 'ETH' | 'USDC', part: 'status' 
   `tx-${part}-${hash.toLowerCase()}-${asset}`
 
 /**
+ * A name function for one render of a list: the first row of a hash and asset gets the names, a later row of the same pair gets none.
+ * Two visible boxes with one name make the browser skip the whole view transition (a tx can have two ETH or two USDC rows).
+ */
+export function rowShareNames() {
+  const seen = new Set<string>()
+  return (hash: string, asset: 'ETH' | 'USDC', part: 'status' | 'amount') => {
+    const name = txShareName(hash, asset, part)
+    if (seen.has(name)) return undefined
+    seen.add(name)
+    return name
+  }
+}
+
+/**
  * The "same object expands" pair of a history row and the /tx detail (DESIGN.md Motion, #466): the two elements carry the same
  * CSS `view-transition-name`, so the browser morphs one into the other inside the route's view transition (root.tsx). Plain CSS
  * names, not React `<ViewTransition name>`: with React's named boundary the badge and amount of /tx never paired with the row

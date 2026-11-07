@@ -7,7 +7,7 @@ import { txPath } from '../lib/locale'
 import { AssetIcon } from './AssetIcon'
 import { pressTransition } from './ButtonLink'
 import { RowBadge } from './RowBadge'
-import { Shared, txShareName } from './TxShared'
+import { rowShareNames, Shared } from './TxShared'
 
 type Props = {
   items: HistoryItem[]
@@ -29,13 +29,17 @@ const txLink = (i: HistoryItem, locale: WebLocale, address: string | null) => ({
 const short = (a: string) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '—')
 const failed = (i: HistoryItem) => i.status === 'failed'
 const assetKey = (i: HistoryItem) => (i.asset === 'USDC' ? 'USDC' : 'ETH')
-/** The shared-element name of a row part (see TxShared). */
-const nameOf = (i: HistoryItem, part: 'status' | 'amount') => txShareName(i.hash, assetKey(i), part)
+/** The shared-element name of a row part (see TxShared); one function per render, so a repeated hash and asset is named once. */
+const namer = () => {
+  const name = rowShareNames()
+  return (i: HistoryItem, part: 'status' | 'amount') => name(i.hash, assetKey(i), part)
+}
 
 /** 768 px and wider: one real table. Columns as Figma (status 140, direction 80, counterparty rest, amount 140, time 88). */
 export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
   const th = 'text-product-b-caption text-text-tertiary px-1-5 py-2 font-normal'
   const navigate = useNavigate()
+  const nameOf = namer()
   return (
     <table className="tablet:table hidden w-full table-fixed border-collapse">
       <caption className="sr-only">{t.history.title}</caption>
@@ -127,6 +131,7 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
 
 /** Below 768 px: Activity rows under date headers. */
 export function HistoryCards({ items, now, t, locale, address, fresh }: Props) {
+  const nameOf = namer()
   const days: { key: string; at: number; rows: HistoryItem[] }[] = []
   for (const i of items) {
     const key = new Date(i.at).toDateString() // the day, not its label: the same date of two years is two groups
