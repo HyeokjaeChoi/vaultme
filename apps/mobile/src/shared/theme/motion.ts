@@ -5,7 +5,6 @@ import {
   Easing,
   FadeIn,
   FadeOut,
-  interpolate,
   Keyframe,
   useAnimatedStyle,
   useReducedMotion,
@@ -15,6 +14,7 @@ import {
   withTiming,
 } from 'react-native-reanimated'
 import { light } from '@vaultme/tokens'
+import { planTravel, scaleAt } from './selection-travel'
 
 // DESIGN motion (emil-design-eng): strong ease-out for UI. Press = motion.duration.fastMs, fades = baseMs. Bloom, pop, spin, shake and the sheet open (250) have no token, so they keep their own ms.
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
@@ -128,28 +128,6 @@ export function useRevealEntering(loading: boolean, ms: number) {
   const [sawLoading, setSawLoading] = useState(loading)
   if (loading && !sawLoading) setSawLoading(true)
   return reduce || !sawLoading ? {} : { entering: FadeIn.duration(ms).easing(EASE_OUT) }
-}
-
-/** DESIGN.md Motion (owner 2026-11-07): a knob or pill may stretch up to 12% while it travels. */
-export const STRETCH_MAX = 1.12
-
-/** scaleX at travel progress `p` (0..1): 1 at both ends, STRETCH_MAX at the middle. Used inside worklets, so it needs the directive. */
-export function stretchAt(p: number): number {
-  'worklet'
-  return interpolate(p, [0, 0.5, 1], [1, STRETCH_MAX, 1])
-}
-
-/** scaleX at progress `t` when the travel started with scale `s0` (an interrupted travel): `s0` eases back to the normal curve, never above STRETCH_MAX. Worklet. */
-export function scaleAt(t: number, s0: number): number {
-  'worklet'
-  return Math.min(STRETCH_MAX, stretchAt(t) + (s0 - 1) * (1 - t))
-}
-
-/** Where a travel starts and whether it animates when the target slot is `index`. `at` is the current position (from + (to - from) * t). Pure, so it is unit tested. */
-export function planTravel(reduce: boolean, at: number, target: number, index: number) {
-  if (reduce) return { from: index, animate: false }
-  if (target === index) return { from: index, animate: false } // mount or a re-render with the same slot: no travel, no stretch
-  return { from: at, animate: true }
 }
 
 /**

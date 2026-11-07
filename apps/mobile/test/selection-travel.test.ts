@@ -1,35 +1,31 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 
-// motion.ts imports Reanimated; only the pure helpers run here, so the native module is stubbed.
+// selection-travel.ts imports Reanimated's interpolate, so the native module is stubbed.
 vi.mock('react-native-reanimated', () => ({
-  Easing: { bezier: () => 0, linear: 0 },
-  cubicBezier: () => 0,
   interpolate: (x: number, input: number[], output: number[]) => {
     const i = x <= input[1]! ? 0 : 1
     const f = (x - input[i]!) / (input[i + 1]! - input[i]!)
     return output[i]! + f * (output[i + 1]! - output[i]!)
   },
 }))
-vi.mock('@vaultme/tokens', () => ({ light: { primitive: { motion: { duration: { fastMs: 120 } } } } }))
 
-const { STRETCH_MAX, planTravel, scaleAt, stretchAt } = await import('../src/shared/theme/motion')
+const { planTravel, scaleAt } = await import('../src/shared/theme/selection-travel')
 
 describe('selection travel stretch (DESIGN.md Motion)', () => {
   it('stays at rest scale at both ends of the travel', () => {
-    expect(stretchAt(0)).toBe(1)
-    expect(stretchAt(1)).toBe(1)
+    expect(scaleAt(0, 1)).toBe(1)
+    expect(scaleAt(1, 1)).toBe(1)
   })
   it('peaks at the middle and never exceeds 12%', () => {
-    expect(STRETCH_MAX).toBeLessThanOrEqual(1.12)
-    expect(stretchAt(0.5)).toBe(STRETCH_MAX)
-    for (let p = 0; p <= 1; p += 0.05) expect(stretchAt(p)).toBeLessThanOrEqual(1.12)
+    expect(scaleAt(0.5, 1)).toBe(1.12)
+    for (let p = 0; p <= 1; p += 0.05) expect(scaleAt(p, 1)).toBeLessThanOrEqual(1.12)
   })
 })
 
 describe('scaleAt (interrupted travel)', () => {
   it('equals the normal curve when the travel started at rest', () => {
-    expect(scaleAt(0.5, 1)).toBe(STRETCH_MAX)
+    expect(scaleAt(0.5, 1)).toBe(1.12)
   })
   it('starts at the width where the last travel was interrupted, with no pop', () => {
     expect(scaleAt(0, 1.1)).toBeCloseTo(1.1)
