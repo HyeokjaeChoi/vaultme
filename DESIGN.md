@@ -416,6 +416,7 @@ Motion:
 - Selection state (color, label, checked) changes at once. A switch knob or a selected segment pill may travel over the fast token and stretch up to 12% while it moves.
 - A list may stagger its rows by 30 ms only on its first reveal from loading: the first 5 rows, opacity and rise only. Rows after the fifth show with the fifth. Refresh, rows loaded by scrolling and value updates show at once.
 - A read-only detail screen (transaction, asset; web `/tx`, `/address`) may stagger its detail lines by 30 ms as its container settles, only when the screen opens: the first 5 lines, opacity and rise only. The top amount and status show with the container.
+- A pressed list row may expand into the top card of its read-only detail screen (the same object, owner 2026-11-07): the card opens from the row's frame over the enter token (240 ms), clipped, never scaled, and its text fades in. Without a pressed row (deep link, push) or with reduced motion, the card shows as it is.
 - Warnings, the review screen and the result screen never stagger. Amounts, addresses and warnings never use blur or bounce.
 - With reduced motion on, show the final state and remove transforms.
 

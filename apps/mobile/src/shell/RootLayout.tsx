@@ -30,6 +30,11 @@ function Navigator() {
     >
       <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
       <Stack.Screen name="send/result" options={{ gestureEnabled: false }} />
+      {/* Transaction detail opens from the pressed row (`ExpandFromRow`): a fade under the expanding card, not a slide. */}
+      <Stack.Screen
+        name="activity/[hash]"
+        options={{ animation: reduceMotion ? 'none' : 'fade', animationDuration: th.primitive.motion.duration.enterMs }}
+      />
       <Stack.Screen name="send/scan" options={{ animation: reduceMotion ? 'fade' : 'slide_from_bottom' }} />
     </Stack>
   )

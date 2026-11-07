@@ -2,6 +2,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { View } from 'react-native'
+import Animated from 'react-native-reanimated'
 import { useTranslation } from 'react-i18next'
 import { account } from '@/entities/account'
 import { assets } from '@/entities/asset'
@@ -14,7 +15,7 @@ import { PushOptInSheet } from '@/features/push'
 import { useRestored } from '@/features/restore'
 import { setPreselectedAsset, useTrackedTx } from '@/features/send'
 import { chain } from '@/shared/chain'
-import { useTheme } from '@/shared/theme'
+import { useStaggerReveal, useTheme } from '@/shared/theme'
 import {
   ActionRow,
   AssetRow,
@@ -55,6 +56,8 @@ export function HomePage() {
   const onTxSettled = useCallback(() => void refreshHistory(), [refreshHistory]) // the new state replaces its "보내는 중" row (#269)
   const pending = useTrackedTx(onTxSettled)
   const { balances: live, refresh: refreshBalances } = useLiveBalancesState()
+  // First reveal from loading (DESIGN.md Motion, #464): the asset rows and the recent rows below rise in 30 ms apart, 5 at most. The real list loads from the chain; the fake adapter has no loading, so nothing staggers there.
+  const enter = useStaggerReveal(chain.broadcasts && view === null)
   const devSheet = (): SheetName =>
     sheetParam === 'intro'
       ? 'intro'
@@ -156,16 +159,17 @@ export function HomePage() {
           <SectionHeader title={t('home.assets')} />
           {assets
             .filter((a) => a.symbol !== 'ETH')
-            .map((a) => (
+            .map((a, i) => (
               // ETH is the hero above
-              <AssetRow
-                key={a.symbol}
-                name={a.name}
-                symbol={a.symbol}
-                subtitle={t(`home.assetNote.${a.symbol}`)}
-                balance={balanceOf(a.symbol, a.balance)}
-                onPress={() => router.push({ pathname: '/asset', params: { symbol: a.symbol } })}
-              />
+              <Animated.View key={a.symbol} {...enter(i)}>
+                <AssetRow
+                  name={a.name}
+                  symbol={a.symbol}
+                  subtitle={t(`home.assetNote.${a.symbol}`)}
+                  balance={balanceOf(a.symbol, a.balance)}
+                  onPress={() => router.push({ pathname: '/asset', params: { symbol: a.symbol } })}
+                />
+              </Animated.View>
             ))}
           {items.length > 0 ? (
             <>
@@ -174,7 +178,7 @@ export function HomePage() {
                 link={t('home.viewAll')}
                 onLinkPress={() => router.push('/activity')}
               />
-              <RecentRows items={items} />
+              <RecentRows items={items} enter={enter} firstIndex={assets.length - 1} />
             </>
           ) : null}
         </>

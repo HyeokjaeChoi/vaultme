@@ -12,4 +12,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 export const useTheme = () => useContext(ThemeContext)
 export { fontAssets } from './fonts'
-export { BLOOM_MS, EASE_OUT, EASE_OUT_CSS, useRevealEntering, useShake, useToastMotion } from './motion'
+export {
+  BLOOM_MS,
+  EASE_OUT,
+  EASE_OUT_CSS,
+  useRevealEntering,
+  useShake,
+  useStaggerReveal,
+  useToastMotion,
+} from './motion'
+export { ExpandFromRow, measureRow, StaggerLine } from './RowExpand'

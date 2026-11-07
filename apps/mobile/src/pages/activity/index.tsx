@@ -1,12 +1,11 @@
 // Figma: B-S40 Activity 404:387, empty 423:16109, loading 423:16158, error cached 423:16236, error no cache, test mode, unknown + replaced rows
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import Animated from 'react-native-reanimated'
 import { transactions } from '@/entities/transaction'
 import { useHistory, type HistoryItem, type HistoryView } from '@/features/history'
 import { txView, usePendingTx } from '@/features/send'
 import { chain } from '@/shared/chain'
-import { useRevealEntering, useTheme } from '@/shared/theme'
+import { useStaggerReveal } from '@/shared/theme'
 import { formatUpdated } from '@/shared/lib/time'
 import { EmptyState, Screen, StatusNotice, TabHeader } from '@/shared/ui'
 import { ActivityList as List, fakeHistoryItems } from '@/widgets/activity-list'
@@ -24,7 +23,7 @@ function Content({
 }) {
   const { t } = useTranslation()
   const router = useRouter()
-  const reveal = useRevealEntering(!view, useTheme().primitive.motion.duration.baseMs)
+  const enter = useStaggerReveal(!view)
   if (!view) return <Loading />
   const now = Date.now() // eslint-disable-line react-hooks/purity -- each render reads the clock so day groups roll over
   if (view.failed && view.items.length === 0) {
@@ -40,8 +39,8 @@ function Content({
     )
   }
   return (
-    // Motion audit M2: the loaded body fades in as one container (never per row) after the skeleton.
-    <Animated.View {...reveal}>
+    // First reveal from the skeleton: the first 5 rows rise in 30 ms apart (DESIGN.md Motion, #464). No container fade; refresh and scroll-loaded rows show at once.
+    <>
       {view.failed ? (
         <StatusNotice
           tier="banner"
@@ -62,8 +61,8 @@ function Content({
           action={{ label: t('activity.empty.cta'), onPress: () => router.push('/receive') }}
         />
       ) : null}
-      <List items={asset ? view.items.filter((i) => i.asset === asset) : view.items} />
-    </Animated.View>
+      <List items={asset ? view.items.filter((i) => i.asset === asset) : view.items} enter={enter} />
+    </>
   )
 }
 
