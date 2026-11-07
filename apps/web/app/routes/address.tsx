@@ -222,7 +222,7 @@ function Viewer({ t, locale, address, headingRef }: ViewerProps) {
         </div>
         <div className="web-desktop:grid web-desktop:grid-cols-3 web-desktop:gap-8 flex flex-col gap-6">
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col items-start gap-3">
+            <div className="rise-in flex flex-col items-start gap-3">
               <p className="text-product-b-caption text-text-tertiary">{t.viewer.addressLabel}</p>
               <div className="flex w-full items-center gap-2">
                 {/* Before hydration a placeholder of the same length keeps the height. `key`: the address is new text, not the
@@ -287,8 +287,8 @@ function BalanceSection({ t, balances, retry }: { t: WebMessages; balances: Bala
       aria-busy={!ok}
       className="tablet:grid-cols-2 web-desktop:flex grid grid-cols-1 gap-3 web-desktop:flex-col"
     >
-      <BalanceCard asset="ETH" name={t.viewer.eth} amount={ok ? balances.ETH : null} />
-      <BalanceCard asset="USDC" name={t.viewer.usdc} amount={ok ? balances.USDC : null} />
+      <BalanceCard asset="ETH" name={t.viewer.eth} amount={ok ? balances.ETH : null} className="rise-in rise-1" />
+      <BalanceCard asset="USDC" name={t.viewer.usdc} amount={ok ? balances.USDC : null} className="rise-in rise-2" />
       <p role="status" className="sr-only">
         {ok ? '' : t.viewer.loading}
       </p>

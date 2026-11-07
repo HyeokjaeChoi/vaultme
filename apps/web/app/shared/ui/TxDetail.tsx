@@ -11,12 +11,17 @@ import { DefinitionRow } from './DefinitionRow'
 import { InternalTransfers } from './InternalTransfers'
 import { TxIcon } from './TxIcon'
 import { StatusBadge } from './StatusBadge'
+import { Shared } from './TxShared'
 
 // The node answers in lower case; the viewer and the app show EIP-55.
 const eip55 = (a: string) => toChecksumAddress(a.toLowerCase())
 
+/** Shared-element names of the row that opened this page (TxShared); null = none. */
+export type ShareNames = { status: string; amount: string } | null
+
 type Props = {
   tx: Tx
+  share: ShareNames
   now: number
   t: WebTxMessages
   locale: WebLocale
@@ -25,23 +30,27 @@ type Props = {
 }
 
 /** Status and amount, the six rows in the S41 order (from, to, time, fee, block, hash), the internal transfers and the Etherscan link. */
-export function TxDetail({ tx, now, t, locale, internal, retryInternal }: Props) {
+export function TxDetail({ tx, share, now, t, locale, internal, retryInternal }: Props) {
   const copy = (text: string, label: string) => ({ text, label, copied: t.copied })
   const from = eip55(tx.from)
   const to = tx.to ? eip55(tx.to) : null
   return (
     <>
       <div className="flex flex-col items-start gap-3">
-        <StatusBadge kind={tx.ok ? 'confirmed' : 'failed'} label={tx.ok ? t.status.confirmed : t.status.failed} />
-        <p className="flex max-w-full min-w-0 flex-wrap items-end gap-x-2 break-words">
-          {/* A reverted call moved nothing: the amount it asked for is grey, as in the history rows. */}
-          <span
-            className={`text-product-b-figure min-w-0 wrap-anywhere ${tx.ok ? 'text-text-primary' : 'text-text-tertiary'}`}
-          >
-            {fromUnits(tx.amount, tx.asset)}
-          </span>
-          <span className="text-product-b-figure-unit text-text-secondary">{tx.asset}</span>
-        </p>
+        <Shared name={share?.status}>
+          <StatusBadge kind={tx.ok ? 'confirmed' : 'failed'} label={tx.ok ? t.status.confirmed : t.status.failed} />
+        </Shared>
+        <Shared name={share?.amount}>
+          <p className="flex max-w-full min-w-0 flex-wrap items-end gap-x-2 break-words">
+            {/* A reverted call moved nothing: the amount it asked for is grey, as in the history rows. */}
+            <span
+              className={`text-product-b-figure min-w-0 wrap-anywhere ${tx.ok ? 'text-text-primary' : 'text-text-tertiary'}`}
+            >
+              {fromUnits(tx.amount, tx.asset)}
+            </span>
+            <span className="text-product-b-figure-unit text-text-secondary">{tx.asset}</span>
+          </p>
+        </Shared>
       </div>
       <dl className="flex flex-col">
         <DefinitionRow label={t.from} mono copy={copy(from, t.copyFrom)}>
@@ -87,12 +96,16 @@ const bar = 'bg-skeleton-bg rounded-skeleton-radius skeleton-pulse'
 const rows = ['tx-row-address', 'tx-row-address', 'tx-row-line', 'tx-row-line', 'tx-row-line', 'tx-row-hash']
 
 /** The same boxes as the detail (status badge, figure, six rows, button), so the answer moves nothing (CLS 0). */
-export function TxSkeleton({ t }: { t: WebTxMessages }) {
+export function TxSkeleton({ t, share }: { t: WebTxMessages; share: ShareNames }) {
   return (
     <>
       <div aria-hidden="true" className="flex flex-col items-start gap-3">
-        <div className={`${bar} skeleton-badge`} />
-        <div className={`${bar} skeleton-figure`} />
+        <Shared name={share?.status}>
+          <div className={`${bar} skeleton-badge`} />
+        </Shared>
+        <Shared name={share?.amount}>
+          <div className={`${bar} skeleton-figure`} />
+        </Shared>
       </div>
       <div aria-hidden="true" className="flex flex-col">
         {rows.map((height, i) => (

@@ -149,7 +149,7 @@
 }
 
 /* Loaded content (and the rows of a 더 보기) fades in as one block when it mounts. Opacity only: no blur, move or stagger on amounts
-   and addresses. A browser without @starting-style shows it at once. */
+   and addresses (a page's sections rise in `rise-in`, below). A browser without @starting-style shows it at once. */
 @utility fade-in {
   @media (prefers-reduced-motion: no-preference) {
     transition: opacity calc(var(--primitive-motion-duration-base-ms) * 1ms) var(--primitive-motion-easing-enter);
@@ -171,6 +171,36 @@
       opacity: 0;
     }
   }
+}
+
+/* Page open of a read-only screen (#466, DESIGN.md Motion): its sections show top to bottom, each with opacity and an 8 px rise (space/2).
+   `rise-1`..`rise-3` set the position in the row; the step between sections is 30 ms. No token has the 30 ms step (DESIGN.md names it):
+   remove the literal when motion tokens get a stagger step. It runs when the element first renders (the page opens), never on updates.
+   A browser without @starting-style shows it at once. A result screen (/tx) does not use it: it shows all at once (`fade-in`). */
+@utility rise-in {
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      opacity calc(var(--primitive-motion-duration-enter-ms) * 1ms) var(--primitive-motion-easing-enter),
+      translate calc(var(--primitive-motion-duration-enter-ms) * 1ms) var(--primitive-motion-easing-enter);
+    transition-delay: calc(var(--rise-index, 0) * 30ms);
+
+    @starting-style {
+      opacity: 0;
+      translate: 0 var(--spacing-2);
+    }
+  }
+}
+
+@utility rise-1 {
+  --rise-index: 1;
+}
+
+@utility rise-2 {
+  --rise-index: 2;
+}
+
+@utility rise-3 {
+  --rise-index: 3;
 }
 
 /* FAQ answer opens with a fade, and grows in browsers with interpolate-size (Chrome 129+). Browsers without ::details-content
@@ -198,9 +228,11 @@
   }
 }
 
-/* Route change (React <ViewTransition> in root.tsx): the page cross-fades. */
+/* Route change (React <ViewTransition> in root.tsx): the page cross-fades. The status badge and the amount of a history row travel into
+   the /tx detail as one object (`Shared` in TxShared.tsx, class tx-share, #466). */
 @media (prefers-reduced-motion: no-preference) {
-  ::view-transition-group(.page-fade) {
+  ::view-transition-group(.page-fade),
+  ::view-transition-group(.tx-share) {
     animation-duration: calc(var(--primitive-motion-duration-base-ms) * 1ms);
     animation-timing-function: var(--primitive-motion-easing-standard);
   }
@@ -209,7 +241,10 @@
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(.page-fade),
   ::view-transition-old(.page-fade),
-  ::view-transition-new(.page-fade) {
+  ::view-transition-new(.page-fade),
+  ::view-transition-group(.tx-share),
+  ::view-transition-old(.tx-share),
+  ::view-transition-new(.tx-share) {
     animation-duration: 0s;
   }
 }

@@ -4,14 +4,14 @@ import { AssetIcon } from './AssetIcon'
 // the same box in skeleton/bg: the content keeps its place but is hidden, so the size is the final one (CLS 0).
 // The amount stays on one line, like the skeleton's: a long balance scrolls sideways (focusable, so a keyboard reaches
 // all digits) and never wraps, which would make the card taller when the balance arrives.
-type Props = { asset: 'ETH' | 'USDC'; name: string; amount: string | null }
+type Props = { asset: 'ETH' | 'USDC'; name: string; amount: string | null; className?: string }
 
-export function BalanceCard({ asset, name, amount }: Props) {
+export function BalanceCard({ asset, name, amount, className = '' }: Props) {
   const loading = amount === null
   return (
     <div
       aria-hidden={loading || undefined}
-      className={`p-card-padding-mobile flex min-w-px flex-col gap-3 ${loading ? 'bg-skeleton-bg rounded-skeleton-radius' : 'bg-surface-subtle rounded-card-radius'}`}
+      className={`p-card-padding-mobile flex min-w-px flex-col gap-3 ${className} ${loading ? 'bg-skeleton-bg rounded-skeleton-radius' : 'bg-surface-subtle rounded-card-radius'}`}
     >
       <div className={`flex items-center gap-3 ${loading ? 'invisible' : ''}`}>
         <AssetIcon asset={asset} />
