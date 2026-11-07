@@ -1,16 +1,7 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-// selection-travel.ts imports Reanimated's interpolate, so the native module is stubbed.
-vi.mock('react-native-reanimated', () => ({
-  interpolate: (x: number, input: number[], output: number[]) => {
-    const i = x <= input[1]! ? 0 : 1
-    const f = (x - input[i]!) / (input[i + 1]! - input[i]!)
-    return output[i]! + f * (output[i + 1]! - output[i]!)
-  },
-}))
-
-const { planTravel, scaleAt } = await import('../src/shared/theme/selection-travel')
+import { planTravel, scaleAt } from '../src/shared/theme/selection-travel'
 
 describe('selection travel stretch (DESIGN.md Motion)', () => {
   it('stays at rest scale at both ends of the travel', () => {
