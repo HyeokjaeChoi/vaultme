@@ -5,6 +5,7 @@ import {
   Easing,
   FadeIn,
   FadeOut,
+  interpolate,
   Keyframe,
   useAnimatedStyle,
   useReducedMotion,
@@ -127,4 +128,46 @@ export function useRevealEntering(loading: boolean, ms: number) {
   const [sawLoading, setSawLoading] = useState(loading)
   if (loading && !sawLoading) setSawLoading(true)
   return reduce || !sawLoading ? {} : { entering: FadeIn.duration(ms).easing(EASE_OUT) }
+}
+
+/** DESIGN.md Motion (owner 2026-11-07): a knob or pill may stretch up to 12% while it travels. */
+export const STRETCH_MAX = 1.12
+
+/** scaleX at travel progress `p` (0..1): 1 at both ends, STRETCH_MAX at the middle. Used inside worklets, so it needs the directive. */
+export function stretchAt(p: number): number {
+  'worklet'
+  return interpolate(p, [0, 0.5, 1], [1, STRETCH_MAX, 1])
+}
+
+/**
+ * Selection travel (Figma Switch 300:611, Segmented 300:622 motion notes): the knob or pill moves to slot `index` over motion.duration.fastMs ease-out
+ * and stretches to STRETCH_MAX at mid-travel. Transform only, on the UI thread. Slot 0 is the rest position; one slot is `step` px, or `'self'` = the element's own width.
+ * Reduce Motion: it jumps, no stretch. A new `index` mid-travel starts from where the element is. Spread `style` on an Animated.View.
+ */
+export function useSelectionTravel(index: number, step: number | 'self') {
+  const reduce = useReducedMotion()
+  const from = useSharedValue(index)
+  const to = useSharedValue(index)
+  const t = useSharedValue(1)
+  useEffect(() => {
+    if (reduce) {
+      from.set(index)
+      to.set(index)
+      t.set(1)
+      return
+    }
+    from.set(from.get() + (to.get() - from.get()) * t.get())
+    to.set(index)
+    t.set(0)
+    t.set(withTiming(1, { duration: PRESS_MS, easing: EASE_OUT }))
+  }, [from, to, t, index, reduce])
+  return useAnimatedStyle(() => {
+    const x = from.get() + (to.get() - from.get()) * t.get()
+    return {
+      transform: [
+        { translateX: step === 'self' ? (`${String(x * 100)}%` as const) : x * step },
+        { scaleX: stretchAt(t.get()) },
+      ],
+    }
+  })
 }
