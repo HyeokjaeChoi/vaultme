@@ -122,7 +122,7 @@ jobs:
             --body "A critical flow failed once and passed on the retry in release run $url. Find the flow in the step log (lines with \`flaky\`) and fix the cause."
       # The create flow shows a generated recovery phrase: its screenshots and commands stay out of the public artifact (testnet-only, but never published).
       - if: ${{ !cancelled() && inputs.dry_run == true }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-report
           path: |
@@ -143,7 +143,7 @@ jobs:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: apps/mobile/.maestro/check-no-phrase.sh apps/mobile/e2e-report.xml apps/mobile/e2e-report-retry.xml
       - if: ${{ !cancelled() && inputs.dry_run != true && steps.guard.outcome == 'success' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-report
           path: |
@@ -246,7 +246,7 @@ jobs:
             --body "A critical flow failed once and passed on the retry on Android in release run $url. Find the flow in the step log (lines with \`flaky\`) and fix the cause."
       # Same artifact rule as ios-critical: the create flow shows a generated recovery phrase, so its output stays out of the public artifact.
       - if: ${{ !cancelled() && inputs.dry_run == true }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-report-android
           path: |
@@ -267,7 +267,7 @@ jobs:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: apps/mobile/.maestro/check-no-phrase.sh apps/mobile/e2e-report.xml apps/mobile/e2e-report-retry.xml
       - if: ${{ !cancelled() && inputs.dry_run != true && steps.guard.outcome == 'success' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-report-android
           path: |

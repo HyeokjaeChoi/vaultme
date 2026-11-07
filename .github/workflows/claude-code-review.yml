@@ -54,7 +54,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
         run: gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" --remove-label review
-      - uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
+      - uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d # v1.0.266
         # In -p mode subagents start in the background and Claude can end its turn while they run.
         # The action stops at that first result, so nothing was posted (issue #133).
         # This makes Claude wait for every subagent: https://code.claude.com/docs/en/sub-agents#let-claude-wait-for-a-subagent
