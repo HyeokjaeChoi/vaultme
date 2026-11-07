@@ -21,8 +21,8 @@ export function rowShareNames(rows: { hash: string; asset: 'ETH' | 'USDC' }[]) {
 }
 
 /**
- * The "same object expands" pair of a history row and the /tx detail (DESIGN.md Motion, #466): the two elements carry the same
- * CSS `view-transition-name`, so the browser morphs one into the other inside the route's view transition (root.tsx). Plain CSS
+ * The "same object expands" pair of a history row and the /tx detail (DESIGN.md Motion, #466): the two elements get the same
+ * CSS `view-transition-name` (from `--tx-share`, set only under `prefers-reduced-motion: no-preference`), so the browser morphs one into the other inside the route's view transition (root.tsx). Plain CSS
  * names, not React `<ViewTransition name>`: with React's named boundary the badge and amount of /tx never paired with the row
  * (checked on react 19.3.0: the names were set on both pages, the group had no size change). The class `tx-share` is styled in app.css.
  * A DOM element gets the style itself; a component (RowBadge, StatusBadge) is wrapped in an inline-flex span. `name` undefined
@@ -33,13 +33,15 @@ export function Shared({
   children,
 }: {
   name: string | undefined
-  children: ReactElement<{ style?: CSSProperties }>
+  children: ReactElement<{ style?: CSSProperties; className?: string }>
 }) {
   if (!name) return children
-  const style: CSSProperties = { viewTransitionName: name, viewTransitionClass: 'tx-share' }
-  if (typeof children.type === 'string') return cloneElement(children, { style })
+  // The name travels as a custom property; `tx-shared` (app.css) turns it into view-transition-name only when motion is allowed.
+  const style = { '--tx-share': name } as CSSProperties
+  if (typeof children.type === 'string')
+    return cloneElement(children, { style, className: `${children.props.className ?? ''} tx-shared`.trim() })
   return (
-    <span style={style} className="inline-flex">
+    <span style={style} className="tx-shared inline-flex">
       {children}
     </span>
   )

@@ -35,42 +35,61 @@ for (const reduce of [false, true]) {
       }
     })
 
-    test('a row opens the transaction page through a view transition', async ({ page }) => {
-      await fixtureApi(page)
-      await page.addInitScript(() => {
-        const w = window as unknown as { vt: number; grown: string[] }
-        w.vt = 0
-        w.grown = []
-        const start = document.startViewTransition.bind(document)
-        document.startViewTransition = ((cb: never) => {
-          w.vt++
-          const t = start(cb)
-          // A group that changes size is a pair: the old and the new box of one name. An unpaired name has no size change.
-          void t.ready.then(() => {
-            for (const a of document.getAnimations()) {
-              const e = a.effect as KeyframeEffect | null
-              const p = e?.pseudoElement
-              const k = e?.getKeyframes()
-              if (p?.startsWith('::view-transition-group(tx-') && k?.length && k[0]?.width !== k[k.length - 1]?.width)
-                w.grown.push(p)
-            }
-          })
-          return t
-        }) as typeof document.startViewTransition
+    for (const width of [1280, 375]) {
+      test(`a row opens the transaction page through a view transition (${String(width)}px)`, async ({ page }) => {
+        await fixtureApi(page)
+        await page.addInitScript(() => {
+          const w = window as unknown as { vt: number; grown: string[] }
+          w.vt = 0
+          w.grown = []
+          const start = document.startViewTransition.bind(document)
+          document.startViewTransition = ((cb: never) => {
+            w.vt++
+            const t = start(cb)
+            // A group that changes size is a pair: the old and the new box of one name. An unpaired name has no size change.
+            void t.ready.then(() => {
+              for (const a of document.getAnimations()) {
+                const e = a.effect as KeyframeEffect | null
+                const p = e?.pseudoElement
+                const k = e?.getKeyframes()
+                if (p?.startsWith('::view-transition-group(tx-') && k?.length && k[0]?.width !== k[k.length - 1]?.width)
+                  w.grown.push(p)
+              }
+            })
+            return t
+          }) as typeof document.startViewTransition
+        })
+        await page.setViewportSize({ width, height: 900 })
+        await page.goto(`/address#${A}`)
+        // 768 px and wider: the table; below: the cards.
+        await page
+          .locator(width >= 768 ? 'tbody tr a' : 'main li a')
+          .first()
+          .click()
+        await expect(page).toHaveURL(/\/tx#0x/)
+        expect(await page.evaluate(() => (window as unknown as { vt: number }).vt)).toBeGreaterThan(0)
+        // The status badge and the amount of the row travel into the detail as one object each (#466); reduced motion has no animation to see.
+        if (!reduce) {
+          const read = () => page.evaluate(() => (window as unknown as { grown: string[] }).grown)
+          await expect.poll(async () => (await read()).length).toBeGreaterThan(0)
+          const grown = await read()
+          expect(grown.filter((p) => p.includes('tx-status-0x')).length).toBeGreaterThan(0)
+          expect(grown.filter((p) => p.includes('tx-amount-0x')).length).toBeGreaterThan(0)
+        }
       })
-      await page.setViewportSize({ width: 1280, height: 900 })
+    }
+
+    test('reduced motion sets no shared names at all (#466)', async ({ page }) => {
+      await fixtureApi(page)
       await page.goto(`/address#${A}`)
-      await page.locator('tbody tr a').first().click()
-      await expect(page).toHaveURL(/\/tx#0x/)
-      expect(await page.evaluate(() => (window as unknown as { vt: number }).vt)).toBeGreaterThan(0)
-      // The status badge and the amount of the row travel into the detail as one object each (#466); reduced motion has no animation to see.
-      if (!reduce) {
-        const read = () => page.evaluate(() => (window as unknown as { grown: string[] }).grown)
-        await expect.poll(async () => (await read()).length).toBeGreaterThan(0)
-        const grown = await read()
-        expect(grown.filter((p) => p.includes('tx-status-0x')).length).toBeGreaterThan(0)
-        expect(grown.filter((p) => p.includes('tx-amount-0x')).length).toBeGreaterThan(0)
-      }
+      await expect(page.locator('tbody tr').first()).toBeVisible()
+      const named = await page.evaluate(
+        () =>
+          [...document.querySelectorAll('.tx-shared')].filter((e) => getComputedStyle(e).viewTransitionName !== 'none')
+            .length,
+      )
+      if (reduce) expect(named).toBe(0)
+      else expect(named).toBeGreaterThan(0)
     })
 
     test('the viewer sections rise top to bottom, 30 ms apart (#466)', async ({ page }) => {

@@ -116,7 +116,7 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
             >
               {/* A failed transaction moved no value: no sign, as the cards and the mobile row. */}
               <Shared name={nameOf(i, 'amount')}>
-                <span>{failed(i) ? `${i.amount} ${i.asset}` : signed(i)}</span>
+                <span className="inline-block">{failed(i) ? `${i.amount} ${i.asset}` : signed(i)}</span>
               </Shared>
             </td>
             <td className="text-product-b-body-small text-text-tertiary pr-row-b-padding-x px-1-5 text-right">

@@ -231,6 +231,12 @@
 /* Route change (React <ViewTransition> in root.tsx): the page cross-fades. The status badge and the amount of a history row travel into
    the /tx detail as one object (`Shared` in TxShared.tsx, class tx-share, #466). */
 @media (prefers-reduced-motion: no-preference) {
+  /* `Shared` sets --tx-share; with reduced motion the name is never set, so no shared group exists at all. */
+  .tx-shared {
+    view-transition-name: var(--tx-share);
+    view-transition-class: tx-share;
+  }
+
   ::view-transition-group(.page-fade),
   ::view-transition-group(.tx-share) {
     animation-duration: calc(var(--primitive-motion-duration-base-ms) * 1ms);
@@ -241,10 +247,7 @@
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(.page-fade),
   ::view-transition-old(.page-fade),
-  ::view-transition-new(.page-fade),
-  ::view-transition-group(.tx-share),
-  ::view-transition-old(.tx-share),
-  ::view-transition-new(.tx-share) {
+  ::view-transition-new(.page-fade) {
     animation-duration: 0s;
   }
 }
