@@ -2,13 +2,15 @@
 # PR: only a PR with the label `release` (the PR that starts a release) runs the critical flows (ADR-0039, owner 2026-11-07: the
 # GitHub macOS simulator made the per-PR smoke slow and flaky). Every other PR skips the job.
 # Manual run (workflow_dispatch): every flow. No nightly run (owner decision 2026-11-03, #381); the release gate is release.yml (ADR-0032).
-# Required check = the job `e2e`. It is always created, so it always reports: on a PR that touches no app file it is skipped,
+# Required check = the job `e2e`. It is always created, so it always reports: on a PR without the label `release` it is skipped,
 # and GitHub counts a skipped job as passed for branch protection (a workflow-level `paths:` filter would leave the check missing and block the merge).
 name: e2e
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
+    # Any label change re-checks the gate. Adding an unrelated label to a release PR restarts its run on purpose: a skipped run
+    # from that event would replace a failed release run as the latest `e2e` result. Removing `release` turns the job into a skip.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
 
 permissions:

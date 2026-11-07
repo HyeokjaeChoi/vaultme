@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs the Maestro flows on an iOS simulator, or with PLATFORM=android on an Android emulator (docs/testing/e2e.md). Usage: .maestro/run.sh smoke|full|critical|release [path/to/VaultMe.app|app-release.apk]
-# smoke = flows tagged smoke (the PR gate). full = every flow (nightly). critical = flows tagged critical (release.yml dry run). release = critical + funded: the funded flows (real Sepolia sends, #381) need the MAESTRO_* env of release-run.sh. Target: SIM_UDID (default: the only booted simulator), or ANDROID_SERIAL (default emulator-5554).
+# smoke = flows tagged smoke (a quick local check; no CI job runs it since ADR-0039). full = every flow (manual dispatch). critical = flows tagged critical (release.yml dry run). release = critical + funded: the funded flows (real Sepolia sends, #381) need the MAESTRO_* env of release-run.sh. Target: SIM_UDID (default: the only booted simulator), or ANDROID_SERIAL (default emulator-5554).
 # Device auth (ADR-0016): no bypass in the app. The simulator gets Face ID enrolled, and while the flows run a loop sends the
 # Face ID "match" event every second; it matters only while an OS auth sheet is up (create, reveal, lock gate), else it is ignored.
 # Android: the emulator gets a PIN and a fingerprint, and the loop touches finger 1 every second (scripts/sim-auth.sh match android).
