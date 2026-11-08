@@ -15,8 +15,8 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "eslint": "10.13.0",
-    "knip": "6.43.0",
+    "eslint": "10.14.0",
+    "knip": "6.44.1",
     "lint-staged": "17.6.0",
     "prettier": "3.9.10",
     "tsx": "4.23.15",
