@@ -2,6 +2,7 @@
 
 Status: Accepted (2026-11-01 from issue #314, owner decisions of 2026-11-01)
 Supersedes/Aliases: Q29 in part (no opaque id; a tap opens the list), owner decision of #171 (a tap opens S41), ADR-0010 in part (zero-value skip, no chain read)
+Superseded in part by [0026](0026-push-checks-every-tx-receipt.md): the receipt read covers every notified tx, not own sends only. The rest still binds.
 
 ## Context
 ADR-0010 sends one push per deposit or send reported by the Alchemy webhook. The payload carried the tx hash and a tap opened S41. Owner decisions Q23/Q24 ask for a push when an own tx fails, Q39 for Expo receipt checks, Q29 for a payload without the hash.

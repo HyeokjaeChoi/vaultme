@@ -2,6 +2,7 @@
 
 Status: Accepted (2026-10-13 derived from the removed requirements-session doc, see git history)
 Supersedes/Aliases: Q38 (platform part)
+Superseded in part by [0029](0029-drizzle-orm-for-d1.md): D1 access goes through Drizzle and migrations are generated, not hand-written SQL strings. The rest still binds.
 
 ## Context
 Two options were compared: Workers with Hono and D1, or Node.js with PostgreSQL and a long-running worker. Workers have low operations cost but have CPU limits and some vendor lock-in.
