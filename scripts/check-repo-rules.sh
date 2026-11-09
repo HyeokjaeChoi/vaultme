@@ -288,4 +288,38 @@ if ! bash scripts/check-migrations.sh; then
   err "R16: a migration drops or renames without '-- contract-ok: <reason>' (see above)"
 fi
 
+# R17. An ADR that supersedes another ADR is named in that ADR's header (#364, #414): when the header of ADR A says
+# "Supersedes ... ADR-B" (or "[B](...)"), the header of B has "Superseded ... by" or "Revisited by" naming A.
+# The header is the text before the first "## ". A Supersedes part ends at the next keyword or sentence end.
+if ! python3 - <<'PY'
+import glob, os, re, sys
+key = re.compile(r"Superseded(?: in part)? by|Revisited by|Supersedes")
+ref = re.compile(r"ADR-(\d{4})|\[(?:ADR-)?(\d{4})\]\(")
+heads = {}
+for f in sorted(glob.glob("docs/adr/[0-9][0-9][0-9][0-9]-*.md")):
+    heads[os.path.basename(f)[:4]] = (f, open(f, encoding="utf-8").read().split("\n## ", 1)[0])
+sup, back = {}, {}
+for n, (_, head) in heads.items():
+    ms = list(key.finditer(head))
+    for i, m in enumerate(ms):
+        part = head[m.end():ms[i + 1].start() if i + 1 < len(ms) else len(head)]
+        nums = {a or b for a, b in ref.findall(part)}
+        if m.group(0) == "Supersedes":
+            part = re.split(r"\.\s|\n", part, maxsplit=1)[0]
+            sup[n] = sup.get(n, set()) | {a or b for a, b in ref.findall(part)}
+        else:
+            back[n] = back.get(n, set()) | nums
+bad = 0
+for a, targets in sorted(sup.items()):
+    for b in sorted(targets - {a}):
+        if b not in heads:
+            print(f"docs/adr {a} supersedes ADR-{b}, which does not exist", file=sys.stderr); bad = 1
+        elif a not in back.get(b, set()):
+            print(f"{heads[b][0]}: header has no 'Superseded in part by [{a}](...)' line (ADR-{a} supersedes it)", file=sys.stderr); bad = 1
+sys.exit(bad)
+PY
+then
+  err "R17: a superseded ADR does not name the ADR that supersedes it (see above)"
+fi
+
 exit "$fail"

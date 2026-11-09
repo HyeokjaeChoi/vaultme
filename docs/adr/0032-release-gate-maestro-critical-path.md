@@ -2,6 +2,7 @@
 
 Status: Accepted (2026-11-03 from issue #378, owner decisions of 2026-11-03)
 Superseded in part by: [0039](0039-e2e-runs-on-the-release-pr-only.md) (PRs no longer run the smoke gate; only the release PR runs E2E)
+Superseded in part by: [0033](0033-funded-flows-two-wallets-no-nightly.md) (the "received transaction" flow and the nightly run)
 Supersedes/Aliases: ADR-0025 in part (the release tag and the E2E release gate no longer wait for production), Q54 in part (the release hard gate), Q55 in part (release tag)
 
 ## Context

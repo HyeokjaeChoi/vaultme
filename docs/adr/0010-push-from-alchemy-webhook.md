@@ -2,6 +2,8 @@
 
 Status: Accepted (2026-10-18 from issue #67 owner grilling, commit 93dbdf6)
 Supersedes/Aliases: Q38 (watcher, Queues, cursor), Q25 and Q37 (push after `safe`), Q28 (SIWE), Q31 (90-day expiry)
+Superseded in part by [0023](0023-push-payload-kind-only-and-failure-check.md): the zero-value skip and "no chain read". The rest still binds.
+Superseded in part by [0026](0026-push-checks-every-tx-receipt.md): a log Alchemy marks removed is no longer the only reorg guard. The rest still binds.
 
 ## Context
 The design planned our own Cron watcher with a block cursor, an outbox, and Queues. The issue for push records a different choice (owner decision): an Alchemy Notify webhook avoids running our own block scanner, queue and cursor. This gives a lower run cost and fewer moving parts.
