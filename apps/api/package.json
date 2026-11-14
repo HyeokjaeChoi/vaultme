@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.0",
-    "@sentry/cloudflare": "11.9.0",
+    "@sentry/cloudflare": "11.11.0",
     "@vaultme/contracts": "workspace:*",
     "drizzle-orm": "0.45.4",
     "hono": "^4.13.0",
