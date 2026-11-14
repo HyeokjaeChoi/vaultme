@@ -67,6 +67,8 @@ jobs:
           echo "$RUNNER_TEMP/maestro/maestro/bin" >> "$GITHUB_PATH"
       - name: Build the simulator app (Release, staging API)
         run: apps/mobile/.maestro/build-ios.sh
+      - name: Block Sentry on this runner (CI simulator hangs are not user data, #460)
+        run: apps/mobile/.maestro/block-sentry.sh
       - name: Boot a simulator
         run: |
           runtime=$(xcrun simctl list runtimes available -j | jq -r '[.runtimes[] | select(.platform == "iOS")] | last | .identifier')
