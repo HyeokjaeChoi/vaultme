@@ -35,6 +35,8 @@ for name, text in {
     "url-encoded": urllib.parse.quote(KEY, safe=""),
     "split by spaces": " ".join(KEY),
     "split by a line break": KEY[:10] + "\n" + KEY[10:],
+    "split by dashes": ".".join(KEY),
+    "split by zero-width": "\u200b".join(KEY),
 }.items():
     check(f"leaks {name}", ro.leaks(text, KEY), True)
 check("leaks clean", ro.leaks("A normal finding about sk-ant- prefixes.", KEY), False)
@@ -93,6 +95,8 @@ with tempfile.TemporaryDirectory() as d:
     r, o = os.path.join(d, "r.json"), os.path.join(d, "o.json")
     os.environ["ANTHROPIC_API_KEY"] = KEY
     for name, content, want in (("empty", "", 2), ("cut off", '{"is_error": fal', 2), ("leak", json.dumps({"result": KEY}), 1),
+                                ("leak split by a JSON line break", json.dumps({"result": KEY[:9] + "\n" + KEY[9:]}), 1),
+                                ("leak with unicode escapes", '{"result": "' + "".join("\\u%04x" % ord(c) for c in KEY) + '"}', 1),
                                 ("valid", json.dumps({"is_error": False, "structured_output": OK}), 0)):
         open(r, "w").write(content)
         with contextlib.redirect_stdout(io.StringIO()):

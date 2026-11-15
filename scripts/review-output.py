@@ -46,16 +46,30 @@ SCHEMA = {
 
 
 def leaks(text, key):
-    """True if text holds the key or a simple encoding of it (reversed, base64, hex, URL), even split by white space."""
+    """True if text holds the key or a simple encoding of it (reversed, base64, hex, URL), even with any separator
+    (space, line break, dash, dot) between its characters: both sides are compared with only letters and digits kept."""
     if not key:
         return False
-    flat = re.sub(r"\s+", "", text)
+    keep = lambda s: re.sub(r"[^A-Za-z0-9]", "", s)
+    flat = keep(text)
     raw = key.encode()
     forms = {key, key[::-1], raw.hex(), urllib.parse.quote(key, safe="")}
     for enc in (base64.b64encode, base64.urlsafe_b64encode):
-        b = enc(raw).decode()
-        forms |= {b, b.rstrip("=")}
-    return any(f in flat for f in forms)
+        forms.add(enc(raw).decode())
+    return any(f in flat for f in map(keep, forms))
+
+
+def strings(obj):
+    """Every string value and key in a parsed JSON value, so an escape such as \\n or \\u0073 is compared decoded."""
+    if isinstance(obj, str):
+        yield obj
+    elif isinstance(obj, dict):
+        for k, v in obj.items():
+            yield k
+            yield from strings(v)
+    elif isinstance(obj, list):
+        for v in obj:
+            yield from strings(v)
 
 
 def redact(text):
@@ -102,14 +116,18 @@ def summary_text(sha, text):
 
 def scan(result_path, out_path):
     raw = open(result_path, encoding="utf-8").read()
-    if leaks(raw, os.environ.get("ANTHROPIC_API_KEY", "")):
+    key = os.environ.get("ANTHROPIC_API_KEY", "")
+    try:
+        parsed = json.loads(raw)
+    except ValueError:  # empty or cut-off file (CLI crash, timeout): not a leak
+        parsed = None
+    if leaks(raw, key) or (parsed is not None and leaks("\n".join(strings(parsed)), key)):
         print("::error::The CLI result holds the API key (or an encoding of it). Nothing is uploaded or printed.")
         return 1
-    try:
-        review = extract(json.loads(raw))
-    except ValueError:  # empty or cut-off file (CLI crash, timeout): not a leak
+    if parsed is None:
         print("::error::The CLI result is not JSON.")
         return 2
+    review = extract(parsed)
     bad = validate(review)
     if bad:
         print("::error::No valid structured review: " + "; ".join(bad[:5]))
