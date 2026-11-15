@@ -6,7 +6,7 @@ import { b64uEncode, issueToken } from '../src/auth.ts'
 
 const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
-const grant = (wait: number | null) =>
+const grant = (wait: number | null | { refusedForSeconds: number }) =>
   ({ getByName: () => ({ acquire: () => Promise.resolve(wait) }) }) as unknown as typeof env.ETHERSCAN_BUCKET
 const KEY = 'KEY' + rand()
 const E = {
@@ -143,6 +143,14 @@ describe('POST /v1/tx/internal', () => {
   it('503 without calling Etherscan when the bucket has no token within 2 s', async () => {
     const f = mock(empty)
     expect((await post({ hash: HASH }, { ...E, ETHERSCAN_BUCKET: grant(null) })).status).toBe(503)
+    expect(f).not.toHaveBeenCalled()
+  })
+
+  it('503 with Retry-After = the seconds to 00:00 UTC when the daily Etherscan budget is spent (API-2)', async () => {
+    const f = mock(empty)
+    const r = await post({ hash: HASH }, { ...E, ETHERSCAN_BUCKET: grant({ refusedForSeconds: 7200 }) })
+    expect(r.status).toBe(503)
+    expect(r.headers.get('Retry-After')).toBe('7200')
     expect(f).not.toHaveBeenCalled()
   })
 
