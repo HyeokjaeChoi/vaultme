@@ -106,7 +106,6 @@ describe('useDeviceLock', () => {
   })
   it('an older check that finishes late does not replace the newest answer', async () => {
     const { useDeviceLock } = await import('@/shared/lib/useDeviceLock')
-    hooks.state = null
     let slow!: (n: number) => void
     vi.mocked(LA.getEnrolledLevelAsync).mockReturnValueOnce(new Promise<number>((r) => (slow = r)))
     const r = useDeviceLock() // mount check: pending

@@ -16,6 +16,7 @@ type Point = { indexes?: string[]; blobs?: string[]; doubles?: number[] }
 let points: Point[]
 const E = { ...env, ANALYTICS: { writeDataPoint: (p: Point) => void points.push(p) } as AnalyticsEngineDataset }
 const V = { 'X-App-Version': '1.0.0' }
+const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const spyLog = () => vi.spyOn(console, 'log').mockImplementation(() => undefined)
 const lines = (s: { mock: { calls: unknown[][] } }) =>
   s.mock.calls.map((c) => JSON.parse(String(c[0])) as Record<string, unknown>)
@@ -54,7 +55,7 @@ beforeEach(async () => {
   points = []
   events = []
   // Workaround: @sentry/cloudflare 11.9 keeps its client (so its `environment` and the last event it dedupes against) on this global for the life of the isolate.
-  // Without a reset the result depends on test order and on repeats (--repeats, --sequence.shuffle). Remove when the SDK has a public way to drop the cached client.
+  // Without a reset the result depends on test order and on repeats (--repeats, --sequence.shuffle). The SDK option `cacheClient: false` is not used: it changes the cached-client path that production runs. Remove when `_clearGlobalClientCache` is exported from the package.
   delete (globalThis as Record<string, unknown>).__SENTRY_CLOUDFLARE_CLIENT__
   await E.DB.prepare('DELETE FROM server_errors').run()
 })
@@ -186,17 +187,9 @@ describe('client errors and the cron', () => {
   it('a malformed JSON body is a 400, not a 5xx: no Sentry event, no server_errors row', async () => {
     const r = await app.request(
       '/v1/installs',
-      {
-        method: 'POST',
-        // A fresh IP: the real IP limiter of E counts per IP, so repeats of this test would end in 429.
-        headers: {
-          ...V,
-          'content-type': 'application/json',
-          'CF-Connecting-IP': ['10', ...crypto.getRandomValues(new Uint8Array(3))].join('.'),
-        },
-        body: '{not json',
-      },
-      E,
+      { method: 'POST', headers: { ...V, 'content-type': 'application/json' }, body: '{not json' },
+      // The 400 is the point, not the limit: the real IP limiter of E counts per IP, so repeats of this test would end in 429.
+      { ...E, INSTALL_IP_LIMITER: open },
     )
     expect(r.status).toBe(400)
     expect(await r.json()).toMatchObject({ code: 'invalid_request' })
