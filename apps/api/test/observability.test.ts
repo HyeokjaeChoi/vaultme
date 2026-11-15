@@ -53,6 +53,9 @@ const cron = async () => {
 beforeEach(async () => {
   points = []
   events = []
+  // Workaround: @sentry/cloudflare 11.9 keeps its client (so its `environment` and the last event it dedupes against) on this global for the life of the isolate.
+  // Without a reset the result depends on test order and on repeats (--repeats, --sequence.shuffle). Remove when the SDK has a public way to drop the cached client.
+  delete (globalThis as Record<string, unknown>).__SENTRY_CLOUDFLARE_CLIENT__
   await E.DB.prepare('DELETE FROM server_errors').run()
 })
 afterEach(() => vi.restoreAllMocks())
@@ -183,7 +186,16 @@ describe('client errors and the cron', () => {
   it('a malformed JSON body is a 400, not a 5xx: no Sentry event, no server_errors row', async () => {
     const r = await app.request(
       '/v1/installs',
-      { method: 'POST', headers: { ...V, 'content-type': 'application/json' }, body: '{not json' },
+      {
+        method: 'POST',
+        // A fresh IP: the real IP limiter of E counts per IP, so repeats of this test would end in 429.
+        headers: {
+          ...V,
+          'content-type': 'application/json',
+          'CF-Connecting-IP': ['10', ...crypto.getRandomValues(new Uint8Array(3))].join('.'),
+        },
+        body: '{not json',
+      },
       E,
     )
     expect(r.status).toBe(400)
