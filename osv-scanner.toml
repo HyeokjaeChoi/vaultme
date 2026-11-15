@@ -3,7 +3,7 @@
 #
 # An entry needs an id, a reason and ignoreUntil:
 # - The reason starts with its scope: "dev: " for a dev or CI tool, or "shipped: no fix " for code that ships (only when no fix exists).
-# - ignoreUntil is a date, at most 30 days ahead for dev and 14 days for shipped. From 00:00 UTC of that day the finding shows again.
+# - ignoreUntil is a date, at most 30 days ahead for dev and 14 days for shipped. On that day (00:00, UTC in CI) the finding shows again.
 # scripts/check-osv-exceptions.py (R18) fails the repo rules for an entry that breaks this or has expired. To renew an entry, change the date
 # and the reason in a PR. To end it, delete it. Only [[IgnoredVulns]] with these three keys is allowed here (R18).
 #

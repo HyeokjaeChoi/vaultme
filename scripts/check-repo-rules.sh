@@ -244,29 +244,13 @@ fi
 if ! grep -qE '^blockExoticSubdeps:[[:space:]]*true[[:space:]]*(#.*)?$' pnpm-workspace.yaml; then
   err "R13: pnpm-workspace.yaml needs 'blockExoticSubdeps: true'"
 fi
-if grep -nE '^[[:space:]]*(trustPolicyIgnoreAfter|trustLockfile)' pnpm-workspace.yaml; then
-  err "R13: no trustPolicyIgnoreAfter or trustLockfile in pnpm-workspace.yaml; they turn the trust check off (ADR-0047)"
+# scripts/check-trust-settings.py fails closed: plain keys only, no trustPolicyIgnoreAfter or trustLockfile (quoted or not), and the
+# trustPolicyExclude block holds only '  - name@version' lines from its allowed list (chokidar@4.0.3, semver@5.7.2, semver@6.3.1).
+if ! python3 scripts/check-trust-settings.test.py; then
+  err "R13: scripts/check-trust-settings.test.py failed (run it to see the case)"
 fi
-if ! python3 - <<'PY'
-import re, sys
-allowed = {"chokidar@4.0.3", "semver@5.7.2", "semver@6.3.1"}
-bad, in_list = [], False
-for line in open("pnpm-workspace.yaml", encoding="utf-8"):
-    if re.match(r"trustPolicyExclude:\s*(#.*)?$", line):
-        in_list = True
-    elif re.match(r"\s*trustPolicyExclude\b", line):
-        bad.append("write trustPolicyExclude as a block list (one '- name@version' per line)")
-    elif in_list:
-        m = re.match(r"\s+-\s+['\"]?([^'\"\s#]+)['\"]?\s*(#.*)?$", line)
-        if m and m[1] not in allowed:
-            bad.append(f"trustPolicyExclude entry {m[1]} is not in the allowed list")
-        elif not m and line.strip() and not line.lstrip().startswith("#"):
-            in_list = False
-for b in bad: print(b, file=sys.stderr)
-sys.exit(1 if bad else 0)
-PY
-then
-  err "R13: pnpm-workspace.yaml trustPolicyExclude may hold only chokidar@4.0.3, semver@5.7.2 and semver@6.3.1 (ADR-0047)"
+if ! python3 scripts/check-trust-settings.py pnpm-workspace.yaml; then
+  err "R13: pnpm-workspace.yaml trust block breaks ADR-0047 (see lines above): no trustPolicyIgnoreAfter or trustLockfile, trustPolicyExclude only the three allowed old versions"
 fi
 
 # R14. The decision ledger covers every requirements decision (#304): docs/decisions.md has one row per Q1-Q81 with a
