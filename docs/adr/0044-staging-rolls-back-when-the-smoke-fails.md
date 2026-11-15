@@ -16,7 +16,9 @@ Status: Accepted (2026-11-15, issue #547, owner decision 8 of `docs/plans/qualit
 ## Consequences
 - A bad staging deploy is replaced by the previous version in about a minute, with no person. The job is still red, so the cause is fixed forward on `main`.
 - Cloudflare refuses a rollback across a Durable Object class change and to a version with a deleted binding. The step then fails loudly and the Worker stays on the bad version: fix forward.
-- The re-check of the web Worker is the same `apps/web/e2e-staging/smoke.sh` as the smoke. It checks the version that serves traffic, not that every static asset matches the old build; Cloudflare versions hold the asset manifest, but the drill compares the version id only.
+- The re-check of the web Worker runs the same `apps/web/e2e-staging/smoke.sh` as the smoke, then compares the viewer page (`/address`, which names the hashed assets) with the page read before the deploy. Equal pages mean the old assets are served again. When the drill commit builds the same page as the version before it, the comparison cannot tell the two builds apart.
+- The drill ends with staging on the version before the drill. The next push to `main` deploys the current commit again.
+- The rollback alert issue opens also when the rollback or the re-check fails: that is when a person is needed.
 - Cloudflare keeps the 100 latest versions. A rollback adds one deployment.
 
 <!-- verified: .github/workflows/api-staging.yml, .github/workflows/web-staging.yml, apps/web/e2e-staging/smoke.sh -->

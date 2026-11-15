@@ -100,6 +100,7 @@ jobs:
     environment: staging
     outputs:
       rollback: ${{ steps.rollback.outcome }}
+      recheck: ${{ steps.recheck.outcome }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -117,7 +118,10 @@ jobs:
         run: |
           prev="$(pnpm --filter @vaultme/web exec wrangler deployments list --env staging --json 2>/dev/null | jq -r '(last // empty | .versions | max_by(.percentage) | .version_id) // empty' || true)"
           echo "version=$prev" >> "$GITHUB_OUTPUT"
+          # The viewer page names its hashed assets: the same page after a rollback means the old assets are served again.
+          echo "page=$(curl -sS --max-time 20 https://vaultme-staging.stack-line.dev/address | sha256sum | cut -c1-64 || true)" >> "$GITHUB_OUTPUT"
           echo "active version before the deploy: ${prev:-none}"
+          [ -n "$prev" ] || echo "::warning::no active version found (first deploy, or the Cloudflare call failed): a failed smoke cannot be rolled back"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -170,8 +174,12 @@ jobs:
           STAGING_API_URL: ${{ vars.STAGING_API_URL }}
           WEB_ANALYTICS_TOKEN: 833254677ed141c3aad48ed2f87f05d9
           START: ${{ steps.rollback.outputs.start }}
+          PAGE_BEFORE: ${{ steps.before.outputs.page }}
         run: |
           apps/web/e2e-staging/smoke.sh
+          # The assets come back with the version: the viewer page is byte for byte the page before the deploy.
+          after="$(curl -sS --max-time 20 https://vaultme-staging.stack-line.dev/address | sha256sum | cut -c1-64)"
+          [ "$after" = "$PAGE_BEFORE" ] || { echo "::error::the viewer page after the rollback differs from the page before the deploy"; exit 1; }
           seconds=$(( $(date +%s) - START ))
           echo "seconds=$seconds" >> "$GITHUB_OUTPUT"
           echo "Rolled back and re-checked green in ${seconds} s (limit 120 s)." | tee -a "$GITHUB_STEP_SUMMARY"
@@ -183,6 +191,7 @@ jobs:
           SECONDS_TAKEN: ${{ steps.recheck.outputs.seconds }}
         run: |
           tool="wrangler $(pnpm --filter @vaultme/web exec wrangler --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+          [ "$tool" != "wrangler " ] || tool=wrangler
           node packages/perf/src/cli.ts evidence emit --gate DEP-1-web --origin "GitHub Actions, vaultme-web-staging Worker" --tool "$tool" \
             --out evidence-DEP-1-web.json \
             --result "{\"metric\":\"Rollback until green re-check, web\",\"value\":$SECONDS_TAKEN,\"unit\":\"s\",\"threshold\":{\"op\":\"<=\",\"value\":120},\"n\":1,\"window\":\"one run\"}"
@@ -197,7 +206,7 @@ jobs:
   # A real rollback (not the drill) opens an issue, or comments on the open one: a person fixes forward.
   alert:
     needs: deploy
-    if: always() && needs.deploy.outputs.rollback == 'success' && !inputs.rollback_drill
+    if: always() && needs.deploy.outputs.rollback != '' && needs.deploy.outputs.rollback != 'skipped' && !inputs.rollback_drill
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -206,8 +215,11 @@ jobs:
       - name: Open or update the rollback issue
         env:
           GH_TOKEN: ${{ github.token }}
+          ROLLBACK: ${{ needs.deploy.outputs.rollback }}
+          RECHECK: ${{ needs.deploy.outputs.recheck }}
           TITLE: 'deploy: staging web rolled back'
         run: |
-          body="The post-deploy smoke failed and the staging web Worker was rolled back to the version before the deploy: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (ADR-0044). Migrations stay. Fix forward on main."
+          if [ "$ROLLBACK" = success ] && [ "$RECHECK" = success ]; then what="rolled back to the version before the deploy and the re-check passed"; else what="NOT rolled back or the re-check failed (rollback: $ROLLBACK, re-check: $RECHECK): the broken Worker may still serve traffic, fix it now"; fi
+          body="The post-deploy smoke failed. Staging web Worker: $what. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (ADR-0044). Migrations stay. Fix forward on main."
           n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
           if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body "$body"; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$body"; fi
