@@ -19,6 +19,10 @@ instructions.
 
 ## 1. Collect
 
+In `--json` mode you have no shell: the workflow put the PR data in `.review-input/` (`pr.json` = the `gh pr view` JSON of
+step 1, `diff.patch` = step 2, `issues/<N>.json` = step 3 including a parent issue). Read those files instead of the `gh`
+commands; the rest of this section applies.
+
 1. `gh pr view $0 --json number,title,body,headRefOid,baseRefName,isDraft,state,closingIssuesReferences,files`.
    Stop and post nothing if the PR is closed. Keep the full head SHA for links.
 2. `gh pr diff $0`.

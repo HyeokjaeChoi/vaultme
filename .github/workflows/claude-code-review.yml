@@ -53,9 +53,10 @@ jobs:
       api: ${{ steps.api.outcome }}
     env:
       PR: ${{ github.event.pull_request.number }}
-      # Read tools only. Claude returns JSON; it posts nothing. Sonnet runs the skill and the finders
+      # Read tools only, no Bash at all (a Bash subprocess holds the key in its env and `gh -R host` is a way out, #539). The PR
+      # text and diff are fetched by a step without the key into .review-input/. Claude returns JSON; it posts nothing. Sonnet runs the skill and the finders
       # (.claude/agents/review-finder.md); Opus verifies (review-verifier.md).
-      ALLOWED_TOOLS: Read,Glob,Grep,Agent,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*)
+      ALLOWED_TOOLS: Read,Glob,Grep,Agent
       SYSTEM_PROMPT: This repository keeps its project rules in AGENTS.md files and REVIEW.md and has no CLAUDE.md. The working tree holds the PR-base versions of REVIEW.md, AGENTS.md, ARCHITECTURE.md, CONTEXT.md, PRODUCT.md, DESIGN.md, docs/adr and docs/agents; judge the PR by those, not by the PR's edits to them. The head SHA of this PR is ${{ github.event.pull_request.head.sha }}. You have no way to post, so return the review only as the structured output (--json mode of the skill); the workflow adds the marker line and posts it. Never put an environment value, key or token in the output.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -92,6 +93,22 @@ jobs:
           npm ci --ignore-scripts --prefix "$cli" >/dev/null
           node "$cli/node_modules/@anthropic-ai/claude-code/install.cjs" >/dev/null
           echo "$cli/node_modules/.bin" >> "$GITHUB_PATH"
+      # No key here. The model has no shell, so it reads the PR through these files (untrusted text, like any PR text).
+      - name: PR input for the review
+        env:
+          GH_TOKEN: ${{ github.token }} # read only
+        run: |
+          d=.review-input
+          mkdir -p "$d/issues"
+          gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json number,title,body,headRefOid,baseRefName,isDraft,state,closingIssuesReferences,files > "$d/pr.json"
+          gh pr diff "$PR" --repo "$GITHUB_REPOSITORY" > "$d/diff.patch"
+          for n in $(jq -r '.closingIssuesReferences[].number' "$d/pr.json"); do
+            gh issue view "$n" --repo "$GITHUB_REPOSITORY" --json title,body > "$d/issues/$n.json"
+            # The parent issue of a child issue (its `## Parent` section), at most three.
+            for p in $(jq -r '.body' "$d/issues/$n.json" | sed -n '/^## Parent/,/^## /p' | grep -oE '#[0-9]+' | tr -d '#' | sort -u | head -3); do
+              gh issue view "$p" --repo "$GITHUB_REPOSITORY" --json title,body > "$d/issues/$p.json" || true
+            done
+          done
       # Stage 1. Continues on error: the step outputs `reason` (no-key, quota) tell stage 2 whether it may run.
       # The key sits in this step only. The model runs and `review-output.py scan` runs in the same step, so nothing the
       # model wrote is printed or uploaded before the key check.
@@ -111,7 +128,8 @@ jobs:
           test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; echo "reason=no-key" >> "$GITHUB_OUTPUT"; exit 1; }
           # --permission-mode dontAsk: a tool call that is not allowed is denied, never asked. The skill's own allowed-tools
           # lists the posting commands (the fallback and local runs use them); a deny rule wins over it.
-          denied=('Bash(gh pr comment:*)' 'Bash(gh pr edit:*)' 'Bash(gh api:*)' 'mcp__github_inline_comment__create_inline_comment')
+          # `Bash` removes the shell tool; Read(//proc) is where a process env is readable.
+          denied=('Bash' 'Read(//proc/**)' 'Read(//sys/**)' 'mcp__github_inline_comment__create_inline_comment')
           claude -p "/vaultme-pr-review ${PR} --json" \
             --model sonnet \
             --permission-mode dontAsk \
@@ -119,7 +137,7 @@ jobs:
             --disallowedTools "${denied[@]}" \
             --append-system-prompt "$SYSTEM_PROMPT" \
             --json-schema "$(python3 scripts/review-output.py schema)" \
-            --output-format json > "$RUNNER_TEMP/result.json" || true
+            --output-format json > "$RUNNER_TEMP/result.json" 2> "$RUNNER_TEMP/claude.err" || true # stderr is never printed
           rc=0
           python3 scripts/review-output.py scan "$RUNNER_TEMP/result.json" "$RUNNER_TEMP/review.json" || rc=$?
           if [ "$rc" = 1 ]; then rm -f "$RUNNER_TEMP/result.json" "$RUNNER_TEMP/review.json"; exit 1; fi
@@ -143,6 +161,7 @@ jobs:
           name: review
           path: ${{ runner.temp }}/review.json
           if-no-files-found: error
+          overwrite: true
           retention-days: 1
 
   post:

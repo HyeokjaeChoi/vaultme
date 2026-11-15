@@ -163,6 +163,7 @@ def post(review_path, pr, sha):
     text = review["summary"]
     if unplaced:
         text += "\n\nFindings that could not be placed on a diff line:\n" + "\n".join(unplaced)
+    text = text[:60000]  # GitHub allows 65,536 characters in a comment
     ok, _ = gh(f"repos/{repo}/issues/{pr}/comments", "-f", f"body={summary_text(sha, text)}")
     if not ok:
         print("::error::The summary comment was not posted.")

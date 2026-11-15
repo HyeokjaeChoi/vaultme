@@ -9,8 +9,9 @@ restores .claude/, CLAUDE.md and .mcp.json from the PR base first; no other job 
 import re
 import sys
 
-READ_TOOLS = {"Read", "Glob", "Grep", "Agent", "Bash(gh pr view:*)", "Bash(gh pr diff:*)", "Bash(gh issue view:*)"}
-DENIED = ("Bash(gh pr comment:*)", "Bash(gh pr edit:*)", "Bash(gh api:*)", "mcp__github_inline_comment__create_inline_comment")
+READ_TOOLS = {"Read", "Glob", "Grep", "Agent"}  # no Bash: its subprocess holds the key in its env
+DENIED = ("'Bash'", "Read(//proc/**)", "Read(//sys/**)", "mcp__github_inline_comment__create_inline_comment")
+CLAUDE_FLAGS = {"--model", "--permission-mode", "--allowedTools", "--disallowedTools", "--append-system-prompt", "--json-schema", "--output-format"}
 BANNED = ("--dangerously-skip-permissions", "bypassPermissions", "acceptEdits", "claude-code-action", "CLAUDE_CODE_OAUTH_TOKEN", "id-token")
 
 
@@ -103,6 +104,17 @@ def check(text):
     for l in code(rev):
         if re.search(r"gh (pr (comment|edit|review|merge)|api|issue (comment|edit))|--method|curl ", l) and not l.lstrip().startswith(("denied=", "ALLOWED_TOOLS:", "DENIED")) and "gh pr view" not in l:
             bad.append("job `review` has a posting command: " + l.strip()[:80])
+    # `claude -p` takes exactly these flags: --settings, --mcp-config, --add-dir or a second allow list would widen the tools.
+    cmd = []
+    for l in rev[cli:] if cli is not None else []:
+        cmd.append(l)
+        if not l.rstrip().endswith("\\"):
+            break
+    extra = set(re.findall(r"--[A-Za-z-]+", re.sub(r'"[^"]*"|\'[^\']*\'', "", " ".join(cmd)))) - CLAUDE_FLAGS
+    if extra:
+        bad.append("`claude -p` has flags outside the allowed set: " + ", ".join(sorted(extra)))
+    if re.search(r"secrets\[|toJSON\(\s*secrets|toJson\(\s*secrets|\bsecrets\s*\}\}", c):
+        bad.append("do not read the secrets context as a whole or by index (toJSON(secrets), secrets['X'])")
     for name, block in jobs.items():
         b = "\n".join(code(block))
         if name != "review" and re.search(r"claude -p ", b):
