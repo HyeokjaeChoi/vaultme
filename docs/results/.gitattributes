@@ -1,0 +1,2 @@
+# Evidence files are byte-exact (ADR-0043): no CRLF from autocrlf, so the README check and the canonical-form check hold on every OS.
+* text eol=lf
