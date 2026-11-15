@@ -12,7 +12,7 @@ import { Hono } from 'hono'
 import { app, handleError } from '../src/app.ts'
 import { b64uEncode, issueToken } from '../src/auth.ts'
 import type { Env } from '../src/env.ts'
-import { UpstreamError, retryAfter } from '../src/errors.ts'
+import { UpstreamError, unavailable } from '../src/errors.ts'
 
 const get = (path: string, headers: Record<string, string> = {}, e = env) => app.request(path, { headers }, e)
 const V = { 'X-App-Version': '1.0.0' }
@@ -178,6 +178,15 @@ describe('api', () => {
 // Retry-After (API-3, docs/plans/quality-gates.md): every 429 and every retryable 503 says how long to wait, in whole seconds from 1 to 86,400.
 // One row per route. The OpenAPI document lists the routes that declare a 429 or a 503; a declared answer without a row fails here,
 // so a new route cannot skip the header.
+// `retryAfter` is private: read the header `unavailable` hands to `c.json`.
+const retryAfter = (fallback: number, cause?: UpstreamError) =>
+  (unavailable as (c: unknown, m: string, f: number, e?: UpstreamError) => unknown)(
+    { json: (_body: unknown, _status: number, headers: unknown) => headers },
+    'x',
+    fallback,
+    cause,
+  ) as { 'Retry-After': string }
+
 describe('Retry-After', () => {
   const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
   const closed: RateLimit = { limit: () => Promise.resolve({ success: false }) }

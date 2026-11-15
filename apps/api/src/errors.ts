@@ -37,7 +37,7 @@ const RETRY_AFTER_MAX_SECONDS = 86_400 // one day: the longest wait is until 00:
  * The `Retry-After` header of a retryable 503 (API-3): whole seconds, 1 to 86,400, whatever number comes in (rounded up, clamped).
  * `fallbackSeconds` is the route's default wait; a `cause` that carries seconds wins, unless it is NaN. The 429 sets its own header (`rateLimited`, 60 s).
  */
-export const retryAfter = (fallbackSeconds: number, cause?: UpstreamError): { 'Retry-After': string } => {
+const retryAfter = (fallbackSeconds: number, cause?: UpstreamError): { 'Retry-After': string } => {
   const given = cause?.retryAfterSeconds
   const seconds = given === undefined || Number.isNaN(given) ? fallbackSeconds : given
   return { 'Retry-After': String(Math.min(RETRY_AFTER_MAX_SECONDS, Math.max(1, Math.ceil(seconds)))) }
