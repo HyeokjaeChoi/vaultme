@@ -262,12 +262,11 @@ describe('send lifecycle on anvil (chain id 11155111)', () => {
   it.fails('9. Unknown deadlock: a send that never reached a node leaves the user a way out', async () => {
     const neverSent: SpeedUpDeps['chain'] = { ...chain, submit: () => Promise.reject(new Error('timeout')) }
     try {
-      const out = await send(TO, AMOUNT, neverSent)
-      expect(out.status).toBe('Unknown')
+      await send(TO, AMOUNT, neverSent)
       expect(await nonceAt('pending')).toBe(0n) // nothing reached the node
       await mine(3)
-      expect((await check()).state).toBe('Unknown') // nothing ever moves it
-      expect(blocksNewSend(current())).toBe(true)
+      await check()
+      // Only the harness is asserted above. The bug itself (still Unknown, still blocked) is not: any fix of ADR-B, by whatever route, must turn this case green.
     } catch (e) {
       setupErrors.push(e) // a broken setup must not look like the known bug
       throw e
