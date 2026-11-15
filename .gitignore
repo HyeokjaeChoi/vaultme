@@ -38,5 +38,5 @@ apps/mobile/e2e-report-retry.xml
 apps/mobile/e2e-artifacts
 
 # Stryker (MUT-1)
-reports/
+packages/*/reports/
 .stryker-tmp/
