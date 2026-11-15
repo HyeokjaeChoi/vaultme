@@ -12,7 +12,9 @@ const file = JSON.parse(readFileSync('scripts/bundle-budget.json', 'utf8')) as {
 mkdirSync('node_modules/.cache', { recursive: true })
 const out = mkdtempSync('node_modules/.cache/bundle-budget-')
 try {
-  execFileSync('pnpm', ['exec', 'wrangler', 'deploy', '--dry-run', '--outdir', out], { stdio: 'ignore' })
+  execFileSync('pnpm', ['exec', 'wrangler', 'deploy', '--dry-run', '--outdir', out], {
+    stdio: ['ignore', 'ignore', 'inherit'],
+  }) // stdout is wrangler's table; its errors go to stderr and stay visible
   const script = readFileSync(`${out}/index.js`)
   const now: Sizes = { rawBytes: script.length, gzipBytes: gzipSync(script).length }
   const rows = (['rawBytes', 'gzipBytes'] as const).map((k) => ({
