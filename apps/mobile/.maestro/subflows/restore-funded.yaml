@@ -7,60 +7,68 @@ appId: dev.stackline.vaultme
     visible: '1번째 단어'
     timeout: 15000
 - tapOn: '1번째 단어'
-# Each word waits for the focus of its cell (next-cell.yaml, MOB-1); cell 1 first.
-- extendedWaitUntil:
-    visible:
-      text: '1번째 단어'
-      focused: true
-    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 3000
 - runFlow:
     file: type-word.yaml
     env:
       N: 1
+      WORD: ${MAESTRO_PHRASE.split(' ')[0]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 2
+      WORD: ${MAESTRO_PHRASE.split(' ')[1]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 3
+      WORD: ${MAESTRO_PHRASE.split(' ')[2]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 4
+      WORD: ${MAESTRO_PHRASE.split(' ')[3]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 5
+      WORD: ${MAESTRO_PHRASE.split(' ')[4]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 6
+      WORD: ${MAESTRO_PHRASE.split(' ')[5]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 7
+      WORD: ${MAESTRO_PHRASE.split(' ')[6]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 8
+      WORD: ${MAESTRO_PHRASE.split(' ')[7]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 9
+      WORD: ${MAESTRO_PHRASE.split(' ')[8]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 10
+      WORD: ${MAESTRO_PHRASE.split(' ')[9]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 11
+      WORD: ${MAESTRO_PHRASE.split(' ')[10]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 12
+      WORD: ${MAESTRO_PHRASE.split(' ')[11]}
 # Optional BIP39 passphrase: the row is collapsed; on the small Android screen scroll to it first.
 - runFlow:
     when:

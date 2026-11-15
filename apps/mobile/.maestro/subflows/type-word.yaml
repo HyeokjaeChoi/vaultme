@@ -1,11 +1,40 @@
-# Types word N (1-based) of the funded wallet's phrase (shell env MAESTRO_PHRASE, set by release-run.sh) into the focused restore cell, then Return moves to the next cell (see restore-vector.yaml). Cell 1 must be tapped by the caller.
-# The value is masked in the CI log (::add-mask:: in mask-phrase.sh, a step of its own before release-run.sh); the flows' test-output dir is never uploaded.
+# Types WORD into restore cell N (1-12), then gives the focus time to reach cell N+1 before the caller types the next word (MOB-1).
+# The caller has focused cell 1. Params: N, WORD (the funded phrase word comes from the shell env MAESTRO_PHRASE, masked in the CI log by
+# mask-phrase.sh; the flows' test-output dir of a tag run is never uploaded).
+# The app moves the focus after Return from JS, a moment later: typing before that put the first letters of the next word into the
+# previous cell ("abandona" and "bandon", runs 42345208003, 42156809851), and a tap on the next cell lost words on iOS
+# (local runs). waitForAnimationToEnd returns at once on a still screen, so it is no wait for the focus.
+# iOS: Maestro 2.11.0 reports `focused: false` for every cell even with the keyboard up (iOS 27.2 simulator), so `focused` cannot be
+# waited for, and a tap on the next cell fails: with the keyboard up cells 5 and 6 sit under the footer until the app scrolls them in.
+# So press Return and pause 1.5 s (the focus moves within milliseconds; the pause is a margin for a slow CI simulator).
+# Android: `focused` works for an EditText: press Return (the app scrolls the next cell into view) and wait for the focus.
+# After cell 12 Return closes the keyboard (#424: tapping the description text does not).
 appId: dev.stackline.vaultme
 ---
-- inputText: ${MAESTRO_PHRASE.split(' ')[N - 1]}
-- pressKey: Enter
-# Wait for the focus to reach the next cell before the next word is typed (MOB-1, next-cell.yaml).
+- inputText: ${WORD}
 - runFlow:
-    file: next-cell.yaml
-    env:
-      N: ${N}
+    when:
+      platform: iOS
+    commands:
+      - pressKey: Enter
+      # Fixed pause: iOS offers nothing to wait for (see above). `optional` keeps the flow going when the text never shows, which is the point.
+      - extendedWaitUntil:
+          visible: 'pause-never-shown'
+          timeout: 1500
+          optional: true
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Enter
+      - runFlow:
+          when:
+            true: ${Number(N) < 12}
+          commands:
+            - extendedWaitUntil:
+                visible:
+                  text: '${Number(N) + 1}번째 단어'
+                  focused: true
+                timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 3000

@@ -2,92 +2,73 @@
 appId: dev.stackline.vaultme
 ---
 - tapOn: '기존 지갑 복구'
-# Only cell 1 is tapped. After each word the Return key ("next") moves focus to the next cell and Screen scrolls it into view;
-# after word 12 Return ("done") closes the keyboard. Tapping the description text to close the keyboard does not work (#424
-# run 41953979353: the keyboard stays up, and cell 12 sits under the footer so a tap on it hit cell 11, run 41932921187).
-# The focus moves a moment after Return: typing before that put the first letters of the next word into the previous cell
-# ("abandona" and "bandon", runs 42345208003, 42156809851, MOB-1). Each word waits until its cell has the focus (next-cell.yaml).
+# Only cell 1 is tapped here; type-word.yaml moves to each next cell and explains why (MOB-1, #424).
 - extendedWaitUntil:
     visible: '1번째 단어'
     timeout: 15000
 - tapOn: '1번째 단어'
-- extendedWaitUntil:
-    visible:
-      text: '1번째 단어'
-      focused: true
-    timeout: 10000
-- inputText: 'abandon'
-- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 3000
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 1
-- inputText: 'abandon'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 2
-- inputText: 'abandon'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 3
-- inputText: 'abandon'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 4
-- inputText: 'abandon'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 5
-- inputText: 'abandon'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 6
-- inputText: 'abandon'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 7
-- inputText: 'abandon'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 8
-- inputText: 'abandon'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 9
-- inputText: 'abandon'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 10
-- inputText: 'abandon'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 11
-- inputText: 'about'
-- pressKey: Enter
+      WORD: 'abandon'
 - runFlow:
-    file: next-cell.yaml
+    file: type-word.yaml
     env:
       N: 12
+      WORD: 'about'
 # 복구 stays off until all 12 words are valid: wait for it to turn on, so a wrong word fails here and not 30 s later.
 - extendedWaitUntil:
     visible:
