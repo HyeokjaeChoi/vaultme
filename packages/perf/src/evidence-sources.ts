@@ -38,6 +38,10 @@ export function jsBudgetResults(json: unknown): ResultInput[] {
   })
 }
 
+/** The window each metric really covers: 28 days of main, the last 10 green runs, or the state at the time of the run. */
+const ciWindow = (name: string): string =>
+  name.startsWith('Red main') ? '28 days' : /^(PR CI|`?verify`?)/.test(name) ? 'last 10 green runs' : 'snapshot'
+
 /** The metrics `cli.ts ci-health --json` writes (gate OBS-1): each against its limit; a metric with no sample (no open issue) is left out. */
 export function ciHealthResults(json: unknown): ResultInput[] {
   if (!Array.isArray(json)) throw new Error('ci-health: expected an array of metrics')
@@ -50,7 +54,9 @@ export function ciHealthResults(json: unknown): ResultInput[] {
       typeof m.n !== 'number'
     )
       throw new Error('ci-health: a metric has no name, value, unit, limit and n')
-    if (m.n < 1) return []
+    // The age of the last green api-bench has n 0 when there is none: that worst case (9999 days) must stay in the evidence.
+    const worst = m.n < 1 && m.name.startsWith('Age of the last green')
+    if (m.n < 1 && !worst) return []
     return [
       {
         // Backticks of the table name would break the evidence text rule.
@@ -58,8 +64,8 @@ export function ciHealthResults(json: unknown): ResultInput[] {
         value: m.value,
         unit: m.unit,
         threshold: { op: '<=' as const, value: m.limit },
-        n: m.n,
-        window: m.name.startsWith('Red main') ? '28 days' : 'one run',
+        n: worst ? 1 : m.n,
+        window: ciWindow(m.name),
       },
     ]
   })

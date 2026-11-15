@@ -457,8 +457,14 @@ describe('sources', () => {
     ])
     expect(results.map((r) => [r.metric, r.window])).toEqual([
       ['Red main: failed ci runs on main, 28 days', '28 days'],
-      ['PR CI wall time, median of the last green runs', 'one run'],
+      ['PR CI wall time, median of the last green runs', 'last 10 green runs'],
     ])
+    const worst = ciHealthResults([
+      { name: 'Age of the last green `api-bench`', value: 9999, unit: 'days', limit: 8, n: 0 },
+      { name: 'Oldest open `flaky` issue', value: 0, unit: 'days', limit: 14, n: 0 },
+    ])
+    expect(worst).toHaveLength(1)
+    expect(worst[0]).toMatchObject({ n: 1, window: 'snapshot', value: 9999 })
     const e = buildEvidence(input({ gate: 'OBS-1', results }))
     expect(e.results.map((r) => r.pass)).toEqual([false, true])
     expect(() => ciHealthResults({})).toThrow(/expected an array/)
