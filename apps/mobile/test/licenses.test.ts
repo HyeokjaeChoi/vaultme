@@ -61,16 +61,15 @@ const ALLOWED = new Set([
   'MIT', 'ISC', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause', '0BSD', 'BlueOak-1.0.0',
   'CC0-1.0', 'Unlicense', 'Python-2.0', 'CC-BY-4.0', 'OFL-1.1',
 ]) // prettier-ignore
-// Reviewed exceptions: build-time tools that are not bundled into the app. Listed by package name, with the license they carry.
-const EXCEPTIONS: Record<string, string> = {
-  '@sentry/cli': 'FSL-1.1-MIT', // source-map upload CLI; auto upload is off (app.json disableAutoUpload)
-  '@sentry/cli-darwin': 'FSL-1.1-MIT',
-  lightningcss: 'MPL-2.0', // Metro CSS transform at build time; file-level copyleft, no change to its files
-  'lightningcss-darwin-arm64': 'MPL-2.0',
-}
-const alternatives = (spdx: string) => spdx.replace(/[()]/g, '').split(/\s+(?:OR|·)\s+/)
+// Reviewed exceptions: build-time tools that are not bundled into the app. Matched by name prefix, because pnpm installs the binary
+// package of the machine that runs it (`-darwin-arm64`, `-linux-x64`, ...).
+const EXCEPTIONS = [
+  { name: /^@sentry\/cli(-|$)/, spdx: 'FSL-1.1-MIT' }, // source-map upload CLI; auto upload is off (app.json disableAutoUpload)
+  { name: /^lightningcss(-|$)/, spdx: 'MPL-2.0' }, // Metro CSS transform at build time; file-level copyleft, no change to its files
+]
+const alternatives = (spdx: string) => spdx.replace(/[()]/g, '').split(/\s+OR\s+/)
 const ok = (name: string, spdx: string) =>
-  EXCEPTIONS[name] === spdx || alternatives(spdx).some((a) => ALLOWED.has(a.trim()))
+  EXCEPTIONS.some((e) => e.name.test(name) && e.spdx === spdx) || alternatives(spdx).some((a) => ALLOWED.has(a.trim()))
 
 describe('license allow-list (SEC-12)', () => {
   it('every shipped library variant has an allowed license', () => {
@@ -88,8 +87,8 @@ describe('license allow-list (SEC-12)', () => {
   })
 
   it('every exception is still in use', () => {
-    for (const [name, spdx] of Object.entries(EXCEPTIONS)) {
-      expect(find(name)?.variants.some((v) => v.license === spdx)).toBe(true)
+    for (const e of EXCEPTIONS) {
+      expect(data.libs.some((l) => e.name.test(l.name) && l.variants.some((v) => v.license === e.spdx))).toBe(true)
     }
   })
 })

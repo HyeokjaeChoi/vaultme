@@ -32,6 +32,7 @@ function openingTags(src: string, names: RegExp): { name: string; attrs: string;
 }
 
 const touchable = /Pressable|Touchable(?:Opacity|Highlight|WithoutFeedback|NativeFeedback)/
+const count = (names: RegExp) => files(root).reduce((n, f) => n + openingTags(readFileSync(f, 'utf8'), names).length, 0)
 const scan = (names: RegExp, ok: (attrs: string) => boolean) =>
   files(root).flatMap((f) =>
     openingTags(readFileSync(f, 'utf8'), names)
@@ -40,6 +41,11 @@ const scan = (names: RegExp, ok: (attrs: string) => boolean) =>
   )
 
 describe('screen-reader props (MOB-6)', () => {
+  it('the scan sees the controls of src/ (a wrong path or filter would pass for free)', () => {
+    expect(count(touchable)).toBeGreaterThan(30)
+    expect(count(/TextInput/)).toBeGreaterThanOrEqual(3)
+  })
+
   it('every Pressable/Touchable has accessibilityRole or accessible={false}', () => {
     expect(scan(touchable, (a) => /\baccessibilityRole=|\brole=|\baccessible=\{false\}/.test(a))).toEqual([])
   })
