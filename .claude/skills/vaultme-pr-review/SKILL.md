@@ -53,8 +53,11 @@ keeps.
 Print, and with `--comment` post:
 
 - One inline comment per kept finding, with `mcp__github_inline_comment__create_inline_comment` (`confirmed: true`).
+  When that tool is not available (the CI stage that runs `claude -p`), use
+  `gh api repos/HyeokjaeChoi/vaultme/pulls/$0/comments -f commit_id=<full head sha> -f path=<file> -F line=<line in the new file> -f side=RIGHT -f body=<body>`
+  (for a range add `-F start_line=<n> -f start_side=RIGHT`).
   Before posting, read the existing comments (`gh api repos/HyeokjaeChoi/vaultme/pulls/$0/comments`) and skip a finding
-  that a `claude[bot]` comment already reports at the same place. Format:
+  that a `claude[bot]` or `github-actions[bot]` comment already reports at the same place. Format:
 
   ```
   **<Severity> · <category>** <title>
@@ -69,9 +72,11 @@ Print, and with `--comment` post:
 
   Links use the full head SHA: `https://github.com/HyeokjaeChoi/vaultme/blob/<sha>/<path>#L<a>-L<b>`.
   Add a suggestion block only when committing it fixes the whole problem.
-- One summary comment with `gh pr comment $0 --body "<summary>"`:
+- One summary comment with `gh pr comment $0 --body "<summary>"`. Its first line is the marker
+  `<!-- ai-review:<full head sha> -->`: the workflow reads it to know that a review ran, so the fallback stage posts no second one.
 
   ```
+  <!-- ai-review:<full head sha> -->
   ## VaultMe review (<short sha>)
 
   Requirements (#<issue>): one row per criterion: met / gap / not checkable here, with evidence.
