@@ -9,7 +9,7 @@ export default defineConfig({
   workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
+  reporter: 'list',
   use: {
     baseURL: process.env.STAGING_WEB_URL ?? 'https://vaultme-staging.stack-line.dev',
     ...devices['Desktop Chrome'],

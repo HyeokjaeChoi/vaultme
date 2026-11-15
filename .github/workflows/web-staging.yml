@@ -112,6 +112,8 @@ jobs:
           cache: pnpm
       # Wrangler from the lockfile (7-day release age), not a separate action.
       - run: pnpm install --frozen-lockfile --filter @vaultme/web...
+      # The browser of the viewer smoke, before the deploy: a failed download after it must not look like a failed smoke.
+      - run: pnpm --filter @vaultme/web exec playwright install --only-shell chromium
       # The version that serves traffic now: the rollback target. `deployments list --json` is sorted oldest first.
       - name: Active version before the deploy
         id: before
@@ -148,15 +150,17 @@ jobs:
       - name: Viewer smoke with real staging data
         id: viewer
         run: |
-          pnpm --filter @vaultme/web exec playwright install --only-shell chromium
           pnpm --filter @vaultme/web exec playwright test -c playwright.staging.config.ts
       # EVID-1 (ADR-0043): the numbers of that run.
+      # The evidence steps never fail the job: a rollback follows the smoke only.
       - name: Evidence file (viewer smoke)
+        continue-on-error: true
         if: always() && hashFiles('apps/web/test-results/viewer-smoke.json') != ''
         run: |
-          node packages/perf/src/cli.ts evidence emit --gate WEB-5 --origin "GitHub Actions, vaultme-staging.stack-line.dev" --tool "Playwright" \
+          node packages/perf/src/cli.ts evidence emit --gate WEB-5 --origin "GitHub Actions, vaultme-staging.stack-line.dev" --tool "Playwright $(pnpm --filter @vaultme/web exec playwright --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)" \
             --out evidence-WEB-5.json --results apps/web/test-results/viewer-smoke.json
       - name: Upload the viewer evidence file
+        continue-on-error: true
         if: always() && hashFiles('evidence-WEB-5.json') != ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
