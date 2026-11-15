@@ -134,9 +134,10 @@ jobs:
             | awk '{s+=$1} END {print s+0}')
           echo "count=$n" >> "$GITHUB_OUTPUT"
           echo "summary comments for ${SHA}: $n"
-      # Stage 1 can end without error and without a summary: the CLI's shell check stopped `gh pr comment` (a body with
-      # backticks or `$`; PR #508 run 43725319083, issue #526). Its final answer is the review, so the workflow posts it.
-      # Trusted input only: fork and bot PRs skip this job. No API key in this step.
+      # Stage 1 can end without error and without a summary: the CLI's shell check stopped the post (a body with backticks,
+      # `$` or quotes in `--body "..."`; PR #508 run 43725319083, issue #526; the skill now sends bodies through a quoted
+      # heredoc). Its final answer holds the review, so the workflow posts it under the marker with a notice, and the job
+      # still fails: the review was not posted by Claude, and the answer may be no review at all. No API key in this step.
       - name: Post Claude's answer as the summary
         id: rescue
         if: ${{ !cancelled() && steps.posted.outputs.count == '0' && steps.api.outcome == 'success' }}
@@ -144,8 +145,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           test -n "$(jq -r '.result // ""' "$RUNNER_TEMP/result.json")" || { echo "::error::Claude's answer is empty"; exit 1; }
-          { echo "$MARKER"; echo; jq -r '.result' "$RUNNER_TEMP/result.json"; } > "$RUNNER_TEMP/answer.md"
+          { echo "$MARKER"; echo; echo "> Claude could not post this review itself (CLI permission check). The workflow posted Claude's final answer below."; echo; jq -r '.result' "$RUNNER_TEMP/result.json"; } > "$RUNNER_TEMP/answer.md"
           gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/answer.md"
+          echo "::error::Claude did not post its review; see 'denied:' lines in the API step. Its answer is on the PR under the marker."
+          exit 1
       # Stage 2. Runs when stage 1 left no summary because it had no key or ran out of credit or rate limit.
       - name: Review (subscription fallback)
         id: fallback
@@ -164,7 +167,7 @@ jobs:
             --model sonnet
       # No summary and no fallback review: fail the job, so a missing review is visible and no subscription quota is spent.
       - name: Require a review
-        if: ${{ !cancelled() && steps.posted.outputs.count == '0' && steps.fallback.outcome != 'success' && steps.rescue.outcome != 'success' }}
+        if: ${{ !cancelled() && steps.posted.outputs.count == '0' && steps.fallback.outcome != 'success' && steps.rescue.outcome == 'skipped' }}
         env:
           REASON: ${{ steps.api.outputs.reason }}
         run: |
