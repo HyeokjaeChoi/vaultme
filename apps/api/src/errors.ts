@@ -15,5 +15,27 @@ export const fail = <P extends string, I extends Input>(
 /** The cursor is malformed or belongs to another address: 400 `invalid_cursor`. */
 export class InvalidCursorError extends Error {}
 
-/** Etherscan failed, was throttled or answered something unexpected: 503 `unavailable`. The message never holds URLs or bodies. */
-export class UpstreamError extends Error {}
+/**
+ * Etherscan, Alchemy or Expo failed, was throttled or answered something unexpected: 503 `unavailable`. The message never holds URLs or bodies.
+ * `retryAfterSeconds`: set when the cause will not clear before a known time (the Etherscan daily budget: the seconds to 00:00 UTC).
+ * `retryAfter` turns it into the header; without it the route's own default is used.
+ */
+export class UpstreamError extends Error {
+  readonly retryAfterSeconds: number | undefined
+  // No parameter property: `node scripts/openapi.ts` strips types and cannot run one (same reason as StatusError in rpc.ts).
+  constructor(message: string, retryAfterSeconds?: number) {
+    super(message)
+    this.retryAfterSeconds = retryAfterSeconds
+  }
+}
+
+const RETRY_AFTER_MAX_SECONDS = 86_400 // one day: the longest wait is until 00:00 UTC
+
+/**
+ * The `Retry-After` header of a retryable 503 (API-3): whole seconds, 1 to 86,400, whatever number comes in (rounded up, clamped).
+ * `fallbackSeconds` is the route's default wait; a `cause` that carries seconds wins. The 429 sets its own header (`rateLimited`, 60 s).
+ */
+export const retryAfter = (fallbackSeconds: number, cause?: UpstreamError): { 'Retry-After': string } => {
+  const seconds = cause?.retryAfterSeconds ?? fallbackSeconds
+  return { 'Retry-After': String(Math.min(RETRY_AFTER_MAX_SECONDS, Math.max(1, Math.ceil(seconds) || 1))) }
+}

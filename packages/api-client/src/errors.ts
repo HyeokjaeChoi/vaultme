@@ -3,13 +3,17 @@ import type { ErrorCode } from '@vaultme/contracts'
 /** `network` = the request never got an answer. `Unknown` = a code or body this app does not know. */
 export type ApiErrorCode = ErrorCode | 'network' | 'Unknown'
 
-/** Typed API failure. The UI branches on `code`: `update_required` -> S91 (#44), `clock_skew` -> clock hint. */
+/**
+ * Typed API failure. The UI branches on `code`: `update_required` -> S91 (#44), `clock_skew` -> clock hint.
+ * `retryAfterMs`: the server's `Retry-After` (a 429 or a retryable 503), when it sent whole seconds. A value only: nothing here retries.
+ */
 export class ApiError extends Error {
   constructor(
     readonly code: ApiErrorCode,
     readonly status: number,
     readonly retryable: boolean,
     message: string,
+    readonly retryAfterMs?: number,
   ) {
     super(message)
     this.name = 'ApiError'
