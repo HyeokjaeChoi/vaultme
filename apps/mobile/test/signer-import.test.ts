@@ -1,9 +1,9 @@
 import { ESLint } from 'eslint'
 import { describe, expect, it } from 'vitest'
 
-// Q59 (#312): lints source text as if it were an existing file at a given path with the real eslint.config.mjs. The signer subpath is allowed in the
+// Q59 (#312): lints source text at a given path with the real eslint.config.mjs (the path only has to match the rule's `files` globs). The signer subpath is allowed in the
 // send, backup and restore slices and shared/storage/keychain.ts only (owner decision 2026-11-01).
-// Only `no-restricted-imports` is read, so type information is off and only that rule runs: the shared config is type-aware, and the first
+// Only `no-restricted-imports` is read, so type information is off and only that rule runs (both options are needed together: without the filter, type-aware rules throw): the shared config is type-aware, and the first
 // type-aware lint built the whole expo and react-native program (11 s locally, 27 to 64 s on CI runners, against the 60 s timeout).
 const eslint = new ESLint({
   cwd: process.cwd(),
@@ -14,6 +14,7 @@ const eslint = new ESLint({
 const code = "import { Mnemonic } from '@vaultme/wallet-core/signer'\nexport const m = Mnemonic\n"
 const signerErrors = async (filePath: string) => {
   const [r] = await eslint.lintText(code, { filePath })
+  expect(r?.messages.filter((m) => m.fatal)).toEqual([]) // a parse error must not pass as "no restriction"
   return (r?.messages ?? []).filter((m) => m.ruleId === 'no-restricted-imports')
 }
 
