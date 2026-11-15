@@ -1,0 +1,50 @@
+name: ci-health
+
+# Weekly CI health report (OBS-1, plan docs/plans/quality-gates.md): red rate of main, PR CI time, old `flaky` issues, age of the last
+# green api-bench, workflows that are not active, old Renovate PRs, Actions cache size. Report-only: a breach opens one issue (or
+# comments on the open one) and blocks nothing. It is scheduled itself, so a disabled schedule shows up here the week after.
+on:
+  schedule:
+    # Monday 06:37 UTC, after the weekly perf jobs. Not at the start of an hour (GitHub delays those).
+    - cron: '37 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read # list runs, jobs, workflows and the cache usage
+      issues: write # open or comment on the breach issue
+      pull-requests: read # list the Renovate pull requests
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Check
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rc=0
+          node packages/perf/src/cli.ts ci-health > health.md || rc=$?
+          { echo '### CI health'; echo; cat health.md; } >> "$GITHUB_STEP_SUMMARY"
+          # Exit 3 = a breach (cli.ts); 1 is any crash, which fails the job and opens no issue.
+          echo "breach=$([ "$rc" = 3 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          [ "$rc" = 0 ] || [ "$rc" = 3 ]
+      - name: Open or update the breach issue
+        if: steps.check.outputs.breach == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'ci: weekly CI health breach'
+        run: |
+          { cat health.md; echo; echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (OBS-1)."; } > body.md
+          n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
+          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body-file body.md; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file body.md; fi
