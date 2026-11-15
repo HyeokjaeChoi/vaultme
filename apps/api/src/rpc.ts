@@ -14,6 +14,14 @@ const UPSTREAM_TIMEOUT_MS = 5000
 // goes to Alchemy. 100 ms left warm rpc p95 at 166.73 to 206.64 ms (SLO 200, api-bench 2026-11-04): the slowest reads took the delay
 // plus Alchemy's time. 60 ms hedges more reads (a second call) to cut that tail. Tune from api-bench runs.
 const HEDGE_MS = 60
+// A spent quota is a failure of that upstream, not an answer: the other upstream is tried (API-1). Infura sends HTTP 402 with a JSON-RPC
+// error body (`code` 402, `event` -33000) for a spent daily cap, and `code` 429 / `event` -33200 for a spent throughput; its docs give no HTTP
+// status for the second, so it may arrive inside a 200 (docs.infura.io/how-to/avoid-rate-limiting, read 2026-11-15). -32005 is the EIP-1474
+// "limit exceeded". The two `event` values are listed too, in case a body carries one as its `code`.
+const QUOTA_CODES: ReadonlySet<number> = new Set([-32005, 402, 429, -33000, -33200])
+// Never hedged: a send (a second node would answer "already known" for a send that worked, and that error could win) and the nonce read
+// (Alchemy can lag Infura; a lagging nonce is a real number, so it would win the hedge and the next send would fail with "nonce too low", CHAIN-4).
+const NEVER_HEDGED: ReadonlySet<string> = new Set(['eth_sendRawTransaction', 'eth_getTransactionCount'])
 const ARG_32_BYTES = new RegExp(`^${BALANCE_OF_SELECTOR}[0-9a-fA-F]{64}$`)
 
 const TX_HASH = /^0x[0-9a-fA-F]{64}$/
@@ -68,7 +76,16 @@ class StatusError extends Error {
   }
 }
 
-/** A `null` result or a JSON-RPC error: from the hedge it may only lag (no receipt yet) or be a quota error, so it waits for Infura. */
+/** The upstream answered 200 with a JSON-RPC error that says its quota is spent (QUOTA_CODES). */
+class QuotaError extends Error {
+  readonly code: number
+  constructor(code: number) {
+    super('upstream quota')
+    this.code = code
+  }
+}
+
+/** A `null` result or a JSON-RPC error (not a quota error: `ask` rejects that): from the hedge it may only lag (no receipt yet) or be one node's own error, so it waits for Infura. */
 const weak = (text: string): boolean => {
   const j = JSON.parse(text) as { result?: unknown; error?: unknown }
   return j.error !== undefined || j.result === null
@@ -91,6 +108,8 @@ async function ask(u: Upstream, body: string, stop: AbortSignal): Promise<string
     const parsed = RpcResponse.safeParse(JSON.parse(text))
     if (!parsed.success || !('result' in parsed.data || 'error' in parsed.data)) throw new Error('bad body')
     if (text.includes(u.key)) throw new Error('key echoed') // never pass a body that contains the key
+    const code = parsed.data.error?.code
+    if (code !== undefined && QUOTA_CODES.has(code)) throw new QuotaError(code)
     return text
   } catch (e) {
     if (!stop.aborted)
@@ -99,7 +118,9 @@ async function ask(u: Upstream, body: string, stop: AbortSignal): Promise<string
         'rpc_upstream_failed',
         e instanceof StatusError
           ? { upstream: u.name, status: e.status }
-          : { upstream: u.name, error: e instanceof Error ? e.name : 'error' },
+          : e instanceof QuotaError
+            ? { upstream: u.name, quota: e.code }
+            : { upstream: u.name, error: e instanceof Error ? e.name : 'error' },
       )
     throw e
   }
@@ -108,9 +129,10 @@ async function ask(u: Upstream, body: string, stop: AbortSignal): Promise<string
 /**
  * Sends the request to Infura; Alchemy gets it too when Infura fails, or (reads only) when Infura has not answered in HEDGE_MS.
  * Returns the first valid upstream JSON text, or null when both failed. A hedged `null` or error answer does not win while Infura may
- * still answer (Alchemy can be a block behind); it is used only when Infura fails. Falls back on network error, timeout and non-2xx (5xx, 429,
- * bad key). A JSON-RPC error inside a 200 is a real answer and is returned as is.
- * `hedge: false` (background work, push.ts) keeps the plain fallback. eth_sendRawTransaction is never hedged: a second node would answer "already known" for a send that worked, and that error could win.
+ * still answer (Alchemy can be a block behind); it is used only when Infura fails. Falls back on network error, timeout, non-2xx (5xx, 429,
+ * 402, bad key), a body that is not a JSON-RPC answer and a quota error inside a 200 (QUOTA_CODES). Any other JSON-RPC error inside a 200 is a
+ * real answer and is returned as is.
+ * `hedge: false` (background work, push.ts) keeps the plain fallback. NEVER_HEDGED methods are sent to Alchemy only after Infura failed.
  * After a failure it is safe to resend: the same raw tx has the same hash.
  * Never log the URL, the error text or the upstream body: they can carry the API key.
  */
@@ -130,7 +152,7 @@ export async function proxyRpc(env: Env['Bindings'], req: RpcRequest, hedge = tr
       ask(backup, body, stop.signal).then(resolve, reject)
     }
     first.catch(go)
-    if (hedge && req.method !== 'eth_sendRawTransaction')
+    if (hedge && !NEVER_HEDGED.has(req.method))
       timer = setTimeout(() => {
         hedgeTimer.fired = true
         go()
