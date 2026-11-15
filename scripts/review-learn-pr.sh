@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Opens the weekly learning-loop proposal (REVIEW.md "Learning loop", .github/workflows/review-learn.yml):
-# one issue and one draft PR that closes it. Run by Claude inside claude-code-action, which sets GH_TOKEN to the
-# Claude app token (a PR made with GITHUB_TOKEN would not start CI, and this repo does not let Actions open PRs).
+# one issue and one draft PR that closes it. GH_TOKEN must be an app token: a workflow step passes the repo's GitHub
+# App token, and in the subscription fallback Claude runs this inside claude-code-action with the Claude app token
+# (a PR made with GITHUB_TOKEN would not start CI, and this repo does not let Actions open PRs).
 # Input: .review-learn/title.txt (one line) and .review-learn/body.md. Never pushes to main.
 set -euo pipefail
 dir=.review-learn # also holds findings.json from the workflow; removed before the commit
