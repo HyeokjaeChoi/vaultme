@@ -84,11 +84,6 @@ jobs:
         # Same version as claude-code-action v1.0.252 installs (published 2026-10-16, more than 7 days ago).
         run: |
           npm install -g @anthropic-ai/claude-code@2.1.302 >/dev/null
-          # CLAUDE_CODE_SUBPROCESS_ENV_SCRUB (stage 1) runs every command in the Linux sandbox, which needs these two
-          # packages and, on Ubuntu runners, user namespaces (docs: sandboxing, "Set up Linux and WSL2"). Without them every
-          # `gh` call fails with "Sandbox is required" and the review ends without a comment (issue #513).
-          sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap socat
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       # Stage 1. Continues on error: the stage 2 step below decides from the marker comment, not from this result.
       - name: Review (API credits, claude -p)
         id: api
@@ -102,9 +97,6 @@ jobs:
           # posted (issue #133). This makes Claude wait for every subagent:
           # https://code.claude.com/docs/en/sub-agents#let-claude-wait-for-a-subagent
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1'
-          # The PR text is data an attacker can write. Claude's own process keeps the key; the commands it runs (gh, git,
-          # hooks) do not, so `gh pr comment --body-file /proc/self/environ` posts nothing secret. Docs: env-vars.
-          CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
         run: |
           test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; exit 1; }
           # No inline-comment MCP tool outside claude-code-action: the skill posts inline comments with `gh api` here.
@@ -112,7 +104,6 @@ jobs:
             --model sonnet \
             --allowedTools "$ALLOWED_TOOLS" \
             --append-system-prompt "$SYSTEM_PROMPT" \
-            --settings '{"sandbox":{"enabled":true,"network":{"allowedDomains":["api.github.com","github.com"]}}}' \
             --output-format json > "$RUNNER_TEMP/result.json" || true
           jq '{is_error, subtype, num_turns, total_cost_usd, result: (.result // "" | .[0:600])}' "$RUNNER_TEMP/result.json"
           # Claude's final text in the Step Summary. Trusted input only: fork and bot PRs skip this job.
