@@ -1,7 +1,7 @@
 import { USDC_SEPOLIA } from '@vaultme/contracts'
 import { toUnits, prepare, type Address, type Hex } from '@vaultme/wallet-core'
 import { Mnemonic } from '@vaultme/wallet-core/signer'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { canCancel, quoteCancel, runCancel } from '../src/features/send/model/cancel'
 import { cancelMined } from '../src/features/send/model/hashes'
 import { blocksNewSend, runSend, type SendOutcome } from '../src/features/send/model/runSend'
@@ -70,14 +70,6 @@ beforeEach(async () => {
 })
 afterEach(async () => {
   await admin('evm_revert', [snapshotId])
-})
-
-// `it.fails` also passes when its setup throws. Case 9 records such an error here, and `afterAll` fails the run on it.
-const setupErrors: unknown[] = []
-let case9Reached = false // a timeout in case 9 would also pass `it.fails`; reaching the last assertion proves it ran to the end
-afterAll(() => {
-  expect(setupErrors, 'case 9 setup broke: this is not the known bug').toEqual([])
-  expect(case9Reached, 'case 9 did not reach its exit assertion (timeout or hook failure)').toBe(true)
 })
 
 describe('send lifecycle on anvil (chain id 11155111)', () => {
@@ -259,22 +251,26 @@ describe('send lifecycle on anvil (chain id 11155111)', () => {
     expect(await nonceAt('latest')).toBe(1n) // the second tx never ran
   })
 
-  // KNOWN BUG, plan section 1 finding 4 (ADR-B, unit U6): an Unknown send that never reached a node blocks every new send, and only
-  // Pending offers speed up or cancel. This case states the exit a user needs. It fails today; when ADR-B lands, change `it.fails` to `it`.
-  it.fails('9. Unknown deadlock: a send that never reached a node leaves the user a way out', async () => {
+  // ADR-0041 (was the known bug of plan section 1 finding 4): an Unknown send that never reached a node blocked every new send, and only
+  // Pending offered cancel. Now Cancel is offered for Unknown too, and it frees the nonce.
+  it('9. Unknown deadlock: a send that never reached a node leaves the user a way out (Cancel)', async () => {
     const neverSent: SpeedUpDeps['chain'] = { ...chain, submit: () => Promise.reject(new Error('timeout')) }
-    try {
-      await send(TO, AMOUNT, neverSent)
-      expect(await nonceAt('pending')).toBe(0n) // nothing reached the node
-      await mine(3)
-      await check()
-      // Only the harness is asserted above. The bug itself (still Unknown, still blocked) is not: any fix of ADR-B, by whatever route, must turn this case green.
-    } catch (e) {
-      setupErrors.push(e) // a broken setup must not look like the known bug
-      throw e
-    }
-    case9Reached = true
-    const way = !blocksNewSend(current()) || canCancel(current(), true) || canSpeedUp(current(), true)
-    expect(way).toBe(true) // fails today: blocked, and no action for Unknown
+    await send(TO, AMOUNT, neverSent)
+    expect(await nonceAt('pending')).toBe(0n) // nothing reached the node
+    await mine(3)
+    expect((await check()).state).toBe('Unknown') // no receipt, no node record: the result is not known
+    expect(blocksNewSend(current())).toBe(true)
+    expect(canCancel(current(), true)).toBe(true)
+    expect(canSpeedUp(current(), true)).toBe(false)
+
+    const plan = await quoteCancel(current(), SENDER, chain)
+    expect((await runCancel(current(), plan, SENDER, deps)).status).toBe('Sent')
+    expect(current()).toMatchObject({ state: 'Pending', kind: 'cancel' })
+    await mine(3)
+    const done = await check()
+    expect(done.state).toBe('Replaced')
+    expect(cancelMined(done)).toBe(true)
+    expect(blocksNewSend(done)).toBe(false) // the user can send again
+    expect(await nonceAt('latest')).toBe(1n)
   })
 })
