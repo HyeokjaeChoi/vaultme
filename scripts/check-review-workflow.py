@@ -9,7 +9,7 @@ restores .claude/, CLAUDE.md and .mcp.json from the PR base first; no other job 
 import re
 import sys
 
-READ_TOOLS = {"Read", "Glob", "Grep", "Agent", "Bash(gh pr view:*)", "Bash(gh pr diff:*)", "Bash(gh issue view:*)", "Bash(git diff:*)"}
+READ_TOOLS = {"Read", "Glob", "Grep", "Agent", "Bash(gh pr view:*)", "Bash(gh pr diff:*)", "Bash(gh issue view:*)"}
 DENIED = ("Bash(gh pr comment:*)", "Bash(gh pr edit:*)", "Bash(gh api:*)", "mcp__github_inline_comment__create_inline_comment")
 BANNED = ("--dangerously-skip-permissions", "bypassPermissions", "acceptEdits", "claude-code-action", "CLAUDE_CODE_OAUTH_TOKEN", "id-token")
 

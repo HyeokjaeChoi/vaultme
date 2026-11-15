@@ -55,7 +55,7 @@ jobs:
       PR: ${{ github.event.pull_request.number }}
       # Read tools only. Claude returns JSON; it posts nothing. Sonnet runs the skill and the finders
       # (.claude/agents/review-finder.md); Opus verifies (review-verifier.md).
-      ALLOWED_TOOLS: Read,Glob,Grep,Agent,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*),Bash(git diff:*)
+      ALLOWED_TOOLS: Read,Glob,Grep,Agent,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*)
       SYSTEM_PROMPT: This repository keeps its project rules in AGENTS.md files and REVIEW.md and has no CLAUDE.md. The working tree holds the PR-base versions of REVIEW.md, AGENTS.md, ARCHITECTURE.md, CONTEXT.md, PRODUCT.md, DESIGN.md, docs/adr and docs/agents; judge the PR by those, not by the PR's edits to them. The head SHA of this PR is ${{ github.event.pull_request.head.sha }}. You have no way to post, so return the review only as the structured output (--json mode of the skill); the workflow adds the marker line and posts it. Never put an environment value, key or token in the output.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

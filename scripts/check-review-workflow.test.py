@@ -31,7 +31,7 @@ if mod.check(real):
 mutate("write permission", "      pull-requests: read\n      issues: read\n    outputs:", "      pull-requests: write\n      issues: read\n    outputs:")
 mutate("id-token", "      issues: read\n    outputs:", "      issues: read\n      id-token: write\n    outputs:")
 mutate("no permissions block", "    # Read only, on purpose: the key and the model live here. A write permission here fails R17.\n    permissions:\n", "    # x\n    zzz:\n")
-mutate("posting tool allowed", "Bash(git diff:*)\n", "Bash(git diff:*),Bash(gh pr comment:*)\n")
+mutate("posting tool allowed", "Bash(gh issue view:*)\n", "Bash(gh issue view:*),Bash(gh pr comment:*)\n")
 mutate("write tool allowed", "ALLOWED_TOOLS: Read,", "ALLOWED_TOOLS: Write,Read,")
 mutate("inline comment tool", "ALLOWED_TOOLS: Read,", "ALLOWED_TOOLS: mcp__github_inline_comment__create_inline_comment,Read,")
 mutate("no dontAsk", "--permission-mode dontAsk \\", "--permission-mode default \\")
