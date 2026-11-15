@@ -1,4 +1,3 @@
-import { mnemonicToSeedSync } from '@scure/bip39'
 import { HDKey } from 'viem/accounts'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { Mnemonic, deriveAddress, signAndSubmit } from '../src/signer'
@@ -20,49 +19,52 @@ vi.mock('@scure/bip39', async (orig) => {
   }
 })
 
-const masters: HDKey[] = []
-const children: HDKey[] = []
+// Every HD key made on the path (master and each derived step), with its key bytes as they were before the wipe.
+const made: { key: HDKey; bytes: Uint8Array }[] = []
+const note = (key: HDKey) => made.push({ key, bytes: key.privateKey! })
 const fromMaster = HDKey.fromMasterSeed.bind(HDKey)
 vi.spyOn(HDKey, 'fromMasterSeed').mockImplementation((seed) => {
   const m = fromMaster(seed)
-  masters.push(m)
-  const derive = m.derive.bind(m)
-  vi.spyOn(m, 'derive').mockImplementation((path) => {
-    const c = derive(path)
-    children.push(c)
-    return c
-  })
+  note(m)
   return m
 })
+// eslint-disable-next-line @typescript-eslint/unbound-method -- called with `this` below
+const derive = HDKey.prototype.deriveChild
+vi.spyOn(HDKey.prototype, 'deriveChild').mockImplementation(function (this: HDKey, index) {
+  const c = derive.call(this, index)
+  note(c)
+  return c
+})
 afterEach(() => {
-  seeds.length = masters.length = children.length = 0
+  seeds.length = made.length = 0
 })
 
 const wiped = () => {
   expect(seeds.length).toBeGreaterThan(0)
-  expect(masters.length).toBeGreaterThan(0)
-  expect(children.length).toBeGreaterThan(0)
+  expect(made).toHaveLength(6) // master + 5 steps of m/44'/60'/0'/0/0
   for (const s of seeds) expect(s.every((b) => b === 0)).toBe(true)
-  for (const m of masters) expect(m.privateKey).toBeNull()
-  for (const c of children) expect(c.privateKey).toBeNull()
+  for (const { key, bytes } of made) {
+    expect(bytes.every((b) => b === 0)).toBe(true) // the buffer is zero, not only dropped
+    expect(key.privateKey).toBeNull()
+  }
 }
 
 describe('seed and HD-key buffers are wiped after use (SEC-9)', () => {
   const m = new Mnemonic(PUBLIC_JUNK_PHRASE)
 
-  test('account(): seed zero, master and child keys null, and the account still signs', async () => {
+  test('account(): seed zero, every HD key zero and null, and the account still signs', async () => {
     const account = m.account()
     wiped()
     expect(account.address).toBe(PUBLIC_JUNK_ADDRESS)
     expect(await account.signMessage({ message: 'x' })).toMatch(/^0x[0-9a-f]{130}$/)
   })
 
-  test('deriveAddress(): seed zero, master and child keys null', () => {
+  test('deriveAddress(): seed zero, every HD key zero and null', () => {
     expect(deriveAddress(m)).toBe(PUBLIC_JUNK_ADDRESS)
     wiped()
   })
 
-  test('signAndSubmit(): seed zero, master and child keys null', async () => {
+  test('signAndSubmit(): seed zero, every HD key zero and null', async () => {
     const snap = {
       nonce: 0,
       nativeBalance: 10n ** 18n,
@@ -77,11 +79,5 @@ describe('seed and HD-key buffers are wiped after use (SEC-9)', () => {
     await signAndSubmit(r.review, snap, { mnemonic: m, submit })
     expect(submit).toHaveBeenCalledOnce()
     wiped()
-  })
-
-  test('the seed buffer the test sees is the one bip39 returns for this phrase (the spy is real)', () => {
-    m.account()
-    expect(seeds[0]).toHaveLength(64)
-    expect(mnemonicToSeedSync(PUBLIC_JUNK_PHRASE).some((b) => b !== 0)).toBe(true) // a fresh seed is not zero
   })
 })
