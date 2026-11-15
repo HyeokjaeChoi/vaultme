@@ -7,7 +7,7 @@ export const API = 'https://vaultme-api-staging.gurwo1007.workers.dev'
 export const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 
 type Mode = 'ok' | 'down' | 'big'
-/** History answers: `list` = 12 rows then 3 more (cursor p2), `empty`, `down` (503), `big` = one row with a 25-digit amount, `longFailed` = one failed send of 1.000000000000000001 ETH (full wei precision, no sign). */
+/** History answers: `list` = 12 rows then 3 more (cursor p2), `empty`, `down` (503), `big` = one row with a 25-digit amount, `longFailed` = one failed transaction of 1.000000000000000001 ETH (a receive row, full wei precision, no sign). */
 export type HistoryMode = 'list' | 'empty' | 'down' | 'big' | 'longFailed'
 
 const ME = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
