@@ -1,9 +1,7 @@
 // Existing CI artifacts as evidence results (`cli.ts evidence emit --from <kind>=<file>`). One function per artifact: the CI job
 // that makes the file and the person who seeds `docs/results` from an old run use the same code.
 import { HERMES_LIMIT } from './baseline.ts'
-import type { ResultInput } from './evidence.ts'
-
-const isRecord = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x)
+import { isObj as isRecord, type ResultInput } from './evidence.ts'
 
 /** `perf-hermes.json` (`cli.ts hermes`): the bytes of the one Hermes bundle per platform against the 11 MiB limit of `export:check`. */
 export function hermesResults(json: unknown): ResultInput[] {

@@ -10,7 +10,7 @@
 //   node packages/perf/src/cli.ts evidence render [--out docs/results]    (rewrites docs/results/README.md from the files; run it after a rebase, never merge the README by hand)
 //   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text>
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -20,6 +20,7 @@ import { buildBaseline, latencyTable, renderBaseline, type Baseline, type JsBudg
 import {
   addEvidence,
   buildEvidence,
+  checkAddable,
   checkProvenance,
   nowUtc,
   renderDir,
@@ -27,6 +28,7 @@ import {
   runInfoFromGh,
   serialize,
   validateEvidence,
+  type Evidence,
   type ResultInput,
 } from './evidence.ts'
 import { SOURCES } from './evidence-sources.ts'
@@ -214,7 +216,10 @@ if (cmd === 'hermes') {
   } else if (sub === 'add') {
     const { values: v, positionals } = parseArgs({ args, options: { out: { type: 'string' } }, allowPositionals: true })
     const dir = v.out ?? resultsDir
-    for (const f of positionals) console.log(`${addEvidence(dir, validateEvidence(readJson(f)))}: ${f}`)
+    // Check every file first: a bad one must not leave the others half written.
+    const files = positionals.map((f) => ({ f, e: validateEvidence(readJson(f)) }))
+    for (const { e } of files) checkAddable(dir, e)
+    for (const { f, e } of files) console.log(`${addEvidence(dir, e)}: ${f}`)
     renderDir(dir)
   } else if (sub === 'collect') {
     const { values: v } = parseArgs({
@@ -223,20 +228,38 @@ if (cmd === 'hermes') {
     })
     if (!v.run?.length) throw new Error('evidence collect: --run <id> is required (repeatable)')
     const dir = v.out ?? resultsDir
-    for (const id of v.run) {
-      const run = ghRun(id)
-      const tmp = mkdtempSync(join(tmpdir(), 'evidence-'))
-      gh(['run', 'download', id, '--pattern', 'evidence-*', '--dir', tmp])
-      const found = (readdirSync(tmp, { recursive: true }) as string[]).filter((f) =>
-        /(^|\/)evidence-[^/]*\.json$/.test(f),
-      )
-      if (found.length === 0) throw new Error(`evidence collect: run ${id} has no evidence-*.json artifact`)
-      for (const f of found) {
-        const e = validateEvidence(readJson(join(tmp, f)))
-        checkProvenance(e, run)
-        console.log(`${addEvidence(dir, e)}: ${e.gate} (run ${id})`)
+    // Two phases: download and check every file of every run, then write, so a bad file leaves the folder as it was.
+    const pending: Evidence[] = []
+    const tmp = mkdtempSync(join(tmpdir(), 'evidence-'))
+    try {
+      for (const id of v.run) {
+        const run = ghRun(id)
+        const into = join(tmp, id)
+        try {
+          gh(['run', 'download', id, '--pattern', 'evidence-*', '--dir', into])
+        } catch {
+          throw new Error(
+            `evidence collect: run ${id} has no evidence-* artifact (is it finished, and did a job upload evidence-<gate>?)`,
+          )
+        }
+        const found = (readdirSync(into, { recursive: true }) as string[]).filter((f) => f.endsWith('.json'))
+        if (found.length === 0) throw new Error(`evidence collect: run ${id} has no evidence-*.json file`)
+        for (const f of found) {
+          const e = validateEvidence(readJson(join(into, f)))
+          // The artifact `evidence-<gate>` holds `evidence-<gate>.json`: a file under another name is not one a job made on purpose.
+          if (!f.endsWith(`evidence-${e.gate}.json`))
+            throw new Error(`evidence collect: ${f} of run ${id} holds the gate ${e.gate}`)
+          checkProvenance(e, run)
+          if (pending.some((p) => p.gate === e.gate && p.runId === e.runId))
+            throw new Error(`evidence collect: run ${id} has two files for the gate ${e.gate}`)
+          checkAddable(dir, e)
+          pending.push(e)
+        }
       }
+    } finally {
+      rmSync(tmp, { recursive: true, force: true })
     }
+    for (const e of pending) console.log(`${addEvidence(dir, e)}: ${e.gate} (run ${String(e.runId)})`)
     renderDir(dir)
   } else if (sub === 'render') {
     const { values: v } = parseArgs({ args, options: { out: { type: 'string' } } })

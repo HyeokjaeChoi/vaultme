@@ -60,7 +60,7 @@ export function holds(value: number, t: Threshold): boolean {
 }
 
 type Obj = Record<string, unknown>
-const isObj = (x: unknown): x is Obj => typeof x === 'object' && x !== null && !Array.isArray(x)
+export const isObj = (x: unknown): x is Obj => typeof x === 'object' && x !== null && !Array.isArray(x)
 
 function obj(x: unknown, at: string, keys: readonly string[]): Obj {
   if (!isObj(x)) throw new Error(`${at}: expected an object`)
@@ -68,11 +68,11 @@ function obj(x: unknown, at: string, keys: readonly string[]): Obj {
   for (const k of keys) if (!(k in x)) throw new Error(`${at}: missing key "${k}"`)
   return x
 }
-// Plain text only: it goes into a Markdown table cell (no pipe, no backtick, no line break).
+// Plain text only: it goes into a Markdown table cell (no pipe, no backtick, no angle bracket, no line break).
 function text(x: unknown, at: string): string {
-  if (typeof x !== 'string' || x === '' || x !== x.trim() || x.length > 200 || /[|`\r\n\t]/.test(x))
+  if (typeof x !== 'string' || x === '' || x !== x.trim() || x.length > 200 || /[|`<>\r\n\t]/.test(x))
     throw new Error(
-      `${at}: expected 1 to 200 characters of plain text (no | or backtick or line break, none at the ends)`,
+      `${at}: expected 1 to 200 characters of plain text (no | < > or backtick or line break, none at the ends)`,
     )
   return x
 }
@@ -172,7 +172,8 @@ export function buildEvidence(i: EvidenceInput): Evidence {
     measuredAt: i.measuredAt,
     origin: i.origin,
     tool: i.tool,
-    results: i.results.map((r) => ({ ...r, pass: r.threshold === null ? null : holds(r.value, r.threshold) })),
+    // A threshold that is not an object gets no verdict here: `validateEvidence` then names the key.
+    results: i.results.map((r) => ({ ...r, pass: isObj(r.threshold) ? holds(r.value, r.threshold) : null })),
   })
 }
 
@@ -229,7 +230,17 @@ const group = (n: number): string => {
   const g = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
   return frac === undefined ? g : `${g}.${frac}`
 }
-const byGate = (a: string, b: string) => a.localeCompare(b, 'en', { numeric: true })
+/** By name, digit runs as numbers (`API-6` before `API-10`), case ignored, then by code unit. No ICU: the order is the same on every Node build. */
+const byGate = (a: string, b: string): number => {
+  const [pa, pb] = [a.toLowerCase().split(/(\d+)/), b.toLowerCase().split(/(\d+)/)]
+  for (let i = 0; i < Math.min(pa.length, pb.length); i++) {
+    const [x = '', y = ''] = [pa[i], pb[i]]
+    if (x === y) continue
+    if (i % 2 === 1) return Number(x) - Number(y)
+    return x < y ? -1 : 1
+  }
+  return pa.length - pb.length || (a < b ? -1 : a > b ? 1 : 0)
+}
 /** Newest first: measuredAt, then the run id. */
 const newest = (a: EvidenceFile, b: EvidenceFile) =>
   a.evidence.measuredAt === b.evidence.measuredAt
@@ -278,15 +289,25 @@ export function renderReadme(files: EvidenceFile[]): string {
 export function loadResults(dir: string): { files: EvidenceFile[]; problems: string[] } {
   const files: EvidenceFile[] = []
   const problems: string[] = []
+  const folders = new Map<string, string>()
+  // Dot files (`.DS_Store`, `.gitattributes`) are not results.
   for (const entry of readdirSync(dir).sort()) {
-    if (entry === 'README.md') continue
+    if (entry === 'README.md' || entry.startsWith('.')) continue
     if (!statSync(join(dir, entry)).isDirectory()) {
       problems.push(`${entry}: only README.md and one folder per gate belong here`)
       continue
     }
+    // `LOAD-1` and `load-1` would be one folder on a case-insensitive disk.
+    const twin = folders.get(entry.toLowerCase())
+    if (twin !== undefined) problems.push(`${entry}: the same gate as ${twin} when the case is ignored`)
+    folders.set(entry.toLowerCase(), entry)
     for (const name of readdirSync(join(dir, entry)).sort()) {
+      if (name.startsWith('.')) continue
       try {
-        const e = validateEvidence(JSON.parse(readFileSync(join(dir, entry, name), 'utf8')))
+        const raw = readFileSync(join(dir, entry, name), 'utf8')
+        const e = validateEvidence(JSON.parse(raw))
+        if (raw !== serialize(e))
+          throw new Error('the bytes are not the canonical form (key order, 2-space indent, one final newline)')
         if (e.gate !== entry) throw new Error(`gate is ${e.gate} but the folder is ${entry}`)
         if (name !== evidenceFileName(e)) throw new Error(`the file must be named ${evidenceFileName(e)}`)
         files.push({ gate: entry, name, evidence: e })
@@ -315,16 +336,33 @@ export function checkResults(dir: string): string[] {
   return problems
 }
 
-/** Writes the file under its canonical name. A file that already exists must be identical: evidence is never edited. */
-export function addEvidence(dir: string, e: Evidence): 'written' | 'same' {
-  const path = join(dir, e.gate, evidenceFileName(e))
-  const body = serialize(e)
+/**
+ * Whether `addEvidence` would write the file, do nothing, or throw. A file that exists must be identical (evidence is never
+ * edited), and a run has one file per gate: a re-run attempt or a matrix leg that measured at another time must use its own
+ * gate id, not a second file of the same gate.
+ */
+export function checkAddable(dir: string, e: Evidence): 'new' | 'same' {
+  const name = evidenceFileName(e)
+  const path = join(dir, e.gate, name)
   if (existsSync(path)) {
-    if (readFileSync(path, 'utf8') === body) return 'same'
-    throw new Error(`${e.gate}/${evidenceFileName(e)} exists with other content; evidence files are never edited`)
+    if (readFileSync(path, 'utf8') === serialize(e)) return 'same'
+    throw new Error(`${e.gate}/${name} exists with other content; evidence files are never edited`)
   }
+  const other = existsSync(join(dir, e.gate))
+    ? readdirSync(join(dir, e.gate)).find((n) => n.endsWith(`-${String(e.runId)}.json`))
+    : undefined
+  if (other !== undefined)
+    throw new Error(
+      `${e.gate}: run ${String(e.runId)} already has ${other}; one file per gate and run (a matrix leg needs its own gate id)`,
+    )
+  return 'new'
+}
+
+/** Writes the file under its canonical name (see `checkAddable`). */
+export function addEvidence(dir: string, e: Evidence): 'written' | 'same' {
+  if (checkAddable(dir, e) === 'same') return 'same'
   mkdirSync(join(dir, e.gate), { recursive: true })
-  writeFileSync(path, body)
+  writeFileSync(join(dir, e.gate, evidenceFileName(e)), serialize(e))
   return 'written'
 }
 

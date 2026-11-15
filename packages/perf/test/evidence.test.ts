@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -6,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import {
   addEvidence,
   buildEvidence,
+  checkAddable,
   checkProvenance,
   checkResults,
   evidenceFileName,
@@ -71,6 +73,18 @@ describe('buildEvidence', () => {
       ],
     })
     expect(e.results.map((r) => r.pass)).toEqual([false, null])
+  })
+  it('names the missing or wrong threshold key instead of a type error', () => {
+    const bad = (threshold: unknown) =>
+      buildEvidence(
+        input({ results: [{ metric: 'm', value: 1, unit: 'ms', threshold, n: 1, window: 'one run' } as never] }),
+      )
+    expect(() => bad('50')).toThrow(/threshold: expected an object/)
+    const noKey = { metric: 'm', value: 1, unit: 'ms', n: 1, window: 'one run' }
+    expect(() => buildEvidence(input({ results: [noKey as never] }))).toThrow(/missing key "threshold"/)
+  })
+  it('rejects angle brackets in text (HTML in a table cell)', () => {
+    expect(() => ev({ origin: 'runner <details>' })).toThrow(/origin: expected 1 to 200 characters/)
   })
   it('writes the keys in one fixed order and the file ends with a newline', () => {
     const e = ev()
@@ -316,6 +330,38 @@ describe('a results folder', () => {
     const other = ev({ results: [{ metric: 'x', value: 1, unit: 'ms', threshold: null, n: 1, window: 'one run' }] })
     expect(() => addEvidence(dir, other)).toThrow(/never edited/)
   })
+  it('fails on a file whose bytes are not the canonical form, even when its numbers are valid', () => {
+    const dir = folder(input())
+    const path = join(dir, 'LOAD-1', evidenceFileName(ev()))
+    writeFileSync(path, JSON.stringify(JSON.parse(readFileSync(path, 'utf8'))))
+    expect(checkResults(dir).join('\n')).toContain('the bytes are not the canonical form')
+  })
+  it('ignores dot files, and reports two gate folders that differ only in case', () => {
+    const dir = folder(input())
+    writeFileSync(join(dir, '.DS_Store'), 'x')
+    writeFileSync(join(dir, 'LOAD-1', '.DS_Store'), 'x')
+    expect(checkResults(dir)).toEqual([])
+    try {
+      mkdirSync(join(dir, 'load-1'))
+    } catch {
+      return // A case-insensitive disk (macOS) cannot hold both folders: the problem cannot arise there, and CI on Linux runs this.
+    }
+    expect(checkResults(dir).join('\n')).toContain('load-1: the same gate as LOAD-1 when the case is ignored')
+  })
+  it('refuses a second file of the same gate and run (a re-run attempt or a matrix leg), and checks before it writes', () => {
+    const dir = folder(input())
+    const again = ev({ measuredAt: '2026-11-17T06:00:00Z' })
+    expect(() => checkAddable(dir, again)).toThrow(
+      /run 4242 already has 2026-11-16-aaaaaaa-4242\.json; one file per gate and run/,
+    )
+    expect(() => addEvidence(dir, again)).toThrow(/one file per gate and run/)
+    // Another gate of the same run is fine.
+    expect(checkAddable(dir, ev({ gate: 'LOAD-2' }))).toBe('new')
+    // A run id that only ends in the same digits is another run.
+    expect(checkAddable(dir, ev({ runId: 14242, runUrl: 'https://github.com/owner/repo/actions/runs/14242' }))).toBe(
+      'new',
+    )
+  })
   it('does not render over a broken file', () => {
     const dir = folder(input())
     writeFileSync(join(dir, 'LOAD-1', 'not-json.json'), '{')
@@ -325,6 +371,25 @@ describe('a results folder', () => {
 })
 
 describe('docs/results of this repository', () => {
+  const root = fileURLToPath(new URL('../../..', import.meta.url))
+  const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' })
+  // Without origin/main (a clone without it) the check cannot run; CI (`verify`, fetch-depth 0) always has it.
+  const base = (() => {
+    try {
+      return git('merge-base', 'origin/main', 'HEAD').trim()
+    } catch {
+      return ''
+    }
+  })()
+  it.skipIf(base === '')(
+    'does not edit or rename a file that is on origin/main (ADR-0043: evidence is never edited)',
+    () => {
+      const changed = git('diff', '--name-status', '--find-renames', base, '--', 'docs/results')
+        .split('\n')
+        .filter((l) => /^[MRT]/.test(l) && /\.json(\s|$)/.test(l))
+      expect(changed).toEqual([])
+    },
+  )
   it('is consistent: every file passes the schema and README.md is the render of the files', () => {
     expect(checkResults(fileURLToPath(new URL('../../../docs/results', import.meta.url)))).toEqual([])
   })
