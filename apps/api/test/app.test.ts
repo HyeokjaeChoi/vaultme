@@ -387,6 +387,8 @@ describe('Retry-After', () => {
   })
 
   it('an upstream error that carries seconds sets the wait (the API-2 daily budget: seconds to 00:00 UTC)', async () => {
+    // The stub rejects the way the Worker does. A real Durable Object must return a value and let etherscan.ts throw: an error that crosses
+    // an RPC call loses its class (see UpstreamError).
     const budget = (seconds: number) =>
       ({
         getByName: () => ({ acquire: () => Promise.reject(new UpstreamError('daily budget', seconds)) }),
@@ -401,21 +403,24 @@ describe('Retry-After', () => {
     }
   })
 
-  it('retryAfter gives whole seconds from 1 to 86,400, and the fallback when the error has none', () => {
-    const wait = (...a: Parameters<typeof retryAfter>) => retryAfter(...a)['Retry-After']
+  it('retryAfter gives whole seconds from 1 to 86,400; NaN or no seconds means the route default', () => {
+    const wait = (fallback: number, seconds?: number) =>
+      retryAfter(fallback, seconds === undefined ? undefined : new UpstreamError('x', seconds))['Retry-After']
     expect(wait(2)).toBe('2')
-    expect(wait(2, new UpstreamError('x'))).toBe('2')
-    expect(wait(2, new UpstreamError('x', 17))).toBe('17')
+    expect(wait(2.4)).toBe('3')
+    expect(wait(2, 17)).toBe('17')
     for (const [seconds, want] of [
       [0, '1'],
       [-5, '1'],
-      [Number.NaN, '1'],
+      [Number.NEGATIVE_INFINITY, '1'],
       [0.2, '1'],
       [1.2, '2'],
       [86_400, '86400'],
       [86_400.5, '86400'],
       [Number.POSITIVE_INFINITY, '86400'],
+      [Number.NaN, '2'], // not a number: the default of the route, never "NaN"
     ] as const)
-      expect(wait(seconds), String(seconds)).toBe(want)
+      expect(wait(2, seconds), String(seconds)).toBe(want)
+    expect(retryAfter(2, new UpstreamError('x'))['Retry-After']).toBe('2')
   })
 })

@@ -69,9 +69,9 @@ const randomNonce = (): string => b64u(crypto.getRandomValues(new Uint8Array(16)
 
 const unknown = (m: string, status = 0) => new ApiError('Unknown', status, false, m)
 
-/** `Retry-After` as ms. Only whole seconds (what our API sends): an HTTP date or anything else counts as no hint. */
+/** `Retry-After` as ms. Only whole seconds from 1 (what our API sends): an HTTP date, 0 or anything else counts as no hint. */
 const retryAfterMs = (header: string | null): number | undefined =>
-  header !== null && /^\d{1,6}$/.test(header) ? Number(header) * 1000 : undefined
+  header !== null && /^[1-9]\d{0,5}$/.test(header) ? Number(header) * 1000 : undefined
 
 function toApiError(status: number, json: unknown, wait?: number): ApiError {
   const env = ErrorEnvelope.safeParse(json)

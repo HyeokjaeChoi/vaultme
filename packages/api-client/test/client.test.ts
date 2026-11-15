@@ -279,7 +279,7 @@ describe('api client', () => {
   it('retryAfterMs is undefined without a Retry-After, or with one that is not whole seconds', async () => {
     const s = setup()
     const unavailable = { code: 'unavailable', message: 'x', retryable: true }
-    for (const wait of [undefined, '', 'abc', '-1', '1.5', '1e3', 'Wed, 21 Oct 2026 07:28:00 GMT', '1234567']) {
+    for (const wait of [undefined, '', '0', 'abc', '-1', '1.5', '1e3', 'Wed, 21 Oct 2026 07:28:00 GMT', '1234567']) {
       s.server.rpcReply = {
         status: 503,
         body: unavailable,
