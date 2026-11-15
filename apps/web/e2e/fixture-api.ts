@@ -70,6 +70,8 @@ export async function fixtureApi(page: Page) {
     internal: 'none' as InternalMode,
     holdInternal: null as Promise<void> | null,
     historyCursors: [] as (string | undefined)[],
+    /** Answer delay in ms (0 = at once): `rpc` for the RPC proxy, installs and token; `history` for history and internal transfers. perf.spec.ts sets the API limits of docs/perf/slo.md. */
+    latencyMs: { rpc: 0, history: 0 },
     registers: 0,
     requests: [] as { path: string; headers: Record<string, string> }[],
   }
@@ -81,6 +83,8 @@ export async function fixtureApi(page: Page) {
     if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
     const path = new URL(req.url()).pathname
     api.requests.push({ path, headers: req.headers() })
+    const wait = path === '/v1/history' || path === '/v1/tx/internal' ? api.latencyMs.history : api.latencyMs.rpc
+    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait))
     if (path === '/v1/installs') {
       api.registers++
       return json(route, 201, { installId: crypto.randomUUID() })
