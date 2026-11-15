@@ -56,7 +56,7 @@ The design asked for LCP "good" (2.5 s) minus the non-API part of the viewer loa
 1. The lhci runs of CI run 41076156239 (`perf-lhci-mobile`, 5 runs per page, Lighthouse mobile throttling: 150 ms RTT, 1.6 Mbps, 4x CPU) give LCP per page. The URLs are `/address` and `/tx` without a fragment, so they make no API request (0 `/v1/*` requests in every LHR). They measure the page shell: the LCP element is the empty-state or form text, and LCP equals FCP.
 2. Mobile LCP of `/address`, `/en/address`, `/tx`, `/en/tx`: 2013 to 2150 ms per run (medians 2015 to 2033 ms). Desktop: 500 to 533 ms.
 3. Allowance on mobile = 2500 - 2150 = 350 ms, rounded down to 300 ms. On desktop = 2500 - 533 = 1967 ms, rounded down to 1900 ms.
-4. 300 ms is unreasonably small: the cheapest cold call (`health`) already takes 105 to 222 ms at p95, and the viewer needs a token and a read after the shell paints. A limit under the cost of one cold request would fail by design.
+4. 300 ms is unreasonably small: the cheapest cold call (`health`) already takes 113 to 217 ms at p95 (5 runs of 2026-11-15; 105 to 222 ms on 2026-10-30), and the viewer needs a token and a read after the shell paints. A limit under the cost of one cold request would fail by design.
 5. So the RAIL / Nielsen bound is used: 1 s keeps the user's flow of thought uninterrupted (a delay beyond it needs an indicator, and the viewer shows a skeleton). It is the same on both modes, because a page load starts on a new connection.
 
 Limits of this method: the shell time is a proxy (the viewer with a fragment was not run through lhci), and runner-to-staging latency is a datacenter path, not a phone on 4G. The desktop number (1900 ms) would pass in all 5 runs; the mobile one is binding.
