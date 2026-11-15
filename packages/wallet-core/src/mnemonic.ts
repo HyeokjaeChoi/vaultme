@@ -1,7 +1,8 @@
-import { generateMnemonic as bip39Generate, validateMnemonic as bip39Validate } from '@scure/bip39'
+import { generateMnemonic as bip39Generate, mnemonicToSeedSync, validateMnemonic as bip39Validate } from '@scure/bip39'
 import { wordlist } from '@scure/bip39/wordlists/english.js'
 import type { Address } from 'viem'
-import { mnemonicToAccount, type HDAccount } from 'viem/accounts'
+import { toHex } from 'viem'
+import { HDKey, privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
 import { DERIVATION_PATH } from './constants'
 
 const MASK = '[Mnemonic: hidden]'
@@ -26,9 +27,24 @@ export class Mnemonic {
   passphrase(): string {
     return this.#passphrase
   }
-  /** Account at m/44'/60'/0'/0/0 for these words and this passphrase. */
-  account(): HDAccount {
-    return mnemonicToAccount(this.#words, { path: DERIVATION_PATH, passphrase: this.#passphrase })
+  /**
+   * Account at m/44'/60'/0'/0/0 for these words and this passphrase. The seed and the master and child HD keys are wiped
+   * before this returns (SEC-9); the account holds the key as a hex string, which JS cannot wipe. The intermediate keys
+   * of the path (m/44', ...) are made inside @scure/bip32 and are not reachable.
+   */
+  account(): PrivateKeyAccount {
+    const seed = mnemonicToSeedSync(this.#words, this.#passphrase)
+    const master = HDKey.fromMasterSeed(seed)
+    const child = master.derive(DERIVATION_PATH)
+    try {
+      const key = child.privateKey
+      if (!key) throw new Error('No private key') // never for a child of a seed
+      return privateKeyToAccount(toHex(key))
+    } finally {
+      seed.fill(0)
+      master.wipePrivateData()
+      child.wipePrivateData()
+    }
   }
   toString(): string {
     return MASK
