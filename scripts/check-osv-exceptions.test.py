@@ -9,6 +9,7 @@ import importlib.util
 import os
 import sys
 
+sys.dont_write_bytecode = True  # importing the checker must not leave a scripts/__pycache__ (R10 would try to read the .pyc)
 here = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location("check_osv_exceptions", os.path.join(here, "check-osv-exceptions.py"))
 mod = importlib.util.module_from_spec(spec)
