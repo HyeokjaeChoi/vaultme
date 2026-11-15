@@ -60,9 +60,9 @@ jobs:
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api openapi:check
       # PROD-1: the production env blocks (unused until the first public release, ADR-0025) still build and validate.
-      # --dry-run needs no Cloudflare token and uploads nothing.
+      # --dry-run needs no Cloudflare token and uploads nothing. A config warning (unknown field) also fails the step.
       - if: hashFiles('package.json') != ''
-        run: pnpm --filter @vaultme/api exec wrangler deploy --env production --dry-run --outdir "$RUNNER_TEMP/api-production"
+        run: scripts/wrangler-dry-run.sh @vaultme/api "$RUNNER_TEMP/api-production"
       # Drizzle schema vs committed migrations (#355, ADR-0029): fails when apps/api/src/db/schema.ts changed without `db:generate`.
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api db:check
@@ -123,8 +123,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile --filter @vaultme/web...
       - run: pnpm --filter "@vaultme/web..." run build
-      # PROD-1: the production env block of apps/web/wrangler.jsonc (needs the build for the assets directory).
-      - run: pnpm --filter @vaultme/web exec wrangler deploy --env production --dry-run --outdir "$RUNNER_TEMP/web-production"
+      # PROD-1: the production env block of apps/web/wrangler.jsonc (config only; needs the build for the assets directory).
+      - run: scripts/wrangler-dry-run.sh @vaultme/web "$RUNNER_TEMP/web-production"
       - run: pnpm --filter @vaultme/web exec playwright install --only-shell chromium
       - run: pnpm --filter @vaultme/web run test:e2e
 
