@@ -1,23 +1,11 @@
 import { runInDurableObject } from 'cloudflare:test'
 import { env } from 'cloudflare:workers'
 import { describe, expect, it, vi } from 'vitest'
-import {
-  BURST,
-  DAILY_REFUSE,
-  DAILY_WARN,
-  MAX_WAIT_MS,
-  SAVE_EVERY,
-  WINDOW_MS,
-  count,
-  refused,
-  restore,
-  secondsToMidnight,
-  take,
-  utcDay,
-  type Bucket,
-  type Day,
-  type EtherscanBucket,
-} from '../src/bucket.ts'
+import { BURST, MAX_WAIT_MS, WINDOW_MS, take, type Bucket, type EtherscanBucket } from '../src/bucket.ts'
+import { DAILY_WARN, SAVE_EVERY, count, refused, restore, secondsToMidnight, type Day } from '../src/daily-budget.ts'
+
+const DAILY_REFUSE = 95_000 // the plan's number; the module keeps it private, so a change shows here
+const utcDay = (now: number) => Math.floor(now / 86_400_000)
 
 describe('rolling window (3 calls per 1200 ms = 2.5/s, wait <= 2 s)', () => {
   it('lets one history page (3 calls) start at once, then spaces the next burst a window later', () => {
@@ -79,7 +67,7 @@ describe('daily budget (API-2: Etherscan blocks the free key at 100,000 calls a 
   const today = utcDay(T)
 
   it('warns at 80,000 and refuses at 95,000, under the 100,000 Etherscan limit', () => {
-    expect([DAILY_WARN, DAILY_REFUSE]).toEqual([80_000, 95_000])
+    expect(DAILY_WARN).toBe(80_000)
     expect(refused({ day: today, calls: DAILY_REFUSE - 1 }, T)).toBe(false)
     expect(refused({ day: today, calls: DAILY_REFUSE }, T)).toBe(true)
   })
