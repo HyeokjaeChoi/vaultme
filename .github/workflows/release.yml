@@ -1,6 +1,6 @@
 # Release gate (#380, #378). A release is a `v*` tag. The tag run checks the funded wallet, runs the Maestro critical path on the
 # iOS simulator and the Android emulator, and only when all pass builds the app with EAS. Failed flows retry once (run.sh); a retry
-# pass continues and opens or updates one "flaky e2e" issue per flow (FLAKY-1); two failures stop the build. A tag run also runs the funded flows (#381): real Sepolia
+# pass continues and opens or updates one "flaky e2e" issue per flow and platform (FLAKY-1); two failures stop the build. A tag run also runs the funded flows (#381): real Sepolia
 # sends between two wallets of one phrase (iOS: A sends to B, Android: B sends to A), then the other wallet is restored and lists them.
 # A funded flow is never retried (a retry would broadcast again) and waits up to 1,200 s for Confirmed; scripts/release-verify.mts then
 # checks the chain: sender nonce moved by exactly 2, both receipts status 1 with the right recipient and amount (ADR-0040, CHAIN-1).
@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: release # one run at a time: both wallets and their nonces are shared by every tag (release-verify.mts)
+  group: ${{ inputs.dry_run == true && format('release-dry-{0}', github.ref) || 'release' }} # tag runs one at a time: both wallets and their nonces are shared by every tag (release-verify.mts)
   cancel-in-progress: false
 
 env:

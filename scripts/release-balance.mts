@@ -41,7 +41,6 @@ const show = (v: bigint, decimals: number) =>
   `${v / 10n ** BigInt(decimals)}.${(v % 10n ** BigInt(decimals)).toString().padStart(decimals, '0')}`
 
 // CHAIN-7: the constants of the app are right on the chain itself (a wrong USDC address or chain id would sign or show the wrong token).
-const word = (hex: bigint) => BigInt(hex)
 const text = (raw: string) =>
   Buffer.from(raw.slice(2), 'hex')
     .toString('utf8')
@@ -57,9 +56,9 @@ const rawCall = async (method: string, params: unknown[]): Promise<string> => {
   const body = (await res.json()) as { result?: unknown }
   return typeof body.result === 'string' ? body.result : fail(`Sepolia RPC ${method} gave no answer`)
 }
-const chainId = word(BigInt(await rawCall('eth_chainId', [])))
+const chainId = BigInt(await rawCall('eth_chainId', []))
 if (chainId !== BigInt(CHAIN.id)) fail(`eth_chainId is ${chainId}, the app expects ${CHAIN.id} (Sepolia)`)
-const decimals = word(BigInt(await rawCall('eth_call', [{ to: ASSETS.USDC.address, data: '0x313ce567' }, 'latest'])))
+const decimals = BigInt(await rawCall('eth_call', [{ to: ASSETS.USDC.address, data: '0x313ce567' }, 'latest']))
 if (decimals !== BigInt(ASSETS.USDC.decimals))
   fail(`USDC decimals() is ${decimals}, the app expects ${ASSETS.USDC.decimals}`)
 // symbol() returns an ABI string: offset, length, bytes
@@ -87,5 +86,8 @@ for (const [name, { address }] of [
   const short = [eth < minEth && 'ETH', usdc < minUsdc && 'USDC'].filter(Boolean)
   if (short.length) shortOf.push(`wallet ${name} ${address} is short of ${short.join(' and ')}`)
 }
-if (shortOf.length) fail(`Funded wallets on Sepolia: ${shortOf.join('; ')}. Top up, then re-run the release.`)
+if (shortOf.length)
+  fail(
+    `Funded wallets on Sepolia: ${shortOf.join('; ')}. Top up, then tag the release again (a re-run is refused: funded flows never run twice in place, ADR-0040).`,
+  )
 console.log('Balance check passed.')
