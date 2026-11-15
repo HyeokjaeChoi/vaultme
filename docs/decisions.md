@@ -95,7 +95,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q71 | Address poisoning defenses; zero-value switch | IMPLEMENTED | `packages/history/src/items.ts` (`showZero`); S40 `ActivityRow` State=Caution (#313); S41 caution state `pages/activity/detail.tsx`, `cautionOf` (#334) |
 | Q72 | Paste shows a compare notice | IMPLEMENTED | `packages/i18n/src/ko.ts` |
 | Q73 | Safety values compiled in; hash on device; fee cap | IMPLEMENTED | ADR-0005 |
-| Q74 | Supply chain: release age, scripts, `wallet-core` allow-list, osv-scanner, pinned actions | IMPLEMENTED | `pnpm-workspace.yaml`; `scripts/check-repo-rules.sh` R15; `.github/workflows/osv-scanner.yml` |
+| Q74 | Supply chain: release age, trust policy, scripts, `wallet-core` allow-list, osv-scanner with dated exceptions, pinned actions | IMPLEMENTED | `pnpm-workspace.yaml`; `scripts/check-repo-rules.sh` R13, R15, R18; `.github/workflows/osv-scanner.yml`; `osv-scanner.toml`; ADR-0047 |
 | Q75 | Push hardening: token enforcement, payload check, re-read on tap | IMPLEMENTED | `packages/contracts/src/push.ts` |
 | Q76 | WCAG 2.2 AA, address a11y label, text size, motion | IMPLEMENTED | `shared/lib/address.ts`; screen reader run not recorded |
 | Q77 | Replaced state unblocks send; push notifies | SUPERSEDED | Push part: ADR-0030 (no replaced push, #331). The Replaced state still holds: ADR-0006 |
