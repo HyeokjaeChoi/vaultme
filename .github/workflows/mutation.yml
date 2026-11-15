@@ -35,7 +35,7 @@ jobs:
           if [ "$EVENT" != pull_request ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
           # Into a variable first: a failed `git diff` fails this step (a pipe in `if` would read it as "no change" and open the gate).
           files=$(git diff --name-only "$BASE"...HEAD)
-          if grep -qE '^(packages/(wallet-core|history|api-client|contracts|config)/|\.github/workflows/mutation\.yml$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|package\.json$)' <<< "$files"; then
+          if grep -qE '^(packages/(wallet-core|history|api-client|contracts|config)/|\.github/workflows/mutation\.yml$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig\.base\.json$|package\.json$)' <<< "$files"; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"

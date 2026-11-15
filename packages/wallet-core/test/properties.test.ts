@@ -24,8 +24,7 @@ import { PUBLIC_JUNK_PHRASE, RECIPIENT } from './fixtures'
 
 // CHAIN-5 (quality-gates plan): 1,000 runs per property. A failure prints the seed and the counterexample; replay it with
 // `fc.assert(property, { seed, path })`. Money-math and state invariants that example tests cannot cover.
-// FC_SEED fixes the seed (the mutation job sets it, so a mutant is killed the same way on every run); unset = a new seed each run.
-const RUNS = { numRuns: 1000, ...(process.env.FC_SEED ? { seed: Number(process.env.FC_SEED) } : {}) }
+const RUNS = { numRuns: 1000 }
 vi.setConfig({ testTimeout: 30_000 }) // 1,000 runs take 1 s here; a loaded CI runner needs room, a slow property is not a failure
 const assetArb = fc.constantFrom<AssetId>('ETH', 'USDC')
 const GWEI = 10n ** 9n
