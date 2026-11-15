@@ -59,6 +59,16 @@ export function inlineScriptHashes(html: string): string[] {
   return [...hashes]
 }
 
+/**
+ * An inline script for the /tx pages: a link with a valid hash (the same test as BOOT_SCRIPT in routes/tx.tsx) starts loading the
+ * lazy chunks while the page boots. Without it the first read waits for the page's own JS, then for these chunks, one after the
+ * other (#504). The fragment never reaches the server, so only the browser can decide this; a page without a hash loads nothing
+ * more, which keeps the JS budget of the shell (ADR-0042). The chunk imports its own dependencies (modulepreload follows them).
+ */
+export function preloadScript(files: string[]): string {
+  return `<script>(function(){var h;try{h=decodeURIComponent(location.hash.slice(1)).trim()}catch(e){return}if(!/^0x[0-9a-fA-F]{64}$/.test(h))return;for(var f of ${JSON.stringify(files)}){var l=document.createElement('link');l.rel='modulepreload';l.href=f;document.head.append(l)}})()</script>`
+}
+
 export function fillHeaders(template: string, { scriptHashes, apiOrigin, noindex }: HeaderOptions): string {
   for (const p of ['__SCRIPT_HASHES__', '__API_ORIGIN__', '__X_ROBOTS_TAG__']) {
     if (!template.includes(p)) throw new Error(`_headers has no ${p}`)
@@ -109,6 +119,18 @@ export function finalize(dir: string, env: Record<string, string | undefined> = 
   // The SPA shell has no page content. Once the landing page is prerendered at `/`, index.html is that page: keep it.
   const index = join(dir, 'index.html')
   if (existsSync(index) && !/<main[\s>]/.test(readFileSync(index, 'utf8'))) rmSync(index)
+  // The lazy `client` chunk (the API client and, through it, what a read needs) is preloaded on /tx for a valid hash (#504).
+  const tx = ['tx.html', 'en/tx.html'].filter((f) => existsSync(join(dir, f)))
+  if (tx.length > 0) {
+    const chunks = readdirSync(join(dir, 'assets')).filter((f) => /^client-.+\.js$/.test(f))
+    if (chunks.length !== 1) throw new Error(`expected one client chunk in assets, found ${String(chunks.length)}`)
+    const script = preloadScript(chunks.map((f) => `/assets/${f}`))
+    for (const f of tx) {
+      const html = readFileSync(join(dir, f), 'utf8')
+      if (!html.includes('</head>')) throw new Error(`${f} has no </head>`)
+      writeFileSync(join(dir, f), html.replace('</head>', `${script}</head>`))
+    }
+  }
   // Staging only: a production build never carries the beacon, even if the token is set (ADR-0012, #254).
   const token = env.WEB_ENV === 'production' ? '' : analyticsToken(env)
   if (token)

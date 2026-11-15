@@ -1,8 +1,16 @@
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { runInNewContext } from 'node:vm'
 import { describe, expect, it } from 'vitest'
-import { analyticsToken, apiOrigin, fillHeaders, finalize, inlineScriptHashes } from '../scripts/finalize.ts'
+import {
+  analyticsToken,
+  apiOrigin,
+  fillHeaders,
+  finalize,
+  inlineScriptHashes,
+  preloadScript,
+} from '../scripts/finalize.ts'
 
 // sha256 of "a", base64
 const HASH_A = "'sha256-ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs='"
@@ -141,5 +149,53 @@ describe('finalize', () => {
   it('fails when a prerendered 404 is missing', () => {
     const dir = mkdtempSync(join(tmpdir(), 'web-'))
     expect(() => finalize(dir, {})).toThrow('missing prerendered')
+  })
+})
+
+// #504: a /tx link with a valid hash starts loading the lazy API chunk while the page boots, not when the hash is read.
+describe('tx preload', () => {
+  const withTx = (assets: string[]) => {
+    const dir = mkdtempSync(join(tmpdir(), 'web-'))
+    for (const p of ['404', 'en/404', 'tx', 'en/tx']) {
+      mkdirSync(join(dir, p), { recursive: true })
+      writeFileSync(join(dir, p, 'index.html'), '<html><head></head><main>x</main></html>')
+    }
+    mkdirSync(join(dir, 'assets'))
+    for (const a of assets) writeFileSync(join(dir, 'assets', a), '')
+    writeFileSync(join(dir, '_headers'), TEMPLATE)
+    return dir
+  }
+  const HASH = '0x' + 'ab'.repeat(32)
+
+  it('adds a script to both /tx pages that preloads the client chunk only for a valid hash, and hashes it for the CSP', () => {
+    const dir = withTx(['client-ABC123.js', 'tx-X.js'])
+    finalize(dir, {})
+    for (const f of ['tx.html', 'en/tx.html']) {
+      const html = readFileSync(join(dir, f), 'utf8')
+      expect(html).toContain(preloadScript(['/assets/client-ABC123.js']))
+      expect(html).not.toContain('tx-X.js')
+    }
+    expect(readFileSync(join(dir, '_headers'), 'utf8')).toContain("'sha256-")
+  })
+  it('the script preloads for a valid 32-byte hash and does nothing for anything else', () => {
+    const run = (hash: string) => {
+      const links: string[] = []
+      const document = {
+        createElement: () => ({}) as Record<string, string>,
+        head: { append: (l: Record<string, string>) => links.push(`${l.rel ?? ''} ${l.href ?? ''}`) },
+      }
+      runInNewContext(preloadScript(['/assets/client-ABC123.js']).replace(/^<script>|<\/script>$/g, ''), {
+        document,
+        location: { hash },
+      })
+      return links
+    }
+    expect(run('#' + HASH)).toEqual(['modulepreload /assets/client-ABC123.js'])
+    expect(run('#0x12')).toEqual([])
+    expect(run('')).toEqual([])
+    expect(run('#%E0%A4%A')).toEqual([]) // bad percent-encoding does not throw
+  })
+  it('fails the build when the /tx page exists and the client chunk does not', () => {
+    expect(() => finalize(withTx(['tx-X.js']), {})).toThrow('client chunk')
   })
 })
