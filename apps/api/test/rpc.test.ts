@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers'
 import { USDC_SEPOLIA } from '@vaultme/contracts'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { app } from '../src/app.ts'
+import { proxyRpc } from '../src/rpc.ts'
 import { b64uEncode, issueToken } from '../src/auth.ts'
 
 const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
@@ -579,6 +580,13 @@ describe('Analytics Engine point per request (API-4)', () => {
     expect(rpcPoints()).toMatchObject([
       { blobs: ['eth_blockNumber', 'unavailable', 'none', '0'], doubles: [expect.any(Number), 1, 1] },
     ])
+  })
+
+  it('a background call (hedge off, push.ts) writes no point: one run makes hundreds of calls, 250 points at most', async () => {
+    mock(() => ok('0x1'))
+    const { e, rpcPoints } = withPoints()
+    expect(await proxyRpc(e, req('eth_blockNumber') as never, false)).not.toBeNull()
+    expect(rpcPoints()).toEqual([])
   })
 
   it('a refused method writes no rpc point and no upstream call', async () => {
