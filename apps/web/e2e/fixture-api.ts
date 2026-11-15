@@ -7,8 +7,8 @@ export const API = 'https://vaultme-api-staging.gurwo1007.workers.dev'
 export const A = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 
 type Mode = 'ok' | 'down' | 'big'
-/** History answers: `list` = 12 rows then 3 more (cursor p2), `empty`, `down` (503), `big` = one row with a 25-digit amount. */
-export type HistoryMode = 'list' | 'empty' | 'down' | 'big'
+/** History answers: `list` = 12 rows then 3 more (cursor p2), `empty`, `down` (503), `big` = one row with a 25-digit amount, `longFailed` = one failed transaction of 1.000000000000000001 ETH (a receive row, full wei precision, no sign). */
+export type HistoryMode = 'list' | 'empty' | 'down' | 'big' | 'longFailed'
 
 const ME = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const PEER = [
@@ -96,6 +96,8 @@ export async function fixtureApi(page: Page) {
       if (api.history === 'empty') return json(route, 200, page([], null))
       if (api.history === 'big')
         return json(route, 200, page([mkTx(1, 180, { value: '1000000000000000000000000000000' })], null))
+      if (api.history === 'longFailed')
+        return json(route, 200, page([mkTx(1, 180, { value: '1000000000000000001', status: 'failed' })], null))
       return json(route, 200, cursor === 'p2' ? page(SECOND_PAGE, null) : page(FIRST_PAGE, 'p2'))
     }
     if (path === '/v1/tx/internal') {
