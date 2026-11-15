@@ -9,6 +9,12 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: { baseURL: `http://localhost:${PORT}`, ...devices['Desktop Chrome'] },
+  projects: [
+    { name: 'e2e', testIgnore: 'perf.spec.ts' },
+    // The lab metrics (WEB-3) run alone, one test after the other, once the other specs are done: another busy worker would
+    // slow the page they time. Locally: `playwright test --project=perf --no-deps`.
+    { name: 'perf', testMatch: 'perf.spec.ts', dependencies: ['e2e'], fullyParallel: false },
+  ],
   // The built site served by the real Workers Static Assets runtime: status codes, _headers and _redirects are the product.
   // Run `pnpm build` first (CI does).
   webServer: {
