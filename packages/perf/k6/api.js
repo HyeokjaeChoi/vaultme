@@ -5,10 +5,10 @@
 // k6 sets `noConnectionReuse` for a whole run, not per scenario, so the two modes are two runs.
 // Per endpoint: 1 untimed warm-up request, then the timed requests. Only 200 responses count as latency; others count as errors.
 import { check, sleep } from 'k6'
-import { b64encode } from 'k6/encoding'
 import http from 'k6/http'
 import { Counter, Rate, Trend } from 'k6/metrics'
 import { CASES, evaluate, OWN_P95_MS, SLO_MS, tierMarkdown, warnings } from '../src/slo.ts'
+import { newInstall, serverTimingMs } from './lib.js'
 
 const BASE_URL = (__ENV.BASE_URL || '').replace(/\/+$/, '')
 const MODE = __ENV.MODE
@@ -18,8 +18,6 @@ const APP_VERSION = __ENV.APP_VERSION || '0.1.0'
 const OUT_DIR = (__ENV.OUT_DIR || '.').replace(/\/+$/, '')
 // Public test-vector address of the repo (apps/web/e2e/fixture-api.ts): a Sepolia address with real history, not a user.
 const ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
-// Empty-body hash of the signed token request (packages/api-client/src/client.ts).
-const EMPTY_BODY_SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
 
 // Calls per case (ADR-0019): at most 1 token + 31 rpc + 21 history = 53 per install, under the limit of 60 per 60 s.
 const N_HEALTH = 30
@@ -83,41 +81,9 @@ const callOk = new Rate('call_ok')
 const sloGood = new Rate('slo_good')
 const ownN = new Counter('own_n')
 
-const b64u = (buf) => b64encode(buf, 'rawurl')
-
-// Registers one temporary install and gets a token, as the app does (a key made in memory, nothing stored).
 export async function setup() {
-  const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify'])
-  const publicKey = b64u(await crypto.subtle.exportKey('raw', pair.publicKey))
-  const base = { 'X-App-Version': APP_VERSION, 'X-Client': 'web' }
-  const reg = http.post(`${BASE_URL}/v1/installs`, JSON.stringify({ publicKey }), {
-    headers: { ...base, 'content-type': 'application/json' },
-    tags: { setup: 'register' },
-  })
-  if (reg.status !== 201) throw new Error(`register failed: HTTP ${reg.status}`)
-  const installId = reg.json('installId')
-  const ts = Math.floor(Date.now() / 1000)
-  const nonce = b64u(crypto.getRandomValues(new Uint8Array(16)).buffer)
-  const canonical = ['vaultme-v1', 'POST', '/v1/installs/token', installId, String(ts), nonce, EMPTY_BODY_SHA256].join(
-    '\n',
-  )
-  const sig = await crypto.subtle.sign(
-    { name: 'ECDSA', hash: 'SHA-256' },
-    pair.privateKey,
-    new TextEncoder().encode(canonical),
-  )
-  const tok = http.post(`${BASE_URL}/v1/installs/token`, null, {
-    headers: {
-      ...base,
-      'X-Install-Id': installId,
-      'X-Timestamp': String(ts),
-      'X-Nonce': nonce,
-      'X-Signature': b64u(sig),
-    },
-    tags: { setup: 'token' },
-  })
-  if (tok.status !== 200) throw new Error(`token failed: HTTP ${tok.status}`)
-  return { token: tok.json('token') }
+  const { token } = await newInstall(BASE_URL, APP_VERSION)
+  return { token }
 }
 
 // `timed` false is the warm-up: sent, not recorded.
@@ -148,10 +114,7 @@ function call(name, timed, method, path, token, body) {
     T.tls.add(res.timings.tls_handshaking, tags)
     T.waiting.add(res.timings.waiting, tags)
     const st = res.headers['Server-Timing'] || ''
-    const dur = (metric) => {
-      const m = new RegExp(`(?:^|,)\\s*${metric};dur=([\\d.]+)`).exec(st)
-      return m ? Number(m[1]) : null
-    }
+    const dur = (metric) => serverTimingMs(st, metric)
     const worker = dur('total')
     const upstream = dur('upstream')
     if (worker !== null) T.worker.add(worker, tags)

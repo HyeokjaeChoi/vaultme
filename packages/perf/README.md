@@ -53,6 +53,16 @@ The job fails on a case with no 200 response and on our own server time (`rpc` o
 
 The older `latency` command (`pnpm --filter @vaultme/perf latency`) stays as the Node measurement behind the baseline until the baseline moves to k6.
 
+## Load test (k6, [ADR-0045](../../docs/adr/0045-quota-safe-api-load-test-on-staging.md))
+
+`k6/load.js` sends 2 req/s of `eth_blockNumber` for 3 minutes, then probes each limiter at 1.5 times its limit (one install, and unauthenticated `/v1/rpc` and `/v1/history`). It proves the 429 contract on the real bindings. Staging only. Per run: at most 450 Infura calls, at most 450 Alchemy calls, 0 Etherscan, 3 installs. Thresholds: `CHECKS` in `src/load.ts`.
+
+```bash
+k6 run -e BASE_URL=<staging worker url> -e OUT_DIR=k6-out packages/perf/k6/load.js   # 6.5 minutes; writes k6-load.json and k6-load.md
+```
+
+Exit 99: a threshold failed. Exit 108: an upstream is down and the test stopped (`api-load.yml` warns, no failure). Never point it at production, and do not start a second run from the same IP within a minute (registration allows 3 per 60 s). `api-load.yml` runs it weekly and on demand and uploads `evidence-LOAD-1`.
+
 ## Evidence files ([ADR-0043](../../docs/adr/0043-measured-results-are-committed-as-evidence-files.md))
 
 A gate job writes `evidence-<gate>.json` and uploads it; a normal PR commits it as `docs/results/<gate>/<date>-<sha7>-<runId>.json`. [docs/results/README.md](../../docs/results/README.md) lists every gate with its threshold, last value, commit, run and file. It is generated. `test/evidence.test.ts` fails when it differs from the files, when a file breaks the schema, and when a file is not at its canonical path.
@@ -73,6 +83,6 @@ A job adds its file with two steps. The code needs node 24 and a checkout, not `
     retention-days: 90
 ```
 
-- Results come from `--result '<json>'` (repeatable), `--results <file>` (a JSON array) or `--from hermes=<file>` and `--from js-budget=<file>` (the files `ci.yml` already uploads). `pass` is computed from the threshold, never typed in. A metric with `"threshold":null` is only reported.
+- Results come from `--result '<json>'` (repeatable), `--results <file>` (a JSON array) or `--from hermes=<file>`, `--from js-budget=<file>` (the files `ci.yml` already uploads) and `--from load=<file>` (`k6-load.json`). `pass` is computed from the threshold, never typed in. A metric with `"threshold":null` is only reported.
 - Run, commit and event come from the Actions environment. `--run <id>` reads them from `gh` instead, to seed an old run (add `--measured-at <UTC time>`).
 - After the run: `node packages/perf/src/cli.ts evidence collect --run <id>` (needs `gh`) downloads the `evidence-*` artifacts, checks them against the run and renders the README. Commit the result in a PR. After a rebase run `evidence render`; never merge `README.md` by hand.

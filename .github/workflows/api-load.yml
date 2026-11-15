@@ -1,0 +1,79 @@
+name: api-load
+
+# Weekly quota-safe load test of the staging API (ADR-0045, gate LOAD-1): the limiter contract on the real Cloudflare bindings.
+# Staging only, never production. Not a release gate (ADR-0036). The script registers its own 3 installs, so it needs no secret;
+# the GitHub Environment `staging` holds the variable STAGING_API_URL. One run: <= 450 Infura and <= 450 Alchemy calls, 0 Etherscan.
+# Exit codes of k6: 99 a threshold failed (our bug) fails the job; 108 the script aborted because an upstream answered 503
+# `unavailable` too often: a warning, not a failure (owner decision 9).
+on:
+  schedule:
+    # Monday 05:11 UTC, after api-latency (03:23) and api-bench (04:17). Not at the start of an hour (GitHub delays those).
+    - cron: '11 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# The same group as api-latency and api-bench: one runner IP at a time, and the same upstream quotas.
+concurrency:
+  group: api-latency
+  cancel-in-progress: false
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    # About 6.5 minutes of load plus the setup.
+    timeout-minutes: 15
+    environment: staging
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - uses: grafana/setup-k6-action@43b9fc21641a76002687994433dd586f56e791b1 # v1.2.2
+        with:
+          k6-version: '2.3.0'
+      - name: Run k6
+        id: k6
+        env:
+          BASE_URL: ${{ vars.STAGING_API_URL }}
+          OUT_DIR: k6-out
+        run: |
+          : "${BASE_URL:?set variable STAGING_API_URL in the staging environment}"
+          mkdir k6-out
+          APP_VERSION="$(jq -r .version apps/web/package.json)"
+          rc=0
+          k6 run --quiet -e APP_VERSION="$APP_VERSION" packages/perf/k6/load.js || rc=$?
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          {
+            echo '### API load test (staging, k6)'
+            echo
+            if [ -f k6-out/k6-load.md ]; then cat k6-out/k6-load.md; else echo "No result (the k6 run failed in setup)."; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$rc" -eq 108 ]; then
+            echo "::warning title=api-load aborted::An upstream answered 503 unavailable to more than 20% of the steady requests. The test stopped to save quota; this is not a failure. See the job log."
+            exit 0
+          fi
+          exit "$rc"
+      - name: Evidence file (ADR-0043)
+        # A passed run (0) and a run whose threshold failed (99) both have numbers worth keeping; an aborted run has none.
+        if: ${{ !cancelled() && (steps.k6.outputs.rc == '0' || steps.k6.outputs.rc == '99') }}
+        run: >
+          node packages/perf/src/cli.ts evidence emit --gate LOAD-1 --origin 'GitHub Actions ubuntu-latest, staging API'
+          --tool 'k6 2.3.0, packages/perf/k6/load.js' --from load=k6-out/k6-load.json --out evidence-LOAD-1.json
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: api-load
+          path: k6-out
+          retention-days: 90
+          if-no-files-found: warn
+      - if: ${{ !cancelled() && (steps.k6.outputs.rc == '0' || steps.k6.outputs.rc == '99') }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-LOAD-1
+          path: evidence-LOAD-1.json
+          retention-days: 90
+          if-no-files-found: error
