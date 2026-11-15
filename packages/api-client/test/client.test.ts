@@ -83,14 +83,14 @@ function setup(over: { appVersion?: string; client?: 'web' } = {}) {
     rpcCalls: [] as { auth: string | null; version: string | null; client: string | null; body: unknown }[],
     reject401: 0, // next N rpc calls answer 401 unauthorized
     tokenReply: null as null | { status: number; body: unknown },
-    rpcReply: null as null | { status: number; body: unknown },
+    rpcReply: null as null | { status: number; body: unknown; headers?: Record<string, string> },
     nonces: new Set<string>(),
     pushCalls: [] as { method: string; auth: string | null; body: unknown }[],
   }
-  const json = (status: number, body: unknown) =>
+  const json = (status: number, body: unknown, headers: Record<string, string> = {}) =>
     typeof body === 'string' && body.startsWith('<')
-      ? new Response(body, { status }) // not JSON, e.g. a proxy error page
-      : new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
+      ? new Response(body, { status, headers }) // not JSON, e.g. a proxy error page
+      : new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', ...headers } })
   const f = (async (url: string, init: RequestInit) => {
     const path = new URL(url).pathname
     const h = new Headers(init.headers)
@@ -137,7 +137,7 @@ function setup(over: { appVersion?: string; client?: 'web' } = {}) {
         server.reject401--
         return json(401, { code: 'unauthorized', message: 'Token expired', retryable: false })
       }
-      if (server.rpcReply) return json(server.rpcReply.status, server.rpcReply.body)
+      if (server.rpcReply) return json(server.rpcReply.status, server.rpcReply.body, server.rpcReply.headers)
       return json(200, { jsonrpc: '2.0', id: 1, result: '0x1' })
     }
     if (path === '/v1/push/subscription') {
@@ -255,6 +255,43 @@ describe('api client', () => {
     s.server.rpcReply = { status: 503, body: { code: 'unavailable', message: 'x', retryable: true } }
     await expect(s.client().rpc('x')).rejects.toMatchObject({ code: 'unavailable', retryable: true })
     expect(s.server.rpcCalls).toHaveLength(1) // only 401 unauthorized is retried
+  })
+  it('Retry-After (API-3): whole seconds become retryAfterMs on the error, on any error answer', async () => {
+    const s = setup()
+    const unavailable = { code: 'unavailable', message: 'x', retryable: true }
+    for (const [status, body, wait, ms] of [
+      [503, unavailable, '2', 2000],
+      [429, { code: 'rate_limited', message: 'x', retryable: true }, '60', 60_000],
+      [503, unavailable, '86400', 86_400_000],
+      [502, '<html>Bad Gateway</html>', '3', 3000], // no envelope: the header still counts
+      [426, 'nope', '1', 1000],
+    ] as const) {
+      s.server.rpcReply = { status, body, headers: { 'Retry-After': wait } }
+      const e = await s
+        .client()
+        .rpc('x')
+        .catch((x: unknown) => x)
+      expect(e).toBeInstanceOf(ApiError)
+      expect((e as ApiError).retryAfterMs, `${String(status)} ${wait}`).toBe(ms)
+    }
+    expect(s.server.rpcCalls).toHaveLength(5) // it is only a value: the client never retries by itself
+  })
+  it('retryAfterMs is undefined without a Retry-After, or with one that is not whole seconds', async () => {
+    const s = setup()
+    const unavailable = { code: 'unavailable', message: 'x', retryable: true }
+    for (const wait of [undefined, '', '0', 'abc', '-1', '1.5', '1e3', 'Wed, 21 Oct 2026 07:28:00 GMT', '1234567']) {
+      s.server.rpcReply = {
+        status: 503,
+        body: unavailable,
+        ...(wait === undefined ? {} : { headers: { 'Retry-After': wait } }),
+      }
+      const e = await s
+        .client()
+        .rpc('x')
+        .catch((x: unknown) => x)
+      expect((e as ApiError).retryAfterMs, String(wait)).toBeUndefined()
+    }
+    expect(new ApiError('network', 0, true, 'x').retryAfterMs).toBeUndefined()
   })
   it('clock_skew from the token endpoint is a typed error', async () => {
     const s = setup()

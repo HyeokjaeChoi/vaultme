@@ -158,34 +158,42 @@ test.describe('viewer history', () => {
   // their own cell (table) or row (cards) and never reach the neighbour. The edges of the text, not `scrollWidth` (an overflow inside
   // a fixed table does not widen the page, so the test above passes with the bug) and not the amount's own box (a box with a
   // max-width can stay inside while its text runs out). 0.5 px is subpixel rounding.
-  for (const width of widths) {
-    test(`a long failed amount stays in its column and never covers its neighbour (${String(width)}px)`, async ({
-      page,
-    }) => {
-      const api = await fixtureApi(page)
-      api.history = 'longFailed'
-      await page.setViewportSize({ width, height: 900 })
-      await page.goto(`/address#${A}`)
-      const row = rows(page, width).first()
-      await expect(row.getByText('1.000000000000000001 ETH')).toBeVisible()
-      await settled(page) // the rows fade in: a moving box reads a wrong position
-      if (width >= 768) {
-        const amountCell = row.locator('td').nth(3)
-        const cell = await edges(amountCell)
-        const amount = await textEdges(amountCell.locator('span').first())
-        const time = await edges(row.locator('time'))
-        expect(amount.right).toBeLessThanOrEqual(cell.right + 0.5) // inside its own cell
-        expect(amount.left).toBeGreaterThanOrEqual(cell.left - 0.5)
-        expect(amount.right).toBeLessThanOrEqual(time.left + 0.5) // and not over the time
-      } else {
-        const link = await edges(row.locator('a'))
-        const title = await edges(row.locator('p').first().locator('..')) // the title column
-        const amount = await textEdges(row.locator('p').last())
-        expect(amount.right).toBeLessThanOrEqual(link.right + 0.5) // inside the row
-        expect(amount.left).toBeGreaterThanOrEqual(title.right - 0.5) // and not over the title
-      }
-    })
-  }
+  // The owner's rule for #483 holds in every state a row has: failed, confirmed receive (+) and confirmed send (−). The history holds
+  // mined transactions only, so there is no pending row.
+  const longAmounts: { mode: HistoryMode; state: string; text: string | RegExp }[] = [
+    { mode: 'longFailed', state: 'failed', text: '1.000000000000000001 ETH' },
+    { mode: 'longOk', state: 'confirmed receive', text: /\+0\.747499999999643 ETH/ },
+    { mode: 'longSend', state: 'confirmed send', text: /−0\.747499999999643 ETH/ },
+  ]
+  for (const { mode, state, text } of longAmounts)
+    for (const width of widths) {
+      test(`a long ${state} amount stays in its column and never covers its neighbour (${String(width)}px)`, async ({
+        page,
+      }) => {
+        const api = await fixtureApi(page)
+        api.history = mode
+        await page.setViewportSize({ width, height: 900 })
+        await page.goto(`/address#${A}`)
+        const row = rows(page, width).first()
+        await expect(row.getByText(text)).toBeVisible()
+        await settled(page) // the rows fade in: a moving box reads a wrong position
+        if (width >= 768) {
+          const amountCell = row.locator('td').nth(3)
+          const cell = await edges(amountCell)
+          const amount = await textEdges(amountCell.locator('span').first())
+          const time = await edges(row.locator('time'))
+          expect(amount.right).toBeLessThanOrEqual(cell.right + 0.5) // inside its own cell
+          expect(amount.left).toBeGreaterThanOrEqual(cell.left - 0.5)
+          expect(amount.right).toBeLessThanOrEqual(time.left + 0.5) // and not over the time
+        } else {
+          const link = await edges(row.locator('a'))
+          const title = await edges(row.locator('p').first().locator('..')) // the title column
+          const amount = await textEdges(row.locator('p').last())
+          expect(amount.right).toBeLessThanOrEqual(link.right + 0.5) // inside the row
+          expect(amount.left).toBeGreaterThanOrEqual(title.right - 0.5) // and not over the title
+        }
+      })
+    }
 
   test('every link and button is at least 44 x 44 px, history states included', async ({ page }) => {
     const api = await fixtureApi(page)
