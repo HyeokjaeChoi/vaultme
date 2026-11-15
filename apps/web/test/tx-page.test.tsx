@@ -86,9 +86,18 @@ function open(url: string, state?: unknown) {
 }
 
 describe('transaction page', () => {
+  // #504: the hash is in the URL, so the loading state shows it at once (Figma loading frames), with its copy button.
+  it('the loading state already shows the hash row from the URL, with a copy button', () => {
+    open(`/tx#${H}`)
+    expect(screen.getByText('거래를 불러오고 있어요')).toBeInTheDocument()
+    expect(screen.getByRole('term')).toHaveTextContent('거래 해시')
+    expect(screen.getByRole('definition')).toHaveTextContent(H)
+    expect(screen.getByRole('button', { name: /해시/ })).toBeInTheDocument()
+  })
+
   it('shows the S41 fields in order: status, amount, from, to, time (relative + UTC), fee, block, hash, Etherscan', async () => {
     open(`/tx#${H}`)
-    expect(screen.getByRole('status')).toHaveTextContent('거래를 불러오고 있어요')
+    expect(screen.getByText('거래를 불러오고 있어요')).toBeInTheDocument()
     expect(await screen.findByText('확정')).toBeInTheDocument()
     expect(screen.getByText('0.05')).toBeInTheDocument()
     expect(screen.getByText('ETH')).toBeInTheDocument()
@@ -263,6 +272,7 @@ describe('transaction page', () => {
     const writeText = vi.fn(() => Promise.resolve())
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
     open(`/tx#${H}`)
+    await screen.findByText('확정') // the loading state has its own copy button for the hash: wait for the detail
     await userEvent.click(await screen.findByRole('button', { name: '거래 해시 복사' }))
     expect(writeText).toHaveBeenCalledWith(H)
     expect(await screen.findByText('복사했어요')).toBeInTheDocument()

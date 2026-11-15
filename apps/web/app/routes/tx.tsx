@@ -173,7 +173,7 @@ function Detail({
       aria-busy={tx.status === 'loading'}
       className="flex flex-col gap-6"
     >
-      {tx.status === 'loading' && <TxSkeleton t={x} share={share} />}
+      {tx.status === 'loading' && <TxSkeleton t={x} share={share} hash={hash} />}
       {tx.status === 'ok' && (
         <div className="fade-in flex flex-col gap-6">
           <TxDetail
