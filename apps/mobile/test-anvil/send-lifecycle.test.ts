@@ -74,8 +74,10 @@ afterEach(async () => {
 
 // `it.fails` also passes when its setup throws. Case 9 records such an error here, and `afterAll` fails the run on it.
 const setupErrors: unknown[] = []
+let case9Reached = false // a timeout in case 9 would also pass `it.fails`; reaching the last assertion proves it ran to the end
 afterAll(() => {
   expect(setupErrors, 'case 9 setup broke: this is not the known bug').toEqual([])
+  expect(case9Reached, 'case 9 did not reach its exit assertion (timeout or hook failure)').toBe(true)
 })
 
 describe('send lifecycle on anvil (chain id 11155111)', () => {
@@ -271,6 +273,7 @@ describe('send lifecycle on anvil (chain id 11155111)', () => {
       setupErrors.push(e) // a broken setup must not look like the known bug
       throw e
     }
+    case9Reached = true
     const way = !blocksNewSend(current()) || canCancel(current(), true) || canSpeedUp(current(), true)
     expect(way).toBe(true) // fails today: blocked, and no action for Unknown
   })
