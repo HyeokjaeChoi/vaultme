@@ -1,0 +1,48 @@
+name: codeql
+
+# SEC-2: CodeQL dataflow scan of the app code (JS/TS) and of the workflows themselves (actions), suite security-extended.
+# Results go to Security > Code scanning. Blocking is a repo ruleset setting ("Code scanning results", owner-only);
+# decision 16: make it required after 2 weeks of green runs (first run date: see docs/plans/quality-gates.md).
+# No `paths:` filter on purpose: a required check that is skipped by a path filter stays "pending" and blocks the merge.
+# Action: github/codeql-action v4 (docs: https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning).
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Tuesday 04:17 UTC. Not at the start of an hour: GitHub delays or drops scheduled runs at :00.
+    - cron: '17 4 * * 2'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-extended
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          category: /language:${{ matrix.language }}
