@@ -38,7 +38,77 @@ export function jsBudgetResults(json: unknown): ResultInput[] {
   })
 }
 
+/** The counts of a `vitest --reporter=json` file; `seconds` is the wall time from the start of the run to the end of the last file. */
+function vitestCounts(json: unknown, who: string): { total: number; failed: number; seconds: number } {
+  if (!isRecord(json) || typeof json.numTotalTests !== 'number' || typeof json.numFailedTests !== 'number')
+    throw new Error(`${who}: expected a vitest json report (--reporter=json)`)
+  const files = Array.isArray(json.testResults) ? (json.testResults as unknown[]) : []
+  const ends = files.map((f) => (isRecord(f) && typeof f.endTime === 'number' ? f.endTime : NaN))
+  if (typeof json.startTime !== 'number' || ends.length === 0 || ends.some(Number.isNaN))
+    throw new Error(`${who}: the report has no startTime or file endTime`)
+  if (json.numTotalTests < 1) throw new Error(`${who}: the report holds no test (nothing was measured)`)
+  return {
+    total: json.numTotalTests,
+    failed: json.numFailedTests,
+    seconds: Math.round(Math.max(...ends) - json.startTime) / 1000,
+  }
+}
+
+/** CHAIN-3: the vitest report of `pnpm --filter @vaultme/mobile test:anvil`: 9 cases (an `it.fails` counts as a pass), 0 fails, suite <= 60 s. */
+export function chain3Results(json: unknown): ResultInput[] {
+  const c = vitestCounts(json, 'chain-3')
+  const window = 'one run'
+  return [
+    {
+      metric: 'Anvil send lifecycle: cases',
+      value: c.total,
+      unit: 'cases',
+      threshold: { op: '==', value: 9 },
+      n: c.total,
+      window,
+    },
+    {
+      metric: 'Anvil send lifecycle: failed cases',
+      value: c.failed,
+      unit: 'cases',
+      threshold: { op: '==', value: 0 },
+      n: c.total,
+      window,
+    },
+    {
+      metric: 'Anvil send lifecycle: suite time',
+      value: c.seconds,
+      unit: 's',
+      threshold: { op: '<=', value: 60 },
+      n: 1,
+      window,
+    },
+  ]
+}
+
+/**
+ * CHAIN-5: the vitest report of the property tests: one test per property, a counterexample is a failed test. The runs per
+ * property are configuration, not a measurement: the job passes them as `--result` (see packages/perf/README.md).
+ */
+export function chain5Results(json: unknown): ResultInput[] {
+  const c = vitestCounts(json, 'chain-5')
+  const window = 'one run'
+  return [
+    { metric: 'Properties tested', value: c.total, unit: 'properties', threshold: null, n: c.total, window },
+    {
+      metric: 'Properties with a counterexample',
+      value: c.failed,
+      unit: 'properties',
+      threshold: { op: '==', value: 0 },
+      n: c.total,
+      window,
+    },
+  ]
+}
+
 export const SOURCES: Record<string, (json: unknown) => ResultInput[]> = {
   hermes: hermesResults,
+  'chain-3': chain3Results,
+  'chain-5': chain5Results,
   'js-budget': jsBudgetResults,
 }

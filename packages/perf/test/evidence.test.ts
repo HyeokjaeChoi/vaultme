@@ -25,7 +25,7 @@ import {
   type EvidenceInput,
   type Op,
 } from '../src/evidence.ts'
-import { hermesResults, jsBudgetResults, SOURCES } from '../src/evidence-sources.ts'
+import { chain3Results, chain5Results, hermesResults, jsBudgetResults, SOURCES } from '../src/evidence-sources.ts'
 
 const RUN = {
   commit: 'a'.repeat(40),
@@ -395,6 +395,38 @@ describe('docs/results of this repository', () => {
   })
 })
 
+const vitestReport = (failed: number, total = 9, start = 1000, end = 13_400) => ({
+  numTotalTests: total,
+  numFailedTests: failed,
+  startTime: start,
+  testResults: [{ endTime: end - 2000 }, { endTime: end }],
+})
+
+describe('chain sources', () => {
+  it('reads cases, fails and suite seconds of the anvil report against 9, 0 and 60 s', () => {
+    const r = chain3Results(vitestReport(0))
+    expect(r.map((x) => [x.value, x.threshold])).toEqual([
+      [9, { op: '==', value: 9 }],
+      [0, { op: '==', value: 0 }],
+      [12.4, { op: '<=', value: 60 }],
+    ])
+    expect(buildEvidence(input({ gate: 'CHAIN-3', results: r })).results.every((x) => x.pass)).toBe(true)
+    expect(
+      buildEvidence(input({ gate: 'CHAIN-3', results: chain3Results(vitestReport(1, 8)) })).results.map((x) => x.pass),
+    ).toEqual([false, false, true])
+  })
+  it('counts failed property tests as counterexamples', () => {
+    const r = chain5Results(vitestReport(2, 15))
+    expect(r.map((x) => x.value)).toEqual([15, 2])
+    expect(r[1]?.threshold).toEqual({ op: '==', value: 0 })
+  })
+  it('throws on a report with no test or no times: nothing was measured', () => {
+    expect(() => chain3Results(vitestReport(0, 0))).toThrow(/no test/)
+    expect(() => chain5Results({ numTotalTests: 3, numFailedTests: 0 })).toThrow(/startTime/)
+    expect(() => chain3Results({})).toThrow(/vitest json/)
+  })
+})
+
 describe('sources', () => {
   it('turns perf-hermes.json into one result per platform against the 11 MiB limit', () => {
     expect(hermesResults({ ios: 10_236_843, android: 10_227_578 })).toEqual([
@@ -442,6 +474,6 @@ describe('sources', () => {
     )
   })
   it('lists the kinds `evidence emit --from` accepts', () => {
-    expect(Object.keys(SOURCES)).toEqual(['hermes', 'js-budget'])
+    expect(Object.keys(SOURCES)).toEqual(['hermes', 'chain-3', 'chain-5', 'js-budget'])
   })
 })
