@@ -333,8 +333,10 @@ describe('fault matrix: upstream x fault', () => {
   })
 })
 
-describe('fault matrix: a JSON-RPC error in a 200', () => {
-  it('infura x JSON-RPC error: a node error is the answer (one call); a quota error falls back', async () => {
+// The 2 JSON-RPC cells: a node error is an answer, a quota error is a failure. Each key is one cell; the completeness test counts them.
+const RPC_ERROR_CELLS = {
+  // Infura: a node error is the answer (one call); a quota error falls back.
+  infura: async () => {
     route({ infura: () => rpcErr(-32000), alchemy: () => rpcOk('0x2') })
     const node = await rpc()
     const nodeText = await node.text()
@@ -348,9 +350,9 @@ describe('fault matrix: a JSON-RPC error in a 200', () => {
     expect(JSON.parse(quotaText)).toMatchObject({ result: '0x2' })
     expect([count('infura'), count('alchemy')]).toEqual([1, 1])
     leaks(nodeText + quotaText)
-  })
-
-  it('alchemy x JSON-RPC error: used only when Infura fails; a quota error from it is a 503', async () => {
+  },
+  // Alchemy: used only when Infura fails; a quota error from it is a 503.
+  alchemy: async () => {
     route({ infura: under('5xx', SECRET.INFURA_KEY, rpcOk), alchemy: () => rpcErr(-32000) })
     const node = await rpc()
     const nodeText = await node.text()
@@ -365,6 +367,12 @@ describe('fault matrix: a JSON-RPC error in a 200', () => {
     expectEnvelope(quotaText, 'unavailable')
     expect([count('infura'), count('alchemy')]).toEqual([1, 1])
     leaks(nodeText + quotaText)
+  },
+} satisfies Record<'infura' | 'alchemy', () => Promise<void>>
+
+describe('fault matrix: a JSON-RPC error in a 200', () => {
+  it.each(Object.entries(RPC_ERROR_CELLS))('%s x JSON-RPC error', async (_up, run) => {
+    await run()
   })
 })
 
@@ -455,10 +463,12 @@ describe('retry bounds and other paths', () => {
 })
 
 describe('completeness', () => {
-  it('has 30 cells (5 upstreams x 6 faults) and the 2 JSON-RPC cells above', () => {
+  it('has 32 cells: 5 upstreams x 6 faults and the 2 JSON-RPC error cells', () => {
     expect(Object.keys(WANT).sort()).toEqual([...UPSTREAMS].sort())
     for (const up of UPSTREAMS) expect(Object.keys(WANT[up]).sort()).toEqual([...FAULTS].sort())
     expect(cells).toHaveLength(30)
     expect(new Set(cells.map((c) => c.join(' x '))).size).toBe(30)
+    expect(Object.keys(RPC_ERROR_CELLS).sort()).toEqual(['alchemy', 'infura'])
+    expect(cells.length + Object.keys(RPC_ERROR_CELLS).length).toBe(32)
   })
 })
