@@ -27,7 +27,11 @@
     // Run by k6 (api-bench.yml), not by Node: its `k6/*` imports are k6 built-in modules.
     "packages/perf": { "entry": ["k6/api.js"], "ignoreDependencies": ["k6"] },
     // Fixture app of test/build.test.ts: built by React Router, imported by nobody.
-    "apps/web": { "entry": ["steiger.config.mjs"], "ignore": ["test/fixtures/**"] },
+    // WEB-5: playwright.staging.config.ts and its e2e-staging specs run from web-staging.yml only.
+    "apps/web": {
+      "entry": ["steiger.config.mjs", "playwright.staging.config.ts", "e2e-staging/**/*.spec.ts"],
+      "ignore": ["test/fixtures/**"],
+    },
     "apps/mobile": {
       // vitest.anvil.config.ts and its globalSetup run the send-lifecycle tests on a local anvil (CHAIN-3).
       "entry": ["steiger.config.mjs", "vitest.anvil.config.ts", "anvil-setup.ts", "test-anvil/**/*.test.ts"],

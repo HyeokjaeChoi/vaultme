@@ -143,6 +143,26 @@ jobs:
           STAGING_API_URL: ${{ vars.STAGING_API_URL }}
           WEB_ANALYTICS_TOKEN: 833254677ed141c3aad48ed2f87f05d9
         run: apps/web/e2e-staging/smoke.sh
+      # WEB-5 (#561): the viewer in a real browser with the real staging API: balances, history, a transaction page, 0 CSP
+      # violations, 0 page errors, ready in 10 s. A failure rolls back like the curl smoke (ADR-0044). Needs no secret.
+      - name: Viewer smoke with real staging data
+        id: viewer
+        run: |
+          pnpm --filter @vaultme/web exec playwright install --only-shell chromium
+          pnpm --filter @vaultme/web exec playwright test -c playwright.staging.config.ts
+      # EVID-1 (ADR-0043): the numbers of that run.
+      - name: Evidence file (viewer smoke)
+        if: always() && hashFiles('apps/web/test-results/viewer-smoke.json') != ''
+        run: |
+          node packages/perf/src/cli.ts evidence emit --gate WEB-5 --origin "GitHub Actions, vaultme-staging.stack-line.dev" --tool "Playwright" \
+            --out evidence-WEB-5.json --results apps/web/test-results/viewer-smoke.json
+      - name: Upload the viewer evidence file
+        if: always() && hashFiles('evidence-WEB-5.json') != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-WEB-5
+          path: evidence-WEB-5.json
+          retention-days: 90
       # Drill: the smoke above passed, so this step is the only failure. continue-on-error keeps the job green when the
       # rollback and the re-check pass: the drill run is then the proof.
       - name: Drill, fail the smoke on purpose
