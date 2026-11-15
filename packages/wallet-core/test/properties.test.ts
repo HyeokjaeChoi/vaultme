@@ -36,41 +36,57 @@ const snapshotArb: fc.Arbitrary<ChainSnapshot> = fc.record({
   tokenBalance: fc.bigInt({ min: 0n, max: 10n ** 15n }),
   gasLimit: fc.bigInt({ min: 21_000n, max: 500_000n }),
   // Up to 2,000 gwei: some runs cross the absolute fee cap on purpose.
-  baseFeePerGas: fc.bigInt({ min: 0n, max: 2_000n * GWEI }),
-  maxPriorityFeePerGas: fc.bigInt({ min: 0n, max: 100n * GWEI }),
+  // Half the runs use fees that fit the absolute cap (a ready review); the rest go up to 2,000 gwei and cross it on purpose.
+  baseFeePerGas: fc.oneof(fc.bigInt({ min: 0n, max: 4n * GWEI }), fc.bigInt({ min: 0n, max: 2_000n * GWEI })),
+  maxPriorityFeePerGas: fc.oneof(fc.bigInt({ min: 0n, max: 2n * GWEI }), fc.bigInt({ min: 0n, max: 100n * GWEI })),
+})
+// A snapshot that always gives a ready review for 1 wei of ETH: rich balance, fees whose cap stays within ABS_MAX_FEE_WEI.
+const readyArb: fc.Arbitrary<ChainSnapshot> = fc.record({
+  nonce: fc.nat(1_000_000),
+  nativeBalance: fc.bigInt({ min: 10n ** 18n, max: 10n ** 22n }),
+  tokenBalance: fc.constant(0n),
+  gasLimit: fc.bigInt({ min: 21_000n, max: 500_000n }),
+  baseFeePerGas: fc.bigInt({ min: 0n, max: 4n * GWEI }),
+  maxPriorityFeePerGas: fc.bigInt({ min: 0n, max: 2n * GWEI }),
 })
 const capOf = (s: ChainSnapshot) => s.gasLimit * (2n * s.baseFeePerGas + s.maxPriorityFeePerGas)
 
 describe('prepare (property)', () => {
-  test('a ready review respects the fee cap, the balances and the shortfall rule', () => {
+  let ready = 0
+  test('the outcome is exact, and a ready review respects the fee cap, the balances and the shortfall rule', () => {
     fc.assert(
       fc.property(
         snapshotArb,
         assetArb,
         addressArb,
-        fc.bigInt({ min: 1n, max: 10n ** 22n }),
+        fc.nat(1100), // permille of the balance: up to 110 %, so both sides of "enough" are hit
         fc.option(fc.bigInt({ min: 0n, max: 10n ** 15n }), { nil: null }),
-        (s, asset, to, randomAmount, nearBalance) => {
-          // Half the runs ask for an ETH amount just under the balance: that is where the fee shortfall rule decides.
-          const rawAmount =
-            nearBalance !== null && asset === 'ETH' && s.nativeBalance > nearBalance + 1n
-              ? s.nativeBalance - nearBalance
-              : randomAmount
-          const r = prepare({ asset, to, amount: fromUnits(rawAmount, asset), previous: [] }, s)
+        (s, asset, to, permille, nearBalance) => {
           const native = asset === 'ETH'
-          if (!r.ok) {
-            // The refusal names a real cause.
-            if (r.error === 'overAbsCap') expect(capOf(s)).toBeGreaterThan(ABS_MAX_FEE_WEI)
-            if (r.error === 'insufficientFunds')
-              expect(rawAmount).toBeGreaterThan(native ? s.nativeBalance : s.tokenBalance)
+          const balance = native ? s.nativeBalance : s.tokenBalance
+          // Every other ETH run asks for an amount just under the balance: that is where the fee shortfall rule decides.
+          const share = (balance * BigInt(permille)) / 1000n
+          const rawAmount =
+            nearBalance !== null && native && balance > nearBalance + 1n
+              ? balance - nearBalance
+              : share > 0n
+                ? share
+                : 1n
+          const r = prepare({ asset, to, amount: fromUnits(rawAmount, asset), previous: [] }, s)
+          // The inputs are valid and above zero, so the outcome follows from the balance and the fee cap alone (this order).
+          const expected = rawAmount > balance ? 'insufficientFunds' : capOf(s) > ABS_MAX_FEE_WEI ? 'overAbsCap' : 'ok'
+          if (expected !== 'ok') {
+            expect(r).toEqual({ ok: false, error: expected })
             return
           }
+          expect(r.ok).toBe(true)
+          if (!r.ok) return
+          ready++
           const v = r.review
           expect(v.feeCap).toBeLessThanOrEqual(ABS_MAX_FEE_WEI)
           expect(v.feeCap).toBe(v.gasLimit * v.maxFeePerGas)
           expect(v.estimatedFee).toBeLessThanOrEqual(v.feeCap)
           expect(v.amount).toBe(rawAmount)
-          expect(v.amount).toBeLessThanOrEqual(native ? s.nativeBalance : s.tokenBalance)
           expect(v.nonce).toBe(s.nonce)
           const need = v.feeCap + (native ? v.amount : 0n)
           const shortfall = v.warnings.find((w) => w.kind === 'nativeFeeShortfall')
@@ -81,6 +97,7 @@ describe('prepare (property)', () => {
       ),
       RUNS,
     )
+    expect(ready, 'ready reviews among the runs').toBeGreaterThan(200)
   })
 
   test('address rules (viem 2.57 behavior, pinned): lowercase and a good checksum pass; a bad checksum and ALL-UPPERCASE fail', () => {
@@ -109,22 +126,22 @@ describe('signAndSubmit guards (property)', () => {
   test('a changed nonce or a higher fee cap never reaches the signer or the node', async () => {
     const mnemonic = new Mnemonic(PUBLIC_JUNK_PHRASE)
     await fc.assert(
-      fc.asyncProperty(snapshotArb, snapshotArb, async (s, other) => {
-        const ok = prepare({ asset: 'ETH', to: RECIPIENT, amount: '0.000000000000000001', previous: [] }, s)
-        fc.pre(ok.ok)
-        const latest = other
-        const cap = capOf(latest)
-        const expected =
-          cap > ABS_MAX_FEE_WEI
-            ? 'Blocked'
-            : cap > ok.review.feeCap || latest.nonce !== ok.review.nonce
-              ? 'NeedsReview'
-              : null
-        fc.pre(expected !== null)
-        const submit = vi.fn()
-        expect((await signAndSubmit(ok.review, latest, { mnemonic, submit })).status).toBe(expected)
-        expect(submit).not.toHaveBeenCalled()
-      }),
+      fc.asyncProperty(
+        readyArb,
+        fc.constantFrom('nonce', 'cap'),
+        fc.bigInt({ min: 1n, max: 500n * GWEI }),
+        async (s, what, extra) => {
+          const ok = prepare({ asset: 'ETH', to: RECIPIENT, amount: '0.000000000000000001', previous: [] }, s)
+          if (!ok.ok) throw new Error('a ready snapshot must give a review') // not a discard: readyArb is built to be ready
+          // One change at a time, so each guard is tested alone: a new nonce with the same fees, or a higher fee cap with the same nonce.
+          const latest: ChainSnapshot =
+            what === 'nonce' ? { ...s, nonce: s.nonce + 1 } : { ...s, baseFeePerGas: s.baseFeePerGas + extra }
+          const expected = capOf(latest) > ABS_MAX_FEE_WEI ? 'Blocked' : 'NeedsReview'
+          const submit = vi.fn()
+          expect((await signAndSubmit(ok.review, latest, { mnemonic, submit })).status).toBe(expected)
+          expect(submit).not.toHaveBeenCalled()
+        },
+      ),
       RUNS,
     )
   })
@@ -210,7 +227,7 @@ describe('deriveState (property)', () => {
 
   test('the result is a fixed point: asking again with the result as current gives the same state', () => {
     fc.assert(
-      fc.property(factsArb, (f) => {
+      fc.property(live, (f) => {
         const s = deriveState(f)
         expect(deriveState({ ...f, current: s })).toBe(s)
       }),
@@ -230,6 +247,28 @@ describe('deriveState (property)', () => {
         expect(r!.blockNumber).toBeLessThanOrEqual(f.safeBlock!)
         expect(s === 'Confirmed').toBe(r!.status === 'success')
         expect(f.cancelFrom != null && i! >= f.cancelFrom).toBe(false) // a mined cancel is Replaced, never a verdict on the send
+      }),
+      RUNS,
+    )
+  })
+
+  test('a mined cancel is Pending above `safe` and Replaced at or below it (ADR-0031)', () => {
+    fc.assert(
+      fc.property(live, (f) => {
+        const i = minedIndex(f.receipts)
+        fc.pre(i !== null && f.cancelFrom != null && i >= f.cancelFrom)
+        const r = f.receipts[i]!
+        expect(deriveState(f)).toBe(f.safeBlock !== null && r.blockNumber <= f.safeBlock ? 'Replaced' : 'Pending')
+      }),
+      RUNS,
+    )
+  })
+
+  test('no receipt and a `safe` nonce past ours is Replaced', () => {
+    fc.assert(
+      fc.property(live, (f) => {
+        fc.pre(minedIndex(f.receipts) === null && f.safeNonce !== null && f.safeNonce > BigInt(f.nonce))
+        expect(deriveState(f)).toBe('Replaced')
       }),
       RUNS,
     )
@@ -282,11 +321,15 @@ describe('deriveState (property)', () => {
 describe('amounts (property)', () => {
   const rawArb = fc.bigInt({ min: 0n, max: 10n ** 24n })
 
-  test('toUnits is strictly monotonic on canonical decimal strings', () => {
+  test('leading and trailing zeros change nothing', () => {
     fc.assert(
-      fc.property(assetArb, rawArb, rawArb, (a, x, y) => {
-        fc.pre(x < y)
-        expect(toUnits(fromUnits(x, a), a)).toBeLessThan(toUnits(fromUnits(y, a), a))
+      fc.property(assetArb, rawArb, fc.nat(3), fc.nat(4), (a, raw, lead, trail) => {
+        const canonical = fromUnits(raw, a)
+        const [int = '0', frac = ''] = canonical.split('.')
+        fc.pre(frac.length + trail <= ASSETS[a].decimals)
+        const padded = `${'0'.repeat(lead)}${int}.${frac}${'0'.repeat(trail)}`
+        fc.pre(frac.length + trail > 0)
+        expect(toUnits(padded, a)).toBe(raw)
       }),
       RUNS,
     )
@@ -310,7 +353,12 @@ describe('amounts (property)', () => {
         if (shown.startsWith('<')) {
           expect(raw).toBeGreaterThan(0n)
           expect(raw).toBeLessThan(10n ** BigInt(ASSETS[a].decimals - ASSETS[a].display.maxFraction))
-        } else expect(toUnits(shown, a)).toBeLessThanOrEqual(raw)
+        } else {
+          expect(toUnits(shown, a)).toBeLessThanOrEqual(raw)
+          expect(raw - toUnits(shown, a)).toBeLessThan(
+            10n ** BigInt(ASSETS[a].decimals - ASSETS[a].display.maxFraction),
+          )
+        }
       }),
       RUNS,
     )
