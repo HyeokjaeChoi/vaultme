@@ -17,6 +17,8 @@ jobs:
   repeat:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    outputs:
+      tests: ${{ steps.tests.outcome }} # `failure` only when the repeated tests failed, not when the install or the runner did
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -28,12 +30,13 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       # `--continue`: one failing package must not hide the failures of the others. Coverage is off: this run looks for flakes, and the PR run already enforces the coverage floors. The extra arguments change the turbo hash, so no cached result is replayed.
-      - run: pnpm turbo run test --continue -- --repeats 10 --sequence.shuffle --coverage.enabled=false
+      - id: tests
+        run: pnpm turbo run test --continue -- --repeats 10 --sequence.shuffle --coverage.enabled=false
 
   # A failed weekly run opens an issue (or comments on the open one), so it is not left only in the Actions tab (same pattern as osv-scanner.yml, FLAKY-1).
   alert:
     needs: repeat
-    if: failure() && github.event_name == 'schedule'
+    if: failure() && github.event_name == 'schedule' && needs.repeat.outputs.tests == 'failure'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -44,7 +47,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TITLE: 'flaky: weekly repeated unit tests failed'
         run: |
-          gh label create flaky --repo "$GITHUB_REPOSITORY" --description 'A test that fails and passes without a code change' --color FBCA04 2>/dev/null || true
+          gh label list --repo "$GITHUB_REPOSITORY" --search flaky --json name --jq '.[].name' | grep -qx flaky || gh label create flaky --repo "$GITHUB_REPOSITORY" --description 'A test that fails and passes without a code change' --color FBCA04
           body="The weekly run of every unit test with --repeats 10 --sequence.shuffle failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Find the failing tests and the shuffle seed in the log of the repeat job (FLK-2)."
           n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label flaky --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
           if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body "$body"; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --label flaky --body "$body"; fi
