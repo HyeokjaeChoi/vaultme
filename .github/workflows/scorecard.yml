@@ -1,0 +1,48 @@
+name: scorecard
+
+# SEC-4: OpenSSF Scorecard, weekly and on push to main. Public results feed the README badge (publish_results).
+# Gate: Dangerous-Workflow = 10, Token-Permissions = 10, Pinned-Dependencies >= 9, aggregate >= MIN_SCORE (a ratchet:
+# raise MIN_SCORE to the last measured score; never lower it). Branch-Protection is not scored here: it needs a PAT.
+# Action: ossf/scorecard-action v2.5.0 (docs: https://github.com/ossf/scorecard-action).
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Wednesday 03:23 UTC. Not at the start of an hour: GitHub delays or drops scheduled runs at :00.
+    - cron: '23 3 * * 3'
+  workflow_dispatch:
+
+permissions: read-all
+
+env:
+  # First run measures; a follow-up PR sets this to the first measured aggregate score (ratchet).
+  MIN_SCORE: '0'
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      security-events: write # scorecard-action upload of the SARIF results (exempt for scorecard jobs)
+      id-token: write # publish_results: OIDC proof that the run comes from this workflow
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: results.json
+          results_format: json
+          publish_results: true
+      - name: Check thresholds
+        run: |
+          jq -r '"aggregate \(.score)", (.checks[] | "\(.name) \(.score)")' results.json
+          jq -e --argjson min "$MIN_SCORE" '
+            def s(n): (.checks[] | select(.name == n) | .score);
+            .score >= $min
+            and s("Dangerous-Workflow") == 10
+            and s("Token-Permissions") == 10
+            and s("Pinned-Dependencies") >= 9
+          ' results.json > /dev/null || { echo "::error::Scorecard below threshold (see the scores above)"; exit 1; }
