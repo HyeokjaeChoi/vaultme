@@ -4,6 +4,8 @@ name: api-staging
 # Needs the GitHub Environment `staging` with secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
 # and variable STAGING_API_URL (the Worker URL, no trailing slash). Create the D1 database once before
 # the first run (`wrangler d1 create vaultme-api-staging`): migrations run first and cannot create it.
+# When the smoke fails after a successful deploy, the job rolls the Worker back to the version that was live before
+# the deploy and runs the smoke again (DEP-1, ADR-0044). Migrations stay: add-only keeps the old code valid (R16).
 on:
   push:
     branches: [main]
@@ -18,6 +20,11 @@ on:
         .github/workflows/api-staging.yml,
       ]
   workflow_dispatch:
+    inputs:
+      rollback_drill:
+        description: 'Drill (DEP-1, ADR-0044): after the deploy, fail the smoke on purpose, roll back, re-check and time it'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -33,6 +40,9 @@ jobs:
     # Manual runs too: only main reaches staging (migrations are forward-only).
     if: github.ref == 'refs/heads/main'
     environment: staging
+    outputs:
+      rollback: ${{ steps.rollback.outcome }}
+      recheck: ${{ steps.recheck.outcome }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -43,18 +53,32 @@ jobs:
           node-version: 24
           cache: pnpm
       # Wrangler from the lockfile (7-day release age), not a separate action.
-      - run: pnpm install --frozen-lockfile --filter @vaultme/api...
+      # The perf package (smoke) too, before the deploy: an install failure after it must not look like a failed smoke.
+      - run: pnpm install --frozen-lockfile --filter @vaultme/api... --filter @vaultme/perf...
+      # The version that serves traffic now: the rollback target. `deployments list --json` is sorted oldest first.
+      - name: Active version before the deploy
+        id: before
+        run: |
+          prev="$(pnpm --filter @vaultme/api exec wrangler deployments list --env staging --json 2>/dev/null | jq -r '(last // empty | .versions | max_by(.percentage) | .version_id) // empty' || true)"
+          echo "version=$prev" >> "$GITHUB_OUTPUT"
+          echo "active version before the deploy: ${prev:-none}"
+          [ -n "$prev" ] || echo "::warning::no active version found (first deploy, or the Cloudflare call failed): a failed smoke cannot be rolled back"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       # Migrations first, so the new Worker never runs on an old schema (ARCHITECTURE.md, Release).
       # The token is set per step, so dependency install scripts cannot read it.
       - run: pnpm --filter @vaultme/api exec wrangler d1 migrations apply DB --remote --env staging
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      - run: pnpm --filter @vaultme/api exec wrangler deploy --env staging
+      - id: deploy
+        run: pnpm --filter @vaultme/api exec wrangler deploy --env staging
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Smoke test
+        id: smoke_health
         env:
           STAGING_API_URL: ${{ vars.STAGING_API_URL }}
         run: |
@@ -63,9 +87,85 @@ jobs:
       # Post-deploy smoke (Q55): a signed install, one balance read (ETH and USDC) and one history read of the public
       # Sepolia USDC contract, through the real endpoints. Needs no secret: the install key is made in memory per run.
       - name: Smoke test (balance and history reads)
+        id: smoke_reads
         env:
           STAGING_API_URL: ${{ vars.STAGING_API_URL }}
         run: |
           : "${STAGING_API_URL:?set variable STAGING_API_URL in the staging environment}"
-          pnpm install --frozen-lockfile --filter @vaultme/perf...
           pnpm --filter @vaultme/perf run smoke
+      # Drill: the smoke above passed, so this step is the only failure. continue-on-error keeps the job green when the
+      # rollback and the re-check pass: the drill run is then the proof.
+      - name: Drill, fail the smoke on purpose
+        id: drill
+        if: inputs.rollback_drill
+        continue-on-error: true
+        run: |
+          echo "::warning::rollback drill: the smoke is failed on purpose"
+          exit 1
+      # Only after a successful deploy: a deploy that failed before the upload never downgrades the live version.
+      - name: Roll back to the version before the deploy
+        id: rollback
+        if: always() && steps.deploy.outcome == 'success' && (failure() || steps.drill.outcome == 'failure')
+        env:
+          PREV: ${{ steps.before.outputs.version }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          : "${PREV:?no version before this deploy: nothing to roll back to, fix forward}"
+          echo "start=$(date +%s)" >> "$GITHUB_OUTPUT"
+          pnpm --filter @vaultme/api exec wrangler rollback "$PREV" --env staging --yes --message "smoke failed, rolled back: $RUN_URL"
+          now="$(pnpm --filter @vaultme/api exec wrangler deployments list --env staging --json 2>/dev/null | jq -r 'last | .versions | max_by(.percentage) | .version_id')"
+          [ "$now" = "$PREV" ] || { echo "active version is $now, expected $PREV"; exit 1; }
+      - name: Re-check after the rollback
+        id: recheck
+        if: always() && steps.rollback.outcome == 'success'
+        env:
+          STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+          START: ${{ steps.rollback.outputs.start }}
+        run: |
+          curl -fsS --retry 3 --retry-all-errors "$STAGING_API_URL/v1/health" | grep -q '"ok":true'
+          pnpm --filter @vaultme/perf run smoke
+          seconds=$(( $(date +%s) - START ))
+          echo "seconds=$seconds" >> "$GITHUB_OUTPUT"
+          echo "Rolled back and re-checked green in ${seconds} s (limit 120 s)." | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "$seconds" -le 120 ] || { echo "::error::rollback took ${seconds} s, limit 120 s"; exit 1; }
+      # EVID-1 (ADR-0043): the rollback time, as an evidence file.
+      - name: Evidence file
+        if: always() && steps.recheck.outputs.seconds != ''
+        env:
+          SECONDS_TAKEN: ${{ steps.recheck.outputs.seconds }}
+        run: |
+          tool="wrangler $(pnpm --filter @vaultme/api exec wrangler --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+          [ "$tool" != "wrangler " ] || tool=wrangler
+          node packages/perf/src/cli.ts evidence emit --gate DEP-1-api --origin "GitHub Actions, vaultme-api-staging Worker" --tool "$tool" \
+            --out evidence-DEP-1-api.json \
+            --result "{\"metric\":\"Rollback until green re-check, api\",\"value\":$SECONDS_TAKEN,\"unit\":\"s\",\"threshold\":{\"op\":\"<=\",\"value\":120},\"n\":1,\"window\":\"one run\"}"
+      - name: Upload the evidence file
+        if: always() && hashFiles('evidence-DEP-1-api.json') != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-DEP-1-api
+          path: evidence-DEP-1-api.json
+          retention-days: 90
+
+  # A real rollback (not the drill) opens an issue, or comments on the open one: a person fixes forward.
+  alert:
+    needs: deploy
+    if: always() && needs.deploy.outputs.rollback != '' && needs.deploy.outputs.rollback != 'skipped' && !inputs.rollback_drill
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the rollback issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ROLLBACK: ${{ needs.deploy.outputs.rollback }}
+          RECHECK: ${{ needs.deploy.outputs.recheck }}
+          TITLE: 'deploy: staging api rolled back'
+        run: |
+          if [ "$ROLLBACK" = success ] && [ "$RECHECK" = success ]; then what="rolled back to the version before the deploy and the re-check passed"; else what="NOT rolled back or the re-check failed (rollback: $ROLLBACK, re-check: $RECHECK): the broken Worker may still serve traffic, fix it now"; fi
+          body="The post-deploy smoke failed. Staging API: $what. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (ADR-0044). Migrations stay. Fix forward on main."
+          n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
+          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body "$body"; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$body"; fi

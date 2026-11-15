@@ -28,6 +28,9 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
    Auth: `ANTHROPIC_API_KEY` first (`claude -p`, API credits). `claude-code-action` with `CLAUDE_CODE_OAUTH_TOKEN`
    (subscription) reviews instead only when the key is missing or that run ended with a used-up credit or a rate limit and
    left no summary comment. Any other failure fails the job (red) and spends no subscription quota.
+   Claude posts bodies through a quoted heredoc on stdin; the CLI shell check stops `--body "<text>"` with backticks or `$`.
+   If the API run ends without error but Claude could not post, the workflow posts Claude's final answer under the marker
+   with a notice and fails the job.
    Collect all its findings, fix them together, check the fixes with step 5, and push once.
    To review the last commit again, the owner adds the `review` label (the job removes it).
    `/vaultme-pr-review <N>` runs the same review locally and only prints it.
