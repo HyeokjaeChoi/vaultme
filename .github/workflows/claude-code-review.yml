@@ -107,7 +107,7 @@ jobs:
             --allowedTools "$ALLOWED_TOOLS" \
             --append-system-prompt "$SYSTEM_PROMPT" \
             --output-format json > "$RUNNER_TEMP/result.json" || true
-          jq '{is_error, subtype, num_turns, total_cost_usd}' "$RUNNER_TEMP/result.json"
+          jq '{is_error, subtype, num_turns, total_cost_usd, result: (.result // "" | .[0:600])}' "$RUNNER_TEMP/result.json"
           # Claude's final text in the Step Summary. Trusted input only: fork and bot PRs skip this job.
           jq -r '.result // ""' "$RUNNER_TEMP/result.json" >> "$GITHUB_STEP_SUMMARY" || true
           jq -e '.is_error == false' "$RUNNER_TEMP/result.json" >/dev/null
