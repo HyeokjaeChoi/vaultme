@@ -4,19 +4,19 @@
 //   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts smoke    (post-deploy: one balance read and one history read; exit 1 on failure)
 //   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha> --origin <text>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the tier-2 limits for api.js)
 //   node packages/perf/src/cli.ts slo-window --runs <dir with the downloaded api-bench artifacts of the window>    (pools the SLO counts, ADR-0036; exit 3 on a breach, so a crash (exit 1) is not one)
-//   node packages/perf/src/cli.ts hermes-growth <current perf-hermes.json> <perf-hermes.json of main>    (MOB-3: prints the change per platform and a ::warning:: line above 100 KiB; always exit 0)
+//   node packages/perf/src/cli.ts hermes-growth <current perf-hermes.json> <perf-hermes.json of main> [summary file]    (MOB-3: the change per platform to the summary file or stdout, a ::warning:: line on stdout above 100 KiB; exit 0 unless a file is unreadable)
 //   node packages/perf/src/cli.ts evidence emit --gate <id> --origin <text> --tool <text> --out <file> (--from hermes=<file> | --from js-budget=<file> | --result '<json>' | --results <file>) [--measured-at <YYYY-MM-DDTHH:MM:SSZ>] [--run <id>]    (a gate job writes its evidence file; --run takes the run from `gh` instead of the Actions environment, to seed an old run)
 //   node packages/perf/src/cli.ts evidence add <file>... [--out docs/results]    (puts evidence files under their canonical path and renders the README)
 //   node packages/perf/src/cli.ts evidence collect --run <id>... [--out docs/results]    (downloads the evidence-* artifacts of runs, checks them against the run, adds them)
 //   node packages/perf/src/cli.ts evidence render [--out docs/results]    (rewrites docs/results/README.md from the files; run it after a rebase, never merge the README by hand)
 //   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text> [--measured-at <YYYY-MM-DD>]    (--measured-at: the day the artifacts were measured; default today)
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
-import { growthReport, hermesGrowth } from './hermes-growth.ts'
+import { growthTable, growthWarnings, hermesGrowth } from './hermes-growth.ts'
 import { aggregate, benchTable, limitsJs, MODES, type K6Result } from './bench.ts'
 import { buildBaseline, latencyTable, renderBaseline, type Baseline, type JsBudgetRow } from './baseline.ts'
 import {
@@ -280,9 +280,14 @@ if (cmd === 'hermes') {
     throw new Error('usage: cli.ts evidence emit | add | collect | render')
   }
 } else if (cmd === 'hermes-growth') {
-  const [current, base] = rest
-  if (!current || !base) throw new Error('usage: hermes-growth <current perf-hermes.json> <perf-hermes.json of main>')
-  console.log(growthReport(hermesGrowth(readJson(current) as HermesSizes, readJson(base) as HermesSizes)))
+  const [current, base, summary] = rest
+  if (!current || !base)
+    throw new Error('usage: hermes-growth <current perf-hermes.json> <perf-hermes.json of main> [summary file]')
+  const rows = hermesGrowth(readJson(current) as HermesSizes, readJson(base) as HermesSizes)
+  // The table goes to the summary file when one is given, the warnings always to stdout, where GitHub reads them.
+  if (summary) appendFileSync(summary, `${growthTable(rows)}\n`)
+  else console.log(growthTable(rows))
+  for (const w of growthWarnings(rows)) console.log(w)
 } else {
   throw new Error('usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window | hermes-growth | evidence')
 }

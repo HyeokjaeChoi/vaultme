@@ -17,6 +17,12 @@ export type Growth = {
 /** `current` against `base` (the `perf-hermes.json` of `main`) per platform. A delta of exactly the limit is not a warning. */
 export function hermesGrowth(current: HermesSizes, base: HermesSizes): Growth[] {
   return PLATFORMS.map((platform) => {
+    // A file without a size would give NaN, and NaN is never above the limit: the gate would pass without looking.
+    for (const [name, sizes] of [
+      ['current', current],
+      ['base', base],
+    ] as const)
+      if (!Number.isFinite(sizes[platform])) throw new Error(`hermes-growth: ${name} has no number for ${platform}`)
     const delta = current[platform] - base[platform]
     return { platform, base: base[platform], current: current[platform], delta, warn: delta > GROWTH_LIMIT }
   })
@@ -25,21 +31,25 @@ export function hermesGrowth(current: HermesSizes, base: HermesSizes): Growth[] 
 const kib = (b: number): string => `${(b / 1024).toFixed(1)} KiB`
 const signed = (b: number): string => `${b >= 0 ? '+' : '-'}${kib(Math.abs(b))}`
 
-/** A table for the job summary, then one `::warning::` line per platform over the limit. */
-export function growthReport(rows: Growth[]): string {
-  const table = [
+/** The table for the job summary. */
+export function growthTable(rows: Growth[]): string {
+  return [
     '| Platform | main | This build | Change | Of the 11 MiB limit | Result |',
     '| --- | --- | --- | --- | --- | --- |',
     ...rows.map(
       (r) =>
         `| ${r.platform} | ${String(r.base)} B | ${String(r.current)} B | ${signed(r.delta)} | ${((r.current / HERMES_LIMIT) * 100).toFixed(1)} % | ${r.warn ? 'WARNING' : 'ok'} |`,
     ),
-  ]
-  const warnings = rows
+    '',
+  ].join('\n')
+}
+
+/** One `::warning::` line per platform over the limit. Workflow commands are read from stdout only, so these never go to the summary file. */
+export function growthWarnings(rows: Growth[]): string[] {
+  return rows
     .filter((r) => r.warn)
     .map(
       (r) =>
         `::warning title=Hermes bundle grew::${r.platform} grew by ${kib(r.delta)} against main (warning above ${kib(GROWTH_LIMIT)}); now ${String(r.current)} B of ${String(HERMES_LIMIT)} B.`,
     )
-  return [...table, ...warnings, ''].join('\n')
 }

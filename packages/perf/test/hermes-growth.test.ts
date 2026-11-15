@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { GROWTH_LIMIT, growthReport, hermesGrowth } from '../src/hermes-growth.ts'
+import { GROWTH_LIMIT, growthTable, growthWarnings, hermesGrowth } from '../src/hermes-growth.ts'
 
 const base = { ios: 10_236_843, android: 10_227_578 }
 
@@ -16,15 +16,22 @@ describe('hermesGrowth', () => {
   })
 })
 
-describe('growthReport', () => {
-  it('shows the change and the share of the limit, and one warning line per platform over', () => {
-    const md = growthReport(hermesGrowth({ ios: base.ios + 204_800, android: base.android - 1024 }, base))
+describe('report', () => {
+  it('puts the change and the share of the limit in the table, and the warnings apart from it', () => {
+    const rows = hermesGrowth({ ios: base.ios + 204_800, android: base.android - 1024 }, base)
+    const md = growthTable(rows)
     expect(md).toContain('| ios | 10236843 B | 10441643 B | +200.0 KiB | 90.5 % | WARNING |')
     expect(md).toContain('| android | 10227578 B | 10226554 B | -1.0 KiB | 88.7 % | ok |')
-    expect(md.match(/::warning/g)).toHaveLength(1)
-    expect(md).toContain('::warning title=Hermes bundle grew::ios grew by 200.0 KiB against main')
+    expect(md).not.toContain('::warning')
+    expect(growthWarnings(rows)).toEqual([
+      expect.stringContaining('::warning title=Hermes bundle grew::ios grew by 200.0 KiB against main'),
+    ])
   })
-  it('prints no warning line when nothing grew', () => {
-    expect(growthReport(hermesGrowth(base, base))).not.toContain('::warning')
+  it('has no warning line when nothing grew', () => {
+    expect(growthWarnings(hermesGrowth(base, base))).toEqual([])
+  })
+  it('throws on a file with no size instead of passing on NaN', () => {
+    expect(() => hermesGrowth({ ios: base.ios } as never, base)).toThrow(/current has no number for android/)
+    expect(() => hermesGrowth(base, { android: 1 } as never)).toThrow(/base has no number for ios/)
   })
 })
