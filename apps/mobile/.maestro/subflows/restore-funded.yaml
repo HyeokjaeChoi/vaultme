@@ -13,50 +13,62 @@ appId: dev.stackline.vaultme
     file: type-word.yaml
     env:
       N: 1
+      WORD: ${MAESTRO_PHRASE.split(' ')[0]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 2
+      WORD: ${MAESTRO_PHRASE.split(' ')[1]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 3
+      WORD: ${MAESTRO_PHRASE.split(' ')[2]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 4
+      WORD: ${MAESTRO_PHRASE.split(' ')[3]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 5
+      WORD: ${MAESTRO_PHRASE.split(' ')[4]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 6
+      WORD: ${MAESTRO_PHRASE.split(' ')[5]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 7
+      WORD: ${MAESTRO_PHRASE.split(' ')[6]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 8
+      WORD: ${MAESTRO_PHRASE.split(' ')[7]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 9
+      WORD: ${MAESTRO_PHRASE.split(' ')[8]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 10
+      WORD: ${MAESTRO_PHRASE.split(' ')[9]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 11
+      WORD: ${MAESTRO_PHRASE.split(' ')[10]}
 - runFlow:
     file: type-word.yaml
     env:
       N: 12
+      WORD: ${MAESTRO_PHRASE.split(' ')[11]}
 # Optional BIP39 passphrase: the row is collapsed; on the small Android screen scroll to it first.
 - runFlow:
     when:
@@ -76,6 +88,12 @@ appId: dev.stackline.vaultme
           commands:
             - hideKeyboard:
                 optional: true
+# 복구 stays off until all 12 words are valid: wait for it to turn on, so a wrong word fails here and not 30 s later.
+- extendedWaitUntil:
+    visible:
+      text: '복구'
+      enabled: true
+    timeout: 10000
 - tapOn: '복구'
 # Restore derives the BIP39 seed (PBKDF2), writes the Keychain and asks device auth: it can take longer than the 7 s assertVisible default
 # on the CI simulator (Maestro docs: extendedWaitUntil is for waits longer than 7 s).

@@ -209,7 +209,7 @@ Decisions Q26, Q50, Q56, Q69 (#315, ADR-0024). One rule for all of it: no addres
 - A push is only a signal. The payload is parsed with `PushData`; the app must re-read the chain.
 - Browsers: CORS allow-list from the `WEB_ORIGINS` var (comma-separated exact origins; staging `https://vaultme-staging.stack-line.dev`, production `https://vaultme.stack-line.dev`; ADR-0011). Any other `Origin` gets `403 origin_forbidden`. A request without `Origin` (the native app) is unchanged. CORS headers and preflight cover `/v1/*` only, not `/webhooks`. Same install protocol as mobile. Rate limits stay per install ID (and per IP on `/v1/installs`).
 - Secrets are Worker secrets (`wrangler secret`, `.dev.vars` locally): `TOKEN_SECRET` (32+ chars), `INFURA_KEY`, `ALCHEMY_KEY`, `ETHERSCAN_API_KEY`, `ALCHEMY_*`, `EXPO_ACCESS_TOKEN`. A missing secret makes the route fail closed with `500`. `wrangler.jsonc` holds vars only.
-- Supply chain: pnpm `minimumReleaseAge` 10080 min (7 days), `strictDepBuilds`, an explicit `allowBuilds` list, CI actions pinned by SHA. Renovate (`.github/renovate.json5`) proposes only versions 7 days old or older and automerges only npm patch and devDependency minor updates.
+- Supply chain: pnpm `minimumReleaseAge` 10080 min (7 days), `trustPolicy: no-downgrade` (three exact old versions excluded), `blockExoticSubdeps`, `strictDepBuilds`, an explicit `allowBuilds` list, CI actions pinned by SHA. `osv-scanner` fails on any known vulnerability in `pnpm-lock.yaml`, whatever its severity, unless `osv-scanner.toml` lists it with a reason and an expiry of 30 days at most (14 for shipped code, only when no fix exists; ADR-0047). Renovate (`.github/renovate.json5`) proposes only versions 7 days old or older and automerges only npm patch and devDependency minor updates.
 - Repo checks block committed keys, `.env` files, recovery phrases (except public test vectors) and `CLAUDE.md` files.
 - Not implemented: root or jailbreak detection, SIWE ownership proof for push. Any install with a valid token can subscribe any address.
 
@@ -226,7 +226,7 @@ Local:
   - From `apps/mobile`: `npx expo prebuild --clean`, then `npx expo run:ios` or `npx expo run:android`. The URL scheme is `vaultme`.
   - Set `EXPO_PUBLIC_API_URL` for the real API. Without it the fake chain is used. `pnpm staging <script>` (for example `pnpm staging ios`) sets the staging API; the EAS `development` profile in `apps/mobile/eas.json` sets it too.
   - Set `LANG` and `LC_ALL` to `en_US.UTF-8` for CocoaPods. Use JDK 17 to 21 for Android (not 26).
-  - The iOS simulator cannot save the phrase: it has no device passcode. Test wallet creation on a real device, or on an Android emulator with a PIN.
+  - A simulator or emulator saves the phrase once OS auth is enrolled: Face ID on the iOS simulator, a PIN and a fingerprint on the Android emulator (steps in `apps/mobile/AGENTS.md`, ADR-0016). The Maestro flow `apps/mobile/.maestro/flows/create.yaml` creates a wallet on an iOS simulator (`e2e.yml`) and on an Android emulator (`release.yml`).
 
 CI (`.github/workflows`):
 
