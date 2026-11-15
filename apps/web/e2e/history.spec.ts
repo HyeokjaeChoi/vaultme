@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator } from '@playwright/test'
 import { settled } from './settle'
 import { A, fixtureApi, type HistoryMode } from './fixture-api'
 
@@ -9,6 +9,12 @@ const widths = [375, 768, 1280]
 // 768 and 1280 are the table, 375 the cards (Figma: History frames of the Viewer section).
 const rows = (page: import('@playwright/test').Page, width: number) =>
   width >= 768 ? page.locator('tbody tr') : page.locator('section[aria-labelledby="history-title"] li')
+/** Left and right edge of an element, in page pixels. */
+const edges = async (el: Locator) => {
+  const b = await el.boundingBox()
+  if (!b) throw new Error('element has no box')
+  return { left: b.x, right: b.x + b.width }
+}
 
 test.describe('viewer history', () => {
   for (const width of widths) {
@@ -141,6 +147,38 @@ test.describe('viewer history', () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
     }
   })
+
+  // #483: a failed row shows its amount with no sign and the full wei precision, the longest word a row gets. The amount box stays in
+  // its own cell (table) or column (cards) and never reaches its neighbour. Boxes, not `scrollWidth`: an overflow inside a fixed
+  // table does not widen the page, so the test above passes with the bug. 0.5 px is subpixel rounding.
+  for (const width of widths) {
+    test(`a long failed amount stays in its column and never covers its neighbour (${String(width)}px)`, async ({
+      page,
+    }) => {
+      const api = await fixtureApi(page)
+      api.history = 'longFailed'
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto(`/address#${A}`)
+      const row = rows(page, width).first()
+      await expect(row.getByText('1.000000000000000001 ETH')).toBeVisible()
+      await settled(page) // the rows fade in: a moving box reads a wrong position
+      if (width >= 768) {
+        const amountCell = row.locator('td').nth(3)
+        const cell = await edges(amountCell)
+        const amount = await edges(amountCell.locator('span').first())
+        const time = await edges(row.locator('time'))
+        expect(amount.right).toBeLessThanOrEqual(cell.right + 0.5) // inside its own cell
+        expect(amount.left).toBeGreaterThanOrEqual(cell.left - 0.5)
+        expect(amount.right).toBeLessThanOrEqual(time.left + 0.5) // and not over the time
+      } else {
+        const link = await edges(row.locator('a'))
+        const title = await edges(row.locator('p').first().locator('..')) // the title column
+        const amount = await edges(row.locator('p').last())
+        expect(amount.right).toBeLessThanOrEqual(link.right + 0.5) // inside the row
+        expect(amount.left).toBeGreaterThanOrEqual(title.right - 0.5) // and not over the title
+      }
+    })
+  }
 
   test('every link and button is at least 44 x 44 px, history states included', async ({ page }) => {
     const api = await fixtureApi(page)
