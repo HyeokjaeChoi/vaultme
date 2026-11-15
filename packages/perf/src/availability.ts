@@ -26,8 +26,10 @@ export type RouteAvailability = {
 export function parseRows(json: unknown): Row[] {
   const data = (json as { data?: unknown } | null)?.data
   if (!Array.isArray(data)) throw new Error('availability: expected {"data": [...]}')
+  // Nothing measured is not a pass: a wrong dataset, or no request point in 28 days, must fail the run.
+  if (data.length === 0) throw new Error('availability: the query returned no rows')
   return data.map((r: Record<string, unknown>, i) => {
-    const requests = Number(r.requests)
+    const requests = typeof r.requests === 'number' || typeof r.requests === 'string' ? Number(r.requests) : NaN
     if (typeof r.route !== 'string' || typeof r.status !== 'string' || !Number.isFinite(requests) || requests < 0)
       throw new Error(`availability: row ${String(i)} has no route, status and request count`)
     return { route: r.route, status: r.status, requests }

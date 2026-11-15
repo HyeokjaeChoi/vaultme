@@ -31,6 +31,8 @@ describe('parseRows', () => {
     ])
     expect(() => parseRows({})).toThrow(/expected/)
     expect(() => parseRows({ data: [{ route: '/v1/rpc', status: '200' }] })).toThrow(/row 0/)
+    expect(() => parseRows({ data: [{ route: '/v1/rpc', status: '200', requests: null }] })).toThrow(/row 0/)
+    expect(() => parseRows({ data: [] })).toThrow(/no rows/)
   })
 })
 
