@@ -4,6 +4,20 @@ packages:
 
 # Supply-chain rules. Minutes: 10080 = 7 days, for every package, security fixes too. No minimumReleaseAgeExclude (R13).
 minimumReleaseAge: 10080
+# Trust rules (ADR-0047, R13). pnpm 12.15.0: trustPolicy is off by default, blockExoticSubdeps is true by default.
+# Both are set here, so a changed default cannot loosen them.
+# no-downgrade: install fails when a package version has less publish trust (provenance) than an earlier one.
+trustPolicy: no-downgrade
+# Exact old versions that pnpm flags as a trust downgrade (checked on the registry 2026-11-15). Each one is old and widely used, and its
+# publisher history is below. A new version of these packages is still checked. R13 pins this list, so a new entry needs an owner decision.
+# No trustPolicyIgnoreAfter and no trustLockfile either: they turn the check off for many packages (R13).
+# Remove an entry when no dependency resolves its version any more.
+trustPolicyExclude:
+  - chokidar@4.0.3 # 2024-12-18, no provenance; 4.0.0 and 4.0.1 (2024-09) have it
+  - semver@5.7.2 # 2023-07-10, backport of the 5.x line, no provenance; 7.5.2 to 7.5.4 (2023-06, 2023-07) have it
+  - semver@6.3.1 # 2023-07-10, backport of the 6.x line, no provenance; same
+# Only a direct dependency may come from git or a tarball URL. A transitive one must come from the registry.
+blockExoticSubdeps: true
 # Fail install when a dependency has an unreviewed build script.
 strictDepBuilds: true
 # Explicit allow / deny list for dependency build scripts. Empty = deny all.

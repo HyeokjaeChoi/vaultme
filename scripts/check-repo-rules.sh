@@ -234,6 +234,24 @@ fi
 if grep -nE '^[[:space:]]*minimumReleaseAgeExclude' pnpm-workspace.yaml; then
   err "R13: no minimumReleaseAgeExclude in pnpm-workspace.yaml; wait 7 days instead"
 fi
+# The trust settings are explicit too (ADR-0047, #503). pnpm 12.15.0 has trustPolicy off by default, so a version with less publish
+# trust than an earlier one (as after an account take-over) installs unless no-downgrade is set. trustPolicyIgnoreAfter and
+# trustLockfile turn the check off for many packages, and trustPolicyExclude for the packages it lists: all need an owner decision, so
+# they fail here until this rule changes. The exclude list may hold only the three old versions below (it may shrink, never grow).
+if ! grep -qE '^trustPolicy:[[:space:]]*no-downgrade[[:space:]]*(#.*)?$' pnpm-workspace.yaml; then
+  err "R13: pnpm-workspace.yaml needs 'trustPolicy: no-downgrade'"
+fi
+if ! grep -qE '^blockExoticSubdeps:[[:space:]]*true[[:space:]]*(#.*)?$' pnpm-workspace.yaml; then
+  err "R13: pnpm-workspace.yaml needs 'blockExoticSubdeps: true'"
+fi
+# scripts/check-trust-settings.py fails closed: plain keys only, no trustPolicyIgnoreAfter or trustLockfile (quoted or not), and the
+# trustPolicyExclude block holds only '  - name@version' lines from its allowed list (chokidar@4.0.3, semver@5.7.2, semver@6.3.1).
+if ! python3 scripts/check-trust-settings.test.py; then
+  err "R13: scripts/check-trust-settings.test.py failed (run it to see the case)"
+fi
+if ! python3 scripts/check-trust-settings.py pnpm-workspace.yaml; then
+  err "R13: pnpm-workspace.yaml trust block breaks ADR-0047 (see lines above): no trustPolicyIgnoreAfter or trustLockfile, trustPolicyExclude only the three allowed old versions"
+fi
 
 # R14. The decision ledger covers every requirements decision (#304): docs/decisions.md has one row per Q1-Q81 with a
 # valid status; a GAP row links an issue; a SUPERSEDED row names its record (ADR, issue/PR or commit). The ADR-0021
@@ -276,6 +294,23 @@ if (d !== "@scure/bip39,viem") { console.error("packages/wallet-core dependencie
   err "R15: packages/wallet-core dependencies must be exactly viem and @scure/bip39"
 fi
 
+# R18. osv-scanner exceptions expire (SEC-1, ADR-0047, #503): each [[IgnoredVulns]] in osv-scanner.toml has an id, a reason that names its
+# scope (dev, or shipped with no fix) and an ignoreUntil that is still ahead, at most 30 days away (shipped code: 14). The test file holds
+# the negative cases. Only the root file counts, and no workflow may point osv-scanner at another config, so the checked file is the one it reads.
+if ! python3 scripts/check-osv-exceptions.test.py; then
+  err "R18: scripts/check-osv-exceptions.test.py failed"
+fi
+if ! python3 scripts/check-osv-exceptions.py; then
+  err "R18: osv-scanner.toml has an exception without a reason or an expiry, or an expired or too long one (see above)"
+fi
+if files | grep -E '(^|/)\.?osv-scanner\.toml$' | grep -v -x 'osv-scanner.toml'; then
+  err "R18: only the root osv-scanner.toml is read and checked; remove the other file"
+fi
+osv_workflows="$(grep -l 'google/osv-scanner-action' .github/workflows/*.yml || true)"
+if [ -n "$osv_workflows" ] && grep -nE -e '--config' $osv_workflows; then
+  err "R18: no --config for osv-scanner in a workflow; it must read the checked root osv-scanner.toml"
+fi
+
 # R16. D1 migrations do not break the old Worker (Q53, #316): no DROP COLUMN, DROP TABLE or RENAME without `-- contract-ok: <reason>`.
 # The test file holds the negative cases.
 if ! bash scripts/check-migrations.test.sh; then
@@ -309,6 +344,23 @@ sys.exit(0 if ok else 1)
 PYR17
 then
   err "R17: $wf must restore .claude/, CLAUDE.md and .mcp.json from the PR base before 'claude -p', and set ANTHROPIC_API_KEY only in the env of the 'claude -p' step"
+fi
+
+# R19. Workflows are linted and pinned (WF-1, #549). Every `uses:` of a workflow or action is a 40-hex commit SHA with a version
+# comment (`@<sha> # v1.2.3`); a local `./` path is exempt. actionlint 1.7.12 (with shellcheck) then reports 0 findings.
+# CI installs actionlint and sets REQUIRE_ACTIONLINT=1; a local run without the binary only warns.
+unpinned="$(grep -HnE '^\s*(-\s+)?uses:' .github/workflows/*.y*ml | grep -vE 'uses:\s+\./' | grep -vE 'uses:\s+[^ ]+@[0-9a-f]{40} # [^ ]' || true)"
+if [ -n "$unpinned" ]; then
+  printf '%s\n' "$unpinned" >&2
+  err "R19: a workflow 'uses:' is not pinned to a commit SHA with a '# <version>' comment"
+fi
+if command -v actionlint >/dev/null 2>&1; then
+  actionlint -version | head -1 | grep -qx '1\.7\.12' || echo "check-repo-rules: R19: local actionlint is not 1.7.12 (CI uses 1.7.12)" >&2
+  actionlint || err "R19: actionlint reported findings (see above)"
+elif [ "${REQUIRE_ACTIONLINT:-}" = "1" ]; then
+  err "R19: actionlint is not installed but REQUIRE_ACTIONLINT=1"
+else
+  echo "check-repo-rules: R19: actionlint not installed, lint skipped (CI runs it)" >&2
 fi
 
 exit "$fail"
