@@ -11,10 +11,17 @@ import { fileURLToPath } from 'node:url'
 const MAX_HEADER_LINE = 2000 // Workers Static Assets limit per _headers line
 const STAGING_API_ORIGIN = 'https://vaultme-api-staging.gurwo1007.workers.dev'
 
-/** The API origin of a build: WEB_API_ORIGIN, default the staging API. The app calls it (vite.config.ts) and the CSP allows it. */
+/**
+ * The API origin of a build: WEB_API_ORIGIN, default the staging API. The app calls it (vite.config.ts) and the CSP allows it.
+ * A production build never gets the staging API, by default or by name: it would read staging data (#492, ADR-0025).
+ */
 export function apiOrigin(env: Record<string, string | undefined> = process.env): string {
   const origin = env.WEB_API_ORIGIN ?? STAGING_API_ORIGIN
   if (!/^https:\/\/[a-z0-9.-]+$/i.test(origin)) throw new Error(`WEB_API_ORIGIN must be an https origin, got ${origin}`)
+  if (env.WEB_ENV === 'production' && origin.toLowerCase() === STAGING_API_ORIGIN)
+    throw new Error(
+      'A production build needs WEB_API_ORIGIN set to the production API, not unset and not the staging API',
+    )
   return origin
 }
 

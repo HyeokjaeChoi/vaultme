@@ -119,7 +119,11 @@ describe('finalize', () => {
 
   it('never adds the beacon to a production build', () => {
     const dir = build()
-    finalize(dir, { WEB_ENV: 'production', WEB_ANALYTICS_TOKEN: 'a'.repeat(32) })
+    finalize(dir, {
+      WEB_ENV: 'production',
+      WEB_API_ORIGIN: 'https://api.vaultme.stack-line.dev', // a production build has its own API (#492)
+      WEB_ANALYTICS_TOKEN: 'a'.repeat(32),
+    })
     expect(readFileSync(join(dir, '404.html'), 'utf8')).not.toContain('cloudflareinsights')
   })
 
