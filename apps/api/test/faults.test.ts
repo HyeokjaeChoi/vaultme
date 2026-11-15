@@ -62,6 +62,8 @@ type Call = { up: Net; url: URL; init: RequestInit | undefined }
 let calls: Call[]
 let maxActive: number // the most calls in flight at once
 let out: string[] // every console line of the test
+let stray: string[] // hosts of fetches no behavior was set for: the app may swallow that throw, so the test checks it
+let addresses: string[] // every address a test sent: none may reach a log or a body
 const count = (up: Net) => calls.filter((c) => c.up === up).length
 const perAction = (up: Net) => {
   const m = new Map<string, number>()
@@ -80,7 +82,10 @@ const route = (behave: Partial<Record<Net, Behavior>>) => {
     const url = new URL(input)
     const up = HOSTS[url.hostname]
     const b = up === undefined ? undefined : behave[up]
-    if (up === undefined || b === undefined) throw new Error('unexpected fetch')
+    if (up === undefined || b === undefined) {
+      stray.push(url.hostname)
+      throw new Error('unexpected fetch')
+    }
     calls.push({ up, url, init })
     maxActive = Math.max(maxActive, ++active)
     try {
@@ -94,11 +99,14 @@ beforeEach(async () => {
   calls = []
   maxActive = 0
   out = []
+  stray = []
+  addresses = []
   for (const m of ['log', 'warn', 'error'] as const)
     vi.spyOn(console, m).mockImplementation((...a) => void out.push(a.join(' ')))
   for (const t of ['push_sent', 'push_subscriptions', 'installs']) await E.DB.prepare(`DELETE FROM ${t}`).run()
 })
 afterEach(() => {
+  expect(stray).toEqual([])
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
@@ -140,8 +148,11 @@ const rpc = (method = 'eth_blockNumber', params: unknown[] = []) =>
 const rpcOk = (result: unknown = '0x1') => new Response(JSON.stringify({ jsonrpc: '2.0', id: 7, result }))
 const rpcErr = (code: number) =>
   new Response(JSON.stringify({ jsonrpc: '2.0', id: 7, error: { code, message: `error ${String(code)}` } }))
-const newAddress = () =>
-  '0x' + [...crypto.getRandomValues(new Uint8Array(20))].map((x) => x.toString(16).padStart(2, '0')).join('')
+const newAddress = () => {
+  const a = '0x' + [...crypto.getRandomValues(new Uint8Array(20))].map((x) => x.toString(16).padStart(2, '0')).join('')
+  addresses.push(a)
+  return a
+}
 const noTransactions = () => Response.json({ status: '0', message: 'No transactions found', result: [] })
 const history = (address: string) => post('/v1/history', { address })
 
@@ -312,7 +323,7 @@ const RUN: Record<Upstream, (fault: Fault) => Promise<Response>> = {
 }
 
 const cells = UPSTREAMS.flatMap((up) => FAULTS.map((fault) => [up, fault] as const))
-const secrets = () => [...Object.values(SECRET), PUSH_TOKEN, ADDR, HASH]
+const secrets = () => [...Object.values(SECRET), PUSH_TOKEN, ADDR, HASH, ...addresses]
 const leaks = (text: string) => {
   const all = [text, ...out].join('\n')
   for (const s of secrets()) expect(all).not.toContain(s)
