@@ -18,7 +18,8 @@ const STAGING_API_ORIGIN = 'https://vaultme-api-staging.gurwo1007.workers.dev'
 export function apiOrigin(env: Record<string, string | undefined> = process.env): string {
   const origin = env.WEB_API_ORIGIN ?? STAGING_API_ORIGIN
   if (!/^https:\/\/[a-z0-9.-]+$/i.test(origin)) throw new Error(`WEB_API_ORIGIN must be an https origin, got ${origin}`)
-  if (env.WEB_ENV === 'production' && origin.toLowerCase() === STAGING_API_ORIGIN)
+  // Host names ignore case, and a trailing dot names the same host.
+  if (env.WEB_ENV === 'production' && origin.toLowerCase().replace(/\.$/, '') === STAGING_API_ORIGIN)
     throw new Error(
       'A production build needs WEB_API_ORIGIN set to the production API, not unset and not the staging API',
     )
@@ -90,6 +91,7 @@ function htmlFiles(dir: string): string[] {
 
 /** Staging and local builds are noindex; only WEB_ENV=production serves indexable pages. */
 export function finalize(dir: string, env: Record<string, string | undefined> = process.env) {
+  const api = apiOrigin(env) // first: a wrong origin must fail before any file changes (#492)
   for (const prefix of ['', 'en']) {
     const from = join(dir, prefix, '404', 'index.html')
     if (!existsSync(from)) throw new Error(`missing prerendered ${from}`)
@@ -117,7 +119,7 @@ export function finalize(dir: string, env: Record<string, string | undefined> = 
     }
   const hashes = [...new Set(htmlFiles(dir).flatMap((f) => inlineScriptHashes(readFileSync(f, 'utf8'))))]
   const headers = join(dir, '_headers')
-  const options = { scriptHashes: hashes, apiOrigin: apiOrigin(env), noindex: env.WEB_ENV !== 'production' }
+  const options = { scriptHashes: hashes, apiOrigin: api, noindex: env.WEB_ENV !== 'production' }
   writeFileSync(headers, fillHeaders(readFileSync(headers, 'utf8'), options))
 }
 

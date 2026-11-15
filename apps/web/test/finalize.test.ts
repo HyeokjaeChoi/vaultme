@@ -88,9 +88,13 @@ describe('finalize', () => {
     const staging = 'https://vaultme-api-staging.gurwo1007.workers.dev'
     const production = { WEB_ENV: 'production' }
     expect(() => apiOrigin(production)).toThrow('staging API') // vite.config.ts calls this when the build starts
-    expect(() => finalize(build(), production)).toThrow('staging API') // WEB_API_ORIGIN unset
+    const dir = build()
+    expect(() => finalize(dir, production)).toThrow('staging API') // WEB_API_ORIGIN unset
+    expect(existsSync(join(dir, '404/index.html'))).toBe(true) // it threw before it renamed or deleted anything
+    expect(existsSync(join(dir, 'index.html'))).toBe(true)
     expect(() => finalize(build(), { ...production, WEB_API_ORIGIN: staging })).toThrow('staging API')
     expect(() => apiOrigin({ ...production, WEB_API_ORIGIN: staging.toUpperCase() })).toThrow('staging API') // host names ignore case
+    expect(() => apiOrigin({ ...production, WEB_API_ORIGIN: `${staging}.` })).toThrow('staging API') // a trailing dot is the same host
     expect(apiOrigin({ ...production, WEB_API_ORIGIN: 'https://api.vaultme.stack-line.dev' })).toBe(
       'https://api.vaultme.stack-line.dev',
     )
