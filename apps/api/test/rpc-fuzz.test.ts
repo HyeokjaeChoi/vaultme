@@ -22,6 +22,104 @@ const caseOf = (s: string) =>
 
 const goodCall = (data: string, to = USDC_SEPOLIA) => ({ to, data: `${BALANCE_OF_SELECTOR}${data.padStart(64, '0')}` })
 
+// The refusal properties, run against any rule. The real rule must pass them; the same properties must fail on `rpcAllowed` plus one
+// hole (see the last block), so a property that cannot fail is caught.
+const validCall = fc
+  .tuple(hex(40), caseOf(USDC_SEPOLIA), fc.option(fc.constantFrom('latest', 'finalized', '0x10'), { nil: undefined }))
+  .map(([arg, to, tag]) => request('eth_call', [goodCall(arg, to), ...(tag === undefined ? [] : [tag])]))
+const refusals = (allowed: (r: RpcRequest) => boolean): Record<string, () => void> => ({
+  'eth_call: another target': () => {
+    fc.assert(
+      fc.property(
+        address.filter((a) => a.toLowerCase() !== USDC_SEPOLIA.toLowerCase()),
+        hex(40),
+        (to, arg) => !allowed(request('eth_call', [goodCall(arg, to), 'latest'])),
+      ),
+      RUNS,
+    )
+  },
+  'eth_call: any other data': () => {
+    const good = new RegExp(`^${BALANCE_OF_SELECTOR}[0-9a-fA-F]{64}$`)
+    fc.assert(
+      fc.property(
+        fc
+          .oneof(
+            fc.string(),
+            hex(8).map((s) => `0x${s}`),
+            fc.tuple(hex(8), hex(80)).map(([s, a]) => `0x${s}${a}`),
+            hex(63).map((a) => `${BALANCE_OF_SELECTOR}${a}`),
+            hex(65).map((a) => `${BALANCE_OF_SELECTOR}${a}`),
+            hex(64).map((a) => `${BALANCE_OF_SELECTOR}${a}\n`),
+            hex(64).map((a) => `\n${BALANCE_OF_SELECTOR}${a}`),
+          )
+          .filter((d) => !good.test(d)),
+        (data) => !allowed(request('eth_call', [{ to: USDC_SEPOLIA, data }, 'latest'])),
+      ),
+      RUNS,
+    )
+  },
+  'eth_call: an input alias, a state override, extra params': () => {
+    const valid = validCall
+    fc.assert(
+      fc.property(
+        valid,
+        fc.oneof(
+          fc.record({ kind: fc.constant('input'), value: hex(8) }),
+          fc.record({ kind: fc.constant('override'), value: fc.dictionary(address, json) }),
+          fc.record({ kind: fc.constant('extra'), value: json }),
+        ),
+        (r, add) => {
+          const [tx, tag = 'latest'] = r.params as [Record<string, unknown>, string?]
+          const params =
+            add.kind === 'input'
+              ? [{ ...tx, input: add.value }, tag]
+              : add.kind === 'override'
+                ? [tx, tag, add.value]
+                : [tx, tag, ...[add.value, add.value]]
+          return !allowed(request('eth_call', params))
+        },
+      ),
+      RUNS,
+    )
+  },
+  'eth_call: no object as the first param': () => {
+    fc.assert(
+      fc.property(
+        fc.array(json).filter((p) => typeof p[0] !== 'object' || p[0] === null || Array.isArray(p[0])),
+        (params) => !allowed(request('eth_call', params)),
+      ),
+      RUNS,
+    )
+  },
+  'eth_getBlockByNumber: anything but false as the second param': () => {
+    fc.assert(
+      fc.property(
+        fc.string(),
+        json.filter((v) => v !== false),
+        fc.boolean(),
+        (tag, second, omit) => !allowed(request('eth_getBlockByNumber', omit ? [tag] : [tag, second])),
+      ),
+      RUNS,
+    )
+  },
+  'eth_getTransactionByHash: anything but one 32-byte hash': () => {
+    const good = /^0x[0-9a-fA-F]{64}$/
+    fc.assert(
+      fc.property(
+        fc.oneof(
+          fc.array(json).filter((p) => !(p.length === 1 && typeof p[0] === 'string' && good.test(p[0]))),
+          fc.tuple(hash, json).map(([h, extra]) => [h, extra]),
+          hex(63).map((h) => [`0x${h}`]),
+          hex(65).map((h) => [`0x${h}`]),
+          hash.map((h) => [`${h}\n`]),
+        ),
+        (params) => !allowed(request('eth_getTransactionByHash', params)),
+      ),
+      RUNS,
+    )
+  },
+})
+
 describe('rpcAllowed (property fuzz, 500 runs each)', () => {
   it('refuses every method that is not on the list, whatever the params', () => {
     const listed = new Set<string>(RPC_ALLOWED_METHODS)
@@ -67,83 +165,11 @@ describe('rpcAllowed (property fuzz, 500 runs each)', () => {
   })
 
   describe('eth_call: only USDC balanceOf(address), one 32-byte argument', () => {
-    const valid = fc
-      .tuple(
-        hex(40),
-        caseOf(USDC_SEPOLIA),
-        fc.option(fc.constantFrom('latest', 'finalized', '0x10'), { nil: undefined }),
-      )
-      .map(([arg, to, tag]) => request('eth_call', [goodCall(arg, to), ...(tag === undefined ? [] : [tag])]))
+    const valid = validCall
 
     it('accepts every valid shape, the contract address in any letter case (not vacuous)', () => {
       fc.assert(
         fc.property(valid, (r) => rpcAllowed(r)),
-        RUNS,
-      )
-    })
-
-    it('refuses another target', () => {
-      fc.assert(
-        fc.property(
-          address.filter((a) => a.toLowerCase() !== USDC_SEPOLIA.toLowerCase()),
-          hex(40),
-          (to, arg) => !rpcAllowed(request('eth_call', [goodCall(arg, to), 'latest'])),
-        ),
-        RUNS,
-      )
-    })
-
-    it('refuses any other data: another selector, a short or long argument, non-hex, a suffix', () => {
-      const good = new RegExp(`^${BALANCE_OF_SELECTOR}[0-9a-fA-F]{64}$`)
-      fc.assert(
-        fc.property(
-          fc
-            .oneof(
-              fc.string(),
-              hex(8).map((s) => `0x${s}`),
-              fc.tuple(hex(8), hex(80)).map(([s, a]) => `0x${s}${a}`),
-              hex(63).map((a) => `${BALANCE_OF_SELECTOR}${a}`),
-              hex(65).map((a) => `${BALANCE_OF_SELECTOR}${a}`),
-              hex(64).map((a) => `${BALANCE_OF_SELECTOR}${a}\n`),
-              hex(64).map((a) => `\n${BALANCE_OF_SELECTOR}${a}`),
-            )
-            .filter((d) => !good.test(d)),
-          (data) => !rpcAllowed(request('eth_call', [{ to: USDC_SEPOLIA, data }, 'latest'])),
-        ),
-        RUNS,
-      )
-    })
-
-    it('refuses an alias field, a state override (3rd param), extra params, and a call object with any extra key', () => {
-      fc.assert(
-        fc.property(
-          valid,
-          fc.oneof(
-            fc.record({ kind: fc.constant('input'), value: hex(8) }),
-            fc.record({ kind: fc.constant('override'), value: fc.dictionary(address, json) }),
-            fc.record({ kind: fc.constant('extra'), value: json }),
-          ),
-          (r, add) => {
-            const [tx, tag = 'latest'] = r.params as [Record<string, unknown>, string?]
-            const params =
-              add.kind === 'input'
-                ? [{ ...tx, input: add.value }, tag]
-                : add.kind === 'override'
-                  ? [tx, tag, add.value]
-                  : [tx, tag, ...[add.value, add.value]]
-            return !rpcAllowed(request('eth_call', params))
-          },
-        ),
-        RUNS,
-      )
-    })
-
-    it('refuses a call without an object, or with a non-object first param', () => {
-      fc.assert(
-        fc.property(
-          fc.array(json).filter((p) => typeof p[0] !== 'object' || p[0] === null || Array.isArray(p[0])),
-          (params) => !rpcAllowed(request('eth_call', params)),
-        ),
         RUNS,
       )
     })
@@ -162,18 +188,6 @@ describe('rpcAllowed (property fuzz, 500 runs each)', () => {
         RUNS,
       )
     })
-
-    it('refuses everything else as the second param, or none', () => {
-      fc.assert(
-        fc.property(
-          fc.string(),
-          json.filter((v) => v !== false),
-          fc.boolean(),
-          (tag, second, omit) => !rpcAllowed(request('eth_getBlockByNumber', omit ? [tag] : [tag, second])),
-        ),
-        RUNS,
-      )
-    })
   })
 
   describe('eth_getTransactionByHash: one 32-byte hash and nothing else', () => {
@@ -183,71 +197,58 @@ describe('rpcAllowed (property fuzz, 500 runs each)', () => {
         RUNS,
       )
     })
-
-    it('refuses anything else: other strings, other lengths, extra params, no params', () => {
-      const good = /^0x[0-9a-fA-F]{64}$/
-      fc.assert(
-        fc.property(
-          fc.oneof(
-            fc.array(json).filter((p) => !(p.length === 1 && typeof p[0] === 'string' && good.test(p[0]))),
-            fc.tuple(hash, json).map(([h, extra]) => [h, extra]),
-            hex(63).map((h) => [`0x${h}`]),
-            hex(65).map((h) => [`0x${h}`]),
-            hash.map((h) => [`${h}\n`]),
-          ),
-          (params) => !rpcAllowed(request('eth_getTransactionByHash', params)),
-        ),
-        RUNS,
-      )
-    })
   })
 
-  // The properties above must be able to fail: each of these rules is `rpcAllowed` plus one hole, and a property has to find it.
-  describe('the properties catch a hole', () => {
-    const holes: [string, (r: RpcRequest) => boolean, () => void][] = [
-      [
-        'any eth_call target',
-        (r) => rpcAllowed(r) || (r.method === 'eth_call' && r.params?.length === 2),
-        () =>
-          fc.assert(
-            fc.property(
-              address,
-              hex(40),
-              (to, arg) => !holes[0]![1](request('eth_call', [goodCall(arg, to), 'latest'])),
-            ),
-            RUNS,
-          ),
-      ],
-      [
-        'a state override',
-        (r) => rpcAllowed({ ...r, params: r.method === 'eth_call' ? r.params?.slice(0, 2) : r.params }),
-        () =>
-          fc.assert(
-            fc.property(hex(40), (arg) => !holes[1]![1](request('eth_call', [goodCall(arg), 'latest', { '0x1': {} }]))),
-            RUNS,
-          ),
-      ],
-      [
-        'full transaction bodies',
-        (r) => rpcAllowed(r) || (r.method === 'eth_getBlockByNumber' && r.params?.[1] === true),
-        () =>
-          fc.assert(
-            fc.property(fc.constant('latest'), (t) => !holes[2]![1](request('eth_getBlockByNumber', [t, true]))),
-            RUNS,
-          ),
-      ],
-      [
-        'extra hash params',
-        (r) => rpcAllowed(r) || (r.method === 'eth_getTransactionByHash' && r.params?.length === 2),
-        () =>
-          fc.assert(
-            fc.property(hash, (h) => !holes[3]![1](request('eth_getTransactionByHash', [h, 'x']))),
-            RUNS,
-          ),
-      ],
-    ]
-    it.each(holes)('%s', (_name, _rule, property) => {
-      expect(property).toThrow(/Property failed/)
-    })
+  // Real rule: every refusal property holds.
+  it.each(Object.entries(refusals(rpcAllowed)))('refuses %s', (_name, property) => {
+    property()
+  })
+
+  // Each of these rules is `rpcAllowed` plus one hole. The same refusal property must find a counterexample.
+  const hasInput = (r: RpcRequest) => isCall(r) && 'input' in (r.params?.[0] as object)
+  const withoutInput = (r: RpcRequest): RpcRequest => {
+    const tx = Object.fromEntries(Object.entries(r.params?.[0] as object).filter(([k]) => k !== 'input'))
+    return { ...r, params: [tx, ...(r.params?.slice(1) ?? [])] }
+  }
+  const isCall = (r: RpcRequest) => r.method === 'eth_call' && typeof r.params?.[0] === 'object' && r.params[0] !== null
+  const holes: [string, (r: RpcRequest) => boolean, string][] = [
+    [
+      'any eth_call target',
+      (r) => rpcAllowed(r) || (r.method === 'eth_call' && r.params?.length === 2),
+      'eth_call: another target',
+    ],
+    [
+      'a state override',
+      (r) => rpcAllowed({ ...r, params: r.method === 'eth_call' ? r.params?.slice(0, 2) : r.params }),
+      'eth_call: an input alias, a state override, extra params',
+    ],
+    [
+      'the input alias',
+      (r) => rpcAllowed(hasInput(r) ? withoutInput(r) : r),
+      'eth_call: an input alias, a state override, extra params',
+    ],
+    [
+      'other data after the selector',
+      (r) =>
+        rpcAllowed(r) ||
+        (isCall(r) &&
+          typeof (r.params?.[0] as { data?: unknown }).data === 'string' &&
+          (r.params?.[0] as { data: string }).data.startsWith(BALANCE_OF_SELECTOR) &&
+          (r.params?.[0] as { to?: string }).to === USDC_SEPOLIA),
+      'eth_call: any other data',
+    ],
+    [
+      'full transaction bodies',
+      (r) => rpcAllowed(r) || (r.method === 'eth_getBlockByNumber' && r.params?.[1] === true),
+      'eth_getBlockByNumber: anything but false as the second param',
+    ],
+    [
+      'extra hash params',
+      (r) => rpcAllowed(r) || (r.method === 'eth_getTransactionByHash' && r.params?.length === 2),
+      'eth_getTransactionByHash: anything but one 32-byte hash',
+    ],
+  ]
+  it.each(holes)('catches the hole: %s', (_name, rule, property) => {
+    expect(refusals(rule)[property]).toThrow(/Property failed/)
   })
 })
