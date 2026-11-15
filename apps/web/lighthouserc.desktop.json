@@ -118,6 +118,18 @@
               }
             ]
           }
+        },
+        {
+          "matchingUrlPattern": "^http://localhost:8799/(en/)?((address|tx)?)$",
+          "aggregationMethod": "median",
+          "assertions": {
+            "bf-cache": [
+              "error",
+              {
+                "minScore": 1
+              }
+            ]
+          }
         }
       ]
     }
