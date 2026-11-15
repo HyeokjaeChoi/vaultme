@@ -1,6 +1,6 @@
 # Release gate (#380, #378). A release is a `v*` tag. The tag run checks the funded wallet, runs the Maestro critical path on the
 # iOS simulator and the Android emulator, and only when all pass builds the app with EAS. Failed flows retry once (run.sh); a retry
-# pass continues and opens a "flaky e2e" issue; two failures stop the build. A tag run also runs the funded flows (#381): real Sepolia
+# pass continues and opens or updates one "flaky e2e" issue per flow (FLAKY-1); two failures stop the build. A tag run also runs the funded flows (#381): real Sepolia
 # sends between two wallets of one phrase (iOS: A sends to B, Android: B sends to A), then the other wallet is restored and lists them.
 # `dry_run` runs only the two critical paths: no balance check, no Environment (so no phrase), no funded flows, no EAS build.
 name: release
@@ -112,16 +112,11 @@ jobs:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: apps/mobile/.maestro/release-run.sh a 2>&1 | tee "$RUNNER_TEMP/critical.log"
       # run.sh prints `::warning::flaky ...` when a flow failed once and passed on the retry (#377).
-      - name: Open a flaky e2e issue
+      - name: Open or update the flaky e2e issue
         if: ${{ success() }}
         env:
           GH_TOKEN: ${{ github.token }}
-          REF_NAME: ${{ github.ref_name }}
-        run: |
-          grep -q '::warning::flaky' "$RUNNER_TEMP/critical.log" || exit 0
-          url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          gh issue create --repo "$GITHUB_REPOSITORY" --title "flaky e2e in release $REF_NAME" \
-            --body "A critical flow failed once and passed on the retry in release run $url. Find the flow in the step log (lines with \`flaky\`) and fix the cause."
+        run: apps/mobile/.maestro/flaky-issue.sh iOS "$RUNNER_TEMP/critical.log" "$GITHUB_REF_NAME"
       # The create flow shows a generated recovery phrase: its screenshots and commands stay out of the public artifact (testnet-only, but never published).
       - if: ${{ !cancelled() && inputs.dry_run == true }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -236,16 +231,11 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -change-locale ko-KR # the action's defaults + Korean: the flows match Korean text (ADR-0037, run.sh checks it)
           script: bash -o pipefail -c 'apps/mobile/.maestro/release-run.sh b 2>&1 | tee "$RUNNER_TEMP/critical.log"'
       # run.sh prints `::warning::flaky ...` when a flow failed once and passed on the retry (#377).
-      - name: Open a flaky e2e issue
+      - name: Open or update the flaky e2e issue
         if: ${{ success() }}
         env:
           GH_TOKEN: ${{ github.token }}
-          REF_NAME: ${{ github.ref_name }}
-        run: |
-          grep -q '::warning::flaky' "$RUNNER_TEMP/critical.log" || exit 0
-          url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          gh issue create --repo "$GITHUB_REPOSITORY" --title "flaky e2e in release $REF_NAME (Android)" \
-            --body "A critical flow failed once and passed on the retry on Android in release run $url. Find the flow in the step log (lines with \`flaky\`) and fix the cause."
+        run: apps/mobile/.maestro/flaky-issue.sh Android "$RUNNER_TEMP/critical.log" "$GITHUB_REF_NAME"
       # Same artifact rule as ios-critical: the create flow shows a generated recovery phrase, so its output stays out of the public artifact.
       - if: ${{ !cancelled() && inputs.dry_run == true }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
