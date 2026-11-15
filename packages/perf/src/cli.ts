@@ -4,7 +4,7 @@
 //   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts smoke    (post-deploy: one balance read and one history read; exit 1 on failure)
 //   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha> --origin <text>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the tier-2 limits for api.js)
 //   node packages/perf/src/cli.ts slo-window --runs <dir with the downloaded api-bench artifacts of the window>    (pools the SLO counts, ADR-0036; exit 3 on a breach, so a crash (exit 1) is not one)
-//   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text>
+//   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text> [--measured-at <YYYY-MM-DD>]    (--measured-at: the day the artifacts were measured; default today)
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { parseArgs } from 'node:util'
@@ -63,6 +63,7 @@ if (cmd === 'hermes') {
       out: { type: 'string' },
       commit: { type: 'string' },
       origin: { type: 'string' },
+      'measured-at': { type: 'string' },
     },
   })
   const [desktop, mobile, hermes, api, out, commit, origin] = [
@@ -76,8 +77,11 @@ if (cmd === 'hermes') {
   ]
   if (!desktop || !mobile || !hermes || !api || !out || !commit || !origin)
     throw new Error('baseline: all options are required')
+  // The artifacts are often a day or more old: the day they were measured, not the day this command runs.
+  const measuredAt = v['measured-at'] ?? new Date().toISOString().slice(0, 10)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(measuredAt)) throw new Error('baseline: --measured-at must be YYYY-MM-DD')
   const baseline: Baseline = buildBaseline({
-    measuredAt: new Date().toISOString().slice(0, 10),
+    measuredAt,
     commit,
     origin,
     desktop: readLhrDir(desktop),
