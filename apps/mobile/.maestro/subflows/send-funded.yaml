@@ -73,9 +73,12 @@ appId: dev.stackline.vaultme
       enabled: true
     timeout: 60000
 - tapOn: '확인하고 보내기'
-# OS auth (the touch loop in run.sh answers it), sign, broadcast; then the result screen polls every 15 s. Sepolia takes about 15 to 60 s.
+# OS auth (the touch loop in run.sh answers it), sign, broadcast; then the result screen polls every 15 s. The tx is mined in about 15 to 60 s,
+# but `보냈어요` shows only for Confirmed (a receipt at or below the `safe` block), and `safe` lags the newest block by 7 to 13 minutes on
+# Sepolia (ADR-0006). 1,200 s = 13 min + the 15 s poll + about 6 min for inclusion and block-time jitter (ADR-0040). The flow is never
+# retried (run.sh): a retry would broadcast again. A timeout here fails the release; check the chain with scripts/release-verify.mts.
 - extendedWaitUntil:
     visible: '보냈어요'
-    timeout: 240000
+    timeout: 1200000
 - tapOn: '홈으로'
 - assertVisible: 'Sepolia ETH'

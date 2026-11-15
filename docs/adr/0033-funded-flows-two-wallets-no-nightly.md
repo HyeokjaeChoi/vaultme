@@ -2,6 +2,7 @@
 
 Status: Accepted (2026-11-03 from issue #381, owner decisions of 2026-11-03)
 Supersedes/Aliases: ADR-0032 in part (the "received transaction" flow and the nightly run)
+Superseded in part by: [0040](0040-funded-release-flows-wait-for-confirmed-never-retry-checked-on-chain.md) (Consequences: a tag run also checks the chain and publishes the Etherscan links of the release wallets' transactions)
 
 ## Context
 ADR-0032 had account 1 send to account 2 of one phrase. The app keeps one account (index 0), so a second account does not exist. A dry run cannot read the `release` Environment, which admits only `v*` tags.

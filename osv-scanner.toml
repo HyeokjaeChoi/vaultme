@@ -1,0 +1,44 @@
+# Dated exceptions for osv-scanner (SEC-1, ADR-0047). osv-scanner reads this file next to pnpm-lock.yaml: in the PR scan and the weekly scan.
+# Q74: a known vulnerability without an entry here fails the scan, whatever its severity. A fix is the first choice, an exception the last.
+#
+# An entry needs an id, a reason and ignoreUntil:
+# - The reason starts with its scope: "dev: " for a dev or CI tool, or "shipped: no fix " for code that ships (only when no fix exists).
+# - ignoreUntil is a date, at most 30 days ahead for dev and 14 days for shipped. On that day (00:00, UTC in CI) the finding shows again.
+# scripts/check-osv-exceptions.py (R18) fails the repo rules for an entry that breaks this or has expired. To renew an entry, change the date
+# and the reason in a PR. To end it, delete it. Only [[IgnoredVulns]] with these three keys is allowed here (R18).
+#
+# The six findings of #481 (weekly scan of 2026-11-09). All are in dev and build tools, so they are not in the app:
+# - `pnpm why -r` (2026-11-15): extract-zip, via puppeteer-core, lighthouse and @lhci/cli; zod 3, via @expo/cli, chromium-bidi and
+#   @google/design.md; glob and deepmerge, via style-dictionary and the Expo build packages; minimatch, via eslint and typescript-estree.
+# - The iOS bundle (`expo export --dev --no-minify --no-bytecode`, 2026-11-15) names 121 package folders and none of these versions.
+# - No source file of apps/mobile, apps/web, apps/api or packages imports one of those tool packages.
+
+[[IgnoredVulns]]
+id = "GHSA-7pqw-9j4j-h8q3"
+ignoreUntil = 2026-12-15
+reason = "dev: extract-zip 2.0.1 (CVSS 8.1) via puppeteer-core, lighthouse and @lhci/cli (web devDependency, CI only); no fix released"
+
+[[IgnoredVulns]]
+id = "GHSA-jmr9-qjv8-65gv"
+ignoreUntil = 2026-12-15
+reason = "dev: extract-zip 2.0.1 (CVSS 8.6) via puppeteer-core, lighthouse and @lhci/cli (web devDependency, CI only); no fix released"
+
+[[IgnoredVulns]]
+id = "GHSA-mrhx-c7xc-m3w5"
+ignoreUntil = 2026-12-15
+reason = "dev: zod 3.25.76 (CVSS 8.2) via @expo/cli, chromium-bidi and @google/design.md (build, CI and lint tools); the app uses zod 4.6.7; the fix is zod 4.6.6, a new major version that these tools do not accept"
+
+[[IgnoredVulns]]
+id = "GHSA-3g3m-2fjr-6pw4"
+ignoreUntil = 2026-12-15
+reason = "dev: glob 13.0.6 (CVSS 6.3) via style-dictionary (token build), the Expo build packages and @sentry/bundler-plugins; the fix is glob 14.0.2, a new major version"
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2026-12-15
+reason = "dev: minimatch 10.2.6 (CVSS 6.9) via eslint, typescript-estree, @expo/fingerprint and glob 13 (lint and build tools); the fix is minimatch 11.0.1, a new major version"
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+ignoreUntil = 2026-12-15
+reason = "dev: deepmerge 4.3.1 (CVSS 5.3) via style-dictionary (token build) and @expo/config (build tool); no fix released"
