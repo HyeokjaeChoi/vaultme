@@ -2,6 +2,8 @@
 
 Status: Accepted (2026-10-29, issue #272, owner decision "우리도 JS 본문만 세는 식으로 하자"). Supersedes in part [0012](0012-web-scope-and-quality-bars.md) and [0017](0017-web-analytics-beacon-and-js-budgets.md): how the JS budgets are measured (Lighthouse `resource-summary:script:size`, transfer size). The limits and the rest of both ADRs still bind.
 
+Superseded in part by [0042](0042-viewer-js-budget-counts-the-page-with-data.md): a viewer page with its data (a fragment, the lazy chunks) is measured too, by Playwright; the last consequence below no longer holds. The rest still binds.
+
 ## Context
 CI measured the JS budgets with Lighthouse `resource-summary:script:size`. That is transfer size: the compressed body plus the response headers of every JS response. `public/_headers` puts the full document header set on every response (CSP with script hashes, Permissions-Policy, COOP and more), about 1.1 to 1.5 KB per JS file. A page with ~10 JS files pays ~10 to 15 KB for a server setting, not for code. Renovate PR #228 (react-router 8.5.0, +3.25 KB gzip) failed `lhci` at 155,871 B for this reason.
 

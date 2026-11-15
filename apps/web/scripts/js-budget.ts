@@ -70,12 +70,18 @@ export function measure(lhrs: Lhr[], buildDir: string): PageResult[] {
   return [...sizes].map(([url, bytes]) => ({ url, bytes, limit: limitFor(url), files: files.get(url) ?? 0 }))
 }
 
-export function report(rows: PageResult[]): { text: string; failed: boolean } {
+/** A page with under 2 % of its limit left warns (WEB-2, ADR-0042): the next dependency bump would fail the PR. It never fails. */
+export function report(rows: PageResult[]): { text: string; failed: boolean; warnings: string[] } {
+  const warnings: string[] = []
   const lines = rows.map((r) => {
-    const over = r.bytes > r.limit
-    return `${over ? 'FAIL' : 'ok  '} ${r.url}  ${String(r.bytes)} / ${String(r.limit)} B gzip (${String(r.files)} files)`
+    const left = r.limit - r.bytes
+    const row = `${r.url}  ${String(r.bytes)} / ${String(r.limit)} B gzip (${String(r.files)} files)`
+    if (left < 0) return `FAIL ${row}`
+    if (left * 50 >= r.limit) return `ok   ${row}`
+    warnings.push(`${r.url} has ${String(left)} B left of ${String(r.limit)} B (under 2 %)`)
+    return `warn ${row}`
   })
-  return { text: lines.join('\n'), failed: rows.some((r) => r.bytes > r.limit) }
+  return { text: lines.join('\n'), failed: rows.some((r) => r.bytes > r.limit), warnings }
 }
 
 export function readLhrs(dir: string): Lhr[] {
@@ -87,10 +93,12 @@ export function readLhrs(dir: string): Lhr[] {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [dir = '.lighthouseci', build = 'build/client'] = process.argv.slice(2)
   const rows = measure(readLhrs(dir), build)
-  const { text, failed } = report(rows)
+  const { text, failed, warnings } = report(rows)
   // Kept with the reports as a build artifact and read by packages/perf (ADR-0019).
   writeFileSync(join(dir, 'js-budget.json'), JSON.stringify(rows))
   console.log(text)
+  if (process.env.GITHUB_ACTIONS)
+    for (const w of warnings) console.log(`::warning title=JS budget headroom (ADR-0042)::${w}`)
   if (failed) {
     console.error('JS budget exceeded (ADR-0018).')
     process.exitCode = 1

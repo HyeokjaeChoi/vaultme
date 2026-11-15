@@ -6,10 +6,12 @@ name: review-learn
 #
 # Two stages (issue #486), as in claude-code-review.yml:
 # 1. `claude -p` with ANTHROPIC_API_KEY (API credits; calls through claude-code-action get no promo credits,
-#    https://support.claude.com/en/articles/17154008). The CLI has no Claude app token, and GITHUB_TOKEN cannot open PRs, so
-#    stage 1 only edits files and writes the title and body. A short haiku claude-code-action step then runs
-#    scripts/review-learn-pr.sh with the app token (only in weeks with a proposal).
-# 2. claude-code-action with CLAUDE_CODE_OAUTH_TOKEN runs the whole loop when stage 1 had no key or failed.
+#    https://support.claude.com/en/articles/17154008). GITHUB_TOKEN cannot open PRs here, so stage 1 only edits files and
+#    writes the title and body. Two plain steps then mint a token of the repo's GitHub App (hyeokjae-review-bot, secrets
+#    APP_ID and APP_PRIVATE_KEY) and run scripts/review-learn-pr.sh with it (only in weeks with a proposal, issue #516).
+# 2. claude-code-action with CLAUDE_CODE_OAUTH_TOKEN runs the whole loop only when stage 1 had no key (reason `no-key`) or
+#    ended with a used-up credit or a rate limit (reason `quota`). Any other failure fails the job and spends no
+#    subscription quota (issue #518).
 # This job runs on the default branch (schedule), so no PR can change .claude/ before the CLI runs.
 on:
   schedule:
@@ -28,9 +30,9 @@ jobs:
       contents: read
       pull-requests: read
       issues: read
-      id-token: write # Claude app token; the issue, push and PR use it (scripts/review-learn-pr.sh)
+      id-token: write # claude-code-action (stage 2): the Claude app token for the issue, push and PR (scripts/review-learn-pr.sh)
     env:
-      # Stage 1 has no app token and must not run the script (it deletes .review-learn before it fails); stage 2 may.
+      # `claude -p` (stage 1) has no app token and must not run the script; the workflow runs it after. Stage 2 may run it.
       TOOLS_API: Read,Glob,Grep,Edit,Write,Bash(./scripts/check-repo-rules.sh),Bash(pnpm turbo run:*),Bash(pnpm --filter:*)
       TOOLS_FALLBACK: Read,Glob,Grep,Edit,Write,Bash(./scripts/check-repo-rules.sh),Bash(scripts/review-learn-pr.sh),Bash(./scripts/review-learn-pr.sh),Bash(pnpm turbo run:*),Bash(pnpm --filter:*)
       # The same loop for both stages; each stage adds its own last sentence (who opens the proposal).
@@ -108,9 +110,8 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1' # see claude-code-review.yml (issue #133)
-          CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1' # commands do not get the API key (docs: env-vars)
         run: |
-          test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; exit 1; }
+          test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; echo "reason=no-key" >> "$GITHUB_OUTPUT"; exit 1; }
           claude -p "$LEARN_PROMPT
           Do not run scripts/review-learn-pr.sh: a later workflow step opens the proposal." \
             --model opus \
@@ -118,30 +119,40 @@ jobs:
             --output-format json > "$RUNNER_TEMP/result.json" || true
           jq '{is_error, subtype, num_turns, total_cost_usd}' "$RUNNER_TEMP/result.json"
           jq -r '.result // ""' "$RUNNER_TEMP/result.json" >> "$GITHUB_STEP_SUMMARY" || true
-          jq -e '.is_error == false' "$RUNNER_TEMP/result.json" >/dev/null
-      # The Claude app token is only available inside claude-code-action, so this step runs the script through it.
-      # One short haiku turn, and only when stage 1 wrote a proposal. It still needs the subscription: if that quota is
-      # used up the job fails and the next weekly run tries again. Remove this step when the CLI can use the Claude app
-      # token or the repo has its own GitHub App token (owner secret).
-      - name: Open the proposal (app token)
+          if ! jq -e '.is_error == false' "$RUNNER_TEMP/result.json" >/dev/null; then
+            # Quota only; same detection as claude-code-review.yml (see the comment there).
+            if jq -e '.is_error == true and ((.result // "") | test("credit balance|rate.?limit|billing_error|\\b429\\b"; "i"))' "$RUNNER_TEMP/result.json" >/dev/null; then
+              echo "reason=quota" >> "$GITHUB_OUTPUT"
+            fi
+            exit 1
+          fi
+      # Only when stage 1 wrote a proposal. The token is scoped to this repo and exists only after `claude -p` ended.
+      # `client-id` is the documented input; its value is passed on as the App ID, so the numeric App ID in APP_ID works
+      # (`app-id` is deprecated). Replace it with the App's Client ID if a later release stops accepting the number.
+      - name: App token
+        id: app
         if: steps.api.outcome == 'success' && hashFiles('.review-learn/title.txt') != ''
-        uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          display_report: true
-          prompt: 'Run ./scripts/review-learn-pr.sh once and report its output. Change nothing else.'
-          claude_args: |
-            --allowedTools "Bash(./scripts/review-learn-pr.sh),Bash(scripts/review-learn-pr.sh)"
-            --model haiku
-      # Stage 2. A failed stage 1 may have left half-made edits; start the fallback from a clean tree.
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Open the proposal
+        if: steps.app.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          # Run the committed copy: `claude -p` can edit scripts/ in the working tree, and this step holds a write token.
+          git show HEAD:scripts/review-learn-pr.sh > "$RUNNER_TEMP/review-learn-pr.sh"
+          bash "$RUNNER_TEMP/review-learn-pr.sh"
+      # Stage 2. Only for no-key or quota. A failed stage 1 may have left half-made edits; start the fallback from a clean tree.
       - name: Reset the workspace
-        if: steps.collect.outputs.count != '0' && steps.api.outcome != 'success'
+        if: steps.collect.outputs.count != '0' && steps.api.outcome != 'success' && (steps.api.outputs.reason == 'quota' || steps.api.outputs.reason == 'no-key')
         run: |
           git restore --worktree --staged .
           git clean -fd -e .review-learn
           rm -f .review-learn/title.txt .review-learn/body.md
       - name: Learn (subscription fallback)
-        if: steps.collect.outputs.count != '0' && steps.api.outcome != 'success'
+        if: steps.collect.outputs.count != '0' && steps.api.outcome != 'success' && (steps.api.outputs.reason == 'quota' || steps.api.outputs.reason == 'no-key')
         uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
         env:
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1' # see claude-code-review.yml (issue #133)
@@ -154,3 +165,9 @@ jobs:
           claude_args: |
             --allowedTools "${{ env.TOOLS_FALLBACK }}"
             --model opus
+      # Stage 1 failed for another reason than no-key or quota: fail the job, spend no subscription quota.
+      - name: Require stage 1
+        if: ${{ !cancelled() && steps.collect.outputs.count != '0' && steps.api.outcome != 'success' && steps.api.outputs.reason == '' }}
+        run: |
+          echo "::error::The API stage did not finish: CLI install ${{ steps.cli.outcome }}, API step ${{ steps.api.outcome }}. The subscription fallback runs only for no-key or quota."
+          exit 1

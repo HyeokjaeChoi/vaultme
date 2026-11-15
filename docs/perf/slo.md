@@ -7,13 +7,17 @@ What "fast enough" means for VaultMe, where each limit comes from, and how far w
 | SLO | Gate | Source | Attainment |
 | --- | --- | --- | --- |
 | Lighthouse Performance, Accessibility, Best Practices, SEO each >= 95 | `lhci (desktop)`, `lhci (mobile)` in `apps/web/lighthouserc.desktop.json`, `apps/web/lighthouserc.mobile.json` | [ADR-0012](../adr/0012-web-scope-and-quality-bars.md) | Pass on `main`. Lowest median: Performance 97 (mobile viewer pages) |
-| LCP <= 2.5 s | same | [web.dev LCP](https://web.dev/articles/lcp) | Mobile 2.0 to 2.2 s on `/address` and `/tx`; desktop 0.5 s |
-| CLS <= 0.1 | same | [web.dev CLS](https://web.dev/articles/cls) | 0 to 0.001 |
+| LCP of the shell (no fragment) <= 2.5 s | same | [web.dev LCP](https://web.dev/articles/lcp) | Mobile 2.0 to 2.2 s on `/address` and `/tx`; desktop 0.5 s |
+| CLS of the shell (no fragment) <= 0.1 | same | [web.dev CLS](https://web.dev/articles/cls) | 0 to 0.001 |
 | TBT <= 200 ms | same | [web.dev TBT](https://web.dev/articles/tbt) | 0 ms |
-| JS: static pages <= 100 KB, viewer (`/address`, `/tx`) <= 150 KB, gzip body | `apps/web/scripts/js-budget.ts` | [ADR-0017](../adr/0017-web-analytics-beacon-and-js-budgets.md), [ADR-0018](../adr/0018-js-budgets-count-compressed-body.md) | Static 0 B; viewer 138.4 KB (141,673 B) |
+| JS of the shell (no fragment): static pages <= 100 KB, viewer (`/address`, `/tx`) <= 150 KB, gzip body | `apps/web/scripts/js-budget.ts` | [ADR-0017](../adr/0017-web-analytics-beacon-and-js-budgets.md), [ADR-0018](../adr/0018-js-budgets-count-compressed-body.md) | Static 0 B; viewer 153,011 B (`/address`) and 152,573 B (`/tx`) of 153,600 B, CI run 43693031623. Under 2 % left: a warning |
+| JS of the page with data (a fragment, the lazy chunks), viewer <= 150 KB (153,600 B) | `apps/web/e2e/perf.spec.ts` (a warning until about 30 KB is cut) | [ADR-0042](../adr/0042-viewer-js-budget-counts-the-page-with-data.md) | `/address#<address>` 183,449 B, `/tx#<hash>` 181,665 B (29,849 B and 28,065 B over) |
+| INP with data <= 200 ms, median of 3 (CPU 4x, the Lighthouse mobile network as DevTools applies it, 375 px, API at its limits below) | `apps/web/e2e/perf.spec.ts` | [web.dev INP](https://web.dev/articles/inp) | 56 to 80 ms (median of 3, local run of 2026-11-15) |
+| LCP with data <= 2.5 s, median of 3, same lab | same; `/address` fails the PR, `/tx` warns until [#504](https://github.com/HyeokjaeChoi/vaultme/issues/504) is fixed | [web.dev LCP](https://web.dev/articles/lcp) | `/address#<address>` 2.3 s (2,336 ms, 164 ms under the limit); `/tx#<hash>` 4.4 s (4,436 ms, gap) |
+| CLS with data <= 0.1 for the load (before the first click), median of 3, same lab | same | [web.dev CLS](https://web.dev/articles/cls) | 0 to 0.001. The whole visit with the clicks: `/tx` 0.18 (the footer appears 0.7 s after the click on the back link; shown, not judged) |
 | Hermes bundle <= 11 MiB | `export:check` in `apps/mobile/package.json` | `AGENTS.md` "Enforced rules" | 7.75 MiB (iOS), 7.74 MiB (Android) |
 
-Attainment is from [baseline.md](baseline.md) (a local run of 2026-10-30) and the LHRs of CI run 41076156239 (mobile LCP).
+Attainment is from [baseline.md](baseline.md) (a local run of 2026-10-30) and the LHRs of CI run 41076156239 (mobile LCP). The shell JS row is from the `lhci` log of CI run 43693031623. The "with data" rows are local runs of 2026-11-15 (`e2e/perf.spec.ts`: the real build in Chromium, fixture API answering at the limits of the API table below: `rpc` 250 ms, history 1000 ms); each CI run prints its own table in the job summary.
 
 ## API: tier 1, the UX SLO (judged over 4 weeks)
 

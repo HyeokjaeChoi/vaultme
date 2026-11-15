@@ -94,4 +94,20 @@ describe('measure and report', () => {
     expect(bad.text).toContain('FAIL u2  102401 / 102400 B gzip (3 files)')
     expect(bad.text).toContain('ok   u1')
   })
+
+  it('warns, and does not fail, when under 2 % of the limit is left', () => {
+    const r = report([
+      { url: 'viewer', bytes: 153_011, limit: VIEWER_LIMIT, files: 12 }, // the number at plan time: 589 B left
+      { url: 'edge', bytes: STATIC_LIMIT - 2047, limit: STATIC_LIMIT, files: 1 }, // 2,047 B left, 2 % is 2,048 B
+      { url: 'fine', bytes: STATIC_LIMIT - 2048, limit: STATIC_LIMIT, files: 1 }, // exactly 2 % left
+    ])
+    expect(r.failed).toBe(false)
+    expect(r.warnings).toEqual([
+      'viewer has 589 B left of 153600 B (under 2 %)',
+      'edge has 2047 B left of 102400 B (under 2 %)',
+    ])
+    expect(r.text).toContain('warn viewer')
+    expect(r.text).toContain('warn edge')
+    expect(r.text).toContain('ok   fine')
+  })
 })

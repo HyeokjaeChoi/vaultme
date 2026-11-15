@@ -53,15 +53,15 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 - `history`: the history module (`createHistory`: `list`, `more`, `cachedRow`, `findRow`) over a page-fetch seam and a cache seam. See History.
 - `tokens`: Style Dictionary build of `packages/tokens/tokens.json` into `src/generated` (TS for mobile, `tokens.css` variables and a Tailwind v4 `theme.css` for web). Layers: Primitive, Semantic (light and dark), Component.
 - `i18n`: app strings in Korean (`ko`) and English (`en`, same keys), `pickLanguage` (device language, ko fallback; ADR-0037) and an i18next instance.
-- `perf`: performance measurements (ADR-0019). `cli.ts` has three commands: `hermes` (bundle sizes), `latency` (API p50 and p95 on staging with a throw-away install, run weekly by `.github/workflows/api-latency.yml`) and `baseline` (writes `docs/perf/baseline.json` and `baseline.md` from CI artifacts). The k6 benchmark (`k6/api.js`, weekly `api-bench.yml`) fails on our own server time (the release gate) and only warns on the UX SLO and the regression watch per run; `api-slo-window.yml` judges the UX SLO over 4 weeks with `cli.ts slo-window` (ADR-0020, ADR-0036, `docs/perf/slo.md`).
+- `perf`: performance measurements (ADR-0019). `cli.ts` has these commands: `hermes` (bundle sizes), `latency` (API p50 and p95 on staging with a throw-away install, run weekly by `.github/workflows/api-latency.yml`), `smoke` (the post-deploy reads), `baseline` and `bench` (write `docs/perf/baseline.json` and `baseline.md` from CI artifacts), `slo-window` and `evidence` (ADR-0043: a gate job writes `evidence-<gate>.json`; `docs/results/<gate>/` holds the committed files and a generated `README.md`, the list of every gate with its value, commit and run). The k6 benchmark (`k6/api.js`, weekly `api-bench.yml`) fails on our own server time (the release gate) and only warns on the UX SLO and the regression watch per run; `api-slo-window.yml` judges the UX SLO over 4 weeks with `cli.ts slo-window` (ADR-0020, ADR-0036, `docs/perf/slo.md`).
 - `config`: shared ESLint and tsconfig, and the FSD layer preset (`fsd.js`, `steiger.js`). It holds the no-float rule for amount code.
 
 ### apps/api
 
 - `app.ts`: Hono `OpenAPIHono` app. All routes, middleware order, the webhook route, `onError`.
 - `auth.ts`: `requireSigned` (device signature), `issueToken`, `requireToken`, `limitInstall`.
-- `errors.ts`: `fail` (the error envelope), `InvalidCursorError`, `UpstreamError` (503; may carry the seconds to wait), `retryAfter` (the `Retry-After` header of a 503).
-- `rpc.ts`: `rpcAllowed` (allow-list) and `proxyRpc` (Infura, then Alchemy on a failure; a read that Infura has not answered in 60 ms also goes to Alchemy and the first valid answer wins, #399; `eth_sendRawTransaction` is never hedged).
+- `errors.ts`: `fail` (the error envelope), `InvalidCursorError`, `UpstreamError` (503; may carry the seconds to wait), `unavailable` (a 503 with its `Retry-After` header).
+- `rpc.ts`: `rpcAllowed` (allow-list) and `proxyRpc` (Infura, then Alchemy on a failure or on a quota error, also one inside a 200; a read that Infura has not answered in 60 ms also goes to Alchemy and the first valid answer wins, #399; `eth_sendRawTransaction` and `eth_getTransactionCount` are never hedged).
 - `etherscan.ts`, `history.ts`, `bucket.ts`: `getHistory` calls Etherscan through the `EtherscanBucket` token bucket. `history.ts` is pure: merge, dedupe, order, cursor.
 - `push.ts`: subscribe, unsubscribe, `verifyAlchemySignature`, `notificationsFor` (pure), `handleActivity`, `sweep`.
 - `log.ts`, `metrics.ts`, `sentry.ts`, `alerts.ts`: observability (see Observability).
