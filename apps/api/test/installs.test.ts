@@ -230,11 +230,12 @@ describe('installs', () => {
   it('429 on the 4th registration per minute (real binding)', async () => {
     const real = { ...E, INSTALL_IP_LIMITER: env.INSTALL_IP_LIMITER }
     const statuses: number[] = []
+    const ip = ['10', ...crypto.getRandomValues(new Uint8Array(3))].join('.') // the real binding counts per IP for 60 s: a repeat with the same IP starts at 429
     for (let i = 0; i < 4; i++) {
       const publicKey = await rawPublic(await genKey())
       const r = await call(
         '/v1/installs',
-        { ...json({ publicKey }), headers: { 'content-type': 'application/json', 'CF-Connecting-IP': '203.0.113.7' } },
+        { ...json({ publicKey }), headers: { 'content-type': 'application/json', 'CF-Connecting-IP': ip } },
         real,
       )
       statuses.push(r.status)
