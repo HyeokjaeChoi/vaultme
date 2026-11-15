@@ -29,7 +29,10 @@
     // Fixture app of test/build.test.ts: built by React Router, imported by nobody.
     "apps/web": { "entry": ["steiger.config.mjs"], "ignore": ["test/fixtures/**"] },
     "apps/mobile": {
-      "entry": ["steiger.config.mjs"],
+      // vitest.anvil.config.ts and its globalSetup run the send-lifecycle tests on a local anvil (CHAIN-3).
+      "entry": ["steiger.config.mjs", "vitest.anvil.config.ts", "anvil-setup.ts", "test-anvil/**/*.test.ts"],
+      // `anvil` (Foundry) is spawned by anvil-setup.ts; CI installs it (ci.yml).
+      "ignoreBinaries": ["anvil"],
       // Guessed from app.json: no OTA updates are used.
       "ignoreDependencies": ["expo-updates"],
     },
