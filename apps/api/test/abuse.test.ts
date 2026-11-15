@@ -334,9 +334,9 @@ describe('request body limit', () => {
         c.close()
       },
     })
-  const streamed = (size: number, e: typeof R = R) =>
+  const streamed = (size: number, path = '/v1/rpc', e: typeof R = R) =>
     app.request(
-      new Request('http://localhost/v1/rpc', {
+      new Request(`http://localhost${path}`, {
         method: 'POST',
         headers: V,
         body: chunked(size),
@@ -389,6 +389,21 @@ describe('request body limit', () => {
   it('413 on a body with no Content-Length (chunked), counted while it is read', async () => {
     await answer(await streamed(LIMIT + 1), 413, 'invalid_request')
     expect(sqls).toEqual([])
+  })
+
+  // A chunked body is counted before the route runs: no D1 select of the signed route, no unhandled_error log or Sentry event of the webhook.
+  it.each([
+    ['/v1/installs/token', 64 * 1024 + 1],
+    ['/webhooks/alchemy', 1024 * 1024 + 1],
+  ])('413 on a chunked body to %s, before any D1 step and without an error log', async (path, size) => {
+    const logs = [vi.spyOn(console, 'log'), vi.spyOn(console, 'error'), vi.spyOn(console, 'warn')]
+    try {
+      await answer(await streamed(size, path), 413, 'invalid_request')
+      expect(sqls).toEqual([])
+      expect(logs.flatMap((l) => l.mock.calls).join('\n')).not.toContain('unhandled_error')
+    } finally {
+      logs.forEach((l) => l.mockRestore())
+    }
   })
 
   it('a chunked body of exactly 64 KB goes through the limit', async () => {
