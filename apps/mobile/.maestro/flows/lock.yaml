@@ -6,4 +6,7 @@ tags: [full, critical]
 - runFlow: ../subflows/restore-vector.yaml
 # Relaunch without clearing: the lock gate (S90) shows, run.sh sends the Face ID match.
 - launchApp
-- assertVisible: 'Sepolia ETH'
+# OS auth and the Keychain read can take longer than the 7 s assertVisible default on the CI simulator (same reason as #473).
+- extendedWaitUntil:
+    visible: 'Sepolia ETH'
+    timeout: 30000

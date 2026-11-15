@@ -59,8 +59,10 @@ in `--json` mode, and never put a key, token or environment value in the output.
 
 - One inline comment per kept finding, with `mcp__github_inline_comment__create_inline_comment` (`confirmed: true`).
   When that tool is not available (the CI stage that runs `claude -p`), use
-  `gh api repos/HyeokjaeChoi/vaultme/pulls/$0/comments -f commit_id=<full head sha> -f path=<file> -F line=<line in the new file> -f side=RIGHT -f body=<body>`
-  (for a range add `-F start_line=<n> -f start_side=RIGHT`).
+  `gh api repos/HyeokjaeChoi/vaultme/pulls/$0/comments -f commit_id=<full head sha> -f path=<file> -F line=<line in the new file> -f side=RIGHT -F body=@- <<'EOF'`,
+  then the body, then `EOF` on its own line (for a range add `-F start_line=<n> -f start_side=RIGHT`).
+  Always send a body on stdin through a quoted heredoc (`<<'EOF'`). The CLI shell check stops `-f body=<body>` and
+  `--body "<text>"` when the text has backticks, `$` or quotes, and nothing is posted (issue #526).
   Before posting, read the existing comments (`gh api repos/HyeokjaeChoi/vaultme/pulls/$0/comments`) and skip a finding
   that a `claude[bot]` or `github-actions[bot]` comment already reports at the same place. Format:
 
@@ -77,7 +79,8 @@ in `--json` mode, and never put a key, token or environment value in the output.
 
   Links use the full head SHA: `https://github.com/HyeokjaeChoi/vaultme/blob/<sha>/<path>#L<a>-L<b>`.
   Add a suggestion block only when committing it fixes the whole problem.
-- One summary comment with `gh pr comment $0 --body "<summary>"`. Its first line is the marker
+- One summary comment with `gh pr comment $0 --body-file - <<'EOF'`, then the summary, then `EOF` on its own line
+  (a quoted heredoc, never `--body "<summary>"`: see above). Its first line is the marker
   `<!-- ai-review:<full head sha> -->`: the workflow reads it to know that a review ran, so the fallback stage posts no second one.
 
   ```
