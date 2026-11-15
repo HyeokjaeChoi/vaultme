@@ -8,7 +8,7 @@
 //   node packages/perf/src/cli.ts evidence add <file>... [--out docs/results]    (puts evidence files under their canonical path and renders the README)
 //   node packages/perf/src/cli.ts evidence collect --run <id>... [--out docs/results]    (downloads the evidence-* artifacts of runs, checks them against the run, adds them)
 //   node packages/perf/src/cli.ts evidence render [--out docs/results]    (rewrites docs/results/README.md from the files; run it after a rebase, never merge the README by hand)
-//   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text>
+//   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text> [--measured-at <YYYY-MM-DD>]    (--measured-at: the day the artifacts were measured; default today)
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -85,6 +85,7 @@ if (cmd === 'hermes') {
       out: { type: 'string' },
       commit: { type: 'string' },
       origin: { type: 'string' },
+      'measured-at': { type: 'string' },
     },
   })
   const [desktop, mobile, hermes, api, out, commit, origin] = [
@@ -98,8 +99,17 @@ if (cmd === 'hermes') {
   ]
   if (!desktop || !mobile || !hermes || !api || !out || !commit || !origin)
     throw new Error('baseline: all options are required')
+  // The artifacts are often a day or more old: the day they were measured, not the day this command runs.
+  const measuredAt = v['measured-at'] ?? new Date().toISOString().slice(0, 10)
+  // A real day: 2026-02-31 matches the shape and rolls over to March.
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(measuredAt) ||
+    Number.isNaN(Date.parse(measuredAt)) ||
+    new Date(measuredAt).toISOString().slice(0, 10) !== measuredAt
+  )
+    throw new Error('baseline: --measured-at must be a real day, YYYY-MM-DD')
   const baseline: Baseline = buildBaseline({
-    measuredAt: new Date().toISOString().slice(0, 10),
+    measuredAt,
     commit,
     origin,
     desktop: readLhrDir(desktop),
