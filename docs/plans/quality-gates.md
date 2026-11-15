@@ -1,6 +1,7 @@
 # Quality gates plan
 
-Status: proposal for owner review (issue #482, 2026-11-15, repo at `39fac703`). Nothing in this file is a gate yet.
+Status: approved by the owner on 2026-11-15 ("ㅇㅇ 진행", issue #482): every decision of section 8 takes its recommended answer;
+owner-only actions stay with the owner. Repo at `39fac703`. Nothing in this file is a gate yet.
 A gate counts only after its unit is merged, it ran, and its result file exists (AGENTS.md judgment rules 3 and 5).
 
 Method: the planning session checked the 7 known gaps against the code. Seven area reviews (Mobile, Web, API, Blockchain,
@@ -194,8 +195,8 @@ The owner's premise: the free RPC tier caps traffic, so the API proves correctne
 
 ## 7. Draft ADRs
 
-Letters are placeholders. When the owner accepts a draft, it gets the next free number (from ADR-0040, in acceptance order)
-in the approval commit of this file, so parallel units cannot pick the same number. No accepted ADR body is edited; a
+Numbers set at approval (2026-11-15): A = ADR-0040, B = ADR-0041, C = ADR-0042, D = ADR-0043, E = ADR-0044, F = ADR-0045, G = ADR-0046, H = ADR-0047, I = ADR-0048, J = ADR-0049, K = ADR-0050, L = ADR-0051.
+Each unit writes its ADR file with this number, so parallel units cannot pick the same number. No accepted ADR body is edited; a
 superseded one only gets a "Superseded in part by" line.
 
 - **ADR-A. Funded release flows wait for Confirmed, never retry, and are checked on chain.** Context: the 240 s wait is
