@@ -7,29 +7,29 @@ What "fast enough" means for VaultMe, where each limit comes from, and how far w
 | SLO | Gate | Source | Attainment |
 | --- | --- | --- | --- |
 | Lighthouse Performance, Accessibility, Best Practices, SEO each >= 95 | `lhci (desktop)`, `lhci (mobile)` in `apps/web/lighthouserc.desktop.json`, `apps/web/lighthouserc.mobile.json` | [ADR-0012](../adr/0012-web-scope-and-quality-bars.md) | Pass on `main`. Lowest median: Performance 97 (mobile viewer pages) |
-| LCP <= 2.5 s | same | [web.dev LCP](https://web.dev/articles/lcp) | Mobile 2.0 to 2.2 s on `/address` and `/tx`; desktop 0.5 s |
-| CLS <= 0.1 | same | [web.dev CLS](https://web.dev/articles/cls) | 0 to 0.001 |
+| LCP <= 2.5 s | same | [web.dev LCP](https://web.dev/articles/lcp) | Mobile 2.0 to 2.1 s on `/address` and `/tx`; desktop 0.5 s |
+| CLS <= 0.1 | same | [web.dev CLS](https://web.dev/articles/cls) | 0 to 0.018 |
 | TBT <= 200 ms | same | [web.dev TBT](https://web.dev/articles/tbt) | 0 ms |
-| JS: static pages <= 100 KB, viewer (`/address`, `/tx`) <= 150 KB, gzip body | `apps/web/scripts/js-budget.ts` | [ADR-0017](../adr/0017-web-analytics-beacon-and-js-budgets.md), [ADR-0018](../adr/0018-js-budgets-count-compressed-body.md) | Static 0 B; viewer 138.4 KB (141,673 B) |
-| Hermes bundle <= 11 MiB | `export:check` in `apps/mobile/package.json` | `AGENTS.md` "Enforced rules" | 7.75 MiB (iOS), 7.74 MiB (Android) |
+| JS: static pages <= 100 KB, viewer (`/address`, `/tx`) <= 150 KB, gzip body | `apps/web/scripts/js-budget.ts` | [ADR-0017](../adr/0017-web-analytics-beacon-and-js-budgets.md), [ADR-0018](../adr/0018-js-budgets-count-compressed-body.md) | Static 0 B; viewer 149.4 KB (`/address` 153,011 B, 589 B under the limit; `/tx` 152,573 B) |
+| Hermes bundle <= 11 MiB | `export:check` in `apps/mobile/package.json` | `AGENTS.md` "Enforced rules" | 9.76 MiB (iOS), 9.75 MiB (Android) |
 
-Attainment is from [baseline.md](baseline.md) (a local run of 2026-10-30) and the LHRs of CI run 41076156239 (mobile LCP).
+Attainment is from [baseline.md](baseline.md): CI run [43559270611](https://github.com/HyeokjaeChoi/vaultme/actions/runs/43559270611) of `main` (2026-11-14, commit `39fac70`). Lighthouse numbers are the median per page.
 
 ## API: tier 1, the UX SLO (judged over 4 weeks)
 
-Limit on the total time (DNS + TCP + TLS + request + response), from GitHub runners to staging. Limits are absolute and come from UX standards. The SLO is met when at least 95% of the timed requests of the last 28 days are at or under the limit, per case and mode (`.github/workflows/api-slo-window.yml`, weekly; a breach opens an issue and never blocks a release, ADR-0036). One run's p95 over the limit is a warning only. Source of the ms numbers: the "p95 of 5 runs" columns are the 5 calibration runs of `api-bench` on `main` (commit `5827dde`).
+Limit on the total time (DNS + TCP + TLS + request + response), from GitHub runners to staging. Limits are absolute and come from UX standards. The SLO is met when at least 95% of the timed requests of the last 28 days are at or under the limit, per case and mode (`.github/workflows/api-slo-window.yml`, weekly; a breach opens an issue and never blocks a release, ADR-0036). One run's p95 over the limit is a warning only. Source of the ms numbers: the "p95 of the 5 runs" columns are 5 runs of `api-bench` on `main` of 2026-11-15 (runs 43693316623, 43693796896, 43694278764, 43694747778, 43695236895; details in [baseline.md](baseline.md)).
 
 | Endpoint | Mode | SLO | Source | p95 of the 5 runs (ms) | Runs within SLO |
 | --- | --- | --- | --- | --- | --- |
-| `rpc` | warm | 250 ms | owner decision, ADR-0035 (was INP "good" 200 ms) | 140, 155, 186, 68, 68 | 5 / 5 |
-| `rpc` | cold | 500 ms | INP "needs improvement" edge | 184, 183, 658, 397, 271 | 4 / 5 |
-| `history_hit` | warm | 200 ms | INP "good" | 73, 52, 33, 29, 28 | 5 / 5 |
-| `history_hit` | cold | 500 ms | INP "needs improvement" edge | 115, 109, 142, 98, 440 | 5 / 5 |
-| `history_miss` | warm | 1000 ms | RAIL / Nielsen 1 s | 1695, 1348, 1217, 1284, 1206 | 0 / 5 |
-| `history_miss` | cold | 1000 ms | RAIL / Nielsen 1 s | 1856, 1445, 1352, 1302, 1271 | 0 / 5 |
+| `rpc` | warm | 250 ms | owner decision, ADR-0035 (was INP "good" 200 ms) | 143, 51, 120, 113, 186 | 5 / 5 |
+| `rpc` | cold | 500 ms | INP "needs improvement" edge | 218, 221, 235, 237, 351 | 5 / 5 |
+| `history_hit` | warm | 200 ms | INP "good" | 33, 13, 21, 34, 32 | 5 / 5 |
+| `history_hit` | cold | 500 ms | INP "needs improvement" edge | 97, 185, 102, 70, 150 | 5 / 5 |
+| `history_miss` | warm | 1000 ms | RAIL / Nielsen 1 s | 544, 692, 631, 509, 565 | 5 / 5 |
+| `history_miss` | cold | 1000 ms | RAIL / Nielsen 1 s | 658, 709, 775, 662, 506 | 5 / 5 |
 | `health` | both | none | not user-facing | tier 2 only | n/a |
 
-Two gaps: `history_miss` misses its SLO in every run (the API makes 3 Etherscan calls per miss; the fix is in the API, not in the limit), and cold `rpc` missed once.
+No gap in these 5 runs: every case was within its limit in every run. On 2026-10-30, `history_miss` was over its limit in all 5 runs and cold `rpc` in 1. The p95 of one run rests on 5 to 30 samples and is close to its maximum, so one slow request can still miss a run; the 4-week window decides.
 
 ### Endpoint to user action or page load
 
@@ -73,7 +73,7 @@ Our own server time: Server-Timing `total` minus `upstream` (limiters, token che
 
 ## API: tier 2, the regression watch (warning only)
 
-Limit = 1.5 x the highest p95 of the 5 calibration runs (`WATCH_P95_MS` in `packages/perf/k6/api.js`). An exceeded limit writes a warning line in the job summary and never fails the job.
+Limit = 1.5 x the highest p95 of the 5 calibration runs of 2026-10-30 (commit `5827dde`; `WATCH_P95_MS` in `packages/perf/k6/api.js`). The 5 runs of 2026-11-15 give the same or lower limits (column "Tier 2 limit" in [baseline.md](baseline.md)); they are not applied, because ADR-0020 asks for a repeated calibration first and the owner decides. An exceeded limit writes a warning line in the job summary and never fails the job.
 
 | Endpoint | Warm (ms) | Cold (ms) |
 | --- | --- | --- |
