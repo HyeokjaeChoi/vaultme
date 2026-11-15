@@ -1,7 +1,9 @@
 name: osv-scanner
 
-# Q74 (#312): a known vulnerability in a lockfile dependency fails the job.
+# Q74 (#312), ADR-0047: a known vulnerability in a lockfile dependency fails the job, whatever its severity.
 # PR: fails only on vulnerabilities the PR adds (compares with the base branch). Weekly: full scan of main.
+# An exception is an entry with a reason and an expiry in osv-scanner.toml (root, read next to pnpm-lock.yaml). R18 checks the entries
+# and fails for an expired one: the PR scan alone cannot, the base branch has the finding too. R18 also forbids a config path flag here.
 # Official reusable workflows of google/osv-scanner-action v2.7.0 (docs: https://google.github.io/osv-scanner/github-action/).
 on:
   pull_request:
@@ -50,6 +52,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TITLE: 'deps: weekly osv-scanner found known vulnerabilities'
         run: |
-          body="Weekly osv-scanner failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (Q74). Open Dependabot alerts: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/security/dependabot"
+          body="Weekly osv-scanner failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (Q74). Fix the dependency, or add a dated exception to osv-scanner.toml (ADR-0047). Open Dependabot alerts: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/security/dependabot"
           n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
           if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body "$body"; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$body"; fi

@@ -234,6 +234,40 @@ fi
 if grep -nE '^[[:space:]]*minimumReleaseAgeExclude' pnpm-workspace.yaml; then
   err "R13: no minimumReleaseAgeExclude in pnpm-workspace.yaml; wait 7 days instead"
 fi
+# The trust settings are explicit too (ADR-0047, #503). pnpm 12.15.0 has trustPolicy off by default, so a version with less publish
+# trust than an earlier one (as after an account take-over) installs unless no-downgrade is set. trustPolicyIgnoreAfter and
+# trustLockfile turn the check off for many packages, and trustPolicyExclude for the packages it lists: all need an owner decision, so
+# they fail here until this rule changes. The exclude list may hold only the three old versions below (it may shrink, never grow).
+if ! grep -qE '^trustPolicy:[[:space:]]*no-downgrade[[:space:]]*(#.*)?$' pnpm-workspace.yaml; then
+  err "R13: pnpm-workspace.yaml needs 'trustPolicy: no-downgrade'"
+fi
+if ! grep -qE '^blockExoticSubdeps:[[:space:]]*true[[:space:]]*(#.*)?$' pnpm-workspace.yaml; then
+  err "R13: pnpm-workspace.yaml needs 'blockExoticSubdeps: true'"
+fi
+if grep -nE '^[[:space:]]*(trustPolicyIgnoreAfter|trustLockfile)' pnpm-workspace.yaml; then
+  err "R13: no trustPolicyIgnoreAfter or trustLockfile in pnpm-workspace.yaml; they turn the trust check off (ADR-0047)"
+fi
+if ! python3 - <<'PY'
+import re, sys
+allowed = {"chokidar@4.0.3", "semver@5.7.2", "semver@6.3.1"}
+bad, in_list = [], False
+for line in open("pnpm-workspace.yaml", encoding="utf-8"):
+    if re.match(r"trustPolicyExclude:\s*(#.*)?$", line):
+        in_list = True
+    elif re.match(r"\s*trustPolicyExclude\b", line):
+        bad.append("write trustPolicyExclude as a block list (one '- name@version' per line)")
+    elif in_list:
+        m = re.match(r"\s+-\s+['\"]?([^'\"\s#]+)['\"]?\s*(#.*)?$", line)
+        if m and m[1] not in allowed:
+            bad.append(f"trustPolicyExclude entry {m[1]} is not in the allowed list")
+        elif not m and line.strip() and not line.lstrip().startswith("#"):
+            in_list = False
+for b in bad: print(b, file=sys.stderr)
+sys.exit(1 if bad else 0)
+PY
+then
+  err "R13: pnpm-workspace.yaml trustPolicyExclude may hold only chokidar@4.0.3, semver@5.7.2 and semver@6.3.1 (ADR-0047)"
+fi
 
 # R14. The decision ledger covers every requirements decision (#304): docs/decisions.md has one row per Q1-Q81 with a
 # valid status; a GAP row links an issue; a SUPERSEDED row names its record (ADR, issue/PR or commit). The ADR-0021
@@ -274,6 +308,23 @@ const d = ["dependencies", "optionalDependencies", "peerDependencies"].flatMap((
 if (d !== "@scure/bip39,viem") { console.error("packages/wallet-core dependencies: " + d); process.exit(1) }
 '; then
   err "R15: packages/wallet-core dependencies must be exactly viem and @scure/bip39"
+fi
+
+# R18. osv-scanner exceptions expire (SEC-1, ADR-0047, #503): each [[IgnoredVulns]] in osv-scanner.toml has an id, a reason that names its
+# scope (dev, or shipped with no fix) and an ignoreUntil that is still ahead, at most 30 days away (shipped code: 14). The test file holds
+# the negative cases. Only the root file counts, and no workflow may point osv-scanner at another config, so the checked file is the one it reads.
+if ! python3 scripts/check-osv-exceptions.test.py; then
+  err "R18: scripts/check-osv-exceptions.test.py failed"
+fi
+if ! python3 scripts/check-osv-exceptions.py; then
+  err "R18: osv-scanner.toml has an exception without a reason or an expiry, or an expired or too long one (see above)"
+fi
+if files | grep -E '(^|/)\.?osv-scanner\.toml$' | grep -v -x 'osv-scanner.toml'; then
+  err "R18: only the root osv-scanner.toml is read and checked; remove the other file"
+fi
+osv_workflows="$(grep -l 'google/osv-scanner-action' .github/workflows/*.yml || true)"
+if [ -n "$osv_workflows" ] && grep -nE -e '--config' $osv_workflows; then
+  err "R18: no --config for osv-scanner in a workflow; it must read the checked root osv-scanner.toml"
 fi
 
 # R16. D1 migrations do not break the old Worker (Q53, #316): no DROP COLUMN, DROP TABLE or RENAME without `-- contract-ok: <reason>`.
