@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     include: ['test-anvil/**/*.test.ts'],
     globalSetup: ['./anvil-setup.ts'],
-    testTimeout: 10_000, // each case <= 10 s (suite <= 60 s)
+    testTimeout: 10_000, // each case <= 10 s; the suite limit of 60 s is `timeout 60` in ci.yml
     fileParallelism: false, // every file shares the one chain
   },
 })

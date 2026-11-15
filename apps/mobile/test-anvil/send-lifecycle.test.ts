@@ -75,7 +75,7 @@ afterEach(async () => {
 // `it.fails` also passes when its setup throws. Case 9 records such an error here, and `afterAll` fails the run on it.
 const setupErrors: unknown[] = []
 afterAll(() => {
-  expect(setupErrors).toEqual([])
+  expect(setupErrors, 'case 9 setup broke: this is not the known bug').toEqual([])
 })
 
 describe('send lifecycle on anvil (chain id 11155111)', () => {
@@ -98,7 +98,8 @@ describe('send lifecycle on anvil (chain id 11155111)', () => {
   })
 
   it('2. a tx that reverts: Included, then Failed once `safe` reaches it', async () => {
-    // slot 0 is zero: the node cannot estimate gas, so the app uses its fallback and the tx reverts in the block.
+    // slot 0 is zero: the node cannot estimate gas, so the app uses its 21,000 fallback; that equals the intrinsic gas, so the tx runs out of gas
+    // in the block (status 0). Either way the receipt is a failed one.
     const out = await send(REVERTS_UNTIL_SET as Address, AMOUNT)
     expect(out.status).toBe('Pending')
     await mine(1)
@@ -163,6 +164,8 @@ describe('send lifecycle on anvil (chain id 11155111)', () => {
     expect(current()).toMatchObject({ kind: 'cancel', cancelFrom: 1 })
 
     await mine(1)
+    expect(await chain.getReceipt(current().hashes![1] as Hex)).not.toBeNull() // the cancel is in the block
+    expect(await chain.getReceipt(original.hash as Hex)).toBeNull()
     expect((await check()).state).toBe('Pending') // no cancel is claimed before it is final (ADR-0031)
     await mine(2)
     const done = await check()
@@ -198,14 +201,21 @@ describe('send lifecycle on anvil (chain id 11155111)', () => {
   it('7. duplicate broadcast: the node says "already imported", the app records Unknown, a receipt then makes it Included', async () => {
     const before = await balance(TO)
     // What the API proxy can do after a timeout: send the same raw tx to a second upstream.
+    let nodeSaid: unknown
     const twice: SpeedUpDeps['chain'] = {
       ...chain,
       submit: async (raw) => {
         await chain.submit(raw)
-        return chain.submit(raw)
+        try {
+          return await chain.submit(raw)
+        } catch (e) {
+          nodeSaid = e
+          throw e
+        }
       },
     }
     const out = await send(TO, AMOUNT, twice)
+    expect(nodeSaid).toMatchObject({ rpcCode: -32003, message: expect.stringMatching(/already imported/) as string })
     expect(out.status).toBe('Unknown') // not thrown: the tx is out there
     const unknown = current()
     expect(unknown.state).toBe('Unknown')
@@ -224,11 +234,21 @@ describe('send lifecycle on anvil (chain id 11155111)', () => {
     await mine(3)
     expect((await check()).state).toBe('Confirmed') // nonce 0 is used and safe
     // A lagging node answers the pending nonce with the old value (the case CHAIN-4 keeps away from the hedge).
+    let nodeSaid: unknown
     const lagging: SpeedUpDeps['chain'] = {
       ...chain,
+      submit: async (raw) => {
+        try {
+          return await chain.submit(raw)
+        } catch (e) {
+          nodeSaid = e
+          throw e
+        }
+      },
       getSnapshot: async (...args) => ({ ...(await chain.getSnapshot(...args)), nonce: 0 }),
     }
     const out = await send(TO, '0.002', lagging)
+    expect(nodeSaid).toMatchObject({ rpcCode: -32003, message: expect.stringMatching(/nonce too low/) as string })
     expect(out.status).toBe('Unknown')
     expect(current()).toMatchObject({ state: 'Unknown', nonce: 0 })
     expect(blocksNewSend(current())).toBe(true)

@@ -47,7 +47,7 @@ jobs:
         run: pnpm --filter @vaultme/api test:reorg
       # Send lifecycle on anvil with the real app code (CHAIN-3): 9 cases, chain id 11155111, suite <= 60 s.
       - if: hashFiles('package.json') != ''
-        run: pnpm --filter @vaultme/mobile test:anvil
+        run: timeout 60 pnpm --filter @vaultme/mobile test:anvil
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api openapi:check
       # Drizzle schema vs committed migrations (#355, ADR-0029): fails when apps/api/src/db/schema.ts changed without `db:generate`.
