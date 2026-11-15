@@ -111,8 +111,9 @@ export function HistoryTable({ items, now, t, locale, address, fresh }: Props) {
                 <span className="sr-only">{i.counterparty || t.history.noCounterparty}</span>
               </code>
             </td>
+            {/* wrap-anywhere, not break-words: break-word leaves the inline-block's min-content at the whole number, so it overflowed into the time cell (#483). */}
             <td
-              className={`text-product-b-row-title px-1-5 text-right break-words ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
+              className={`text-product-b-row-title px-1-5 text-right wrap-anywhere ${failed(i) ? 'text-text-tertiary' : 'text-text-primary'}`}
             >
               {/* A failed transaction moved no value: no sign, as the cards and the mobile row. */}
               <Shared name={nameOf(i, 'amount')}>

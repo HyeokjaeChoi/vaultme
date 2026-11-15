@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator } from '@playwright/test'
 import { settled } from './settle'
 import { A, fixtureApi, type HistoryMode } from './fixture-api'
 
@@ -9,6 +9,20 @@ const widths = [375, 768, 1280]
 // 768 and 1280 are the table, 375 the cards (Figma: History frames of the Viewer section).
 const rows = (page: import('@playwright/test').Page, width: number) =>
   width >= 768 ? page.locator('tbody tr') : page.locator('section[aria-labelledby="history-title"] li')
+/** Left and right edge of an element's box, in viewport pixels. */
+const edges = async (el: Locator) => {
+  const b = await el.boundingBox()
+  if (!b) throw new Error('element has no box')
+  return { left: b.x, right: b.x + b.width }
+}
+/** Left and right edge of the text inside an element (the digits, not the box that holds them), in viewport pixels. */
+const textEdges = (el: Locator) =>
+  el.evaluate((node) => {
+    const range = document.createRange()
+    range.selectNodeContents(node)
+    const { left, right } = range.getBoundingClientRect()
+    return { left, right }
+  })
 
 test.describe('viewer history', () => {
   for (const width of widths) {
@@ -128,9 +142,7 @@ test.describe('viewer history', () => {
     await expect(page.getByText('아직 거래가 없어요')).toHaveCount(0)
   })
 
-  test('a very long amount wraps inside its cell and the row grows only by its own text (375px and 1280px)', async ({
-    page,
-  }) => {
+  test('a very long amount does not widen the page (375px and 1280px)', async ({ page }) => {
     const api = await fixtureApi(page)
     api.history = 'big'
     for (const width of [375, 1280]) {
@@ -141,6 +153,39 @@ test.describe('viewer history', () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
     }
   })
+
+  // #483: a failed row shows its amount with no sign and the full wei precision, the longest word a row gets. The digits stay inside
+  // their own cell (table) or row (cards) and never reach the neighbour. The edges of the text, not `scrollWidth` (an overflow inside
+  // a fixed table does not widen the page, so the test above passes with the bug) and not the amount's own box (a box with a
+  // max-width can stay inside while its text runs out). 0.5 px is subpixel rounding.
+  for (const width of widths) {
+    test(`a long failed amount stays in its column and never covers its neighbour (${String(width)}px)`, async ({
+      page,
+    }) => {
+      const api = await fixtureApi(page)
+      api.history = 'longFailed'
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto(`/address#${A}`)
+      const row = rows(page, width).first()
+      await expect(row.getByText('1.000000000000000001 ETH')).toBeVisible()
+      await settled(page) // the rows fade in: a moving box reads a wrong position
+      if (width >= 768) {
+        const amountCell = row.locator('td').nth(3)
+        const cell = await edges(amountCell)
+        const amount = await textEdges(amountCell.locator('span').first())
+        const time = await edges(row.locator('time'))
+        expect(amount.right).toBeLessThanOrEqual(cell.right + 0.5) // inside its own cell
+        expect(amount.left).toBeGreaterThanOrEqual(cell.left - 0.5)
+        expect(amount.right).toBeLessThanOrEqual(time.left + 0.5) // and not over the time
+      } else {
+        const link = await edges(row.locator('a'))
+        const title = await edges(row.locator('p').first().locator('..')) // the title column
+        const amount = await textEdges(row.locator('p').last())
+        expect(amount.right).toBeLessThanOrEqual(link.right + 0.5) // inside the row
+        expect(amount.left).toBeGreaterThanOrEqual(title.right - 0.5) // and not over the title
+      }
+    })
+  }
 
   test('every link and button is at least 44 x 44 px, history states included', async ({ page }) => {
     const api = await fixtureApi(page)

@@ -25,6 +25,8 @@ Figma screen gates still apply (`AGENTS.md` "Enforced rules").
    Never label a step verified without a run. Set Project Status `In Review`.
 7. Claude reviews the PR once when it is ready: opened as non-draft, or marked ready for review
    (`.github/workflows/claude-code-review.yml`, the `vaultme-pr-review` skill, rules in `REVIEW.md`).
+   Auth: `ANTHROPIC_API_KEY` first (`claude -p`, API credits); when the key is missing or that run leaves no summary comment,
+   `claude-code-action` with `CLAUDE_CODE_OAUTH_TOKEN` (subscription) reviews instead.
    Collect all its findings, fix them together, check the fixes with step 5, and push once.
    To review the last commit again, the owner adds the `review` label (the job removes it).
    `/vaultme-pr-review <N>` runs the same review locally and only prints it.
