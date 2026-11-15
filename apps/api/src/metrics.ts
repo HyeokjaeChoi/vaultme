@@ -39,7 +39,11 @@ export const recordRpc = (
   alchemyCalls: number,
 ): void => point(env, 'rpc', [method, outcome, winner, hedged ? '1' : '0'], [durationMs, infuraCalls, alchemyCalls])
 
-/** One history cache miss (API-4). blobs: `ok` or `unavailable`. doubles: Etherscan calls made (retries included), duration in ms. Never the address. */
+/**
+ * One history cache miss (API-4). blobs: `ok` or `unavailable`. doubles: Etherscan calls started (retries included), duration in ms. Never the address.
+ * A failed miss ends at the first list that fails; the calls the other lists start after that are cancelled with the request and not counted here (the
+ * daily budget in the Durable Object counts every call, API-2).
+ */
 export const recordHistoryMiss = (
   env: Bindings,
   outcome: 'ok' | 'unavailable',

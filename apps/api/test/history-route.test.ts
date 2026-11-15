@@ -341,8 +341,20 @@ describe('Analytics Engine point per history miss (API-4)', () => {
     mock({ txlist: () => notok('Max rate limit reached', 'NOTOK') })
     const { e, misses } = withPoints()
     expect((await post({ address: newAddress() }, e)).status).toBe(503)
-    expect(misses()).toMatchObject([{ blobs: ['unavailable'], doubles: [expect.any(Number), expect.any(Number)] }])
+    // Only txlist is rate limited: 2 tries (one retry) + 1 + 1 for the other 2 lists.
+    expect(misses()).toMatchObject([{ blobs: ['unavailable'], doubles: [4, expect.any(Number)] }])
     expect(misses()).toHaveLength(1)
+  })
+
+  it('a miss where all 3 lists fail at once counts the 3 calls', async () => {
+    mock({
+      txlist: () => notok('Query Timeout', 'NOTOK'),
+      txlistinternal: () => notok('Query Timeout', 'NOTOK'),
+      tokentx: () => notok('Query Timeout', 'NOTOK'),
+    })
+    const { e, misses } = withPoints()
+    expect((await post({ address: newAddress() }, e)).status).toBe(503)
+    expect(misses()).toMatchObject([{ blobs: ['unavailable'], doubles: [3, expect.any(Number)] }])
   })
 
   it('never carries the address, its hash or the key', async () => {

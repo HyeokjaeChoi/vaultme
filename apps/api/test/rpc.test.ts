@@ -570,6 +570,25 @@ describe('Analytics Engine point per request (API-4)', () => {
     }
   })
 
+  it('a hedge that fired while Infura then answered first: infura wins, hedged 1, 1 Alchemy call', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      mock(
+        () => new Promise<Response>((r) => setTimeout(() => r(ok('0x1')), 100)),
+        () => new Promise<Response>((r) => setTimeout(() => r(ok('0x2')), 1000)),
+      )
+      const { e, rpcPoints } = withPoints()
+      const pending = rpc(req('eth_blockNumber'), e)
+      await vi.advanceTimersByTimeAsync(150)
+      await pending
+      expect(rpcPoints()).toMatchObject([
+        { blobs: ['eth_blockNumber', 'ok', 'infura', '1'], doubles: [expect.any(Number), 1, 1] },
+      ])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('both upstreams failing is one point with outcome unavailable', async () => {
     mock(
       () => new Response('x', { status: 502 }),
