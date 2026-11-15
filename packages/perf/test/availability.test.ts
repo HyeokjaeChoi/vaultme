@@ -15,6 +15,9 @@ describe('availabilitySql', () => {
     expect(sql).toContain("FROM vaultme_api_staging WHERE index1 = 'request'")
     expect(sql).toContain("INTERVAL '28' DAY")
     expect(sql).toContain('SUM(_sample_interval)')
+    // blob order is fixed by apps/api/src/metrics.ts: blobs [route, String(status)]
+    expect(sql).toContain('SELECT blob1 AS route, blob2 AS status,')
+    expect(sql).toContain('AND timestamp > NOW()')
   })
   it('refuses a dataset name that is not a plain identifier', () => {
     expect(() => availabilitySql('x; DROP TABLE y')).toThrow(/bad dataset name/)

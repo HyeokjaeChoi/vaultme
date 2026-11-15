@@ -6,7 +6,7 @@ Status: Accepted (2026-11-16, plan `docs/plans/quality-gates.md` ADR-G, owner de
 The API writes one Workers Analytics Engine point per request (`recordRequest`, `apps/api/src/metrics.ts`: route, status, duration). Nobody reads them, so the error budget is unknown. The API sits on three free upstream tiers with no SLA and one history provider (ADR-0007).
 
 ## Decision
-- SLI: per route, the share of responses with a status below 500. A 401, 403, 429 or 503 `unavailable` from a limiter or a guard is the API doing its job only below 500; a 503 is bad (it is a 5xx).
+- SLI: per route, the share of responses with a status below 500. A 401, 403 or 429 from a limiter or a guard is the API doing its job and counts as good; a 503 `unavailable` is a 5xx and counts as bad.
 - SLO: 99.5 % over 28 days, per route, judged only with at least 1,000 requests in the window. A route with fewer is shown, not judged.
 - Why not 99.9 %: three free tiers without SLA and one history provider. 99.5 % is about 3.4 hours of bad answers in 28 days.
 - `.github/workflows/api-availability.yml` (weekly): runs `cli.ts availability sql <dataset>` and sends the query to the Cloudflare Analytics Engine SQL API with curl; the read-only token stays in that shell step. `cli.ts availability check` judges the answer and exits 3 on a breach; a breach opens or updates one issue and blocks nothing. The job skips with a notice while the token secret is not set.
