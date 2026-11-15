@@ -82,7 +82,13 @@ jobs:
         continue-on-error: true
         working-directory: ${{ runner.temp }}
         # Same version as claude-code-action v1.0.252 installs (published 2026-10-16, more than 7 days ago).
-        run: npm install -g @anthropic-ai/claude-code@2.1.302 >/dev/null
+        run: |
+          npm install -g @anthropic-ai/claude-code@2.1.302 >/dev/null
+          # CLAUDE_CODE_SUBPROCESS_ENV_SCRUB (stage 1) runs every command in the Linux sandbox, which needs these two
+          # packages and, on Ubuntu runners, user namespaces (docs: sandboxing, "Set up Linux and WSL2"). Without them every
+          # `gh` call fails with "Sandbox is required" and the review ends without a comment (issue #513).
+          sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap socat
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       # Stage 1. Continues on error: the stage 2 step below decides from the marker comment, not from this result.
       - name: Review (API credits, claude -p)
         id: api
@@ -106,6 +112,7 @@ jobs:
             --model sonnet \
             --allowedTools "$ALLOWED_TOOLS" \
             --append-system-prompt "$SYSTEM_PROMPT" \
+            --settings '{"sandbox":{"enabled":true,"network":{"allowedDomains":["api.github.com","github.com"]}}}' \
             --output-format json > "$RUNNER_TEMP/result.json" || true
           jq '{is_error, subtype, num_turns, total_cost_usd, result: (.result // "" | .[0:600])}' "$RUNNER_TEMP/result.json"
           # Claude's final text in the Step Summary. Trusted input only: fork and bot PRs skip this job.
