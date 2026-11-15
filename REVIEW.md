@@ -65,6 +65,7 @@ Each entry names the check that measures it. A new entry needs its check in the 
 |---|---|
 | Web: Lighthouse scores, desktop and mobile (values: [AGENTS.md](AGENTS.md) "Enforced rules") | [lighthouserc.desktop.json](apps/web/lighthouserc.desktop.json), [lighthouserc.mobile.json](apps/web/lighthouserc.mobile.json), CI `lhci (desktop)` and `lhci (mobile)` |
 | Web: JS size of static and viewer pages (gzip body, no headers, ADR-0018) | [js-budget.ts](apps/web/scripts/js-budget.ts), run after Lighthouse by `lhci:desktop` and `lhci:mobile`, CI `lhci (desktop)` and `lhci (mobile)` |
+| Web: INP, LCP, CLS and JS of the viewer with data (lab, median of 3; ADR-0042) | [perf.spec.ts](apps/web/e2e/perf.spec.ts), CI `web` (Playwright project `perf`) |
 | Mobile: iOS and Android bundle | `export:check` in [apps/mobile/package.json](apps/mobile/package.json), CI `verify` |
 | Mobile: Hermes bundle size and count | `export:check` (the `find` steps), CI `verify` |
 

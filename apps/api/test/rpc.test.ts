@@ -41,7 +41,22 @@ const mock = (...impl: (() => Response | Promise<Response>)[]) => {
   vi.stubGlobal('fetch', f)
   return f
 }
-afterEach(() => vi.unstubAllGlobals())
+/** Every console line of the test, so a case can prove that no upstream key reached the logs. */
+const logs = () => {
+  const out: string[] = []
+  for (const m of ['log', 'warn', 'error'] as const)
+    vi.spyOn(console, m).mockImplementation((...a) => void out.push(a.join(' ')))
+  return out
+}
+const events = (out: string[]) => out.map((l) => JSON.parse(l) as Record<string, unknown>)
+const noKeys = (text: string) => {
+  expect(text).not.toContain(E.INFURA_KEY)
+  expect(text).not.toContain(E.ALCHEMY_KEY)
+}
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
 
 describe('POST /v1/rpc', () => {
   it('passes an allowed method through and keeps the id', async () => {
@@ -168,6 +183,204 @@ describe('POST /v1/rpc', () => {
   })
 })
 
+// API-1: a spent quota is a failure of that upstream, not an answer. Infura answers a spent daily cap with HTTP 402 and a JSON-RPC error body
+// (`code` 402, `event` -33000) and a spent throughput with `code` 429 / `event` -33200 (docs.infura.io/how-to/avoid-rate-limiting, read 2026-11-15).
+// The docs give no HTTP status for the second one, and -32005 is the EIP-1474 "limit exceeded" code, so a quota error may arrive inside a 200.
+describe('quota errors', () => {
+  const limited = (code: number, extra: Record<string, unknown> = {}) =>
+    JSON.stringify({ jsonrpc: '2.0', id: 7, error: { code, message: 'limit', ...extra } })
+  const infuraCap = limited(402, { event: -33000, details: 'You have reached your daily credit limit.' })
+  const infuraThroughput = limited(429, { event: -33200, details: 'You have surpassed your allowed throughput limit.' })
+
+  it('Infura HTTP 402 (daily cap): alchemy answers', async () => {
+    const out = logs()
+    const f = mock(
+      () => new Response(infuraCap, { status: 402 }),
+      () => ok('0x2'),
+    )
+    const r = await rpc(req('eth_blockNumber'))
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0x2' })
+    expect(String(f.mock.calls[1]![0])).toContain('alchemy')
+    noKeys(out.join('\n'))
+  })
+
+  it.each([
+    ['the documented daily cap body', infuraCap, 402],
+    ['the documented throughput body', infuraThroughput, 429],
+    ['-32005', limited(-32005), -32005],
+    ['402', limited(402), 402],
+    ['429', limited(429), 429],
+    ['event -33000 with another code', limited(-32603, { event: -33000 }), -33000],
+    ['event -33200 with another code', limited(-32603, { event: -33200 }), -33200],
+  ])('Infura %s in a 200: alchemy answers', async (_n, body, quota) => {
+    const out = logs()
+    const f = mock(
+      () => new Response(body),
+      () => ok('0x2'),
+    )
+    const r = await rpc(req('eth_getBalance', [`0x${'ab'.repeat(20)}`, 'latest']))
+    expect(r.status).toBe(200)
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0x2' })
+    expect(f).toHaveBeenCalledTimes(2)
+    expect(String(f.mock.calls[1]![0])).toContain('alchemy')
+    expect(events(out)).toContainEqual(
+      expect.objectContaining({ event: 'rpc_upstream_failed', upstream: 'infura', quota }),
+    )
+    noKeys(out.join('\n'))
+  })
+
+  it('a send falls back on a quota error too', async () => {
+    const f = mock(
+      () => new Response(infuraThroughput),
+      () => ok('0xhash'),
+    )
+    const r = await rpc(req('eth_sendRawTransaction', ['0x02']))
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0xhash' })
+    expect(f).toHaveBeenCalledTimes(2)
+  })
+
+  it('both upstreams out of quota: 503 unavailable, never the quota error', async () => {
+    const out = logs()
+    mock(
+      () => new Response(infuraCap),
+      () => new Response(infuraThroughput),
+    )
+    const r = await rpc(req('eth_blockNumber'))
+    const text = await r.text()
+    expect(r.status).toBe(503)
+    expect(JSON.parse(text)).toMatchObject({ code: 'unavailable', retryable: true })
+    expect(text).not.toContain('limit')
+    noKeys(text + out.join('\n'))
+  })
+
+  it('a quota error from alchemy, the fallback, is a failure too', async () => {
+    mock(
+      () => new Response('boom', { status: 502 }),
+      () => new Response(infuraThroughput),
+    )
+    const r = await rpc(req('eth_blockNumber'))
+    expect(r.status).toBe(503)
+    expect(await r.json()).toMatchObject({ code: 'unavailable', retryable: true })
+  })
+
+  it.each([-32000, -32602, -32603])('error code %i is a real answer: no second call', async (code) => {
+    const body = limited(code)
+    const f = mock(() => new Response(body))
+    const r = await rpc(req('eth_getBalance', [`0x${'ab'.repeat(20)}`, 'latest']))
+    expect(await r.text()).toBe(body)
+    expect(f).toHaveBeenCalledTimes(1)
+  })
+})
+
+// API-1: more faults of one upstream. The other upstream answers, so the user sees an answer, never a 500 and never a key.
+describe('one faulty upstream', () => {
+  it.each([
+    ['truncated JSON', () => new Response('{"jsonrpc":')],
+    ['empty body', () => new Response('')],
+    ['a key echoed in the result', () => ok(`https://sepolia.infura.io/v3/${E.INFURA_KEY}`)],
+  ])('Infura answers %s: alchemy answers', async (_n, bad) => {
+    const out = logs()
+    const f = mock(bad, () => ok('0x2'))
+    const r = await rpc(req('eth_blockNumber'))
+    const text = await r.text()
+    expect(r.status).toBe(200)
+    expect(JSON.parse(text)).toEqual({ jsonrpc: '2.0', id: 7, result: '0x2' })
+    expect(f).toHaveBeenCalledTimes(2)
+    noKeys(text + out.join('\n'))
+  })
+
+  it('Alchemy echoes its key as the fallback: 503, not the key', async () => {
+    const out = logs()
+    mock(
+      () => new Response('boom', { status: 502 }),
+      () => ok(`https://eth-sepolia.g.alchemy.com/v2/${E.ALCHEMY_KEY}`),
+    )
+    const r = await rpc(req('eth_blockNumber'))
+    const text = await r.text()
+    expect(r.status).toBe(503)
+    noKeys(text + out.join('\n'))
+  })
+})
+
+// API-1: both upstreams hang. Each call stops after UPSTREAM_TIMEOUT_MS (5 s). A read starts both at once (hedge after 60 ms); a send never
+// hedges, so Alchemy starts only when Infura has timed out. `AbortSignal.timeout` is native and ignores fake timers, so it is rebuilt on `setTimeout`.
+describe('both upstreams hang', () => {
+  afterEach(() => vi.useRealTimers())
+
+  const hang = () => {
+    let first!: () => void
+    const called = new Promise<void>((r) => (first = r))
+    const f = vi.fn((_url: unknown, init: RequestInit) => {
+      first()
+      return new Promise<Response>((_res, rej) =>
+        init.signal?.addEventListener('abort', () => rej(init.signal?.reason as Error)),
+      )
+    })
+    vi.stubGlobal('fetch', f)
+    return { f, called }
+  }
+  /** Starts the request on a fake clock and returns its answer plus the `request` log line, whose `duration_ms` is fake time. */
+  const start = async (body: unknown) => {
+    const out = logs()
+    const auth = await bearer() // real crypto first, then the clock is faked
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockImplementation((ms) => {
+      const c = new AbortController()
+      setTimeout(() => c.abort(new DOMException('timed out', 'TimeoutError')), ms)
+      return c.signal
+    })
+    const answer = app.request(
+      '/v1/rpc',
+      {
+        method: 'POST',
+        headers: { 'X-App-Version': '1.0.0', 'content-type': 'application/json', ...auth },
+        body: JSON.stringify(body),
+      },
+      E,
+    )
+    const took = () => {
+      const line = out.find((l) => l.includes('"event":"request"'))
+      return line === undefined ? undefined : (JSON.parse(line) as { duration_ms: number }).duration_ms
+    }
+    return { answer, out, timeout, took }
+  }
+
+  it('a read ends in 503 within 5.1 s', async () => {
+    const { f, called } = hang()
+    const { answer, out, timeout, took } = await start(req('eth_blockNumber'))
+    await called
+    await vi.advanceTimersByTimeAsync(60)
+    expect(f).toHaveBeenCalledTimes(2) // the hedge started alchemy
+    await vi.advanceTimersByTimeAsync(5040)
+    const r = await answer
+    expect(r.status).toBe(503)
+    expect(await r.json()).toMatchObject({ code: 'unavailable', retryable: true })
+    expect(took()).toBeGreaterThanOrEqual(5000) // fake time: Alchemy's own timeout ended it
+    expect(took()).toBeLessThanOrEqual(5100)
+    expect(timeout.mock.calls).toEqual([[5000], [5000]])
+    expect(f).toHaveBeenCalledTimes(2)
+    noKeys(out.join('\n'))
+  })
+
+  it('a send ends in 503 within 10.1 s: Alchemy starts only after Infura timed out', async () => {
+    const { f, called } = hang()
+    const { answer, out, took } = await start(req('eth_sendRawTransaction', ['0x02']))
+    await called
+    await vi.advanceTimersByTimeAsync(4999)
+    expect(f).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(f).toHaveBeenCalledTimes(2)
+    expect(String(f.mock.calls[1]![0])).toContain('alchemy')
+    await vi.advanceTimersByTimeAsync(5100)
+    const r = await answer
+    expect(r.status).toBe(503)
+    expect(took()).toBeGreaterThanOrEqual(10_000)
+    expect(took()).toBeLessThanOrEqual(10_100)
+    expect(f).toHaveBeenCalledTimes(2)
+    noKeys(out.join('\n'))
+  })
+})
+
 // #399: Infura's latency swings run to run. A read that Infura has not answered in HEDGE_MS also goes to Alchemy; the first valid answer wins.
 describe('hedged reads', () => {
   const slow = (ms: number, res: () => Response) => () => new Promise<Response>((r) => setTimeout(() => r(res()), ms))
@@ -239,5 +452,71 @@ describe('hedged reads', () => {
     const r = await rpc(req('eth_sendRawTransaction', ['0x02']))
     expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0xhash' })
     expect(f).toHaveBeenCalledTimes(1)
+  })
+
+  // CHAIN-4: Alchemy can lag Infura by a block, and a lagging nonce is a real number, not a null, so it would win the hedge.
+  // A stale nonce then fails the send with "nonce too low" (Unknown in the app).
+  describe('the nonce read', () => {
+    const nonce = (tag: string) => req('eth_getTransactionCount', [`0x${'ab'.repeat(20)}`, tag])
+
+    it.each(['pending', 'safe', 'latest'])(
+      'is not hedged (%s): Alchemy gets no call while Infura answers',
+      async (tag) => {
+        const f = mock(
+          slow(200, () => ok('0x5')),
+          () => ok('0x4'),
+        )
+        const r = await rpc(nonce(tag))
+        expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0x5' })
+        expect(f).toHaveBeenCalledTimes(1)
+        expect(String(f.mock.calls[0]![0])).toContain('infura')
+      },
+    )
+
+    it('still falls back when Infura fails', async () => {
+      const f = mock(
+        slow(100, () => new Response('boom', { status: 502 })),
+        () => ok('0x4'),
+      )
+      const r = await rpc(nonce('pending'))
+      expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0x4' })
+      expect(f).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  it('a quota error from the hedge is no answer when Infura then fails: 503, not the quota error', async () => {
+    const f = mock(
+      slow(100, () => new Response('boom', { status: 502 })),
+      () => new Response(JSON.stringify({ jsonrpc: '2.0', id: 7, error: { code: 429, message: 'limit' } })),
+    )
+    const r = await rpc(req('eth_blockNumber'))
+    const text = await r.text()
+    expect(r.status).toBe(503)
+    expect(JSON.parse(text)).toMatchObject({ code: 'unavailable', retryable: true })
+    expect(text).not.toContain('limit')
+    expect(f).toHaveBeenCalledTimes(2)
+  })
+
+  it('a 429 from the hedge leaves the slow primary answer in charge', async () => {
+    const f = mock(
+      slow(300, () => ok('0x1')),
+      () => new Response('slow down', { status: 429 }),
+    )
+    const r = await rpc(req('eth_blockNumber'))
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0x1' })
+    expect(f).toHaveBeenCalledTimes(2)
+  })
+
+  it.each([
+    ['a JSON-RPC error', { code: -32000, message: 'header not found' }],
+    ['a quota error', { code: 429, message: 'limit' }],
+  ])('%s from the hedge does not beat a slow primary', async (_n, error) => {
+    const f = mock(
+      slow(300, () => ok('0x1')),
+      () => new Response(JSON.stringify({ jsonrpc: '2.0', id: 7, error })),
+    )
+    const r = await rpc(req('eth_blockNumber'))
+    expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0x1' })
+    expect(f).toHaveBeenCalledTimes(2)
   })
 })

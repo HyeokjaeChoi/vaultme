@@ -288,4 +288,27 @@ if ! bash scripts/check-migrations.sh; then
   err "R16: a migration drops or renames without '-- contract-ok: <reason>' (see above)"
 fi
 
+# R17. The Claude review CLI runs only on rules from the PR base (#486, REVIEW.md, #212), and the API key reaches only that
+# CLI step: in claude-code-review.yml the "Knowledge files from the PR base" step (which restores .claude/, CLAUDE.md and
+# .mcp.json) comes before the `claude -p` step, and ANTHROPIC_API_KEY is named once, as an env entry of the step that runs
+# `claude -p` (not at job level, where the install step and every later step would see it).
+wf=.github/workflows/claude-code-review.yml
+if ! python3 - "$wf" <<'PYR17'
+import re, sys
+t = open(sys.argv[1], encoding="utf-8").read().split("\n")
+restore = next((i for i, l in enumerate(t) if "name: Knowledge files from the PR base" in l), None)
+cli = next((i for i, l in enumerate(t) if re.match(r"\s+claude -p ", l)), None)
+kb = next((l for l in t if l.lstrip().startswith("kb=")), "")
+key = [i for i, l in enumerate(t) if "secrets.ANTHROPIC_API_KEY" in l]
+ok = restore is not None and cli is not None and restore < cli and all(x in kb for x in (r"\.claude/", "CLAUDE", r"\.mcp\.json")) and len(key) == 1
+if ok:  # the key line sits in the env of the step that holds `claude -p`
+    start = max(i for i in range(key[0]) if re.match(r"      - ", t[i]))
+    nxt = next((i for i in range(key[0] + 1, len(t)) if re.match(r"      - ", t[i])), len(t))
+    ok = start < cli < nxt and re.match(r"          ANTHROPIC_API_KEY:", t[key[0]]) is not None
+sys.exit(0 if ok else 1)
+PYR17
+then
+  err "R17: $wf must restore .claude/, CLAUDE.md and .mcp.json from the PR base before 'claude -p', and set ANTHROPIC_API_KEY only in the env of the 'claude -p' step"
+fi
+
 exit "$fail"
