@@ -15,7 +15,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # actionlint 1.7.12 (WF-1): release binary checked against its published sha256 (actionlint_1.7.12_checksums.txt). shellcheck is on the runner.
+      - name: Install actionlint
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/actionlint.tgz" https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $RUNNER_TEMP/actionlint.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/actionlint.tgz" -C "$RUNNER_TEMP" actionlint
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
       - run: scripts/check-repo-rules.sh
+        env:
+          REQUIRE_ACTIONLINT: '1'
 
   verify:
     runs-on: ubuntu-latest
@@ -45,6 +54,9 @@ jobs:
           version: v1.8.6
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api test:reorg
+      # Send lifecycle on anvil with the real app code (CHAIN-3): 9 cases, chain id 11155111, suite <= 60 s.
+      - if: hashFiles('package.json') != ''
+        run: timeout 60 pnpm --filter @vaultme/mobile test:anvil
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api openapi:check
       # Drizzle schema vs committed migrations (#355, ADR-0029): fails when apps/api/src/db/schema.ts changed without `db:generate`.
