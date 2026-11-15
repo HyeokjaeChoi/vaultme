@@ -58,7 +58,7 @@ The older `latency` command (`pnpm --filter @vaultme/perf latency`) stays as the
 `k6/load.js` sends 2 req/s of `eth_blockNumber` for 3 minutes, then probes each limiter at 1.5 times its limit (one install, and unauthenticated `/v1/rpc` and `/v1/history`). It proves the 429 contract on the real bindings. Staging only. Per run: at most 450 Infura calls, at most 450 Alchemy calls, 0 Etherscan, 3 installs. Thresholds: `CHECKS` in `src/load.ts`.
 
 ```bash
-k6 run -e BASE_URL=<staging worker url> -e OUT_DIR=k6-out packages/perf/k6/load.js   # 6.5 minutes; writes k6-load.json and k6-load.md
+k6 run -e BASE_URL=<staging worker url> -e OUT_DIR=k6-out packages/perf/k6/load.js   # 7.5 minutes; writes k6-load.json and k6-load.md
 ```
 
 Exit 99: a threshold failed. Exit 108: an upstream is down and the test stopped (`api-load.yml` warns, no failure). Never point it at production, and do not start a second run from the same IP within a minute (registration allows 3 per 60 s). `api-load.yml` runs it weekly and on demand and uploads `evidence-LOAD-1`.

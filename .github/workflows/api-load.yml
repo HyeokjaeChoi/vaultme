@@ -22,7 +22,7 @@ concurrency:
 jobs:
   load:
     runs-on: ubuntu-latest
-    # About 6.5 minutes of load plus the setup.
+    # About 7.5 minutes of load plus the setup.
     timeout-minutes: 15
     environment: staging
     steps:

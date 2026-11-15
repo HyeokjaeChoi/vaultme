@@ -2,11 +2,12 @@
 // the call budget is in ADR-0045 and packages/perf/README.md.
 //   k6 run -e BASE_URL=<staging worker url> [-e APP_VERSION=<x.y.z>] [-e OUT_DIR=<dir>] packages/perf/k6/load.js
 //
+// All VUs are pre-allocated: k6 drops an iteration while it starts a VU, and a dropped iteration fails the run.
 // One runner IP, so the scenarios run one after the other and the IP probes go last (they use up the IP budget for 60 s):
 //   steady         2 req/s for 3 min, 360 `POST /v1/rpc` over 3 installs (each install gets every 3rd request: 40 per minute, limit 60)
-//   install_probe  2 req/s for 1 min on one install, 61 s after `steady`: the limit of 60 per 60 s must answer 429
+//   install_probe  2 req/s for 1 min on one install, 65 s after `steady`: the limit of 60 per 60 s must answer 429
 //   ip_probe_rpc, ip_probe_history  7.5 req/s for 1 min each, no token: the IP limit of 300 per 60 s must answer 429, never 2xx
-// Exit codes: 99 a threshold failed (our bug: the run stops at once), 108 the run aborted because an upstream is down (not a failure).
+// Exit codes: 99 a threshold failed (our bug: a server bug aborts the run; every other threshold fails it at the end), 108 the run aborted because an upstream is down (not a failure).
 import exec from 'k6/execution'
 import http from 'k6/http'
 import { Counter, Rate, Trend } from 'k6/metrics'
@@ -31,7 +32,7 @@ const probe = (rate, startTime, fn) => ({
   timeUnit: '2s',
   duration: '1m',
   startTime,
-  preAllocatedVUs: 10,
+  preAllocatedVUs: 30,
   maxVUs: 30,
   exec: fn,
 })
@@ -43,7 +44,7 @@ export const options = {
       rate: 2,
       timeUnit: '1s',
       duration: '3m',
-      preAllocatedVUs: 3,
+      preAllocatedVUs: 6,
       maxVUs: 6,
       exec: 'steady',
     },
@@ -53,13 +54,13 @@ export const options = {
       timeUnit: '1s',
       duration: '1m',
       startTime: '4m5s',
-      preAllocatedVUs: 3,
+      preAllocatedVUs: 6,
       maxVUs: 6,
       exec: 'installProbe',
     },
     // 15 per 2 s = 7.5 per s = 450 in 60 s, 1.5 times the IP limit of 300.
-    ip_probe_rpc: probe(15, '5m10s', 'ipProbeRpc'),
-    ip_probe_history: probe(15, '5m10s', 'ipProbeHistory'),
+    ip_probe_rpc: probe(15, '6m10s', 'ipProbeRpc'),
+    ip_probe_history: probe(15, '6m10s', 'ipProbeHistory'),
   },
   thresholds: thresholds(),
 }
