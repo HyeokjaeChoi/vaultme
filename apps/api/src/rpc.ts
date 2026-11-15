@@ -88,9 +88,12 @@ const quotaMarker = (json: unknown): number | undefined => {
 /** The upstream answered 200 with a JSON-RPC error that says its quota is spent (QUOTA_CODES). */
 class QuotaError extends Error {
   readonly code: number
-  constructor(code: number) {
+  /** The body names Infura's daily cap (`code` 402 or `event` -33000), whichever of the two markers was found first. */
+  readonly dailyCap: boolean
+  constructor(code: number, dailyCap: boolean) {
     super('upstream quota')
     this.code = code
+    this.dailyCap = dailyCap
   }
 }
 
@@ -102,7 +105,13 @@ const weak = (text: string): boolean => {
 
 /** Infura's daily cap: HTTP 402, or `code` 402 / `event` -33000 inside a 200. Its throughput limit (429, -33200) refills in seconds and is no alert. */
 const isDailyCap = (e: unknown): boolean =>
-  (e instanceof StatusError && e.status === 402) || (e instanceof QuotaError && (e.code === 402 || e.code === -33000))
+  (e instanceof StatusError && e.status === 402) || (e instanceof QuotaError && e.dailyCap)
+
+/** The error object of a JSON-RPC body names the daily cap in `code` or in `event`, not only in the first marker `quotaMarker` finds. */
+const namesDailyCap = (json: unknown): boolean => {
+  const e = isObject(json) ? json.error : undefined
+  return isObject(e) && [e.code, e.event].some((v) => v === 402 || v === -33000)
+}
 
 type Upstream = ReturnType<typeof upstreams>[number]
 
@@ -123,7 +132,7 @@ async function ask(u: Upstream, body: string, stop: AbortSignal): Promise<string
     if (!parsed.success || !('result' in parsed.data || 'error' in parsed.data)) throw new Error('bad body')
     if (text.includes(u.key)) throw new Error('key echoed') // never pass a body that contains the key
     const quota = quotaMarker(json)
-    if (quota !== undefined) throw new QuotaError(quota)
+    if (quota !== undefined) throw new QuotaError(quota, namesDailyCap(json))
     return text
   } catch (e) {
     if (u.name === 'infura' && isDailyCap(e)) infuraDailyCap()

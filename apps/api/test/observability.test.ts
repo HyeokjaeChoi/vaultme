@@ -293,10 +293,12 @@ describe('alerts with a source (API-5)', () => {
     })
 
     it('sends nothing for rows younger than a day, or for none', async () => {
+      const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
       await cron(P).catch(() => undefined) // a failed Alchemy removal also fails the sweep: its own event, not the one under test
       await addRow('0x' + '01'.repeat(20), nowSeconds() - STUCK_SECONDS + 600)
       await cron(P).catch(() => undefined) // a failed Alchemy removal also fails the sweep: its own event, not the one under test
       expect(stuckEvents()).toEqual([])
+      expect(lines(err).filter((l) => l.event === 'alert_check_failed')).toEqual([]) // the check itself ran
     })
 
     it('sends one event with a stable fingerprint for a row older than 86,400 s, with the count and age, never the address', async () => {
@@ -377,29 +379,34 @@ describe('alerts with a source (API-5)', () => {
       vi.useRealTimers()
       vi.unstubAllGlobals()
     })
+    // `infuraDailyCap` keeps its day for the life of the isolate, so every case takes fresh UTC days (3 apart): a repeat run must not meet the day of the last one.
+    let nextDay = Date.UTC(2031, 0, 1)
+    const freshDay = () => (nextDay += 3 * 86_400_000)
+    const H = 3_600_000
 
     it('one event for the first 402 of a UTC day; none for the next 402s that day; one again the next day; the user still gets the Alchemy answer', async () => {
       const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
       vi.spyOn(console, 'warn').mockImplementation(() => undefined)
       vi.useFakeTimers({ toFake: ['Date'] })
-      vi.setSystemTime(Date.UTC(2031, 0, 5, 10, 0, 0))
+      const d1 = freshDay()
+      vi.setSystemTime(d1 + 10 * H)
       upstream(cap)
       const capLines = () => lines(err).filter((l) => l.event === 'alert_infura_daily_cap')
       expect((await rpcCall()).status).toBe(200)
       expect(alerts()).toMatchObject([
         {
-          message: 'Infura daily cap reached 2031-01-05',
+          message: `Infura daily cap reached ${new Date(d1).toISOString().slice(0, 10)}`,
           level: 'error',
           fingerprint: ['alert', 'infura-402'],
           tags: { alert: 'infura-402' },
         },
       ])
       await rpcCall()
-      vi.setSystemTime(Date.UTC(2031, 0, 5, 23, 59, 0))
+      vi.setSystemTime(d1 + 24 * H - 60_000)
       await rpcCall()
       expect(capLines()).toHaveLength(1) // the SDK's own dedupe would hide a second event: count the log line too
       expect(alerts()).toHaveLength(1)
-      vi.setSystemTime(Date.UTC(2031, 0, 6, 0, 1, 0))
+      vi.setSystemTime(d1 + 24 * H + 60_000)
       await rpcCall()
       expect(capLines()).toHaveLength(2)
       expect(alerts()).toHaveLength(2)
@@ -409,7 +416,7 @@ describe('alerts with a source (API-5)', () => {
       vi.spyOn(console, 'error').mockImplementation(() => undefined)
       vi.spyOn(console, 'warn').mockImplementation(() => undefined)
       vi.useFakeTimers({ toFake: ['Date'] })
-      vi.setSystemTime(Date.UTC(2031, 1, 5, 10, 0, 0))
+      vi.setSystemTime(freshDay() + 10 * H)
       upstream(
         () =>
           new Response(
@@ -419,7 +426,7 @@ describe('alerts with a source (API-5)', () => {
       )
       await rpcCall()
       expect(alerts()).toEqual([])
-      vi.setSystemTime(Date.UTC(2031, 2, 5, 10, 0, 0))
+      vi.setSystemTime(freshDay() + 10 * H)
       upstream(
         () =>
           new Response(
@@ -430,10 +437,25 @@ describe('alerts with a source (API-5)', () => {
       expect(alerts()).toHaveLength(1)
     })
 
+    it('the daily-cap event counts when the code is another quota code too: code -32005 with event -33000', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(freshDay() + 10 * H)
+      upstream(
+        () =>
+          new Response(
+            JSON.stringify({ jsonrpc: '2.0', id: 1, error: { code: -32005, event: -33000, message: 'cap' } }),
+          ),
+      )
+      await rpcCall()
+      expect(alerts()).toHaveLength(1)
+    })
+
     it('no alert for an Infura 5xx, and none from Alchemy', async () => {
       vi.spyOn(console, 'error').mockImplementation(() => undefined)
       vi.useFakeTimers({ toFake: ['Date'] })
-      vi.setSystemTime(Date.UTC(2031, 3, 5, 10, 0, 0))
+      vi.setSystemTime(freshDay() + 10 * H)
       upstream(() => new Response('x', { status: 502 }))
       await rpcCall()
       expect(alerts()).toEqual([])
@@ -442,7 +464,7 @@ describe('alerts with a source (API-5)', () => {
     it('a 402 from Alchemy, the backup, is no Infura alert', async () => {
       const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
       vi.useFakeTimers({ toFake: ['Date'] })
-      vi.setSystemTime(Date.UTC(2031, 4, 5, 10, 0, 0))
+      vi.setSystemTime(freshDay() + 10 * H)
       vi.stubGlobal('fetch', (input: string | URL) =>
         Promise.resolve(
           new Response(JSON.stringify({ error: { code: 402 } }), {
