@@ -82,7 +82,8 @@ jobs:
         continue-on-error: true
         working-directory: ${{ runner.temp }}
         # Same version as claude-code-action v1.0.252 installs (published 2026-10-16, more than 7 days ago).
-        run: npm install -g @anthropic-ai/claude-code@2.1.302 >/dev/null
+        run: |
+          npm install -g @anthropic-ai/claude-code@2.1.302 >/dev/null
       # Stage 1. Continues on error: the stage 2 step below decides from the marker comment, not from this result.
       - name: Review (API credits, claude -p)
         id: api
@@ -96,9 +97,6 @@ jobs:
           # posted (issue #133). This makes Claude wait for every subagent:
           # https://code.claude.com/docs/en/sub-agents#let-claude-wait-for-a-subagent
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1'
-          # The PR text is data an attacker can write. Claude's own process keeps the key; the commands it runs (gh, git,
-          # hooks) do not, so `gh pr comment --body-file /proc/self/environ` posts nothing secret. Docs: env-vars.
-          CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
         run: |
           test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; exit 1; }
           # No inline-comment MCP tool outside claude-code-action: the skill posts inline comments with `gh api` here.
@@ -107,7 +105,7 @@ jobs:
             --allowedTools "$ALLOWED_TOOLS" \
             --append-system-prompt "$SYSTEM_PROMPT" \
             --output-format json > "$RUNNER_TEMP/result.json" || true
-          jq '{is_error, subtype, num_turns, total_cost_usd}' "$RUNNER_TEMP/result.json"
+          jq '{is_error, subtype, num_turns, total_cost_usd, result: (.result // "" | .[0:600])}' "$RUNNER_TEMP/result.json"
           # Claude's final text in the Step Summary. Trusted input only: fork and bot PRs skip this job.
           jq -r '.result // ""' "$RUNNER_TEMP/result.json" >> "$GITHUB_STEP_SUMMARY" || true
           jq -e '.is_error == false' "$RUNNER_TEMP/result.json" >/dev/null
