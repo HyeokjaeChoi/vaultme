@@ -16,10 +16,11 @@ Status: Accepted (2026-11-15, issue #497, owner decision 1 of the quality-gates 
   - the fee of each tx is at most `ABS_MAX_FEE_WEI` (0.005 ETH).
   Balance deltas are not used: both jobs send and receive in parallel (ADR-0033). The script reads the sender nonce and the block number before the flows (`snapshot`), then reads the sender's txs from that block on (full blocks, so it needs no archive state, which the public node does not give).
 - Evidence: each tag run prints the Etherscan links of the 2 txs of its job (4 txs of the two release wallets per run) and uploads them as the artifacts `release-verify-ios` and `release-verify-android` (90 days). Only the public release wallets' hashes are published, never an app user's. A committed evidence file under `docs/results/` follows with the evidence gate of the plan (EVID-1).
+- `release-run.sh` stops at once on a re-run attempt (`GITHUB_RUN_ATTEMPT` above 1): "Re-run jobs" would send the funded sends again and the chain check would pass on the new ones. The workflow has one concurrency group `release`, so two tags never share the two wallets' nonces.
 - The `timeout-minutes` of the iOS and Android release jobs rise from 90 to 150: the old 90 plus 2 x 20 min of waits plus 20 min spare.
 
 ## Consequences
 - A tag run takes up to 40 minutes longer per platform (2 sends x up to 20 min), in practice about 15 minutes.
-- A failed funded flow is re-tagged, never retried in place. A run that failed after a broadcast shows its sends in the `release-verify` step (it runs after a failed flow too), so a re-tag does not double-send blind.
+- A failed funded flow is re-tagged, never retried in place. A run that failed after a broadcast shows its sends in the `release-verify` step (it runs after a failed flow and after a job timeout too), so a re-tag does not double-send blind.
 - The chain check depends on a public Sepolia RPC (`SEPOLIA_RPC_URL`, default publicnode). It fails closed: no answer is a failure, not a pass.
 - The first real `v*` tag run is still the first run of the funded flows and of this check. The 1,200 s `extendedWaitUntil` is not run for that long anywhere before it.

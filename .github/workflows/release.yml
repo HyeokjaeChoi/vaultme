@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release # one run at a time: both wallets and their nonces are shared by every tag (release-verify.mts)
   cancel-in-progress: false
 
 env:
@@ -120,13 +120,13 @@ jobs:
         env:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: apps/mobile/.maestro/release-run.sh a 2>&1 | tee "$RUNNER_TEMP/critical.log"
-      # Runs after a failed flow too: it shows whether a send reached the chain (a failed run is re-tagged, never retried).
+      # Runs after a failed flow and after a job timeout too (`always()`; a timeout cancels the job): it shows whether a send reached the chain (a failed run is re-tagged, never retried).
       - name: Check the funded sends on chain (wallet A)
-        if: ${{ !cancelled() && inputs.dry_run != true }}
+        if: ${{ always() && inputs.dry_run != true }}
         env:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: pnpm exec tsx scripts/release-verify.mts verify a
-      - if: ${{ !cancelled() && inputs.dry_run != true }}
+      - if: ${{ always() && inputs.dry_run != true }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-verify-ios
@@ -263,13 +263,13 @@ jobs:
           enable-hw-keyboard: true # no on-screen keyboard: it would cover the lower recovery phrase cells
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -change-locale ko-KR # the action's defaults + Korean: the flows match Korean text (ADR-0037, run.sh checks it)
           script: bash -o pipefail -c 'apps/mobile/.maestro/release-run.sh b 2>&1 | tee "$RUNNER_TEMP/critical.log"'
-      # Runs after a failed flow too: it shows whether a send reached the chain (a failed run is re-tagged, never retried).
+      # Runs after a failed flow and after a job timeout too (`always()`; a timeout cancels the job): it shows whether a send reached the chain (a failed run is re-tagged, never retried).
       - name: Check the funded sends on chain (wallet B)
-        if: ${{ !cancelled() && inputs.dry_run != true }}
+        if: ${{ always() && inputs.dry_run != true }}
         env:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: pnpm exec tsx scripts/release-verify.mts verify b
-      - if: ${{ !cancelled() && inputs.dry_run != true }}
+      - if: ${{ always() && inputs.dry_run != true }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-verify-android

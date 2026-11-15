@@ -74,13 +74,15 @@ maestro --udid "$udid" test flows --include-tags "$include" --format junit --out
 [ -f ../e2e-report.xml ] || exit 1
 retry=()
 funded=()
+unknown=0
 while read -r kind f; do
-  case "$kind" in retry) retry+=("$f") ;; funded) funded+=("$f") ;; esac
+  case "$kind" in retry) retry+=("$f") ;; funded) funded+=("$f") ;; unknown) unknown=1; echo "::error::failed flow without a file in flows/: $f" ;; esac
 done < <(./retry-flows.sh ../e2e-report.xml)
 if [ ${#funded[@]} -gt 0 ]; then
   echo "::error::funded flow failed and is never retried (a retry would broadcast again): ${funded[*]}. Check the chain (scripts/release-verify.mts), fix, then tag again."
   exit 1
 fi
+[ $unknown -eq 0 ] || exit 1
 [ ${#retry[@]} -gt 0 ] || exit 1
 echo "::warning::flaky: retrying ${retry[*]}"
 maestro --udid "$udid" test "${retry[@]}" --format junit --output ../e2e-report-retry.xml --test-output-dir ../e2e-artifacts/retry

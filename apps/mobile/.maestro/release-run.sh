@@ -5,6 +5,8 @@
 set -euo pipefail
 sender="${1:?usage: $0 a|b}"
 root="$(cd "$(dirname "$0")/../../.." && pwd)"
+# A re-run of the jobs (Actions "Re-run jobs") would send the funded sends again and pass the chain check on the new ones: a failed tag run is fixed and tagged again (ADR-0040).
+[ "${GITHUB_RUN_ATTEMPT:-1}" -le 1 ] || { echo "::error::re-run attempt ${GITHUB_RUN_ATTEMPT}: funded flows are never run again in place (they broadcast real sends). Tag again after the fix." >&2; exit 1; }
 phrase="$(printf '%s' "${E2E_RELEASE_PHRASE:?E2E_RELEASE_PHRASE is missing}" | tr -s '[:space:]' ' ' | sed 's/^ //;s/ $//')"
 # Public values only (addresses, passphrase B): the TS script never prints the phrase.
 while IFS= read -r line; do export "$line"; done < <(cd "$root" && pnpm exec tsx scripts/release-wallet-env.mts "$sender")

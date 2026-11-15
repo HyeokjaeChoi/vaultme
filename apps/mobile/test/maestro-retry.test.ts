@@ -44,4 +44,7 @@ describe('retry-flows.sh', () => {
     expect(classify([funded.name, plain.name])).toEqual([`funded ${funded.file}`, `retry ${plain.file}`])
     expect(classify([])).toEqual([])
   })
+  it('reports a failed flow that matches no file, so it cannot pass unseen', () => {
+    expect(classify(['no such flow'])).toEqual(['unknown no such flow'])
+  })
 })
