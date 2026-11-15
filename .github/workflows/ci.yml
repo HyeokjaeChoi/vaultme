@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # actionlint 1.7.12 (WF-1): release binary checked against its published sha256 (v1.7.12_checksums.txt). shellcheck is on the runner.
+      # actionlint 1.7.12 (WF-1): release binary checked against its published sha256 (actionlint_1.7.12_checksums.txt). shellcheck is on the runner.
       - name: Install actionlint
         run: |
           curl -fsSL -o "$RUNNER_TEMP/actionlint.tgz" https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz

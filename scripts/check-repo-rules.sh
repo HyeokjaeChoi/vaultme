@@ -349,12 +349,13 @@ fi
 # R19. Workflows are linted and pinned (WF-1, #549). Every `uses:` of a workflow or action is a 40-hex commit SHA with a version
 # comment (`@<sha> # v1.2.3`); a local `./` path is exempt. actionlint 1.7.12 (with shellcheck) then reports 0 findings.
 # CI installs actionlint and sets REQUIRE_ACTIONLINT=1; a local run without the binary only warns.
-unpinned="$(grep -nE '^\s*(-\s+)?uses:' .github/workflows/*.yml | grep -vE 'uses:\s+\./' | grep -vE 'uses:\s+[^ ]+@[0-9a-f]{40} # [^ ]' || true)"
+unpinned="$(grep -HnE '^\s*(-\s+)?uses:' .github/workflows/*.y*ml | grep -vE 'uses:\s+\./' | grep -vE 'uses:\s+[^ ]+@[0-9a-f]{40} # [^ ]' || true)"
 if [ -n "$unpinned" ]; then
   printf '%s\n' "$unpinned" >&2
   err "R19: a workflow 'uses:' is not pinned to a commit SHA with a '# <version>' comment"
 fi
 if command -v actionlint >/dev/null 2>&1; then
+  actionlint -version | head -1 | grep -qx '1\.7\.12' || echo "check-repo-rules: R19: local actionlint is not 1.7.12 (CI uses 1.7.12)" >&2
   actionlint || err "R19: actionlint reported findings (see above)"
 elif [ "${REQUIRE_ACTIONLINT:-}" = "1" ]; then
   err "R19: actionlint is not installed but REQUIRE_ACTIONLINT=1"
