@@ -1,4 +1,4 @@
-// Figma: B-S23 Pending / actions 888:5799, S41 888:5913, sped up 888:6568, cancel requested 888:6647, processed before cancel 888:6776 / 888:6852
+// Figma: B-S23 Pending / actions 888:5799, S41 888:5913, Unknown actions (only 거래 취소) S23 1050:11911 / dark 1050:12101, S41 1050:11970 / dark 1050:12160, sped up 888:6568, cancel requested 888:6647, processed before cancel 888:6776 / 888:6852
 import { useTranslation } from 'react-i18next'
 import { View } from 'react-native'
 import { processedBeforeCancel } from '@/features/send'
@@ -10,6 +10,7 @@ import { SpeedUp } from './SpeedUp'
 
 /**
  * The area under the status of S23 and S41 (ADR-0031): an info line about the last replacement, and while Pending (and before a cancel) "속도 올리기" + "거래 취소" side by side.
+ * An Unknown send gets "거래 취소" alone, full width (ADR-0041; `SpeedUp` hides itself: `canSpeedUp` is Pending only).
  * After a cancel is sent the state stays Pending: the line says the cancel was only requested, speed up is gone and "거래 취소" stays, so a stuck
  * cancel can be sent again with a higher fee (Figma 888:6647). When the original was processed first the line says so.
  */
@@ -26,7 +27,7 @@ export function PendingActions({ tx, onDone }: { tx: PendingTx; onDone: () => vo
         : tx.kind === 'cancel'
           ? 'cancel.requestedLine'
           : null
-  const buttons = pending
+  const buttons = pending || tx.state === 'Unknown'
   if (!line && !buttons) return null
   return (
     <View

@@ -1,4 +1,4 @@
-// Figma: B-S23 Pending + cancel sheet 888:6228 (actions 888:5799, requested 888:6647); B/Fee compare 891:6915 with the new fee row off
+// Figma: B-S23 Pending + cancel sheet 888:6228 (actions 888:5799, requested 888:6647); B/Fee compare 891:6915 with the new fee row off; Unknown (ADR-0041): S23 sheet 1050:12042 / dark 1050:12232 (warning title "이미 처리됐을 수 있어요")
 import { useQuery } from '@tanstack/react-query'
 import { fromUnits, type SpeedUpPlan } from '@vaultme/wallet-core'
 import { useState } from 'react'
@@ -128,7 +128,11 @@ export function Cancel({ tx, onDone }: { tx: PendingTx; onDone: () => void }) {
               short ? t('review.feeShortBody', { amount: fromUnits(plan.shortBy, 'ETH') }) : t('cancel.sheet.notice')
             }
             noticeTone={short ? 'danger' : 'warning'}
-            {...(short ? { noticeTitle: t('send.feeShort') } : {})}
+            {...(short
+              ? { noticeTitle: t('send.feeShort') }
+              : tx.state === 'Unknown'
+                ? { noticeTitle: t('cancel.sheet.unknownTitle') }
+                : {})}
             currentLabel={t('cancel.sheet.fee')}
             currentValue={plan ? `${fromUnits(plan.newFeeCap, 'ETH')} ETH` : '—'}
           />
