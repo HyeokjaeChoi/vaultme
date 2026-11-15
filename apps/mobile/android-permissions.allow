@@ -4,7 +4,7 @@ android.permission.USE_BIOMETRIC       # app.json: unlock and sign with fingerpr
 android.permission.USE_FINGERPRINT     # expo-local-authentication legacy pair of USE_BIOMETRIC (API < 28)
 android.permission.CAMERA              # expo-camera: scan the recipient QR
 android.permission.INTERNET            # API and RPC calls
-android.permission.READ_EXTERNAL_STORAGE   # in the introspected manifest today (Expo base template or a plugin; source not located); remove when it goes
+android.permission.READ_EXTERNAL_STORAGE   # Expo base AndroidManifest template (@expo/config-plugins withAndroidBaseMods); remove when the template drops it
 android.permission.WRITE_EXTERNAL_STORAGE  # same
-android.permission.VIBRATE             # expo-haptics
+android.permission.VIBRATE             # Expo base AndroidManifest template
 android.permission.SYSTEM_ALERT_WINDOW # Expo base template (dev overlay). REVIEW in SEC-6: a wallet should not ship it in the release manifest

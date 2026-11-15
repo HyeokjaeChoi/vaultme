@@ -50,17 +50,22 @@ describe('native config (SEC-11)', () => {
     expect(app.expo.ios?.infoPlist).not.toHaveProperty('NSAppTransportSecurity')
   })
 
-  // Without a local `ios/` folder Expo evaluates a stub Info.plist with NSAllowsArbitraryLoads true, which says nothing about the app.
-  // CI has no `ios/`, so the merged Info.plist of the real build is checked by SEC-6 (U1); here only a checkout with `ios/` is checked.
-  it.skipIf(!existsSync(new URL('../ios', import.meta.url)))(
-    'iOS: no arbitrary loads (local networking is fine)',
-    () => {
-      const ats = (cfg.ios?.infoPlist?.NSAppTransportSecurity ?? {}) as Record<string, unknown>
-      expect(ats.NSAllowsArbitraryLoads ?? false).toBe(false)
-      expect(ats.NSAllowsArbitraryLoadsInWebContent ?? false).toBe(false)
-      expect(ats.NSAllowsArbitraryLoadsForMedia ?? false).toBe(false)
-    },
-  )
+  // Without a local `ios/` folder Expo evaluates a stub Info.plist (NSAllowsArbitraryLoads true, dev exception for localhost), which says
+  // nothing about a release build; the merged Info.plist is SEC-6 (U1). In CI the stub must stay exactly as it is: a plugin that
+  // changes App Transport Security then shows here. With a prebuilt `ios/`, the real values are checked.
+  const hasIos = existsSync(new URL('../ios', import.meta.url))
+  const ats = (cfg.ios?.infoPlist?.NSAppTransportSecurity ?? {}) as Record<string, unknown>
+  it.skipIf(!hasIos)('iOS: no arbitrary loads (local networking is fine)', () => {
+    expect(ats.NSAllowsArbitraryLoads ?? false).toBe(false)
+    expect(ats.NSAllowsArbitraryLoadsInWebContent ?? false).toBe(false)
+    expect(ats.NSAllowsArbitraryLoadsForMedia ?? false).toBe(false)
+  })
+  it.skipIf(hasIos)('iOS: no plugin changes the Expo stub App Transport Security (no ios/ folder)', () => {
+    expect(ats).toEqual({
+      NSAllowsArbitraryLoads: true,
+      NSExceptionDomains: { localhost: { NSExceptionAllowsInsecureHTTPLoads: true } },
+    })
+  })
 
   it('iOS entitlements are inside the allow-list', () => {
     expect(Object.keys(cfg.ios?.entitlements ?? {}).filter((k) => !IOS_ENTITLEMENTS.includes(k))).toEqual([])
