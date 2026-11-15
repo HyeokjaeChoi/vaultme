@@ -17,7 +17,8 @@ const HEDGE_MS = 60
 // A spent quota is a failure of that upstream, not an answer: the other upstream is tried (API-1). Infura sends HTTP 402 with a JSON-RPC
 // error body (`code` 402, `event` -33000) for a spent daily cap, and `code` 429 / `event` -33200 for a spent throughput; its docs give no HTTP
 // status for the second, so it may arrive inside a 200 (docs.infura.io/how-to/avoid-rate-limiting, read 2026-11-15). -32005 is the EIP-1474
-// "limit exceeded". The two `event` values are listed too, in case a body carries one as its `code`.
+// "limit exceeded". Both `code` and `event` are matched. Cost of a false positive: a node that sends one of these for another reason costs one
+// more call, and when both upstreams do, the user gets a 503 instead of the node's error. Calls stay at two per request and clients never retry.
 const QUOTA_CODES: ReadonlySet<number> = new Set([-32005, 402, 429, -33000, -33200])
 // Never hedged: a send (a second node would answer "already known" for a send that worked, and that error could win) and the nonce read
 // (Alchemy can lag Infura; a lagging nonce is a real number, so it would win the hedge and the next send would fail with "nonce too low", CHAIN-4).
@@ -76,6 +77,13 @@ class StatusError extends Error {
   }
 }
 
+/** The quota marker of a JSON-RPC error body: its `code` or Infura's `event`, whichever is in QUOTA_CODES. */
+const quotaMarker = (json: unknown): number | undefined => {
+  const e = isObject(json) ? json.error : undefined
+  if (!isObject(e)) return undefined
+  return [e.code, e.event].find((v): v is number => typeof v === 'number' && QUOTA_CODES.has(v))
+}
+
 /** The upstream answered 200 with a JSON-RPC error that says its quota is spent (QUOTA_CODES). */
 class QuotaError extends Error {
   readonly code: number
@@ -105,11 +113,12 @@ async function ask(u: Upstream, body: string, stop: AbortSignal): Promise<string
     if (!res.ok) throw new StatusError(res.status)
     const text = await res.text()
     // Not a JSON-RPC response (HTML error page, array, no result/error) counts as a failure.
-    const parsed = RpcResponse.safeParse(JSON.parse(text))
+    const json: unknown = JSON.parse(text)
+    const parsed = RpcResponse.safeParse(json)
     if (!parsed.success || !('result' in parsed.data || 'error' in parsed.data)) throw new Error('bad body')
     if (text.includes(u.key)) throw new Error('key echoed') // never pass a body that contains the key
-    const code = parsed.data.error?.code
-    if (code !== undefined && QUOTA_CODES.has(code)) throw new QuotaError(code)
+    const quota = quotaMarker(json)
+    if (quota !== undefined) throw new QuotaError(quota)
     return text
   } catch (e) {
     if (!stop.aborted)

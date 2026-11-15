@@ -210,8 +210,8 @@ describe('quota errors', () => {
     ['-32005', limited(-32005), -32005],
     ['402', limited(402), 402],
     ['429', limited(429), 429],
-    ['-33000', limited(-33000), -33000],
-    ['-33200', limited(-33200), -33200],
+    ['event -33000 with another code', limited(-32603, { event: -33000 }), -33000],
+    ['event -33200 with another code', limited(-32603, { event: -33200 }), -33200],
   ])('Infura %s in a 200: alchemy answers', async (_n, body, quota) => {
     const out = logs()
     const f = mock(
@@ -482,6 +482,19 @@ describe('hedged reads', () => {
       expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0x4' })
       expect(f).toHaveBeenCalledTimes(2)
     })
+  })
+
+  it('a quota error from the hedge is no answer when Infura then fails: 503, not the quota error', async () => {
+    const f = mock(
+      slow(100, () => new Response('boom', { status: 502 })),
+      () => new Response(JSON.stringify({ jsonrpc: '2.0', id: 7, error: { code: 429, message: 'limit' } })),
+    )
+    const r = await rpc(req('eth_blockNumber'))
+    const text = await r.text()
+    expect(r.status).toBe(503)
+    expect(JSON.parse(text)).toMatchObject({ code: 'unavailable', retryable: true })
+    expect(text).not.toContain('limit')
+    expect(f).toHaveBeenCalledTimes(2)
   })
 
   it('a 429 from the hedge leaves the slow primary answer in charge', async () => {
