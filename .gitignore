@@ -36,3 +36,7 @@ work/c2a/screens/
 apps/mobile/e2e-report.xml
 apps/mobile/e2e-report-retry.xml
 apps/mobile/e2e-artifacts
+
+# Stryker (MUT-1)
+reports/
+.stryker-tmp/
