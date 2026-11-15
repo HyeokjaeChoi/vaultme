@@ -27,19 +27,20 @@ and checked the numbers marked "checked" below again. Numbers marked "reviewer" 
      per-install limit can use it up in about 10.4 hours (reviewer, Infura docs read 2026-11-15).
   4. An Unknown send that never reached a node blocks every new send, with no way out in the app (code reading, not reproduced):
      `blocksNewSend` (`apps/mobile/src/features/send/model/runSend.ts:8-9`) blocks on Unknown, and speed up and cancel exist only
-     for Pending (`apps/mobile/src/features/send/model/speedUp.ts:21`).
-  5. Five numbers in the docs are stale. A portfolio must not copy them (section 2, gap 6).
+     for Pending (`canSpeedUp`, `apps/mobile/src/features/send/model/speedUp.ts:21`; `canCancel`,
+     `apps/mobile/src/features/send/model/cancel.ts:10`).
+  5. Five numbers and one ledger row in the docs are stale. A portfolio must not copy them (section 2, gap 6).
 
 ## 2. The known gaps, checked
 
 | # | Gap | Verdict | Evidence |
 |---|---|---|---|
 | 1 | Web: Lighthouse lab only, no INP, no RUM, no size-limit | Confirmed | `apps/web/lighthouserc.mobile.json` asserts TBT, no INP; no `web-vitals` in the repo. Cloudflare Web Analytics (staging only, ADR-0017) already collects INP, LCP and CLS (reviewer, Cloudflare docs); reading it needs an owner token. The viewer JS budget has 589 B left: `/address` 153,011 of 153,600 B (checked, CI run 43559270611). With an address in the fragment the viewer loads 183,434 B, which the budget does not count (reviewer, staging). |
-| 2 | k6 is a 1-VU latency bench, not load; `history_miss` misses its SLO | Bench part confirmed; SLO part stale | `packages/perf/k6/api.js:36` (`per-vu-iterations`, 1 VU, 1 iteration). It fails only on own time p95 > 50 ms (`:58`) and on a case with zero 200 answers (`:62`, `rate>0`). `history_miss` p95 is now 404.27 ms warm and 612.58 ms cold (checked, run 42620301611, 2026-11-09), under the 1000 ms SLO. The 1284 ms in `docs/perf/slo.md` and `docs/perf/baseline.md` is from 2026-10-30. |
+| 2 | k6 is a 1-VU latency bench, not load; `history_miss` misses its SLO | Bench part confirmed; SLO part stale | `packages/perf/k6/api.js:36` (`per-vu-iterations`, 1 VU, 1 iteration). It fails only on own time p95 > 50 ms (`:58`), on no own-time sample for `rpc` (`:60`, `count>0`), on a case with zero 200 answers (`:62`, `rate>0`), and when `setup()` cannot register or get a token (`:97`, `:119`). `history_miss` p95 is now 404.27 ms warm and 612.58 ms cold (checked, run 42620301611, 2026-11-09), under the 1000 ms SLO. The 1284 ms in `docs/perf/slo.md` and `docs/perf/baseline.md` is from 2026-10-30. |
 | 3 | RPC failover per request only, no breaker or health check; no history fallback | Confirmed, plus 3 new gaps | `apps/api/src/rpc.ts` (Infura, then Alchemy; 60 ms hedge for reads). ADR-0007 Consequences: no history fallback. New: quota error in a 200 passes through (finding 3); a 503 has no `Retry-After`, only the 429 has it (checked, `apps/api/src/auth.ts:40-45`); the Etherscan bucket allows 216,000 calls a day, but Etherscan blocks at 100,000 a day since 2026-11-03 (reviewer, Etherscan docs). |
 | 4 | No queue or dead-letter; no availability SLO; Q26 p95 not read | Confirmed | `apps/api/src/alerts.ts:25-29` checks only the hourly 5xx count. Q26 is GAP (#335): `push_latency` is written, never read (needs the owner's Cloudflare token). |
 | 5 | App: no root or jailbreak check; no phrase zeroing; send E2E stops at the amount screen; no production web workflow or store build | Confirmed, one correction | No root check (`ARCHITECTURE.md` Security model). The 64-byte seed and the HD key bytes are never zeroed (reviewer, traced through viem 2.57.7). Correction: `expo-screen-capture` blocks screenshots on iOS 13+ too (reviewer, Expo SDK 58 docs); the real iOS gap is the app-switcher snapshot (`enableAppSwitcherProtectionAsync` is not called). `docs/testing/e2e.md:19` (send stops at amount). No `v*` tag exists, so the funded flows never ran (checked, `git tag -l 'v*'` is empty). Production web and store builds wait for the first public release (ADR-0025). |
-| 6 | Doc mismatches | Confirmed, 5 in total | (a) `docs/perf/baseline.md:79` warm `rpc` tier 1 = 200, code `packages/perf/src/slo.ts:16` = 250 (ADR-0035): `baseline.md` is generated and was not regenerated. (b) `ARCHITECTURE.md` "Build, test and release" says the iOS simulator cannot save the phrase; ADR-0016 Consequences and the CI `create.yaml` run show it can. (c) `history_miss` attainment (gap 2). (d) `docs/perf/slo.md:13` viewer JS 141,673 B, now 153,011 B. (e) `docs/perf/slo.md:14` Hermes 7.75 MiB, now 10,236,843 B iOS = 9.76 MiB, 88.7 % of the 11 MiB limit (checked, artifact `perf-hermes` of run 43559270611). Also `docs/testing/e2e.md` "Slow steps" names the wrong flake cause (finding 2). |
+| 6 | Doc mismatches | Confirmed, 6 in total | (a) `docs/perf/baseline.md:79` warm `rpc` tier 1 = 200, code `packages/perf/src/slo.ts:16` = 250 (ADR-0035): `baseline.md` is generated and was not regenerated. (b) `ARCHITECTURE.md` "Build, test and release" says the iOS simulator cannot save the phrase; ADR-0016 Consequences and the CI `create.yaml` run show it can. (c) `history_miss` attainment (gap 2). (d) `docs/perf/slo.md:13` viewer JS 141,673 B, now 153,011 B. (e) `docs/perf/slo.md:14` Hermes 7.75 MiB, now 10,236,843 B iOS = 9.76 MiB, 88.7 % of the 11 MiB limit (checked, artifact `perf-hermes` of run 43559270611). (f) `docs/decisions.md` Q43 lists "switcher blur" as done, but the code never calls `enableAppSwitcherProtectionAsync` (`apps/mobile/src/pages/backup/index.tsx`): the GAP note must name it (U9 PR 1). Also `docs/testing/e2e.md` "Slow steps" names the wrong flake cause (finding 2, U1 PR 1). |
 | 7 | Long failed-tx amount overlaps the time column | Root cause found; issue #483 | `apps/web/app/shared/ui/HistoryRows.tsx:115-119`: `break-words` does not lower the min-content width of the `inline-block` span (reviewer, minimal Chromium repro). It came with #470 (checked, commit 819641de). The current test checks only `scrollWidth`. The fix stays inside the Figma column (unit U5). |
 
 ## 3. How priority was set
@@ -61,11 +62,11 @@ Result files: `docs/results/<gate-id>/` (gate EVID-1). A number is citable only 
 
 | ID | P | Gate | Blocks | Threshold | Where | Unit |
 |---|---|---|---|---|---|---|
-| CHAIN-1 | P0 | Funded flows wait for Confirmed, never retry, check the chain after | false fail, double send, false pass | wait 1,200 s; 0 retries for `funded`; sender nonce delta exactly 2; receiver ETH and USDC deltas exact; fee per tx ≤ `ABS_MAX_FEE_WEI` | release | U1 |
+| CHAIN-1 | P0 | Funded flows wait for Confirmed, never retry, check the chain after | false fail, double send, false pass | wait 1,200 s; 0 retries for `funded`; sender nonce delta exactly 2; each of the 2 tx receipts has status 1, the right recipient and amount (ETH `value`, USDC `Transfer` log); fee per tx ≤ `ABS_MAX_FEE_WEI`. Not balance deltas: both jobs send and receive in parallel (ADR-0033). Job timeout raised to fit 2 × 1,200 s | release | U1 |
 | MOB-1 | P0 | Fix the restore typing race, then re-baseline | flaky release gate | 10 manual runs: retry needed ≤ 1, 0 fails | manual, once | U1 |
 | MOB-7 | P0 | First real `v*` tag (owner) | send E2E never proven | funded send and receive pass on iOS and Android in one run | release | owner, after U1 |
-| CHAIN-7 | P1 | Chain constants agree | wrong token signed or shown | the 2 USDC address literals equal; on chain `decimals()` = 6, `symbol()` = USDC, `eth_chainId` = `0xaa36a7` | PR, release | U1 |
-| MOB-2 | P1 | E2E flake rate | releases on an unreliable gate | last 10 E2E jobs: retry needed > 10 % warns, > 30 % fails the release | release | U1 |
+| CHAIN-7 | P1 | Chain constants agree | wrong token signed or shown | PR: the 2 USDC address literals equal, `CHAIN.id` = 11155111 (no network). Release only: on chain `decimals()` = 6, `symbol()` = USDC, `eth_chainId` = `0xaa36a7` | PR (literals), release (chain) | U1 |
+| MOB-2 | P1 | E2E flake rate | releases on an unreliable gate | last 10 E2E jobs that ran (not skipped; `release` PR, dispatch or tag, any age, per ADR-0039): retry needed > 10 % warns, > 30 % fails the release. The 34.1 % sample is mostly from before ADR-0039 | release | U1 |
 | MOB-4 | P1 | Install size (APK, simulator `.app`, CI proxies) | native bloat | first run = baseline; +10 % warns, +25 % fails (after 2 releases); APK ≤ 150 MB | release | U1 |
 | MOB-5 | P1 | Android cold start (`am start -W` TotalTime) | slow start | median of 10 after 1 warm-up; +25 % warns; ≥ 5,000 ms fails | release | U1 |
 | MOB-3 | P1 | Hermes growth warning | silent growth at 88.7 % | warn when a bundle grows > 100 KiB against `main`; 11 MiB fail stays | PR | U9, U7 |
@@ -87,9 +88,9 @@ Honest ceiling of SEC-9: JS strings (Keychain result, words, the hex key inside 
 |---|---|---|---|---|---|---|
 | API-1 | P0 | Quota and fault cases of `/v1/rpc`; quota codes fall back | quota error to every user while Alchemy is healthy | new cases: Infura 402, quota code in a 200, hedge-side 429 or error, key echoed by one side, both hang (reads end ≤ 5.1 s, sends ≤ 10.1 s), truncated JSON; never 500; never the key | PR | U2 |
 | CHAIN-4 | P1 | No hedge for `eth_getTransactionCount` | a lagging nonce from Alchemy wins | 0 Alchemy calls when Infura answers in 200 ms | PR | U2 |
-| FI-1 | P1 | Fault matrix: Infura, Alchemy, Etherscan, Expo, D1 × 5xx, 429, timeout, bad body, slow, network | 500s, leaks, retry storms | 100 % of 32 cells tested, 0 fails; ≤ 2 upstream calls per request | PR | U2 |
-| API-2 | P1 | Etherscan daily budget in the existing Durable Object | history down until 00:00 UTC with no signal | warn at 80,000, refuse at 95,000 a day (503 + `Retry-After` to midnight) | PR | U2 |
-| API-3 | P1 | `Retry-After` on every retryable 503 and 429 | retry storms | contract test: header present, integer 1 to 86,400, on every route | PR | U3 |
+| FI-1 | P1 | Fault matrix: Infura, Alchemy, Etherscan, Expo, D1 × 5xx, 429, timeout, bad body, slow, network, plus a JSON-RPC error in a 200 for Infura and Alchemy | 500s, leaks, retry storms | 100 % of 32 cells (30 + 2) tested, 0 fails; RPC ≤ 2 upstream calls per request; history ≤ 2 calls per Etherscan list (3 lists per miss, so ≤ 6) | PR | U2 |
+| API-2 | P1 | Etherscan daily budget in the existing Durable Object | history down until 00:00 UTC with no signal | warn at 80,000, refuse at 95,000 a day: U2 throws an upstream error that carries the seconds to 00:00 UTC; U3 (API-3) turns it into the 503 `Retry-After` | PR | U2, U3 |
+| API-3 | P1 | `Retry-After` on every retryable 503 and 429, incl. the API-2 daily-budget 503 | retry storms | contract test: header present, integer 1 to 86,400, on every route | PR | U3 |
 | SEC-10 | P1 | Abuse cases; 64 KB body limit | replay, forgery, big bodies | each case: documented status, 0 upstream calls, 0 D1 writes except the nonce row; > 64 KB → 413 | PR | U3 |
 | API-8 | P1 | Property fuzz of the RPC allow-list (fast-check 4.10.2, already in the repo) | allow-list holes | 0 counterexamples in 500 runs per property | PR | U3 |
 | API-4 | P1 | One Analytics Engine point per RPC request and per history miss | quota and hedge cost not visible | warn: hedge rate > 60 % over 7 days; Alchemy CU projection > 50 % of the month; Infura > 2,400,000 credits a day | PR (code), weekly (read) | U2 |
@@ -132,7 +133,7 @@ A month (6.35 runs): Infura 0.25 %, Alchemy 0.095 %. The IP probes send no token
 
 | ID | P | Gate | Blocks | Threshold | Where | Unit |
 |---|---|---|---|---|---|---|
-| SEC-1 | P0 | Vulnerability exceptions with an expiry date (#481) | an always-red scan that hides a real High | shipped code: 0 known vulns with CVSS ≥ 7.0 without an exception (≤ 14 days, only when no fix); dev and CI tools: 0 without an exception (reason + expiry ≤ 30 days) | PR, weekly, release | U10 |
+| SEC-1 | P0 | Vulnerability exceptions with an expiry date (#481) | an always-red scan that hides a real High | 0 known vulns of any severity without an exception (the AGENTS.md rule stays). Shipped code: an exception only when no fix exists, ≤ 14 days; dev and CI tools: reason + expiry ≤ 30 days | PR, weekly, release | U10 (release step: U1) |
 | EVID-1 | P0 | Results are committed as evidence files | numbers that expire with 90-day artifacts | `docs/results` README equals the render of the files; every file passes the schema | PR | U9 |
 | DOC-1 | P0 | Fix the 5 stale numbers (gap 6) | wrong portfolio numbers | regenerated `baseline.*` (5 fresh `api-bench` runs, 180 Etherscan calls once); `slo.md` rows; the `ARCHITECTURE.md` simulator line | once | U9 |
 | SEC-2 | P1 | CodeQL `javascript-typescript` + `actions`, `security-extended` | dataflow bugs, workflow injection | 0 new alerts with security severity ≥ 7.0 | PR, main, weekly | U7 |
@@ -140,7 +141,7 @@ A month (6.35 runs): Infura 0.25 %, Alchemy 0.095 %. The IP probes send no token
 | DEP-1 | P1 | Staging rolls back when the smoke fails | a broken staging Worker stays live | rollback and re-check pass; rollback ≤ 2 min (one drill) | deploy | U8 |
 | OBS-1 | P1 | Weekly CI health report | rot nobody sees | warn: main red rate > 2 % (today 5 %); PR CI p50 > 12.5 min (today 8.3); `flaky` issue > 14 days; last green `api-bench` > 8 days; a schedule not `active`; Renovate PR > 14 days; cache > 9 GB. DORA numbers report only | weekly | U9 |
 | FLAKY-1 | P1 | One rolling flaky issue per flow, labeled `flaky` | duplicate issues (#388, #389) | comment, never a new issue, when one is open | release | U1 |
-| FLK-2 | P1 | Fix the 3 known flaky unit tests (#344, signer-import timeout, bucket timing) | red `main` from flakes | 0 fails in a weekly `--repeats 10 --sequence.shuffle` run | PR, weekly | U11, U2 |
+| FLK-2 | P1 | Fix the 3 known flaky unit tests (#344, signer-import timeout, bucket timing) | red `main` from flakes | 0 fails in a weekly `--repeats 10 --sequence.shuffle` run | PR, weekly | U11 (workflow, 2 tests), U2 (bucket test) |
 | SEC-3 | P2 | zizmor 1.32.0 workflow audit | cache poisoning, excess permissions | 0 findings at medium | PR | U7 (last) |
 | SEC-4 | P2 | OpenSSF Scorecard | permission and pinning drift | `Dangerous-Workflow` 10, `Token-Permissions` 10, `Pinned-Dependencies` ≥ 9; aggregate ratchet | weekly | U7 |
 | SEC-6 | P2 | Release: merged APK manifest check, SBOM (`pnpm sbom`), build attestation | manifest regressions, unknown build origin | manifest values and permission allow-list exact; `gh attestation verify` exit 0 | release | U1, U8 |
@@ -162,7 +163,7 @@ The owner's premise: the free RPC tier caps traffic, so the API proves correctne
 | Chain correctness | Reorg, nonce gap, duplicate broadcast, idempotency | Adopt | CHAIN-3 cases 3, 6 to 8; CHAIN-4; CHAIN-8 |
 | | Response validation | Partly exists; add the deploy check | Signed chain ID and the local hash = node hash check exist (`packages/wallet-core/test/send.test.ts`). CHAIN-9 at deploy. A per-request chain ID or cross-upstream block check: reject (a second upstream call per read) |
 | Observability | Per-upstream error rate, latency, quota, hedge rate; error budget | Adopt | API-4, API-5, API-6 |
-| Low-capacity load | Degrade near quota, 429, no retry storm | Adopt | LOAD-1 (429 contract on the real limiter), FI-1 (≤ 2 upstream calls per request). Clients never auto-retry today (`retry: false`) |
+| Low-capacity load | Degrade near quota, 429, no retry storm | Adopt | LOAD-1 (429 contract on the real limiter), FI-1 (RPC ≤ 2 upstream calls per request, history ≤ 2 per Etherscan list). Clients never auto-retry today (`retry: false`) |
 | Queues | Cloudflare Queues + DLQ | Reject | Queues are on Workers Free (10,000 operations a day), but Alchemy Notify already retries our non-200 answers and `push_sent` dedupes. API-5 gives the dead-letter alert a real source: stuck `push_unregister` rows |
 | History fallback | Second history provider | Reject (ADR-0007 stays) | Different semantics (no failed status, other internal transfers), a second merge path, and it spends the same Alchemy month |
 
@@ -202,8 +203,8 @@ superseded one only gets a "Superseded in part by" line.
 - **ADR-A. Funded release flows wait for Confirmed, never retry, and are checked on chain.** Context: the 240 s wait is
   shorter than the 7 to 13 min `safe` lag (ADR-0006); a retry broadcasts again. Decision: wait up to 20 min; 0 retries for
   `funded`; `scripts/release-verify` checks nonce delta 2, exact receiver deltas and fee ≤ cap; each tag run writes an evidence
-  file with the Etherscan links of the public release wallets' 4 transactions. Supersedes ADR-0033 in part (evidence) and the
-  #376 retry rule for `funded` flows. Consequences: a tag run takes about 15 min longer per platform; a failure is re-tagged.
+  file with the Etherscan links of the public release wallets' 4 transactions. Supersedes ADR-0032 in part (the Failure rule, for `funded`
+  flows only) and amends ADR-0033 Consequences (evidence). Consequences: a tag run takes about 15 min longer per platform; a failure is re-tagged.
 - **ADR-B. Cancel is offered for an Unknown send.** Context: an Unknown send that never reached a node blocks every new send.
   Decision: S23 and S41 offer Cancel (same nonce, 0 ETH to self) for Unknown too. Supersedes ADR-0031 in part (D3). Figma first.
 - **ADR-C. The viewer JS budget counts the page with data.** Supersedes ADR-0018 in part (the "lazy chunks not measured"
@@ -217,14 +218,16 @@ superseded one only gets a "Superseded in part by" line.
   (ADR-0036). An upstream outage aborts the run and warns; only our own bugs fail it.
 - **ADR-G. API availability SLO: 99.5 % over 28 days.** New. SLI from the existing Analytics Engine `request` points; a breach
   opens an issue, never blocks. Why not 99.9 %: three free tiers with no SLA, and one history provider (ADR-0007).
-- **ADR-H. Vulnerability exceptions expire.** Refines Q74. Exceptions live in the osv-scanner config with an id, a reason and
-  an expiry; a repo rule rejects one without both; the release tag runs a full scan.
+- **ADR-H. Vulnerability exceptions expire.** Refines Q74; no severity floor: any known vulnerability without an exception
+  still fails. Exceptions live in the osv-scanner config with an id, a reason and an expiry (shipped code ≤ 14 days and only
+  when no fix exists; dev and CI tools ≤ 30 days); a repo rule rejects one without both; the release tag runs a full scan.
 - **ADR-I. The rooted-device warning is advisory.** Q43 part. jail-monkey 3.0.0 on cold start, one dismissible warning, never
   blocks, never sent anywhere. Figma and grilling first.
 - **ADR-J. The phrase screen relies on the OS capture block.** Supersedes Q43 in part (screenshot fallback): iOS 13+ and Android
   block screenshots already; add the iOS app-switcher blur; no screenshot listener.
 - **ADR-K. The release gate counts flaky retries, install size and Android cold start.** Supersedes ADR-0032 in part ("a pass
-  on the retry lets the release continue"): the release fails when more than 30 % of the last 10 E2E jobs needed a retry,
+  on the retry lets the release continue", for the non-funded flows; ADR-A already removes the retry for `funded` flows) and
+  amends ADR-0039 (which runs count: the last 10 that ran, skipped ones left out): the release fails when more than 30 % of the last 10 E2E jobs needed a retry,
   when the APK grows more than 25 % (after 2 baseline releases), or when the median cold start is 5 s or more.
 - **ADR-L (P2). One Sentry uptime monitor for the staging API.** Supersedes ADR-0024 in part (Sentry scope: errors and one
   uptime monitor; still no tracing, replay or profiling).
@@ -245,7 +248,7 @@ Each has a recommended answer. The units that wait on a decision say so in secti
 8. ADR-E: automatic staging rollback? Recommended: yes.
 9. ADR-F: weekly quota-safe load test; a 503 `unavailable` (both upstreams down) does not fail it? Recommended: yes.
 10. MUT-1: the mutation floor is a required check from the first PR? Recommended: yes.
-11. ADR-H: dated exceptions for the 6 current dev and build tool findings of #481? Recommended: yes.
+11. ADR-H: dated exceptions for the 6 current dev and build tool findings of #481 (no severity floor: every other finding still fails)? Recommended: yes.
 12. ADR-I: advisory root warning with jail-monkey, after a Figma frame and a grilling session? Recommended: yes.
 13. ADR-J: drop the Q43 screenshot fallback and add the iOS switcher blur? Recommended: yes.
 14. ADR-B: Cancel for an Unknown send, after Figma and grilling? Recommended: yes.
@@ -263,32 +266,36 @@ Rules:
 - Each unit is one session that owns its files. It may ship several PRs in the order listed. Units of the same wave never
   share a file, so they can run in parallel.
 - Ledger files are the exception, because repo rules want the row in the implementing PR: the `AGENTS.md` enforced-rules
-  table, `docs/decisions.md`, `ARCHITECTURE.md`, `docs/perf/slo.md` and `pnpm-lock.yaml` (generated). A unit edits only its own
-  rows there and rebases before it merges.
-- Three files are shared across waves, never inside one: `.github/workflows/ci.yml` (U4 in wave 1, then U7), `apps/mobile/package.json`
-  (U4, then U6), `knip.jsonc` (U4, then U8 if its new config needs an entry). U6 also turns U4's `it.fails` Unknown case into a pass,
+  table, `docs/decisions.md`, `ARCHITECTURE.md`, `docs/perf/slo.md`, `knip.jsonc` (one entry per unit: U4, U9, U8),
+  `pnpm-lock.yaml` and the `docs/results` README (both generated: regenerate after the rebase, never merge by hand). A unit
+  edits only its own rows there and rebases before it merges.
+- Two files are shared across waves, never inside one: `.github/workflows/ci.yml` (U4 in wave 1, then U7) and
+  `apps/mobile/package.json` (U4, then U6). U6 also turns U4's `it.fails` Unknown case into a pass,
   and U7's last PR (zizmor) may fix a workflow file of U1 or U8 after that unit has merged.
 - Implementation runs on the mid tier (`docs/agents/models.md`); U0 (grilling) runs on the top tier.
 - Every unit follows `docs/agents/workflow.md`, reads `ARCHITECTURE.md`, the ADRs of its area and the lessons skill first, and
   uses ctx7 before it picks a version (judgment rule 4, pnpm `minimumReleaseAge` 7 days).
+- EVID-1 upload steps: the unit that owns a workflow adds the `evidence-<gate>` upload to it: U1 (`release.yml`, `e2e.yml`),
+  U7 (`ci.yml`, after U9 PR 2), U8 (the two staging workflows), U9 (its new workflows), U10 (`osv-scanner.yml`), U11 (its new
+  weekly repeat workflow).
 
 ### Wave 0: owner
 
 - **U0. Decisions, Figma and grilling** (no PR). The owner answers section 8. A top-tier session grills ADR-B and ADR-I and
   builds their Figma frames (`vaultme-figma-screen`, audit = 0). The approval commit of this file sets the ADR numbers.
 
-### Wave 1: start after decisions 1 to 5
+### Wave 1: start after the owner approval (2026-11-15); the "Waits for" column is per PR
 
 | Unit | P | Gates, PR order | Proof | Waits for |
 |---|---|---|---|---|
-| U1 Release path | P0 | (1) MOB-1 + CHAIN-1; (2) CHAIN-7 + FLAKY-1; (3) MOB-2; (4) MOB-4, MOB-5, MOB-9; (5) MOB-8, SEC-6 manifest | (1) 10 manual runs (decision 2), `release-verify` unit test; owner then cuts `v0.1.0` | decisions 1, 2, 15; PR (5) reads the permission allow-list of U6 (2) |
-| U2 API upstreams | P0 | (1) API-1 + CHAIN-4; (2) API-2 + bucket test flake; (3) FI-1; (4) API-4; (5) API-5 | each new case red before the change, green after; coverage floors hold | none |
-| U3 API edge | P1 | (1) API-3; (2) SEC-10; (3) API-8; (4) API-10 script | contract and abuse tests; `openapi:check` and oasdiff green | decision 6 (API-10) |
+| U1 Release path | P0 | (1) MOB-1 + CHAIN-1; (2) CHAIN-7 + FLAKY-1; (3) MOB-2; (4) MOB-4, MOB-5, MOB-9; (5) MOB-8, SEC-6 manifest | (1) 10 manual runs (decision 2), `release-verify` unit test; owner then cuts `v0.1.0`; PR (1) also raises the iOS and Android job `timeout-minutes` (90 today) to fit 2 × 1,200 s waits | PR (1): decision 1. PR (3): decisions 2 and 15 and the 10 manual runs. PR (5): the permission allow-list of U6 (2); it also adds the full osv scan step of SEC-1 to `release.yml` |
+| U2 API upstreams | P0 | (1) API-1 + CHAIN-4; (2) API-2 + bucket test flake; (3) FI-1; (4) API-4; (5) API-5 | each new case red before the change, green after; coverage floors hold | PR (2): U3 PR (1) (the upstream error with retry seconds lives in `apps/api/src/errors.ts`, a U3 file) |
+| U3 API edge | P1 | (1) API-3 (adds the retry-seconds upstream error used by API-2); (2) SEC-10; (3) API-8; (4) API-10 script | contract and abuse tests; `openapi:check` and oasdiff green | decision 6 (API-10) |
 | U4 Chain tests | P0 | (1) CHAIN-3 + the `ci.yml` step; (2) CHAIN-5; (3) CHAIN-8; (4) MUT-1; (5) SEC-9 | suite green in `verify`; breaking receipt parsing makes it red; Stryker `break` set | decision 10 |
 | U5 Web | P0 | (1) WEB-1 (#483); (2) WEB-6; (3) WEB-2 + WEB-3; (4) WEB-4; (5) WEB-7, WEB-8, WEB-9 | (1) red at 768 and 1280 px, green after, Figma comparison images; (3) a 300 ms busy click handler fails it locally | decisions 4, 5 |
 | U9 Perf and evidence | P0 | (1) DOC-1; (2) EVID-1; (3) LOAD-1; (4) OBS-1; (5) MOB-3 command; (6) CHAIN-9; (7) API-6 | (2) a hand-edited README number fails the test; (3) one dispatch run lists every threshold | decisions 3, 6, 7, 9 |
 | U10 Supply chain | P0 | (1) SEC-1 + explicit pnpm trust settings | weekly osv dispatch green; an exception without a reason fails `check-repo-rules.sh` | decision 11 |
-| U11 Flaky unit tests | P1 | (1) #344; (2) signer-import timeout | 0 fails in `--repeats 10 --sequence.shuffle` | none |
+| U11 Flaky unit tests | P1 | (1) #344; (2) signer-import timeout; (3) weekly repeat workflow (FLK-2) | 0 fails in `--repeats 10 --sequence.shuffle` | none |
 
 ### Wave 2: after the wave 1 units that share a file have merged
 
@@ -329,8 +336,8 @@ U8  .github/workflows/{api-staging,web-staging}.yml, apps/web/e2e-staging/** (ne
 U9  packages/perf/** (k6/load.js, k6/lib.js, k6/api.js, src/{evidence,load,ci-health,availability,smoke,cli}.ts, tests, README),
     docs/perf/baseline.{json,md}, docs/results/** (new),
     .github/workflows/{api-load,ci-health,api-availability}.yml (new), ADR-D, ADR-F, ADR-G
-U10 osv-scanner.toml (new), scripts/check-repo-rules.sh, pnpm-workspace.yaml, ADR-H
-U11 apps/api/test/push.test.ts, apps/mobile/test/signer-import.test.ts
+U10 osv-scanner.toml (new), .github/workflows/osv-scanner.yml, scripts/check-repo-rules.sh, pnpm-workspace.yaml, ADR-H
+U11 apps/api/test/push.test.ts, apps/mobile/test/signer-import.test.ts, .github/workflows/test-repeat.yml (new)
 ```
 
 ## 10. Final deliverable (after implementation)
@@ -349,3 +356,5 @@ last measured value, the commit, the run link and the result file. Until a gate 
 - Maestro's longest `extendedWaitUntil`, the `focused` selector and `setClipboard` (MOB-1).
 - Whether `wrangler rollback` restores the static assets of the web Worker (the DEP-1 drill proves it).
 - Android vitals 5 s and Play 16 KB and 150 MB numbers were taken from memory by the reviewer, not re-read.
+- Tool versions in this file (for example Stryker 10.1.1, zizmor 1.32.0, jail-monkey 3.0.0) are examples from the reviews;
+  their release dates and the 7-day age were not re-checked here. Each unit re-picks them with ctx7 and `npm view <pkg> time`.
