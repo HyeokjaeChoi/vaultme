@@ -17,7 +17,7 @@ export class InvalidCursorError extends Error {}
 
 /**
  * Etherscan, Alchemy or Expo failed, was throttled or answered something unexpected: 503 `unavailable`. The message never holds URLs or bodies.
- * `retryAfterSeconds`: set when the cause will not clear before a known time (the Etherscan daily budget: the seconds to 00:00 UTC).
+ * `retryAfterSeconds`: set when the cause will not clear before a known time (planned: the Etherscan daily budget of API-2, the seconds to 00:00 UTC; no caller yet).
  * `unavailable` turns it into the `Retry-After` header; without it the route's own default is used.
  * Throw it in the Worker, never inside a Durable Object: an error that crosses an RPC call is rebuilt without its class, so `instanceof`
  * fails and the route answers 500 (Cloudflare Workers "Error handling", read 2026-11-15). Return a value from the object instead.

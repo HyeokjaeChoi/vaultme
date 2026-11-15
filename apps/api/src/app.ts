@@ -161,7 +161,7 @@ const errorResponse = (description: string) => ({ description, content: errorCon
 // A 429 or a retryable 503: the same body, plus the wait.
 const waitResponse = (description: string) => ({ description, headers: retryAfterHeader, content: errorContent })
 // Default wait of a retryable 503, in seconds. rpc: both upstreams failed at once, a blip. Etherscan: the bucket window is 1.2 s.
-// Push: the Alchemy address call or Expo failed. An `UpstreamError` that carries seconds (the Etherscan daily budget) wins.
+// Push: the Alchemy address call or Expo failed. An `UpstreamError` that carries seconds (planned for the Etherscan daily budget, API-2; no caller yet) wins.
 const WAIT = { rpc: 2, etherscan: 2, push: 5 } as const
 
 app.openapi(
