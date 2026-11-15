@@ -60,6 +60,7 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 
 - `app.ts`: Hono `OpenAPIHono` app. All routes, middleware order, the webhook route, `onError`.
 - `auth.ts`: `requireSigned` (device signature), `issueToken`, `requireToken`, `limitInstall`.
+- `errors.ts`: `fail` (the error envelope), `InvalidCursorError`, `UpstreamError` (503; may carry the seconds to wait), `unavailable` (a 503 with its `Retry-After` header).
 - `rpc.ts`: `rpcAllowed` (allow-list) and `proxyRpc` (Infura, then Alchemy on a failure or on a quota error, also one inside a 200; a read that Infura has not answered in 60 ms also goes to Alchemy and the first valid answer wins, #399; `eth_sendRawTransaction` and `eth_getTransactionCount` are never hedged).
 - `etherscan.ts`, `history.ts`, `bucket.ts`: `getHistory` calls Etherscan through the `EtherscanBucket` token bucket. `history.ts` is pure: merge, dedupe, order, cursor.
 - `push.ts`: subscribe, unsubscribe, `verifyAlchemySignature`, `notificationsFor` (pure), `handleActivity`, `sweep`.
@@ -197,6 +198,7 @@ Decisions Q26, Q50, Q56, Q69 (#315, ADR-0024). One rule for all of it: no addres
 `docs/openapi/v1.json` is generated from the zod routes (`pnpm --filter @vaultme/api openapi`). CI fails if it is stale (`openapi:check`).
 
 - Error body: `{code, message, retryable}`. `code` comes from `ERROR_CODES` in `contracts`. The app maps an unknown code to `Unknown`.
+- `Retry-After`: every `429` and every retryable `503` has it, as whole seconds from 1 to 86,400 (CORS exposes it; the OpenAPI file declares it). `429`: 60. `503`: 2 for `/v1/rpc`, `/v1/history` and `/v1/tx/internal`, 5 for push (also the Alchemy webhook answer). An `UpstreamError` that carries seconds (planned: the Etherscan daily budget of API-2, unit U2, with the time to 00:00 UTC; no code sets it yet) would set its own value, rounded up and clamped. `api-client` puts it in `ApiError.retryAfterMs`. No client retries by itself (`retry: false`).
 - v1 allows added fields only. A breaking change needs `/v2`.
 - `/v1/rpc` accepts one JSON-RPC request (no batch). Allowed methods are in `RPC_ALLOWED_METHODS`. `eth_call` only for USDC `balanceOf`. `eth_getBlockByNumber` only without full transactions. `eth_getTransactionByHash` only with one 32-byte hash. Upstream order: Infura, Alchemy, 5 s timeout; a read still open after 60 ms also goes to Alchemy (not for `eth_sendRawTransaction` or push.ts, #399). A JSON-RPC error inside a 200 is returned as is.
 - `/webhooks/alchemy` is outside `/v1` and is not in the OpenAPI file. It uses an HMAC, not a token.
@@ -226,13 +228,13 @@ Local:
   - From `apps/mobile`: `npx expo prebuild --clean`, then `npx expo run:ios` or `npx expo run:android`. The URL scheme is `vaultme`.
   - Set `EXPO_PUBLIC_API_URL` for the real API. Without it the fake chain is used. `pnpm staging <script>` (for example `pnpm staging ios`) sets the staging API; the EAS `development` profile in `apps/mobile/eas.json` sets it too.
   - Set `LANG` and `LC_ALL` to `en_US.UTF-8` for CocoaPods. Use JDK 17 to 21 for Android (not 26).
-  - The iOS simulator cannot save the phrase: it has no device passcode. Test wallet creation on a real device, or on an Android emulator with a PIN.
+  - A simulator or emulator saves the phrase once OS auth is enrolled: Face ID on the iOS simulator, a PIN and a fingerprint on the Android emulator (steps in `apps/mobile/AGENTS.md`, ADR-0016). The Maestro flow `apps/mobile/.maestro/flows/create.yaml` creates a wallet on an iOS simulator (`e2e.yml`) and on an Android emulator (`release.yml`).
 
 CI (`.github/workflows`):
 
 - `ci.yml`, on pull request and push to `main`: job `repo-rules` runs `scripts/check-repo-rules.sh` (R1 to R17). Job `verify` runs `prettier --check .`, `pnpm turbo run typecheck lint test`, the API reorg tests (`test:reorg`, Foundry), `openapi:check`, an `oasdiff` breaking-change check of `docs/openapi/v1.json` against the PR base (pull requests only), `pnpm knip` and the mobile `export:check` (`turbo boundaries` and `expo-doctor` only report). Job `web` builds `apps/web` and runs Playwright with axe and Lighthouse CI against `wrangler dev` (ADR-0012).
-- `api-staging.yml`, on push to `main` that touches the API (and by hand): in the GitHub Environment `staging`, applies D1 migrations, runs `wrangler deploy --env staging`, then checks `/v1/health` and runs `pnpm --filter @vaultme/perf run smoke`: a signed install, one balance read (ETH and USDC) and one history read of the public Sepolia USDC contract.
-- `web-staging.yml`, on push to `main` that touches `apps/web` or the packages it uses (and by hand): job `gate` repeats the `web` checks, then `deploy` publishes `vaultme-web-staging` at `vaultme-staging.stack-line.dev`.
+- `api-staging.yml`, on push to `main` that touches the API (and by hand): in the GitHub Environment `staging`, applies D1 migrations, runs `wrangler deploy --env staging`, then checks `/v1/health` and runs `pnpm --filter @vaultme/perf run smoke`: a signed install, one balance read (ETH and USDC) and one history read of the public Sepolia USDC contract. If the smoke fails after the deploy, the job rolls back to the version that was live before it and runs the smoke again (ADR-0044; the input `rollback_drill` runs this on purpose).
+- `web-staging.yml`, on push to `main` that touches `apps/web` or the packages it uses (and by hand): job `gate` repeats the `web` checks, then `deploy` publishes `vaultme-web-staging` at `vaultme-staging.stack-line.dev` and runs `apps/web/e2e-staging/smoke.sh`; a failed smoke rolls back like the API (ADR-0044).
 - `claude-code-review.yml`: Claude reviews a PR once when it is opened as non-draft or marked ready, and again when the owner adds the `review` label. It uses the `vaultme-pr-review` skill and `REVIEW.md`, read from the PR base. Auth: `claude -p` with `ANTHROPIC_API_KEY` (API credits) first, then `claude-code-action` with `CLAUDE_CODE_OAUTH_TOKEN` when no summary comment (marker `<!-- ai-review:<sha> -->`) exists for the head SHA. `review-learn.yml` collects review findings weekly (Monday) for the learning loop in `REVIEW.md`.
 - `pr-description.yml`, on pull request: `check` (body 3,500 characters or less, `Closes #N`). `figma-comparison` (light and dark app-vs-Figma images for each changed screen).
 

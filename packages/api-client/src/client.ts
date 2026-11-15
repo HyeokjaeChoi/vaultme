@@ -69,14 +69,18 @@ const randomNonce = (): string => b64u(crypto.getRandomValues(new Uint8Array(16)
 
 const unknown = (m: string, status = 0) => new ApiError('Unknown', status, false, m)
 
-function toApiError(status: number, json: unknown): ApiError {
+/** `Retry-After` as ms. Only whole seconds from 1 (what our API sends): an HTTP date, 0 or anything else counts as no hint. */
+const retryAfterMs = (header: string | null): number | undefined =>
+  header !== null && /^[1-9]\d{0,5}$/.test(header) ? Number(header) * 1000 : undefined
+
+function toApiError(status: number, json: unknown, wait?: number): ApiError {
   const env = ErrorEnvelope.safeParse(json)
-  if (env.success) return new ApiError(env.data.code, status, env.data.retryable, env.data.message)
-  if (status === 426) return new ApiError('update_required', status, false, 'update required')
+  if (env.success) return new ApiError(env.data.code, status, env.data.retryable, env.data.message, wait)
+  if (status === 426) return new ApiError('update_required', status, false, 'update required', wait)
   const retryable =
     typeof (json as { retryable?: unknown } | null)?.retryable === 'boolean' &&
     (json as { retryable: boolean }).retryable
-  return new ApiError('Unknown', status, retryable, 'unknown error')
+  return new ApiError('Unknown', status, retryable, 'unknown error', wait)
 }
 
 function parseWith<T>(parse: (v: unknown) => T, json: unknown): T {
@@ -117,7 +121,7 @@ export function createApiClient(d: ApiDeps) {
       json = undefined
     }
     if (!res.ok) {
-      const err = toApiError(res.status, json)
+      const err = toApiError(res.status, json, retryAfterMs(res.headers.get('Retry-After')))
       if (err.code === 'update_required') d.onUpdateRequired?.()
       throw err
     }
