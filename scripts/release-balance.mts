@@ -3,7 +3,7 @@
 // reads both balances over a public Sepolia RPC (eth_getBalance and ERC-20 balanceOf by eth_call). Prints the addresses and balances
 // only, never the phrase (the first tag run shows B's address to fund). Exit 1 on short funds or a bad phrase.
 // Env: E2E_RELEASE_PHRASE, MIN_ETH (default 0.01), MIN_USDC (default 1), SEPOLIA_RPC_URL. A dry run does not run this script (release.yml).
-import { ASSETS } from '../packages/wallet-core/src/constants.ts'
+import { ASSETS, CHAIN } from '../packages/wallet-core/src/constants.ts'
 import { releaseWallets } from './release-wallets.mts'
 
 const fail = (msg: string): never => {
@@ -39,6 +39,35 @@ const units = (v: string, decimals: number): bigint => {
 }
 const show = (v: bigint, decimals: number) =>
   `${v / 10n ** BigInt(decimals)}.${(v % 10n ** BigInt(decimals)).toString().padStart(decimals, '0')}`
+
+// CHAIN-7: the constants of the app are right on the chain itself (a wrong USDC address or chain id would sign or show the wrong token).
+const word = (hex: bigint) => BigInt(hex)
+const text = (raw: string) =>
+  Buffer.from(raw.slice(2), 'hex')
+    .toString('utf8')
+    .replace(/[^\x20-\x7e]/g, '')
+    .trim()
+const rawCall = async (method: string, params: unknown[]): Promise<string> => {
+  const res = await fetch(rpc, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    signal: AbortSignal.timeout(15_000),
+  })
+  const body = (await res.json()) as { result?: unknown }
+  return typeof body.result === 'string' ? body.result : fail(`Sepolia RPC ${method} gave no answer`)
+}
+const chainId = word(BigInt(await rawCall('eth_chainId', [])))
+if (chainId !== BigInt(CHAIN.id)) fail(`eth_chainId is ${chainId}, the app expects ${CHAIN.id} (Sepolia)`)
+const decimals = word(BigInt(await rawCall('eth_call', [{ to: ASSETS.USDC.address, data: '0x313ce567' }, 'latest'])))
+if (decimals !== BigInt(ASSETS.USDC.decimals))
+  fail(`USDC decimals() is ${decimals}, the app expects ${ASSETS.USDC.decimals}`)
+// symbol() returns an ABI string: offset, length, bytes
+const symbol = text(
+  `0x${(await rawCall('eth_call', [{ to: ASSETS.USDC.address, data: '0x95d89b41' }, 'latest'])).slice(2 + 128)}`,
+)
+if (symbol !== 'USDC') fail(`USDC symbol() is '${symbol}', the app expects 'USDC'`)
+console.log(`Chain constants checked on chain: chain id ${chainId}, USDC decimals ${decimals}, symbol ${symbol}.`)
 
 const minEth = units(process.env.MIN_ETH ?? '0.01', ASSETS.ETH.decimals)
 const minUsdc = units(process.env.MIN_USDC ?? '1', ASSETS.USDC.decimals)
