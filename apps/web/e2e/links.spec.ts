@@ -27,6 +27,12 @@ test('every internal link of every page answers 200', async ({ page, request, ba
   for (const path of pages) {
     await page.goto(path)
     await page.waitForLoadState('networkidle')
+    // A data page is read only once its data links are there (a history row, or the way back from a transaction).
+    if (path.includes('#'))
+      await page
+        .locator(path.includes('/tx#') ? 'main a[href*="address"]' : 'main a[href*="/tx"]:visible')
+        .first()
+        .waitFor()
     const hrefs = await page.locator('a[href]').evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).href))
     for (const href of hrefs) {
       const url = new URL(href)
