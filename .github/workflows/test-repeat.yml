@@ -1,0 +1,50 @@
+name: test-repeat
+
+# FLK-2 (docs/plans/quality-gates.md): every unit test runs 10 times in random order, once a week. A flaky test fails here
+# and opens (or updates) one `flaky` issue, instead of failing a random PR. Vitest prints the shuffle seed at the start of
+# each package run; rerun a failure with `vitest run --sequence.shuffle --sequence.seed=<seed>`.
+# Not 100 repeats: one Workers isolate that repeats a whole file 100 times hits the workerd limit of 10,000 active timers.
+on:
+  schedule:
+    # Tuesday 03:37 UTC. Not at the start of an hour (GitHub delays or drops scheduled runs at :00), and not on Monday, where the other weekly jobs run.
+    - cron: '37 3 * * 2'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # `--continue`: one failing package must not hide the failures of the others. Coverage is off: this run looks for flakes, and the PR run already enforces the coverage floors. The extra arguments change the turbo hash, so no cached result is replayed.
+      - run: pnpm turbo run test --continue -- --repeats 10 --sequence.shuffle --coverage.enabled=false
+
+  # A failed weekly run opens an issue (or comments on the open one), so it is not left only in the Actions tab (same pattern as osv-scanner.yml, FLAKY-1).
+  alert:
+    needs: repeat
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the flaky-test issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'flaky: weekly repeated unit tests failed'
+        run: |
+          gh label create flaky --repo "$GITHUB_REPOSITORY" --description 'A test that fails and passes without a code change' --color FBCA04 2>/dev/null || true
+          body="The weekly run of every unit test with --repeats 10 --sequence.shuffle failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Find the failing tests and the shuffle seed in the log of the repeat job (FLK-2)."
+          n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label flaky --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
+          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body "$body"; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --label flaky --body "$body"; fi
