@@ -30,7 +30,9 @@ jobs:
       issues: read
       id-token: write # Claude app token; the issue, push and PR use it (scripts/review-learn-pr.sh)
     env:
-      ALLOWED_TOOLS: Read,Glob,Grep,Edit,Write,Bash(./scripts/check-repo-rules.sh),Bash(scripts/review-learn-pr.sh),Bash(./scripts/review-learn-pr.sh),Bash(pnpm turbo run:*),Bash(pnpm --filter:*)
+      # Stage 1 has no app token and must not run the script (it deletes .review-learn before it fails); stage 2 may.
+      TOOLS_API: Read,Glob,Grep,Edit,Write,Bash(./scripts/check-repo-rules.sh),Bash(pnpm turbo run:*),Bash(pnpm --filter:*)
+      TOOLS_FALLBACK: Read,Glob,Grep,Edit,Write,Bash(./scripts/check-repo-rules.sh),Bash(scripts/review-learn-pr.sh),Bash(./scripts/review-learn-pr.sh),Bash(pnpm turbo run:*),Bash(pnpm --filter:*)
       # The same loop for both stages; each stage adds its own last sentence (who opens the proposal).
       LEARN_PROMPT: |
         Run the VaultMe review learning loop. Read REVIEW.md, AGENTS.md ("Enforced rules"), docs/agents/workflow.md
@@ -106,18 +108,21 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1' # see claude-code-review.yml (issue #133)
+          CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1' # commands do not get the API key (docs: env-vars)
         run: |
           test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; exit 1; }
           claude -p "$LEARN_PROMPT
           Do not run scripts/review-learn-pr.sh: a later workflow step opens the proposal." \
             --model opus \
-            --allowedTools "$ALLOWED_TOOLS" \
+            --allowedTools "$TOOLS_API" \
             --output-format json > "$RUNNER_TEMP/result.json" || true
           jq '{is_error, subtype, num_turns, total_cost_usd}' "$RUNNER_TEMP/result.json"
           jq -r '.result // ""' "$RUNNER_TEMP/result.json" >> "$GITHUB_STEP_SUMMARY" || true
           jq -e '.is_error == false' "$RUNNER_TEMP/result.json" >/dev/null
       # The Claude app token is only available inside claude-code-action, so this step runs the script through it.
-      # One short haiku turn, and only when stage 1 wrote a proposal.
+      # One short haiku turn, and only when stage 1 wrote a proposal. It still needs the subscription: if that quota is
+      # used up the job fails and the next weekly run tries again. Remove this step when the CLI can use the Claude app
+      # token or the repo has its own GitHub App token (owner secret).
       - name: Open the proposal (app token)
         if: steps.api.outcome == 'success' && hashFiles('.review-learn/title.txt') != ''
         uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
@@ -145,7 +150,7 @@ jobs:
           display_report: true
           prompt: |
             ${{ env.LEARN_PROMPT }}
-            Then run scripts/review-learn-pr.sh.
+            If you wrote .review-learn/title.txt, run scripts/review-learn-pr.sh. Otherwise stop.
           claude_args: |
-            --allowedTools "${{ env.ALLOWED_TOOLS }}"
+            --allowedTools "${{ env.TOOLS_FALLBACK }}"
             --model opus

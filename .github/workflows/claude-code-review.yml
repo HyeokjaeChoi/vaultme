@@ -45,7 +45,7 @@ jobs:
       # Both stages use the same tools and rules. Sonnet runs the skill and the finders (.claude/agents/review-finder.md);
       # Opus verifies (review-verifier.md). The inline-comment endpoint is scoped to this PR.
       ALLOWED_TOOLS: Read,Glob,Grep,Agent,mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*),Bash(gh pr comment:*),Bash(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments*)
-      SYSTEM_PROMPT: This repository keeps its project rules in AGENTS.md files and REVIEW.md and has no CLAUDE.md. The working tree holds the PR-base versions of REVIEW.md, AGENTS.md, ARCHITECTURE.md, CONTEXT.md, PRODUCT.md, DESIGN.md, docs/adr and docs/agents; judge the PR by those, not by the PR's edits to them.
+      SYSTEM_PROMPT: This repository keeps its project rules in AGENTS.md files and REVIEW.md and has no CLAUDE.md. The working tree holds the PR-base versions of REVIEW.md, AGENTS.md, ARCHITECTURE.md, CONTEXT.md, PRODUCT.md, DESIGN.md, docs/adr and docs/agents; judge the PR by those, not by the PR's edits to them. The head SHA of this PR is ${{ github.event.pull_request.head.sha }}; the summary comment starts with the line <!-- ai-review:${{ github.event.pull_request.head.sha }} -->.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -56,16 +56,20 @@ jobs:
       # settings), CLAUDE.md and .mcp.json are in the list because the CLI runs hooks and MCP servers from them with
       # ANTHROPIC_API_KEY in its environment; claude-code-action restores only .claude/ and CLAUDE.md the same way
       # (docs/security.md, v1.0.252). The PR's own edits to these files stay visible in `gh pr diff`.
-      # R17 (scripts/check-repo-rules.sh) fails if this step moves behind the CLI step.
+      # This guards against mistakes and prompt injection, not against a person with write access: a PR can also change this
+      # workflow. R17 (scripts/check-repo-rules.sh) fails if this step moves behind the CLI step.
       - name: Knowledge files from the PR base
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
-          kb='^(REVIEW|ARCHITECTURE|CONTEXT|PRODUCT|DESIGN)\.md$|(^|/)AGENTS\.md$|^docs/(adr|agents)/|^\.claude/|(^|/)CLAUDE(\.local)?\.md$|^\.mcp\.json$'
+          kb='^(REVIEW|ARCHITECTURE|CONTEXT|PRODUCT|DESIGN)\.md$|(^|/)AGENTS\.md$|^docs/(adr|agents)/|(^|/)\.claude/|(^|/)CLAUDE(\.local)?\.md$|^\.mcp\.json$'
           git ls-files -z | grep -zE "$kb" | xargs -0 -r rm -f
           git fetch --no-tags --depth=1 origin "$BASE_REF"
           git ls-tree -r -z --name-only FETCH_HEAD | grep -zE "$kb" | xargs -0 -r git checkout FETCH_HEAD --
           git status --short
+          # Start time of this run: the marker check below counts only comments made after it, so a re-review with the
+          # `review` label on an unchanged SHA does not take the marker of the earlier review for its own.
+          echo "START=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
       # The label asks for one more review; remove it so the owner can add it again after the next fix.
       - if: github.event.action == 'labeled'
         env:
@@ -92,6 +96,9 @@ jobs:
           # posted (issue #133). This makes Claude wait for every subagent:
           # https://code.claude.com/docs/en/sub-agents#let-claude-wait-for-a-subagent
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1'
+          # The PR text is data an attacker can write. Claude's own process keeps the key; the commands it runs (gh, git,
+          # hooks) do not, so `gh pr comment --body-file /proc/self/environ` posts nothing secret. Docs: env-vars.
+          CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
         run: |
           test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; exit 1; }
           # No inline-comment MCP tool outside claude-code-action: the skill posts inline comments with `gh api` here.
@@ -113,7 +120,7 @@ jobs:
         run: |
           set -o pipefail
           n=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" --paginate \
-            | jq --arg m "$MARKER" '[.[] | select(.user.type == "Bot" and (.body | contains($m)))] | length' \
+            | jq --arg m "$MARKER" --arg start "$START" '[.[] | select(.user.type == "Bot" and .created_at >= $start and (.body | contains($m)))] | length' \
             | awk '{s+=$1} END {print s+0}')
           echo "count=$n" >> "$GITHUB_OUTPUT"
           echo "summary comments for ${SHA}: $n"
