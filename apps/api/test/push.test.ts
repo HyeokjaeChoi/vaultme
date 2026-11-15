@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:workers'
 import { USDC_SEPOLIA } from '@vaultme/contracts'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { app } from '../src/app.ts'
 import { b64uEncode, issueToken, nowSeconds } from '../src/auth.ts'
 import { PUSH_INACTIVE_SECONDS, sweep } from '../src/push.ts'
@@ -866,11 +866,14 @@ describe('observability (#315)', () => {
 
   it('labels an Expo error it does not know as `other`, in the data point and the log (Expo text is not ours)', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
-    const odd = `bad ${TOKEN}`
+    // The marker must not be hex text: every log line carries a random UUID request id, and a marker such as `bad` sat in one about 1 run in 55 (#344).
+    const odd = `leaky-expo-text ${TOKEN}`
     expoReply = () => new Response(JSON.stringify({ data: [{ status: 'error', details: { error: odd } }] }))
+    const uuid = vi.spyOn(crypto, 'randomUUID').mockReturnValue('badbadba-dbad-4bad-8bad-badbadbadbad') // the worst-case id, so a hex marker fails every run
+    onTestFinished(() => uuid.mockRestore()) // runs on a failure too: the stub must not reach later tests
     await hook(activity([eth()]))
     expect(pointsOf('push_ticket')).toEqual([{ indexes: ['push_ticket'], blobs: ['other'], doubles: [1] }])
-    expect(JSON.stringify(logged(log))).not.toContain('bad')
+    expect(JSON.stringify(logged(log))).not.toContain('leaky-expo-text')
     expoReply = () => new Response(JSON.stringify({ data: [{ status: 'ok', id: 'r1' }] }))
     await hook(activity([eth({ hash: '0x' + '22'.repeat(32) })]))
     await E.DB.prepare('UPDATE push_receipts SET created_at = created_at - ?')
@@ -879,5 +882,6 @@ describe('observability (#315)', () => {
     receiptsReply = () => new Response(JSON.stringify({ data: { r1: { status: 'error', details: { error: odd } } } }))
     await sweep(E)
     expect(pointsOf('push_receipt')).toEqual([{ indexes: ['push_receipt'], blobs: ['other'], doubles: [1] }])
+    expect(JSON.stringify(logged(log))).not.toContain('leaky-expo-text') // the receipt path logs no Expo text either
   })
 })

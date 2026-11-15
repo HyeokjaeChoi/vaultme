@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { analyticsToken, fillHeaders, finalize, inlineScriptHashes } from '../scripts/finalize.ts'
+import { analyticsToken, apiOrigin, fillHeaders, finalize, inlineScriptHashes } from '../scripts/finalize.ts'
 
 // sha256 of "a", base64
 const HASH_A = "'sha256-ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs='"
@@ -83,6 +83,24 @@ describe('finalize', () => {
     expect(() => finalize(build(), { WEB_API_ORIGIN: "http://x; script-src 'unsafe-inline'" })).toThrow('https origin')
   })
 
+  // #492: the default origin is the staging API. A production build must name its own, or it would read staging.
+  it('refuses a production build that would call the staging API', () => {
+    const staging = 'https://vaultme-api-staging.gurwo1007.workers.dev'
+    const production = { WEB_ENV: 'production' }
+    expect(() => apiOrigin(production)).toThrow('staging API') // vite.config.ts calls this when the build starts
+    const dir = build()
+    expect(() => finalize(dir, production)).toThrow('staging API') // WEB_API_ORIGIN unset
+    expect(existsSync(join(dir, '404/index.html'))).toBe(true) // it threw before it renamed or deleted anything
+    expect(existsSync(join(dir, 'index.html'))).toBe(true)
+    expect(() => finalize(build(), { ...production, WEB_API_ORIGIN: staging })).toThrow('staging API')
+    expect(() => apiOrigin({ ...production, WEB_API_ORIGIN: staging.toUpperCase() })).toThrow('staging API') // host names ignore case
+    expect(() => apiOrigin({ ...production, WEB_API_ORIGIN: `${staging}.` })).toThrow('staging API') // a trailing dot is the same host
+    expect(apiOrigin({ ...production, WEB_API_ORIGIN: 'https://api.vaultme.stack-line.dev' })).toBe(
+      'https://api.vaultme.stack-line.dev',
+    )
+    expect(apiOrigin({})).toBe(staging) // staging and local builds keep the default
+  })
+
   it('accepts no analytics token or a 32-hex one, and rejects anything else', () => {
     expect(analyticsToken({})).toBe('')
     expect(analyticsToken({ WEB_ANALYTICS_TOKEN: 'a'.repeat(32) })).toBe('a'.repeat(32))
@@ -105,7 +123,11 @@ describe('finalize', () => {
 
   it('never adds the beacon to a production build', () => {
     const dir = build()
-    finalize(dir, { WEB_ENV: 'production', WEB_ANALYTICS_TOKEN: 'a'.repeat(32) })
+    finalize(dir, {
+      WEB_ENV: 'production',
+      WEB_API_ORIGIN: 'https://api.vaultme.stack-line.dev', // a production build has its own API (#492)
+      WEB_ANALYTICS_TOKEN: 'a'.repeat(32),
+    })
     expect(readFileSync(join(dir, '404.html'), 'utf8')).not.toContain('cloudflareinsights')
   })
 

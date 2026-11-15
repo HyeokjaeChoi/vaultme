@@ -11,10 +11,18 @@ import { fileURLToPath } from 'node:url'
 const MAX_HEADER_LINE = 2000 // Workers Static Assets limit per _headers line
 const STAGING_API_ORIGIN = 'https://vaultme-api-staging.gurwo1007.workers.dev'
 
-/** The API origin of a build: WEB_API_ORIGIN, default the staging API. The app calls it (vite.config.ts) and the CSP allows it. */
+/**
+ * The API origin of a build: WEB_API_ORIGIN, default the staging API. The app calls it (vite.config.ts) and the CSP allows it.
+ * A production build never gets the staging API, by default or by name: it would read staging data (#492, ADR-0025).
+ */
 export function apiOrigin(env: Record<string, string | undefined> = process.env): string {
   const origin = env.WEB_API_ORIGIN ?? STAGING_API_ORIGIN
   if (!/^https:\/\/[a-z0-9.-]+$/i.test(origin)) throw new Error(`WEB_API_ORIGIN must be an https origin, got ${origin}`)
+  // Host names ignore case, and a trailing dot names the same host.
+  if (env.WEB_ENV === 'production' && origin.toLowerCase().replace(/\.$/, '') === STAGING_API_ORIGIN)
+    throw new Error(
+      'A production build needs WEB_API_ORIGIN set to the production API, not unset and not the staging API',
+    )
   return origin
 }
 
@@ -83,6 +91,7 @@ function htmlFiles(dir: string): string[] {
 
 /** Staging and local builds are noindex; only WEB_ENV=production serves indexable pages. */
 export function finalize(dir: string, env: Record<string, string | undefined> = process.env) {
+  const api = apiOrigin(env) // first: a wrong origin must fail before any file changes (#492)
   for (const prefix of ['', 'en']) {
     const from = join(dir, prefix, '404', 'index.html')
     if (!existsSync(from)) throw new Error(`missing prerendered ${from}`)
@@ -110,7 +119,7 @@ export function finalize(dir: string, env: Record<string, string | undefined> = 
     }
   const hashes = [...new Set(htmlFiles(dir).flatMap((f) => inlineScriptHashes(readFileSync(f, 'utf8'))))]
   const headers = join(dir, '_headers')
-  const options = { scriptHashes: hashes, apiOrigin: apiOrigin(env), noindex: env.WEB_ENV !== 'production' }
+  const options = { scriptHashes: hashes, apiOrigin: api, noindex: env.WEB_ENV !== 'production' }
   writeFileSync(headers, fillHeaders(readFileSync(headers, 'utf8'), options))
 }
 

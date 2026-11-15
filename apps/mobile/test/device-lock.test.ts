@@ -38,7 +38,15 @@ vi.mock('expo-intent-launcher', () => ({
 import * as LA from 'expo-local-authentication'
 import { classifySaveFailure, deviceLockSet } from '@/shared/auth'
 
-beforeEach(() => vi.mocked(LA.getEnrolledLevelAsync).mockReset())
+beforeEach(() => {
+  vi.mocked(LA.getEnrolledLevelAsync).mockReset()
+  // The tests below leave these behind (the last one sets iOS): reset them, or the next repeat starts in the wrong state.
+  os.value = 'android'
+  hooks.state = null
+  hooks.cleanup = null
+  appState.handler = null
+  appState.removed = false
+})
 
 describe('deviceLockSet', () => {
   it('says true when the OS does not answer within 3 s (#386: the restore grid stayed hidden on CI)', async () => {
@@ -98,7 +106,6 @@ describe('useDeviceLock', () => {
   })
   it('an older check that finishes late does not replace the newest answer', async () => {
     const { useDeviceLock } = await import('@/shared/lib/useDeviceLock')
-    hooks.state = null
     let slow!: (n: number) => void
     vi.mocked(LA.getEnrolledLevelAsync).mockReturnValueOnce(new Promise<number>((r) => (slow = r)))
     const r = useDeviceLock() // mount check: pending
