@@ -11,12 +11,13 @@ Status: Accepted (2026-11-16, issue #318, owner decision 12 of `docs/plans/quali
 
 ## Decision
 
-- On cold start, when the kv store is open, `useDeviceCheckBoot` (`features/device-check`) calls `JailMonkey.isJailBroken()`. If it is `true` and the warning was not shown before, the app saves `device.warningShown` and opens B-S92 once.
+- On cold start, when the kv store is open and the `/` → `/home` redirect is done, `useDeviceCheckBoot` (`features/device-check`) calls `JailMonkey.isJailBroken()`. If it is `true` and the warning was not shown before, the app opens B-S92 and then saves `device.warningShown`. A push that throws is not saved and not shown; the app goes on.
 - The warning never blocks: no lock, no limit, no feature switched off. The button closes the screen.
 - A check that throws, or says `false`, shows nothing and is tried again at the next launch. The warning is not repeated after it was shown once.
 - No copy says the device was "checked": the S60 row keeps no "확인됨" value, because the check can miss.
 - The decision logic is `shouldWarnDevice` (pure). Its test covers every branch (100 %).
-- A PR that ships a new native module needs a new dev-client build; SEC-11 (`native-config.test.ts`) fails if jail-monkey adds an Android permission that is not in `apps/mobile/android-permissions.allow`.
+- E2E builds set `EXPO_PUBLIC_E2E=1` (`.maestro/build-android.sh`, `build-ios.sh`) and skip the check: on the Android `google_apis` emulator jail-monkey reports test keys and `ro.debuggable`, and the critical flows must reach the start screen.
+- A new native module needs a new dev-client build. SEC-11 (`native-config.test.ts`, unit U6 PR 2) fails if the merged Android manifest gets a permission that is not in `apps/mobile/android-permissions.allow`.
 
 ## Consequences
 
