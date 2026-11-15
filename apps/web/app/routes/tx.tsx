@@ -152,6 +152,14 @@ function Detail({
     retried.current = false
     if (document.activeElement === null || document.activeElement === document.body) section.current?.focus()
   })
+  // The loading state has its own copy button for the hash; it is replaced by the detail's. A focus that was inside the section is
+  // lost with it (focus falls to <body>), so it goes to the section, as after Try again.
+  const focusInside = useRef(false)
+  useEffect(() => {
+    if (tx.status !== 'ok' || !focusInside.current) return
+    focusInside.current = false
+    if (document.activeElement === null || document.activeElement === document.body) section.current?.focus()
+  }, [tx.status])
   const again = (label: string) => (
     <Button
       variant="secondaryMd"
@@ -171,6 +179,10 @@ function Detail({
       tabIndex={-1}
       aria-label={x.title}
       aria-busy={tx.status === 'loading'}
+      onFocusCapture={() => (focusInside.current = true)}
+      onBlurCapture={(e) => {
+        if (e.relatedTarget) focusInside.current = false // moved elsewhere on purpose; a removed button gives no relatedTarget
+      }}
       className="flex flex-col gap-6"
     >
       {tx.status === 'loading' && <TxSkeleton t={x} share={share} hash={hash} />}

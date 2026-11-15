@@ -268,6 +268,13 @@ describe('transaction page', () => {
     })
   })
 
+  it('focus on the loading copy button stays in the page when the detail replaces it', async () => {
+    open(`/tx#${H}`)
+    screen.getByRole('button', { name: /해시/ }).focus()
+    await screen.findByText('확정')
+    expect(document.body).not.toHaveFocus()
+  })
+
   it('copies an address and the hash', async () => {
     const writeText = vi.fn(() => Promise.resolve())
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
