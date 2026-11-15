@@ -2,63 +2,79 @@
 appId: dev.stackline.vaultme
 ---
 - tapOn: '기존 지갑 복구'
-# Only cell 1 is tapped. After each word the Return key ("next") moves focus to the next cell and Screen scrolls it into view;
-# after word 12 Return ("done") closes the keyboard. Tapping the description text to close the keyboard does not work (#424
-# run 41953979353: the keyboard stays up, and cell 12 sits under the footer so a tap on it hit cell 11, run 41932921187).
+# Only cell 1 is tapped here; type-word.yaml moves to each next cell and explains why (MOB-1, #424).
 - extendedWaitUntil:
     visible: '1번째 단어'
     timeout: 15000
 - tapOn: '1번째 단어'
 - waitForAnimationToEnd:
     timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'abandon'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
-- inputText: 'about'
-- pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 1
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 2
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 3
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 4
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 5
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 6
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 7
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 8
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 9
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 10
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 11
+      WORD: 'abandon'
+- runFlow:
+    file: type-word.yaml
+    env:
+      N: 12
+      WORD: 'about'
+# 복구 stays off until all 12 words are valid: wait for it to turn on, so a wrong word fails here and not 30 s later.
+- extendedWaitUntil:
+    visible:
+      text: '복구'
+      enabled: true
+    timeout: 10000
 - tapOn: '복구'
 # Restore derives the BIP39 seed (PBKDF2), writes the Keychain and asks device auth: it can take longer than the 7 s assertVisible default
 # on the CI simulator (Maestro docs: extendedWaitUntil is for waits longer than 7 s).
