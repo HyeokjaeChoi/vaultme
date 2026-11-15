@@ -9,8 +9,10 @@ name: claude-code-review
 # 1. `claude -p` with ANTHROPIC_API_KEY (Console API credits, promo credits included). Calls through claude-code-action
 #    count as "Claude Code use" and get no API promo credits, so the CLI runs directly.
 #    https://support.claude.com/en/articles/17154008
-# 2. claude-code-action with CLAUDE_CODE_OAUTH_TOKEN (subscription quota), only when no review summary exists for the
-#    head SHA (stage 1 had no key, failed, or ended without posting). The summary comment starts with a marker,
+# 2. claude-code-action with CLAUDE_CODE_OAUTH_TOKEN (subscription quota), only when stage 1 had no key (reason
+#    `no-key`) or ended with a used-up credit or a rate limit (reason `quota`), and no review summary exists for the
+#    head SHA. Any other failure (CLI error, timeout, invalid key, a run that ended without posting) fails the job with
+#    its reason and spends no subscription quota (issue #518). The summary comment starts with a marker,
 #    `<!-- ai-review:<head sha> -->`, so the fallback never posts a second summary.
 # Based on https://code.claude.com/docs/en/github-actions#run-a-skill
 on:
@@ -84,7 +86,7 @@ jobs:
         # Same version as claude-code-action v1.0.252 installs (published 2026-10-16, more than 7 days ago).
         run: |
           npm install -g @anthropic-ai/claude-code@2.1.302 >/dev/null
-      # Stage 1. Continues on error: the stage 2 step below decides from the marker comment, not from this result.
+      # Stage 1. Continues on error: the step outputs `reason` (no-key, quota) tell stage 2 whether it may run.
       - name: Review (API credits, claude -p)
         id: api
         if: steps.cli.outcome == 'success'
@@ -98,7 +100,7 @@ jobs:
           # https://code.claude.com/docs/en/sub-agents#let-claude-wait-for-a-subagent
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1'
         run: |
-          test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; exit 1; }
+          test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; echo "reason=no-key" >> "$GITHUB_OUTPUT"; exit 1; }
           # No inline-comment MCP tool outside claude-code-action: the skill posts inline comments with `gh api` here.
           claude -p "/vaultme-pr-review ${PR} --comment" \
             --model sonnet \
@@ -108,7 +110,15 @@ jobs:
           jq '{is_error, subtype, num_turns, total_cost_usd, result: (.result // "" | .[0:600])}' "$RUNNER_TEMP/result.json"
           # Claude's final text in the Step Summary. Trusted input only: fork and bot PRs skip this job.
           jq -r '.result // ""' "$RUNNER_TEMP/result.json" >> "$GITHUB_STEP_SUMMARY" || true
-          jq -e '.is_error == false' "$RUNNER_TEMP/result.json" >/dev/null
+          if ! jq -e '.is_error == false' "$RUNNER_TEMP/result.json" >/dev/null; then
+            # Quota only. `.subtype` is no signal: an invalid key also returns "success". The strings come from the Claude Code
+            # binary ("Credit balance is too low", rate_limit_error, billing_error), not from docs; a real credit failure was
+            # not reproduced. Any other failure sets no reason, so stage 2 stays off and the job fails (issue #518).
+            if jq -e '.is_error == true and ((.result // "") | test("credit balance|rate.?limit|billing_error|\\b429\\b"; "i"))' "$RUNNER_TEMP/result.json" >/dev/null; then
+              echo "reason=quota" >> "$GITHUB_OUTPUT"
+            fi
+            exit 1
+          fi
       # Only a bot comment counts, so a person cannot copy the marker to switch the fallback off.
       - name: Check summary posted
         id: posted
@@ -122,9 +132,10 @@ jobs:
             | awk '{s+=$1} END {print s+0}')
           echo "count=$n" >> "$GITHUB_OUTPUT"
           echo "summary comments for ${SHA}: $n"
-      # Stage 2. Runs when stage 1 left no summary: no key, a failed run, or a run that ended without posting.
+      # Stage 2. Runs when stage 1 left no summary because it had no key or ran out of credit or rate limit.
       - name: Review (subscription fallback)
-        if: steps.posted.outputs.count == '0'
+        id: fallback
+        if: steps.posted.outputs.count == '0' && (steps.api.outputs.reason == 'quota' || steps.api.outputs.reason == 'no-key')
         uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
         env:
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1' # see stage 1 (issue #133)
@@ -137,3 +148,11 @@ jobs:
             --allowedTools "${{ env.ALLOWED_TOOLS }}"
             --append-system-prompt "${{ env.SYSTEM_PROMPT }} Stage 1 of this review may have failed after it posted some inline comments on this head SHA. Read the existing review comments first and do not post a finding that a bot comment already reports."
             --model sonnet
+      # No summary and no fallback review: fail the job, so a missing review is visible and no subscription quota is spent.
+      - name: Require a review
+        if: ${{ !cancelled() && steps.posted.outputs.count == '0' && steps.fallback.outcome != 'success' }}
+        env:
+          REASON: ${{ steps.api.outputs.reason }}
+        run: |
+          echo "::error::No review summary for ${SHA}: CLI install ${{ steps.cli.outcome }}, API step ${{ steps.api.outcome }}, reason '${REASON:-none}'. The subscription fallback runs only for no-key or quota."
+          exit 1

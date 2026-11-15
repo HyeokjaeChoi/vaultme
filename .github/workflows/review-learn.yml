@@ -9,7 +9,9 @@ name: review-learn
 #    https://support.claude.com/en/articles/17154008). GITHUB_TOKEN cannot open PRs here, so stage 1 only edits files and
 #    writes the title and body. Two plain steps then mint a token of the repo's GitHub App (hyeokjae-review-bot, secrets
 #    APP_ID and APP_PRIVATE_KEY) and run scripts/review-learn-pr.sh with it (only in weeks with a proposal, issue #516).
-# 2. claude-code-action with CLAUDE_CODE_OAUTH_TOKEN runs the whole loop when stage 1 had no key or failed.
+# 2. claude-code-action with CLAUDE_CODE_OAUTH_TOKEN runs the whole loop only when stage 1 had no key (reason `no-key`) or
+#    ended with a used-up credit or a rate limit (reason `quota`). Any other failure fails the job and spends no
+#    subscription quota (issue #518).
 # This job runs on the default branch (schedule), so no PR can change .claude/ before the CLI runs.
 on:
   schedule:
@@ -109,7 +111,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1' # see claude-code-review.yml (issue #133)
         run: |
-          test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; exit 1; }
+          test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; echo "reason=no-key" >> "$GITHUB_OUTPUT"; exit 1; }
           claude -p "$LEARN_PROMPT
           Do not run scripts/review-learn-pr.sh: a later workflow step opens the proposal." \
             --model opus \
@@ -117,7 +119,13 @@ jobs:
             --output-format json > "$RUNNER_TEMP/result.json" || true
           jq '{is_error, subtype, num_turns, total_cost_usd}' "$RUNNER_TEMP/result.json"
           jq -r '.result // ""' "$RUNNER_TEMP/result.json" >> "$GITHUB_STEP_SUMMARY" || true
-          jq -e '.is_error == false' "$RUNNER_TEMP/result.json" >/dev/null
+          if ! jq -e '.is_error == false' "$RUNNER_TEMP/result.json" >/dev/null; then
+            # Quota only; same detection as claude-code-review.yml (see the comment there).
+            if jq -e '.is_error == true and ((.result // "") | test("credit balance|rate.?limit|billing_error|\\b429\\b"; "i"))' "$RUNNER_TEMP/result.json" >/dev/null; then
+              echo "reason=quota" >> "$GITHUB_OUTPUT"
+            fi
+            exit 1
+          fi
       # Only when stage 1 wrote a proposal. The token is scoped to this repo and exists only after `claude -p` ended.
       # `client-id` is the documented input; its value is passed on as the App ID, so the numeric App ID in APP_ID works
       # (`app-id` is deprecated). Replace it with the App's Client ID if a later release stops accepting the number.
@@ -136,15 +144,15 @@ jobs:
           # Run the committed copy: `claude -p` can edit scripts/ in the working tree, and this step holds a write token.
           git show HEAD:scripts/review-learn-pr.sh > "$RUNNER_TEMP/review-learn-pr.sh"
           bash "$RUNNER_TEMP/review-learn-pr.sh"
-      # Stage 2. A failed stage 1 may have left half-made edits; start the fallback from a clean tree.
+      # Stage 2. Only for no-key or quota. A failed stage 1 may have left half-made edits; start the fallback from a clean tree.
       - name: Reset the workspace
-        if: steps.collect.outputs.count != '0' && steps.api.outcome != 'success'
+        if: steps.collect.outputs.count != '0' && steps.api.outcome != 'success' && (steps.api.outputs.reason == 'quota' || steps.api.outputs.reason == 'no-key')
         run: |
           git restore --worktree --staged .
           git clean -fd -e .review-learn
           rm -f .review-learn/title.txt .review-learn/body.md
       - name: Learn (subscription fallback)
-        if: steps.collect.outputs.count != '0' && steps.api.outcome != 'success'
+        if: steps.collect.outputs.count != '0' && steps.api.outcome != 'success' && (steps.api.outputs.reason == 'quota' || steps.api.outputs.reason == 'no-key')
         uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
         env:
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1' # see claude-code-review.yml (issue #133)
@@ -157,3 +165,9 @@ jobs:
           claude_args: |
             --allowedTools "${{ env.TOOLS_FALLBACK }}"
             --model opus
+      # Stage 1 failed for another reason than no-key or quota: fail the job, spend no subscription quota.
+      - name: Require stage 1
+        if: ${{ !cancelled() && steps.collect.outputs.count != '0' && steps.api.outcome != 'success' && steps.api.outputs.reason == '' }}
+        run: |
+          echo "::error::The API stage did not finish: CLI install ${{ steps.cli.outcome }}, API step ${{ steps.api.outcome }}. The subscription fallback runs only for no-key or quota."
+          exit 1
