@@ -5,6 +5,8 @@ name: web-staging
 # wrangler dev + Playwright/axe, Lighthouse); `deploy` runs only if it passes. Same GitHub Environment `staging` as
 # api-staging: secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, variable STAGING_API_URL (the CSP connect-src).
 # The deploy needs a token that may edit Workers custom domains and DNS in zone stack-line.dev.
+# When the smoke fails after a successful deploy, `deploy` rolls the Worker back to the version that was live before it and
+# runs the smoke again (DEP-1, ADR-0044).
 on:
   push:
     branches: [main]
@@ -22,6 +24,11 @@ on:
         .github/workflows/web-staging.yml,
       ]
   workflow_dispatch:
+    inputs:
+      rollback_drill:
+        description: 'Drill (DEP-1, ADR-0044): after the deploy, fail the smoke on purpose, roll back, re-check and time it'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -91,6 +98,8 @@ jobs:
     timeout-minutes: 15
     if: github.ref == 'refs/heads/main'
     environment: staging
+    outputs:
+      rollback: ${{ steps.rollback.outcome }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -102,6 +111,16 @@ jobs:
           cache: pnpm
       # Wrangler from the lockfile (7-day release age), not a separate action.
       - run: pnpm install --frozen-lockfile --filter @vaultme/web...
+      # The version that serves traffic now: the rollback target. `deployments list --json` is sorted oldest first.
+      - name: Active version before the deploy
+        id: before
+        run: |
+          prev="$(pnpm --filter @vaultme/web exec wrangler deployments list --env staging --json 2>/dev/null | jq -r 'last | .versions | max_by(.percentage) | .version_id // empty')"
+          echo "version=$prev" >> "$GITHUB_OUTPUT"
+          echo "active version before the deploy: ${prev:-none}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       # WEB_API_ORIGIN goes into the CSP connect-src; WEB_ANALYTICS_TOKEN adds the beacon; builds stay noindex (WEB_ENV unset), ADR-0012.
       - run: pnpm --filter "@vaultme/web..." run build
         env:
@@ -109,41 +128,86 @@ jobs:
           # Cloudflare Web Analytics site vaultme-staging.stack-line.dev (ADR-0012). A public beacon id, not a secret.
           WEB_ANALYTICS_TOKEN: 833254677ed141c3aad48ed2f87f05d9
       # The token is set only on the deploy step, so install and build scripts cannot read it.
-      - run: pnpm --filter @vaultme/web exec wrangler deploy --env staging
+      - id: deploy
+        run: pnpm --filter @vaultme/web exec wrangler deploy --env staging
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Smoke test
+        id: smoke
         env:
           STAGING_API_URL: ${{ vars.STAGING_API_URL }}
           WEB_ANALYTICS_TOKEN: 833254677ed141c3aad48ed2f87f05d9
+        run: apps/web/e2e-staging/smoke.sh
+      # Drill: the smoke above passed, so this step is the only failure. continue-on-error keeps the job green when the
+      # rollback and the re-check pass: the drill run is then the proof.
+      - name: Drill, fail the smoke on purpose
+        id: drill
+        if: inputs.rollback_drill
+        continue-on-error: true
         run: |
-          url=https://vaultme-staging.stack-line.dev
-          # A new custom domain needs a moment for DNS and the certificate: retry the connection.
-          status=$(curl -sS --retry 20 --retry-all-errors --retry-delay 6 -o body.html -D headers.txt -w '%{http_code}' "$url/smoke-no-such-page")
-          cat headers.txt
-          # A missing path answers a real 404 with the page, the security headers and noindex (acceptance of #192).
-          [ "$status" = 404 ] || { echo "expected 404, got $status"; exit 1; }
-          grep -q '404' body.html
-          for h in content-security-policy strict-transport-security x-content-type-options referrer-policy permissions-policy; do
-            grep -qi "^$h:" headers.txt || { echo "missing header $h"; exit 1; }
-          done
-          grep -qi '^x-robots-tag:.*noindex' headers.txt || { echo "missing X-Robots-Tag noindex"; exit 1; }
-          # Web Analytics (ADR-0012): the beacon script is in the page and the CSP allows its script and RUM endpoint.
-          grep -q "static.cloudflareinsights.com/beacon.min.js.*$WEB_ANALYTICS_TOKEN" body.html || { echo "404 page: no Web Analytics beacon"; exit 1; }
-          grep -qi '^content-security-policy:.*script-src[^;]*static.cloudflareinsights.com' headers.txt || { echo "CSP lacks static.cloudflareinsights.com"; exit 1; }
-          grep -qi '^content-security-policy:.*connect-src[^;]*cloudflareinsights.com' headers.txt || { echo "CSP lacks cloudflareinsights.com"; exit 1; }
-          # The viewer and transaction pages are prerendered shells: 200 with no redirect (curl does not follow one), the same headers,
-          # the app script (they hydrate) and the API origin of this build in the CSP. The balance read needs WebCrypto
-          # and IndexedDB, which curl does not have, so a browser checks that after the deploy (e2e uses fixtures).
-          for path in /address /en/address /tx /en/tx; do
-            status=$(curl -sS -o page.html -D page-headers.txt -w '%{http_code}' "$url$path")
-            [ "$status" = 200 ] || { echo "$path: expected 200, got $status"; cat page-headers.txt; exit 1; }
-            for h in content-security-policy strict-transport-security x-content-type-options referrer-policy permissions-policy; do
-              grep -qi "^$h:" page-headers.txt || { echo "$path: missing header $h"; exit 1; }
-            done
-            grep -qi '^x-robots-tag:.*noindex' page-headers.txt || { echo "$path: missing X-Robots-Tag noindex"; exit 1; }
-            grep -qi "^content-security-policy:.*connect-src[^;]*${STAGING_API_URL}" page-headers.txt || { echo "$path: CSP connect-src lacks $STAGING_API_URL"; exit 1; }
-            grep -q "src=\"https://static.cloudflareinsights.com/beacon.min.js\"[^>]*$WEB_ANALYTICS_TOKEN" page.html || { echo "$path: no Web Analytics beacon"; exit 1; }
-            grep -q '__reactRouterContext' page.html || { echo "$path: not the hydrated viewer page"; exit 1; }
-          done
+          echo "::warning::rollback drill: the smoke is failed on purpose"
+          exit 1
+      # Only after a successful deploy: a deploy that failed before the upload never downgrades the live version.
+      - name: Roll back to the version before the deploy
+        id: rollback
+        if: always() && steps.deploy.outcome == 'success' && (failure() || steps.drill.outcome == 'failure')
+        env:
+          PREV: ${{ steps.before.outputs.version }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          : "${PREV:?no version before this deploy: nothing to roll back to, fix forward}"
+          echo "start=$(date +%s)" >> "$GITHUB_OUTPUT"
+          pnpm --filter @vaultme/web exec wrangler rollback "$PREV" --env staging --yes --message "smoke failed, rolled back: $RUN_URL"
+          now="$(pnpm --filter @vaultme/web exec wrangler deployments list --env staging --json 2>/dev/null | jq -r 'last | .versions | max_by(.percentage) | .version_id')"
+          [ "$now" = "$PREV" ] || { echo "active version is $now, expected $PREV"; exit 1; }
+      - name: Re-check after the rollback
+        id: recheck
+        if: always() && steps.rollback.outcome == 'success'
+        env:
+          STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+          WEB_ANALYTICS_TOKEN: 833254677ed141c3aad48ed2f87f05d9
+          START: ${{ steps.rollback.outputs.start }}
+        run: |
+          apps/web/e2e-staging/smoke.sh
+          seconds=$(( $(date +%s) - START ))
+          echo "seconds=$seconds" >> "$GITHUB_OUTPUT"
+          echo "Rolled back and re-checked green in ${seconds} s (limit 120 s)." | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "$seconds" -le 120 ] || { echo "::error::rollback took ${seconds} s, limit 120 s"; exit 1; }
+      # EVID-1 (ADR-0043): the rollback time, as an evidence file.
+      - name: Evidence file
+        if: always() && steps.recheck.outputs.seconds != ''
+        env:
+          SECONDS_TAKEN: ${{ steps.recheck.outputs.seconds }}
+        run: |
+          tool="wrangler $(pnpm --filter @vaultme/web exec wrangler --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+          node packages/perf/src/cli.ts evidence emit --gate DEP-1-web --origin "GitHub Actions, vaultme-web-staging Worker" --tool "$tool" \
+            --out evidence-DEP-1-web.json \
+            --result "{\"metric\":\"Rollback until green re-check, web\",\"value\":$SECONDS_TAKEN,\"unit\":\"s\",\"threshold\":{\"op\":\"<=\",\"value\":120},\"n\":1,\"window\":\"one run\"}"
+      - name: Upload the evidence file
+        if: always() && hashFiles('evidence-DEP-1-web.json') != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-DEP-1-web
+          path: evidence-DEP-1-web.json
+          retention-days: 90
+
+  # A real rollback (not the drill) opens an issue, or comments on the open one: a person fixes forward.
+  alert:
+    needs: deploy
+    if: always() && needs.deploy.outputs.rollback == 'success' && !inputs.rollback_drill
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the rollback issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'deploy: staging web rolled back'
+        run: |
+          body="The post-deploy smoke failed and the staging web Worker was rolled back to the version before the deploy: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (ADR-0044). Migrations stay. Fix forward on main."
+          n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
+          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body "$body"; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$body"; fi
