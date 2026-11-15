@@ -1,7 +1,7 @@
 ---
 name: vaultme-pr-review
 description: Review a VaultMe pull request against its linked issue and REVIEW.md, with code context beyond the diff. Use for "review PR N" in this repo, locally before a PR (docs/agents/workflow.md step 5) and in CI.
-argument-hint: <pr-number> [--comment] [--head <sha>]
+argument-hint: <pr-number> [--comment | --json] [--head <sha>]
 disable-model-invocation: true
 allowed-tools: Bash(git diff:*) Bash(gh pr view:*) Bash(gh pr diff:*) Bash(gh issue view:*) Bash(gh pr comment:*) Bash(gh api repos/HyeokjaeChoi/vaultme/pulls/*/comments*) Read Glob Grep Agent mcp__github_inline_comment__create_inline_comment
 ---
@@ -9,7 +9,8 @@ allowed-tools: Bash(git diff:*) Bash(gh pr view:*) Bash(gh pr diff:*) Bash(gh is
 # VaultMe PR review
 
 Arguments: `$ARGUMENTS`. Review PR `$0`. Post to GitHub only when the arguments include `--comment`; otherwise print
-the report. With `--head <sha>`, review that commit of the PR in the local checkout (an earlier commit, or a local
+the report. With `--json` post nothing: this is the CI stage that holds the API key and has no write path (issue #539).
+Return the review as the structured output the CLI asks for (`summary`, `comments`), see "Report". With `--head <sha>`, review that commit of the PR in the local checkout (an earlier commit, or a local
 branch before you push): take the diff from `git diff origin/main...<sha>` instead of
 `gh pr diff`, and use that SHA in links.
 The review answers two questions: does the PR do what its issue asks, and does it keep the rules in `REVIEW.md`
@@ -50,7 +51,11 @@ keeps.
 
 ## 4. Report
 
-Print, and with `--comment` post:
+Print, and with `--comment` post. With `--json`, put the same content in the structured output instead of posting:
+`comments` has one entry per kept finding (`path`, `line` in the new file, optional `start_line`, `body` in the format
+below); `summary` is the summary comment text without the marker line (the workflow adds the marker and posts everything,
+and it skips a finding that a bot comment already reports at the same place). Never call `gh pr comment` or `gh api`
+in `--json` mode, and never put a key, token or environment value in the output.
 
 - One inline comment per kept finding, with `mcp__github_inline_comment__create_inline_comment` (`confirmed: true`).
   When that tool is not available (the CI stage that runs `claude -p`), use
