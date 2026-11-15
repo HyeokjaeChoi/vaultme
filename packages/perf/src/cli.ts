@@ -4,12 +4,32 @@
 //   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts smoke    (post-deploy: one balance read and one history read; exit 1 on failure)
 //   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha> --origin <text>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the tier-2 limits for api.js)
 //   node packages/perf/src/cli.ts slo-window --runs <dir with the downloaded api-bench artifacts of the window>    (pools the SLO counts, ADR-0036; exit 3 on a breach, so a crash (exit 1) is not one)
+//   node packages/perf/src/cli.ts evidence emit --gate <id> --origin <text> --tool <text> --out <file> (--from hermes=<file> | --from js-budget=<file> | --result '<json>' | --results <file>) [--measured-at <YYYY-MM-DDTHH:MM:SSZ>] [--run <id>]    (a gate job writes its evidence file; --run takes the run from `gh` instead of the Actions environment, to seed an old run)
+//   node packages/perf/src/cli.ts evidence add <file>... [--out docs/results]    (puts evidence files under their canonical path and renders the README)
+//   node packages/perf/src/cli.ts evidence collect --run <id>... [--out docs/results]    (downloads the evidence-* artifacts of runs, checks them against the run, adds them)
+//   node packages/perf/src/cli.ts evidence render [--out docs/results]    (rewrites docs/results/README.md from the files; run it after a rebase, never merge the README by hand)
 //   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text>
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { aggregate, benchTable, limitsJs, MODES, type K6Result } from './bench.ts'
 import { buildBaseline, latencyTable, renderBaseline, type Baseline, type JsBudgetRow } from './baseline.ts'
+import {
+  addEvidence,
+  buildEvidence,
+  checkProvenance,
+  nowUtc,
+  renderDir,
+  runInfoFromEnv,
+  runInfoFromGh,
+  serialize,
+  validateEvidence,
+  type ResultInput,
+} from './evidence.ts'
+import { SOURCES } from './evidence-sources.ts'
 import { sloWindow, windowMarkdown, type Case, type Mode, type SloCount } from './slo.ts'
 import { hermesSizes, readLhrDir, type HermesSizes } from './summarize.ts'
 
@@ -148,6 +168,82 @@ if (cmd === 'hermes') {
   console.log(windowMarkdown(rows, new Set(files.map((f) => dirname(f))).size))
   // 3, not 1: Node exits 1 on an uncaught throw, and api-slo-window.yml must not report a crash as a breach.
   if (rows.some((r) => r.ok === false)) process.exitCode = 3
+} else if (cmd === 'evidence') {
+  const [sub = '', ...args] = rest
+  const resultsDir = fileURLToPath(new URL('../../../docs/results', import.meta.url))
+  const gh = (a: string[]) => execFileSync('gh', a, { encoding: 'utf8' })
+  const ghRun = (id: string) =>
+    runInfoFromGh(JSON.parse(gh(['run', 'view', id, '--json', 'databaseId,headSha,url,workflowName,event'])))
+  if (sub === 'emit') {
+    const { values: v } = parseArgs({
+      args,
+      options: {
+        gate: { type: 'string' },
+        origin: { type: 'string' },
+        tool: { type: 'string' },
+        out: { type: 'string' },
+        from: { type: 'string', multiple: true },
+        result: { type: 'string', multiple: true },
+        results: { type: 'string' },
+        'measured-at': { type: 'string' },
+        run: { type: 'string' },
+      },
+    })
+    if (!v.gate || !v.origin || !v.tool || !v.out)
+      throw new Error('evidence emit: --gate, --origin, --tool and --out are required')
+    const results: ResultInput[] = [
+      ...(v.from ?? []).flatMap((s) => {
+        const [kind = '', file = ''] = s.split('=')
+        const source = SOURCES[kind]
+        if (!source || !file) throw new Error(`evidence emit: --from <${Object.keys(SOURCES).join(' | ')}>=<file>`)
+        return source(readJson(file))
+      }),
+      ...(v.result ?? []).map((s) => JSON.parse(s) as ResultInput),
+      ...(v.results ? (readJson(v.results) as ResultInput[]) : []),
+    ]
+    const e = buildEvidence({
+      ...(v.run ? ghRun(v.run) : runInfoFromEnv(process.env)),
+      gate: v.gate,
+      measuredAt: v['measured-at'] ?? nowUtc(),
+      origin: v.origin,
+      tool: v.tool,
+      results,
+    })
+    writeFileSync(v.out, serialize(e))
+    console.log(`evidence: ${e.gate}, ${String(e.results.length)} result(s), ${v.out}`)
+  } else if (sub === 'add') {
+    const { values: v, positionals } = parseArgs({ args, options: { out: { type: 'string' } }, allowPositionals: true })
+    const dir = v.out ?? resultsDir
+    for (const f of positionals) console.log(`${addEvidence(dir, validateEvidence(readJson(f)))}: ${f}`)
+    renderDir(dir)
+  } else if (sub === 'collect') {
+    const { values: v } = parseArgs({
+      args,
+      options: { run: { type: 'string', multiple: true }, out: { type: 'string' } },
+    })
+    if (!v.run?.length) throw new Error('evidence collect: --run <id> is required (repeatable)')
+    const dir = v.out ?? resultsDir
+    for (const id of v.run) {
+      const run = ghRun(id)
+      const tmp = mkdtempSync(join(tmpdir(), 'evidence-'))
+      gh(['run', 'download', id, '--pattern', 'evidence-*', '--dir', tmp])
+      const found = (readdirSync(tmp, { recursive: true }) as string[]).filter((f) =>
+        /(^|\/)evidence-[^/]*\.json$/.test(f),
+      )
+      if (found.length === 0) throw new Error(`evidence collect: run ${id} has no evidence-*.json artifact`)
+      for (const f of found) {
+        const e = validateEvidence(readJson(join(tmp, f)))
+        checkProvenance(e, run)
+        console.log(`${addEvidence(dir, e)}: ${e.gate} (run ${id})`)
+      }
+    }
+    renderDir(dir)
+  } else if (sub === 'render') {
+    const { values: v } = parseArgs({ args, options: { out: { type: 'string' } } })
+    renderDir(v.out ?? resultsDir)
+  } else {
+    throw new Error('usage: cli.ts evidence emit | add | collect | render')
+  }
 } else {
-  throw new Error('usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window')
+  throw new Error('usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window | evidence')
 }
