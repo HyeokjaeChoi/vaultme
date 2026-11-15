@@ -1,0 +1,8 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    // evidence.test.ts reads docs/results (ADR-0043): turbo must not replay a cached pass after a result file or the README changed.
+    "test": { "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/docs/results/**"] }
+  }
+}
