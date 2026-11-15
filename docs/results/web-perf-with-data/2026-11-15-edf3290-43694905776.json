@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "gate": "web-perf-with-data",
+  "commit": "edf329075848eab7b32eefa2b5ebc2222599b254",
+  "runId": 43694905776,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43694905776",
+  "workflow": "ci",
+  "event": "pull_request",
+  "measuredAt": "2026-11-15T08:31:29Z",
+  "origin": "ci (push), job web, apps/web/e2e/perf.spec.ts",
+  "tool": "Playwright 1.64.1 Chromium, CPU 4x, Lighthouse mobile network",
+  "results": [
+    {
+      "metric": "INP with data, /address",
+      "value": 64,
+      "unit": "ms",
+      "threshold": {
+        "op": "<=",
+        "value": 200
+      },
+      "pass": true,
+      "n": 3,
+      "window": "median of 3"
+    },
+    {
+      "metric": "LCP with data, /address",
+      "value": 2432,
+      "unit": "ms",
+      "threshold": {
+        "op": "<=",
+        "value": 2500
+      },
+      "pass": true,
+      "n": 3,
+      "window": "median of 3"
+    },
+    {
+      "metric": "CLS with data, /address",
+      "value": 0.0066,
+      "unit": "score",
+      "threshold": {
+        "op": "<=",
+        "value": 0.1
+      },
+      "pass": true,
+      "n": 3,
+      "window": "median of 3"
+    },
+    {
+      "metric": "JS gzip with data, /address",
+      "value": 183449,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 153600
+      },
+      "pass": false,
+      "n": 1,
+      "window": "one page load"
+    },
+    {
+      "metric": "INP with data, /tx",
+      "value": 40,
+      "unit": "ms",
+      "threshold": {
+        "op": "<=",
+        "value": 200
+      },
+      "pass": true,
+      "n": 3,
+      "window": "median of 3"
+    },
+    {
+      "metric": "LCP with data, /tx",
+      "value": 4708,
+      "unit": "ms",
+      "threshold": {
+        "op": "<=",
+        "value": 2500
+      },
+      "pass": false,
+      "n": 3,
+      "window": "median of 3"
+    },
+    {
+      "metric": "CLS with data, /tx",
+      "value": 0.0011,
+      "unit": "score",
+      "threshold": {
+        "op": "<=",
+        "value": 0.1
+      },
+      "pass": true,
+      "n": 3,
+      "window": "median of 3"
+    },
+    {
+      "metric": "JS gzip with data, /tx",
+      "value": 181665,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 153600
+      },
+      "pass": false,
+      "n": 1,
+      "window": "one page load"
+    }
+  ]
+}
