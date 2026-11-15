@@ -52,3 +52,27 @@ Start it by hand: `gh workflow run api-bench.yml`.
 The job fails on a case with no 200 response and on our own server time (`rpc` own p95 over `OWN_P95_MS`, ADR-0036). Two tiers ([ADR-0020](../../docs/adr/0020-api-ux-slo-and-regression-watch.md), [docs/perf/slo.md](../../docs/perf/slo.md)), both in `src/slo.ts`, only warn per run: tier 1 is the UX SLO, judged over 4 weeks by `.github/workflows/api-slo-window.yml` (`cli.ts slo-window`, from the per-request good / total counts in each result file); tier 2 is the regression watch (1.5 x the highest calibration p95, `WATCH_P95_MS` in `k6/api.js`).
 
 The older `latency` command (`pnpm --filter @vaultme/perf latency`) stays as the Node measurement behind the baseline until the baseline moves to k6.
+
+## Evidence files ([ADR-0043](../../docs/adr/0043-measured-results-are-committed-as-evidence-files.md))
+
+A gate job writes `evidence-<gate>.json` and uploads it; a normal PR commits it as `docs/results/<gate>/<date>-<sha7>-<runId>.json`. [docs/results/README.md](../../docs/results/README.md) lists every gate with its threshold, last value, commit, run and file. It is generated. `test/evidence.test.ts` fails when it differs from the files, when a file breaks the schema, and when a file is not at its canonical path.
+
+A job adds its file with two steps. The code needs node 24 and a checkout, not `pnpm install`:
+
+```yaml
+- if: ${{ !cancelled() }}
+  run: >
+    node packages/perf/src/cli.ts evidence emit --gate LOAD-1 --origin 'GitHub ubuntu-latest, staging API'
+    --tool 'k6@2.3.0' --out evidence-LOAD-1.json
+    --result '{"metric":"own time p95","value":31.2,"unit":"ms","threshold":{"op":"<=","value":50},"n":360,"window":"one run"}'
+- if: ${{ !cancelled() }}
+  uses: actions/upload-artifact@<the pinned SHA the other workflows use>
+  with:
+    name: evidence-LOAD-1
+    path: evidence-LOAD-1.json
+    retention-days: 90
+```
+
+- Results come from `--result '<json>'` (repeatable), `--results <file>` (a JSON array) or `--from hermes=<file>` and `--from js-budget=<file>` (the files `ci.yml` already uploads). `pass` is computed from the threshold, never typed in. A metric with `"threshold":null` is only reported.
+- Run, commit and event come from the Actions environment. `--run <id>` reads them from `gh` instead, to seed an old run (add `--measured-at <UTC time>`).
+- After the run: `node packages/perf/src/cli.ts evidence collect --run <id>` (needs `gh`) downloads the `evidence-*` artifacts, checks them against the run and renders the README. Commit the result in a PR. After a rebase run `evidence render`; never merge `README.md` by hand.
