@@ -2,7 +2,7 @@
 // the call budget is in ADR-0045 and packages/perf/README.md.
 //   k6 run -e BASE_URL=<staging worker url> [-e APP_VERSION=<x.y.z>] [-e OUT_DIR=<dir>] packages/perf/k6/load.js
 //
-// All VUs are pre-allocated: k6 drops an iteration while it starts a VU, and a dropped iteration fails the run.
+// 20 VUs at 2 req/s hold up to 8 s per request (the timeout; both upstreams hanging answer 503 after about 5.1 s). All VUs are pre-allocated: k6 drops an iteration while it starts a VU, and a dropped iteration fails the run.
 // One runner IP, so the scenarios run one after the other and the IP probes go last (they use up the IP budget for 60 s):
 //   steady         2 req/s for 3 min, 360 `POST /v1/rpc` over 3 installs (each install gets every 3rd request: 40 per minute, limit 60)
 //   install_probe  2 req/s for 1 min on one install, 65 s after `steady`: the limit of 60 per 60 s must answer 429
@@ -24,7 +24,7 @@ const ADDRESS = '0x9858EfFD232B4033E47d90003D41EC34EcaEda94'
 const INSTALLS = 3
 // The quota guard: an upstream that answers 503 `unavailable` to more than this share of the steady requests stops the test.
 const UNAVAILABLE_SHARE = 0.2
-const UNAVAILABLE_MIN_REQUESTS = 20
+const UNAVAILABLE_MIN_REQUESTS = 10
 
 const probe = (rate, startTime, fn) => ({
   executor: 'constant-arrival-rate',
@@ -44,8 +44,8 @@ export const options = {
       rate: 2,
       timeUnit: '1s',
       duration: '3m',
-      preAllocatedVUs: 6,
-      maxVUs: 6,
+      preAllocatedVUs: 20,
+      maxVUs: 20,
       exec: 'steady',
     },
     install_probe: {
@@ -54,8 +54,8 @@ export const options = {
       timeUnit: '1s',
       duration: '1m',
       startTime: '4m5s',
-      preAllocatedVUs: 6,
-      maxVUs: 6,
+      preAllocatedVUs: 20,
+      maxVUs: 20,
       exec: 'installProbe',
     },
     // 15 per 2 s = 7.5 per s = 450 in 60 s, 1.5 times the IP limit of 300.
@@ -87,7 +87,7 @@ const HISTORY_BODY = JSON.stringify({ address: ADDRESS })
 function send(path, body, token) {
   const headers = { 'X-App-Version': APP_VERSION, 'X-Client': 'web', 'content-type': 'application/json' }
   if (token) headers.Authorization = `Bearer ${token}`
-  return http.post(`${BASE_URL}${path}`, body, { headers, timeout: '10s' })
+  return http.post(`${BASE_URL}${path}`, body, { headers, timeout: '8s' })
 }
 
 // The `code` of an error body, or null (a 200 is not parsed, and a body that is not JSON has none).
