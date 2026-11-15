@@ -1,4 +1,4 @@
-# 0050. The rooted-device warning is advisory (jail-monkey, once per install)
+# 0048. The rooted-device warning is advisory (jail-monkey, once per install)
 
 Status: Accepted (2026-11-16, issue #318, owner decision 12 of `docs/plans/quality-gates.md`; the owner's recommended option, relayed by the orchestrator session). Completes requirements decision Q43 (the rooted-device warning).
 

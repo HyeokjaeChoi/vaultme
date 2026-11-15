@@ -213,7 +213,7 @@ Decisions Q26, Q50, Q56, Q69 (#315, ADR-0024). One rule for all of it: no addres
 - Secrets are Worker secrets (`wrangler secret`, `.dev.vars` locally): `TOKEN_SECRET` (32+ chars), `INFURA_KEY`, `ALCHEMY_KEY`, `ETHERSCAN_API_KEY`, `ALCHEMY_*`, `EXPO_ACCESS_TOKEN`. A missing secret makes the route fail closed with `500`. `wrangler.jsonc` holds vars only.
 - Supply chain: pnpm `minimumReleaseAge` 10080 min (7 days), `trustPolicy: no-downgrade` (three exact old versions excluded), `blockExoticSubdeps`, `strictDepBuilds`, an explicit `allowBuilds` list, CI actions pinned by SHA. `osv-scanner` fails on any known vulnerability in `pnpm-lock.yaml`, whatever its severity, unless `osv-scanner.toml` lists it with a reason and an expiry of 30 days at most (14 for shipped code, only when no fix exists; ADR-0047). Renovate (`.github/renovate.json5`) proposes only versions 7 days old or older and automerges only npm patch and devDependency minor updates.
 - Repo checks block committed keys, `.env` files, recovery phrases (except public test vectors) and `CLAUDE.md` files.
-- Root or jailbreak detection is advisory only (`jail-monkey`, once per install, opens B-S92, never blocks; ADR-0050). Not implemented: SIWE ownership proof for push. Any install with a valid token can subscribe any address.
+- Root or jailbreak detection is advisory only (`jail-monkey`, once per install, opens B-S92, never blocks; ADR-0048). Not implemented: SIWE ownership proof for push. Any install with a valid token can subscribe any address.
 
 ## Build, test and release
 

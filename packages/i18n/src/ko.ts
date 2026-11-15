@@ -578,7 +578,7 @@ export const ko = {
       warnTitle: '알림으로 복구 구문을 묻지 않아요',
       warnBody: '복구 구문을 묻는 알림은 모두 사기예요.',
     },
-    // S92 (기기 보안 경고). Opens from the S60 row, and once on its own when jail-monkey flags the device (advisory, ADR-0050). The check can miss; no copy says the device was checked.
+    // S92 (기기 보안 경고). Opens from the S60 row, and once on its own when jail-monkey flags the device (advisory, ADR-0048). The check can miss; no copy says the device was checked.
     deviceScreen: {
       title: '기기 보안 안내',
       body: '루팅·탈옥된 기기에서는\n다른 앱이 지갑 키를 읽을 수 있어요.\n이 지갑에는 테스트넷 자산만 두세요.',

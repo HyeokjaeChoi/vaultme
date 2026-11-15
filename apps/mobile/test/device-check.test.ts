@@ -11,7 +11,7 @@ function make(over: { rooted?: boolean | Error; shown?: boolean } = {}) {
   return { isRooted, markShown, deps: { isRooted, wasShown: () => over.shown ?? false, markShown } }
 }
 
-describe('shouldWarnDevice (SEC-8, ADR-0050)', () => {
+describe('shouldWarnDevice (SEC-8, ADR-0048)', () => {
   it('rooted and not shown yet: warns and remembers it', () => {
     const m = make({ rooted: true })
     expect(shouldWarnDevice(m.deps)).toBe(true)

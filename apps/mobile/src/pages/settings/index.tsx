@@ -56,7 +56,7 @@ export function SettingsPage() {
           trailing={{ kind: 'disclosure' }}
           onPress={() => router.push('/settings/phrase')}
         />
-        {/* The Figma value "확인됨" is left out: the jail-monkey root/jailbreak check (advisory, ADR-0050) can miss a rooted device, so the app never claims the device was checked. */}
+        {/* The Figma value "확인됨" is left out: the jail-monkey root/jailbreak check (advisory, ADR-0048) can miss a rooted device, so the app never claims the device was checked. */}
         <ListItem
           icon="deviceWarning"
           title={t('settings.device')}
