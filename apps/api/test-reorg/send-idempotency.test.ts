@@ -75,18 +75,25 @@ beforeEach(async () => {
 })
 afterEach(async () => {
   vi.unstubAllGlobals()
-  await ask('evm_setAutomine', [true])
-  await ask('evm_revert', [snap]).catch(() => undefined)
+  // A failed revert would leave a tx in the pool for the next file (they share this anvil): it must fail loudly here.
+  try {
+    expect(await ask('evm_revert', [snap])).toBe(true)
+  } finally {
+    await ask('evm_setAutomine', [true])
+  }
 })
 
 /** Infura takes the tx into anvil and then the call fails (a timeout or a 504 after the node accepted it); Alchemy is anvil too. */
-function infuraTakesThenFails(mineBeforeBackup: boolean) {
+type Failure = '504' | 'timeout'
+function infuraTakesThenFails(mineBeforeBackup: boolean, failure: Failure = '504') {
   vi.stubGlobal('fetch', async (url: string, init: RequestInit) => {
     const toAnvil = () => anvilFetch(`http://127.0.0.1:${String(ANVIL_PORT)}`, init)
     if (url.startsWith('https://sepolia.infura.io/')) {
       upstreamCalls.push('infura')
-      await toAnvil() // the node got the tx
+      const taken = await (await toAnvil()).json<Reply>() // the node got the tx
+      if (taken.error) throw new Error(`the first upstream must accept the tx: ${taken.error.message}`)
       if (mineBeforeBackup) await ask('evm_mine') // and a block has it before the second upstream is asked
+      if (failure === 'timeout') throw new DOMException('timeout', 'TimeoutError') // what `AbortSignal.timeout` rejects with
       return new Response('upstream timeout', { status: 504 })
     }
     if (url.startsWith('https://eth-sepolia.g.alchemy.com/')) {
@@ -98,22 +105,26 @@ function infuraTakesThenFails(mineBeforeBackup: boolean) {
 }
 
 describe('resend through /v1/rpc after the first upstream took the tx (anvil)', () => {
-  it('still in the pool: the backup says "already imported", the proxy returns that error body, the tx is mined once', async () => {
-    await ask('evm_setAutomine', [false]) // the tx stays in the pool until the test mines a block
-    const raw = await signed()
-    const [n0, before] = [await nonce(), await balanceOfB()]
-    infuraTakesThenFails(false)
+  it.each<Failure>(['504', 'timeout'])(
+    'still in the pool, first upstream fails with %s: the backup says "already imported", the proxy returns that error body',
+    async (failure) => {
+      await ask('evm_setAutomine', [false]) // the tx stays in the pool until the test mines a block
+      const raw = await signed()
+      const [n0, before] = [await nonce(), await balanceOfB()]
+      infuraTakesThenFails(false, failure)
 
-    const { status, body } = await sendThroughProxy(raw)
-    expect(upstreamCalls).toEqual(['infura', 'alchemy']) // one resend, never more
-    expect(status).toBe(200)
-    expect(body.result).toBeUndefined() // never `null` and never a made-up hash
-    expect(body.error).toMatchObject({ code: -32003, message: expect.stringMatching(/already imported/) as string })
+      const { status, body } = await sendThroughProxy(raw)
+      expect(upstreamCalls).toEqual(['infura', 'alchemy']) // one resend, never more
+      expect(status).toBe(200)
+      expect(body.result).toBeUndefined() // never `null` and never a made-up hash
+      expect(body.error).toMatchObject({ code: -32003, message: expect.stringMatching(/already imported/) as string })
 
-    await ask('evm_mine')
-    expect((await nonce()) - n0).toBe(1n) // one tx for the nonce
-    expect((await balanceOfB()) - before).toBe(1n) // received once
-  })
+      await ask('evm_mine')
+      // The chain itself cannot take one raw tx twice; these two lines show the first import really happened. The proxy is judged by the calls and the body above.
+      expect((await nonce()) - n0).toBe(1n)
+      expect((await balanceOfB()) - before).toBe(1n)
+    },
+  )
 
   it('already mined: the backup says "nonce too low", the proxy returns that error body, nothing is sent twice', async () => {
     await ask('evm_setAutomine', [false])
