@@ -2,7 +2,10 @@ import { createApiClient, isApiError, readBalances } from '@vaultme/api-client'
 import { HistoryResponse, USDC_SEPOLIA } from '@vaultme/contracts'
 import { memorySigner } from './latency.ts'
 
-/** Post-deploy check (Q55): a real balance read (JSON-RPC) and a real history read through the signed-install flow, of the public Sepolia USDC contract (not a person's wallet). Throws on non-2xx or a wrong shape. A retryable 503 is tried 3 times. */
+/** Sepolia, 11155111 (`CHAIN.id` in wallet-core): a staging API wired to another network would pass every other check. */
+const SEPOLIA_CHAIN_ID = '0xaa36a7'
+
+/** Post-deploy check (Q55, CHAIN-9): `eth_chainId` is exactly Sepolia, a real balance read (JSON-RPC) and a real history read through the signed-install flow, of the public Sepolia USDC contract (not a person's wallet). Throws on non-2xx or a wrong shape. A retryable 503 is tried 3 times. */
 export async function smokeApi(o: {
   baseUrl: string
   appVersion: string
@@ -27,6 +30,9 @@ export async function smokeApi(o: {
       }
     }
   }
+  const chainId = await retry(() => client.rpc('eth_chainId', []))
+  if (chainId !== SEPOLIA_CHAIN_ID)
+    throw new Error(`eth_chainId is ${JSON.stringify(chainId)}, expected ${SEPOLIA_CHAIN_ID} (Sepolia)`)
   // readBalances throws unless both results are 0x quantities.
   await retry(() => readBalances((m, p) => client.rpc(m, p), USDC_SEPOLIA))
   HistoryResponse.parse(await retry(() => client.history(USDC_SEPOLIA)))
