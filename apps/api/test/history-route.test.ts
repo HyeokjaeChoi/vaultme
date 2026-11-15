@@ -318,3 +318,40 @@ describe('POST /v1/history Server-Timing', () => {
     expect(t.total?.dur).toMatch(/^[\d.]+$/)
   })
 })
+
+describe('Analytics Engine point per history miss (API-4)', () => {
+  type Point = { indexes?: string[]; blobs?: string[]; doubles?: number[] }
+  const withPoints = () => {
+    const points: Point[] = []
+    const e = { ...E, ANALYTICS: { writeDataPoint: (p: Point) => void points.push(p) } as AnalyticsEngineDataset }
+    return { e, misses: () => points.filter((p) => p.indexes?.[0] === 'history_miss') }
+  }
+
+  it('a miss writes one point with the Etherscan call count; a hit writes none', async () => {
+    const a = newAddress()
+    mock({ txlist: () => ok([row(a, 100)]) })
+    const { e, misses } = withPoints()
+    expect((await post({ address: a }, e)).status).toBe(200)
+    expect(misses()).toEqual([{ indexes: ['history_miss'], blobs: ['ok'], doubles: [3, expect.any(Number)] }])
+    expect((await post({ address: a }, e)).status).toBe(200)
+    expect(misses()).toHaveLength(1)
+  })
+
+  it('a failed miss writes one point with outcome unavailable and counts the calls made', async () => {
+    mock({ txlist: () => notok('Max rate limit reached', 'NOTOK') })
+    const { e, misses } = withPoints()
+    expect((await post({ address: newAddress() }, e)).status).toBe(503)
+    expect(misses()).toMatchObject([{ blobs: ['unavailable'], doubles: [expect.any(Number), expect.any(Number)] }])
+    expect(misses()).toHaveLength(1)
+  })
+
+  it('never carries the address, its hash or the key', async () => {
+    const a = newAddress()
+    mock({ txlist: () => ok([row(a, 100)]) })
+    const { e, misses } = withPoints()
+    await post({ address: a }, e)
+    const text = JSON.stringify(misses())
+    expect(text).not.toContain(a.slice(2, 10))
+    expect(text).not.toContain(KEY)
+  })
+})
