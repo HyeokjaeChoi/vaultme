@@ -16,7 +16,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
-import { ciHealthMarkdown, evaluate, hasBreach, type Dated, type Run } from './ci-health.ts'
+import { ciHealthMarkdown, evaluate, hasBreach, isOff, type Dated, type Run } from './ci-health.ts'
 import { aggregate, benchTable, limitsJs, MODES, type K6Result } from './bench.ts'
 import { buildBaseline, latencyTable, renderBaseline, type Baseline, type JsBudgetRow } from './baseline.ts'
 import {
@@ -295,12 +295,15 @@ if (cmd === 'hermes') {
       '--workflow',
       'ci.yml',
       '--limit',
-      '200',
+      '1000',
       '--json',
-      'databaseId,conclusion,createdAt,updatedAt',
+      'databaseId,conclusion,createdAt,startedAt,updatedAt',
       ...extra,
-    ]) as (Run & { databaseId: number })[]
-  const prRuns = runs(['--event', 'pull_request', '--status', 'success']).slice(0, 10)
+    ]) as (Run & { databaseId: number; startedAt: string })[]
+  // `startedAt`, not `createdAt`: a re-run attempt starts later, and the first attempt is not part of its time.
+  const prRuns = runs(['--event', 'pull_request', '--status', 'success'])
+    .slice(0, 10)
+    .map((r) => ({ ...r, createdAt: r.startedAt }))
   const verifyMinutes = prRuns.flatMap((r) => {
     const jobs = gh(['api', `repos/${repo}/actions/runs/${String(r.databaseId)}/jobs?per_page=100`]) as {
       jobs: { name: string; started_at: string; completed_at: string | null }[]
@@ -341,7 +344,7 @@ if (cmd === 'hermes') {
       '--state',
       'open',
       '--limit',
-      '100',
+      '1000',
       '--json',
       'number,createdAt',
     ]),
@@ -357,7 +360,7 @@ if (cmd === 'hermes') {
       '--state',
       'open',
       '--limit',
-      '100',
+      '1000',
       '--json',
       'number,createdAt',
     ]),
@@ -367,7 +370,7 @@ if (cmd === 'hermes') {
   console.log(
     ciHealthMarkdown(
       metrics,
-      workflows.filter((w) => w.state !== 'active').map((w) => w.name),
+      workflows.filter(isOff).map((w) => w.name),
     ),
   )
   // 3, not 1: Node exits 1 on an uncaught throw, and ci-health.yml must not report a crash as a breach.

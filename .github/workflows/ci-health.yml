@@ -2,7 +2,7 @@ name: ci-health
 
 # Weekly CI health report (OBS-1, plan docs/plans/quality-gates.md): red rate of main, PR CI time, old `flaky` issues, age of the last
 # green api-bench, workflows that are not active, old Renovate PRs, Actions cache size. Report-only: a breach opens one issue (or
-# comments on the open one) and blocks nothing. It is scheduled itself, so a disabled schedule shows up here the week after.
+# comments on the open one) and blocks nothing. It is scheduled too: GitHub switches off a schedule after 60 days without repo activity, and then this report stops with the others.
 on:
   schedule:
     # Monday 06:37 UTC, after the weekly perf jobs. Not at the start of an hour (GitHub delays those).

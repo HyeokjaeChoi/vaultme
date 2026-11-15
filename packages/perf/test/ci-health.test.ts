@@ -90,6 +90,17 @@ describe('evaluate', () => {
     )
     expect(m).toMatchObject({ value: 1, n: 2, breach: true })
   })
+  it('judges the exact value, not the rounded one, and counts timeouts and startup failures as red', () => {
+    const renovate = [{ number: 2, createdAt: '2026-11-02T06:00:00Z' }]
+    expect(by(good({ renovate }), 'Oldest open Renovate')).toMatchObject({ value: 14, breach: true })
+    const runs = [...Array<Run>(97).fill(run('success')), run('timed_out'), run('startup_failure'), run('failure')]
+    expect(by(good({ mainRuns: runs }), 'Red main')).toMatchObject({ value: 3, breach: true })
+  })
+  it('does not count a deleted workflow, and counts a manually disabled one', () => {
+    const w = (state: string) => by(good({ workflows: [{ name: 'x', state }] }), 'Workflows')
+    expect(w('deleted')?.breach).toBe(false)
+    expect(w('disabled_manually')?.breach).toBe(true)
+  })
   it('leaves out the rates and medians that have no sample, and ignores cancelled runs', () => {
     const names = evaluate(good({ mainRuns: [run('cancelled')], prRuns: [], verifyMinutes: [] })).map((m) => m.name)
     expect(names.some((n) => n.startsWith('Red main'))).toBe(false)

@@ -45,6 +45,9 @@ export const LIMITS = {
   cacheGiB: 9,
 } as const
 
+/** `active` runs; `deleted` is a removed file GitHub still lists; any other state (`disabled_manually`, `disabled_inactivity`) is a workflow that does not run. */
+export const isOff = (w: { state: string }): boolean => w.state !== 'active' && w.state !== 'deleted'
+
 const DAY = 86_400_000
 const MINUTE = 60_000
 
@@ -65,50 +68,42 @@ const minutes = (r: Run): number => (Date.parse(r.updatedAt) - Date.parse(r.crea
  */
 export function evaluate(i: Input): Metric[] {
   const out: Metric[] = []
-  const add = (name: string, value: number, unit: string, limit: number, n: number) =>
-    out.push({ name, value, unit, limit, n, breach: value > limit })
+  // The breach is judged on the exact value; the table shows it rounded (14.04 days is a breach of 14 and shows 14).
+  const add = (name: string, value: number, unit: string, limit: number, n: number, digits = 1) =>
+    out.push({ name, value: round(value, digits), unit, limit, n, breach: value > limit })
 
-  const done = i.mainRuns.filter((r) => r.conclusion === 'success' || r.conclusion === 'failure')
+  // A run that never started (a broken workflow file) or ran out of time is red too.
+  const RED = ['failure', 'timed_out', 'startup_failure']
+  const isRed = (r: Run) => RED.includes(r.conclusion ?? '')
+  const done = i.mainRuns.filter((r) => r.conclusion === 'success' || isRed(r))
   if (done.length > 0)
     add(
       'Red main: failed `ci` runs on main, 28 days',
-      round((done.filter((r) => r.conclusion === 'failure').length / done.length) * 100),
+      (done.filter(isRed).length / done.length) * 100,
       '%',
       LIMITS.mainRedPercent,
       done.length,
     )
   const pr = median(i.prRuns.map(minutes))
   if (pr !== null)
-    add('PR CI wall time, median of the last green runs', round(pr), 'min', LIMITS.prWallMinutes, i.prRuns.length)
+    add('PR CI wall time, median of the last green runs', pr, 'min', LIMITS.prWallMinutes, i.prRuns.length)
   const verify = median(i.verifyMinutes)
   if (verify !== null)
-    add(
-      '`verify` job, median of the last green runs',
-      round(verify),
-      'min',
-      LIMITS.verifyMinutes,
-      i.verifyMinutes.length,
-    )
+    add('`verify` job, median of the last green runs', verify, 'min', LIMITS.verifyMinutes, i.verifyMinutes.length)
 
   const oldest = (xs: Dated[]): number => Math.max(0, ...xs.map((x) => ageDays(i.now, x.createdAt)))
-  add('Oldest open `flaky` issue', round(oldest(i.flaky)), 'days', LIMITS.flakyDays, i.flaky.length)
+  add('Oldest open `flaky` issue', oldest(i.flaky), 'days', LIMITS.flakyDays, i.flaky.length)
   // No green run at all is the worst case, not a missing sample.
   add(
     'Age of the last green `api-bench`',
-    i.lastGreenBench === null ? 9999 : round(ageDays(i.now, i.lastGreenBench)),
+    i.lastGreenBench === null ? 9999 : ageDays(i.now, i.lastGreenBench),
     'days',
     LIMITS.benchDays,
     i.lastGreenBench === null ? 0 : 1,
   )
-  add(
-    'Workflows that are not active',
-    i.workflows.filter((w) => w.state !== 'active').length,
-    'workflows',
-    0,
-    i.workflows.length,
-  )
-  add('Oldest open Renovate pull request', round(oldest(i.renovate)), 'days', LIMITS.renovateDays, i.renovate.length)
-  add('Actions cache size', round(i.cacheBytes / 1024 ** 3, 2), 'GiB', LIMITS.cacheGiB, 1)
+  add('Workflows that are not active', i.workflows.filter(isOff).length, 'workflows', 0, i.workflows.length)
+  add('Oldest open Renovate pull request', oldest(i.renovate), 'days', LIMITS.renovateDays, i.renovate.length)
+  add('Actions cache size', i.cacheBytes / 1024 ** 3, 'GiB', LIMITS.cacheGiB, 1, 2)
   return out
 }
 
