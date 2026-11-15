@@ -288,4 +288,15 @@ if ! bash scripts/check-migrations.sh; then
   err "R16: a migration drops or renames without '-- contract-ok: <reason>' (see above)"
 fi
 
+# R17. The Claude review CLI runs only on rules from the PR base (#486, REVIEW.md, #212): in claude-code-review.yml the
+# "Knowledge files from the PR base" step (which restores .claude/) comes before the `claude -p` step, and the API key is
+# named in one step only. A PR must not change its own reviewer, hooks or MCP servers that run with the key.
+wf=.github/workflows/claude-code-review.yml
+restore=$(grep -n 'name: Knowledge files from the PR base' "$wf" | head -1 | cut -d: -f1 || true)
+cli=$(grep -nE '^ +claude -p ' "$wf" | head -1 | cut -d: -f1 || true)
+if [ -z "$restore" ] || [ -z "$cli" ] || [ "$restore" -ge "$cli" ] || ! grep -qF '^\.claude/' "$wf" \
+  || [ "$(grep -c 'secrets.ANTHROPIC_API_KEY' "$wf")" != 1 ]; then
+  err "R17: $wf must restore .claude/ from the PR base before 'claude -p' and name ANTHROPIC_API_KEY in one step only"
+fi
+
 exit "$fail"
