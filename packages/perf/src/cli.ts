@@ -102,7 +102,11 @@ if (cmd === 'hermes') {
   // The artifacts are often a day or more old: the day they were measured, not the day this command runs.
   const measuredAt = v['measured-at'] ?? new Date().toISOString().slice(0, 10)
   // A real day: 2026-02-31 matches the shape and rolls over to March.
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(measuredAt) || new Date(measuredAt).toISOString().slice(0, 10) !== measuredAt)
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(measuredAt) ||
+    Number.isNaN(Date.parse(measuredAt)) ||
+    new Date(measuredAt).toISOString().slice(0, 10) !== measuredAt
+  )
     throw new Error('baseline: --measured-at must be a real day, YYYY-MM-DD')
   const baseline: Baseline = buildBaseline({
     measuredAt,
