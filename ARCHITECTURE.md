@@ -60,6 +60,7 @@ Dependency direction: `apps/*` -> `packages/*`. `apps` never import each other. 
 
 - `app.ts`: Hono `OpenAPIHono` app. All routes, middleware order, the webhook route, `onError`.
 - `auth.ts`: `requireSigned` (device signature), `issueToken`, `requireToken`, `limitInstall`.
+- `errors.ts`: `fail` (the error envelope), `InvalidCursorError`, `UpstreamError` (503; may carry the seconds to wait), `unavailable` (a 503 with its `Retry-After` header).
 - `rpc.ts`: `rpcAllowed` (allow-list) and `proxyRpc` (Infura, then Alchemy on a failure or on a quota error, also one inside a 200; a read that Infura has not answered in 60 ms also goes to Alchemy and the first valid answer wins, #399; `eth_sendRawTransaction` and `eth_getTransactionCount` are never hedged).
 - `etherscan.ts`, `history.ts`, `bucket.ts`: `getHistory` calls Etherscan through the `EtherscanBucket` token bucket. `history.ts` is pure: merge, dedupe, order, cursor.
 - `push.ts`: subscribe, unsubscribe, `verifyAlchemySignature`, `notificationsFor` (pure), `handleActivity`, `sweep`.
@@ -197,6 +198,7 @@ Decisions Q26, Q50, Q56, Q69 (#315, ADR-0024). One rule for all of it: no addres
 `docs/openapi/v1.json` is generated from the zod routes (`pnpm --filter @vaultme/api openapi`). CI fails if it is stale (`openapi:check`).
 
 - Error body: `{code, message, retryable}`. `code` comes from `ERROR_CODES` in `contracts`. The app maps an unknown code to `Unknown`.
+- `Retry-After`: every `429` and every retryable `503` has it, as whole seconds from 1 to 86,400 (CORS exposes it; the OpenAPI file declares it). `429`: 60. `503`: 2 for `/v1/rpc`, `/v1/history` and `/v1/tx/internal`, 5 for push (also the Alchemy webhook answer). An `UpstreamError` that carries seconds (planned: the Etherscan daily budget of API-2, unit U2, with the time to 00:00 UTC; no code sets it yet) would set its own value, rounded up and clamped. `api-client` puts it in `ApiError.retryAfterMs`. No client retries by itself (`retry: false`).
 - v1 allows added fields only. A breaking change needs `/v2`.
 - `/v1/rpc` accepts one JSON-RPC request (no batch). Allowed methods are in `RPC_ALLOWED_METHODS`. `eth_call` only for USDC `balanceOf`. `eth_getBlockByNumber` only without full transactions. `eth_getTransactionByHash` only with one 32-byte hash. Upstream order: Infura, Alchemy, 5 s timeout; a read still open after 60 ms also goes to Alchemy (not for `eth_sendRawTransaction` or push.ts, #399). A JSON-RPC error inside a 200 is returned as is.
 - `/webhooks/alchemy` is outside `/v1` and is not in the OpenAPI file. It uses an HMAC, not a token.
