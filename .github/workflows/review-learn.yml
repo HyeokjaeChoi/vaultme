@@ -108,7 +108,6 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1' # see claude-code-review.yml (issue #133)
-          CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1' # commands do not get the API key (docs: env-vars)
         run: |
           test -n "$ANTHROPIC_API_KEY" || { echo "::warning::ANTHROPIC_API_KEY not set; the subscription fallback runs"; exit 1; }
           claude -p "$LEARN_PROMPT
