@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs the Maestro flows on an iOS simulator, or with PLATFORM=android on an Android emulator (docs/testing/e2e.md). Usage: .maestro/run.sh smoke|full|critical|release [path/to/VaultMe.app|app-release.apk]
-# smoke = flows tagged smoke (a quick local check; no CI job runs it since ADR-0039). full = every flow (manual dispatch). critical = flows tagged critical (release.yml dry run). release = critical + funded: the funded flows (real Sepolia sends, #381) need the MAESTRO_* env of release-run.sh. Target: SIM_UDID (default: the only booted simulator), or ANDROID_SERIAL (default emulator-5554).
+# smoke = flows tagged smoke (a quick local check; no CI job runs it since ADR-0039). full = every flow (manual dispatch). critical = flows tagged critical (release.yml dry run). release = critical + funded: the funded flows (real Sepolia sends, #381) need the MAESTRO_* env of release-run.sh and are never retried (ADR-0040). Target: SIM_UDID (default: the only booted simulator), or ANDROID_SERIAL (default emulator-5554).
 # Device auth (ADR-0016): no bypass in the app. The simulator gets Face ID enrolled, and while the flows run a loop sends the
 # Face ID "match" event every second; it matters only while an OS auth sheet is up (create, reveal, lock gate), else it is ignored.
 # Android: the emulator gets a PIN and a fingerprint, and the loop touches finger 1 every second (scripts/sim-auth.sh match android).
@@ -69,15 +69,20 @@ maestro --udid "$udid" test flows --include-tags "$include" --format junit --out
 # One retry of the failed flows only (owner decision 2026-11-03, #376): the CI simulator sometimes loses a flow to its own
 # hiccups (driver unreachable, a label not found on a screen that shows it). A flow that fails twice fails the job; a pass on
 # the retry is reported as flaky. A run with no report (e.g. the driver never started) fails at once.
+# Never a funded flow (ADR-0040): it broadcasts real sends, so a retry would send again. A failed funded flow fails the job at
+# once; the fix is merged and the release is tagged again.
 [ -f ../e2e-report.xml ] || exit 1
 retry=()
-while IFS= read -r name; do
-  for f in flows/*.yaml; do
-    if grep -qxF "name: $name" "$f"; then retry+=("$f"); fi # an if, not &&: a non-matching last file must not end the loop with status 1 (set -e)
-  done
-done < <(python3 -I -c 'import sys, xml.etree.ElementTree as E
-for t in E.parse(sys.argv[1]).iter("testcase"):
-    if t.find("failure") is not None or t.find("error") is not None: print(t.get("name"))' ../e2e-report.xml)
+funded=()
+unknown=0
+while read -r kind f; do
+  case "$kind" in retry) retry+=("$f") ;; funded) funded+=("$f") ;; unknown) unknown=1; echo "::error::failed flow without a file in flows/: $f" ;; esac
+done < <(./retry-flows.sh ../e2e-report.xml)
+if [ ${#funded[@]} -gt 0 ]; then
+  echo "::error::funded flow failed and is never retried (a retry would broadcast again): ${funded[*]}. Check the chain (scripts/release-verify.mts), fix, then tag again."
+  exit 1
+fi
+[ $unknown -eq 0 ] || exit 1
 [ ${#retry[@]} -gt 0 ] || exit 1
 echo "::warning::flaky: retrying ${retry[*]}"
 maestro --udid "$udid" test "${retry[@]}" --format junit --output ../e2e-report-retry.xml --test-output-dir ../e2e-artifacts/retry
