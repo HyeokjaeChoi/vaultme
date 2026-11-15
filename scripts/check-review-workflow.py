@@ -42,8 +42,13 @@ def restore_before(block, marker):
 def check(text):
     lines = text.split("\n")
     bad = []
-    if re.search(r"^permissions:", text, re.M):
-        bad.append("a workflow-level permissions block would reach the key job; set permissions per job")
+    if re.search(r"^permissions:(?!\s*\{\}\s*$)", text, re.M):
+        bad.append("a workflow-level permissions block other than `permissions: {}` would reach the key job; set permissions per job")
+    if not re.search(r"^permissions: \{\}\s*$", text, re.M):
+        bad.append("add `permissions: {}` at the top level (Scorecard Token-Permissions); each job sets its own")
+    c = "\n".join(code(lines))
+    if re.search(r"npm (install|i|add) .*-g|npm (install|i) .*claude-code", c) or "npm ci --ignore-scripts --prefix" not in c:
+        bad.append("install the CLI from .github/review-cli with `npm ci --ignore-scripts --prefix`, not `npm install -g`")
     jobs = jobs_of(lines)
     rev = jobs.get("review")
     if rev is None:

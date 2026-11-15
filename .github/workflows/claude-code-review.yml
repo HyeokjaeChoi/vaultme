@@ -31,6 +31,8 @@ concurrency:
   group: claude-code-review-${{ github.event.pull_request.number }}${{ github.event.action == 'labeled' && github.event.label.name != 'review' && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   review:
     # Fork PRs get no secrets, so they skip; the owner reviews them by hand.
@@ -81,9 +83,15 @@ jobs:
         id: cli
         continue-on-error: true
         working-directory: ${{ runner.temp }}
-        # Same version as claude-code-action v1.0.252 installs (published 2026-10-16, more than 7 days ago).
+        # The CLI comes from .github/review-cli/package-lock.json (hashes, Scorecard Pinned-Dependencies), version 2.1.302 as
+        # claude-code-action v1.0.252 installs it (published 2026-10-16, more than 7 days ago). --ignore-scripts, then the
+        # package's own install.cjs: it links the platform binary and without it the CLI refuses to start. The lockfile is
+        # PR-controlled like this workflow (a person with write access can change both). Renovate: bump both files together.
         run: |
-          npm install -g @anthropic-ai/claude-code@2.1.302 >/dev/null
+          cli="$GITHUB_WORKSPACE/.github/review-cli"
+          npm ci --ignore-scripts --prefix "$cli" >/dev/null
+          node "$cli/node_modules/@anthropic-ai/claude-code/install.cjs" >/dev/null
+          echo "$cli/node_modules/.bin" >> "$GITHUB_PATH"
       # Stage 1. Continues on error: the step outputs `reason` (no-key, quota) tell stage 2 whether it may run.
       # The key sits in this step only. The model runs and `review-output.py scan` runs in the same step, so nothing the
       # model wrote is printed or uploaded before the key check.

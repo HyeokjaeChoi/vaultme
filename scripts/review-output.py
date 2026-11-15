@@ -105,7 +105,11 @@ def scan(result_path, out_path):
     if leaks(raw, os.environ.get("ANTHROPIC_API_KEY", "")):
         print("::error::The CLI result holds the API key (or an encoding of it). Nothing is uploaded or printed.")
         return 1
-    review = extract(json.loads(raw))
+    try:
+        review = extract(json.loads(raw))
+    except ValueError:  # empty or cut-off file (CLI crash, timeout): not a leak
+        print("::error::The CLI result is not JSON.")
+        return 2
     bad = validate(review)
     if bad:
         print("::error::No valid structured review: " + "; ".join(bad[:5]))

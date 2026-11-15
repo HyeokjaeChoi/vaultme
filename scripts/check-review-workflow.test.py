@@ -47,7 +47,9 @@ mutate("restore dropped", "(^|/)\\.claude/|", "")
 mutate("restore moved after the CLI", "name: Knowledge files from the PR base", "name: Restore later", 1)
 mutate("fallback without restore", "      # Same rule as in the `review` job: the review knowledge comes from the PR base.\n      - name: Knowledge files from the PR base", "      - name: Other")
 mutate("claude -p in another job", "        run: python3 scripts/review-output.py post", "        run: claude -p x # python3 scripts/review-output.py post")
-mutate("workflow-level permissions", "jobs:\n", "permissions:\n  contents: write\n\njobs:\n")
+mutate("workflow-level permissions", "permissions: {}\n", "permissions:\n  contents: write\n")
+mutate("no top-level permissions", "permissions: {}\n", "")
+mutate("CLI installed unpinned", 'npm ci --ignore-scripts --prefix "$cli"', "npm install -g @anthropic-ai/claude-code@2.1.302")
 
 for f in failed:
     print(f, file=sys.stderr)

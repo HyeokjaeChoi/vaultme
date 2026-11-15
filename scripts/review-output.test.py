@@ -87,6 +87,17 @@ check("marker first", body.splitlines()[0], f"<!-- ai-review:{SHA} -->")
 check("one marker", body.count("ai-review:"), 1)
 check("redacted in summary", KEY[:12] in ro.summary_text(SHA, f"key {KEY}"), False)
 
+# scan(): a leak is 1; a result that is not JSON is 2, never 1 (the workflow reads 1 as a leak).
+import contextlib, io, json, tempfile
+with tempfile.TemporaryDirectory() as d:
+    r, o = os.path.join(d, "r.json"), os.path.join(d, "o.json")
+    os.environ["ANTHROPIC_API_KEY"] = KEY
+    for name, content, want in (("empty", "", 2), ("cut off", '{"is_error": fal', 2), ("leak", json.dumps({"result": KEY}), 1),
+                                ("valid", json.dumps({"is_error": False, "structured_output": OK}), 0)):
+        open(r, "w").write(content)
+        with contextlib.redirect_stdout(io.StringIO()):
+            check(f"scan {name}", ro.scan(r, o), want)
+
 for f in failures:
     print(f, file=sys.stderr)
 sys.exit(1 if failures else 0)
