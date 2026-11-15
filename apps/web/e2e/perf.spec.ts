@@ -1,18 +1,23 @@
 import { appendFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { expect, test, type Browser } from '@playwright/test'
+import { expect, test, type Browser, type Page } from '@playwright/test'
 import { gzipSize, limitFor } from '../scripts/js-budget.ts'
 import { settled } from './settle'
 import { A, fixtureApi, TX } from './fixture-api'
 
 // Lab INP, LCP and CLS of the viewer with data, and the JS it loads with data (#496: gates WEB-3 and WEB-2, ADR-0042).
 // Lighthouse opens /address and /tx without a fragment, so it never clicks, never calls the API and never loads the lazy chunks.
-// Here the real build runs in Chromium with the Lighthouse mobile CPU (4x slower) and network (150 ms, 1.6 Mbps down, 750 kbps up),
+// Here the real build runs in Chromium with the Lighthouse mobile CPU (4x slower) and the network as Lighthouse applies it through
+// DevTools (request latency 150 ms x 3.75, 1.6 Mbps x 0.9 down, 750 kbps x 0.9 up: DEVTOOLS_*_ADJUSTMENT_FACTOR in lighthouse 12.6.1),
+// at 375 px with the desktop user agent (the Figma width; touch and device pixel ratio are not emulated),
 // and the fixture API answers as late as its limits in docs/perf/slo.md (rpc 250 ms, history 1000 ms): an API that meets its SLO must
 // still give a page that meets Core Web Vitals. INP is the longest interaction: Event Timing entries are grouped by `interactionId`
 // and the maximum is taken, which is what web-vitals reports for fewer than 50 interactions (its p98 pick is the maximum), so no
 // library is added. Limits: web.dev "good" (https://web.dev/articles/inp, /lcp, /cls), on the median of 3 runs per page.
+// LCP and CLS are judged for the load (up to the first click), INP for the clicks; the CLS of the whole visit is shown, not judged.
 // Chromium only (a CDP session). Event Timing lists only entries of 16 ms or more: no entry means INP is under 16 ms.
+// Only the ko pages are run (the en pages load the same chunks). The /tx flow runs with the internal transfers failing, so its
+// LCP and JS are those of the error state of that section; a run needs no retry (playwright.config.ts: `perf` has 0 retries).
 
 const RUNS = 3
 const LIMIT = { inp: 200, lcp: 2500, cls: 0.1 } as const
@@ -21,9 +26,9 @@ const WITH_DATA_IS_ERROR = false as boolean // widened so the check below is not
 const BUILD = fileURLToPath(new URL('../build/client', import.meta.url))
 const NETWORK = {
   offline: false,
-  latency: 150,
-  downloadThroughput: (1.6 * 1024 * 1024) / 8, // bytes per second
-  uploadThroughput: (750 * 1024) / 8,
+  latency: 150 * 3.75,
+  downloadThroughput: (1.6 * 1024 * 0.9 * 1024) / 8, // bytes per second
+  uploadThroughput: (750 * 0.9 * 1024) / 8,
 }
 const cards = 'section[aria-labelledby="history-title"] li' // 375 px: the cards, the layout of a phone
 
@@ -38,6 +43,8 @@ type Run = {
   inp: number
   lcp: number
   cls: number
+  /** CLS of the whole visit, the clicks included: shown, not judged. */
+  clsAll: number
   interactions: number
   firstInputs: number
   bytes: number
@@ -50,9 +57,9 @@ type Flow = {
   lcpIsError: boolean
   prepare?: (api: Api) => void
   /** The page shows its data. */
-  ready: (page: import('@playwright/test').Page) => Promise<void>
+  ready: (page: Page) => Promise<void>
   /** The clicks of a visitor, in order. */
-  interact: (page: import('@playwright/test').Page, api: Api) => Promise<void>
+  interact: (page: Page, api: Api) => Promise<void>
 }
 
 /** Runs in the page before its scripts: records the last LCP candidate, the layout shifts and the Event Timing entries. */
@@ -161,6 +168,7 @@ async function run(browser: Browser, flow: Flow): Promise<Run> {
     await page.waitForTimeout(1000) // the last LCP candidate paints after the data
     const read = () => page.evaluate(() => (window as unknown as { __probe: Probe }).__probe)
     const lcp = (await read()).lcp // before the first click: a click ends LCP
+    const clickAt = await page.evaluate(() => performance.now()) // CLS is judged for the load, as LCP: up to here
     const loaded = [...scripts] // what the page loads with its data, before any click
     await flow.interact(page, api)
     await page.waitForTimeout(1000) // Event Timing entries arrive after the next paint
@@ -169,7 +177,8 @@ async function run(browser: Browser, flow: Flow): Promise<Run> {
     return {
       inp,
       lcp,
-      cls: cls(p.shifts),
+      cls: cls(p.shifts.filter((s) => s.at < clickAt)),
+      clsAll: cls(p.shifts),
       interactions: count,
       firstInputs: p.firstInputs,
       bytes: loaded.reduce((sum, path) => sum + gzipSize(path, BUILD), 0),
@@ -193,23 +202,24 @@ for (const flow of flows) {
       cls: median(runs.map((r) => r.cls)),
     }
     const bytes = Math.max(...runs.map((r) => r.bytes))
+    const path = flow.start.split('#')[0] ?? ''
     const limit = limitFor(`http://localhost${flow.start}`)
     const table = [
-      `Lab ${flow.name} (${flow.start.split('#')[0] ?? ''} with data; CPU 4x, Lighthouse mobile network, API at its SLO limits; limits INP ${String(LIMIT.inp)} ms, LCP ${String(LIMIT.lcp)} ms, CLS ${String(LIMIT.cls)})`,
-      '| run | INP ms | LCP ms | CLS | interactions | JS gzip B (files) |',
-      '|---|---|---|---|---|---|',
+      `Lab ${flow.name} (${path} with data; CPU 4x, Lighthouse mobile network, API at its SLO limits; limits INP ${String(LIMIT.inp)} ms, LCP ${String(LIMIT.lcp)} ms, CLS ${String(LIMIT.cls)})`,
+      '| run | INP ms | LCP ms | CLS (load) | CLS (with clicks) | interactions | JS gzip B (files) |',
+      '|---|---|---|---|---|---|---|',
       ...runs.map(
         (r, i) =>
-          `| ${String(i + 1)} | ${String(r.inp)} | ${r.lcp.toFixed(0)} | ${r.cls.toFixed(4)} | ${String(r.interactions)} | ${String(r.bytes)} (${String(r.files)}) |`,
+          `| ${String(i + 1)} | ${String(r.inp)} | ${r.lcp.toFixed(0)} | ${r.cls.toFixed(4)} | ${r.clsAll.toFixed(4)} | ${String(r.interactions)} | ${String(r.bytes)} (${String(r.files)}) |`,
       ),
-      `| median | ${String(m.inp)} | ${m.lcp.toFixed(0)} | ${m.cls.toFixed(4)} | | ${String(bytes)} of ${String(limit)} |`,
+      `| median | ${String(m.inp)} | ${m.lcp.toFixed(0)} | ${m.cls.toFixed(4)} | ${median(runs.map((r) => r.clsAll)).toFixed(4)} | | ${String(bytes)} of ${String(limit)} |`,
     ].join('\n')
     console.log(table)
     await testInfo.attach('lab-metrics.md', { body: table, contentType: 'text/markdown' })
     if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### ${table}\n\n`)
     if (bytes > limit)
       console.log(
-        `::warning title=Viewer JS with data is over its limit (ADR-0042)::${flow.start.split('#')[0] ?? ''} loads ${String(bytes)} B gzip with data, limit ${String(limit)} B (${String(bytes - limit)} B over)`,
+        `::warning title=Viewer JS with data is over its limit (ADR-0042)::${path} loads ${String(bytes)} B gzip with data, limit ${String(limit)} B (${String(bytes - limit)} B over)`,
       )
     if (WITH_DATA_IS_ERROR) expect.soft(bytes, 'JS with data (ADR-0042)').toBeLessThanOrEqual(limit)
     for (const r of runs) expect(r.firstInputs, 'the Event Timing observer saw no first input').toBeGreaterThan(0)
@@ -222,7 +232,7 @@ for (const flow of flows) {
         .toBeLessThanOrEqual(LIMIT.lcp)
     else if (m.lcp > LIMIT.lcp)
       console.log(
-        `::warning title=Viewer LCP with data is over its limit (#504)::${flow.start.split('#')[0] ?? ''} median LCP ${m.lcp.toFixed(0)} ms (runs ${runs.map((r) => r.lcp.toFixed(0)).join(', ')}), limit ${String(LIMIT.lcp)} ms`,
+        `::warning title=Viewer LCP with data is over its limit (#504)::${path} median LCP ${m.lcp.toFixed(0)} ms (runs ${runs.map((r) => r.lcp.toFixed(0)).join(', ')}), limit ${String(LIMIT.lcp)} ms`,
       )
     expect
       .soft(m.cls, `CLS of the runs: ${runs.map((r) => r.cls.toFixed(4)).join(', ')}`)

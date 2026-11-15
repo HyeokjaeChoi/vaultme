@@ -12,8 +12,8 @@ export default defineConfig({
   projects: [
     { name: 'e2e', testIgnore: 'perf.spec.ts' },
     // The lab metrics (WEB-3) run alone, one test after the other, once the other specs are done: another busy worker would
-    // slow the page they time. Locally: `playwright test --project=perf --no-deps`.
-    { name: 'perf', testMatch: 'perf.spec.ts', dependencies: ['e2e'], fullyParallel: false },
+    // slow the page they time. No retry: a retry that passes would turn "median of 3 over the limit" into "1 of 2 tries". Locally: `playwright test --project=perf --no-deps`.
+    { name: 'perf', testMatch: 'perf.spec.ts', dependencies: ['e2e'], fullyParallel: false, retries: 0 },
   ],
   // The built site served by the real Workers Static Assets runtime: status codes, _headers and _redirects are the product.
   // Run `pnpm build` first (CI does).

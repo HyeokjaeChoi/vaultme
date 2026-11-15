@@ -9,7 +9,7 @@ Measured with the real build in Chromium (`apps/web/e2e/perf.spec.ts`, 2026-11-1
 
 ## Decision
 - The viewer limit (153,600 B gzip; `/address` and `/tx`, ko and en) applies to the page with its data: all same-origin JS the page loads until its first screen with data. Counting is as in 0018.
-- The shell stays measured by `lhci` and stays an error (`apps/web/scripts/js-budget.ts`). The page with data is measured by Playwright (`apps/web/e2e/perf.spec.ts`: real build, fragment, fixture API) with the same function, `gzipSize` (gzip level 9).
+- The shell stays measured by `lhci` and stays an error (`apps/web/scripts/js-budget.ts`). The page with data is measured by Playwright (`apps/web/e2e/perf.spec.ts`: real build, fragment, fixture API, the ko pages; the en pages load the same chunks) with the same function, `gzipSize` (gzip level 9). The `/tx` flow runs with the internal transfers failing, so it counts the error state of that section.
 - Until the JS fits the limit (about 30 KB to cut), the with-data check is a warning: an annotation and a row in the job summary. When it fits, `WITH_DATA_IS_ERROR` in `apps/web/e2e/perf.spec.ts` becomes `true` and the check fails a PR.
 - A page with under 2 % of its limit left warns in `apps/web/scripts/js-budget.ts` (a `warn` row and an annotation), the shell too. A warning never fails the job.
 
