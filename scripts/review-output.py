@@ -148,8 +148,9 @@ def post(review_path, pr, sha):
         print("::error::Invalid review file or arguments: " + "; ".join(bad[:5]))
         return 1
     repo = os.environ["GITHUB_REPOSITORY"]
-    ok, out = gh(f"repos/{repo}/pulls/{pr}/comments", "--paginate", "--jq", ".[] | [.user.type, .path, (.line|tostring)] | @tsv")
-    seen = {tuple(l.split("\t")[1:]) for l in out.splitlines() if l.startswith("Bot\t")} if ok else set()
+    ok, out = gh(f"repos/{repo}/pulls/{pr}/comments", "--paginate", "--jq", ".[] | [.user.login, .path, (.line|tostring)] | @tsv")
+    # Only the review bots count as "already reported" (the skill rule), not Copilot, Dependabot or others.
+    seen = {tuple(l.split("\t")[1:]) for l in out.splitlines() if l.split("\t")[0] in ("claude[bot]", "github-actions[bot]")} if ok else set()
     unplaced = []
     for c in review["comments"]:
         if (c["path"], str(c["line"])) in seen:
