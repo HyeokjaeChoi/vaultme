@@ -115,7 +115,9 @@ describe('daily budget (API-2: Etherscan blocks the free key at 100,000 calls a 
     expect(Object.keys(refusal as object)).toEqual(['refusedForSeconds'])
     expect(seconds).toBeGreaterThanOrEqual(1)
     expect(seconds).toBeLessThanOrEqual(86_400)
+    const windowBefore = await inside(name, (o) => [...(o as unknown as { b: Bucket }).b.starts])
     await env.ETHERSCAN_BUCKET.getByName(name).acquire()
+    expect(await inside(name, (o) => (o as unknown as { b: Bucket }).b.starts)).toEqual(windowBefore) // a refusal takes no rate slot
     expect(await inside(name, (o) => (o as unknown as { d: Day }).d.calls)).toBe(DAILY_REFUSE)
   })
 
@@ -125,6 +127,36 @@ describe('daily budget (API-2: Etherscan blocks the free key at 100,000 calls a 
     const granted = waits.filter((w) => w !== null).length
     expect(granted).toBe(6) // 3 now, 3 a window later; the other 3 would wait over 2 s
     expect(await inside(name, (o) => (o as unknown as { d: Day }).d.calls)).toBe(granted)
+  })
+
+  it('Durable Object: the warn line also comes when a restart jumped over 80,000 (restored count already at it)', async () => {
+    const name = crypto.randomUUID()
+    const log = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    try {
+      await inside(name, (o) => setDay(o, { day: utcDay(Date.now()), calls: DAILY_WARN }))
+      await env.ETHERSCAN_BUCKET.getByName(name).acquire()
+      await env.ETHERSCAN_BUCKET.getByName(name).acquire()
+      expect(log.mock.calls.filter((c) => String(c[0]).includes('etherscan_daily_budget_warn'))).toHaveLength(1)
+    } finally {
+      log.mockRestore()
+    }
+  })
+
+  it('Durable Object: a new instance restores the stored count plus SAVE_EVERY (the constructor reads the storage)', async () => {
+    const name = crypto.randomUUID()
+    const day = utcDay(Date.now())
+    await inside(name, (_o, state) => state.storage.put('day', { day, calls: 600 })) // committed before the reset
+    await inside(name, (_o, state) => state.abort('test: start a new instance')).catch(() => undefined) // the next call builds the object again
+    await env.ETHERSCAN_BUCKET.getByName(name).acquire()
+    expect(await inside(name, (o) => (o as unknown as { d: Day }).d.calls)).toBe(600 + SAVE_EVERY + 1)
+  })
+
+  it('Durable Object: the first call of a day is stored, so a restart cannot fall back to the day before', async () => {
+    const name = crypto.randomUUID()
+    const day = utcDay(Date.now())
+    await inside(name, (o) => setDay(o, { day: day - 1, calls: 94_950 }))
+    await env.ETHERSCAN_BUCKET.getByName(name).acquire()
+    expect(await inside(name, (_o, state) => state.storage.get('day'))).toEqual({ day, calls: 1 })
   })
 
   it('Durable Object: one warn line when the count reaches 80,000, none after', async () => {
