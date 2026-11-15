@@ -7,8 +7,12 @@ appId: dev.stackline.vaultme
     visible: '1번째 단어'
     timeout: 15000
 - tapOn: '1번째 단어'
-- waitForAnimationToEnd:
-    timeout: 3000
+# Each word waits for the focus of its cell (next-cell.yaml, MOB-1); cell 1 first.
+- extendedWaitUntil:
+    visible:
+      text: '1번째 단어'
+      focused: true
+    timeout: 10000
 - runFlow:
     file: type-word.yaml
     env:
@@ -76,6 +80,12 @@ appId: dev.stackline.vaultme
           commands:
             - hideKeyboard:
                 optional: true
+# 복구 stays off until all 12 words are valid: wait for it to turn on, so a wrong word fails here and not 30 s later.
+- extendedWaitUntil:
+    visible:
+      text: '복구'
+      enabled: true
+    timeout: 10000
 - tapOn: '복구'
 # Restore derives the BIP39 seed (PBKDF2), writes the Keychain and asks device auth: it can take longer than the 7 s assertVisible default
 # on the CI simulator (Maestro docs: extendedWaitUntil is for waits longer than 7 s).

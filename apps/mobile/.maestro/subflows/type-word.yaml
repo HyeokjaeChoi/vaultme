@@ -4,5 +4,8 @@ appId: dev.stackline.vaultme
 ---
 - inputText: ${MAESTRO_PHRASE.split(' ')[N - 1]}
 - pressKey: Enter
-- waitForAnimationToEnd:
-    timeout: 3000
+# Wait for the focus to reach the next cell before the next word is typed (MOB-1, next-cell.yaml).
+- runFlow:
+    file: next-cell.yaml
+    env:
+      N: ${N}

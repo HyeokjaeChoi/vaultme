@@ -17,4 +17,6 @@ n=$(( ${GITHUB_RUN_NUMBER:-1} * 3 + ${GITHUB_RUN_ATTEMPT:-1} ))
 k=$(( n % 810 )); export MAESTRO_ETH_SUFFIX=$(( 100 + k / 9 * 10 + k % 9 + 1 ))
 k=$(( n % 89 )); MAESTRO_USDC_SUFFIX="$(printf '%02d' $(( k / 9 * 10 + k % 9 + 1 )))"
 export MAESTRO_USDC_SUFFIX
+# The amounts of this run, for scripts/release-verify.mts in a later step of the job (ADR-0040): public numbers, no secret.
+[ -z "${GITHUB_ENV:-}" ] || printf 'MAESTRO_ETH_SUFFIX=%s\nMAESTRO_USDC_SUFFIX=%s\n' "$MAESTRO_ETH_SUFFIX" "$MAESTRO_USDC_SUFFIX" >> "$GITHUB_ENV"
 "$(dirname "$0")/run.sh" release

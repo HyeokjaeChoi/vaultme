@@ -1,0 +1,14 @@
+# After Return in restore cell N (1-12): wait until cell N+1 has the keyboard focus, so the next word is typed into the right cell (MOB-1).
+# The focus moves a moment after Return; a fixed wait or waitForAnimationToEnd (which returns at once on a still screen) let the next
+# inputText start in cell N and split one word over two cells. After cell 12 Return closes the keyboard: nothing to wait for.
+appId: dev.stackline.vaultme
+---
+- runFlow:
+    when:
+      true: ${Number(N) < 12}
+    commands:
+      - extendedWaitUntil:
+          visible:
+            text: '${Number(N) + 1}번째 단어'
+            focused: true
+          timeout: 10000

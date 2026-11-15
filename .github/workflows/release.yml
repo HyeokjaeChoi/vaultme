@@ -2,6 +2,8 @@
 # iOS simulator and the Android emulator, and only when all pass builds the app with EAS. Failed flows retry once (run.sh); a retry
 # pass continues and opens a "flaky e2e" issue; two failures stop the build. A tag run also runs the funded flows (#381): real Sepolia
 # sends between two wallets of one phrase (iOS: A sends to B, Android: B sends to A), then the other wallet is restored and lists them.
+# A funded flow is never retried (a retry would broadcast again) and waits up to 1,200 s for Confirmed; scripts/release-verify.mts then
+# checks the chain: sender nonce moved by exactly 2, both receipts status 1 with the right recipient and amount (ADR-0040, CHAIN-1).
 # `dry_run` runs only the two critical paths: no balance check, no Environment (so no phrase), no funded flows, no EAS build.
 name: release
 
@@ -58,7 +60,8 @@ jobs:
     runs-on: macos-26
     # A tag run reads the secret phrase for the funded flows, so it needs the Environment; a dry run (dispatch from a branch) has none.
     environment: ${{ inputs.dry_run != true && 'release' || '' }}
-    timeout-minutes: 90
+    # 150 = the 90 of the critical flows and the build + 2 x 20 min of funded Confirmed waits (ADR-0040) + 20 min spare.
+    timeout-minutes: 150
     permissions:
       contents: read
       issues: write # the flaky e2e issue
@@ -105,12 +108,31 @@ jobs:
         env:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: apps/mobile/.maestro/mask-phrase.sh
+      # Before the flows: the sender's nonce and the block number, for the chain check after them (ADR-0040). Prints public values only.
+      - name: Snapshot the sender nonce (wallet A)
+        if: ${{ inputs.dry_run != true }}
+        env:
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
+        run: pnpm exec tsx scripts/release-verify.mts snapshot a
       - name: Run the critical and funded flows (wallet A sends to B)
         if: ${{ inputs.dry_run != true }}
         shell: bash # -eo pipefail: a failed run.sh fails the step even through tee
         env:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: apps/mobile/.maestro/release-run.sh a 2>&1 | tee "$RUNNER_TEMP/critical.log"
+      # Runs after a failed flow too: it shows whether a send reached the chain (a failed run is re-tagged, never retried).
+      - name: Check the funded sends on chain (wallet A)
+        if: ${{ !cancelled() && inputs.dry_run != true }}
+        env:
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
+        run: pnpm exec tsx scripts/release-verify.mts verify a
+      - if: ${{ !cancelled() && inputs.dry_run != true }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-verify-ios
+          path: ${{ runner.temp }}/release-verify-a.json
+          retention-days: 90
+          if-no-files-found: warn
       # run.sh prints `::warning::flaky ...` when a flow failed once and passed on the retry (#377).
       - name: Open a flaky e2e issue
         if: ${{ success() }}
@@ -161,7 +183,8 @@ jobs:
     runs-on: ubuntu-latest
     # A tag run reads the secret phrase for the funded flows, so it needs the Environment; a dry run (dispatch from a branch) has none.
     environment: ${{ inputs.dry_run != true && 'release' || '' }}
-    timeout-minutes: 90
+    # 150 = the 90 of the critical flows and the build + 2 x 20 min of funded Confirmed waits (ADR-0040) + 20 min spare.
+    timeout-minutes: 150
     permissions:
       contents: read
       issues: write # the flaky e2e issue
@@ -219,6 +242,11 @@ jobs:
         env:
           E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
         run: apps/mobile/.maestro/mask-phrase.sh
+      - name: Snapshot the sender nonce (wallet B)
+        if: ${{ inputs.dry_run != true }}
+        env:
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
+        run: pnpm exec tsx scripts/release-verify.mts snapshot b
       - name: Run the critical and funded flows on an emulator (wallet B sends to A)
         if: ${{ inputs.dry_run != true }}
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
@@ -235,6 +263,19 @@ jobs:
           enable-hw-keyboard: true # no on-screen keyboard: it would cover the lower recovery phrase cells
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -change-locale ko-KR # the action's defaults + Korean: the flows match Korean text (ADR-0037, run.sh checks it)
           script: bash -o pipefail -c 'apps/mobile/.maestro/release-run.sh b 2>&1 | tee "$RUNNER_TEMP/critical.log"'
+      # Runs after a failed flow too: it shows whether a send reached the chain (a failed run is re-tagged, never retried).
+      - name: Check the funded sends on chain (wallet B)
+        if: ${{ !cancelled() && inputs.dry_run != true }}
+        env:
+          E2E_RELEASE_PHRASE: ${{ secrets.E2E_RELEASE_PHRASE }}
+        run: pnpm exec tsx scripts/release-verify.mts verify b
+      - if: ${{ !cancelled() && inputs.dry_run != true }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-verify-android
+          path: ${{ runner.temp }}/release-verify-b.json
+          retention-days: 90
+          if-no-files-found: warn
       # run.sh prints `::warning::flaky ...` when a flow failed once and passed on the retry (#377).
       - name: Open a flaky e2e issue
         if: ${{ success() }}
