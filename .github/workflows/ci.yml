@@ -98,11 +98,11 @@ jobs:
           path: perf-hermes.json
           retention-days: 90
           if-no-files-found: warn
-      # EVID-1 (ADR-0043): the same numbers as an evidence file, committed later as docs/results/hermes-size/.
+      # EVID-1 (ADR-0043): the same numbers as an evidence file, committed later with `evidence collect --run <id>` (last attempt of a re-run only).
       - if: ${{ !cancelled() && hashFiles('perf-hermes.json') != '' }}
         run: >
-          node packages/perf/src/cli.ts evidence emit --gate hermes-size --origin 'GitHub ubuntu-latest, expo export'
-          --tool 'expo export:check, Hermes' --out evidence-hermes-size.json --from hermes=perf-hermes.json
+          node packages/perf/src/cli.ts evidence emit --gate hermes-size --origin 'GitHub Actions ubuntu-latest, job verify'
+          --tool 'expo export, size read by packages/perf cli.ts hermes' --out evidence-hermes-size.json --from hermes=perf-hermes.json
       - if: ${{ !cancelled() && hashFiles('evidence-hermes-size.json') != '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -171,8 +171,8 @@ jobs:
       # EVID-1 (ADR-0043): one evidence file per run, from the desktop job (the mobile job measures the same JS bytes).
       - if: ${{ !cancelled() && matrix.profile == 'desktop' && hashFiles('apps/web/.lighthouseci/js-budget.json') != '' }}
         run: >
-          node packages/perf/src/cli.ts evidence emit --gate js-budget --origin 'GitHub ubuntu-latest, Lighthouse CI'
-          --tool 'apps/web/scripts/js-budget.ts' --out evidence-js-budget.json --from js-budget=apps/web/.lighthouseci/js-budget.json
+          node packages/perf/src/cli.ts evidence emit --gate js-budget --origin 'GitHub Actions ubuntu-latest, job lhci (desktop)'
+          --tool 'apps/web/scripts/js-budget.ts, gzip level 9 of the app JS' --out evidence-js-budget.json --from js-budget=apps/web/.lighthouseci/js-budget.json
       - if: ${{ !cancelled() && matrix.profile == 'desktop' && hashFiles('evidence-js-budget.json') != '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
