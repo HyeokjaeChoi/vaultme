@@ -38,7 +38,35 @@ export function jsBudgetResults(json: unknown): ResultInput[] {
   })
 }
 
+/** The metrics `cli.ts ci-health --json` writes (gate OBS-1): each against its limit; a metric with no sample (no open issue) is left out. */
+export function ciHealthResults(json: unknown): ResultInput[] {
+  if (!Array.isArray(json)) throw new Error('ci-health: expected an array of metrics')
+  return json.flatMap((m: Record<string, unknown>) => {
+    if (
+      typeof m.name !== 'string' ||
+      typeof m.value !== 'number' ||
+      typeof m.limit !== 'number' ||
+      typeof m.unit !== 'string' ||
+      typeof m.n !== 'number'
+    )
+      throw new Error('ci-health: a metric has no name, value, unit, limit and n')
+    if (m.n < 1) return []
+    return [
+      {
+        // Backticks of the table name would break the evidence text rule.
+        metric: m.name.replaceAll('`', ''),
+        value: m.value,
+        unit: m.unit,
+        threshold: { op: '<=' as const, value: m.limit },
+        n: m.n,
+        window: m.name.startsWith('Red main') ? '28 days' : 'one run',
+      },
+    ]
+  })
+}
+
 export const SOURCES: Record<string, (json: unknown) => ResultInput[]> = {
   hermes: hermesResults,
   'js-budget': jsBudgetResults,
+  'ci-health': ciHealthResults,
 }

@@ -34,11 +34,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           rc=0
-          node packages/perf/src/cli.ts ci-health > health.md || rc=$?
+          node packages/perf/src/cli.ts ci-health --json health.json > health.md || rc=$?
           { echo '### CI health'; echo; cat health.md; } >> "$GITHUB_STEP_SUMMARY"
           # Exit 3 = a breach (cli.ts); 1 is any crash, which fails the job and opens no issue.
           echo "breach=$([ "$rc" = 3 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           [ "$rc" = 0 ] || [ "$rc" = 3 ]
+      - name: Evidence file (ADR-0043)
+        # Numbers for the owner's resume: a normal PR commits the file (`evidence collect --run <id>`).
+        run: >
+          node packages/perf/src/cli.ts evidence emit --gate OBS-1 --origin 'GitHub Actions ubuntu-latest, this repository'
+          --tool 'gh, packages/perf cli.ts ci-health' --from ci-health=health.json --out evidence-OBS-1.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-OBS-1
+          path: evidence-OBS-1.json
+          retention-days: 90
+          if-no-files-found: error
       - name: Open or update the breach issue
         if: steps.check.outputs.breach == 'true'
         env:
