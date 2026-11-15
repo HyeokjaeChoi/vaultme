@@ -64,7 +64,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q40 | 12 words new, 12/24 restore, one path, no passphrase | SUPERSEDED | Optional restore passphrase: ADR-0003. Words and path still follow ADR-0002 |
 | Q41 | Circle Sepolia USDC, 6 decimals | IMPLEMENTED | `packages/wallet-core/src/constants.ts` |
 | Q42 | QR = address only; EIP-681 accepted; other chain stops | IMPLEMENTED | `shared/lib/qrAddress.ts` |
-| Q43 | Phrase screen: no copy, capture block, switcher blur, screenshot fallback | GAP | #318: no screenshot fallback; no rooted-device warning |
+| Q43 | Phrase screen: no copy, capture block, switcher blur, screenshot fallback | GAP | #318: no iOS app-switcher blur (`enableAppSwitcherProtectionAsync` is never called; the phrase page only calls `preventScreenCaptureAsync`, `apps/mobile/src/pages/backup/index.tsx`); no screenshot fallback; no rooted-device warning |
 | Q44 | Read-only Admin dashboard | SUPERSEDED | ADR-0012, #186 |
 | Q45 | One React Router v7 project, `ssr:false`, prerendered landing | IMPLEMENTED | ADR-0001; Admin part ADR-0012 |
 | Q46 | Review shows expected and max fee; re-review only if the cap rises | IMPLEMENTED | `packages/wallet-core/src/send.ts` |
