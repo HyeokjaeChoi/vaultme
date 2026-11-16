@@ -25,13 +25,19 @@ ALLOWED = re.compile(
 )
 
 
+# The R17 files guard the API key. The loop may add rules to check-repo-rules.sh but must keep these lines and cannot edit these tests.
+PROTECTED = re.compile(r"scripts/(check-review-workflow|review-learn-apply|review-output)[A-Za-z0-9_.-]*")
+R17_LINES = ("check-review-workflow.py .github/workflows/claude-code-review.yml", "check-review-workflow.py .github/workflows/review-learn.yml learn",
+             "check-review-workflow.test.py", "review-output.test.py", "review-learn-apply.test.py")
+
+
 def plan(proposal, read):
     """(files {path: new text}, problems). `read(path)` returns the current text or None."""
     bad = ro.validate_learn(proposal)
     files = {}
     for i, e in enumerate(proposal.get("edits", []) if not bad else []):
         p = e["path"]
-        if not ALLOWED.fullmatch(p) or ".." in p.split("/"):
+        if not ALLOWED.fullmatch(p) or PROTECTED.fullmatch(p) or ".." in p.split("/"):
             bad.append(f"edit {i}: path {p!r} is not one the loop may change")
             continue
         cur = files[p] if p in files else read(p)
@@ -44,6 +50,9 @@ def plan(proposal, read):
             bad.append(f"edit {i}: the text to replace must appear exactly once in {p}")
         else:
             files[p] = cur.replace(e["old"], e["new"], 1)
+    rules = files.get("scripts/check-repo-rules.sh")
+    if rules is not None and any(m not in rules for m in R17_LINES):
+        bad.append("an edit of scripts/check-repo-rules.sh removes an R17 line (the API key checks)")
     return files, bad
 
 
