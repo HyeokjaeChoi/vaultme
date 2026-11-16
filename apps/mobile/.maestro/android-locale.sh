@@ -17,16 +17,7 @@ for i in $(seq 1 "$tries"); do
   sleep 2
   if [ "$(adb -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; then
     loc="$(adb -s "$serial" shell getprop persist.sys.locale | tr -d '\r')"
-    case "$loc" in
-      ko*)
-        # With a Korean locale the keyboard types Hangul for the address field (dry run 43786438216): use the AOSP English keyboard when the image has it.
-        imes="$(adb -s "$serial" shell ime list -s | tr -d '\r')"
-        echo "input methods: $imes"
-        latin="$(grep -m1 '^com.android.inputmethod.latin' <<<"$imes" || true)"
-        if [ -n "$latin" ]; then adb -s "$serial" shell ime enable "$latin"; adb -s "$serial" shell ime set "$latin"; fi
-        adb -s "$serial" shell input keyevent 82
-        exit 0 ;;
-      *) echo "::error::locale is '$loc' after the restart, expected ko-KR" >&2; exit 1 ;; esac
+    case "$loc" in ko*) adb -s "$serial" shell input keyevent 82; exit 0 ;; *) echo "::error::locale is '$loc' after the restart, expected ko-KR" >&2; exit 1 ;; esac
   fi
 done
 echo "::error::the framework did not come back after the locale change ($tries tries)" >&2

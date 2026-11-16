@@ -20,7 +20,6 @@ echo "$*" >> ${log}
 case "$*" in
   *"getprop sys.boot_completed"*) c=$(($(cat ${n})+1)); echo $c > ${n}; if [ $c -gt ${String(o.bootedAfter)} ]; then echo 1; else echo 0; fi ;;
   *"getprop persist.sys.locale"*) echo ${o.locale} ;;
-  *"ime list"*) printf 'com.google.android.inputmethod.korean/.Ime\\r\\ncom.android.inputmethod.latin/.LatinIME\\r\\n' ;;
 esac\n`,
   )
   writeFileSync(join(bin, 'sleep'), '#!/usr/bin/env bash\nexit 0\n')
@@ -43,7 +42,6 @@ describe('android-locale.sh', () => {
       'setprop persist.sys.locale ko-KR',
       'setprop sys.boot_completed 0',
       'setprop ctl.restart zygote',
-      'ime set com.android.inputmethod.latin/.LatinIME',
       'input keyevent 82',
     ]
     const at = order.map((c) => r.calls.indexOf(c))
