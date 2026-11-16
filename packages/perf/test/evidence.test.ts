@@ -395,11 +395,15 @@ describe('docs/results of this repository', () => {
   })
 })
 
-const vitestReport = (failed: number, total = 9, start = 1000, end = 13_400) => ({
-  numTotalTests: total,
+const vitestReport = (failed: number, total = 9, over: Record<string, number> = {}) => ({
+  numPassedTests: total - failed,
   numFailedTests: failed,
-  startTime: start,
-  testResults: [{ endTime: end - 2000 }, { endTime: end }],
+  numPendingTests: 0,
+  numTodoTests: 0,
+  numFailedTestSuites: 0,
+  startTime: 1000,
+  testResults: [{ endTime: 11_400 }, { endTime: 13_400 }],
+  ...over,
 })
 
 describe('chain sources', () => {
@@ -420,9 +424,15 @@ describe('chain sources', () => {
     expect(r.map((x) => x.value)).toEqual([15, 2])
     expect(r[1]?.threshold).toEqual({ op: '==', value: 0 })
   })
+  it('does not count a skipped test as a case that ran, and counts a file that failed to load as a failure', () => {
+    // 8 ran, 1 skipped: "cases == 9" fails.
+    const skipped = chain3Results(vitestReport(0, 8, { numPendingTests: 1 }))
+    expect(skipped[0]?.value).toBe(8)
+    expect(chain5Results(vitestReport(0, 15, { numFailedTestSuites: 1 }))[1]?.value).toBe(1)
+  })
   it('throws on a report with no test or no times: nothing was measured', () => {
-    expect(() => chain3Results(vitestReport(0, 0))).toThrow(/no test/)
-    expect(() => chain5Results({ numTotalTests: 3, numFailedTests: 0 })).toThrow(/startTime/)
+    expect(() => chain3Results(vitestReport(0, 0))).toThrow(/no test that ran/)
+    expect(() => chain5Results({ ...vitestReport(0, 3), testResults: [] })).toThrow(/startTime/)
     expect(() => chain3Results({})).toThrow(/vitest json/)
   })
 })

@@ -38,20 +38,26 @@ export function jsBudgetResults(json: unknown): ResultInput[] {
   })
 }
 
-/** The counts of a `vitest --reporter=json` file; `seconds` is the wall time from the start of the run to the end of the last file. */
+/**
+ * The counts of a `vitest --reporter=json` file. `total` is the tests that ran (passed + failed): a skipped or todo test is not
+ * a case that was measured. A test file that cannot load counts as a failure (it is in `numFailedTestSuites`, not in the tests).
+ * `seconds` is the wall time from the start of the run to the end of the last file.
+ */
 function vitestCounts(json: unknown, who: string): { total: number; failed: number; seconds: number } {
-  if (!isRecord(json) || typeof json.numTotalTests !== 'number' || typeof json.numFailedTests !== 'number')
-    throw new Error(`${who}: expected a vitest json report (--reporter=json)`)
-  const files = Array.isArray(json.testResults) ? (json.testResults as unknown[]) : []
-  const ends = files.map((f) => (isRecord(f) && typeof f.endTime === 'number' ? f.endTime : NaN))
-  if (typeof json.startTime !== 'number' || ends.length === 0 || ends.some(Number.isNaN))
-    throw new Error(`${who}: the report has no startTime or file endTime`)
-  if (json.numTotalTests < 1) throw new Error(`${who}: the report holds no test (nothing was measured)`)
-  return {
-    total: json.numTotalTests,
-    failed: json.numFailedTests,
-    seconds: Math.round(Math.max(...ends) - json.startTime) / 1000,
+  const num = (k: string): number => {
+    const v = isRecord(json) ? json[k] : undefined
+    if (typeof v !== 'number')
+      throw new Error(`${who}: expected a vitest json report (--reporter=json): ${k} is missing`)
+    return v
   }
+  const total = num('numPassedTests') + num('numFailedTests')
+  const failed = num('numFailedTests') + num('numFailedTestSuites')
+  const files = isRecord(json) && Array.isArray(json.testResults) ? (json.testResults as unknown[]) : []
+  const ends = files.map((f) => (isRecord(f) && typeof f.endTime === 'number' ? f.endTime : NaN))
+  if (num('startTime') < 0 || ends.length === 0 || ends.some(Number.isNaN))
+    throw new Error(`${who}: the report has no startTime or file endTime`)
+  if (total < 1) throw new Error(`${who}: the report holds no test that ran (nothing was measured)`)
+  return { total, failed, seconds: Math.round(Math.max(...ends) - num('startTime')) / 1000 }
 }
 
 /** CHAIN-3: the vitest report of `pnpm --filter @vaultme/mobile test:anvil`: 9 cases (an `it.fails` counts as a pass), 0 fails, suite <= 60 s. */
