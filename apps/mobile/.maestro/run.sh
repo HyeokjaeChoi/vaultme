@@ -20,6 +20,29 @@ export MAESTRO_CLI_NO_ANALYTICS=1
 # The first driver start on a fresh CI device is slow: the XCTest driver took 2.5 min (run 1) and timed out at the default (run 2).
 # Set before the Android enrollment, which is the first driver start there.
 export MAESTRO_DRIVER_STARTUP_TIMEOUT=600000
+ios_prepare() {
+  xcrun simctl install "$udid" "$app"
+  # The app follows the device language (ADR-0037) and the flows match Korean text: pin this E2E simulator to Korean.
+  # The global domain is read when the app starts, so the next launchApp picks it up without a reboot.
+  xcrun simctl spawn "$udid" defaults write -g AppleLanguages -array ko-KR
+  xcrun simctl spawn "$udid" defaults write -g AppleLocale ko_KR
+  # Enroll Face ID (same commands as apps/mobile/AGENTS.md, for a simulator made for E2E).
+  xcrun simctl spawn "$udid" notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
+  xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit.enrollmentChanged
+  # `simctl notify_post` posts a Darwin notification on the device (xcrun simctl help notify_post); `spawn notifyutil` started a process in the
+  # simulator each second. A failed send was hidden by `|| true`: manual run 43881442664 had a Face ID sheet that never matched in 39 s
+  # (coreauthd started the match at 14:44:28 and logged no match), so failures and a count now go to e2e-artifacts/face-id-loop.log.
+}
+face_loop_start() {
+  mkdir -p ../e2e-artifacts
+  ( sent=0; failed=0
+    while true; do
+      if err=$(xcrun simctl notify_post "$udid" com.apple.BiometricKit_Sim.pearl.match 2>&1); then sent=$((sent + 1)); else failed=$((failed + 1)); echo "$(date -u +%T) send failed ($failed): $err" >> ../e2e-artifacts/face-id-loop.log; fi
+      [ $(((sent + failed) % 60)) -ne 0 ] || echo "$(date -u +%T) sent $sent, failed $failed" >> ../e2e-artifacts/face-id-loop.log
+      sleep 1
+    done ) &
+  loop=$!
+}
 # PLATFORM=android runs the same flows on an Android emulator (release.yml job android-critical, #382); default ios.
 platform="${PLATFORM:-ios}"
 case "$platform" in
@@ -29,25 +52,8 @@ case "$platform" in
     udid="${SIM_UDID:-$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' || true)}"
     [ -n "$udid" ] || { echo "no booted simulator; boot one or set SIM_UDID" >&2; exit 2; }
     [ "$(printf '%s\n' "$udid" | wc -l)" -eq 1 ] || { echo "several simulators are booted; set SIM_UDID to one of: $udid" >&2; exit 2; }
-    xcrun simctl install "$udid" "$app"
-    # The app follows the device language (ADR-0037) and the flows match Korean text: pin this E2E simulator to Korean.
-    # The global domain is read when the app starts, so the next launchApp picks it up without a reboot.
-    xcrun simctl spawn "$udid" defaults write -g AppleLanguages -array ko-KR
-    xcrun simctl spawn "$udid" defaults write -g AppleLocale ko_KR
-    # Enroll Face ID (same commands as apps/mobile/AGENTS.md, for a simulator made for E2E).
-    xcrun simctl spawn "$udid" notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
-    xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit.enrollmentChanged
-    # `simctl notify_post` posts a Darwin notification on the device (xcrun simctl help notify_post); `spawn notifyutil` started a process in the
-    # simulator each second. A failed send was hidden by `|| true`: manual run 43881442664 had a Face ID sheet that never matched in 39 s
-    # (coreauthd started the match at 14:44:28 and logged no match), so failures and a count now go to e2e-artifacts/face-id-loop.log.
-    mkdir -p ../e2e-artifacts
-    ( sent=0; failed=0
-      while true; do
-        if err=$(xcrun simctl notify_post "$udid" com.apple.BiometricKit_Sim.pearl.match 2>&1); then sent=$((sent + 1)); else failed=$((failed + 1)); echo "$(date -u +%T) send failed ($failed): $err" >> ../e2e-artifacts/face-id-loop.log; fi
-        [ $(((sent + failed) % 60)) -ne 0 ] || echo "$(date -u +%T) sent $sent, failed $failed" >> ../e2e-artifacts/face-id-loop.log
-        sleep 1
-      done ) &
-    loop=$!
+    ios_prepare
+    face_loop_start
     trap 'kill $loop 2>/dev/null || true' EXIT
     ;;
   android)
@@ -81,6 +87,15 @@ if [ "$tags" = loop ]; then
   # Same flow, same simulator, no retry: one line per iteration. A failed iteration also keeps the coreauthd log of its minutes.
   pass=0; fail=0
   for i in $(seq "$loop_n"); do
+    if [ "$i" -gt 1 ]; then
+      # A real run starts on a freshly booted simulator (iteration 1 does; 14 repeats on one simulator never failed, run 43937596396), so every
+      # later iteration erases and boots it again and enrolls Face ID again.
+      kill "$loop" 2>/dev/null || true
+      xcrun simctl shutdown "$udid"; xcrun simctl erase "$udid"; xcrun simctl boot "$udid"; xcrun simctl bootstatus "$udid" -b >/dev/null
+      ios_prepare
+      face_loop_start
+    fi
+    echo "$(date -u +%T) loop iteration $i" >> ../e2e-artifacts/face-id-loop.log
     started=$(date -u +'%Y-%m-%d %H:%M:%S')
     if maestro --udid "$udid" test "flows/$loop_flow" --format junit --output "../e2e-report-loop-$i.xml" --test-output-dir "../e2e-artifacts/loop-$i"; then
       pass=$((pass + 1)); echo "LOOP $i/$loop_n PASS ($(date -u +%T))" | tee -a ../e2e-artifacts/loop-summary.txt

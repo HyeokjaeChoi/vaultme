@@ -51,7 +51,7 @@ jobs:
     # A failed `changes` job must not skip this one (a skipped job passes the required check): then it runs.
     if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.run == 'true') }}
     runs-on: macos-26
-    timeout-minutes: 75
+    timeout-minutes: ${{ inputs.loop_flow != '' && 150 || 75 }} # the diagnosis loop (#668) runs ~5 min per iteration
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
