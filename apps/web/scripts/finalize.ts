@@ -59,6 +59,14 @@ export function inlineScriptHashes(html: string): string[] {
   return [...hashes]
 }
 
+const jsLiteral = (v: unknown) =>
+  JSON.stringify(v).replace(/[<>&\u2028\u2029]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`)
+
+/** The code of `preloadScript`, without the tag. */
+export function preloadCode(files: string[]): string {
+  return `(function(){var h;try{h=decodeURIComponent(location.hash.slice(1)).trim()}catch(e){return}if(!/^0x[0-9a-fA-F]{64}$/.test(h))return;for(var f of ${jsLiteral(files)}){var l=document.createElement('link');l.rel='modulepreload';l.href=f;document.head.append(l)}})()`
+}
+
 /**
  * An inline script for the /tx pages: a link with a valid hash (the same test as BOOT_SCRIPT in routes/tx.tsx) starts loading the
  * lazy chunks while the page boots. Without it the first read waits for the page's own JS, then for these chunks, one after the
@@ -66,7 +74,7 @@ export function inlineScriptHashes(html: string): string[] {
  * more, which keeps the JS budget of the shell (ADR-0042). The chunk imports its own dependencies (modulepreload follows them).
  */
 export function preloadScript(files: string[]): string {
-  return `<script>(function(){var h;try{h=decodeURIComponent(location.hash.slice(1)).trim()}catch(e){return}if(!/^0x[0-9a-fA-F]{64}$/.test(h))return;for(var f of ${JSON.stringify(files)}){var l=document.createElement('link');l.rel='modulepreload';l.href=f;document.head.append(l)}})()</script>`
+  return `<script>${preloadCode(files)}</script>`
 }
 
 export function fillHeaders(template: string, { scriptHashes, apiOrigin, noindex }: HeaderOptions): string {

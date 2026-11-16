@@ -9,6 +9,7 @@ import {
   fillHeaders,
   finalize,
   inlineScriptHashes,
+  preloadCode,
   preloadScript,
 } from '../scripts/finalize.ts'
 
@@ -184,10 +185,7 @@ describe('tx preload', () => {
         createElement: () => ({}) as Record<string, string>,
         head: { append: (l: Record<string, string>) => links.push(`${l.rel ?? ''} ${l.href ?? ''}`) },
       }
-      runInNewContext(preloadScript(['/assets/client-ABC123.js']).replace(/^<script>|<\/script>$/g, ''), {
-        document,
-        location: { hash },
-      })
+      runInNewContext(preloadCode(['/assets/client-ABC123.js']), { document, location: { hash } })
       return links
     }
     expect(run('#' + HASH)).toEqual(['modulepreload /assets/client-ABC123.js'])
