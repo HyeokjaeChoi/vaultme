@@ -9,6 +9,7 @@ import {
 import type { Env } from './env.ts'
 import { infuraDailyCap } from './alerts.ts'
 import { logEvent } from './log.ts'
+import { recordRpc } from './metrics.ts'
 
 const UPSTREAM_TIMEOUT_MS = 5000
 // #399: Infura's latency swings from run to run (staging upstream p50 12.5 to 94 ms, p95 64 to 735 ms). A read still open after this also
@@ -156,13 +157,16 @@ async function ask(u: Upstream, body: string, stop: AbortSignal): Promise<string
  * still answer (Alchemy can be a block behind); it is used only when Infura fails. Falls back on network error, timeout, non-2xx (5xx, 429,
  * 402, bad key), a body that is not a JSON-RPC answer and a quota error inside a 200 (QUOTA_CODES). Any other JSON-RPC error inside a 200 is a
  * real answer and is returned as is.
- * `hedge: false` (background work, push.ts) keeps the plain fallback. NEVER_HEDGED methods are sent to Alchemy only after Infura failed.
+ * `hedge: false` (background work, push.ts) keeps the plain fallback and writes no data point: one webhook or cron run makes hundreds of calls and
+ * a Worker invocation may write 250 points at most. A public request (`hedge` true) writes one (API-4). NEVER_HEDGED methods are sent to Alchemy only after Infura failed.
  * After a failure it is safe to resend: the same raw tx has the same hash.
  * Never log the URL, the error text or the upstream body: they can carry the API key.
  */
 export async function proxyRpc(env: Env['Bindings'], req: RpcRequest, hedge = true): Promise<string | null> {
   const body = JSON.stringify(req)
   const [primary, backup] = upstreams(env)
+  const t0 = Date.now()
+  let backupCalls = 0
   const stop = new AbortController()
   let timer: ReturnType<typeof setTimeout> | undefined
   const hedgeTimer = { fired: false } // set inside the timer callback
@@ -172,6 +176,7 @@ export async function proxyRpc(env: Env['Bindings'], req: RpcRequest, hedge = tr
     const go = () => {
       if (started) return
       started = true
+      backupCalls = 1
       clearTimeout(timer)
       ask(backup, body, stop.signal).then(resolve, reject)
     }
@@ -190,8 +195,10 @@ export async function proxyRpc(env: Env['Bindings'], req: RpcRequest, hedge = tr
     ])
     // A slow or hung Infura leaves no failure log when Alchemy wins (its call is aborted), so the hedge logs which side answered.
     if (hedgeTimer.fired) logEvent('info', 'rpc_hedged', { upstream: win.upstream })
+    if (hedge) recordRpc(env, req.method, 'ok', win.upstream, hedgeTimer.fired, Date.now() - t0, 1, backupCalls)
     return win.text
   } catch {
+    if (hedge) recordRpc(env, req.method, 'unavailable', 'none', hedgeTimer.fired, Date.now() - t0, 1, backupCalls)
     return null
   } finally {
     clearTimeout(timer)
