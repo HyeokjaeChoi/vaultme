@@ -40,10 +40,10 @@ case "$platform" in
     case "$udid" in emulator-*) ;; *) echo "PLATFORM=android runs on an emulator only (got $udid)" >&2; exit 2 ;; esac
     ./android-ready.sh "$udid" "$app"
     # The flows match Korean text (ADR-0037). A per-app locale is wiped by clearState (pm clear), so the emulator itself must be
-    # Korean: release.yml boots it with -change-locale ko-KR. Android uses persist.sys.locale when set, else ro.product.locale.
+    # Korean: release.yml runs android-locale.sh before the flows. Android uses persist.sys.locale when set, else ro.product.locale.
     loc="$(adb -s "$udid" shell getprop persist.sys.locale | tr -d '\r')"
     [ -n "$loc" ] || loc="$(adb -s "$udid" shell getprop ro.product.locale | tr -d '\r')"
-    case "$loc" in ko*) ;; *) echo "::error::emulator locale is '$loc', the flows need Korean: boot it with -change-locale ko-KR" >&2; exit 2 ;; esac
+    case "$loc" in ko*) ;; *) echo "::error::emulator locale is '$loc', the flows need Korean: run android-locale.sh first" >&2; exit 2 ;; esac
     # Screen lock PIN + fingerprint for the throwaway CI emulator (same setup as apps/mobile/AGENTS.md; the PIN is a test value).
     adb -s "$udid" shell locksettings set-pin 1234
     adb -s "$udid" shell svc power stayon true

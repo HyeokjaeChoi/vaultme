@@ -28,6 +28,7 @@ import {
 import {
   chain3Results,
   chain5Results,
+  mutationResults,
   ciHealthResults,
   hermesResults,
   jsBudgetResults,
@@ -549,6 +550,42 @@ describe('sources', () => {
     expect(() => ciHealthResults([{ name: 'x' }])).toThrow(/no name, value/)
   })
   it('lists the kinds `evidence emit --from` accepts', () => {
-    expect(Object.keys(SOURCES)).toEqual(['hermes', 'chain-3', 'chain-5', 'js-budget', 'load', 'ci-health'])
+    expect(Object.keys(SOURCES)).toEqual(['hermes', 'chain-3', 'chain-5', 'mutation', 'js-budget', 'load', 'ci-health'])
+  })
+})
+
+describe('mutation source (MUT-1)', () => {
+  const mutants = (...statuses: string[]) => ({ mutants: statuses.map((status) => ({ status })) })
+  const report = (over: object = {}) => ({
+    projectRoot: '/repo/packages/wallet-core',
+    thresholds: { high: 80, low: 60, break: 85 },
+    files: {
+      'src/a.ts': mutants(...Array<string>(8).fill('Killed'), 'Timeout', 'Survived'),
+      'src/b.ts': mutants('Killed', 'NoCoverage', 'Ignored', 'RuntimeError', 'CompileError'),
+    },
+    ...over,
+  })
+  it("scores like Stryker: killed and timeout over killed, timeout, survived and no coverage; the floor is the run's break", () => {
+    const [r] = mutationResults(report())
+    // detected 10 (9 killed + 1 timeout) of 12 valid: 83.33; the other three statuses are not counted.
+    expect(r).toEqual({
+      metric: 'Mutation score, wallet-core',
+      value: 83.33,
+      unit: '%',
+      threshold: { op: '>=', value: 85 },
+      n: 12,
+      window: 'one run',
+    })
+    expect(buildEvidence(input({ gate: 'MUT-1', results: [r!] })).results[0]?.pass).toBe(false)
+    expect(mutationResults(report({ thresholds: { break: 80 } }))[0]?.value).toBe(83.33)
+    expect(
+      buildEvidence(input({ gate: 'MUT-1', results: mutationResults(report({ thresholds: { break: 80 } })) }))
+        .results[0]?.pass,
+    ).toBe(true)
+  })
+  it('throws when the report has no floor, no root or no mutant that ran', () => {
+    expect(() => mutationResults({})).toThrow(/Stryker json/)
+    expect(() => mutationResults(report({ thresholds: { high: 80, low: 60 } }))).toThrow(/Stryker json/)
+    expect(() => mutationResults(report({ files: { 'a.ts': mutants('Ignored') } }))).toThrow(/no mutant that ran/)
   })
 })

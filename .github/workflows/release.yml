@@ -239,9 +239,10 @@ jobs:
           cores: 4
           ram-size: 4096M
           enable-hw-keyboard: true # no on-screen keyboard: it would cover the lower recovery phrase cells
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -change-locale ko-KR # the action's defaults + Korean: the flows match Korean text (ADR-0037, run.sh checks it)
-          # Line 1 is MOB-5 (cold start before any flow), line 2 the flows.
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim # the action's defaults; Korean is set by android-locale.sh (the flows match Korean text, ADR-0037, run.sh checks it)
+          # Line 1 sets Korean, line 2 is MOB-5 (cold start before any flow), line 3 the flows.
           script: |
+            bash apps/mobile/.maestro/android-locale.sh emulator-5554
             bash -c 'set -a; . docs/perf/mobile-baseline.env; set +a; apps/mobile/.maestro/coldstart-android.sh apps/mobile/android/app/build/outputs/apk/release/app-release.apk'
             bash -o pipefail -c 'PLATFORM=android apps/mobile/.maestro/run.sh critical 2>&1 | tee "$RUNNER_TEMP/critical.log"'
       - name: Mask the recovery phrase
@@ -268,8 +269,9 @@ jobs:
           cores: 4
           ram-size: 4096M
           enable-hw-keyboard: true # no on-screen keyboard: it would cover the lower recovery phrase cells
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -change-locale ko-KR # the action's defaults + Korean: the flows match Korean text (ADR-0037, run.sh checks it)
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim # the action's defaults; Korean is set by android-locale.sh (the flows match Korean text, ADR-0037, run.sh checks it)
           script: |
+            bash apps/mobile/.maestro/android-locale.sh emulator-5554
             bash -c 'set -a; . docs/perf/mobile-baseline.env; set +a; apps/mobile/.maestro/coldstart-android.sh apps/mobile/android/app/build/outputs/apk/release/app-release.apk'
             bash -o pipefail -c 'apps/mobile/.maestro/release-run.sh b 2>&1 | tee "$RUNNER_TEMP/critical.log"'
       # Runs after a failed flow and after a job timeout too (`always()`; a timeout cancels the job): it shows whether a send reached the chain (a failed run is re-tagged, never retried).

@@ -153,10 +153,46 @@ export function ciHealthResults(json: unknown): ResultInput[] {
   })
 }
 
+/**
+ * MUT-1: the `reports/mutation/mutation.json` of one Stryker run (`packages/*`, reporter `json`). The score is Stryker's own:
+ * (killed + timeout) / (killed + timeout + survived + no coverage); ignored, compile-error and runtime-error mutants are not counted.
+ * The floor is `thresholds.break` of the run's config, which the report carries. The package is the folder name of `projectRoot`.
+ */
+export function mutationResults(json: unknown): ResultInput[] {
+  const files = isRecord(json) && isRecord(json.files) ? Object.values(json.files) : null
+  const floor = isRecord(json) && isRecord(json.thresholds) ? json.thresholds.break : undefined
+  const root = isRecord(json) ? json.projectRoot : undefined
+  if (!files || typeof floor !== 'number' || typeof root !== 'string')
+    throw new Error('mutation: expected a Stryker json report with files, thresholds.break and projectRoot')
+  const count: Record<string, number> = {}
+  for (const f of files) {
+    const mutants = isRecord(f) && Array.isArray(f.mutants) ? (f.mutants as unknown[]) : []
+    for (const m of mutants) {
+      const status = isRecord(m) && typeof m.status === 'string' ? m.status : ''
+      count[status] = (count[status] ?? 0) + 1
+    }
+  }
+  const n = (k: string): number => count[k] ?? 0
+  const detected = n('Killed') + n('Timeout')
+  const valid = detected + n('Survived') + n('NoCoverage')
+  if (valid < 1) throw new Error('mutation: the report holds no mutant that ran (nothing was measured)')
+  return [
+    {
+      metric: `Mutation score, ${root.split('/').filter(Boolean).at(-1) ?? 'package'}`,
+      value: Math.round((detected / valid) * 10_000) / 100,
+      unit: '%',
+      threshold: { op: '>=', value: floor },
+      n: valid,
+      window: 'one run',
+    },
+  ]
+}
+
 export const SOURCES: Record<string, (json: unknown) => ResultInput[]> = {
   hermes: hermesResults,
   'chain-3': chain3Results,
   'chain-5': chain5Results,
+  mutation: mutationResults,
   'js-budget': jsBudgetResults,
   load: loadSourceResults,
   'ci-health': ciHealthResults,

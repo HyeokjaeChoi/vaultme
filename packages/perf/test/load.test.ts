@@ -24,7 +24,7 @@ describe('classify', () => {
     [503, null, null, 'server_bug', null],
     [500, null, 'internal', 'server_bug', null],
     [502, null, null, 'server_bug', null],
-    [0, null, null, 'other', null],
+    [0, null, null, 'transport', null],
     [403, null, 'method_not_allowed', 'other', null],
   ] as const)('%s retry-after %s code %s is %s (contract %s)', (status, retryAfter, code, verdict, contract) => {
     expect(classify(status, retryAfter, code)).toEqual({ verdict, contract })
@@ -36,8 +36,10 @@ describe('thresholds', () => {
     const t = thresholds()
     for (const c of CHECKS) expect(t[c.metric]).toBeDefined()
     expect(t.server_bug).toEqual([{ threshold: 'count==0', abortOnFail: true, delayAbortEval: '10s' }])
-    expect(t['probe_hits{kind:install_429}']).toEqual(['count>0'])
-    expect(t['probe_hits{kind:install_200}']).toEqual(['count<=90'])
+    // The probes that ask whether a limiter bites are reported, not judged: k6 gets an always-true threshold.
+    expect(t['probe_hits{kind:install_429}']).toEqual(['count>=0'])
+    expect(t['probe_hits{kind:install_200}']).toBeUndefined()
+    expect(t.transport_error).toEqual(['count<=3'])
     expect(t['probe_hits{kind:ip_rpc_2xx}']).toEqual(['count==0'])
     expect(t.limit_contract).toEqual(['rate==1'])
     expect(t['ok_own{scenario:steady}']).toEqual([`p(95)<=${String(OWN_P95_MS)}`])
@@ -64,6 +66,7 @@ const data = (over: Record<string, Record<string, number>> = {}) => ({
       unavailable_503: { count: 9 },
       server_bug: { count: 0 },
       unexpected: { count: 0 },
+      transport_error: { count: 1 },
       limit_contract: { rate: 1, passes: 300, fails: 0 },
       'probe_hits{kind:install_429}': { count: 60 },
       'probe_hits{kind:install_200}': { count: 60 },
@@ -114,7 +117,7 @@ describe('loadResults', () => {
     expect(r.find((x) => x.metric.startsWith('429 responses, one install'))).toMatchObject({
       value: 60,
       n: 120,
-      threshold: { op: '>', value: 0 },
+      threshold: null,
     })
     expect(r.at(-1)).toEqual({
       metric: 'Steady requests answered 503 unavailable (an upstream down; does not fail the run)',
@@ -138,12 +141,20 @@ describe('loadResults', () => {
     expect(() => loadResults(summary({ 'own_n{scenario:steady}': { count: 0 } }))).toThrow(
       /Own server time.*no samples/,
     )
-    expect(() => loadResults(summary({ limit_contract: { rate: 0, passes: 0, fails: 0 } }))).toThrow(
-      /429 responses with Retry-After.*no samples/,
-    )
     expect(() => loadResults(summary({ 'probe_sent{probe:ip_rpc}': { count: 0 } }))).toThrow(
       /ip_rpc|unauthenticated \/v1\/rpc/,
     )
+  })
+  it('leaves out the 429 contract when no 429 came, and reports a limiter that never bit', () => {
+    const r = loadResults(
+      summary({ limit_contract: { rate: 0, passes: 0, fails: 0 }, 'probe_hits{kind:ip_rpc_429}': { count: 0 } }),
+    )
+    expect(r.some((x) => x.metric.startsWith('429 responses with Retry-After'))).toBe(false)
+    expect(r).toHaveLength(CHECKS.length)
+    expect(r.find((x) => x.metric.includes('unauthenticated /v1/rpc above'))).toMatchObject({
+      value: 0,
+      threshold: null,
+    })
   })
   it('throws when k6 did not report a rate or a trend it needs', () => {
     const d = data()
@@ -168,6 +179,6 @@ describe('loadMarkdown', () => {
       '| Own server time p95 under load (Worker time minus upstream time) | `<= 50` | 61 ms | 351 | FAIL |',
     )
     expect(md).toContain('| report only | 2.5 % | 360 | report only |')
-    expect(md.match(/pass/g)?.length).toBe(CHECKS.length - 2)
+    expect(md.match(/pass/g)?.length).toBe(CHECKS.filter((c) => !c.report).length - 2)
   })
 })
