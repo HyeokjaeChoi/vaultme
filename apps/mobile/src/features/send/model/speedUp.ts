@@ -29,7 +29,8 @@ export type ReplaceKind = 'speedUp' | 'cancel'
 /**
  * Where a replacement starts from: the fee fields (and, for a speed up, the gas limit) the latest tx was signed with. The record holds them; one
  * written before they were saved has none, so the sent tx is read from the chain by hash (newest own hash first: the newest may never have reached
- * the node). A tx the node does not know throws: a bump from today's market value could be refused as underpriced. A cancel is always 21000 gas.
+ * the node). A tx the node does not know (dropped, or never reached it) gives no base: the plan then bumps from today's market fees (and a speed up takes
+ * the fresh gas estimate). The node may refuse that as underpriced; that is a `ChainError` and nothing is recorded (#659). A cancel is always 21000 gas.
  */
 async function sentBase(tx: PendingTx, chain: Pick<ChainPort, 'getTransaction'>, needGas: boolean) {
   let fees: FeeFields | null = null
@@ -46,8 +47,6 @@ async function sentBase(tx: PendingTx, chain: Pick<ChainPort, 'getTransaction'>,
       break
     }
   }
-  if (fees === null || (needGas && gasLimit === null))
-    throw new Error('replace: the sent transaction is not known to the node')
   return { latestSent: fees, gasLimit }
 }
 
@@ -68,16 +67,17 @@ export async function quoteReplace(
     sentBase(tx, chain, !cancel),
   ])
   const market = marketFeesOf(snap)
+  const latestSent = base.latestSent ?? market
   if (cancel)
     return planCancel({
-      latestSent: base.latestSent,
+      latestSent,
       market,
       baseFeePerGas: snap.baseFeePerGas,
       nativeBalance: snap.nativeBalance,
     })
   return planSpeedUp({
-    latestSent: base.latestSent,
-    gasLimit: base.gasLimit ?? snap.gasLimit, // never null for a speed up (`sentBase` throws)
+    latestSent,
+    gasLimit: base.gasLimit ?? snap.gasLimit, // null when the record has none and the node does not know the tx
     market,
     baseFeePerGas: snap.baseFeePerGas,
     asset,

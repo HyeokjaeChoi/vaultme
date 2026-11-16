@@ -90,6 +90,21 @@ describe('quoteCancel', () => {
     expect(plan.gasLimit).toBe(21_000n) // never the saved or the original gas limit
     expect(d.chain.getTransaction).toHaveBeenCalledWith(H1)
   })
+  it('#659: an old record without fees that the node does not know bumps from the market fees, it does not throw (cancel of an Unknown send, speed up)', async () => {
+    const legacy = record({ state: 'Unknown', hashes: [H1, '0x' + '22'.repeat(32)] })
+    delete legacy.maxFeePerGas
+    delete legacy.maxPriorityFeePerGas
+    delete legacy.gasLimit
+    const { d } = setup(legacy, snap(), null) // getTransaction answers null for every own hash
+    const cancel = await quoteCancel(legacy, FROM, d.chain)
+    // market = { max: 2 * base + tip, tip } -> a bump above it, never below
+    expect(cancel.maxFeePerGas).toBeGreaterThan(2n * GWEI + GWEI / 2n)
+    expect(cancel.gasLimit).toBe(21_000n)
+    expect(d.chain.getTransaction).toHaveBeenCalledTimes(2) // every own hash was asked, newest first
+    const sped = await quoteSpeedUp({ ...legacy, state: 'Pending' }, FROM, d.chain)
+    expect(sped.maxFeePerGas).toBe(cancel.maxFeePerGas)
+    expect(sped.gasLimit).toBe(65_000n) // no saved or sent gas limit: the fresh estimate
+  })
   it('too little ETH for the fee disables it with the shortfall', async () => {
     const { d } = setup(record(), snap({ nativeBalance: 1n }))
     expect((await quoteCancel(record(), FROM, d.chain)).shortBy).toBeGreaterThan(0n)
