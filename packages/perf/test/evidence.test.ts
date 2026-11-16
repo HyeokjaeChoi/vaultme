@@ -25,7 +25,7 @@ import {
   type EvidenceInput,
   type Op,
 } from '../src/evidence.ts'
-import { hermesResults, jsBudgetResults, SOURCES } from '../src/evidence-sources.ts'
+import { ciHealthResults, hermesResults, jsBudgetResults, SOURCES } from '../src/evidence-sources.ts'
 
 const RUN = {
   commit: 'a'.repeat(40),
@@ -441,7 +441,36 @@ describe('sources', () => {
       /row 0 needs url, bytes and limit/,
     )
   })
+  it('turns the ci-health metrics into results the schema accepts, and leaves out a metric with no sample', () => {
+    const m = (name: string, value: number, limit: number, n: number) => ({
+      name,
+      value,
+      unit: 'min',
+      limit,
+      n,
+      breach: value > limit,
+    })
+    const results = ciHealthResults([
+      m('Red main: failed `ci` runs on main, 28 days', 5.2, 2, 194),
+      m('Oldest open `flaky` issue', 0, 14, 0),
+      m('PR CI wall time, median of the last green runs', 9.9, 12.5, 10),
+    ])
+    expect(results.map((r) => [r.metric, r.window])).toEqual([
+      ['Red main: failed ci runs on main, 28 days', '28 days'],
+      ['PR CI wall time, median of the last green runs', 'last 10 green runs'],
+    ])
+    const worst = ciHealthResults([
+      { name: 'Age of the last green `api-bench`', value: 9999, unit: 'days', limit: 8, n: 0 },
+      { name: 'Oldest open `flaky` issue', value: 0, unit: 'days', limit: 14, n: 0 },
+    ])
+    expect(worst).toHaveLength(1)
+    expect(worst[0]).toMatchObject({ n: 1, window: 'snapshot', value: 9999 })
+    const e = buildEvidence(input({ gate: 'OBS-1', results }))
+    expect(e.results.map((r) => r.pass)).toEqual([false, true])
+    expect(() => ciHealthResults({})).toThrow(/expected an array/)
+    expect(() => ciHealthResults([{ name: 'x' }])).toThrow(/no name, value/)
+  })
   it('lists the kinds `evidence emit --from` accepts', () => {
-    expect(Object.keys(SOURCES)).toEqual(['hermes', 'js-budget'])
+    expect(Object.keys(SOURCES)).toEqual(['hermes', 'js-budget', 'ci-health'])
   })
 })

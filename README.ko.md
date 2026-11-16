@@ -2,6 +2,8 @@
 
 [English](README.md)
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/HyeokjaeChoi/vaultme/badge)](https://scorecard.dev/viewer/?uri=github.com/HyeokjaeChoi/vaultme)
+
 Ethereum Sepolia 테스트넷용 self-custody 지갑입니다. 학습과 포트폴리오를 위해 만들고 있습니다.
 
 이 모노레포에는 지갑 로직, React Native(Expo) 앱, 디자인 토큰, 설계 문서가 들어 있습니다.
