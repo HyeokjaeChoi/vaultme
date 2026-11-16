@@ -57,10 +57,12 @@ describe('android-static-gates.sh', () => {
 })
 
 describe('coldstart-android.sh', () => {
-  const run = (totals: number[], env: Record<string, string> = {}) => {
+  const run = (totals: number[], env: Record<string, string> = {}, emptyFirst = 0) => {
     const bin = mkdtempSync(join(tmpdir(), 'adb-'))
     const state = join(bin, 'n')
     writeFileSync(state, '0')
+    const empties = join(bin, 'e')
+    writeFileSync(empties, '0')
     // Output of the real commands: resolve-activity prints a component last; `am start -W` prints TotalTime. Cold starts take `totals` in order.
     stub(
       bin,
@@ -68,7 +70,11 @@ describe('coldstart-android.sh', () => {
       `args="$*"
 case "$args" in
   *resolve-activity*) printf 'priority=0\\r\\ndev.stackline.vaultme/.MainActivity\\r\\n' ;;
-  *"am start -W"*) n=$(cat ${state}); v=$(echo "${totals.join(' ')}" | cut -d' ' -f$((n+1))); echo $((n+1)) > ${state}; printf 'Status: ok\\r\\nTotalTime: %s\\r\\n' "$v" ;;
+  *getprop*) echo 1 ;;
+  *"pm path"*) exit 0 ;;
+  *install*) echo Success ;;
+  *"am start -W"*) e=$(cat ${empties}); if [ $e -lt ${String(emptyFirst)} ]; then echo $((e+1)) > ${empties}; printf 'Status: timeout\\r\\n'; exit 0; fi
+    n=$(cat ${state}); v=$(echo "${totals.join(' ')}" | cut -d' ' -f$((n+1))); echo $((n+1)) > ${state}; printf 'Status: ok\\r\\nTotalTime: %s\\r\\n' "$v" ;;
 esac`,
     )
     stub(bin, 'sleep', 'exit 0')
@@ -88,6 +94,10 @@ esac`,
     const r = run([9000, 1000, 3000, 2000])
     expect(r.status).toBe(0)
     expect(r.stdout).toContain('median 2000 ms')
+  })
+  it('tries again when am start prints no TotalTime, and fails after 3 attempts', () => {
+    expect(run([1000, 1000, 1000, 1000], {}, 2).status).toBe(0)
+    expect(run([1000, 1000, 1000, 1000], {}, 3).status).toBe(1)
   })
   it('fails at a median of 5000 ms', () => {
     expect(run([1000, 5000, 6000, 4000]).status).toBe(1)
