@@ -37,6 +37,7 @@ Flows match visible Korean text (button labels are also accessibility labels). A
 
 The app has no auth bypass (ADR-0016). `run.sh` enrolls Face ID on the simulator, then sends the Face ID `match` event every second while the flows run.
 The event matters only while an OS auth sheet is up (create, phrase reveal, lock gate); at any other time the simulator ignores it.
+The loop sends it with `xcrun simctl notify_post` and writes failed sends and a count of sends to `e2e-artifacts/face-id-loop.log` (part of the run artifact). Why (MOB-1, run 43881442664): the lock flow stayed on the Face ID sheet for 30 s; the simulator log of that flow shows `coreauthd` starting the match at 14:44:28 and no `has matched` line in the next 39 s (the passing retry matched 1.8 s after it started). The cause is not proven and did not reproduce locally (lock flow 8 of 8 under CPU load with the old `simctl spawn notifyutil` sender, 6 of 6 with `notify_post`): the old sender started a process in the simulator each second, and a failed send was hidden. If the sheet sticks again, read `face-id-loop.log` first: `send failed` lines mean the sender failed; with no such lines, look at the gaps between the `sent N` lines (one per 60 sends, so about 60 s apart; a longer gap means the sender was slow). The file is in the artifact of `e2e.yml` and of the `release.yml` dry run; a tag run uploads only the JUnit reports, so there it is not available. A new run starts with an empty file on CI; a local re-run appends.
 Android (`PLATFORM=android`, #382): a PIN and a fingerprint on the emulator; the loop touches finger 1 every second, and `run.sh` stops at once when `dumpsys fingerprint` shows no fingerprint. `run.sh` installs the APK through `android-ready.sh`: it waits for the package service (`pm path android`) and retries the install, because a framework restart after boot made the install fail (dry run 43774041050). The locale is set by `android-locale.sh`, not by the emulator option `-change-locale`, whose restart raced with the action's own `input keyevent 82` ("Broken pipe", dry runs 43728396216 and 43784174970).
 The enrollment commands change the security state of a simulator that exists only for E2E. Never run `run.sh` against your daily simulator.
 
@@ -53,10 +54,12 @@ Every flow starts with `clearState` and `clearKeychain`, so it needs a clean app
 
 ## Flake baseline
 
-Before MOB-1: 85 `e2e` runs from 2026-11-02 to 2026-11-07 (from the `::warning::flaky` annotations): 29 needed a retry (34.1 %), 10 failed after the retry. Most of those runs are from before ADR-0039. After MOB-1: not measured yet. The gate of MOB-1 is 10 manual runs (`e2e.yml` dispatch and `release.yml` with `dry_run`) with at most 1 retry and no failed run. Add one row per run here when they are done (the owner starts them).
+Before MOB-1: 85 `e2e` runs from 2026-11-02 to 2026-11-07 (from the `::warning::flaky` annotations): 29 needed a retry (34.1 %), 10 failed after the retry. Most of those runs are from before ADR-0039. After MOB-1: 14 manual runs measured (evidence files in `docs/results/mob-1/`). Before #654 (create flow mitigation): 5 runs, 4 clean, 1 failed (run 43788765786, `create wallet through backup` failed twice). After #654: 9 runs counted, 7 clean, 2 needed a retry (both `cold start asks OS auth, then opens Home`: the failure screenshot of run 43881442664 shows the lock screen with the Face ID sheet still up after 30 s, so the simulator Face ID match did not finish the sign-in; not a balance read), 0 failed. The gate (at most 1 retry in 10 runs) failed at run 9; the count stopped and restarts after a fix of the Face ID path. The gate of MOB-1 is 10 manual runs (`e2e.yml` dispatch and `release.yml` with `dry_run`) with at most 1 retry and no failed run. Add one row per run here when they are done (the owner starts them).
 
 | Date | Run | Flows that needed a retry | First-try pass |
 |---|---|---|---|
+| 2026-11-16 | [43814564369](https://github.com/HyeokjaeChoi/vaultme/actions/runs/43814564369) | `cold start asks OS auth, then opens Home` | no |
+| 2026-11-16 | [43881442664](https://github.com/HyeokjaeChoi/vaultme/actions/runs/43881442664) | `cold start asks OS auth, then opens Home` | no |
 
 ## Release size, cold start and store rules
 
