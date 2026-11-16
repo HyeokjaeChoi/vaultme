@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const calls: string[] = []
+let allowFails = false
 vi.mock('expo-screen-capture', () => ({
   preventScreenCaptureAsync: (k: string) => Promise.resolve(void calls.push(`prevent:${k}`)),
-  allowScreenCaptureAsync: (k: string) => Promise.resolve(void calls.push(`allow:${k}`)),
+  allowScreenCaptureAsync: (k: string) =>
+    allowFails ? Promise.reject(new Error('allow failed')) : Promise.resolve(void calls.push(`allow:${k}`)),
   enableAppSwitcherProtectionAsync: () => Promise.resolve(void calls.push('switcher:on')),
   disableAppSwitcherProtectionAsync: () => Promise.resolve(void calls.push('switcher:off')),
 }))
@@ -11,7 +13,10 @@ vi.mock('expo-screen-capture', () => ({
 import { protectPhrase, releasePhrase } from '../src/features/backup/model/capture'
 
 describe('phrase screen capture protection (SEC-7, ADR-J)', () => {
-  beforeEach(() => void (calls.length = 0))
+  beforeEach(() => {
+    calls.length = 0
+    allowFails = false
+  })
 
   it('iOS: the switcher blur is on before the caller can reveal (path 1 of 2)', async () => {
     await protectPhrase('k', true)
@@ -20,6 +25,11 @@ describe('phrase screen capture protection (SEC-7, ADR-J)', () => {
   it('iOS: blur and capture block are both released on blur (path 2 of 2)', async () => {
     await releasePhrase('k', true)
     expect(calls).toEqual(['allow:k', 'switcher:off'])
+  })
+  it('iOS: the blur is still released when the capture release rejects', async () => {
+    allowFails = true
+    await expect(releasePhrase('k', true)).rejects.toThrow('allow failed')
+    expect(calls).toEqual(['switcher:off'])
   })
   it('Android: only FLAG_SECURE; the iOS-only blur API is never called', async () => {
     await protectPhrase('k', false)
