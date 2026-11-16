@@ -7,8 +7,3 @@ rules:
       # checks out the default branch only: no code or artifact of a PR is executed or trusted. It reads run artifacts of
       # those two workflows with a read token. Remove when the SLO window moves to a `schedule` trigger.
       - api-slo-window.yml
-  github-app:
-    ignore:
-      # review-learn.yml `create-github-app-token` has no `permission-*` input yet; owner of the file: review-key-hardening
-      # (the key job is being split, #613/#614). Remove when that workflow sets `permission-contents` / `permission-pull-requests`.
-      - review-learn.yml

@@ -217,6 +217,10 @@ jobs:
         with:
           client-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          # Only what scripts/review-learn-pr.sh does: push the branch, open the draft PR, open and close its issue (zizmor github-app).
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
       - name: Open the proposal
         if: steps.app.outcome == 'success'
         env:
