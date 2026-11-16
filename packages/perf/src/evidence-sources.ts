@@ -46,6 +46,80 @@ export function loadSourceResults(json: unknown): ResultInput[] {
   return loadResults(json as unknown as LoadSummary)
 }
 
+/**
+ * The counts of a `vitest --reporter=json` file. `total` is the tests that ran (passed + failed): a skipped or todo test is not
+ * a case that was measured. A test file that cannot load counts as a failure (it is in `numFailedTestSuites`, not in the tests).
+ * `seconds` is the wall time from the start of the run to the end of the last file.
+ */
+function vitestCounts(json: unknown, who: string): { total: number; failed: number; seconds: number } {
+  const num = (k: string): number => {
+    const v = isRecord(json) ? json[k] : undefined
+    if (typeof v !== 'number')
+      throw new Error(`${who}: expected a vitest json report (--reporter=json): ${k} is missing`)
+    return v
+  }
+  const total = num('numPassedTests') + num('numFailedTests')
+  const failed = num('numFailedTests') + num('numFailedTestSuites')
+  const files = isRecord(json) && Array.isArray(json.testResults) ? (json.testResults as unknown[]) : []
+  const ends = files.map((f) => (isRecord(f) && typeof f.endTime === 'number' ? f.endTime : NaN))
+  if (num('startTime') < 0 || ends.length === 0 || ends.some(Number.isNaN))
+    throw new Error(`${who}: the report has no startTime or file endTime`)
+  if (total < 1) throw new Error(`${who}: the report holds no test that ran (nothing was measured)`)
+  return { total, failed, seconds: Math.round(Math.max(...ends) - num('startTime')) / 1000 }
+}
+
+/** CHAIN-3: the vitest report of `pnpm --filter @vaultme/mobile test:anvil`: 9 cases (an `it.fails` counts as a pass), 0 fails, suite <= 60 s. */
+export function chain3Results(json: unknown): ResultInput[] {
+  const c = vitestCounts(json, 'chain-3')
+  const window = 'one run'
+  return [
+    {
+      metric: 'Anvil send lifecycle: cases',
+      value: c.total,
+      unit: 'cases',
+      threshold: { op: '==', value: 9 },
+      n: c.total,
+      window,
+    },
+    {
+      metric: 'Anvil send lifecycle: failed cases',
+      value: c.failed,
+      unit: 'cases',
+      threshold: { op: '==', value: 0 },
+      n: c.total,
+      window,
+    },
+    {
+      metric: 'Anvil send lifecycle: suite time',
+      value: c.seconds,
+      unit: 's',
+      threshold: { op: '<=', value: 60 },
+      n: 1,
+      window,
+    },
+  ]
+}
+
+/**
+ * CHAIN-5: the vitest report of the property tests: one test per property, a counterexample is a failed test. The runs per
+ * property are configuration, not a measurement: the job passes them as `--result` (see packages/perf/README.md).
+ */
+export function chain5Results(json: unknown): ResultInput[] {
+  const c = vitestCounts(json, 'chain-5')
+  const window = 'one run'
+  return [
+    { metric: 'Properties tested', value: c.total, unit: 'properties', threshold: null, n: c.total, window },
+    {
+      metric: 'Properties with a counterexample',
+      value: c.failed,
+      unit: 'properties',
+      threshold: { op: '==', value: 0 },
+      n: c.total,
+      window,
+    },
+  ]
+}
+
 /** The window each metric really covers: 28 days of main, the last 10 green runs, or the state at the time of the run. */
 const ciWindow = (name: string): string =>
   name.startsWith('Red main') ? '28 days' : /^(PR CI|`?verify`?)/.test(name) ? 'last 10 green runs' : 'snapshot'
@@ -81,6 +155,8 @@ export function ciHealthResults(json: unknown): ResultInput[] {
 
 export const SOURCES: Record<string, (json: unknown) => ResultInput[]> = {
   hermes: hermesResults,
+  'chain-3': chain3Results,
+  'chain-5': chain5Results,
   'js-budget': jsBudgetResults,
   load: loadSourceResults,
   'ci-health': ciHealthResults,

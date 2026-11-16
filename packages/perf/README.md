@@ -83,6 +83,6 @@ A job adds its file with two steps. The code needs node 24 and a checkout, not `
     retention-days: 90
 ```
 
-- Results come from `--result '<json>'` (repeatable), `--results <file>` (a JSON array) or `--from hermes=<file>`, `--from js-budget=<file>` (the files `ci.yml` already uploads) and `--from load=<file>` (`k6-load.json`). `pass` is computed from the threshold, never typed in. A metric with `"threshold":null` is only reported.
+- Results come from `--result '<json>'` (repeatable), `--results <file>` (a JSON array) or `--from hermes=<file>` and `--from js-budget=<file>` (the files `ci.yml` already uploads) and `--from load=<file>` (`k6-load.json`). `--from chain-3=<file>` and `--from chain-5=<file>` read a `vitest --reporter=json --outputFile=<file>` report: CHAIN-3 gives cases (== 9), failed cases (== 0) and suite seconds (<= 60); CHAIN-5 gives the property count and the failed properties (== 0). The runs per property (1,000) are configuration: pass them as a `--result`. `pass` is computed from the threshold, never typed in. A metric with `"threshold":null` is only reported.
 - Run, commit and event come from the Actions environment. `--run <id>` reads them from `gh` instead, to seed an old run (add `--measured-at <UTC time>`).
 - After the run: `node packages/perf/src/cli.ts evidence collect --run <id>` (needs `gh`) downloads the `evidence-*` artifacts, checks them against the run and renders the README. Commit the result in a PR. After a rebase run `evidence render`; never merge `README.md` by hand.

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "gate": "DEP-1-web",
+  "commit": "8fdce7095246f971f30faa0a88daecbc432404e1",
+  "runId": 43780163745,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43780163745",
+  "workflow": "web-staging",
+  "event": "workflow_dispatch",
+  "measuredAt": "2026-11-16T00:51:15Z",
+  "origin": "GitHub Actions, vaultme-web-staging Worker",
+  "tool": "wrangler 4.156.0",
+  "results": [
+    {
+      "metric": "Rollback until green re-check, web",
+      "value": 4,
+      "unit": "s",
+      "threshold": {
+        "op": "<=",
+        "value": 120
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one run"
+    }
+  ]
+}

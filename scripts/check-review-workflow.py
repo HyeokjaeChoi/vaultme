@@ -11,6 +11,7 @@ import sys
 
 READ_TOOLS = {"Read", "Glob", "Grep", "Agent"}  # no Bash: its subprocess holds the key in its env
 DENIED = ("'Bash'", "Read(//proc/**)", "Read(//sys/**)", "mcp__github_inline_comment__create_inline_comment")
+LEARN_DENIED = ("'Bash'", "'Edit'", "'Write'", "Read(//proc/**)", "Read(//sys/**)")
 CLAUDE_FLAGS = {"--model", "--permission-mode", "--allowedTools", "--disallowedTools", "--append-system-prompt", "--json-schema", "--output-format"}
 BANNED = ("--dangerously-skip-permissions", "bypassPermissions", "acceptEdits", "claude-code-action", "CLAUDE_CODE_OAUTH_TOKEN", "id-token")
 
@@ -40,7 +41,8 @@ def restore_before(block, marker):
     return i is not None and j is not None and i < j and all(x in kb for x in (r"\.claude/", "CLAUDE", r"\.mcp\.json"))
 
 
-def check(text):
+def check(text, job="review", restore=True):
+    """job `review` in claude-code-review.yml (restore from the PR base); job `propose` in review-learn.yml (default branch)."""
     lines = text.split("\n")
     bad = []
     if re.search(r"^permissions:(?!\s*\{\}\s*$)", text, re.M):
@@ -51,15 +53,15 @@ def check(text):
     if re.search(r"npm (install|i|add) .*-g|npm (install|i) .*claude-code", c) or "npm ci --ignore-scripts --prefix" not in c:
         bad.append("install the CLI from .github/review-cli with `npm ci --ignore-scripts --prefix`, not `npm install -g`")
     jobs = jobs_of(lines)
-    rev = jobs.get("review")
+    rev = jobs.get(job)
     if rev is None:
-        return bad + ["job `review` is missing"]
+        return bad + [f"job `{job}` is missing"]
     key_lines = [l for l in code(lines) if "secrets.ANTHROPIC_API_KEY" in l]
     in_rev = [l for l in code(rev) if "secrets.ANTHROPIC_API_KEY" in l]
     if len(key_lines) != 1 or len(in_rev) != 1:
-        bad.append("secrets.ANTHROPIC_API_KEY must appear once, in job `review`")
+        bad.append(f"secrets.ANTHROPIC_API_KEY must appear once, in job `{job}`")
     for name, block in jobs.items():
-        if name != "review" and "ANTHROPIC_API_KEY" in "\n".join(code(block)):
+        if name != job and "ANTHROPIC_API_KEY" in "\n".join(code(block)):
             bad.append(f"job `{name}` names ANTHROPIC_API_KEY")
     # The key line sits in the env of the step that runs `claude -p`.
     cli = next((i for i, l in enumerate(rev) if re.match(r"\s+claude -p ", l)), None)
@@ -71,7 +73,7 @@ def check(text):
         nxt = next((i for i in range(kidx + 1, len(rev)) if re.match(r"      - ", rev[i])), len(rev))
         if not (start < cli < nxt and re.match(r"          ANTHROPIC_API_KEY:", rev[kidx])):
             bad.append("the key must be an env entry of the step that runs `claude -p`")
-    if not restore_before(rev, "claude -p"):
+    if restore and not restore_before(rev, "claude -p"):
         bad.append("job `review` must restore .claude/, CLAUDE.md and .mcp.json from the PR base before `claude -p`")
     # Permissions: every entry read.
     perm = next((i for i, l in enumerate(rev) if re.match(r"    permissions:\s*$", l)), None)
@@ -97,7 +99,7 @@ def check(text):
         extra = set(allowed.split(":", 1)[1].strip().split(",")) - READ_TOOLS
         if extra:
             bad.append("job `review` allows more than read tools: " + ", ".join(sorted(extra)))
-    for need in ("--permission-mode dontAsk", "--json-schema", '--allowedTools "$ALLOWED_TOOLS"', '--disallowedTools "${denied[@]}"') + DENIED:
+    for need in ("--permission-mode dontAsk", "--json-schema", '--allowedTools "$ALLOWED_TOOLS"', '--disallowedTools "${denied[@]}"') + (DENIED if job == "review" else LEARN_DENIED):
         if need not in body:
             bad.append(f"job `review` must contain {need}")
     # Posting commands may appear in `review` only inside the deny list.
@@ -108,7 +110,7 @@ def check(text):
     cmd = []
     for l in rev[cli:] if cli is not None else []:
         cmd.append(l)
-        if not l.rstrip().endswith("\\"):
+        if not l.rstrip().endswith("\\") and " ".join(cmd).count('"') % 2 == 0:  # a prompt may span lines
             break
     extra = set(re.findall(r"--[A-Za-z-]+", re.sub(r'"[^"]*"|\'[^\']*\'', "", " ".join(cmd)))) - CLAUDE_FLAGS
     if extra:
@@ -117,15 +119,16 @@ def check(text):
         bad.append("do not read the secrets context as a whole or by index (toJSON(secrets), secrets['X'])")
     for name, block in jobs.items():
         b = "\n".join(code(block))
-        if name != "review" and re.search(r"claude -p ", b):
-            bad.append(f"job `{name}` runs claude -p; only `review` does")
-        if "claude-code-action" in b and not restore_before(block, "uses: anthropics/claude-code-action"):
+        if name != job and re.search(r"claude -p ", b):
+            bad.append(f"job `{name}` runs claude -p; only the key job does")
+        if restore and "claude-code-action" in b and not restore_before(block, "uses: anthropics/claude-code-action"):
             bad.append(f"job `{name}` runs claude-code-action before the PR-base restore")
     return bad
 
 
 if __name__ == "__main__":
-    problems = check(open(sys.argv[1], encoding="utf-8").read())
+    learn = len(sys.argv) > 2 and sys.argv[2] == "learn"
+    problems = check(open(sys.argv[1], encoding="utf-8").read(), "propose" if learn else "review", not learn)
     for p in problems:
         print(p, file=sys.stderr)
     sys.exit(1 if problems else 0)

@@ -4,6 +4,7 @@
 //   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts smoke    (post-deploy: one balance read and one history read; exit 1 on failure)
 //   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha> --origin <text>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the tier-2 limits for api.js)
 //   node packages/perf/src/cli.ts slo-window --runs <dir with the downloaded api-bench artifacts of the window>    (pools the SLO counts, ADR-0036; exit 3 on a breach, so a crash (exit 1) is not one)
+//   node packages/perf/src/cli.ts hermes-growth <current perf-hermes.json> <perf-hermes.json of main> [summary file]    (MOB-3: the change per platform to the summary file or stdout, a ::warning:: line on stdout above 100 KiB; exit 0 unless a file is unreadable)
 //   node packages/perf/src/cli.ts ci-health [--repo <owner/name>] [--json <file>]    (OBS-1: the weekly CI health table from `gh`; exit 3 on a breach, so a crash (exit 1) is not one)
 //   node packages/perf/src/cli.ts availability sql <dataset> | availability check <sql response.json>    (API-6: the Analytics Engine query, and the 99.5 % judgement of its answer; exit 3 on a breach)
 //   node packages/perf/src/cli.ts ci-health [--repo <owner/name>]    (OBS-1: the weekly CI health table from `gh`; exit 3 on a breach, so a crash (exit 1) is not one)
@@ -13,11 +14,12 @@
 //   node packages/perf/src/cli.ts evidence render [--out docs/results]    (rewrites docs/results/README.md from the files; run it after a rebase, never merge the README by hand)
 //   node packages/perf/src/cli.ts baseline --lhci-desktop <dir> --lhci-mobile <dir> --hermes <json> --api <json> --out docs/perf --commit <sha> --origin <text> [--measured-at <YYYY-MM-DD>]    (--measured-at: the day the artifacts were measured; default today)
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
+import { growthTable, growthWarnings, hermesGrowth } from './hermes-growth.ts'
 import {
   availabilityMarkdown,
   availabilitySql,
@@ -288,6 +290,15 @@ if (cmd === 'hermes') {
   } else {
     throw new Error('usage: cli.ts evidence emit | add | collect | render')
   }
+} else if (cmd === 'hermes-growth') {
+  const [current, base, summary] = rest
+  if (!current || !base)
+    throw new Error('usage: hermes-growth <current perf-hermes.json> <perf-hermes.json of main> [summary file]')
+  const rows = hermesGrowth(readJson(current) as HermesSizes, readJson(base) as HermesSizes)
+  // The table goes to the summary file when one is given, the warnings always to stdout, where GitHub reads them.
+  if (summary) appendFileSync(summary, `${growthTable(rows)}\n`)
+  else console.log(growthTable(rows))
+  for (const w of growthWarnings(rows)) console.log(w)
 } else if (cmd === 'availability') {
   // The workflow runs the SQL with curl (the token stays in the shell step) and gives the answer to `check`.
   const [sub, arg] = rest
@@ -398,6 +409,6 @@ if (cmd === 'hermes') {
   if (hasBreach(metrics)) process.exitCode = 3
 } else {
   throw new Error(
-    'usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window | ci-health | availability | evidence',
+    'usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window | ci-health | availability | hermes-growth | evidence',
   )
 }

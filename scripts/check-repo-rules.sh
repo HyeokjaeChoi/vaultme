@@ -331,6 +331,12 @@ fi
 if ! python3 scripts/check-review-workflow.py .github/workflows/claude-code-review.yml; then
   err "R17: .github/workflows/claude-code-review.yml gives the API key job a write path or moves the PR-base restore (see above)"
 fi
+if ! python3 scripts/check-review-workflow.py .github/workflows/review-learn.yml learn; then
+  err "R17: .github/workflows/review-learn.yml gives the API key job (propose) a write path or a shell (see above)"
+fi
+if ! python3 scripts/review-learn-apply.test.py; then
+  err "R17: scripts/review-learn-apply.test.py failed"
+fi
 if ! python3 scripts/check-review-workflow.test.py; then
   err "R17: scripts/check-review-workflow.test.py failed"
 fi
