@@ -17,6 +17,9 @@ Status: Accepted (2026-11-15, issue #497, owner decision 1 of the quality-gates 
   Balance deltas are not used: both jobs send and receive in parallel (ADR-0033). The script reads the sender nonce and the block number before the flows (`snapshot`), then reads the sender's txs from that block on (full blocks, so it needs no archive state, which the public node does not give).
 - Evidence: each tag run prints the Etherscan links of the 2 txs of its job (4 txs of the two release wallets per run) and uploads them as the artifacts `release-verify-ios` and `release-verify-android` (90 days). Only the public release wallets' hashes are published, never an app user's. A committed evidence file under `docs/results/` follows with the evidence gate of the plan (EVID-1).
 - `release-run.sh` stops at once on a re-run attempt (`GITHUB_RUN_ATTEMPT` above 1): "Re-run jobs" would send the funded sends again and the chain check would pass on the new ones. The workflow has one concurrency group `release`, so two tags never share the two wallets' nonces.
+- `funded-2-receive` carries the tag `funded` on purpose and is not retried either: it sends nothing, but one history-indexing flake would otherwise hide a failed send behind a pass, and a failed tag run is re-tagged anyway. The cost: one flake there also needs a re-tag (two new real sends). Split the tag if that proves too costly.
+- A second tag pushed while one waits replaces the waiting run (GitHub keeps one running and one pending run per group); dry runs have their own group per ref.
+- A balance failure (wallet short of funds) also needs a new tag: a re-run is refused by the guard above.
 - The `timeout-minutes` of the iOS and Android release jobs rise from 90 to 150: the old 90 plus 2 x 20 min of waits plus 20 min spare.
 
 ## Consequences

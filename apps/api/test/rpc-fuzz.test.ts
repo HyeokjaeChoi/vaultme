@@ -47,6 +47,12 @@ const refusals = (allowed: (r: RpcRequest) => boolean): Record<string, () => voi
             fc.string(),
             hex(8).map((s) => `0x${s}`),
             fc.tuple(hex(8), hex(80)).map(([s, a]) => `0x${s}${a}`),
+            fc
+              .tuple(
+                hex(8).filter((x) => `0x${x}` !== BALANCE_OF_SELECTOR),
+                hex(64),
+              )
+              .map(([x, arg]) => `0x${x}${arg}`),
             hex(63).map((a) => `${BALANCE_OF_SELECTOR}${a}`),
             hex(65).map((a) => `${BALANCE_OF_SELECTOR}${a}`),
             hex(64).map((a) => `${BALANCE_OF_SELECTOR}${a}\n`),
@@ -155,11 +161,20 @@ describe('rpcAllowed (property fuzz, 500 runs each)', () => {
     )
   })
 
+  it('refuses a call with no params at all, for the three methods that have argument rules', () => {
+    for (const method of ['eth_call', 'eth_getBlockByNumber', 'eth_getTransactionByHash'])
+      expect(rpcAllowed(request(method, undefined))).toBe(false)
+  })
+
   it('never throws, for any JSON params', () => {
     fc.assert(
-      fc.property(fc.constantFrom(...RPC_ALLOWED_METHODS), fc.array(json), (method, params) => {
-        expect(typeof rpcAllowed(request(method, params))).toBe('boolean')
-      }),
+      fc.property(
+        fc.constantFrom(...RPC_ALLOWED_METHODS),
+        fc.option(fc.array(json), { nil: undefined }),
+        (method, params) => {
+          expect(typeof rpcAllowed(request(method, params))).toBe('boolean')
+        },
+      ),
       RUNS,
     )
   })
@@ -226,6 +241,15 @@ describe('rpcAllowed (property fuzz, 500 runs each)', () => {
       'the input alias',
       (r) => rpcAllowed(hasInput(r) ? withoutInput(r) : r),
       'eth_call: an input alias, a state override, extra params',
+    ],
+    [
+      'any 4-byte selector',
+      (r) =>
+        rpcAllowed(r) ||
+        (isCall(r) &&
+          (r.params?.[0] as { to?: string }).to === USDC_SEPOLIA &&
+          /^0x[0-9a-f]{72}$/i.test(String((r.params?.[0] as { data?: unknown }).data))),
+      'eth_call: any other data',
     ],
     [
       'other data after the selector',
