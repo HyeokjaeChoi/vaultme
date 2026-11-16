@@ -139,7 +139,7 @@ jobs:
           # Cloudflare Web Analytics site vaultme-staging.stack-line.dev (ADR-0012). A public beacon id, not a secret.
           WEB_ANALYTICS_TOKEN: 833254677ed141c3aad48ed2f87f05d9
       # SEC-6: the built site as one file, attested (who built it, from which commit, in which workflow run) and verified.
-      # Only what GitHub builds is attested here; the same files go to Cloudflare in the next step.
+      # Only what GitHub builds is attested here: the assets directory that `wrangler deploy` uploads next.
       - name: Pack the built site
         run: tar -czf "vaultme-web-staging-$GITHUB_SHA.tgz" -C apps/web/build/client .
       - name: Attest the built site
@@ -149,11 +149,14 @@ jobs:
       - name: Verify the attestation
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh attestation verify "vaultme-web-staging-$GITHUB_SHA.tgz" -R "$GITHUB_REPOSITORY"
+        run: |
+          gh attestation verify "vaultme-web-staging-$GITHUB_SHA.tgz" -R "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/web-staging.yml" --source-ref "$GITHUB_REF"
       - name: Upload the built site
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: web-staging-build
+          overwrite: true
           path: vaultme-web-staging-${{ github.sha }}.tgz
           retention-days: 90
       # The token is set only on the deploy step, so install and build scripts cannot read it.
