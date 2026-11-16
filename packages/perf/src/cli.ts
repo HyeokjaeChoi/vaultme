@@ -406,7 +406,6 @@ if (cmd === 'hermes') {
   if (hasBreach(metrics)) process.exitCode = 3
 } else {
   throw new Error(
-    'usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window | ci-health | hermes-growth | evidence',
-    'usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window | ci-health | availability | evidence',
+    'usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window | ci-health | availability | hermes-growth | evidence',
   )
 }
