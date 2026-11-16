@@ -85,3 +85,20 @@ Limit = 1.5 x the highest p95 of the 5 calibration runs of 2026-10-30 (commit `5
 | `rpc` | 280 | 987 |
 | `history_hit` | 110 | 661 |
 | `history_miss` | 2542 | 2785 |
+
+### Second calibration (2026-11-16): not applied
+
+Rule: apply the stricter of the two limits only where the two calibrations are within 10 %; otherwise keep the current limit. The 5 runs of 2026-11-15 (api-bench 43693316623, 43693796896, 43694278764, 43694747778, 43695236895) and the 5 runs of 2026-11-16 (43793416244, 43793427820, 43794542690, 43795666727, 43796299543), limit = 1.5 x the highest p95 of 5 runs, from `cli.ts bench`:
+
+| Endpoint | Mode | 2026-11-15 (ms) | 2026-11-16 (ms) | Difference | Applied |
+| --- | --- | --- | --- | --- | --- |
+| `health` | warm | 124 | 178 | +44 % | no |
+| `rpc` | warm | 280 | 214 | -24 % | no |
+| `history_hit` | warm | 52 | 70 | +35 % | no |
+| `history_miss` | warm | 1039 | 1950 | +88 % | no |
+| `health` | cold | 327 | 401 | +23 % | no |
+| `rpc` | cold | 528 | 595 | +13 % | no |
+| `history_hit` | cold | 279 | 505 | +81 % | no |
+| `history_miss` | cold | 1163 | 2421 | +108 % | no |
+
+No case is within 10 %, so `WATCH_P95_MS` stays as above. The spread between two days is larger than the limits themselves (GitHub runner and Etherscan variance): a limit from 5 runs of one day is not a stable regression watch. A stricter limit would warn on noise.
