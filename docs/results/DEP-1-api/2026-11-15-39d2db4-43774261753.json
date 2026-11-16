@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "gate": "DEP-1-api",
+  "commit": "39d2db49066b2692a48c93bedd07f4c8affb915f",
+  "runId": 43774261753,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43774261753",
+  "workflow": "api-staging",
+  "event": "workflow_dispatch",
+  "measuredAt": "2026-11-15T23:22:07Z",
+  "origin": "GitHub Actions, vaultme-api-staging Worker",
+  "tool": "wrangler 4.156.0",
+  "results": [
+    {
+      "metric": "Rollback until green re-check, api",
+      "value": 4,
+      "unit": "s",
+      "threshold": {
+        "op": "<=",
+        "value": 120
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one run"
+    }
+  ]
+}
