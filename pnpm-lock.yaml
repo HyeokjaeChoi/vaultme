@@ -360,6 +360,9 @@ importers:
       i18next:
         specifier: ^26.0.2
         version: 26.5.10(typescript@6.0.3)
+      jail-monkey:
+        specifier: 3.0.0
+        version: 3.0.0
       pretendard:
         specifier: 1.3.9
         version: 1.3.9
@@ -5982,6 +5985,9 @@ packages:
     resolution: {integrity: sha512-I1fSfDCZL5P0v33sVqeTDSpcstAg/N+wF5HS033mogOVIp4B+oHC7oOCsA3axAbBSGTJ8QubbNmnIRN/h8U7hg==}
     peerDependencies:
       ws: '*'
+
+  jail-monkey@3.0.0:
+    resolution: {integrity: sha512-EB382zJRHzElFPEucuafU3cxPJn5U8QgaQHzY09J8ly1eElG4EvNBEWu+0okS7Ro5Jvc8B/7lB+6mNCKjWjDGg==}
 
   jest-get-type@29.6.3:
     resolution: {integrity: sha512-zrteXnqYxfQh7l5FHyL38jL39di8H8rHoecLH3JNxH3BwOrBsNeabdap5e0I23lD4HHI8W5VFBZqG4Eaq5LNcw==}
@@ -13874,6 +13880,8 @@ snapshots:
   isows@1.0.7(ws@8.21.0):
     dependencies:
       ws: 8.21.0
+
+  jail-monkey@3.0.0: {}
 
   jest-get-type@29.6.3: {}
 
