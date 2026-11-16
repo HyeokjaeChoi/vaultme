@@ -91,7 +91,7 @@ jobs:
       - name: Report the simulator app size (MOB-4)
         run: |
           size=$(du -sk apps/mobile/ios/build/Build/Products/Release-iphonesimulator/VaultMe.app | cut -f1)
-          echo "MOB-4 simulator app size: $((size * 1024)) B" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "MOB-4 simulator app size on disk: $size KiB" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Block Sentry on this runner (CI simulator hangs are not user data, #460)
         run: apps/mobile/.maestro/block-sentry.sh
       - name: Boot a simulator

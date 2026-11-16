@@ -12,17 +12,22 @@ const stub = (dir: string, name: string, body: string) => {
 }
 
 describe('android-static-gates.sh', () => {
-  const run = (o: { target: string; align: number; size?: number }) => {
+  const run = (o: { target: string; align: number; size?: number; aapt?: string; baseline?: string }) => {
     const sdk = mkdtempSync(join(tmpdir(), 'sdk-'))
     const tools = join(sdk, 'build-tools', '99.0.0')
     mkdirSync(tools, { recursive: true })
-    stub(tools, 'aapt2', `echo "package: name='x' targetSdkVersion:'${o.target}'"`)
-    stub(tools, 'zipalign', `exit ${String(o.align)}`)
+    // The stubs check their arguments, so dropping `-P 16` or `dump badging` from the script fails a test.
+    stub(
+      tools,
+      'aapt2',
+      `[ "$1 $2" = "dump badging" ] || exit 9\n${o.aapt ?? `echo "package: name='x' targetSdkVersion:'${o.target}'"`}`,
+    )
+    stub(tools, 'zipalign', `case "$*" in *"-c -P 16"*) exit ${String(o.align)} ;; *) exit 9 ;; esac`)
     const apk = join(sdk, 'a.apk')
     writeFileSync(apk, Buffer.alloc(o.size ?? 10))
     return spawnSync('bash', [join(maestro, 'android-static-gates.sh'), apk], {
       encoding: 'utf8',
-      env: { ...process.env, ANDROID_HOME: sdk, GITHUB_STEP_SUMMARY: '' },
+      env: { ...process.env, ANDROID_HOME: sdk, GITHUB_STEP_SUMMARY: '', APK_BASELINE_BYTES: o.baseline ?? '' },
     })
   }
   it('passes with targetSdk 36 and 16 KB alignment', () => {
@@ -32,6 +37,19 @@ describe('android-static-gates.sh', () => {
     const r = run({ target: '35', align: 0 })
     expect(r.status).toBe(1)
     expect(r.stdout).toContain('targetSdkVersion is')
+  })
+  it('fails with a cause when aapt2 fails', () => {
+    const r = run({ target: '36', align: 0, aapt: 'exit 1' })
+    expect(r.status).toBe(1)
+    expect(r.stdout).toContain('aapt2 dump badging failed')
+  })
+  it('fails above 150 MB', () => {
+    expect(run({ target: '36', align: 0, size: 150_000_001 }).status).toBe(1)
+  })
+  it('warns at +10 % over the baseline', () => {
+    const r = run({ target: '36', align: 0, size: 1200, baseline: '1000' })
+    expect(r.status).toBe(0)
+    expect(r.stdout).toContain('::warning::')
   })
   it('fails when zipalign fails', () => {
     expect(run({ target: '36', align: 1 }).status).toBe(1)
