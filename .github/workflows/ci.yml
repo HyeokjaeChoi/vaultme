@@ -68,6 +68,26 @@ jobs:
       # --dry-run needs no Cloudflare token and uploads nothing. A config warning (unknown field) also fails the step.
       - if: hashFiles('package.json') != ''
         run: scripts/wrangler-dry-run.sh @vaultme/api "$RUNNER_TEMP/api-production"
+      # API-10: the Worker bundle stays within measured size + 25 % (apps/api/scripts/bundle-budget.json). The script builds the
+      # Worker itself (wrangler dry run), so no separate build step. Its output is kept for the evidence file below.
+      - if: hashFiles('package.json') != ''
+        run: set -o pipefail; pnpm --filter @vaultme/api bundle:budget | tee bundle-budget.log
+      # EVID-1 (ADR-0043): the same numbers as an evidence file (also when the budget failed: that is the run that matters).
+      - if: ${{ !cancelled() && hashFiles('bundle-budget.log') != '' }}
+        run: |
+          grep -q '^gzipBytes:' bundle-budget.log || exit 0 # the script failed before it printed: its own step already shows why
+          budget() { grep "^$1:" bundle-budget.log | sed -E 's/.*budget ([0-9]+)\).*/\1/'; }
+          value() { grep "^$1:" bundle-budget.log | sed -E "s/^$1: ([0-9]+) .*/\1/"; }
+          node packages/perf/src/cli.ts evidence emit --gate API-10 --origin 'GitHub Actions ubuntu-latest, job verify' \
+            --tool 'apps/api/scripts/bundle-budget.ts, wrangler deploy --dry-run' --out evidence-API-10.json \
+            --result "{\"metric\":\"Worker bundle, raw\",\"value\":$(value rawBytes),\"unit\":\"B\",\"threshold\":{\"op\":\"<=\",\"value\":$(budget rawBytes)},\"n\":1,\"window\":\"one build\"}" \
+            --result "{\"metric\":\"Worker bundle, gzip\",\"value\":$(value gzipBytes),\"unit\":\"B\",\"threshold\":{\"op\":\"<=\",\"value\":$(budget gzipBytes)},\"n\":1,\"window\":\"one build\"}"
+      - if: ${{ !cancelled() && hashFiles('evidence-API-10.json') != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-API-10
+          path: evidence-API-10.json
+          retention-days: 90
       # Drizzle schema vs committed migrations (#355, ADR-0029): fails when apps/api/src/db/schema.ts changed without `db:generate`.
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api db:check
