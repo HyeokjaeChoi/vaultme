@@ -3,7 +3,7 @@ import { createExecutionContext, createScheduledController, waitOnExecutionConte
 import { env } from 'cloudflare:workers'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { app } from '../src/app.ts'
-import { nowSeconds } from '../src/auth.ts'
+import { b64uEncode, issueToken, nowSeconds } from '../src/auth.ts'
 import { getDb, withoutParams } from '../src/db/index.ts'
 import { serverErrors } from '../src/db/schema.ts'
 import type { Env } from '../src/env.ts'
@@ -45,9 +45,9 @@ const call = async (path: string, e: typeof E = E) => {
   await waitOnExecutionContext(ctx)
   return r
 }
-const cron = async () => {
+const cron = async (e: typeof E = E) => {
   const ctx = createExecutionContext()
-  await worker.scheduled!(createScheduledController({ cron: '17 * * * *' }), E, ctx)
+  await worker.scheduled!(createScheduledController({ cron: '17 * * * *' }), e, ctx)
   await waitOnExecutionContext(ctx)
 }
 
@@ -271,6 +271,210 @@ describe('sentryOptions (Q50)', () => {
     ).toBeNull()
     expect(o.beforeBreadcrumb?.({ category: 'console', message: `sent ${HASH}` }, undefined)).toMatchObject({
       message: 'sent [hash]',
+    })
+  })
+})
+
+describe('alerts with a source (API-5)', () => {
+  describe('stuck push_unregister rows (dead letters)', () => {
+    const STUCK_SECONDS = 86_400
+    const addRow = (address: string, createdAt: number) =>
+      E.DB.prepare('INSERT INTO push_unregister (address, created_at) VALUES (?, ?)').bind(address, createdAt).run()
+    // Alchemy cannot be reached, so the sweep's removal retry fails and the rows stay: that is what a dead letter is.
+    const P = { ...E, ALCHEMY_NOTIFY_TOKEN: 'test-token', ALCHEMY_WEBHOOK_ID: 'test-webhook' }
+    const stuckEvents = () => events.filter((e) => (e as { message?: string }).message === 'Push unregister stuck')
+    beforeEach(async () => {
+      await E.DB.prepare('DELETE FROM push_unregister').run()
+      vi.stubGlobal('fetch', () => Promise.resolve(new Response('x', { status: 500 })))
+    })
+    afterEach(async () => {
+      vi.unstubAllGlobals()
+      await E.DB.prepare('DELETE FROM push_unregister').run()
+    })
+
+    it('sends nothing for rows younger than a day, or for none', async () => {
+      const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      await cron(P).catch(() => undefined) // a failed Alchemy removal also fails the sweep: its own event, not the one under test
+      await addRow('0x' + '01'.repeat(20), nowSeconds() - STUCK_SECONDS + 600)
+      await cron(P).catch(() => undefined) // a failed Alchemy removal also fails the sweep: its own event, not the one under test
+      expect(stuckEvents()).toEqual([])
+      expect(lines(err).filter((l) => l.event === 'alert_check_failed')).toEqual([]) // the check itself ran
+    })
+
+    it('sends one event with a stable fingerprint for a row older than 86,400 s, with the count and age, never the address', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      await addRow('0x' + '02'.repeat(20), nowSeconds() - STUCK_SECONDS - 600)
+      await addRow('0x' + '03'.repeat(20), nowSeconds() - STUCK_SECONDS - 7200)
+      await addRow('0x' + '04'.repeat(20), nowSeconds() - 60)
+      await cron(P).catch(() => undefined) // a failed Alchemy removal also fails the sweep: its own event, not the one under test
+      expect(stuckEvents()).toMatchObject([
+        {
+          level: 'error',
+          fingerprint: ['alert', 'push-unregister-stuck'],
+          tags: { alert: 'push-unregister-stuck' },
+          extra: { count: 2, oldest_age_seconds: expect.any(Number) as number },
+        },
+      ])
+      expect(JSON.stringify(events)).not.toMatch(/0x(02|03|04){20}/)
+    })
+
+    it('does not hide the 5xx spike: both conditions report', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      await addRow('0x' + '05'.repeat(20), nowSeconds() - STUCK_SECONDS - 1)
+      await E.DB.batch(
+        Array.from({ length: 10 }, () => E.DB.prepare('INSERT INTO server_errors (at) VALUES (?)').bind(nowSeconds())),
+      )
+      await cron(P).catch(() => undefined) // a failed Alchemy removal also fails the sweep: its own event, not the one under test
+      const messages = events.map((e) => (e as { message?: string }).message)
+      expect(messages).toContain('API 5xx spike')
+      expect(messages).toContain('Push unregister stuck')
+    })
+  })
+
+  describe('first Infura daily-cap answer (402) per isolate per UTC day', () => {
+    const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
+    const R = {
+      ...E,
+      TOKEN_SECRET: rand() + rand(),
+      INFURA_KEY: rand(),
+      ALCHEMY_KEY: rand(),
+      RPC_IP_LIMITER: open,
+      INSTALL_LIMITER: open,
+    }
+    const rpcCall = async () => {
+      const token = (await issueToken({ env: R } as never, crypto.randomUUID())).token
+      const ctx = createExecutionContext()
+      const r = await worker.fetch!(
+        new Request('https://api.example/v1/rpc', {
+          method: 'POST',
+          headers: { ...V, 'content-type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_blockNumber', params: [] }),
+        }),
+        R,
+        ctx,
+      )
+      await waitOnExecutionContext(ctx)
+      return r
+    }
+    const upstream = (infura: () => Response) =>
+      vi.stubGlobal('fetch', (input: string | URL) =>
+        Promise.resolve(
+          String(input).includes('infura')
+            ? infura()
+            : new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result: '0x1' })),
+        ),
+      )
+    const cap = () =>
+      new Response(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          error: { code: 402, event: -33000, message: 'daily request count exceeded' },
+        }),
+        { status: 402 },
+      )
+    const alerts = () =>
+      events.filter((e) => (e as { message?: string }).message?.startsWith('Infura daily cap reached ') === true)
+    afterEach(() => {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    })
+    // `infuraDailyCap` keeps its day for the life of the isolate, so every case takes fresh UTC days (3 apart): a repeat run must not meet the day of the last one.
+    let nextDay = Date.UTC(2031, 0, 1)
+    const freshDay = () => (nextDay += 3 * 86_400_000)
+    const H = 3_600_000
+
+    it('one event for the first 402 of a UTC day; none for the next 402s that day; one again the next day; the user still gets the Alchemy answer', async () => {
+      const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+      vi.useFakeTimers({ toFake: ['Date'] })
+      const d1 = freshDay()
+      vi.setSystemTime(d1 + 10 * H)
+      upstream(cap)
+      const capLines = () => lines(err).filter((l) => l.event === 'alert_infura_daily_cap')
+      expect((await rpcCall()).status).toBe(200)
+      expect(alerts()).toMatchObject([
+        {
+          message: `Infura daily cap reached ${new Date(d1).toISOString().slice(0, 10)}`,
+          level: 'error',
+          fingerprint: ['alert', 'infura-402'],
+          tags: { alert: 'infura-402' },
+        },
+      ])
+      await rpcCall()
+      vi.setSystemTime(d1 + 24 * H - 60_000)
+      await rpcCall()
+      expect(capLines()).toHaveLength(1) // the SDK's own dedupe would hide a second event: count the log line too
+      expect(alerts()).toHaveLength(1)
+      vi.setSystemTime(d1 + 24 * H + 60_000)
+      await rpcCall()
+      expect(capLines()).toHaveLength(2)
+      expect(alerts()).toHaveLength(2)
+    })
+
+    it('a 402 body inside a 200 (daily cap event -33000) counts too; a throughput 429 does not', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(freshDay() + 10 * H)
+      upstream(
+        () =>
+          new Response(
+            JSON.stringify({ jsonrpc: '2.0', id: 1, error: { code: 429, event: -33200, message: 'throughput' } }),
+            { status: 429 },
+          ),
+      )
+      await rpcCall()
+      expect(alerts()).toEqual([])
+      vi.setSystemTime(freshDay() + 10 * H)
+      upstream(
+        () =>
+          new Response(
+            JSON.stringify({ jsonrpc: '2.0', id: 1, error: { code: -32000, event: -33000, message: 'cap' } }),
+          ),
+      )
+      await rpcCall()
+      expect(alerts()).toHaveLength(1)
+    })
+
+    it('the daily-cap event counts when the code is another quota code too: code -32005 with event -33000', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(freshDay() + 10 * H)
+      upstream(
+        () =>
+          new Response(
+            JSON.stringify({ jsonrpc: '2.0', id: 1, error: { code: -32005, event: -33000, message: 'cap' } }),
+          ),
+      )
+      await rpcCall()
+      expect(alerts()).toHaveLength(1)
+    })
+
+    it('no alert for an Infura 5xx, and none from Alchemy', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(freshDay() + 10 * H)
+      upstream(() => new Response('x', { status: 502 }))
+      await rpcCall()
+      expect(alerts()).toEqual([])
+    })
+
+    it('a 402 from Alchemy, the backup, is no Infura alert', async () => {
+      const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(freshDay() + 10 * H)
+      vi.stubGlobal('fetch', (input: string | URL) =>
+        Promise.resolve(
+          new Response(JSON.stringify({ error: { code: 402 } }), {
+            status: String(input).includes('infura') ? 502 : 402,
+          }),
+        ),
+      )
+      expect((await rpcCall()).status).toBe(503)
+      expect(alerts()).toEqual([])
+      expect(lines(err).filter((l) => l.event === 'alert_infura_daily_cap')).toEqual([])
     })
   })
 })
