@@ -31,6 +31,22 @@ jobs:
         env:
           REQUIRE_ACTIONLINT: '1'
 
+  # SEC-3: zizmor 1.32.0 audits every workflow; 0 findings at medium or higher (config and ignores: .github/zizmor.yml).
+  # advanced-security off: the findings fail this job and print in its log, no SARIF upload, no extra write permission.
+  # zizmor-action v0.8.1 (2026-11-03, older than 7 days at merge), zizmor 1.32.0 (2026-11-02).
+  zizmor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          version: 1.32.0
+          advanced-security: false
+          min-severity: medium
+
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
