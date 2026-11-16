@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "gate": "MUT-1",
+  "commit": "a3e8a35be15b036ad1ea52289f41408d7feabe3a",
+  "runId": 43787780208,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43787780208",
+  "workflow": "mutation",
+  "event": "pull_request",
+  "measuredAt": "2026-11-16T01:45:45Z",
+  "origin": "GitHub Actions ubuntu-latest, job mutation",
+  "tool": "Stryker 10.1.1 (vitest runner), FC_SEED=1",
+  "results": [
+    {
+      "metric": "Mutation score, wallet-core",
+      "value": 87.23,
+      "unit": "%",
+      "threshold": {
+        "op": ">=",
+        "value": 85
+      },
+      "pass": true,
+      "n": 517,
+      "window": "one run"
+    },
+    {
+      "metric": "Mutation score, history",
+      "value": 94.81,
+      "unit": "%",
+      "threshold": {
+        "op": ">=",
+        "value": 90
+      },
+      "pass": true,
+      "n": 231,
+      "window": "one run"
+    }
+  ]
+}

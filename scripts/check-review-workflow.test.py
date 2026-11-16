@@ -54,6 +54,31 @@ mutate("workflow-level permissions", "permissions: {}\n", "permissions:\n  conte
 mutate("no top-level permissions", "permissions: {}\n", "")
 mutate("CLI installed unpinned", 'npm ci --ignore-scripts --prefix "$cli"', "npm install -g @anthropic-ai/claude-code@2.1.302")
 
+# review-learn.yml: the same rules for job `propose` (default branch, no PR-base restore).
+learn = open(os.path.join(here, "..", ".github", "workflows", "review-learn.yml"), encoding="utf-8").read()
+if mod.check(learn, "propose", False):
+    failed.append("the real review-learn.yml has problems: " + "; ".join(mod.check(learn, "propose", False)))
+
+
+def mutate_learn(name, old, new):
+    if old not in learn:
+        failed.append(f"learn {name}: the case text is not in the workflow (update the case): {old[:50]!r}")
+    elif not mod.check(learn.replace(old, new, 1), "propose", False):
+        failed.append(f"learn {name}: no problem reported")
+
+
+mutate_learn("shell allowed", "ALLOWED_TOOLS: Read,Glob,Grep", "ALLOWED_TOOLS: Read,Glob,Grep,Bash(pnpm turbo run:*)")
+mutate_learn("write allowed", "ALLOWED_TOOLS: Read,Glob,Grep", "ALLOWED_TOOLS: Read,Glob,Grep,Edit,Write")
+mutate_learn("Edit not denied", "'Bash' 'Edit' ", "'Bash' ")
+mutate_learn("Bash not denied", "denied=('Bash' ", "denied=(")
+mutate_learn("write permission", "      pull-requests: read\n      issues: read\n    outputs:\n      reason:", "      pull-requests: write\n      issues: read\n    outputs:\n      reason:")
+mutate_learn("no dontAsk", "--permission-mode dontAsk \\", "--permission-mode default \\")
+mutate_learn("extra flag", "--permission-mode dontAsk \\", "--permission-mode dontAsk --settings x \\")
+mutate_learn("key in apply", "      GH_TOKEN: ${{ steps.app.outputs.token }}\n", "      GH_TOKEN: ${{ steps.app.outputs.token }}\n          K: ${{ secrets.ANTHROPIC_API_KEY }}\n")
+mutate_learn("no top-level permissions", "permissions: {}\n", "")
+mutate_learn("claude -p in apply", "run: python3 scripts/review-learn-apply.py", "run: claude -p x # python3 scripts/review-learn-apply.py")
+mutate_learn("oauth in key job", "          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}\n", "          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}\n          T: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}\n")
+
 for f in failed:
     print(f, file=sys.stderr)
 sys.exit(1 if failed else 0)

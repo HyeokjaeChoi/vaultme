@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers'
 import { USDC_SEPOLIA } from '@vaultme/contracts'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { app } from '../src/app.ts'
+import { proxyRpc } from '../src/rpc.ts'
 import { b64uEncode, issueToken } from '../src/auth.ts'
 
 const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
@@ -518,5 +519,119 @@ describe('hedged reads', () => {
     const r = await rpc(req('eth_blockNumber'))
     expect(await r.json()).toEqual({ jsonrpc: '2.0', id: 7, result: '0x1' })
     expect(f).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('Analytics Engine point per request (API-4)', () => {
+  type Point = { indexes?: string[]; blobs?: string[]; doubles?: number[] }
+  const withPoints = () => {
+    const points: Point[] = []
+    const e = { ...E, ANALYTICS: { writeDataPoint: (p: Point) => void points.push(p) } as AnalyticsEngineDataset }
+    return { e, rpcPoints: () => points.filter((p) => p.indexes?.[0] === 'rpc') }
+  }
+
+  it('one point for an answered read: method, ok, infura, not hedged; 1 Infura call, 0 Alchemy calls', async () => {
+    mock(() => ok('0x1'))
+    const { e, rpcPoints } = withPoints()
+    expect((await rpc(req('eth_blockNumber'), e)).status).toBe(200)
+    expect(rpcPoints()).toEqual([
+      { indexes: ['rpc'], blobs: ['eth_blockNumber', 'ok', 'infura', '0'], doubles: [expect.any(Number), 1, 0] },
+    ])
+  })
+
+  it('a fallback after an Infura failure counts both calls and names Alchemy', async () => {
+    mock(
+      () => new Response('x', { status: 502 }),
+      () => ok('0x2'),
+    )
+    const { e, rpcPoints } = withPoints()
+    await rpc(req('eth_blockNumber'), e)
+    expect(rpcPoints()).toMatchObject([
+      { blobs: ['eth_blockNumber', 'ok', 'alchemy', '0'], doubles: [expect.any(Number), 1, 1] },
+    ])
+  })
+
+  it('a hedged read is marked hedged (the 60 ms timer fired)', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      mock(
+        () => new Promise<Response>((r) => setTimeout(() => r(ok('0x1')), 500)),
+        () => ok('0x2'),
+      )
+      const { e, rpcPoints } = withPoints()
+      const pending = rpc(req('eth_blockNumber'), e)
+      await vi.advanceTimersByTimeAsync(100)
+      await pending
+      expect(rpcPoints()).toMatchObject([
+        { blobs: ['eth_blockNumber', 'ok', 'alchemy', '1'], doubles: [expect.any(Number), 1, 1] },
+      ])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('a hedge that fired while Infura then answered first: infura wins, hedged 1, 1 Alchemy call', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      mock(
+        () => new Promise<Response>((r) => setTimeout(() => r(ok('0x1')), 100)),
+        () => new Promise<Response>((r) => setTimeout(() => r(ok('0x2')), 1000)),
+      )
+      const { e, rpcPoints } = withPoints()
+      const pending = rpc(req('eth_blockNumber'), e)
+      await vi.advanceTimersByTimeAsync(150)
+      await pending
+      expect(rpcPoints()).toMatchObject([
+        { blobs: ['eth_blockNumber', 'ok', 'infura', '1'], doubles: [expect.any(Number), 1, 1] },
+      ])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('both upstreams failing is one point with outcome unavailable', async () => {
+    mock(
+      () => new Response('x', { status: 502 }),
+      () => new Response('x', { status: 502 }),
+    )
+    const { e, rpcPoints } = withPoints()
+    expect((await rpc(req('eth_blockNumber'), e)).status).toBe(503)
+    expect(rpcPoints()).toMatchObject([
+      { blobs: ['eth_blockNumber', 'unavailable', 'none', '0'], doubles: [expect.any(Number), 1, 1] },
+    ])
+  })
+
+  it('a background call (hedge off, push.ts) writes no point: one run makes hundreds of calls, 250 points at most', async () => {
+    mock(() => ok('0x1'))
+    const { e, rpcPoints } = withPoints()
+    expect(await proxyRpc(e, req('eth_blockNumber') as never, false)).not.toBeNull()
+    expect(rpcPoints()).toEqual([])
+  })
+
+  it('a refused method writes no rpc point and no upstream call', async () => {
+    const f = mock(() => ok())
+    const { e, rpcPoints } = withPoints()
+    expect((await rpc(req('debug_traceCall'), e)).status).toBe(403)
+    expect(rpcPoints()).toEqual([])
+    expect(f).not.toHaveBeenCalled()
+  })
+
+  it('never carries params, an address, a key or a hash; an Analytics Engine error does not fail the request', async () => {
+    mock(() => ok('0x1'))
+    const { e, rpcPoints } = withPoints()
+    await rpc(call({}), e)
+    const text = JSON.stringify(rpcPoints())
+    expect(text).not.toContain('abab')
+    noKeys(text)
+    mock(() => ok('0x1'))
+    const bad = {
+      ...E,
+      ANALYTICS: {
+        writeDataPoint: () => {
+          throw new Error('x')
+        },
+      } as unknown as AnalyticsEngineDataset,
+    }
+    expect((await rpc(req('eth_blockNumber'), bad)).status).toBe(200)
   })
 })

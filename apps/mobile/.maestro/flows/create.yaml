@@ -54,3 +54,4 @@ tags: [smoke, critical]
 - scrollUntilVisible:
     element: '0 x( [0-9a-fA-F]){4}, .*|.*0x[0-9a-fA-F]{4}.*'
     direction: DOWN
+    timeout: 40000 # the default 20 s ended before the address showed on a slow runner (run 43788765786, retry)

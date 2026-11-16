@@ -10,7 +10,7 @@ appId: com.android.settings
 - inputText: '1234'
 - pressKey: Enter
 # Intro, "touch the sensor" and "all set" screens: press whatever forward button shows. The emulator boots in Korean
-# (release.yml -change-locale ko-KR, ADR-0037), so the Korean labels are listed too.
+# (release.yml android-locale.sh, ADR-0037), so the Korean labels are listed too.
 - repeat:
     times: 12
     commands:
