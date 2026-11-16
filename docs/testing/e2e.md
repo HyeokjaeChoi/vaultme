@@ -35,7 +35,7 @@ Flows match visible Korean text (button labels are also accessibility labels). A
 
 The app has no auth bypass (ADR-0016). `run.sh` enrolls Face ID on the simulator, then sends the Face ID `match` event every second while the flows run.
 The event matters only while an OS auth sheet is up (create, phrase reveal, lock gate); at any other time the simulator ignores it.
-Android (`PLATFORM=android`, #382): a PIN and a fingerprint on the emulator; the loop touches finger 1 every second, and `run.sh` stops at once when `dumpsys fingerprint` shows no fingerprint.
+Android (`PLATFORM=android`, #382): a PIN and a fingerprint on the emulator; the loop touches finger 1 every second, and `run.sh` stops at once when `dumpsys fingerprint` shows no fingerprint. `run.sh` installs the APK through `android-ready.sh`: it waits for the package service (`pm path android`) and retries the install, because the `ko-KR` locale change restarts the framework after boot (dry run 43774041050).
 The enrollment commands change the security state of a simulator that exists only for E2E. Never run `run.sh` against your daily simulator.
 
 ## Run locally
@@ -55,6 +55,16 @@ Before MOB-1: 85 `e2e` runs from 2026-11-02 to 2026-11-07 (from the `::warning::
 
 | Date | Run | Flows that needed a retry | First-try pass |
 |---|---|---|---|
+
+## Release size, cold start and store rules
+
+`release.yml` checks three more things on the Android release APK and reports one on iOS. Scripts: `apps/mobile/.maestro/android-static-gates.sh` and `coldstart-android.sh`, tests in `apps/mobile/test/mobile-gates.test.ts` (stub tools, no emulator).
+
+- MOB-4 install size: the APK fails above 150 MB (150,000,000 B). The iOS simulator `.app` size is only reported in the job summary. The warning at +10 % over a baseline works once `docs/perf/mobile-baseline.env` holds the first numbers (empty today: the first release run is the baseline). The planned fail at +25 % after 2 releases is not coded yet.
+- MOB-5 cold start: before the flows, the emulator step force-stops the app and times `am start -W` (`TotalTime`) 1 + 10 times. The median fails at 5,000 ms or more and warns at +25 % over the baseline file. The emulator uses software graphics, so the number is a ceiling check, not a phone speed.
+- MOB-9: `targetSdkVersion` of the APK (`aapt2 dump badging`) must be 36 or more, and `zipalign -c -P 16` must pass (16 KB page alignment). It needs build-tools with `-P` (35.0.0 or newer); the script uses the newest installed.
+- Limits: the CI APK has one ABI (x86_64, `build-android.sh`), so its size and alignment are proxies for the store build (arm64, AAB). `zipalign -P 16` checks the ZIP layout only, not ELF segment alignment. The cold start step runs before `run.sh` sets the screen to stay on.
+- Not run on a real release yet: the first dry run after the merge is the check of the real tools. The numbers are not committed as evidence files yet (ADR-0043); that wiring belongs to the perf evidence work.
 
 ## Gate rules
 

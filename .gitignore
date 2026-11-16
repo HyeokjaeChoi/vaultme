@@ -36,3 +36,11 @@ work/c2a/screens/
 apps/mobile/e2e-report.xml
 apps/mobile/e2e-report-retry.xml
 apps/mobile/e2e-artifacts
+
+# Stryker (MUT-1)
+packages/*/reports/
+.stryker-tmp/
+
+# Vitest JSON reports that feed the evidence files (CHAIN-3, CHAIN-5)
+apps/mobile/anvil-report.json
+packages/wallet-core/property-report.json

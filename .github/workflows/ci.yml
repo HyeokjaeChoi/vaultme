@@ -31,9 +31,28 @@ jobs:
         env:
           REQUIRE_ACTIONLINT: '1'
 
+  # SEC-3: zizmor 1.32.0 audits every workflow; 0 findings at medium or higher (config and ignores: .github/zizmor.yml).
+  # advanced-security off: the findings fail this job and print in its log, no SARIF upload, no extra write permission.
+  # zizmor-action v0.8.1 (2026-11-03, older than 7 days at merge), zizmor 1.32.0 (2026-11-02).
+  zizmor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          version: 1.32.0
+          advanced-security: false
+          min-severity: medium
+
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read # MOB-3: download the perf-hermes artifact of the last green main run
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -62,12 +81,60 @@ jobs:
       # Send lifecycle on anvil with the real app code (CHAIN-3): 9 cases, chain id 11155111, suite <= 60 s.
       - if: hashFiles('package.json') != ''
         run: timeout 60 pnpm --filter @vaultme/mobile test:anvil
+      # EVID-1 (ADR-0043): CHAIN-3 as an evidence file (also when a case failed: that is the run that matters). The vitest JSON is
+      # written by the test:anvil script; counts are tests that ran, so a skipped case fails `cases == 9`.
+      - if: ${{ !cancelled() && hashFiles('apps/mobile/anvil-report.json') != '' }}
+        run: |
+          node packages/perf/src/cli.ts evidence emit --gate CHAIN-3 --origin 'GitHub Actions ubuntu-latest, job verify, anvil v1.8.6' \
+            --tool 'vitest json, apps/mobile test:anvil' --from chain-3=apps/mobile/anvil-report.json --out evidence-CHAIN-3.json
+      - if: ${{ !cancelled() && hashFiles('evidence-CHAIN-3.json') != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-CHAIN-3
+          path: evidence-CHAIN-3.json
+          retention-days: 90
+      # CHAIN-5: the property tests run once more with the JSON reporter (a few seconds). 1,000 runs per property is configuration
+      # (RUNS in packages/wallet-core/test/properties.test.ts), so it goes in as --result; n is the 15 properties (the 16th test is a pinned example).
+      - if: hashFiles('package.json') != ''
+        run: pnpm --filter @vaultme/wallet-core run test:properties
+      - if: ${{ !cancelled() && hashFiles('packages/wallet-core/property-report.json') != '' }}
+        run: |
+          node packages/perf/src/cli.ts evidence emit --gate CHAIN-5 --origin 'GitHub Actions ubuntu-latest, job verify' \
+            --tool 'vitest json, fast-check, packages/wallet-core test:properties' --from chain-5=packages/wallet-core/property-report.json \
+            --result '{"metric":"Runs per property (configured)","value":1000,"unit":"runs","threshold":{"op":">=","value":1000},"n":15,"window":"one run"}' \
+            --out evidence-CHAIN-5.json
+      - if: ${{ !cancelled() && hashFiles('evidence-CHAIN-5.json') != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-CHAIN-5
+          path: evidence-CHAIN-5.json
+          retention-days: 90
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api openapi:check
       # PROD-1: the production env blocks (unused until the first public release, ADR-0025) still build and validate.
       # --dry-run needs no Cloudflare token and uploads nothing. A config warning (unknown field) also fails the step.
       - if: hashFiles('package.json') != ''
         run: scripts/wrangler-dry-run.sh @vaultme/api "$RUNNER_TEMP/api-production"
+      # API-10: the Worker bundle stays within measured size + 25 % (apps/api/scripts/bundle-budget.json). The script builds the
+      # Worker itself (wrangler dry run), so no separate build step. Its output is kept for the evidence file below.
+      - if: hashFiles('package.json') != ''
+        run: set -o pipefail; pnpm --filter @vaultme/api bundle:budget | tee bundle-budget.log
+      # EVID-1 (ADR-0043): the same numbers as an evidence file (also when the budget failed: that is the run that matters).
+      - if: ${{ !cancelled() && hashFiles('bundle-budget.log') != '' }}
+        run: |
+          grep -q '^gzipBytes:' bundle-budget.log || exit 0 # the script failed before it printed: its own step already shows why
+          budget() { grep "^$1:" bundle-budget.log | sed -E 's/.*budget ([0-9]+)\).*/\1/'; }
+          value() { grep "^$1:" bundle-budget.log | sed -E "s/^$1: ([0-9]+) .*/\1/"; }
+          node packages/perf/src/cli.ts evidence emit --gate API-10 --origin 'GitHub Actions ubuntu-latest, job verify' \
+            --tool 'apps/api/scripts/bundle-budget.ts, wrangler deploy --dry-run' --out evidence-API-10.json \
+            --result "{\"metric\":\"Worker bundle, raw\",\"value\":$(value rawBytes),\"unit\":\"B\",\"threshold\":{\"op\":\"<=\",\"value\":$(budget rawBytes)},\"n\":1,\"window\":\"one build\"}" \
+            --result "{\"metric\":\"Worker bundle, gzip\",\"value\":$(value gzipBytes),\"unit\":\"B\",\"threshold\":{\"op\":\"<=\",\"value\":$(budget gzipBytes)},\"n\":1,\"window\":\"one build\"}"
+      - if: ${{ !cancelled() && hashFiles('evidence-API-10.json') != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-API-10
+          path: evidence-API-10.json
+          retention-days: 90
       # Drizzle schema vs committed migrations (#355, ADR-0029): fails when apps/api/src/db/schema.ts changed without `db:generate`.
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api db:check
@@ -103,6 +170,19 @@ jobs:
           path: perf-hermes.json
           retention-days: 90
           if-no-files-found: warn
+      # MOB-3: a bundle that grows more than 100 KiB against main prints a ::warning:: (the 11 MiB fail stays in export:check).
+      # Compares with perf-hermes.json of the last green push run of main; no such run or artifact (expired): a notice, no failure.
+      - if: ${{ github.event_name == 'pull_request' && !cancelled() && hashFiles('perf-hermes.json') != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh run list --workflow ci.yml --branch main --event push --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty') || id=''
+          if [ -z "$id" ] || ! gh run download "$id" --name perf-hermes --dir main-hermes; then
+            echo "::notice::No perf-hermes.json of main to compare with"
+            exit 0
+          fi
+          node packages/perf/src/cli.ts hermes-growth perf-hermes.json main-hermes/perf-hermes.json "$GITHUB_STEP_SUMMARY" ||
+            echo "::notice::The growth check could not read a perf-hermes.json"
       # EVID-1 (ADR-0043): the same numbers as an evidence file, committed later with `evidence collect --run <id>` (last attempt of a re-run only).
       - if: ${{ !cancelled() && hashFiles('perf-hermes.json') != '' }}
         run: >
