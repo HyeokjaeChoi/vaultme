@@ -2,6 +2,7 @@
 // that makes the file and the person who seeds `docs/results` from an old run use the same code.
 import { HERMES_LIMIT } from './baseline.ts'
 import { isObj as isRecord, type ResultInput } from './evidence.ts'
+import { AVAILABILITY_GOAL, evaluateAvailability, parseRows, WINDOW_DAYS } from './availability.ts'
 import { loadResults, type LoadSummary } from './load.ts'
 
 /** `perf-hermes.json` (`cli.ts hermes`): the bytes of the one Hermes bundle per platform against the 11 MiB limit of `export:check`. */
@@ -188,6 +189,21 @@ export function mutationResults(json: unknown): ResultInput[] {
   ]
 }
 
+/**
+ * API-6: the Analytics Engine SQL answer, one result per route. A route under 1,000 requests is reported without a threshold
+ * (ADR-0046). The value is rounded down, so a miss never shows as the goal.
+ */
+export function availabilityEvidence(json: unknown): ResultInput[] {
+  return evaluateAvailability(parseRows(json)).map((r) => ({
+    metric: `Availability of ${r.route} (responses below 500)`,
+    value: r.total === 0 ? 0 : Math.floor((r.good * 100_000) / r.total) / 1000,
+    unit: '%',
+    threshold: r.ok === null ? null : { op: '>=' as const, value: AVAILABILITY_GOAL * 100 },
+    n: r.total,
+    window: `${String(WINDOW_DAYS)} days`,
+  }))
+}
+
 export const SOURCES: Record<string, (json: unknown) => ResultInput[]> = {
   hermes: hermesResults,
   'chain-3': chain3Results,
@@ -196,4 +212,5 @@ export const SOURCES: Record<string, (json: unknown) => ResultInput[]> = {
   'js-budget': jsBudgetResults,
   load: loadSourceResults,
   'ci-health': ciHealthResults,
+  availability: availabilityEvidence,
 }

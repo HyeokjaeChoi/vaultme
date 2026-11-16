@@ -29,6 +29,7 @@ import {
   chain3Results,
   chain5Results,
   mutationResults,
+  availabilityEvidence,
   ciHealthResults,
   hermesResults,
   jsBudgetResults,
@@ -549,8 +550,45 @@ describe('sources', () => {
     expect(() => ciHealthResults({})).toThrow(/expected an array/)
     expect(() => ciHealthResults([{ name: 'x' }])).toThrow(/no name, value/)
   })
+  it('turns the availability answer into one result per route, rounded down, and leaves a small route without a threshold', () => {
+    const row = (route: string, status: string, requests: number | string) => ({ route, status, requests })
+    const results = availabilityEvidence({
+      data: [row('/v1/rpc', '200', 99_600), row('/v1/rpc', '503', '400'), row('/v1/history', '200', 10)],
+    })
+    expect(results).toEqual([
+      {
+        metric: 'Availability of /v1/history (responses below 500)',
+        value: 100,
+        unit: '%',
+        threshold: null,
+        n: 10,
+        window: '28 days',
+      },
+      {
+        metric: 'Availability of /v1/rpc (responses below 500)',
+        value: 99.6,
+        unit: '%',
+        threshold: { op: '>=', value: 99.5 },
+        n: 100_000,
+        window: '28 days',
+      },
+    ])
+    // 99.4996 % is a miss and must not show as 99.5.
+    const near = availabilityEvidence({ data: [row('/x', '200', 994_996), row('/x', '500', 5004)] })[0]
+    expect(near?.value).toBe(99.499)
+    expect(() => availabilityEvidence({ data: [] })).toThrow(/no rows/)
+  })
   it('lists the kinds `evidence emit --from` accepts', () => {
-    expect(Object.keys(SOURCES)).toEqual(['hermes', 'chain-3', 'chain-5', 'mutation', 'js-budget', 'load', 'ci-health'])
+    expect(Object.keys(SOURCES)).toEqual([
+      'hermes',
+      'chain-3',
+      'chain-5',
+      'mutation',
+      'js-budget',
+      'load',
+      'ci-health',
+      'availability',
+    ])
   })
 })
 
