@@ -38,7 +38,7 @@ case "$platform" in
     export ANDROID_SERIAL="${ANDROID_SERIAL:-emulator-5554}" # scripts/sim-auth.sh reads it; the emulator console needs an emulator, never a phone
     udid="$ANDROID_SERIAL"
     case "$udid" in emulator-*) ;; *) echo "PLATFORM=android runs on an emulator only (got $udid)" >&2; exit 2 ;; esac
-    adb -s "$udid" install -r "$app"
+    ./android-ready.sh "$udid" "$app"
     # The flows match Korean text (ADR-0037). A per-app locale is wiped by clearState (pm clear), so the emulator itself must be
     # Korean: release.yml boots it with -change-locale ko-KR. Android uses persist.sys.locale when set, else ro.product.locale.
     loc="$(adb -s "$udid" shell getprop persist.sys.locale | tr -d '\r')"

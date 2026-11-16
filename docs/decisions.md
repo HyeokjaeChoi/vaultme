@@ -90,7 +90,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q66 | Drizzle + drizzle-kit; migration lint on DROP/RENAME | IMPLEMENTED | ADR-0029 (#355): Drizzle schema and queries, generated migrations, `db:check` drift check in CI; R16 lints the SQL |
 | Q67 | Vitest + fast-check, oasdiff, Workers pool + anvil, Maestro, Playwright | IMPLEMENTED | oasdiff (`ci.yml` `verify`, #343), anvil reorg tests (`apps/api/test-reorg`, #345), Maestro (`apps/mobile/.maestro`, #348) |
 | Q68 | ESLint, Prettier, Steiger, Stylelint; TS 6 | IMPLEMENTED | `apps/web/stylelint.config.mjs`, `lint:css` (#319) |
-| Q69 | Slack alerts with dedupe and recovery | GAP | #336. Channel is Sentry email, not Slack: ADR-0024. Built (#315): the 5xx spike (`apps/api/src/alerts.ts`). Not built: watcher stall, dead-letter, recovery message |
+| Q69 | Slack alerts with dedupe and recovery | GAP | #336. Channel is Sentry email, not Slack: ADR-0024. Built: the 5xx spike (#315), stuck `push_unregister` rows and the first Infura 402 of a day (API-5), all in `apps/api/src/alerts.ts`. Not built: watcher stall (no source), recovery message |
 | Q70 | Library list | SUPERSEDED | #63: Solar icons. Sentry part: Q50 |
 | Q71 | Address poisoning defenses; zero-value switch | IMPLEMENTED | `packages/history/src/items.ts` (`showZero`); S40 `ActivityRow` State=Caution (#313); S41 caution state `pages/activity/detail.tsx`, `cautionOf` (#334) |
 | Q72 | Paste shows a compare notice | IMPLEMENTED | `packages/i18n/src/ko.ts` |
