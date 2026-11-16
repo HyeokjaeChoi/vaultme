@@ -9,7 +9,7 @@ Use a Sepolia wallet with test funds only.
 - [ ] Receive: the address and QR match; a test deposit shows in Home and Activity.
 - [ ] Push: turn on push; a test deposit sends a notification (the app was in the background); turn it off and no notification arrives.
 - [ ] Lock: send the app to the background and open it again; the lock screen asks for OS auth; a failed attempt keeps it locked.
-- [ ] Phrase view (Settings): needs OS auth; the screen cannot be captured.
+- [ ] Phrase view (Settings): needs OS auth; the screen cannot be captured. With the phrase shown, open the app switcher: the card is blurred (iOS) or blank (Android), no word is readable (ADR-0049). Re-check after each Expo SDK upgrade.
 
 ## Screen reader run (Q76, owner only)
 

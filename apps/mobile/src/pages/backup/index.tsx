@@ -1,9 +1,8 @@
 import { useFocusEffect, useRouter } from 'expo-router'
-import { allowScreenCaptureAsync, preventScreenCaptureAsync } from 'expo-screen-capture'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AppState, View } from 'react-native'
+import { AppState, Platform, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { leavesReveal, startCheck } from '@/features/backup'
+import { leavesReveal, protectPhrase, releasePhrase, startCheck } from '@/features/backup'
 import { isAuthInProgress } from '@/shared/auth'
 import { loadPhrase } from '@/shared/storage'
 import { haptic } from '@/shared/lib/haptics'
@@ -13,6 +12,7 @@ import { Button, CheckRow, Screen, ScreenHeader, SecretGrid, StatusNotice, Text 
 import { useAuthName } from '@/features/send'
 
 const CAPTURE_KEY = 'backup-phrase'
+const IOS = Platform.OS === 'ios'
 
 // Dev-only fixture for design comparison: the public BIP-39 test vector ("abandon … about"), no keychain, never a real phrase (`/backup?demo=1`).
 const DEMO_WORDS = [...Array.from({ length: 11 }, () => 'abandon'), 'about']
@@ -23,7 +23,7 @@ type Load = 'idle' | 'busy' | 'error'
  * `view` = B-S61 복구 구문 다시 보기 (Figma 423:13856, from Settings): same screen without the "다 적었어요" footer and the word check.
  * B-S03 복구 구문 (Figma 423:13533 hidden -> 423:13622 revealed, B/Secret grid 426:2044). The phrase lives only in this screen's state:
  * it is loaded after OS auth, and cleared when the screen loses focus or the app leaves the foreground.
- * Capture is blocked only while this screen is focused; the UI does not promise the block. No copy button.
+ * Capture is blocked and the iOS switcher snapshot blurred only while this screen is focused; the UI does not promise the block. No copy button.
  */
 export function BackupPage({
   demo = false,
@@ -47,9 +47,9 @@ export function BackupPage({
 
   useFocusEffect(
     useCallback(() => {
-      void preventScreenCaptureAsync(CAPTURE_KEY)
+      void protectPhrase(CAPTURE_KEY, IOS).catch(() => undefined) // reveal() protects again and fails closed
       return () => {
-        void allowScreenCaptureAsync(CAPTURE_KEY)
+        void releasePhrase(CAPTURE_KEY, IOS).catch(() => undefined)
         gen.current++
         setWords(null)
         setAck(false)
@@ -76,7 +76,7 @@ export function BackupPage({
     setLoad('busy')
     const g = gen.current
     try {
-      await preventScreenCaptureAsync(CAPTURE_KEY) // never reveal unless the capture block is in place
+      await protectPhrase(CAPTURE_KEY, IOS) // never reveal unless the capture block and the iOS switcher blur are in place
     } catch {
       setLoad('error')
       return
