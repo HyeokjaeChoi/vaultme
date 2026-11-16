@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Waits until the Android package service answers, then installs the APK (retried). Usage: android-ready.sh <serial> <apk>
 # release.yml boots the emulator with -change-locale ko-KR, which restarts the framework after the boot-complete signal; an install in that
-# window failed with "Failure calling service package: Broken pipe" (dry run 43774041050). `pm path android` works only when the service is up.
+# window failed with "Failure calling service package: Broken pipe" (dry run 43774041050). `pm path android` works only when the service is up; the install retry covers a restart that starts later.
+# Workaround: remove it when the emulator is no longer booted with -change-locale (or the runner action waits for the framework restart itself).
 set -euo pipefail
 serial="${1:?serial}"
 apk="${2:?apk}"
