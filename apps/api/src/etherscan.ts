@@ -3,6 +3,7 @@ import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
 import { logEvent } from './log.ts'
 import { addressHash, checkCursor, loadHistory, type FetchList } from './history.ts'
+import { recordHistoryMiss } from './metrics.ts'
 import { parseInternalRows } from './tx-internal.ts'
 
 const BASE = 'https://api.etherscan.io/v2/api'
@@ -123,7 +124,8 @@ export async function getHistory(
   cursor: string | undefined,
   stats?: EtherscanStats,
 ): Promise<HistoryResponse> {
-  const fetchList = etherscanList(env, address, stats)
+  const s = stats ?? newStats() // the call count of a miss is a data point (API-4), also when the caller keeps no stats
+  const fetchList = etherscanList(env, address, s)
   await checkCursor(address, cursor) // before the cache: a bad cursor must never get a cached 200
   const cache = caches.default
   const cacheKey = new Request(
@@ -135,9 +137,13 @@ export async function getHistory(
   let out: HistoryResponse
   try {
     out = await loadHistory(fetchList, address, cursor)
+  } catch (e) {
+    recordHistoryMiss(env, 'unavailable', s.calls, Date.now() - t0)
+    throw e
   } finally {
-    if (stats) stats.upstreamMs = Date.now() - t0
+    s.upstreamMs = Date.now() - t0
   }
+  recordHistoryMiss(env, 'ok', s.calls, s.upstreamMs)
   await cache.put(cacheKey, Response.json(out, { headers: { 'Cache-Control': `max-age=${String(CACHE_SECONDS)}` } }))
   return out
 }

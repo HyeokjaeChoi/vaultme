@@ -1,0 +1,9 @@
+# zizmor 1.32.0 (SEC-3), run by the `zizmor` job of ci.yml at `--min-severity medium`. Docs: https://docs.zizmor.sh/configuration/
+# Convention (not machine-checked): each ignore gets a reason and a removal condition here. Prefer fixing the workflow.
+rules:
+  dangerous-triggers:
+    ignore:
+      # workflow_run runs only after our own api-bench and release workflows, in the default-branch context, and the job
+      # checks out the default branch only: no code or artifact of a PR is executed or trusted. It reads run artifacts of
+      # those two workflows (token: actions read, issues write for the breach issue). Remove when the SLO window moves to a `schedule` trigger.
+      - api-slo-window.yml

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Claude PR review output, split from the API key (issue #539). Two modes, one per workflow job.
 
-  scan <result.json> <review.json>       Job `review` (has ANTHROPIC_API_KEY, read-only token, no write tool).
+  scan <result.json> <review.json> [learn]  Job `review` (has ANTHROPIC_API_KEY, read-only token, no write tool).
                                          Exit 1 if the CLI result holds the key; else write the validated review.
   post <review.json> <pr> <sha>          Job `post` (no key, pull-requests: write). Validate, redact, post.
 
@@ -43,6 +43,47 @@ SCHEMA = {
         },
     },
 }
+
+
+LEARN_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["title", "body", "edits"],
+    "properties": {
+        "title": {"type": "string", "maxLength": 120},
+        "body": {"type": "string", "maxLength": 3000},
+        "edits": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["path", "old", "new"],
+                "properties": {"path": {"type": "string"}, "old": {"type": "string"}, "new": {"type": "string", "maxLength": 100000}},
+            },
+        },
+    },
+}
+
+
+def validate_learn(obj):
+    """Problems in a review-learn proposal (review-learn.yml); [] when valid. `old` empty means: create the file."""
+    if not isinstance(obj, dict) or set(obj) != {"title", "body", "edits"}:
+        return ["proposal must be an object with exactly title, body and edits"]
+    out = []
+    t, b, es = obj["title"], obj["body"], obj["edits"]
+    if not isinstance(t, str) or len(t) > 120 or "\n" in t:
+        out.append("title must be one line of at most 120 characters")
+    if not isinstance(b, str) or len(b) > 3000:
+        out.append("body must be text of at most 3000 characters")
+    if not isinstance(es, list) or len(es) > 20:
+        return out + ["edits must be a list of at most 20"]
+    if es and (not isinstance(t, str) or not t.strip() or not isinstance(b, str) or not b.strip()):
+        out.append("a proposal with edits needs a title and a body")
+    for i, e in enumerate(es):
+        if not isinstance(e, dict) or set(e) != {"path", "old", "new"} or not all(isinstance(e[k], str) for k in e) or len(e["new"]) > 100000:
+            out.append(f"edit {i}: keys must be path, old, new (text, new at most 100000 characters)")
+    return out
 
 
 def leaks(text, key):
@@ -114,7 +155,7 @@ def summary_text(sha, text):
     return f"<!-- ai-review:{sha} -->\n{redact(MARKER.sub('', text)).strip()}\n"
 
 
-def scan(result_path, out_path):
+def scan(result_path, out_path, kind="review"):
     raw = open(result_path, encoding="utf-8").read()
     key = os.environ.get("ANTHROPIC_API_KEY", "")
     try:
@@ -128,7 +169,7 @@ def scan(result_path, out_path):
         print("::error::The CLI result is not JSON.")
         return 2
     review = extract(parsed)
-    bad = validate(review)
+    bad = validate_learn(review) if kind == "learn" else validate(review)
     if bad:
         print("::error::No valid structured review: " + "; ".join(bad[:5]))
         return 2
@@ -173,11 +214,11 @@ def post(review_path, pr, sha):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    if a[:1] == ["scan"] and len(a) == 3:
-        sys.exit(scan(a[1], a[2]))
+    if a[:1] == ["scan"] and len(a) in (3, 4):
+        sys.exit(scan(a[1], a[2], "learn" if a[3:] == ["learn"] else "review"))
     if a[:1] == ["post"] and len(a) == 4:
         sys.exit(post(a[1], a[2], a[3]))
     if a[:1] == ["schema"]:
-        print(json.dumps(SCHEMA, separators=(",", ":")))
+        print(json.dumps(LEARN_SCHEMA if a[1:] == ["learn"] else SCHEMA, separators=(",", ":")))
         sys.exit(0)
     sys.exit(__doc__)

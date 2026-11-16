@@ -43,7 +43,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false # release builds do not restore a cache (zizmor cache-poisoning)
       - run: pnpm install --frozen-lockfile --filter vaultme --filter @vaultme/wallet-core...
       - name: Funded wallet balance (ETH and USDC on Sepolia)
         # The secret is set on this step only, never on the job: install scripts of dependencies must not see it.
@@ -73,7 +73,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false # release builds do not restore a cache (zizmor cache-poisoning)
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
@@ -87,6 +87,11 @@ jobs:
           echo "$RUNNER_TEMP/maestro/maestro/bin" >> "$GITHUB_PATH"
       - name: Build the simulator app (Release, staging API)
         run: apps/mobile/.maestro/build-ios.sh
+      # MOB-4: the simulator app size is only reported (no store limit applies); its baseline comes from the first runs.
+      - name: Report the simulator app size (MOB-4)
+        run: |
+          size=$(du -sk apps/mobile/ios/build/Build/Products/Release-iphonesimulator/VaultMe.app | cut -f1)
+          echo "MOB-4 simulator app size on disk: $size KiB" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Block Sentry on this runner (CI simulator hangs are not user data, #460)
         run: apps/mobile/.maestro/block-sentry.sh
       - name: Boot a simulator
@@ -191,7 +196,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false # release builds do not restore a cache (zizmor cache-poisoning)
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
@@ -205,6 +210,10 @@ jobs:
           echo "$RUNNER_TEMP/maestro/maestro/bin" >> "$GITHUB_PATH"
       - name: Build the Release APK (staging API)
         run: apps/mobile/.maestro/build-android.sh
+      - name: APK size, target SDK and 16 KB alignment (MOB-4, MOB-9)
+        run: |
+          set -a; . docs/perf/mobile-baseline.env; set +a
+          apps/mobile/.maestro/android-static-gates.sh apps/mobile/android/app/build/outputs/apk/release/app-release.apk
       # The Gradle build fills the 14 GB runner disk and the system image download then failed with "No space left on device" (run 4).
       # Keep the APK; delete the build caches and big preinstalled toolchains this job does not use.
       - name: Free disk space
@@ -231,7 +240,10 @@ jobs:
           ram-size: 4096M
           enable-hw-keyboard: true # no on-screen keyboard: it would cover the lower recovery phrase cells
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -change-locale ko-KR # the action's defaults + Korean: the flows match Korean text (ADR-0037, run.sh checks it)
-          script: bash -o pipefail -c 'PLATFORM=android apps/mobile/.maestro/run.sh critical 2>&1 | tee "$RUNNER_TEMP/critical.log"'
+          # Line 1 is MOB-5 (cold start before any flow), line 2 the flows.
+          script: |
+            bash -c 'set -a; . docs/perf/mobile-baseline.env; set +a; apps/mobile/.maestro/coldstart-android.sh apps/mobile/android/app/build/outputs/apk/release/app-release.apk'
+            bash -o pipefail -c 'PLATFORM=android apps/mobile/.maestro/run.sh critical 2>&1 | tee "$RUNNER_TEMP/critical.log"'
       - name: Mask the recovery phrase
         if: ${{ inputs.dry_run != true }}
         env:
@@ -257,7 +269,9 @@ jobs:
           ram-size: 4096M
           enable-hw-keyboard: true # no on-screen keyboard: it would cover the lower recovery phrase cells
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -change-locale ko-KR # the action's defaults + Korean: the flows match Korean text (ADR-0037, run.sh checks it)
-          script: bash -o pipefail -c 'apps/mobile/.maestro/release-run.sh b 2>&1 | tee "$RUNNER_TEMP/critical.log"'
+          script: |
+            bash -c 'set -a; . docs/perf/mobile-baseline.env; set +a; apps/mobile/.maestro/coldstart-android.sh apps/mobile/android/app/build/outputs/apk/release/app-release.apk'
+            bash -o pipefail -c 'apps/mobile/.maestro/release-run.sh b 2>&1 | tee "$RUNNER_TEMP/critical.log"'
       # Runs after a failed flow and after a job timeout too (`always()`; a timeout cancels the job): it shows whether a send reached the chain (a failed run is re-tagged, never retried).
       - name: Check the funded sends on chain (wallet B)
         if: ${{ always() && inputs.dry_run != true }}
@@ -357,7 +371,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false # release builds do not restore a cache (zizmor cache-poisoning)
       - run: pnpm install --frozen-lockfile --filter @vaultme/mobile...
       # Official Expo action (installs eas-cli at a fixed version, logs in with the token). eas-cli is not a repo dependency:
       # its exact-pinned transitive packages (joi, minimatch, nanoid, ...) carry known advisories that osv-scanner blocks in the lockfile.

@@ -25,7 +25,15 @@ import {
   type EvidenceInput,
   type Op,
 } from '../src/evidence.ts'
-import { hermesResults, jsBudgetResults, SOURCES } from '../src/evidence-sources.ts'
+import {
+  chain3Results,
+  chain5Results,
+  ciHealthResults,
+  hermesResults,
+  jsBudgetResults,
+  loadSourceResults,
+  SOURCES,
+} from '../src/evidence-sources.ts'
 
 const RUN = {
   commit: 'a'.repeat(40),
@@ -395,6 +403,48 @@ describe('docs/results of this repository', () => {
   })
 })
 
+const vitestReport = (failed: number, total = 9, over: Record<string, number> = {}) => ({
+  numPassedTests: total - failed,
+  numFailedTests: failed,
+  numPendingTests: 0,
+  numTodoTests: 0,
+  numFailedTestSuites: 0,
+  startTime: 1000,
+  testResults: [{ endTime: 11_400 }, { endTime: 13_400 }],
+  ...over,
+})
+
+describe('chain sources', () => {
+  it('reads cases, fails and suite seconds of the anvil report against 9, 0 and 60 s', () => {
+    const r = chain3Results(vitestReport(0))
+    expect(r.map((x) => [x.value, x.threshold])).toEqual([
+      [9, { op: '==', value: 9 }],
+      [0, { op: '==', value: 0 }],
+      [12.4, { op: '<=', value: 60 }],
+    ])
+    expect(buildEvidence(input({ gate: 'CHAIN-3', results: r })).results.every((x) => x.pass)).toBe(true)
+    expect(
+      buildEvidence(input({ gate: 'CHAIN-3', results: chain3Results(vitestReport(1, 8)) })).results.map((x) => x.pass),
+    ).toEqual([false, false, true])
+  })
+  it('counts failed property tests as counterexamples', () => {
+    const r = chain5Results(vitestReport(2, 15))
+    expect(r.map((x) => x.value)).toEqual([15, 2])
+    expect(r[1]?.threshold).toEqual({ op: '==', value: 0 })
+  })
+  it('does not count a skipped test as a case that ran, and counts a file that failed to load as a failure', () => {
+    // 8 ran, 1 skipped: "cases == 9" fails.
+    const skipped = chain3Results(vitestReport(0, 8, { numPendingTests: 1 }))
+    expect(skipped[0]?.value).toBe(8)
+    expect(chain5Results(vitestReport(0, 15, { numFailedTestSuites: 1 }))[1]?.value).toBe(1)
+  })
+  it('throws on a report with no test or no times: nothing was measured', () => {
+    expect(() => chain3Results(vitestReport(0, 0))).toThrow(/no test that ran/)
+    expect(() => chain5Results({ ...vitestReport(0, 3), testResults: [] })).toThrow(/startTime/)
+    expect(() => chain3Results({})).toThrow(/vitest json/)
+  })
+})
+
 describe('sources', () => {
   it('turns perf-hermes.json into one result per platform against the 11 MiB limit', () => {
     expect(hermesResults({ ios: 10_236_843, android: 10_227_578 })).toEqual([
@@ -441,7 +491,64 @@ describe('sources', () => {
       /row 0 needs url, bytes and limit/,
     )
   })
+  it('turns k6-load.json into results the schema accepts, and rejects another shape', () => {
+    const c = (count: number) => ({ count })
+    const values = {
+      http_reqs: c(1386),
+      iterations: c(1380),
+      steady_requests: c(360),
+      unavailable_503: c(9),
+      server_bug: c(0),
+      unexpected: c(0),
+      limit_contract: { rate: 1 },
+      limit_contract_n: c(300),
+      'probe_hits{kind:install_429}': c(60),
+      'probe_hits{kind:install_200}': c(60),
+      'probe_hits{kind:ip_rpc_429}': c(150),
+      'probe_hits{kind:ip_rpc_2xx}': c(0),
+      'probe_hits{kind:ip_history_429}': c(150),
+      'probe_hits{kind:ip_history_2xx}': c(0),
+      'probe_sent{probe:install}': c(120),
+      'probe_sent{probe:ip_rpc}': c(450),
+      'probe_sent{probe:ip_history}': c(450),
+      'ok_own{scenario:steady}': { 'p(95)': 31.2 },
+      'own_n{scenario:steady}': c(351),
+      dropped_iterations: c(0),
+    }
+    const results = loadSourceResults({ measuredAt: '2026-11-16T05:11:09Z', values })
+    expect(buildEvidence(input({ results })).results.every((r) => r.pass !== false)).toBe(true)
+    expect(() => loadSourceResults({ values: {} })).toThrow(/load: expected/)
+  })
+  it('turns the ci-health metrics into results the schema accepts, and leaves out a metric with no sample', () => {
+    const m = (name: string, value: number, limit: number, n: number) => ({
+      name,
+      value,
+      unit: 'min',
+      limit,
+      n,
+      breach: value > limit,
+    })
+    const results = ciHealthResults([
+      m('Red main: failed `ci` runs on main, 28 days', 5.2, 2, 194),
+      m('Oldest open `flaky` issue', 0, 14, 0),
+      m('PR CI wall time, median of the last green runs', 9.9, 12.5, 10),
+    ])
+    expect(results.map((r) => [r.metric, r.window])).toEqual([
+      ['Red main: failed ci runs on main, 28 days', '28 days'],
+      ['PR CI wall time, median of the last green runs', 'last 10 green runs'],
+    ])
+    const worst = ciHealthResults([
+      { name: 'Age of the last green `api-bench`', value: 9999, unit: 'days', limit: 8, n: 0 },
+      { name: 'Oldest open `flaky` issue', value: 0, unit: 'days', limit: 14, n: 0 },
+    ])
+    expect(worst).toHaveLength(1)
+    expect(worst[0]).toMatchObject({ n: 1, window: 'snapshot', value: 9999 })
+    const e = buildEvidence(input({ gate: 'OBS-1', results }))
+    expect(e.results.map((r) => r.pass)).toEqual([false, true])
+    expect(() => ciHealthResults({})).toThrow(/expected an array/)
+    expect(() => ciHealthResults([{ name: 'x' }])).toThrow(/no name, value/)
+  })
   it('lists the kinds `evidence emit --from` accepts', () => {
-    expect(Object.keys(SOURCES)).toEqual(['hermes', 'js-budget'])
+    expect(Object.keys(SOURCES)).toEqual(['hermes', 'chain-3', 'chain-5', 'js-budget', 'load', 'ci-health'])
   })
 })
