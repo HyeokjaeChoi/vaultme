@@ -1,14 +1,19 @@
 # On the word check screen (S04): if it asks for word N, type that word. The 3 asked positions are random, so the flow tries all 12.
 # Return instead of hideKeyboard, which is flaky on iOS and presses Back on Android (#382): on the first 2 cells it moves to the next asked cell
 # (returnKeyType next, Screen scrolls it into view), on the last one it closes the keyboard (#449).
-# The pause first: the previous call's Return moves the focus and the screen scrolls the next asked cell in a moment later, and `when: visible`
-# is checked at once. On a slow CI runner the label was off screen at that moment, the word was skipped and the 확인 hint stayed
-# (run 43788765786; not reproduced on a fast local simulator, 12 of 12 passed). `optional` keeps the flow going when the text never shows.
+# Two hedges for a slow CI runner. Cause not proven: run 43788765786 failed twice and did not reproduce on a fast local simulator (12 of 12 passed).
+# 1) Wait for the asked cell before `when: visible` (that lookup waits only a few seconds). `extendedWaitUntil` returns as soon as the label shows
+#    (maestro-docs api-reference extendedwaituntil; pinned Maestro 2.11.0, docs version not checked). The 3 asked positions are not known up
+#    front, so for the 9 cells that are not asked it runs to its 2 s timeout (`optional` keeps the flow going).
+# 2) Give the tapped cell time to take the focus before `inputText`: `waitForAnimationToEnd` returns at once on a still screen (same race as the
+#    restore cells, MOB-1, type-word.yaml). A word typed too early lands in the wrong cell or is cut: the hint then goes away with a wrong word, `확인` is
+#    refused and the Receive address never shows (the retry failure of the run), or a cell stays empty and the hint stays (the first failure).
+# Removal condition: when iOS offers something to wait for on the focus (the `focused` selector is false for every cell on iOS today), wait for it.
 appId: dev.stackline.vaultme
 ---
 - extendedWaitUntil:
-    visible: 'pause-never-shown'
-    timeout: 1500
+    visible: '${N}번째 단어'
+    timeout: 2000
     optional: true
 - runFlow:
     when:
@@ -16,8 +21,10 @@ appId: dev.stackline.vaultme
     commands:
       - tapOn:
           below: '${N}번째 단어'
-      - waitForAnimationToEnd:
-          timeout: 3000
+      - extendedWaitUntil:
+          visible: 'pause-never-shown'
+          timeout: 1500
+          optional: true
       - inputText: ${output.words[N]}
       - pressKey: Enter
       - waitForAnimationToEnd:
