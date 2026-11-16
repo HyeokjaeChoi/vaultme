@@ -1,6 +1,7 @@
 # 0031. Speed up and cancel replace a pending send by its nonce
 
 Status: Accepted (2026-11-02 from issue #361, owner decisions D1–D8 of 2026-11-02)
+Superseded in part by ADR-0041 (cancel is also offered for an Unknown send)
 Supersedes/Aliases: ADR-0006 in part ("the app never resends" now means "never on its own"; the state rule gains the replacement hashes), ADR-0030 (the "revisit" consequence is answered: still no `replaced` push)
 
 ## Context

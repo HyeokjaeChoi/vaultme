@@ -179,9 +179,9 @@ Decisions Q26, Q50, Q56, Q69 (#315, ADR-0024). One rule for all of it: no addres
   - Receipt above `safe`: `Included`. If the receipt disappears: back to `Pending`.
   - A receipt for the cancel hash (record `kind: 'cancel'`, last hash): above `safe` stays `Pending`, at or below `safe` gives `Replaced` with cancel copy (ADR-0031).
   - No receipt for any own hash and the `safe` nonce is above ours: `Replaced`.
-  - `Unknown` means the result is not known. Only a check moves it.
+  - `Unknown` means the result is not known. Only a check moves it, or a cancel the node took (ADR-0041).
   - Time alone never changes a state. The app resends only when the user asks (speed up or cancel from S23 or S41, ADR-0031).
-  - `Pending` or `Unknown` blocks a new send (`blocksNewSend`). A corrupt record also blocks.
+  - `Pending` or `Unknown` blocks a new send (`blocksNewSend`). A corrupt record also blocks. Cancel is offered for both (`canCancel`, ADR-0041), speed up for Pending only; a cancel the node took moves an Unknown record to `Pending`.
 - Recipient risk order: burn, token contract, look-alike (first 4 and last 4 hex), first-time, known.
 - App lock: cold start is locked. Lock after 30 s in the background. `inactive` never starts the timer. A clock set back counts as locked.
 - The phrase screen blocks screen capture while mounted.
