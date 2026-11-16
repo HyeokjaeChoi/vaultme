@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "vitest",
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "mutate": [
+    "src/amount.ts",
+    "src/state.ts",
+    "src/replace.ts",
+    "src/send.ts",
+    "src/signer.ts",
+    "src/risk.ts",
+    "src/format.ts",
+    "src/address.ts",
+    "src/mnemonic.ts"
+  ],
+  "reporters": ["clear-text", "html", "json"],
+  "thresholds": { "high": 80, "low": 60, "break": 85 }
+}

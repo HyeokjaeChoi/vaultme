@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "gate": "WEB-5",
+  "commit": "8fdce7095246f971f30faa0a88daecbc432404e1",
+  "runId": 43780163745,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43780163745",
+  "workflow": "web-staging",
+  "event": "workflow_dispatch",
+  "measuredAt": "2026-11-16T00:51:08Z",
+  "origin": "GitHub Actions, vaultme-staging.stack-line.dev",
+  "tool": "Playwright 1.64.1",
+  "results": [
+    {
+      "metric": "Viewer ready, balances and history",
+      "value": 3.604,
+      "unit": "s",
+      "threshold": {
+        "op": "<=",
+        "value": 10
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one run"
+    },
+    {
+      "metric": "Transaction page ready",
+      "value": 1.64,
+      "unit": "s",
+      "threshold": {
+        "op": "<=",
+        "value": 10
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one run"
+    },
+    {
+      "metric": "CSP violations",
+      "value": 0,
+      "unit": "count",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one run"
+    },
+    {
+      "metric": "Page errors",
+      "value": 0,
+      "unit": "count",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one run"
+    },
+    {
+      "metric": "Viewer LCP",
+      "value": 0.492,
+      "unit": "s",
+      "threshold": null,
+      "pass": null,
+      "n": 1,
+      "window": "one run"
+    },
+    {
+      "metric": "Retries used",
+      "value": 0,
+      "unit": "count",
+      "threshold": null,
+      "pass": null,
+      "n": 1,
+      "window": "one run"
+    }
+  ]
+}

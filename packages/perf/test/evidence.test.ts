@@ -25,7 +25,14 @@ import {
   type EvidenceInput,
   type Op,
 } from '../src/evidence.ts'
-import { ciHealthResults, hermesResults, jsBudgetResults, SOURCES } from '../src/evidence-sources.ts'
+import {
+  chain3Results,
+  chain5Results,
+  ciHealthResults,
+  hermesResults,
+  jsBudgetResults,
+  SOURCES,
+} from '../src/evidence-sources.ts'
 
 const RUN = {
   commit: 'a'.repeat(40),
@@ -395,6 +402,48 @@ describe('docs/results of this repository', () => {
   })
 })
 
+const vitestReport = (failed: number, total = 9, over: Record<string, number> = {}) => ({
+  numPassedTests: total - failed,
+  numFailedTests: failed,
+  numPendingTests: 0,
+  numTodoTests: 0,
+  numFailedTestSuites: 0,
+  startTime: 1000,
+  testResults: [{ endTime: 11_400 }, { endTime: 13_400 }],
+  ...over,
+})
+
+describe('chain sources', () => {
+  it('reads cases, fails and suite seconds of the anvil report against 9, 0 and 60 s', () => {
+    const r = chain3Results(vitestReport(0))
+    expect(r.map((x) => [x.value, x.threshold])).toEqual([
+      [9, { op: '==', value: 9 }],
+      [0, { op: '==', value: 0 }],
+      [12.4, { op: '<=', value: 60 }],
+    ])
+    expect(buildEvidence(input({ gate: 'CHAIN-3', results: r })).results.every((x) => x.pass)).toBe(true)
+    expect(
+      buildEvidence(input({ gate: 'CHAIN-3', results: chain3Results(vitestReport(1, 8)) })).results.map((x) => x.pass),
+    ).toEqual([false, false, true])
+  })
+  it('counts failed property tests as counterexamples', () => {
+    const r = chain5Results(vitestReport(2, 15))
+    expect(r.map((x) => x.value)).toEqual([15, 2])
+    expect(r[1]?.threshold).toEqual({ op: '==', value: 0 })
+  })
+  it('does not count a skipped test as a case that ran, and counts a file that failed to load as a failure', () => {
+    // 8 ran, 1 skipped: "cases == 9" fails.
+    const skipped = chain3Results(vitestReport(0, 8, { numPendingTests: 1 }))
+    expect(skipped[0]?.value).toBe(8)
+    expect(chain5Results(vitestReport(0, 15, { numFailedTestSuites: 1 }))[1]?.value).toBe(1)
+  })
+  it('throws on a report with no test or no times: nothing was measured', () => {
+    expect(() => chain3Results(vitestReport(0, 0))).toThrow(/no test that ran/)
+    expect(() => chain5Results({ ...vitestReport(0, 3), testResults: [] })).toThrow(/startTime/)
+    expect(() => chain3Results({})).toThrow(/vitest json/)
+  })
+})
+
 describe('sources', () => {
   it('turns perf-hermes.json into one result per platform against the 11 MiB limit', () => {
     expect(hermesResults({ ios: 10_236_843, android: 10_227_578 })).toEqual([
@@ -471,6 +520,6 @@ describe('sources', () => {
     expect(() => ciHealthResults([{ name: 'x' }])).toThrow(/no name, value/)
   })
   it('lists the kinds `evidence emit --from` accepts', () => {
-    expect(Object.keys(SOURCES)).toEqual(['hermes', 'js-budget', 'ci-health'])
+    expect(Object.keys(SOURCES)).toEqual(['hermes', 'chain-3', 'chain-5', 'js-budget', 'ci-health'])
   })
 })
