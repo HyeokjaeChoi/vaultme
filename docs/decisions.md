@@ -97,7 +97,7 @@ The HLD, LLD and UX flow of that commit expand these decisions. ADRs in `docs/ad
 | Q73 | Safety values compiled in; hash on device; fee cap | IMPLEMENTED | ADR-0005 |
 | Q74 | Supply chain: release age, trust policy, scripts, `wallet-core` allow-list, osv-scanner with dated exceptions, pinned actions | IMPLEMENTED | `pnpm-workspace.yaml`; `scripts/check-repo-rules.sh` R13, R15, R18; `.github/workflows/osv-scanner.yml`; `osv-scanner.toml`; ADR-0047 |
 | Q75 | Push hardening: token enforcement, payload check, re-read on tap | IMPLEMENTED | `packages/contracts/src/push.ts` |
-| Q76 | WCAG 2.2 AA, address a11y label, text size, motion | IMPLEMENTED | `shared/lib/address.ts`; screen reader run not recorded |
+| Q76 | WCAG 2.2 AA, address a11y label, text size, motion | IMPLEMENTED | `shared/lib/address.ts`, static check `apps/mobile/test/a11y-props.test.ts`; screen reader run not recorded (`docs/testing/device-checklist.md`) |
 | Q77 | Replaced state unblocks send; push notifies | SUPERSEDED | Push part: ADR-0030 (no replaced push, #331). The Replaced state still holds: ADR-0006 |
 | Q78 | Infura primary, Alchemy fallback | IMPLEMENTED | ADR-0007 |
 | Q79 | Burn and token-contract warnings | IMPLEMENTED | `packages/wallet-core/src/risk.ts` |
