@@ -28,3 +28,8 @@ Record the date, device and OS for each of the 7 checks. 7 of 7 must pass on eac
 |---|---|---|---|---|
 | iOS | | | | |
 | Android | | | | |
+
+## Rooted device warning (SEC-8, ADR-0048)
+
+- [ ] Rooted Android emulator (or a jailbroken iPhone): the first cold start opens "기기 보안 안내" once; the button closes it; the next start shows nothing; the app works as before.
+- [ ] A normal phone: no warning appears.
