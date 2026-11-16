@@ -1,5 +1,5 @@
 # zizmor 1.32.0 (SEC-3), run by the `zizmor` job of ci.yml at `--min-severity medium`. Docs: https://docs.zizmor.sh/configuration/
-# Each ignore needs a reason here and a removal condition. Prefer fixing the workflow.
+# Convention (not machine-checked): each ignore gets a reason and a removal condition here. Prefer fixing the workflow.
 rules:
   dangerous-triggers:
     ignore:

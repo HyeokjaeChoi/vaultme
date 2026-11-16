@@ -73,7 +73,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | OpenSSF Scorecard: `Dangerous-Workflow` 10, `Token-Permissions` 10, `Pinned-Dependencies` ≥ 9, aggregate ≥ `MIN_SCORE` (ratchet) | `.github/workflows/scorecard.yml` (weekly and push to main; the README badge shows the public score); SEC-4 |
 | Every workflow `uses:` is a 40-hex commit SHA with a `# <version>` comment (local `./` exempt); actionlint 1.7.12 reports 0 findings | `scripts/check-repo-rules.sh` R19; CI `repo-rules` installs actionlint (sha256-checked) and sets `REQUIRE_ACTIONLINT=1`; WF-1 |
 | The unused `production` env blocks of `apps/api/wrangler.jsonc` and `apps/web/wrangler.jsonc` stay valid: `wrangler deploy --env production --dry-run` exits 0 with no config warning | `scripts/wrangler-dry-run.sh`, CI `verify` (api) and `web` (after the build); PROD-1 |
-| Every workflow passes zizmor 1.32.0 with 0 findings at medium or higher; each ignore has a reason and a removal condition | CI job `zizmor` (`zizmorcore/zizmor-action`, online audits on); `.github/zizmor.yml`; SEC-3 |
+| Every workflow passes zizmor 1.32.0 with 0 findings at medium or higher | CI job `zizmor` (`zizmorcore/zizmor-action`, online audits on); ignores only in `.github/zizmor.yml` (whether the job blocks merge is a repo ruleset setting, not checked here); SEC-3 |
 | A Figma screen binds every number, color and text to the design system | `.claude/skills/vaultme-figma-screen` `audit.js` = 0 (run before you report done) |
 
 When a review finding or an owner fix from a check list repeats, add a check (`scripts/check-repo-rules.sh` or a test) and list it here. Only if no check can detect it, add a lesson to `vaultme-review-lessons`.
