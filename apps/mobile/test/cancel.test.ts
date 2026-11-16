@@ -261,7 +261,7 @@ describe('runCancel (ADR-0031)', () => {
       expect(saved[0]!.hashes).toHaveLength(2)
     }
   })
-  it('the record is read again before saving: a state a check wrote meanwhile is kept, no cancel is claimed', async () => {
+  it('the record is read again before saving: a state a check wrote meanwhile is kept, the cancel is still marked (#660)', async () => {
     const { d, saved } = setup()
     const approved = await quoteCancel(record(), FROM, d.chain)
     const mined = record({ state: 'Included', minedHash: H1, blockNumber: 9 })
@@ -273,7 +273,7 @@ describe('runCancel (ADR-0031)', () => {
     // #660: the cancel was broadcast, so its hash is marked as a cancel and a receipt for it is not read as the send.
     expect(saved[0]).toMatchObject({ kind: 'cancel', cancelFrom: 1 })
     expect(processedBeforeCancel(saved[0]!)).toBe(true) // the send itself was mined first
-    expect(saved[0]!.maxFeePerGas).toBe(record().maxFeePerGas) // fees of a closed record stay as they were
+    expect(saved[0]!.maxFeePerGas).toBe(String(approved.maxFeePerGas)) // the cancel's fees are kept: Included can revert (reorg) and the next replacement bumps from it
   })
   it('#660: a speed up that finds the record Included adds the hash but claims no kind', async () => {
     const { d, saved } = setup()

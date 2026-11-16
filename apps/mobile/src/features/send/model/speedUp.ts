@@ -164,7 +164,7 @@ export async function runReplace(
     hashes,
     // The signed fees are kept even when the answer was unclear: that tx may be in the pool, so the next replacement must bump from it.
     // A speed up is the same tx: its gas limit carries on. A cancel keeps the send's own (it may still be the one that runs).
-    ...(stillPending
+    ...(stillPending || cancel
       ? {
           maxFeePerGas: String(plan.maxFeePerGas),
           maxPriorityFeePerGas: String(plan.maxPriorityFeePerGas),
