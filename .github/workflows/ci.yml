@@ -62,6 +62,34 @@ jobs:
       # Send lifecycle on anvil with the real app code (CHAIN-3): 9 cases, chain id 11155111, suite <= 60 s.
       - if: hashFiles('package.json') != ''
         run: timeout 60 pnpm --filter @vaultme/mobile test:anvil
+      # EVID-1 (ADR-0043): CHAIN-3 as an evidence file (also when a case failed: that is the run that matters). The vitest JSON is
+      # written by the test:anvil script; counts are tests that ran, so a skipped case fails `cases == 9`.
+      - if: ${{ !cancelled() && hashFiles('apps/mobile/anvil-report.json') != '' }}
+        run: |
+          node packages/perf/src/cli.ts evidence emit --gate CHAIN-3 --origin 'GitHub Actions ubuntu-latest, job verify, anvil v1.8.6' \
+            --tool 'vitest json, apps/mobile test:anvil' --from chain-3=apps/mobile/anvil-report.json --out evidence-CHAIN-3.json
+      - if: ${{ !cancelled() && hashFiles('evidence-CHAIN-3.json') != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-CHAIN-3
+          path: evidence-CHAIN-3.json
+          retention-days: 90
+      # CHAIN-5: the property tests run once more with the JSON reporter (a few seconds). 1,000 runs per property is configuration
+      # (RUNS in packages/wallet-core/test/properties.test.ts), so it goes in as --result; n is the 15 properties (the 16th test is a pinned example).
+      - if: hashFiles('package.json') != ''
+        run: pnpm --filter @vaultme/wallet-core run test:properties
+      - if: ${{ !cancelled() && hashFiles('packages/wallet-core/property-report.json') != '' }}
+        run: |
+          node packages/perf/src/cli.ts evidence emit --gate CHAIN-5 --origin 'GitHub Actions ubuntu-latest, job verify' \
+            --tool 'vitest json, fast-check, packages/wallet-core test:properties' --from chain-5=packages/wallet-core/property-report.json \
+            --result '{"metric":"Runs per property (configured)","value":1000,"unit":"runs","threshold":{"op":">=","value":1000},"n":15,"window":"one run"}' \
+            --out evidence-CHAIN-5.json
+      - if: ${{ !cancelled() && hashFiles('evidence-CHAIN-5.json') != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-CHAIN-5
+          path: evidence-CHAIN-5.json
+          retention-days: 90
       - if: hashFiles('package.json') != ''
         run: pnpm --filter @vaultme/api openapi:check
       # PROD-1: the production env blocks (unused until the first public release, ADR-0025) still build and validate.
