@@ -8,7 +8,8 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint . --max-warnings=0"
+    "lint": "eslint . --max-warnings=0",
+    "mutation": "stryker run"
   },
   "dependencies": {
     "@vaultme/api-client": "workspace:*",
@@ -16,6 +17,8 @@
     "@vaultme/wallet-core": "workspace:*"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/vitest-runner": "10.1.1",
     "@vaultme/config": "workspace:*",
     "@vitest/coverage-v8": "5.0.5",
     "eslint": "^10.12.0",
