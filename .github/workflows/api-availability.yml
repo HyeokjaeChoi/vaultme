@@ -44,7 +44,7 @@ jobs:
             -H "Authorization: Bearer $CF_ANALYTICS_TOKEN" --data-binary @query.sql -o answer.json
           rc=0
           node packages/perf/src/cli.ts availability check answer.json > availability.md || rc=$?
-          { echo '### API availability, 28 days'; echo; cat availability.md; } >> "$GITHUB_STEP_SUMMARY"
+          { echo '### API availability, 28 days'; echo; cat availability.md; } | tee -a "$GITHUB_STEP_SUMMARY"
           # Exit 3 = a breach; 1 is any crash, which fails the job and opens no issue.
           echo "breach=$([ "$rc" = 3 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           [ "$rc" = 0 ] || [ "$rc" = 3 ]
@@ -57,3 +57,15 @@ jobs:
           { cat availability.md; echo; echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID (ADR-0046)."; } > body.md
           n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$TITLE\"" --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")"
           if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body-file body.md; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file body.md; fi
+      - name: Evidence file (ADR-0043)
+        # After the issue step: a failure here must not stop the breach issue. A normal PR commits the file (`evidence collect --run <id>`).
+        if: hashFiles('answer.json') != ''
+        run: >
+          node packages/perf/src/cli.ts evidence emit --gate API-6 --origin 'GitHub Actions ubuntu-latest, Workers Analytics Engine SQL API'
+          --tool 'packages/perf cli.ts availability' --from availability=answer.json --out evidence-API-6.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: hashFiles('evidence-API-6.json') != ''
+        with:
+          name: evidence-API-6
+          path: evidence-API-6.json
+          retention-days: 90
