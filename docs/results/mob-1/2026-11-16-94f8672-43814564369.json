@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "gate": "mob-1",
+  "commit": "94f86724b4725d8e6f03b30251b800e3c3196bde",
+  "runId": 43814564369,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43814564369",
+  "workflow": "e2e",
+  "event": "workflow_dispatch",
+  "measuredAt": "2026-11-16T07:16:53Z",
+  "origin": "after the fix #654, count run 1 of 10, retry: cold start flow, Face ID sheet stayed up",
+  "tool": "Maestro 2.11.0, iOS simulator, e2e.yml",
+  "results": [
+    {
+      "metric": "Flows retried",
+      "value": 1,
+      "unit": "flows",
+      "threshold": {
+        "op": "<=",
+        "value": 1
+      },
+      "pass": true,
+      "n": 5,
+      "window": "one run"
+    },
+    {
+      "metric": "Flows failed",
+      "value": 0,
+      "unit": "flows",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 5,
+      "window": "one run"
+    }
+  ]
+}
