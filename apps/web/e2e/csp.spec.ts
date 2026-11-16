@@ -149,4 +149,6 @@ test('the watcher sees a violation on the real page', async ({ page }) => {
   })
   await expect.poll(() => seen.length).toBeGreaterThan(0)
   expect(seen.join('\n')).toContain('script-src')
+  // The event itself, not only Chromium's console line, must have been seen: a broken listener would otherwise pass.
+  await expect.poll(() => seen.some((s) => !s.startsWith('console:'))).toBe(true)
 })
