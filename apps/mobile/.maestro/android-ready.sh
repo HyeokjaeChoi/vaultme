@@ -2,7 +2,7 @@
 # Waits until the Android package service answers, then installs the APK (retried). Usage: android-ready.sh <serial> <apk>
 # the framework can restart after the boot-complete signal (release.yml runs android-locale.sh first, which waits; this is the second guard); an install in that
 # window failed with "Failure calling service package: Broken pipe" (dry run 43774041050). `pm path android` works only when the service is up; the install retry covers a restart that starts later.
-# Workaround: remove it when no step restarts the framework after boot.
+# Workaround: remove it when no step can restart the framework while the install runs.
 set -euo pipefail
 serial="${1:?serial}"
 apk="${2:?apk}"
