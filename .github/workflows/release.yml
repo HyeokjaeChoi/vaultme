@@ -43,7 +43,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false # release builds do not restore a cache (zizmor cache-poisoning)
       - run: pnpm install --frozen-lockfile --filter vaultme --filter @vaultme/wallet-core...
       - name: Funded wallet balance (ETH and USDC on Sepolia)
         # The secret is set on this step only, never on the job: install scripts of dependencies must not see it.
@@ -73,7 +73,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false # release builds do not restore a cache (zizmor cache-poisoning)
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
@@ -196,7 +196,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false # release builds do not restore a cache (zizmor cache-poisoning)
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
@@ -371,7 +371,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false # release builds do not restore a cache (zizmor cache-poisoning)
       - run: pnpm install --frozen-lockfile --filter @vaultme/mobile...
       # Official Expo action (installs eas-cli at a fixed version, logs in with the token). eas-cli is not a repo dependency:
       # its exact-pinned transitive packages (joi, minimatch, nanoid, ...) carry known advisories that osv-scanner blocks in the lockfile.

@@ -1,0 +1,14 @@
+# zizmor 1.32.0 (SEC-3), run by the `zizmor` job of ci.yml at `--min-severity medium`. Docs: https://docs.zizmor.sh/configuration/
+# Each ignore needs a reason here and a removal condition. Prefer fixing the workflow.
+rules:
+  dangerous-triggers:
+    ignore:
+      # workflow_run runs only after our own api-bench and release workflows, in the default-branch context, and the job
+      # checks out the default branch only: no code or artifact of a PR is executed or trusted. It reads run artifacts of
+      # those two workflows with a read token. Remove when the SLO window moves to a `schedule` trigger.
+      - api-slo-window.yml
+  github-app:
+    ignore:
+      # review-learn.yml `create-github-app-token` has no `permission-*` input yet; owner of the file: review-key-hardening
+      # (the key job is being split, #613/#614). Remove when that workflow sets `permission-contents` / `permission-pull-requests`.
+      - review-learn.yml
