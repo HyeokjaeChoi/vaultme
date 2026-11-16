@@ -4,6 +4,7 @@
 //   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts smoke    (post-deploy: one balance read and one history read; exit 1 on failure)
 //   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha> --origin <text>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the tier-2 limits for api.js)
 //   node packages/perf/src/cli.ts slo-window --runs <dir with the downloaded api-bench artifacts of the window>    (pools the SLO counts, ADR-0036; exit 3 on a breach, so a crash (exit 1) is not one)
+//   node packages/perf/src/cli.ts ci-health [--repo <owner/name>] [--json <file>]    (OBS-1: the weekly CI health table from `gh`; exit 3 on a breach, so a crash (exit 1) is not one)
 //   node packages/perf/src/cli.ts availability sql <dataset> | availability check <sql response.json>    (API-6: the Analytics Engine query, and the 99.5 % judgement of its answer; exit 3 on a breach)
 //   node packages/perf/src/cli.ts ci-health [--repo <owner/name>]    (OBS-1: the weekly CI health table from `gh`; exit 3 on a breach, so a crash (exit 1) is not one)
 //   node packages/perf/src/cli.ts evidence emit --gate <id> --origin <text> --tool <text> --out <file> (--from hermes=<file> | --from js-budget=<file> | --result '<json>' | --results <file>) [--measured-at <YYYY-MM-DDTHH:MM:SSZ>] [--run <id>]    (a gate job writes its evidence file; --run takes the run from `gh` instead of the Actions environment, to seed an old run)
@@ -298,7 +299,7 @@ if (cmd === 'hermes') {
     if (hasAvailabilityBreach(rows)) process.exitCode = 3
   } else throw new Error('usage: cli.ts availability sql <dataset> | availability check <sql response.json>')
 } else if (cmd === 'ci-health') {
-  const { values: v } = parseArgs({ args: rest, options: { repo: { type: 'string' } } })
+  const { values: v } = parseArgs({ args: rest, options: { repo: { type: 'string' }, json: { type: 'string' } } })
   const repo = v.repo ?? process.env.GITHUB_REPOSITORY
   if (!repo) throw new Error('ci-health: pass --repo <owner/name> or run inside GitHub Actions')
   const gh = (a: string[]): unknown =>
@@ -391,6 +392,8 @@ if (cmd === 'hermes') {
       workflows.filter(isOff).map((w) => w.name),
     ),
   )
+  // The numbers for `evidence emit --from ci-health=<file>` (ADR-0043).
+  if (v.json) writeFileSync(v.json, JSON.stringify(metrics))
   // 3, not 1: Node exits 1 on an uncaught throw, and ci-health.yml must not report a crash as a breach.
   if (hasBreach(metrics)) process.exitCode = 3
 } else {
