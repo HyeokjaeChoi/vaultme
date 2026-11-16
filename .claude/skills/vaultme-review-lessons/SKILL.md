@@ -55,3 +55,27 @@ Use this format. Keep it short. Link the PRs.
 - Do: cancel on a real leave only: `background` while no OS auth is in progress (`isAuthInProgress()`), or screen blur. Never on `inactive`, and never on `AppState.currentState` read right after an auth call. See `leavesReveal` in `features/backup/model/reveal.ts`.
 - Check: manual (unit test `backup-reveal.test.ts` covers the S03 rule; confirm on a real iPhone, the simulator resolves in another order)
 - Source: #260, #28
+
+### L05. A test or gate must fail when what it measures is absent
+- Why: tests and gates passed while they measured nothing: a property that passed when every call was refused, a link crawl that read no data links, an amount regex that matched any digit, an empty API answer read as no breach, a completeness test that counted 30 of 32 cells, a known-bug case that asserted the bug in its setup.
+- Do: assert the exact expected outcome, not only that no wrong one occurred. Wait for the real content before you read it, and require a minimum count of matched items or runs. Match the value with its unit or label. Treat an empty input as an error. Prove each new test red once: break the code (a mutation) and see it fail.
+- Check: manual
+- Source: [#556](https://github.com/HyeokjaeChoi/vaultme/pull/556), [#576](https://github.com/HyeokjaeChoi/vaultme/pull/576), [#577](https://github.com/HyeokjaeChoi/vaultme/pull/577), [#579](https://github.com/HyeokjaeChoi/vaultme/pull/579), [#525](https://github.com/HyeokjaeChoi/vaultme/pull/525), [#489](https://github.com/HyeokjaeChoi/vaultme/pull/489), [#295](https://github.com/HyeokjaeChoi/vaultme/pull/295)
+
+### L06. When behavior changes, update the docs and comments that describe it in the same PR
+- Why: docs and comments described behavior the code did not have: a daily budget that was only planned, a secret paragraph that no longer matched the workflow, an ADR sentence about one concurrency group, a deploy described as curl smoke only, comments that said no caller yet.
+- Do: before you open the PR, search ARCHITECTURE.md, the ADRs, `docs/` and the code comments for the names you changed, and update each statement. Write planned behavior as planned, with its issue. A change to an accepted ADR goes in a new ADR (Judgment rule 7).
+- Check: manual (R11 checks only that paths resolve)
+- Source: [#506](https://github.com/HyeokjaeChoi/vaultme/pull/506), [#527](https://github.com/HyeokjaeChoi/vaultme/pull/527), [#548](https://github.com/HyeokjaeChoi/vaultme/pull/548), [#577](https://github.com/HyeokjaeChoi/vaultme/pull/577), [#589](https://github.com/HyeokjaeChoi/vaultme/pull/589)
+
+### L07. A helper failure is never read as the main outcome
+- Why: a crash of a scan (exit 1) was read as a key leak, a crash of the SLO window was read as a breach, a failed evidence step rolled back a good deploy, and a failed version lookup stopped the deploy before it started.
+- Do: give each outcome its own exit code, not 1 (a breach exits 3, as in `packages/perf/src/ci-health.ts`); a crash stays a red step. A helper step (evidence, upload, lookup) must not trigger a rollback or block the main step: make it tolerate an empty answer, or run it after the decision.
+- Check: manual
+- Source: [#545](https://github.com/HyeokjaeChoi/vaultme/pull/545), [#577](https://github.com/HyeokjaeChoi/vaultme/pull/577), [#559](https://github.com/HyeokjaeChoi/vaultme/pull/559), [#414](https://github.com/HyeokjaeChoi/vaultme/pull/414)
+
+### L08. A secret matcher normalizes the text before it compares
+- Why: the key scan read raw JSON text and missed a key split by an escaped line break; the phrase scrubber missed phrases split by newlines or written with capital letters.
+- Do: decode the text first (JSON strings, escapes), then drop separators and fold case before you match. Test split, encoded and capitalized forms through the real entry point, not only through the inner helper. Use only the public test vectors.
+- Check: manual (the two matchers have tests: `scripts/review-output.py` and `packages/contracts/src/scrub.ts`)
+- Source: [#545](https://github.com/HyeokjaeChoi/vaultme/pull/545), [#338](https://github.com/HyeokjaeChoi/vaultme/pull/338)
