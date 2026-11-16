@@ -132,12 +132,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          id=$(gh run list --workflow ci.yml --branch main --event push --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          id=$(gh run list --workflow ci.yml --branch main --event push --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty') || id=''
           if [ -z "$id" ] || ! gh run download "$id" --name perf-hermes --dir main-hermes; then
             echo "::notice::No perf-hermes.json of main to compare with"
             exit 0
           fi
-          node packages/perf/src/cli.ts hermes-growth perf-hermes.json main-hermes/perf-hermes.json "$GITHUB_STEP_SUMMARY"
+          node packages/perf/src/cli.ts hermes-growth perf-hermes.json main-hermes/perf-hermes.json "$GITHUB_STEP_SUMMARY" ||
+            echo "::notice::The growth check could not read a perf-hermes.json"
       # EVID-1 (ADR-0043): the same numbers as an evidence file, committed later with `evidence collect --run <id>` (last attempt of a re-run only).
       - if: ${{ !cancelled() && hashFiles('perf-hermes.json') != '' }}
         run: >
