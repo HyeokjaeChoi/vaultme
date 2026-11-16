@@ -3,7 +3,7 @@ import { Mnemonic, signReplacement } from '@vaultme/wallet-core/signer'
 import { describe, expect, it, vi } from 'vitest'
 import { canCancel, quoteCancel, runCancel } from '../src/features/send/model/cancel'
 import { cancelFromOf, cancelMined, explorerHash, processedBeforeCancel } from '../src/features/send/model/hashes'
-import { canSpeedUp, quoteSpeedUp, type SpeedUpDeps } from '../src/features/send/model/speedUp'
+import { canSpeedUp, quoteSpeedUp, runSpeedUp, type SpeedUpDeps } from '../src/features/send/model/speedUp'
 import type { SentTx } from '../src/shared/chain/port'
 import type { PendingTx } from '../src/shared/storage'
 
@@ -269,6 +269,18 @@ describe('runCancel (ADR-0031)', () => {
     d.readPending = () => (++reads === 1 ? record() : mined)
     expect((await runCancel(record(), approved, FROM, d)).status).toBe('NotPending')
     expect(saved[0]).toMatchObject({ state: 'Included', minedHash: H1, blockNumber: 9 })
+    expect(saved[0]!.hashes).toHaveLength(2)
+    // #660: the cancel was broadcast, so its hash is marked as a cancel and a receipt for it is not read as the send.
+    expect(saved[0]).toMatchObject({ kind: 'cancel', cancelFrom: 1 })
+    expect(processedBeforeCancel(saved[0]!)).toBe(true) // the send itself was mined first
+    expect(saved[0]!.maxFeePerGas).toBe(record().maxFeePerGas) // fees of a closed record stay as they were
+  })
+  it('#660: a speed up that finds the record Included adds the hash but claims no kind', async () => {
+    const { d, saved } = setup()
+    const approved = await quoteSpeedUp(record(), FROM, d.chain)
+    let reads = 0
+    d.readPending = () => (++reads === 1 ? record() : record({ state: 'Included', minedHash: H1, blockNumber: 9 }))
+    expect((await runSpeedUp(record(), approved, FROM, d)).status).toBe('NotPending')
     expect(saved[0]!.hashes).toHaveLength(2)
     expect(saved[0]!.kind).toBeUndefined()
   })

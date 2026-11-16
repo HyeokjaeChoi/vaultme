@@ -157,6 +157,7 @@ export async function runReplace(
   const stillPending = open(latest.state)
   // Claimed (kind, fee) only when the node took it and the send is still open (Pending, or Unknown for a cancel, ADR-0041).
   // A cancel whose answer was unclear still gets its `kind`, so a receipt for it is read as the cancel (Replaced), not as a send.
+  // The same holds when a check closed the record (Included) during auth and submit: the cancel was broadcast, its hash is in the list (#660).
   const sent = result.status === 'Pending' && stillPending
   const next: PendingTx = {
     ...latest,
@@ -170,11 +171,11 @@ export async function runReplace(
           ...(cancel ? {} : { gasLimit: String(plan.gasLimit) }),
         }
       : {}),
-    ...(sent || (cancel && stillPending) ? { kind } : {}),
+    ...(sent || cancel ? { kind } : {}),
     // The node took the cancel of an Unknown send: a tx now sits at that nonce, so the record is Pending again (ADR-0041).
     ...(sent && latest.state === 'Unknown' ? { state: 'Pending' as const } : {}),
     // The first cancel marks where the cancels start; a cancel sent again keeps it (an earlier cancel can still be the one mined).
-    ...(cancel && stillPending
+    ...(cancel
       ? {
           cancelFrom:
             latest.kind === 'cancel' ? (latest.cancelFrom ?? ownHashes(latest).length - 1) : hashes.length - 1,
