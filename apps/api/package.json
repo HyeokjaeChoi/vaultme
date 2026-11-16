@@ -13,7 +13,8 @@
     "openapi": "node scripts/openapi.ts",
     "openapi:check": "node scripts/openapi.ts --check",
     "db:generate": "drizzle-kit generate",
-    "db:check": "node scripts/db-check.ts"
+    "db:check": "node scripts/db-check.ts",
+    "bundle:budget": "node scripts/bundle-budget.ts"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.0",
@@ -31,6 +32,7 @@
     "@vitest/coverage-istanbul": "5.0.5",
     "drizzle-kit": "0.31.11",
     "eslint": "^10.12.0",
+    "fast-check": "4.10.2",
     "typescript": "^6.0.3",
     "vitest": "^5.0.3",
     "wrangler": "4.156.0"

@@ -29,6 +29,7 @@ import {
 import * as Sentry from '@sentry/cloudflare'
 import { eq } from 'drizzle-orm'
 import type { Context, ErrorHandler, MiddlewareHandler } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 import { routePath } from 'hono/route'
 import { endTime, setMetric, startTime, timing } from 'hono/timing'
@@ -137,6 +138,14 @@ app.use(
   }),
 )
 
+// SEC-10: a body over the limit is refused with 413 before any signature, token, limiter or D1 step. A body without Content-Length
+// is counted as it is read. The largest real request is one signed raw transaction, far under 2 KB. The webhook gets 1 MiB: Alchemy
+// states no maximum payload and retries what we refuse. Both are far below the 100 MB that Cloudflare lets through.
+const bodyOver = (maxSize: number) =>
+  bodyLimit({ maxSize, onError: (c) => fail(c as Context<Env>, 413, 'invalid_request', 'Request body is too large') })
+app.use('/v1/*', bodyOver(64 * 1024))
+app.use('/webhooks/alchemy', bodyOver(1024 * 1024))
+
 app.use('/v1/*', async (c, next) => {
   if (c.req.path === '/v1/health') return next()
   const v = AppVersion.safeParse(c.req.header(APP_VERSION_HEADER))
@@ -161,7 +170,7 @@ const errorResponse = (description: string) => ({ description, content: errorCon
 // A 429 or a retryable 503: the same body, plus the wait.
 const waitResponse = (description: string) => ({ description, headers: retryAfterHeader, content: errorContent })
 // Default wait of a retryable 503, in seconds. rpc: both upstreams failed at once, a blip. Etherscan: the bucket window is 1.2 s.
-// Push: the Alchemy address call or Expo failed. An `UpstreamError` that carries seconds (planned for the Etherscan daily budget, API-2; no caller yet) wins.
+// Push: the Alchemy address call or Expo failed. An `UpstreamError` that carries seconds (the Etherscan daily budget, API-2) wins.
 const WAIT = { rpc: 2, etherscan: 2, push: 5 } as const
 
 app.openapi(
@@ -175,6 +184,10 @@ app.openapi(
   }),
   (c) => c.json({ ok: true as const, version: pkg.version }, 200),
 )
+
+// A write route answers 413 (the body limit) and, with a JSON body, 415 (the validator: another Content-Type).
+const sized = { 413: errorResponse('Request body is over 64 KB') }
+const jsonBody = { ...sized, 415: errorResponse('Request body is not JSON (Content-Type)') }
 
 const bearer = { 401: errorResponse('Missing, invalid or expired token'), 429: waitResponse('Rate limited') }
 const signed = {
@@ -208,6 +221,7 @@ app.openapi(
     path: '/v1/installs',
     request: { body: { content: { 'application/json': { schema: RegisterRequest } }, required: true } },
     responses: {
+      ...jsonBody,
       201: { description: 'Install registered', content: { 'application/json': { schema: RegisterResponse } } },
       400: errorResponse('Invalid public key'),
       429: waitResponse('Rate limited'),
@@ -232,6 +246,7 @@ app.openapi(
     method: 'post',
     path: '/v1/installs/token',
     responses: {
+      ...sized,
       200: { description: 'Short-lived token', content: { 'application/json': { schema: TokenResponse } } },
       ...signed,
     },
@@ -268,6 +283,7 @@ app.openapi(
     path: '/v1/rpc',
     request: { body: { content: { 'application/json': { schema: RpcRequest } }, required: true } },
     responses: {
+      ...jsonBody,
       200: {
         description: 'Upstream JSON-RPC response, errors included',
         content: { 'application/json': { schema: RpcResponse } },
@@ -295,6 +311,7 @@ app.openapi(
     path: '/v1/history',
     request: { body: { content: { 'application/json': { schema: HistoryRequest } }, required: true } },
     responses: {
+      ...jsonBody,
       200: {
         description: 'One page of history, newest first',
         content: { 'application/json': { schema: HistoryResponse } },
@@ -332,6 +349,7 @@ app.openapi(
     path: '/v1/tx/internal',
     request: { body: { content: { 'application/json': { schema: TxInternalRequest } }, required: true } },
     responses: {
+      ...jsonBody,
       200: {
         description: 'Internal ETH transfers of the transaction (empty when there are none or Etherscan lags)',
         content: { 'application/json': { schema: TxInternalResponse } },
@@ -357,6 +375,7 @@ app.openapi(
     path: '/v1/push/subscription',
     request: { body: { content: { 'application/json': { schema: PushSubscribeRequest } }, required: true } },
     responses: {
+      ...jsonBody,
       200: {
         description: 'Address and push token registered',
         content: { 'application/json': { schema: PushOkResponse } },
@@ -379,6 +398,7 @@ app.openapi(
     method: 'delete',
     path: '/v1/push/subscription',
     responses: {
+      ...sized,
       200: {
         description: 'Subscription deleted (also when there was none)',
         content: { 'application/json': { schema: PushOkResponse } },
