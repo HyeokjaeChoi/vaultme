@@ -85,8 +85,12 @@ case "$platform" in
 esac
 if [ "$tags" = loop ]; then
   # Same flow, same simulator, no retry: one line per iteration. A failed iteration also keeps the coreauthd log of its minutes.
-  pass=0; fail=0
+  pass=0; fail=0; longest=0
+  # LOOP_MAX_MINUTES (default 100): no new iteration starts when it could end after this budget (the job timeout cancels the upload otherwise, run 43951954002).
+  deadline=$(($(date +%s) + ${LOOP_MAX_MINUTES:-100} * 60))
   for i in $(seq "$loop_n"); do
+    if [ "$i" -gt 1 ] && [ $(($(date +%s) + longest)) -gt "$deadline" ]; then echo "LOOP stops before iteration $i: no time left (longest iteration ${longest}s)" | tee -a ../e2e-artifacts/loop-summary.txt; break; fi
+    iter_start=$(date +%s)
     if [ "$i" -gt 1 ]; then
       # A real run starts on a freshly booted simulator (iteration 1 does; 14 repeats on one simulator never failed, run 43937596396), so every
       # later iteration erases and boots it again and enrolls Face ID again.
@@ -101,10 +105,11 @@ if [ "$tags" = loop ]; then
       pass=$((pass + 1)); echo "LOOP $i/$loop_n PASS ($(date -u +%T))" | tee -a ../e2e-artifacts/loop-summary.txt
     else
       fail=$((fail + 1)); echo "LOOP $i/$loop_n FAIL ($(date -u +%T))" | tee -a ../e2e-artifacts/loop-summary.txt
-      xcrun simctl spawn "$udid" log show --start "$started" --style compact --predicate 'process == "coreauthd"' 2>&1 | tail -n 300 > "../e2e-artifacts/loop-$i/coreauthd.log" || true
+      xcrun simctl spawn "$udid" log show --start "$started" --style compact --predicate 'process == "coreauthd" OR process == "biometrickitd" OR subsystem == "com.apple.LocalAuthentication"' 2>&1 | tail -n 600 > "../e2e-artifacts/loop-$i/coreauthd.log" || true
     fi
+    dur=$(($(date +%s) - iter_start)); [ "$dur" -le "$longest" ] || longest=$dur
   done
-  echo "LOOP RESULT $loop_flow: $pass pass, $fail fail of $loop_n" | tee -a ../e2e-artifacts/loop-summary.txt
+  echo "LOOP RESULT $loop_flow: $pass pass, $fail fail of $((pass + fail)) run (asked $loop_n)" | tee -a ../e2e-artifacts/loop-summary.txt
   [ "$fail" -eq 0 ]
   exit
 fi

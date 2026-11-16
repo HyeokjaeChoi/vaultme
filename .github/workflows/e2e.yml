@@ -17,8 +17,8 @@ on:
         description: 'Diagnosis loop (#668): one file name in flows/ (e.g. lock.yaml) to run N times with no retry. Empty = the normal full run.'
         default: ''
       loop_n:
-        description: 'Iterations of the diagnosis loop (1-40)'
-        default: '15'
+        description: 'Iterations per shard of the diagnosis loop (1-40); 3 shards run at once'
+        default: '7'
 
 permissions:
   contents: read
@@ -50,6 +50,11 @@ jobs:
     needs: changes
     # A failed `changes` job must not skip this one (a skipped job passes the required check): then it runs.
     if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.run == 'true') }}
+    name: e2e # fixed: a matrix would rename the required check; the shards exist only for the diagnosis loop
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(inputs.loop_flow != '' && '[1,2,3]' || '[1]') }}
     runs-on: macos-26
     timeout-minutes: ${{ inputs.loop_flow != '' && 150 || 75 }} # the diagnosis loop (#668) runs ~5 min per iteration
     steps:
@@ -88,16 +93,17 @@ jobs:
         env:
           LOOP_FLOW: ${{ inputs.loop_flow }}
           LOOP_N: ${{ inputs.loop_n }}
+          LOOP_MAX_MINUTES: 100
         run: |
           if [ -n "$LOOP_FLOW" ]; then apps/mobile/.maestro/run.sh loop "$LOOP_FLOW" "$LOOP_N"
           else apps/mobile/.maestro/run.sh ${{ github.event_name == 'pull_request' && 'critical' || 'full' }}; fi
       # The create flow shows a generated recovery phrase: its whole output directory stays out of the public artifact (testnet-only, but never published).
       # Checked locally (Maestro 2.11.0, #440): a failure screenshot, the failure view-hierarchy JSON, commands.json and maestro.log all hold typed or revealed words, so no file of that directory is safe to upload.
       # A create failure is read from the JUnit report (failed step and message) and a local re-run.
-      - if: ${{ !cancelled() }}
+      - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: e2e-report
+          name: e2e-report${{ inputs.loop_flow != '' && format('-shard{0}', matrix.shard) || '' }}
           path: |
             apps/mobile/e2e-report.xml
             apps/mobile/e2e-report-retry.xml
