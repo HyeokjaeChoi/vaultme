@@ -95,8 +95,11 @@ const bar = 'bg-skeleton-bg rounded-skeleton-radius skeleton-pulse'
 // Row heights of the loaded rows (app.css): the two address rows, the three one-line rows and the hash row.
 const rows = ['tx-row-address', 'tx-row-address', 'tx-row-line', 'tx-row-line', 'tx-row-line', 'tx-row-hash']
 
-/** The same boxes as the detail (status badge, figure, six rows, button), so the answer moves nothing (CLS 0). */
-export function TxSkeleton({ t, share }: { t: WebTxMessages; share: ShareNames }) {
+/**
+ * The same boxes as the detail (status badge, figure, six rows, button), so the answer moves nothing (CLS 0). The hash is known from the
+ * URL fragment, so its row is the real one from hydration on (Figma loading frames, #504); before hydration (`hash` null) it is a bar.
+ */
+export function TxSkeleton({ t, share, hash }: { t: WebTxMessages; share: ShareNames; hash: string | null }) {
   return (
     <>
       <div aria-hidden="true" className="flex flex-col items-start gap-3">
@@ -107,13 +110,25 @@ export function TxSkeleton({ t, share }: { t: WebTxMessages; share: ShareNames }
           <div className={`${bar} skeleton-figure`} />
         </Shared>
       </div>
-      <div aria-hidden="true" className="flex flex-col">
-        {rows.map((height, i) => (
-          <div key={i} className={`${height} tablet:flex-row tablet:gap-6 flex flex-col gap-2 py-3`}>
-            <div className={`${bar} skeleton-line skeleton-label shrink-0`} />
-            <div className={`${bar} skeleton-line tablet:flex-1`} />
-          </div>
-        ))}
+      <div className="flex flex-col">
+        {rows.map((height, i) =>
+          hash && i === rows.length - 1 ? (
+            <dl key={i}>
+              <DefinitionRow label={t.hash} mono copy={{ text: hash, label: t.copyHash, copied: t.copied }}>
+                {hash}
+              </DefinitionRow>
+            </dl>
+          ) : (
+            <div
+              key={i}
+              aria-hidden="true"
+              className={`${height} tablet:flex-row tablet:gap-6 flex flex-col gap-2 py-3`}
+            >
+              <div className={`${bar} skeleton-line skeleton-label shrink-0`} />
+              <div className={`${bar} skeleton-line tablet:flex-1`} />
+            </div>
+          ),
+        )}
       </div>
       <div aria-hidden="true" className="pt-2">
         <div className={`${bar} h-button-b-height-lg tablet:skeleton-button w-full`} />
