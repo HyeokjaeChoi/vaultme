@@ -1,8 +1,15 @@
 # On the word check screen (S04): if it asks for word N, type that word. The 3 asked positions are random, so the flow tries all 12.
 # Return instead of hideKeyboard, which is flaky on iOS and presses Back on Android (#382): on the first 2 cells it moves to the next asked cell
 # (returnKeyType next, Screen scrolls it into view), on the last one it closes the keyboard (#449).
+# The pause first: the previous call's Return moves the focus and the screen scrolls the next asked cell in a moment later, and `when: visible`
+# is checked at once. On a slow CI runner the label was off screen at that moment, the word was skipped and the 확인 hint stayed
+# (run 43788765786; not reproduced on a fast local simulator, 12 of 12 passed). `optional` keeps the flow going when the text never shows.
 appId: dev.stackline.vaultme
 ---
+- extendedWaitUntil:
+    visible: 'pause-never-shown'
+    timeout: 1500
+    optional: true
 - runFlow:
     when:
       visible: '${N}번째 단어'
