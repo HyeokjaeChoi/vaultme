@@ -21,7 +21,7 @@ type Bindings = Env['Bindings']
 export type EtherscanStats = { calls: number; fetchMs: number; waitMs: number; bucketMs: number; upstreamMs: number }
 export const newStats = (): EtherscanStats => ({ calls: 0, fetchMs: 0, waitMs: 0, bucketMs: 0, upstreamMs: 0 })
 
-/** Waits for a token of the global bucket. Throws when the wait would be over 2 s. */
+/** Waits for a token of the global bucket. Throws when the wait would be over 2 s, or when the day's budget is spent (API-2). */
 async function acquire(env: Bindings, stats?: EtherscanStats): Promise<void> {
   const t0 = Date.now()
   const wait = await env.ETHERSCAN_BUCKET.getByName('global').acquire()
@@ -29,6 +29,11 @@ async function acquire(env: Bindings, stats?: EtherscanStats): Promise<void> {
   if (wait === null) {
     logEvent('warn', 'etherscan_throttled')
     throw new UpstreamError('throttled')
+  }
+  if (typeof wait === 'object') {
+    // The daily budget is spent: nothing clears before 00:00 UTC. Thrown here, in the Worker, because the Durable Object cannot throw it (errors.ts).
+    logEvent('warn', 'etherscan_daily_budget_spent', { retry_after_seconds: wait.refusedForSeconds })
+    throw new UpstreamError('daily budget', wait.refusedForSeconds)
   }
   if (stats) stats.waitMs = Math.max(stats.waitMs, wait)
   if (wait > 0) await sleep(wait)

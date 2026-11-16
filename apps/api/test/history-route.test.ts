@@ -6,7 +6,7 @@ import { b64uEncode, issueToken } from '../src/auth.ts'
 
 const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
-const grant = (wait: number | null) =>
+const grant = (wait: number | null | { refusedForSeconds: number }) =>
   ({ getByName: () => ({ acquire: () => Promise.resolve(wait) }) }) as unknown as typeof env.ETHERSCAN_BUCKET
 // Unique key so a leak is easy to grep for.
 const KEY = 'KEY' + rand()
@@ -272,6 +272,17 @@ describe('Etherscan failures -> 503 retryable, nothing leaks', () => {
     await expect503(await post({ address: newAddress() }, { ...E, ETHERSCAN_BUCKET: grant(null) }))
     expect(f).not.toHaveBeenCalled()
     expect(out.join('\n')).toContain('"event":"etherscan_throttled"')
+  })
+
+  it('daily budget spent -> 503 with Retry-After = the seconds to 00:00 UTC, without calling Etherscan (API-2)', async () => {
+    const f = mock({})
+    const out = logs()
+    const r = await post({ address: newAddress() }, { ...E, ETHERSCAN_BUCKET: grant({ refusedForSeconds: 3600 }) })
+    await expect503(r)
+    expect(r.headers.get('Retry-After')).toBe('3600')
+    expect(f).not.toHaveBeenCalled()
+    expect(out.join('\n')).toContain('"event":"etherscan_daily_budget_spent"')
+    expect(out.join('\n')).not.toContain(KEY)
   })
 
   it('waits for the bucket when it asks for a short wait', async () => {

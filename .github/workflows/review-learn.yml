@@ -22,6 +22,8 @@ concurrency:
   group: review-learn
   cancel-in-progress: false
 
+permissions: {}
+
 jobs:
   learn:
     runs-on: ubuntu-latest
@@ -100,8 +102,15 @@ jobs:
         if: steps.collect.outputs.count != '0'
         continue-on-error: true
         working-directory: ${{ runner.temp }}
-        # Same version as claude-code-action v1.0.252 installs (published 2026-10-16, more than 7 days ago).
-        run: npm install -g @anthropic-ai/claude-code@2.1.302 >/dev/null
+        # The CLI comes from .github/review-cli/package-lock.json (hashes, Scorecard Pinned-Dependencies), version 2.1.302 as
+        # claude-code-action v1.0.252 installs it (published 2026-10-16, more than 7 days ago). --ignore-scripts, then the
+        # package's own install.cjs: it links the platform binary and without it the CLI refuses to start. The lockfile is
+        # PR-controlled like this workflow (a person with write access can change both). Renovate: bump both files together.
+        run: |
+          cli="$GITHUB_WORKSPACE/.github/review-cli"
+          npm ci --ignore-scripts --prefix "$cli" >/dev/null
+          node "$cli/node_modules/@anthropic-ai/claude-code/install.cjs" >/dev/null
+          echo "$cli/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Learn (API credits, claude -p)
         id: api
         if: steps.collect.outputs.count != '0' && steps.cli.outcome == 'success'

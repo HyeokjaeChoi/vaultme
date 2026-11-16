@@ -14,5 +14,6 @@ export default defineConfig({
     include: ['test-reorg/**/*.test.ts'],
     setupFiles: ['./test/setup.ts'],
     globalSetup: ['./reorg-setup.ts'],
+    fileParallelism: false, // every file shares the one anvil: its snapshots, nonces and automine are global state
   },
 })
