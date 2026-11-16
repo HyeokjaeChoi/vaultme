@@ -4,10 +4,18 @@
 # Device auth (ADR-0016): no bypass in the app. The simulator gets Face ID enrolled, and while the flows run a loop sends the
 # Face ID "match" event every second; it matters only while an OS auth sheet is up (create, reveal, lock gate), else it is ignored.
 # Android: the emulator gets a PIN and a fingerprint, and the loop touches finger 1 every second (scripts/sim-auth.sh match android).
+# `loop <flow.yaml> <n> [app]` (iOS, #668): runs one flow n times, no retry, and prints pass or fail per iteration (a diagnosis loop for one flaky flow).
 set -euo pipefail
 cd "$(dirname "$0")"
 tags="${1:-}"
-case "$tags" in smoke | full | critical | release) ;; *) echo "usage: $0 smoke|full|critical|release [VaultMe.app]" >&2; exit 2 ;; esac
+if [ "$tags" = loop ]; then
+  loop_flow="${2:-}"; loop_n="${3:-}"
+  # Both come from a workflow input: accept a plain file name in flows/ and a count only.
+  [[ "$loop_flow" =~ ^[a-z0-9-]+\.yaml$ && -f "flows/$loop_flow" && "$loop_n" =~ ^[0-9]+$ && "$loop_n" -ge 1 && "$loop_n" -le 40 ]] || { echo "usage: $0 loop <flows/x.yaml name> <1-40> [VaultMe.app]" >&2; exit 2; }
+  set -- loop ${4:+"$4"}
+fi
+case "$tags" in smoke | full | critical | release | loop) ;; *) echo "usage: $0 smoke|full|critical|release|loop [VaultMe.app]" >&2; exit 2 ;; esac
+[ "$tags" != loop ] || [ "${PLATFORM:-ios}" = ios ] || { echo "loop runs on iOS only" >&2; exit 2; }
 export MAESTRO_CLI_NO_ANALYTICS=1
 # The first driver start on a fresh CI device is slow: the XCTest driver took 2.5 min (run 1) and timed out at the default (run 2).
 # Set before the Android enrollment, which is the first driver start there.
@@ -69,6 +77,22 @@ case "$platform" in
     adb -s "$udid" shell input keyevent KEYCODE_HOME
     ;;
 esac
+if [ "$tags" = loop ]; then
+  # Same flow, same simulator, no retry: one line per iteration. A failed iteration also keeps the coreauthd log of its minutes.
+  pass=0; fail=0
+  for i in $(seq "$loop_n"); do
+    started=$(date -u +'%Y-%m-%d %H:%M:%S')
+    if maestro --udid "$udid" test "flows/$loop_flow" --format junit --output "../e2e-report-loop-$i.xml" --test-output-dir "../e2e-artifacts/loop-$i"; then
+      pass=$((pass + 1)); echo "LOOP $i/$loop_n PASS ($(date -u +%T))" | tee -a ../e2e-artifacts/loop-summary.txt
+    else
+      fail=$((fail + 1)); echo "LOOP $i/$loop_n FAIL ($(date -u +%T))" | tee -a ../e2e-artifacts/loop-summary.txt
+      xcrun simctl spawn "$udid" log show --start "$started" --style compact --predicate 'process == "coreauthd"' 2>&1 | tail -n 300 > "../e2e-artifacts/loop-$i/coreauthd.log" || true
+    fi
+  done
+  echo "LOOP RESULT $loop_flow: $pass pass, $fail fail of $loop_n" | tee -a ../e2e-artifacts/loop-summary.txt
+  [ "$fail" -eq 0 ]
+  exit
+fi
 include=smoke
 [ "$tags" = full ] && include=smoke,full
 [ "$tags" = critical ] && include=critical
