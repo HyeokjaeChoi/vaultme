@@ -191,6 +191,7 @@ fi
 # backticked token that looks like a repo file path (has "/" and a known extension) must exist. Skipped: URLs,
 # #anchors, fenced code, tokens with glob or placeholder characters, and tokens that start with "/" (URL paths).
 # A backticked token also passes when a tracked file ends with it (so `shared/lib/address.ts` works).
+# A backticked gate folder `docs/results/<gate>` must hold a committed .json evidence file (ADR-0043; #577 and #588 cited evidence before it existed).
 if ! { files; echo ---; files '*.md' ':!work/**'; } | python3 -c '
 import os, re, sys
 raw = sys.stdin.read().split("\n---\n")
@@ -216,6 +217,8 @@ for m in mds:
         for t in re.findall(r"`([^`\s]+)`", line):
             if "/" in t and not t.startswith(("/", "http")) and not re.search(r"[*<>{}$:]", t) and re.search(r"\." + ext + r"(#.*)?$", t) and not ok(t, "."):
                 print(f"{m}:{n}: missing path {t}", file=sys.stderr); bad = 1
+            if re.fullmatch(r"docs/results/[A-Za-z0-9-]+/?", t) and not any(f.startswith(t.rstrip("/") + "/") and f.endswith(".json") for f in allf):
+                print(f"{m}:{n}: no evidence file in {t} (ADR-0043)", file=sys.stderr); bad = 1
 sys.exit(bad)
 '; then
   err "R11: broken Markdown link or repo path (see above)"
