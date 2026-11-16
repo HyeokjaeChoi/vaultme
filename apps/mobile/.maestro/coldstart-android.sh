@@ -9,15 +9,24 @@ n="${COLDSTART_SAMPLES:-10}"
 serial="${ANDROID_SERIAL:-emulator-5554}"
 case "$serial" in emulator-*) ;; *) echo "emulator only (got $serial)" >&2; exit 2 ;; esac
 adb() { command adb -s "$serial" "$@"; }
-adb install -r "$apk" >/dev/null
+"$(dirname "$0")/android-ready.sh" "$serial" "$apk" >/dev/null
 comp="$(adb shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER "$pkg" | tr -d '\r' | tail -n 1)"
 case "$comp" in "$pkg"/*) ;; *) echo "::error::no launcher activity for $pkg (got '$comp')"; exit 1 ;; esac
 times=()
 for i in $(seq 0 "$n"); do
   adb shell am force-stop "$pkg"
   sleep 2
-  t="$(adb shell am start -W -n "$comp" | tr -d '\r' | sed -n 's/^TotalTime: *//p')"
-  [ -n "$t" ] || { echo "::error::am start -W printed no TotalTime"; exit 1; }
+  # Right after the boot the first start can print no TotalTime (the dry run 43790144811 lost the job to it): show the output and try again, 3 times.
+  t=""
+  for attempt in 1 2 3; do
+    out="$(adb shell am start -W -n "$comp" | tr -d '\r' || true)"
+    t="$(sed -n 's/^TotalTime: *//p' <<<"$out")"
+    [ -z "$t" ] || break
+    echo "am start -W printed no TotalTime (sample $i, attempt $attempt): $out"
+    adb shell am force-stop "$pkg"
+    sleep 5
+  done
+  [ -n "$t" ] || { echo "::error::am start -W printed no TotalTime after 3 attempts"; exit 1; }
   [ "$i" -eq 0 ] || times+=("$t") # sample 0 is the warm-up
 done
 adb shell am force-stop "$pkg"
