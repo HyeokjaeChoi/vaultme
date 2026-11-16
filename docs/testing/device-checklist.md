@@ -10,3 +10,8 @@ Use a Sepolia wallet with test funds only.
 - [ ] Push: turn on push; a test deposit sends a notification (the app was in the background); turn it off and no notification arrives.
 - [ ] Lock: send the app to the background and open it again; the lock screen asks for OS auth; a failed attempt keeps it locked.
 - [ ] Phrase view (Settings): needs OS auth; the screen cannot be captured. With the phrase shown, open the app switcher: the card is blurred (iOS) or blank (Android), no word is readable (ADR-0049). Re-check after each Expo SDK upgrade.
+
+## Rooted device warning (SEC-8, ADR-0048)
+
+- [ ] Rooted Android emulator (or a jailbroken iPhone): the first cold start opens "기기 보안 안내" once; the button closes it; the next start shows nothing; the app works as before.
+- [ ] A normal phone: no warning appears.

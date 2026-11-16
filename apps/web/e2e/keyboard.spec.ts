@@ -16,7 +16,13 @@ async function tabTo(page: Page, what: string, match: string, text = '', max = 8
         const el = document.activeElement
         if (!el || el === document.body) return { name: 'body', ring: true, hit: false }
         const s = getComputedStyle(el)
-        const ring = (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0) || s.boxShadow !== 'none'
+        // A transparent outline (`outline-hidden`) is no ring: its colour needs an alpha above 0.
+        // `rgba(r, g, b, a)` and the `/ a` form of rgb(), oklch() and color(); a plain `rgb(r, g, b)` is opaque.
+        const c = s.outlineColor
+        const a = /\/\s*([\d.]+)(%?)\s*\)$/.exec(c) ?? /^rgba\(.*,\s*([\d.]+)()\)$/.exec(c)
+        const alpha = a ? Number(a[1]) / (a[2] ? 100 : 1) : 1
+        const ring =
+          (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0 && alpha > 0) || s.boxShadow !== 'none'
         const name = `${el.tagName.toLowerCase()} "${(el.getAttribute('aria-label') ?? el.textContent).trim().slice(0, 30)}"`
         return { name, ring, hit: el.matches(selector ?? '') && el.textContent.includes(label ?? '') }
       },

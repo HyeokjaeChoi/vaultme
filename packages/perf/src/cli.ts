@@ -4,6 +4,8 @@
 //   STAGING_API_URL=... node --experimental-transform-types packages/perf/src/cli.ts smoke    (post-deploy: one balance read and one history read; exit 1 on failure)
 //   node packages/perf/src/cli.ts bench --runs <dir with one subdir per api-bench run> --out docs/perf --commit <sha> --origin <text>    (adds the k6 CI numbers to baseline.json and baseline.md, prints the tier-2 limits for api.js)
 //   node packages/perf/src/cli.ts slo-window --runs <dir with the downloaded api-bench artifacts of the window>    (pools the SLO counts, ADR-0036; exit 3 on a breach, so a crash (exit 1) is not one)
+//   node packages/perf/src/cli.ts availability sql <dataset> | availability check <sql response.json>    (API-6: the Analytics Engine query, and the 99.5 % judgement of its answer; exit 3 on a breach)
+//   node packages/perf/src/cli.ts ci-health [--repo <owner/name>]    (OBS-1: the weekly CI health table from `gh`; exit 3 on a breach, so a crash (exit 1) is not one)
 //   node packages/perf/src/cli.ts evidence emit --gate <id> --origin <text> --tool <text> --out <file> (--from hermes=<file> | --from js-budget=<file> | --result '<json>' | --results <file>) [--measured-at <YYYY-MM-DDTHH:MM:SSZ>] [--run <id>]    (a gate job writes its evidence file; --run takes the run from `gh` instead of the Actions environment, to seed an old run)
 //   node packages/perf/src/cli.ts evidence add <file>... [--out docs/results]    (puts evidence files under their canonical path and renders the README)
 //   node packages/perf/src/cli.ts evidence collect --run <id>... [--out docs/results]    (downloads the evidence-* artifacts of runs, checks them against the run, adds them)
@@ -15,6 +17,14 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
+import {
+  availabilityMarkdown,
+  availabilitySql,
+  evaluateAvailability,
+  hasAvailabilityBreach,
+  parseRows,
+} from './availability.ts'
+import { ciHealthMarkdown, evaluate, hasBreach, isOff, type Dated, type Run } from './ci-health.ts'
 import { aggregate, benchTable, limitsJs, MODES, type K6Result } from './bench.ts'
 import { buildBaseline, latencyTable, renderBaseline, type Baseline, type JsBudgetRow } from './baseline.ts'
 import {
@@ -277,6 +287,114 @@ if (cmd === 'hermes') {
   } else {
     throw new Error('usage: cli.ts evidence emit | add | collect | render')
   }
+} else if (cmd === 'availability') {
+  // The workflow runs the SQL with curl (the token stays in the shell step) and gives the answer to `check`.
+  const [sub, arg] = rest
+  if (sub === 'sql' && arg) console.log(availabilitySql(arg))
+  else if (sub === 'check' && arg) {
+    const rows = evaluateAvailability(parseRows(readJson(arg)))
+    console.log(availabilityMarkdown(rows))
+    // 3, not 1: Node exits 1 on an uncaught throw, and the workflow must not report a crash as a breach.
+    if (hasAvailabilityBreach(rows)) process.exitCode = 3
+  } else throw new Error('usage: cli.ts availability sql <dataset> | availability check <sql response.json>')
+} else if (cmd === 'ci-health') {
+  const { values: v } = parseArgs({ args: rest, options: { repo: { type: 'string' } } })
+  const repo = v.repo ?? process.env.GITHUB_REPOSITORY
+  if (!repo) throw new Error('ci-health: pass --repo <owner/name> or run inside GitHub Actions')
+  const gh = (a: string[]): unknown =>
+    JSON.parse(execFileSync('gh', a, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }))
+  const since = new Date(Date.now() - 28 * 86_400_000).toISOString()
+  const runs = (extra: string[]) =>
+    gh([
+      'run',
+      'list',
+      '--repo',
+      repo,
+      '--workflow',
+      'ci.yml',
+      '--limit',
+      '1000',
+      '--json',
+      'databaseId,conclusion,createdAt,startedAt,updatedAt',
+      ...extra,
+    ]) as (Run & { databaseId: number; startedAt: string })[]
+  // `startedAt`, not `createdAt`: a re-run attempt starts later, and the first attempt is not part of its time.
+  const prRuns = runs(['--event', 'pull_request', '--status', 'success'])
+    .slice(0, 10)
+    .map((r) => ({ ...r, createdAt: r.startedAt }))
+  const verifyMinutes = prRuns.flatMap((r) => {
+    const jobs = gh(['api', `repos/${repo}/actions/runs/${String(r.databaseId)}/jobs?per_page=100`]) as {
+      jobs: { name: string; started_at: string; completed_at: string | null }[]
+    }
+    const j = jobs.jobs.find((x) => x.name === 'verify')
+    return j?.completed_at ? [(Date.parse(j.completed_at) - Date.parse(j.started_at)) / 60_000] : []
+  })
+  const workflows = (
+    gh(['api', `repos/${repo}/actions/workflows?per_page=100`]) as { workflows: { name: string; state: string }[] }
+  ).workflows
+  const bench = gh([
+    'run',
+    'list',
+    '--repo',
+    repo,
+    '--workflow',
+    'api-bench.yml',
+    '--status',
+    'success',
+    '--limit',
+    '1',
+    '--json',
+    'createdAt',
+  ]) as { createdAt: string }[]
+  const dated = (a: string[]) => gh(a) as Dated[]
+  const metrics = evaluate({
+    now: new Date().toISOString(),
+    mainRuns: runs(['--branch', 'main', '--event', 'push', '--status', 'completed', '--created', `>=${since}`]),
+    prRuns,
+    verifyMinutes,
+    flaky: dated([
+      'issue',
+      'list',
+      '--repo',
+      repo,
+      '--label',
+      'flaky',
+      '--state',
+      'open',
+      '--limit',
+      '1000',
+      '--json',
+      'number,createdAt',
+    ]),
+    lastGreenBench: bench[0]?.createdAt ?? null,
+    workflows,
+    renovate: dated([
+      'pr',
+      'list',
+      '--repo',
+      repo,
+      '--author',
+      'app/renovate',
+      '--state',
+      'open',
+      '--limit',
+      '1000',
+      '--json',
+      'number,createdAt',
+    ]),
+    cacheBytes: (gh(['api', `repos/${repo}/actions/cache/usage`]) as { active_caches_size_in_bytes: number })
+      .active_caches_size_in_bytes,
+  })
+  console.log(
+    ciHealthMarkdown(
+      metrics,
+      workflows.filter(isOff).map((w) => w.name),
+    ),
+  )
+  // 3, not 1: Node exits 1 on an uncaught throw, and ci-health.yml must not report a crash as a breach.
+  if (hasBreach(metrics)) process.exitCode = 3
 } else {
-  throw new Error('usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window | evidence')
+  throw new Error(
+    'usage: cli.ts hermes | latency | smoke | baseline | bench | slo-window | ci-health | availability | evidence',
+  )
 }

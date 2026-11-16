@@ -488,8 +488,38 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request body is not JSON (Content-Type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -524,8 +554,28 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -562,6 +612,16 @@
           },
           "429": {
             "description": "Rate limited",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -626,8 +686,38 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request body is not JSON (Content-Type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -638,6 +728,16 @@
           },
           "503": {
             "description": "Both upstreams failed (retryable)",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -692,8 +792,38 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request body is not JSON (Content-Type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -704,6 +834,16 @@
           },
           "503": {
             "description": "Etherscan failed or was throttled (retryable)",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -758,8 +898,38 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request body is not JSON (Content-Type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -770,6 +940,16 @@
           },
           "503": {
             "description": "Etherscan failed or was throttled (retryable)",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -824,8 +1004,38 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request body is not JSON (Content-Type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -836,6 +1046,16 @@
           },
           "503": {
             "description": "Webhook registration failed, nothing was kept (retryable)",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -868,8 +1088,28 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before the next try",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 86400
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {

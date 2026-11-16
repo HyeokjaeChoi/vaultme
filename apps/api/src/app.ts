@@ -29,6 +29,7 @@ import {
 import * as Sentry from '@sentry/cloudflare'
 import { eq } from 'drizzle-orm'
 import type { Context, ErrorHandler, MiddlewareHandler } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 import { routePath } from 'hono/route'
 import { endTime, setMetric, startTime, timing } from 'hono/timing'
@@ -48,7 +49,7 @@ import { recordServerError } from './alerts.ts'
 import type { Env } from './env.ts'
 import { getHistory, getTxInternal, newStats } from './etherscan.ts'
 import { HTTPException } from 'hono/http-exception'
-import { InvalidCursorError, UpstreamError, fail } from './errors.ts'
+import { InvalidCursorError, UpstreamError, fail, unavailable } from './errors.ts'
 import { logEvent, withRequestId } from './log.ts'
 import { recordRequest } from './metrics.ts'
 import { AlchemyPayload, handleActivity, subscribe, unsubscribe, verifyAlchemySignature } from './push.ts'
@@ -137,6 +138,14 @@ app.use(
   }),
 )
 
+// SEC-10: a body over the limit is refused with 413 before any signature, token, limiter or D1 step. A body without Content-Length
+// is counted as it is read. The largest real request is one signed raw transaction, far under 2 KB. The webhook gets 1 MiB: Alchemy
+// states no maximum payload and retries what we refuse. Both are far below the 100 MB that Cloudflare lets through.
+const bodyOver = (maxSize: number) =>
+  bodyLimit({ maxSize, onError: (c) => fail(c as Context<Env>, 413, 'invalid_request', 'Request body is too large') })
+app.use('/v1/*', bodyOver(64 * 1024))
+app.use('/webhooks/alchemy', bodyOver(1024 * 1024))
+
 app.use('/v1/*', async (c, next) => {
   if (c.req.path === '/v1/health') return next()
   const v = AppVersion.safeParse(c.req.header(APP_VERSION_HEADER))
@@ -149,10 +158,20 @@ app.use('/v1/*', async (c, next) => {
   await next()
 })
 
-const errorResponse = (description: string) => ({
-  description,
-  content: { 'application/json': { schema: ErrorEnvelope } },
-})
+// A 429 and a retryable 503 name the wait in a `Retry-After` header (API-3): whole seconds, 1 to 86,400.
+const retryAfterHeader = {
+  'Retry-After': {
+    description: 'Seconds to wait before the next try',
+    schema: { type: 'integer', minimum: 1, maximum: 86_400 },
+  },
+} as const
+const errorContent = { 'application/json': { schema: ErrorEnvelope } }
+const errorResponse = (description: string) => ({ description, content: errorContent })
+// A 429 or a retryable 503: the same body, plus the wait.
+const waitResponse = (description: string) => ({ description, headers: retryAfterHeader, content: errorContent })
+// Default wait of a retryable 503, in seconds. rpc: both upstreams failed at once, a blip. Etherscan: the bucket window is 1.2 s.
+// Push: the Alchemy address call or Expo failed. An `UpstreamError` that carries seconds (planned for the Etherscan daily budget, API-2; no caller yet) wins.
+const WAIT = { rpc: 2, etherscan: 2, push: 5 } as const
 
 app.openapi(
   createRoute({
@@ -166,8 +185,15 @@ app.openapi(
   (c) => c.json({ ok: true as const, version: pkg.version }, 200),
 )
 
-const bearer = { 401: errorResponse('Missing, invalid or expired token'), 429: errorResponse('Rate limited') }
-const signed = { 401: errorResponse('Missing or invalid signed-request headers'), 429: errorResponse('Rate limited') }
+// A write route answers 413 (the body limit) and, with a JSON body, 415 (the validator: another Content-Type).
+const sized = { 413: errorResponse('Request body is over 64 KB') }
+const jsonBody = { ...sized, 415: errorResponse('Request body is not JSON (Content-Type)') }
+
+const bearer = { 401: errorResponse('Missing, invalid or expired token'), 429: waitResponse('Rate limited') }
+const signed = {
+  401: errorResponse('Missing or invalid signed-request headers'),
+  429: waitResponse('Rate limited'),
+}
 
 // Coarse IP limit. Mobile networks share IPs, so this only slows down mass registration.
 app.use('/v1/installs', async (c, next) => {
@@ -195,9 +221,10 @@ app.openapi(
     path: '/v1/installs',
     request: { body: { content: { 'application/json': { schema: RegisterRequest } }, required: true } },
     responses: {
+      ...jsonBody,
       201: { description: 'Install registered', content: { 'application/json': { schema: RegisterResponse } } },
       400: errorResponse('Invalid public key'),
-      429: errorResponse('Rate limited'),
+      429: waitResponse('Rate limited'),
     },
   }),
   async (c) => {
@@ -219,6 +246,7 @@ app.openapi(
     method: 'post',
     path: '/v1/installs/token',
     responses: {
+      ...sized,
       200: { description: 'Short-lived token', content: { 'application/json': { schema: TokenResponse } } },
       ...signed,
     },
@@ -255,13 +283,14 @@ app.openapi(
     path: '/v1/rpc',
     request: { body: { content: { 'application/json': { schema: RpcRequest } }, required: true } },
     responses: {
+      ...jsonBody,
       200: {
         description: 'Upstream JSON-RPC response, errors included',
         content: { 'application/json': { schema: RpcResponse } },
       },
       400: errorResponse('Not a single JSON-RPC 2.0 request (batches are not supported)'),
       403: errorResponse('Method or eth_call target not allowed'),
-      503: errorResponse('Both upstreams failed (retryable)'),
+      503: waitResponse('Both upstreams failed (retryable)'),
       ...bearer,
     },
   }),
@@ -271,7 +300,7 @@ app.openapi(
     startTime(c, 'upstream')
     const text = await proxyRpc(c.env, req)
     endTime(c, 'upstream')
-    if (text === null) return c.json(errorEnvelope('unavailable', 'RPC upstream unavailable'), 503)
+    if (text === null) return unavailable(c, 'RPC upstream unavailable', WAIT.rpc)
     return c.body(text, 200, { 'content-type': 'application/json' }) as never
   },
 )
@@ -282,12 +311,13 @@ app.openapi(
     path: '/v1/history',
     request: { body: { content: { 'application/json': { schema: HistoryRequest } }, required: true } },
     responses: {
+      ...jsonBody,
       200: {
         description: 'One page of history, newest first',
         content: { 'application/json': { schema: HistoryResponse } },
       },
       400: errorResponse('Invalid address or cursor (`invalid_cursor`)'),
-      503: errorResponse('Etherscan failed or was throttled (retryable)'),
+      503: waitResponse('Etherscan failed or was throttled (retryable)'),
       ...bearer,
     },
   }),
@@ -298,7 +328,7 @@ app.openapi(
       return c.json(await getHistory(c.env, address, cursor, stats), 200)
     } catch (e) {
       if (e instanceof InvalidCursorError) return c.json(errorEnvelope('invalid_cursor', 'Invalid cursor'), 400)
-      if (e instanceof UpstreamError) return c.json(errorEnvelope('unavailable', 'History unavailable'), 503)
+      if (e instanceof UpstreamError) return unavailable(c, 'History unavailable', WAIT.etherscan, e)
       throw e
     } finally {
       // Also on a 503: a throttled or failed miss still shows where its time went.
@@ -319,12 +349,13 @@ app.openapi(
     path: '/v1/tx/internal',
     request: { body: { content: { 'application/json': { schema: TxInternalRequest } }, required: true } },
     responses: {
+      ...jsonBody,
       200: {
         description: 'Internal ETH transfers of the transaction (empty when there are none or Etherscan lags)',
         content: { 'application/json': { schema: TxInternalResponse } },
       },
       400: errorResponse('Invalid transaction hash'),
-      503: errorResponse('Etherscan failed or was throttled (retryable)'),
+      503: waitResponse('Etherscan failed or was throttled (retryable)'),
       ...bearer,
     },
   }),
@@ -332,7 +363,7 @@ app.openapi(
     try {
       return c.json(await getTxInternal(c.env, c.req.valid('json').hash), 200)
     } catch (e) {
-      if (e instanceof UpstreamError) return c.json(errorEnvelope('unavailable', 'Internal transfers unavailable'), 503)
+      if (e instanceof UpstreamError) return unavailable(c, 'Internal transfers unavailable', WAIT.etherscan, e)
       throw e
     }
   },
@@ -344,19 +375,20 @@ app.openapi(
     path: '/v1/push/subscription',
     request: { body: { content: { 'application/json': { schema: PushSubscribeRequest } }, required: true } },
     responses: {
+      ...jsonBody,
       200: {
         description: 'Address and push token registered',
         content: { 'application/json': { schema: PushOkResponse } },
       },
       400: errorResponse('Invalid address or push token'),
-      503: errorResponse('Webhook registration failed, nothing was kept (retryable)'),
+      503: waitResponse('Webhook registration failed, nothing was kept (retryable)'),
       ...bearer,
     },
   }),
   async (c) => {
     const { address, expoToken, locale } = c.req.valid('json')
     if (!(await subscribe(c.env, c.get('installId'), address, expoToken, pushLocale(locale))))
-      return c.json(errorEnvelope('unavailable', 'Push registration unavailable'), 503)
+      return unavailable(c, 'Push registration unavailable', WAIT.push)
     return c.json({ ok: true as const }, 200)
   },
 )
@@ -366,6 +398,7 @@ app.openapi(
     method: 'delete',
     path: '/v1/push/subscription',
     responses: {
+      ...sized,
       200: {
         description: 'Subscription deleted (also when there was none)',
         content: { 'application/json': { schema: PushOkResponse } },
@@ -400,7 +433,7 @@ app.post('/webhooks/alchemy', async (c) => {
     if (e instanceof UpstreamError) {
       // Fixed messages only (expo unreachable / <status> / ticket shape / ticket error): a failed batch shows in Workers Logs (#263).
       logEvent('error', 'push_upstream', { reason: e.message })
-      return fail(c, 503, 'unavailable', 'Push unavailable')
+      return unavailable(c, 'Push unavailable', WAIT.push, e)
     }
     throw e
   }
