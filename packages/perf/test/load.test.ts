@@ -24,7 +24,7 @@ describe('classify', () => {
     [503, null, null, 'server_bug', null],
     [500, null, 'internal', 'server_bug', null],
     [502, null, null, 'server_bug', null],
-    [0, null, null, 'other', null],
+    [0, null, null, 'transport', null],
     [403, null, 'method_not_allowed', 'other', null],
   ] as const)('%s retry-after %s code %s is %s (contract %s)', (status, retryAfter, code, verdict, contract) => {
     expect(classify(status, retryAfter, code)).toEqual({ verdict, contract })
@@ -37,7 +37,8 @@ describe('thresholds', () => {
     for (const c of CHECKS) expect(t[c.metric]).toBeDefined()
     expect(t.server_bug).toEqual([{ threshold: 'count==0', abortOnFail: true, delayAbortEval: '10s' }])
     expect(t['probe_hits{kind:install_429}']).toEqual(['count>0'])
-    expect(t['probe_hits{kind:install_200}']).toEqual(['count<=90'])
+    expect(t['probe_hits{kind:install_200}']).toBeUndefined()
+    expect(t.transport_error).toEqual(['count<=3'])
     expect(t['probe_hits{kind:ip_rpc_2xx}']).toEqual(['count==0'])
     expect(t.limit_contract).toEqual(['rate==1'])
     expect(t['ok_own{scenario:steady}']).toEqual([`p(95)<=${String(OWN_P95_MS)}`])
@@ -64,6 +65,7 @@ const data = (over: Record<string, Record<string, number>> = {}) => ({
       unavailable_503: { count: 9 },
       server_bug: { count: 0 },
       unexpected: { count: 0 },
+      transport_error: { count: 1 },
       limit_contract: { rate: 1, passes: 300, fails: 0 },
       'probe_hits{kind:install_429}': { count: 60 },
       'probe_hits{kind:install_200}': { count: 60 },

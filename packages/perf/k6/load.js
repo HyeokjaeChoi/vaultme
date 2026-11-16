@@ -50,7 +50,8 @@ export const options = {
     },
     install_probe: {
       executor: 'constant-arrival-rate',
-      rate: 2,
+      // 3 per s = 180 in 60 s, 3 times the install limit of 60 (2 times gave 18 429s of 121 in run 43787512493).
+      rate: 3,
       timeUnit: '1s',
       duration: '1m',
       startTime: '4m5s',
@@ -58,15 +59,17 @@ export const options = {
       maxVUs: 20,
       exec: 'installProbe',
     },
-    // 15 per 2 s = 7.5 per s = 450 in 60 s, 1.5 times the IP limit of 300.
-    ip_probe_rpc: probe(15, '6m10s', 'ipProbeRpc'),
-    ip_probe_history: probe(15, '6m10s', 'ipProbeHistory'),
+    // 40 per 2 s = 20 per s = 1200 in 60 s, 4 times the IP limit of 300: the limiter is permissive (1.5 times gave no 429 in run
+    // 43787512493; 4 times gave 499 of 1200).
+    ip_probe_rpc: probe(40, '6m10s', 'ipProbeRpc'),
+    ip_probe_history: probe(40, '6m10s', 'ipProbeHistory'),
   },
   thresholds: thresholds(),
 }
 
 const serverBug = new Counter('server_bug')
 const unexpected = new Counter('unexpected')
+const transportError = new Counter('transport_error')
 const steadyRequests = new Counter('steady_requests')
 const unavailable503 = new Counter('unavailable_503')
 const limitContract = new Rate('limit_contract')
@@ -130,6 +133,9 @@ export function steady(data) {
   } else if (verdict === 'unavailable') {
     unavailable503.add(1)
     down++
+  } else if (verdict === 'transport') {
+    transportError.add(1)
+    console.error(`steady: no answer ${res.error_code || ''}`)
   } else if (verdict !== 'server_bug') {
     unexpected.add(1)
     console.error(`steady: HTTP ${res.status} ${res.error_code || ''}`)

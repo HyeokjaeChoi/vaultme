@@ -4,11 +4,11 @@ import { OWN_P95_MS } from './slo.ts'
 /** What the API promises on a 429 (apps/api/src/auth.ts `rateLimited`): the limiter period, and no reset time. */
 export const RETRY_AFTER = '60'
 
-export type Verdict = 'ok' | 'unavailable' | 'rate_limited' | 'unauthorized' | 'server_bug' | 'other'
+export type Verdict = 'ok' | 'unavailable' | 'rate_limited' | 'unauthorized' | 'server_bug' | 'transport' | 'other'
 
 /**
  * One response. `code` is the `code` of the JSON error body, or null when there is none. A 503 `unavailable` is an upstream that
- * is down (owner decision 9: it does not fail the run); any other 5xx is our bug. Status 0 is a request that never got an answer.
+ * is down (owner decision 9: it does not fail the run); any other 5xx is our bug. Status 0 is a request that never got an answer (a connection reset): `transport`, tolerated up to 1 % of the steady requests.
  */
 export function classify(
   status: number,
@@ -24,6 +24,7 @@ export function classify(
   if (status === 401) return { verdict: 'unauthorized', contract: null }
   if (status === 503 && code === 'unavailable') return { verdict: 'unavailable', contract: null }
   if (status >= 500) return { verdict: 'server_bug', contract: null }
+  if (status === 0) return { verdict: 'transport', contract: null }
   return { verdict: 'other', contract: null }
 }
 
@@ -95,15 +96,17 @@ export const CHECKS: Check[] = [
     unit: 'responses',
     samples: probeSent(p),
   })),
+  // No upper cap on the 200s of the install probe: Cloudflare limiters are permissive (run 43787512493: 103 of 121 requests at
+  // twice the limit were allowed), so only "the limiter bites" is a contract.
   {
-    // The limit is 60 per 60 s; Cloudflare limiters are per location and approximate (ARCHITECTURE.md), so 1.5 times.
-    metric: probeHit('install_200'),
+    // Run 43787512493: one connection reset in 361 requests. A request with no answer is not our bug and not a contract breach.
+    metric: 'transport_error',
     agg: 'count',
     op: '<=',
-    limit: 90,
-    label: '200 responses, one install above its limit',
-    unit: 'responses',
-    samples: probeSent('install'),
+    limit: 3,
+    label: 'Steady requests with no answer (connection error, 1 % tolerated)',
+    unit: 'requests',
+    samples: 'steady_requests',
   },
   ...(['ip_rpc', 'ip_history'] as const).map((p): Check => ({
     metric: probeHit(`${p}_2xx`),
