@@ -13,7 +13,8 @@
     "openapi": "node scripts/openapi.ts",
     "openapi:check": "node scripts/openapi.ts --check",
     "db:generate": "drizzle-kit generate",
-    "db:check": "node scripts/db-check.ts"
+    "db:check": "node scripts/db-check.ts",
+    "bundle:budget": "node scripts/bundle-budget.ts"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.0",

@@ -2,6 +2,8 @@
 
 [한국어](README.ko.md)
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/HyeokjaeChoi/vaultme/badge)](https://scorecard.dev/viewer/?uri=github.com/HyeokjaeChoi/vaultme)
+
 A self-custody wallet for Ethereum Sepolia testnet, built as a learning and portfolio project.
 
 This monorepo holds the wallet logic, a React Native (Expo) app, the design tokens, and the design documents.

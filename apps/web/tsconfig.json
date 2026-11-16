@@ -10,5 +10,5 @@
     },
     "allowImportingTsExtensions": true
   },
-  "include": [".react-router/types/**/*", "app", "test", "e2e", "scripts", "*.ts"]
+  "include": [".react-router/types/**/*", "app", "test", "e2e", "e2e-staging", "scripts", "*.ts"]
 }

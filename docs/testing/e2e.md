@@ -35,7 +35,7 @@ Flows match visible Korean text (button labels are also accessibility labels). A
 
 The app has no auth bypass (ADR-0016). `run.sh` enrolls Face ID on the simulator, then sends the Face ID `match` event every second while the flows run.
 The event matters only while an OS auth sheet is up (create, phrase reveal, lock gate); at any other time the simulator ignores it.
-Android (`PLATFORM=android`, #382): a PIN and a fingerprint on the emulator; the loop touches finger 1 every second, and `run.sh` stops at once when `dumpsys fingerprint` shows no fingerprint.
+Android (`PLATFORM=android`, #382): a PIN and a fingerprint on the emulator; the loop touches finger 1 every second, and `run.sh` stops at once when `dumpsys fingerprint` shows no fingerprint. `run.sh` installs the APK through `android-ready.sh`: it waits for the package service (`pm path android`) and retries the install, because the `ko-KR` locale change restarts the framework after boot (dry run 43774041050).
 The enrollment commands change the security state of a simulator that exists only for E2E. Never run `run.sh` against your daily simulator.
 
 ## Run locally
