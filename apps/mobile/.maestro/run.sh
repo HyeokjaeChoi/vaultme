@@ -29,7 +29,16 @@ case "$platform" in
     # Enroll Face ID (same commands as apps/mobile/AGENTS.md, for a simulator made for E2E).
     xcrun simctl spawn "$udid" notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
     xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit.enrollmentChanged
-    ( while true; do xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit_Sim.pearl.match >/dev/null 2>&1 || true; sleep 1; done ) &
+    # `simctl notify_post` posts the Darwin notification directly (xcrun simctl help notify_post); `spawn notifyutil` started a process in the
+    # simulator each second. A failed send was hidden by `|| true`: manual run 43881442664 had a Face ID sheet that never matched in 39 s
+    # (coreauthd started the match at 14:44:28 and logged no match), so failures and a count now go to e2e-artifacts/face-id-loop.log.
+    mkdir -p ../e2e-artifacts
+    ( sent=0; failed=0
+      while true; do
+        if err=$(xcrun simctl notify_post "$udid" com.apple.BiometricKit_Sim.pearl.match 2>&1); then sent=$((sent + 1)); else failed=$((failed + 1)); echo "$(date -u +%T) send failed ($failed): $err" >> ../e2e-artifacts/face-id-loop.log; fi
+        [ $(((sent + failed) % 60)) -ne 0 ] || echo "$(date -u +%T) sent $sent, failed $failed" >> ../e2e-artifacts/face-id-loop.log
+        sleep 1
+      done ) &
     loop=$!
     trap 'kill $loop 2>/dev/null || true' EXIT
     ;;
