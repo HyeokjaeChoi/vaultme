@@ -1,4 +1,15 @@
 import { DurableObject } from 'cloudflare:workers'
+import {
+  DAILY_WARN,
+  SAVE_EVERY,
+  count,
+  refused,
+  restore,
+  secondsToMidnight,
+  type Day,
+  type Refused,
+} from './daily-budget.ts'
+import { logEvent } from './log.ts'
 
 // Etherscan free tier: 3 calls/s per key (https://docs.etherscan.io/rate-limits). We allow BURST calls in any WINDOW_MS:
 // 3 per 1200 ms = 2.5/s on average, and never more than 3 in any second. A 3-call history page starts all its calls at once.
@@ -24,10 +35,31 @@ export function take(b: Bucket, now: number, maxWaitMs = MAX_WAIT_MS): number | 
   return start - now
 }
 
-/** One global instance. In-memory on purpose: it is evicted only after being idle, when the window is empty anyway. */
+/** One global instance. The rate window is in memory on purpose: it is evicted only after being idle, when the window is empty anyway. The day count is stored. */
 export class EtherscanBucket extends DurableObject {
   private b: Bucket = { starts: [] }
-  acquire(maxWaitMs = MAX_WAIT_MS): number | null {
-    return take(this.b, Date.now(), maxWaitMs)
+  private d: Day = { day: 0, calls: 0 }
+  private warnedDay = -1 // the UTC day of the last warn line of this instance
+  constructor(ctx: DurableObjectState, env: Cloudflare.Env) {
+    super(ctx, env)
+    void ctx.blockConcurrencyWhile(async () => {
+      this.d = restore(await ctx.storage.get<Day>('day'))
+    })
+  }
+  /** The ms to wait (0 = now), null when the wait would be over `maxWaitMs`, or a refusal when the day's budget is spent. Only a reserved call is counted. */
+  acquire(maxWaitMs = MAX_WAIT_MS): number | null | Refused {
+    const now = Date.now()
+    if (refused(this.d, now)) return { refusedForSeconds: secondsToMidnight(now) }
+    const wait = take(this.b, now, maxWaitMs)
+    if (wait === null) return null
+    this.d = count(this.d, now)
+    // At or over, not equal: after a restart the count jumps by SAVE_EVERY and may skip 80,000. One line per day and instance.
+    if (this.d.calls >= DAILY_WARN && this.warnedDay !== this.d.day) {
+      this.warnedDay = this.d.day
+      logEvent('warn', 'etherscan_daily_budget_warn', { calls: this.d.calls })
+    }
+    // The first call of a day is stored too: a restart on a new day must not fall back to yesterday's count.
+    if (this.d.calls === 1 || this.d.calls % SAVE_EVERY === 0) void this.ctx.storage.put('day', this.d)
+    return wait
   }
 }
