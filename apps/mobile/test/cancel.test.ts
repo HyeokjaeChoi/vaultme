@@ -274,6 +274,7 @@ describe('runCancel (ADR-0031)', () => {
     expect(saved[0]).toMatchObject({ kind: 'cancel', cancelFrom: 1 })
     expect(processedBeforeCancel(saved[0]!)).toBe(true) // the send itself was mined first
     expect(saved[0]!.maxFeePerGas).toBe(String(approved.maxFeePerGas)) // the cancel's fees are kept: Included can revert (reorg) and the next replacement bumps from it
+    expect(saved[0]!.gasLimit).toBe(record().gasLimit) // the send's own gas limit, not the cancel's 21000
   })
   it('#660: a speed up that finds the record Included adds the hash but claims no kind', async () => {
     const { d, saved } = setup()

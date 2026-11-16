@@ -157,7 +157,7 @@ export async function runReplace(
   const stillPending = open(latest.state)
   // Claimed (kind, fee) only when the node took it and the send is still open (Pending, or Unknown for a cancel, ADR-0041).
   // A cancel whose answer was unclear still gets its `kind`, so a receipt for it is read as the cancel (Replaced), not as a send.
-  // The same holds when a check closed the record (Included) during auth and submit: the cancel was broadcast, its hash is in the list (#660).
+  // The same holds when a check closed the record (Included or final) during auth and submit: the cancel was broadcast, its hash is in the list (#660).
   const sent = result.status === 'Pending' && stillPending
   const next: PendingTx = {
     ...latest,
