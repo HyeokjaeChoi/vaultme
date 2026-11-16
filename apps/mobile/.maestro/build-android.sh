@@ -5,6 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export EXPO_PUBLIC_API_URL=https://vaultme-api-staging.gurwo1007.workers.dev
 export EXPO_PUBLIC_ENV=staging
+export EXPO_PUBLIC_E2E=1 # skips the rooted-device warning on emulators (ADR-0048)
 node scripts/generate-licenses.mjs
 CI=1 npx expo prebuild --platform android --clean
 # x86_64 only: the CI emulator is x86_64, and one ABI halves the native build.
