@@ -10,7 +10,8 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint . --max-warnings=0",
-    "mutation": "stryker run"
+    "mutation": "stryker run",
+    "test:properties": "vitest run test/properties.test.ts --coverage.enabled=false --reporter=json --outputFile=property-report.json"
   },
   "dependencies": {
     "@scure/bip39": "^2.4.0",
