@@ -16,7 +16,8 @@ def load(name, file):
 
 
 ap, ro = load("ap", "review-learn-apply.py"), load("ro", "review-output.py")
-FILES = {"AGENTS.md": "a\nb\nb\n", "scripts/check-repo-rules.sh": "x\n"}
+R17 = "check-review-workflow.py .github/workflows/claude-code-review.yml check-review-workflow.py .github/workflows/review-learn.yml learn check-review-workflow.test.py review-output.test.py review-learn-apply.test.py"
+FILES = {"AGENTS.md": "a\nb\nb\n", "scripts/check-repo-rules.sh": "x\n" + R17 + "\n"}
 read = FILES.get
 fails = []
 
@@ -42,6 +43,11 @@ for bad_path in (".github/workflows/x.yml", "CLAUDE.md", "../AGENTS.md", "script
                  "scripts/x/../check-repo-rules.sh", ".claude/settings.json", ".claude/agents/review-finder.md", "package.json",
                  "apps/mobile/src/app.ts", "scripts/check-repo-rules.sh.bak", "/etc/passwd"):
     case(f"path {bad_path}", prop((bad_path, "", "x")), False)
+case("add a rule, keep R17", prop(("scripts/check-repo-rules.sh", "x\n", "x\n# R99\n")), True)
+case("remove the R17 lines", prop(("scripts/check-repo-rules.sh", R17, "")), False)
+case("remove one R17 line", prop(("scripts/check-repo-rules.sh", "review-output.test.py", "")), False)
+for protected in ("scripts/check-review-workflow.test.py", "scripts/review-learn-apply.test.py", "scripts/review-output.test.py"):
+    case(f"protected {protected}", prop((protected, "", "x")), False)
 case("a test file in a package", prop(("packages/tokens/test/x.test.ts", "", "x")), True)
 case("lessons skill is allowed", prop((".claude/skills/vaultme-review-lessons/SKILL.md", "", "x")), True)  # absent in FILES, so a create
 case("edits without a title", prop(("AGENTS.md", "a\n", "A\n"), title=""), False)

@@ -104,6 +104,13 @@ describe('quoteCancel', () => {
     expect(canSpeedUp(cancelled, true)).toBe(false)
     expect(canSpeedUp(record({ kind: 'speedUp' }), true)).toBe(true)
   })
+  it('ADR-0041: also offered for an Unknown send (the result is not known); speed up stays Pending only', () => {
+    const unknown = record({ state: 'Unknown' })
+    expect(canCancel(unknown, true)).toBe(true)
+    expect(canCancel(unknown, false)).toBe(false)
+    expect(canSpeedUp(unknown, true)).toBe(false)
+    expect(canCancel(record({ state: 'Replaced' }), true)).toBe(false)
+  })
   it('a second cancel bumps from the first cancel fee', async () => {
     const { d } = setup()
     const first = await quoteCancel(record(), FROM, d.chain)
@@ -160,6 +167,24 @@ describe('runCancel (ADR-0031)', () => {
     expect(saved[0]!.cancelFrom).toBe(1)
     expect(cancelMined({ ...saved[0]!, state: 'Replaced', minedHash: '0x3' })).toBe(true)
     expect(processedBeforeCancel({ ...saved[0]!, minedHash: '0x3' })).toBe(false)
+  })
+  it('ADR-0041: an Unknown send gets the cancel; the node took it, so the record is Pending with kind cancel', async () => {
+    const unknown = record({ state: 'Unknown' })
+    const { d, raws, saved } = setup(unknown)
+    const approved = await quoteCancel(unknown, FROM, d.chain)
+    expect((await runCancel(unknown, approved, FROM, d)).status).toBe('Sent')
+    expect(raws).toHaveLength(1)
+    expect(saved[0]).toMatchObject({ state: 'Pending', kind: 'cancel', lastCheckedAt: 99 })
+    expect(saved[0]!.hashes).toEqual([H1, txHash(raws[0]!)])
+  })
+  it('ADR-0041: an Unknown send whose cancel answer is unclear stays Unknown, with the cancel hash and kind recorded', async () => {
+    const unknown = record({ state: 'Unknown' })
+    const { d, saved } = setup(unknown)
+    const approved = await quoteCancel(unknown, FROM, d.chain)
+    d.chain = { ...d.chain, submit: () => Promise.reject(rpcError('nonce too low')) }
+    expect((await runCancel(unknown, approved, FROM, d)).status).toBe('Unknown')
+    expect(saved[0]).toMatchObject({ state: 'Unknown', kind: 'cancel' })
+    expect(saved[0]!.hashes).toHaveLength(2)
   })
   it('auth cancel and auth error sign nothing', async () => {
     for (const [status, want] of [

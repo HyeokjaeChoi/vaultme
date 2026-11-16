@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "gate": "CHAIN-3",
+  "commit": "b404e100c634e4eb59fa62b850e15b9288acae3c",
+  "runId": 43787510712,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43787510712",
+  "workflow": "ci",
+  "event": "push",
+  "measuredAt": "2026-11-16T01:41:33Z",
+  "origin": "GitHub Actions ubuntu-latest, job verify, anvil v1.8.6",
+  "tool": "vitest json, apps/mobile test:anvil",
+  "results": [
+    {
+      "metric": "Anvil send lifecycle: cases",
+      "value": 9,
+      "unit": "cases",
+      "threshold": {
+        "op": "==",
+        "value": 9
+      },
+      "pass": true,
+      "n": 9,
+      "window": "one run"
+    },
+    {
+      "metric": "Anvil send lifecycle: failed cases",
+      "value": 0,
+      "unit": "cases",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 9,
+      "window": "one run"
+    },
+    {
+      "metric": "Anvil send lifecycle: suite time",
+      "value": 0.827,
+      "unit": "s",
+      "threshold": {
+        "op": "<=",
+        "value": 60
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one run"
+    }
+  ]
+}

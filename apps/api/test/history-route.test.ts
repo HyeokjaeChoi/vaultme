@@ -6,7 +6,7 @@ import { b64uEncode, issueToken } from '../src/auth.ts'
 
 const open: RateLimit = { limit: () => Promise.resolve({ success: true }) }
 const rand = () => b64uEncode(crypto.getRandomValues(new Uint8Array(24)))
-const grant = (wait: number | null) =>
+const grant = (wait: number | null | { refusedForSeconds: number }) =>
   ({ getByName: () => ({ acquire: () => Promise.resolve(wait) }) }) as unknown as typeof env.ETHERSCAN_BUCKET
 // Unique key so a leak is easy to grep for.
 const KEY = 'KEY' + rand()
@@ -274,6 +274,17 @@ describe('Etherscan failures -> 503 retryable, nothing leaks', () => {
     expect(out.join('\n')).toContain('"event":"etherscan_throttled"')
   })
 
+  it('daily budget spent -> 503 with Retry-After = the seconds to 00:00 UTC, without calling Etherscan (API-2)', async () => {
+    const f = mock({})
+    const out = logs()
+    const r = await post({ address: newAddress() }, { ...E, ETHERSCAN_BUCKET: grant({ refusedForSeconds: 3600 }) })
+    await expect503(r)
+    expect(r.headers.get('Retry-After')).toBe('3600')
+    expect(f).not.toHaveBeenCalled()
+    expect(out.join('\n')).toContain('"event":"etherscan_daily_budget_spent"')
+    expect(out.join('\n')).not.toContain(KEY)
+  })
+
   it('waits for the bucket when it asks for a short wait', async () => {
     mock({})
     const t0 = Date.now()
@@ -316,5 +327,54 @@ describe('POST /v1/history Server-Timing', () => {
     expect(Number(t.upstream?.dur)).toBe(0)
     expect(t.etherscan).toBeUndefined()
     expect(t.total?.dur).toMatch(/^[\d.]+$/)
+  })
+})
+
+describe('Analytics Engine point per history miss (API-4)', () => {
+  type Point = { indexes?: string[]; blobs?: string[]; doubles?: number[] }
+  const withPoints = () => {
+    const points: Point[] = []
+    const e = { ...E, ANALYTICS: { writeDataPoint: (p: Point) => void points.push(p) } as AnalyticsEngineDataset }
+    return { e, misses: () => points.filter((p) => p.indexes?.[0] === 'history_miss') }
+  }
+
+  it('a miss writes one point with the Etherscan call count; a hit writes none', async () => {
+    const a = newAddress()
+    mock({ txlist: () => ok([row(a, 100)]) })
+    const { e, misses } = withPoints()
+    expect((await post({ address: a }, e)).status).toBe(200)
+    expect(misses()).toEqual([{ indexes: ['history_miss'], blobs: ['ok'], doubles: [3, expect.any(Number)] }])
+    expect((await post({ address: a }, e)).status).toBe(200)
+    expect(misses()).toHaveLength(1)
+  })
+
+  it('a failed miss writes one point with outcome unavailable and counts the calls made', async () => {
+    mock({ txlist: () => notok('Max rate limit reached', 'NOTOK') })
+    const { e, misses } = withPoints()
+    expect((await post({ address: newAddress() }, e)).status).toBe(503)
+    // Only txlist is rate limited: 2 tries (one retry) + 1 + 1 for the other 2 lists.
+    expect(misses()).toMatchObject([{ blobs: ['unavailable'], doubles: [4, expect.any(Number)] }])
+    expect(misses()).toHaveLength(1)
+  })
+
+  it('a miss where all 3 lists fail at once counts the 3 calls', async () => {
+    mock({
+      txlist: () => notok('Query Timeout', 'NOTOK'),
+      txlistinternal: () => notok('Query Timeout', 'NOTOK'),
+      tokentx: () => notok('Query Timeout', 'NOTOK'),
+    })
+    const { e, misses } = withPoints()
+    expect((await post({ address: newAddress() }, e)).status).toBe(503)
+    expect(misses()).toMatchObject([{ blobs: ['unavailable'], doubles: [3, expect.any(Number)] }])
+  })
+
+  it('never carries the address, its hash or the key', async () => {
+    const a = newAddress()
+    mock({ txlist: () => ok([row(a, 100)]) })
+    const { e, misses } = withPoints()
+    await post({ address: a }, e)
+    const text = JSON.stringify(misses())
+    expect(text).not.toContain(a.slice(2, 10))
+    expect(text).not.toContain(KEY)
   })
 })

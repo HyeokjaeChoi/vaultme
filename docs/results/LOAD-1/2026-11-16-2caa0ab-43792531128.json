@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "gate": "LOAD-1",
+  "commit": "2caa0ab9086df2037704235a1f7cef44cfa585a3",
+  "runId": 43792531128,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43792531128",
+  "workflow": "api-load",
+  "event": "workflow_dispatch",
+  "measuredAt": "2026-11-16T02:37:31Z",
+  "origin": "GitHub Actions ubuntu-latest, staging API",
+  "tool": "k6 2.3.0, packages/perf/k6/load.js",
+  "results": [
+    {
+      "metric": "Server errors (5xx except 503 unavailable)",
+      "value": 0,
+      "unit": "responses",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 2949,
+      "window": "one run"
+    },
+    {
+      "metric": "Steady requests that were not 200 or 503 unavailable",
+      "value": 0,
+      "unit": "responses",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 361,
+      "window": "one run"
+    },
+    {
+      "metric": "429 responses, one install above its limit",
+      "value": 0,
+      "unit": "responses",
+      "threshold": null,
+      "pass": null,
+      "n": 181,
+      "window": "one run"
+    },
+    {
+      "metric": "429 responses, unauthenticated /v1/rpc above the IP limit",
+      "value": 0,
+      "unit": "responses",
+      "threshold": null,
+      "pass": null,
+      "n": 1200,
+      "window": "one run"
+    },
+    {
+      "metric": "429 responses, unauthenticated /v1/history above the IP limit",
+      "value": 0,
+      "unit": "responses",
+      "threshold": null,
+      "pass": null,
+      "n": 1201,
+      "window": "one run"
+    },
+    {
+      "metric": "Steady requests with no answer (connection error, 1 % tolerated)",
+      "value": 0,
+      "unit": "requests",
+      "threshold": {
+        "op": "<=",
+        "value": 3
+      },
+      "pass": true,
+      "n": 361,
+      "window": "one run"
+    },
+    {
+      "metric": "2xx responses, unauthenticated /v1/rpc above the IP limit (no token)",
+      "value": 0,
+      "unit": "responses",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 1200,
+      "window": "one run"
+    },
+    {
+      "metric": "2xx responses, unauthenticated /v1/history above the IP limit (no token)",
+      "value": 0,
+      "unit": "responses",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 1201,
+      "window": "one run"
+    },
+    {
+      "metric": "Own server time p95 under load (Worker time minus upstream time)",
+      "value": 0,
+      "unit": "ms",
+      "threshold": {
+        "op": "<=",
+        "value": 50
+      },
+      "pass": true,
+      "n": 361,
+      "window": "one run"
+    },
+    {
+      "metric": "Dropped iterations (the rate was not delivered)",
+      "value": 0,
+      "unit": "iterations",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 2943,
+      "window": "one run"
+    },
+    {
+      "metric": "Steady requests answered 503 unavailable (an upstream down; does not fail the run)",
+      "value": 0,
+      "unit": "%",
+      "threshold": null,
+      "pass": null,
+      "n": 361,
+      "window": "one run"
+    }
+  ]
+}

@@ -13,7 +13,7 @@ What "fast enough" means for VaultMe, where each limit comes from, and how far w
 | JS of the shell (no fragment): static pages <= 100 KB, viewer (`/address`, `/tx`) <= 150 KB, gzip body | `apps/web/scripts/js-budget.ts` | [ADR-0017](../adr/0017-web-analytics-beacon-and-js-budgets.md), [ADR-0018](../adr/0018-js-budgets-count-compressed-body.md) | Static 0 B; viewer 153,011 B (`/address`) and 152,573 B (`/tx`) of 153,600 B, CI run 43693031623. Under 2 % left: a warning |
 | JS of the page with data (a fragment, the lazy chunks), viewer <= 150 KB (153,600 B) | `apps/web/e2e/perf.spec.ts` (a warning until about 30 KB is cut) | [ADR-0042](../adr/0042-viewer-js-budget-counts-the-page-with-data.md) | `/address#<address>` 183,449 B, `/tx#<hash>` 181,665 B (29,849 B and 28,065 B over) |
 | INP with data <= 200 ms, median of 3 (CPU 4x, the Lighthouse mobile network as DevTools applies it, 375 px, API at its limits below) | `apps/web/e2e/perf.spec.ts` | [web.dev INP](https://web.dev/articles/inp) | 56 to 80 ms (median of 3, local run of 2026-11-15) |
-| LCP with data <= 2.5 s, median of 3, same lab | same; `/address` fails the PR, `/tx` warns until [#504](https://github.com/HyeokjaeChoi/vaultme/issues/504) is fixed | [web.dev LCP](https://web.dev/articles/lcp) | `/address#<address>` 2.3 s (2,336 ms, 164 ms under the limit); `/tx#<hash>` 4.4 s (4,436 ms, gap) |
+| LCP with data <= 2.5 s, median of 3, same lab | same; `/address` fails the PR, `/tx` is a documented warning, a known limit ([#504](https://github.com/HyeokjaeChoi/vaultme/issues/504)) | [web.dev LCP](https://web.dev/articles/lcp) | `/address#<address>` 2.3 s (2,376 ms in CI, 124 ms under the limit); `/tx#<hash>` 4.4 s (CI medians 4,708 → 4,700 → 4,436 ms after the hash row and the chunk preload; the floor with a 0 ms API is 2,848 ms). The LCP element is the loaded-detail paint, after install, token and the rpc reads, so loading earlier cannot reach the limit |
 | CLS with data <= 0.1 for the load (before the first click), median of 3, same lab | same | [web.dev CLS](https://web.dev/articles/cls) | 0 to 0.001. The whole visit with the clicks: `/tx` 0.18 (the footer appears 0.7 s after the click on the back link; shown, not judged) |
 | Hermes bundle <= 11 MiB | `export:check` in `apps/mobile/package.json` | `AGENTS.md` "Enforced rules" | 9.76 MiB (iOS), 9.75 MiB (Android) |
 
@@ -85,3 +85,20 @@ Limit = 1.5 x the highest p95 of the 5 calibration runs of 2026-10-30 (commit `5
 | `rpc` | 280 | 987 |
 | `history_hit` | 110 | 661 |
 | `history_miss` | 2542 | 2785 |
+
+### Second calibration (2026-11-16): not applied
+
+Rule: apply the stricter of the two limits only where the two calibrations are within 10 %; otherwise keep the current limit. The 5 runs of 2026-11-15 (api-bench 43693316623, 43693796896, 43694278764, 43694747778, 43695236895) and the 5 runs of 2026-11-16 (43793416244, 43793427820, 43794542690, 43795666727, 43796299543), limit = 1.5 x the highest p95 of 5 runs, from `cli.ts bench`:
+
+| Endpoint | Mode | 2026-11-15 (ms) | 2026-11-16 (ms) | Difference | Applied |
+| --- | --- | --- | --- | --- | --- |
+| `health` | warm | 124 | 178 | +44 % | no |
+| `rpc` | warm | 280 | 214 | -24 % | no |
+| `history_hit` | warm | 52 | 70 | +35 % | no |
+| `history_miss` | warm | 1039 | 1950 | +88 % | no |
+| `health` | cold | 327 | 401 | +23 % | no |
+| `rpc` | cold | 528 | 595 | +13 % | no |
+| `history_hit` | cold | 279 | 505 | +81 % | no |
+| `history_miss` | cold | 1163 | 2421 | +108 % | no |
+
+No case is within 10 %, so `WATCH_P95_MS` stays as above. The spread between two days is larger than the limits themselves (GitHub runner and Etherscan variance): a limit from 5 runs of one day is not a stable regression watch. A stricter limit would warn on noise.

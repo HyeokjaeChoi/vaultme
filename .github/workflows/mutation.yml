@@ -1,0 +1,106 @@
+# Mutation score floor for packages/wallet-core and packages/history (MUT-1, quality-gates plan, owner decision 10: required check).
+# Stryker changes the code (a `<` becomes `<=`, a guard is removed) and runs the tests: a mutant no test notices is a test that runs
+# code but asserts nothing. `thresholds.break` in each `packages/*/stryker.config.json` is the first measured score rounded down to a
+# multiple of 5 (never below 60); it only goes up. Target 80 or more.
+# Required check = the job `mutation`. It is always created, so it always reports: when a PR touches neither package its work
+# is skipped, and a skipped job counts as passed (a workflow-level `paths:` filter would leave the check missing and block the merge, like e2e.yml).
+name: mutation
+
+on:
+  pull_request:
+  push:
+    branches: [main] # runs both packages (the evidence file of a commit on main, ADR-0043)
+  workflow_dispatch: # runs both packages whatever the diff
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.diff.outputs.run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          # Into a variable first: a failed `git diff` fails this step (a pipe in `if` would read it as "no change" and open the gate).
+          files=$(git diff --name-only "$BASE"...HEAD)
+          if grep -qE '^(packages/(wallet-core|history|api-client|contracts|config)/|\.github/workflows/mutation\.yml$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig\.base\.json$|package\.json$)' <<< "$files"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  mutation:
+    needs: changes
+    # A failed `changes` job must not skip this one (a skipped job passes the required check): then it runs.
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.run == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @vaultme/wallet-core... --filter @vaultme/history...
+      # Stryker 10.1.1 (published 2026-10-23, older than 7 days). Both packages run, so one required check covers both; the first failure still lets the second run.
+      # FC_SEED: the property tests (fast-check) use one seed, so a mutant is killed or survives the same way on every run.
+      - id: wallet-core
+        run: pnpm --filter @vaultme/wallet-core run mutation
+        continue-on-error: true
+        env:
+          FC_SEED: '1'
+      - id: history
+        run: pnpm --filter @vaultme/history run mutation
+        continue-on-error: true
+        env:
+          FC_SEED: '1'
+      # EVID-1 (ADR-0043): the scores against the floors as an evidence file (also when a score is under its floor: that is the run that matters).
+      - if: ${{ !cancelled() }}
+        run: |
+          args=()
+          for p in wallet-core history; do
+            f="packages/$p/reports/mutation/mutation.json"
+            [ -f "$f" ] && args+=(--from "mutation=$f")
+          done
+          [ "${#args[@]}" -gt 0 ] || exit 0 # Stryker wrote no report: its own step already shows why
+          node packages/perf/src/cli.ts evidence emit --gate MUT-1 --origin 'GitHub Actions ubuntu-latest, job mutation' \
+            --tool 'Stryker 10.1.1 (vitest runner), FC_SEED=1' "${args[@]}" --out evidence-MUT-1.json
+      - if: ${{ !cancelled() && hashFiles('evidence-MUT-1.json') != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-MUT-1
+          path: evidence-MUT-1.json
+          retention-days: 90
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mutation-report
+          path: |
+            packages/wallet-core/reports/mutation
+            packages/history/reports/mutation
+          retention-days: 14
+          if-no-files-found: warn
+      - if: ${{ steps.wallet-core.outcome != 'success' || steps.history.outcome != 'success' }}
+        env:
+          WALLET_CORE: ${{ steps.wallet-core.outcome }}
+          HISTORY: ${{ steps.history.outcome }}
+        run: |
+          echo "::error::mutation run failed or score under the floor (wallet-core: $WALLET_CORE, history: $HISTORY); see the clear-text table above"
+          exit 1

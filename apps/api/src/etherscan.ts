@@ -3,6 +3,7 @@ import type { Env } from './env.ts'
 import { UpstreamError } from './errors.ts'
 import { logEvent } from './log.ts'
 import { addressHash, checkCursor, loadHistory, type FetchList } from './history.ts'
+import { recordHistoryMiss } from './metrics.ts'
 import { parseInternalRows } from './tx-internal.ts'
 
 const BASE = 'https://api.etherscan.io/v2/api'
@@ -20,7 +21,7 @@ type Bindings = Env['Bindings']
 export type EtherscanStats = { calls: number; fetchMs: number; waitMs: number; bucketMs: number; upstreamMs: number }
 export const newStats = (): EtherscanStats => ({ calls: 0, fetchMs: 0, waitMs: 0, bucketMs: 0, upstreamMs: 0 })
 
-/** Waits for a token of the global bucket. Throws when the wait would be over 2 s. */
+/** Waits for a token of the global bucket. Throws when the wait would be over 2 s, or when the day's budget is spent (API-2). */
 async function acquire(env: Bindings, stats?: EtherscanStats): Promise<void> {
   const t0 = Date.now()
   const wait = await env.ETHERSCAN_BUCKET.getByName('global').acquire()
@@ -28,6 +29,11 @@ async function acquire(env: Bindings, stats?: EtherscanStats): Promise<void> {
   if (wait === null) {
     logEvent('warn', 'etherscan_throttled')
     throw new UpstreamError('throttled')
+  }
+  if (typeof wait === 'object') {
+    // The daily budget is spent: nothing clears before 00:00 UTC. Thrown here, in the Worker, because the Durable Object cannot throw it (errors.ts).
+    logEvent('warn', 'etherscan_daily_budget_spent', { retry_after_seconds: wait.refusedForSeconds })
+    throw new UpstreamError('daily budget', wait.refusedForSeconds)
   }
   if (stats) stats.waitMs = Math.max(stats.waitMs, wait)
   if (wait > 0) await sleep(wait)
@@ -118,7 +124,8 @@ export async function getHistory(
   cursor: string | undefined,
   stats?: EtherscanStats,
 ): Promise<HistoryResponse> {
-  const fetchList = etherscanList(env, address, stats)
+  const s = stats ?? newStats() // the call count of a miss is a data point (API-4), also when the caller keeps no stats
+  const fetchList = etherscanList(env, address, s)
   await checkCursor(address, cursor) // before the cache: a bad cursor must never get a cached 200
   const cache = caches.default
   const cacheKey = new Request(
@@ -130,9 +137,13 @@ export async function getHistory(
   let out: HistoryResponse
   try {
     out = await loadHistory(fetchList, address, cursor)
+  } catch (e) {
+    recordHistoryMiss(env, 'unavailable', s.calls, Date.now() - t0)
+    throw e
   } finally {
-    if (stats) stats.upstreamMs = Date.now() - t0
+    s.upstreamMs = Date.now() - t0
   }
+  recordHistoryMiss(env, 'ok', s.calls, s.upstreamMs)
   await cache.put(cacheKey, Response.json(out, { headers: { 'Cache-Control': `max-age=${String(CACHE_SECONDS)}` } }))
   return out
 }

@@ -1,0 +1,65 @@
+name: scorecard
+
+# SEC-4: OpenSSF Scorecard, weekly and on push to main. Public results feed the README badge (publish_results).
+# publish_results rules (scorecard-action README, "Global workflow restrictions"): the scorecard job has `uses:` steps only
+# and the workflow has no top-level env or defaults. So the gate runs in a second job on the uploaded results.json.
+# Gate: Dangerous-Workflow = 10, Token-Permissions = 10, Pinned-Dependencies >= 9, aggregate >= MIN_SCORE (a ratchet:
+# raise MIN_SCORE to the last measured score; never lower it). Branch-Protection needs a PAT: it may be missing from the score and the gate ignores it.
+# Action: ossf/scorecard-action v2.5.0 (docs: https://github.com/ossf/scorecard-action).
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Wednesday 03:23 UTC. Not at the start of an hour: GitHub delays or drops scheduled runs at :00.
+    - cron: '23 3 * * 3'
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      security-events: write # allowed for scorecard jobs; needed when results are uploaded as SARIF
+      id-token: write # publish_results: OIDC proof that the run comes from this workflow
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: results.json
+          results_format: json
+          publish_results: true
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: scorecard-results
+          path: results.json
+          retention-days: 7
+
+  gate:
+    needs: analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      # Ratchet: the first measured aggregate score (run 43781470007, 2026-11-16: 6.5). Raise it when the score rises; never lower it.
+      MIN_SCORE: '6.5'
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: scorecard-results
+      - name: Check thresholds
+        run: |
+          jq -r '"aggregate \(.score)", (.checks[] | "\(.name) \(.score)")' results.json
+          jq -e --argjson min "$MIN_SCORE" '
+            def s(n): (.checks[] | select(.name == n) | .score);
+            .score >= $min
+            and s("Dangerous-Workflow") == 10
+            and s("Token-Permissions") == 10
+            and s("Pinned-Dependencies") >= 9
+          ' results.json > /dev/null || { echo "::error::Scorecard below threshold (see the scores above)"; exit 1; }

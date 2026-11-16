@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "gate": "CHAIN-5",
+  "commit": "b404e100c634e4eb59fa62b850e15b9288acae3c",
+  "runId": 43787510712,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43787510712",
+  "workflow": "ci",
+  "event": "push",
+  "measuredAt": "2026-11-16T01:41:35Z",
+  "origin": "GitHub Actions ubuntu-latest, job verify",
+  "tool": "vitest json, fast-check, packages/wallet-core test:properties",
+  "results": [
+    {
+      "metric": "Properties tested",
+      "value": 16,
+      "unit": "properties",
+      "threshold": null,
+      "pass": null,
+      "n": 16,
+      "window": "one run"
+    },
+    {
+      "metric": "Properties with a counterexample",
+      "value": 0,
+      "unit": "properties",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 16,
+      "window": "one run"
+    },
+    {
+      "metric": "Runs per property (configured)",
+      "value": 1000,
+      "unit": "runs",
+      "threshold": {
+        "op": ">=",
+        "value": 1000
+      },
+      "pass": true,
+      "n": 15,
+      "window": "one run"
+    }
+  ]
+}

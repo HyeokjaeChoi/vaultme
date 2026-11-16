@@ -9,13 +9,17 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint . --max-warnings=0"
+    "lint": "eslint . --max-warnings=0",
+    "mutation": "stryker run",
+    "test:properties": "vitest run test/properties.test.ts --coverage.enabled=false --reporter=json --outputFile=property-report.json"
   },
   "dependencies": {
     "@scure/bip39": "^2.4.0",
     "viem": "^2.57.3"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/vitest-runner": "10.1.1",
     "@vaultme/config": "workspace:*",
     "@vitest/coverage-v8": "5.0.5",
     "eslint": "^10.12.0",

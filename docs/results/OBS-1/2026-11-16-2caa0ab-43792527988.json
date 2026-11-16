@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "gate": "OBS-1",
+  "commit": "2caa0ab9086df2037704235a1f7cef44cfa585a3",
+  "runId": 43792527988,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43792527988",
+  "workflow": "ci-health",
+  "event": "workflow_dispatch",
+  "measuredAt": "2026-11-16T02:30:52Z",
+  "origin": "GitHub Actions ubuntu-latest, this repository",
+  "tool": "gh, packages/perf cli.ts ci-health",
+  "results": [
+    {
+      "metric": "Red main: failed ci runs on main, 28 days",
+      "value": 5.3,
+      "unit": "%",
+      "threshold": {
+        "op": "<=",
+        "value": 2
+      },
+      "pass": false,
+      "n": 246,
+      "window": "28 days"
+    },
+    {
+      "metric": "PR CI wall time, median of the last green runs",
+      "value": 8.5,
+      "unit": "min",
+      "threshold": {
+        "op": "<=",
+        "value": 12.5
+      },
+      "pass": true,
+      "n": 10,
+      "window": "last 10 green runs"
+    },
+    {
+      "metric": "verify job, median of the last green runs",
+      "value": 4.2,
+      "unit": "min",
+      "threshold": {
+        "op": "<=",
+        "value": 6.3
+      },
+      "pass": true,
+      "n": 10,
+      "window": "last 10 green runs"
+    },
+    {
+      "metric": "Age of the last green api-bench",
+      "value": 0.7,
+      "unit": "days",
+      "threshold": {
+        "op": "<=",
+        "value": 8
+      },
+      "pass": true,
+      "n": 1,
+      "window": "snapshot"
+    },
+    {
+      "metric": "Workflows that are not active",
+      "value": 0,
+      "unit": "workflows",
+      "threshold": {
+        "op": "<=",
+        "value": 0
+      },
+      "pass": true,
+      "n": 21,
+      "window": "snapshot"
+    },
+    {
+      "metric": "Oldest open Renovate pull request",
+      "value": 14.4,
+      "unit": "days",
+      "threshold": {
+        "op": "<=",
+        "value": 14
+      },
+      "pass": false,
+      "n": 10,
+      "window": "snapshot"
+    },
+    {
+      "metric": "Actions cache size",
+      "value": 9.77,
+      "unit": "GiB",
+      "threshold": {
+        "op": "<=",
+        "value": 9
+      },
+      "pass": false,
+      "n": 1,
+      "window": "snapshot"
+    }
+  ]
+}
