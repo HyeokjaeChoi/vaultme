@@ -42,6 +42,13 @@ export type Check = {
   limit: number
   /** Stops the run at once: our bug, no reason to keep spending quota. */
   abort?: boolean
+  /**
+   * Reported, not judged: k6 gets `count>=0` and the evidence has no threshold. Cloudflare limiters are permissive and per
+   * location, so whether one bites in a run is a measurement, not a contract (ADR-0045, runs 43787512493 and 43788727621).
+   */
+  report?: boolean
+  /** A check with no sample is left out instead of throwing (a 429 may never come). */
+  optional?: boolean
   /** What the evidence file calls it. */
   label: string
   unit: string
@@ -83,7 +90,8 @@ export const CHECKS: Check[] = [
     agg: 'rate',
     op: '==',
     limit: 1,
-    label: '429 responses with Retry-After 60 and code rate_limited',
+    optional: true,
+    label: '429 responses with Retry-After 60 and code rate_limited (when there is one)',
     unit: 'ratio',
     samples: 'limit_contract_n',
   },
@@ -92,6 +100,7 @@ export const CHECKS: Check[] = [
     agg: 'count',
     op: '>',
     limit: 0,
+    report: true,
     label: `429 responses, ${probeLabel[p]}`,
     unit: 'responses',
     samples: probeSent(p),
@@ -140,6 +149,7 @@ export const CHECKS: Check[] = [
 type K6Threshold = string | { threshold: string; abortOnFail: boolean; delayAbortEval: string }
 /** The k6 threshold of a check, as k6 reads it. `abortOnFail` needs the long form. */
 export const k6Threshold = (c: Check): K6Threshold => {
+  if (c.report) return 'count>=0'
   const threshold = `${c.agg}${c.op}${String(c.limit)}`
   return c.abort ? { threshold, abortOnFail: true, delayAbortEval: '10s' } : threshold
 }
@@ -196,20 +206,23 @@ const pick = (s: LoadSummary, metric: string, agg: Agg): number | undefined => {
  */
 export function loadResults(s: LoadSummary): LoadResult[] {
   const window = 'one run'
-  const results = CHECKS.map((c): LoadResult => {
+  const results = CHECKS.flatMap((c): LoadResult[] => {
     const n = s.values[c.samples]?.count ?? 0
+    if (n < 1 && c.optional) return []
     // k6 leaves out an empty counter or reports it as 0, and reports an empty trend as zeros: the sample count decides.
     if (n < 1) throw new Error(`${c.label}: no samples (${c.samples})`)
     const value = pick(s, c.metric, c.agg) ?? (c.agg === 'count' ? 0 : undefined)
     if (value === undefined) throw new Error(`${c.label}: k6 did not report ${c.metric}`)
-    return {
-      metric: c.label,
-      value,
-      unit: c.unit,
-      threshold: { op: c.op, value: c.limit },
-      n,
-      window,
-    }
+    return [
+      {
+        metric: c.label,
+        value,
+        unit: c.unit,
+        threshold: c.report ? null : { op: c.op, value: c.limit },
+        n,
+        window,
+      },
+    ]
   })
   const steady = s.values.steady_requests?.count ?? 0
   const unavailable = s.values.unavailable_503?.count ?? 0
