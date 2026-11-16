@@ -1,6 +1,6 @@
 // Figma: Recipient field 40:17; Redesign B: B/Input Kind=Address 421:773 (Default), 421:781 (Focus), 421:789 (Invalid); Show scan icon (Icon / action / qr 434:230, S20a 618:102090)
 import { useState } from 'react'
-import { Pressable, TextInput, View } from 'react-native'
+import { Platform, Pressable, TextInput, View } from 'react-native'
 import { i18n } from '@vaultme/i18n'
 import { isAddressFormat } from '../lib/address'
 import { textStyle } from '../theme/fonts'
@@ -69,6 +69,7 @@ export function RecipientField({ label, value, onChangeText, placeholder, error,
             placeholderTextColor={c.placeholder}
             autoCapitalize="none"
             autoCorrect={false}
+            keyboardType={Platform.OS === 'android' ? 'visible-password' : 'ascii-capable'} // address = ASCII; the default Korean keyboard types jamo (as WordCell)
             style={{ padding: 0, color: c.fg, ...textStyle(t.primitive.type.productB.address) }}
           />
         )}
