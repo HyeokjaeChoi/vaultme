@@ -1,4 +1,4 @@
-import { fromUnits, txHash, type ChainSnapshot, type Hex } from '@vaultme/wallet-core'
+import { fromUnits, marketFeesOf, txHash, type ChainSnapshot, type Hex } from '@vaultme/wallet-core'
 import { Mnemonic } from '@vaultme/wallet-core/signer'
 import { describe, expect, it, vi } from 'vitest'
 import { explorerHash, ownHashes } from '../src/features/send/model/hashes'
@@ -97,9 +97,11 @@ describe('quoteSpeedUp', () => {
     expect(plan.gasLimit).toBe(78_000n)
     expect(spy).not.toHaveBeenCalled() // fees and gas are on the record
   })
-  it('a node that does not know the original of an old record is an error, not a bump from the market value', async () => {
+  it('a node that does not know the original of an old record gives a bump from the market fees, with the fresh gas estimate (#659)', async () => {
     const { d } = setup(record(), snap(), null)
-    await expect(quoteSpeedUp(old(), FROM, d.chain)).rejects.toThrow()
+    const plan = await quoteSpeedUp(old(), FROM, d.chain)
+    expect(plan.gasLimit).toBe(snap().gasLimit)
+    expect(plan.maxFeePerGas).toBeGreaterThan(marketFeesOf(snap()).maxFeePerGas)
   })
   it('too little ETH disables it with the shortfall', async () => {
     const { d } = setup(record(), snap({ nativeBalance: 5n * 10n ** 16n }))
