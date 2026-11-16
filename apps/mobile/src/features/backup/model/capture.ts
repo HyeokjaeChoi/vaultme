@@ -16,6 +16,9 @@ export async function protectPhrase(key: string, ios: boolean): Promise<void> {
 }
 
 export async function releasePhrase(key: string, ios: boolean): Promise<void> {
-  await allowScreenCaptureAsync(key)
-  if (ios) await disableAppSwitcherProtectionAsync()
+  try {
+    await allowScreenCaptureAsync(key)
+  } finally {
+    if (ios) await disableAppSwitcherProtectionAsync() // the blur must not stay on when the capture release rejects
+  }
 }
