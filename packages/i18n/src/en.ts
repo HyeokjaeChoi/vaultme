@@ -342,6 +342,7 @@ export const en: Messages = {
       title: 'Cancel this transaction?',
       body: 'A 0 ETH transaction to your own account takes the place of the original.',
       notice: 'If the original is processed first, it is not cancelled.\nThe network fee is spent even if it fails.',
+      unknownTitle: 'It may have been processed already',
       fee: 'Estimated network fee',
       confirm: 'Cancel transaction',
       back: 'Go back',

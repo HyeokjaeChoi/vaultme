@@ -371,6 +371,8 @@ export const ko = {
       title: '거래를 취소할까요?',
       body: '0 ETH 거래를 내 계정으로 보내 원래 거래를 대신해요.',
       notice: '원래 거래가 먼저 처리되면 취소되지 않아요.\n실패해도 네트워크 수수료는 나가요.',
+      /** ADR-0041: title of the warning banner when the send is Unknown (Figma 1050:12074). It never says the tx was cancelled. */
+      unknownTitle: '이미 처리됐을 수 있어요',
       fee: '예상 네트워크 수수료',
       confirm: '취소하기',
       back: '돌아가기',
