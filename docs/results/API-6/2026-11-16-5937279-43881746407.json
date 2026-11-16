@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "gate": "API-6",
+  "commit": "5937279040ee40ab48ae60d7fd84801c674401f0",
+  "runId": 43881746407,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43881746407",
+  "workflow": "api-availability",
+  "event": "workflow_dispatch",
+  "measuredAt": "2026-11-16T14:03:32Z",
+  "origin": "GitHub Actions ubuntu-latest, Workers Analytics Engine SQL API",
+  "tool": "packages/perf cli.ts availability",
+  "results": [
+    {
+      "metric": "Availability of /v1/* (responses below 500)",
+      "value": 100,
+      "unit": "%",
+      "threshold": null,
+      "pass": null,
+      "n": 1,
+      "window": "28 days"
+    },
+    {
+      "metric": "Availability of /v1/health (responses below 500)",
+      "value": 100,
+      "unit": "%",
+      "threshold": {
+        "op": ">=",
+        "value": 99.5
+      },
+      "pass": true,
+      "n": 2480,
+      "window": "28 days"
+    },
+    {
+      "metric": "Availability of /v1/history (responses below 500)",
+      "value": 99.939,
+      "unit": "%",
+      "threshold": {
+        "op": ">=",
+        "value": 99.5
+      },
+      "pass": true,
+      "n": 8209,
+      "window": "28 days"
+    },
+    {
+      "metric": "Availability of /v1/installs (responses below 500)",
+      "value": 100,
+      "unit": "%",
+      "threshold": null,
+      "pass": null,
+      "n": 910,
+      "window": "28 days"
+    },
+    {
+      "metric": "Availability of /v1/installs/token (responses below 500)",
+      "value": 100,
+      "unit": "%",
+      "threshold": null,
+      "pass": null,
+      "n": 921,
+      "window": "28 days"
+    },
+    {
+      "metric": "Availability of /v1/push/subscription (responses below 500)",
+      "value": 100,
+      "unit": "%",
+      "threshold": null,
+      "pass": null,
+      "n": 6,
+      "window": "28 days"
+    },
+    {
+      "metric": "Availability of /v1/rpc (responses below 500)",
+      "value": 100,
+      "unit": "%",
+      "threshold": {
+        "op": ">=",
+        "value": 99.5
+      },
+      "pass": true,
+      "n": 16522,
+      "window": "28 days"
+    },
+    {
+      "metric": "Availability of /v1/tx/internal (responses below 500)",
+      "value": 100,
+      "unit": "%",
+      "threshold": null,
+      "pass": null,
+      "n": 42,
+      "window": "28 days"
+    },
+    {
+      "metric": "Availability of /webhooks/alchemy (responses below 500)",
+      "value": 100,
+      "unit": "%",
+      "threshold": {
+        "op": ">=",
+        "value": 99.5
+      },
+      "pass": true,
+      "n": 6848,
+      "window": "28 days"
+    },
+    {
+      "metric": "Availability of not_found (responses below 500)",
+      "value": 100,
+      "unit": "%",
+      "threshold": null,
+      "pass": null,
+      "n": 55,
+      "window": "28 days"
+    }
+  ]
+}
