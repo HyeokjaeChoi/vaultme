@@ -488,6 +488,26 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request body is not JSON (Content-Type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
             "headers": {
@@ -526,6 +546,16 @@
           },
           "401": {
             "description": "Missing or invalid signed-request headers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body is over 64 KB",
             "content": {
               "application/json": {
                 "schema": {
@@ -656,6 +686,26 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request body is not JSON (Content-Type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
             "headers": {
@@ -734,6 +784,26 @@
           },
           "401": {
             "description": "Missing, invalid or expired token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request body is not JSON (Content-Type)",
             "content": {
               "application/json": {
                 "schema": {
@@ -828,6 +898,26 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request body is not JSON (Content-Type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
             "headers": {
@@ -914,6 +1004,26 @@
               }
             }
           },
+          "413": {
+            "description": "Request body is over 64 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request body is not JSON (Content-Type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limited",
             "headers": {
@@ -970,6 +1080,16 @@
           },
           "401": {
             "description": "Missing, invalid or expired token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body is over 64 KB",
             "content": {
               "application/json": {
                 "schema": {
