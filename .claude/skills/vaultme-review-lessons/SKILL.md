@@ -55,3 +55,21 @@ Use this format. Keep it short. Link the PRs.
 - Do: cancel on a real leave only: `background` while no OS auth is in progress (`isAuthInProgress()`), or screen blur. Never on `inactive`, and never on `AppState.currentState` read right after an auth call. See `leavesReveal` in `features/backup/model/reveal.ts`.
 - Check: manual (unit test `backup-reveal.test.ts` covers the S03 rule; confirm on a real iPhone, the simulator resolves in another order)
 - Source: #260, #28
+
+### L05. A report or evidence step never stops the job's main action
+- Why: an evidence step before the breach-issue step could stop the issue (#586). A failed evidence step started a rollback of a good deploy (#577). A warn-only step failed under `bash -e` when `gh run list` failed (#634). A `jq` lookup on an empty list failed the deploy under `pipefail` (#559).
+- Do: put report and evidence steps after the main action (issue, rollback, deploy), or give them `continue-on-error: true`. In a warn-only step, end each command that can fail with `|| <fallback>`. Think through the empty answer and the error answer of each lookup.
+- Check: manual (where a step may fail depends on what its job must still do)
+- Source: #586, #577, #634, #559
+
+### L06. A test must fail when the claim it proves breaks
+- Why: tests passed with the behavior broken: a regex that matched any digit on the page (#577), a crawl that ran before the links rendered (#576), a property that passed when every call was refused (#556), hole tests that rewrote the property instead of running the real one (#536), a completeness test that counted 30 of 32 cells (#525), an `it.fails` case that failed in setup (#489).
+- Do: break the code on purpose (swap the branch, remove the guard), see the test go red, then restore it. Assert the exact value, wait for the final state, and assert that the checked set is not empty.
+- Check: manual (Stryker covers only wallet-core and history)
+- Source: #577, #576, #556, #536, #525, #489
+
+### L07. Change the docs and comments with the code
+- Why: comments and docs kept the old behavior after a change: the mutation workflow header (#588), `docs/testing/e2e.md` (#527), the e2e workflow header and docs (#472), ARCHITECTURE.md and ADRs on the RPC fallback (#405).
+- Do: before you push, search the repo for the old value, name or rule you changed (comments, Markdown, ADRs, AGENTS.md rows). Update each hit in the same PR.
+- Check: manual (R11 checks only that paths resolve)
+- Source: #588, #527, #472, #405

@@ -26,7 +26,7 @@ Code enforces these. Do not restate them in prose; read the check when it fails.
 | No private keys, `.env` or worker secrets; recovery phrases only as the public test vectors listed in R10 | R1, R3, R8, R10 |
 | No `CLAUDE.md` / `CLAUDE.local.md` anywhere (it stops Claude Code from reading this file) | R9 |
 | README.md and README.ko.md stay in step | R7 |
-| Markdown links and backticked repo paths in tracked `*.md` resolve | R11 |
+| Markdown links and backticked repo paths in tracked `*.md` resolve; a backticked gate folder `docs/results/<gate>` holds a committed evidence file (ADR-0043) | R11 |
 | Tokens: raw values only in Primitive; Semantic and Component alias | `packages/tokens/test/hierarchy.test.ts`, `packages/tokens/build.mjs` |
 | A PR that changes app screen code shows one light and one dark app-vs-Figma image per changed screen (web: per breakpoint 375, 768, 1280; mode in the alt text) | `.github/workflows/pr-description.yml` `figma-comparison` |
 | PR body ≤ 3,500 characters and `Closes #N` (Renovate and Dependabot PRs exempt) | `.github/workflows/pr-description.yml` `check` |
