@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "gate": "hermes-size",
+  "commit": "06e42bbd820fc9b4ce696a17509bcc9125d80ba3",
+  "runId": 43776593262,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43776593262",
+  "workflow": "ci",
+  "event": "pull_request",
+  "measuredAt": "2026-11-16T00:01:24Z",
+  "origin": "GitHub Actions ubuntu-latest, job verify",
+  "tool": "expo export, size read by packages/perf cli.ts hermes",
+  "results": [
+    {
+      "metric": "Hermes bundle, ios",
+      "value": 10670526,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 11534336
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one build"
+    },
+    {
+      "metric": "Hermes bundle, android",
+      "value": 10663326,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 11534336
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one build"
+    }
+  ]
+}

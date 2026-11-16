@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "gate": "js-budget",
+  "commit": "06e42bbd820fc9b4ce696a17509bcc9125d80ba3",
+  "runId": 43776593262,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43776593262",
+  "workflow": "ci",
+  "event": "pull_request",
+  "measuredAt": "2026-11-16T00:05:20Z",
+  "origin": "GitHub Actions ubuntu-latest, job lhci (desktop)",
+  "tool": "apps/web/scripts/js-budget.ts, gzip level 9 of the app JS",
+  "results": [
+    {
+      "metric": "JS gzip, /",
+      "value": 0,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 102400
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one build"
+    },
+    {
+      "metric": "JS gzip, /en/",
+      "value": 0,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 102400
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one build"
+    },
+    {
+      "metric": "JS gzip, /no-such-page",
+      "value": 0,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 102400
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one build"
+    },
+    {
+      "metric": "JS gzip, /en/no-such-page",
+      "value": 0,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 102400
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one build"
+    },
+    {
+      "metric": "JS gzip, /address",
+      "value": 153021,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 153600
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one build"
+    },
+    {
+      "metric": "JS gzip, /en/address",
+      "value": 153021,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 153600
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one build"
+    },
+    {
+      "metric": "JS gzip, /tx",
+      "value": 152571,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 153600
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one build"
+    },
+    {
+      "metric": "JS gzip, /en/tx",
+      "value": 152571,
+      "unit": "B",
+      "threshold": {
+        "op": "<=",
+        "value": 153600
+      },
+      "pass": true,
+      "n": 1,
+      "window": "one build"
+    }
+  ]
+}
