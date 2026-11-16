@@ -31,6 +31,7 @@ import {
   ciHealthResults,
   hermesResults,
   jsBudgetResults,
+  loadSourceResults,
   SOURCES,
 } from '../src/evidence-sources.ts'
 
@@ -490,6 +491,34 @@ describe('sources', () => {
       /row 0 needs url, bytes and limit/,
     )
   })
+  it('turns k6-load.json into results the schema accepts, and rejects another shape', () => {
+    const c = (count: number) => ({ count })
+    const values = {
+      http_reqs: c(1386),
+      iterations: c(1380),
+      steady_requests: c(360),
+      unavailable_503: c(9),
+      server_bug: c(0),
+      unexpected: c(0),
+      limit_contract: { rate: 1 },
+      limit_contract_n: c(300),
+      'probe_hits{kind:install_429}': c(60),
+      'probe_hits{kind:install_200}': c(60),
+      'probe_hits{kind:ip_rpc_429}': c(150),
+      'probe_hits{kind:ip_rpc_2xx}': c(0),
+      'probe_hits{kind:ip_history_429}': c(150),
+      'probe_hits{kind:ip_history_2xx}': c(0),
+      'probe_sent{probe:install}': c(120),
+      'probe_sent{probe:ip_rpc}': c(450),
+      'probe_sent{probe:ip_history}': c(450),
+      'ok_own{scenario:steady}': { 'p(95)': 31.2 },
+      'own_n{scenario:steady}': c(351),
+      dropped_iterations: c(0),
+    }
+    const results = loadSourceResults({ measuredAt: '2026-11-16T05:11:09Z', values })
+    expect(buildEvidence(input({ results })).results.every((r) => r.pass !== false)).toBe(true)
+    expect(() => loadSourceResults({ values: {} })).toThrow(/load: expected/)
+  })
   it('turns the ci-health metrics into results the schema accepts, and leaves out a metric with no sample', () => {
     const m = (name: string, value: number, limit: number, n: number) => ({
       name,
@@ -520,6 +549,6 @@ describe('sources', () => {
     expect(() => ciHealthResults([{ name: 'x' }])).toThrow(/no name, value/)
   })
   it('lists the kinds `evidence emit --from` accepts', () => {
-    expect(Object.keys(SOURCES)).toEqual(['hermes', 'chain-3', 'chain-5', 'js-budget', 'ci-health'])
+    expect(Object.keys(SOURCES)).toEqual(['hermes', 'chain-3', 'chain-5', 'js-budget', 'load', 'ci-health'])
   })
 })

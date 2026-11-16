@@ -2,6 +2,7 @@
 // that makes the file and the person who seeds `docs/results` from an old run use the same code.
 import { HERMES_LIMIT } from './baseline.ts'
 import { isObj as isRecord, type ResultInput } from './evidence.ts'
+import { loadResults, type LoadSummary } from './load.ts'
 
 /** `perf-hermes.json` (`cli.ts hermes`): the bytes of the one Hermes bundle per platform against the 11 MiB limit of `export:check`. */
 export function hermesResults(json: unknown): ResultInput[] {
@@ -36,6 +37,13 @@ export function jsBudgetResults(json: unknown): ResultInput[] {
       window: 'one build',
     }
   })
+}
+
+/** `k6-load.json` (`k6/load.js`, gate LOAD-1): one result per threshold of the run. */
+export function loadSourceResults(json: unknown): ResultInput[] {
+  if (!isRecord(json) || typeof json.measuredAt !== 'string' || !isRecord(json.values))
+    throw new Error('load: expected {"measuredAt": text, "values": {metric: {...}}}')
+  return loadResults(json as unknown as LoadSummary)
 }
 
 /**
@@ -150,5 +158,6 @@ export const SOURCES: Record<string, (json: unknown) => ResultInput[]> = {
   'chain-3': chain3Results,
   'chain-5': chain5Results,
   'js-budget': jsBudgetResults,
+  load: loadSourceResults,
   'ci-health': ciHealthResults,
 }
