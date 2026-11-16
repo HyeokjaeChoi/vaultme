@@ -75,6 +75,7 @@ jobs:
       # EVID-1 (ADR-0043): the same numbers as an evidence file (also when the budget failed: that is the run that matters).
       - if: ${{ !cancelled() && hashFiles('bundle-budget.log') != '' }}
         run: |
+          grep -q '^gzipBytes:' bundle-budget.log || exit 0 # the script failed before it printed: its own step already shows why
           budget() { grep "^$1:" bundle-budget.log | sed -E 's/.*budget ([0-9]+)\).*/\1/'; }
           value() { grep "^$1:" bundle-budget.log | sed -E "s/^$1: ([0-9]+) .*/\1/"; }
           node packages/perf/src/cli.ts evidence emit --gate API-10 --origin 'GitHub Actions ubuntu-latest, job verify' \
