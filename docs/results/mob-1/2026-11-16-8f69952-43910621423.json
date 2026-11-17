@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "gate": "mob-1",
+  "commit": "8f6995258ee92154a62d7f2e3065a13446900ef7",
+  "runId": 43910621423,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/43910621423",
+  "workflow": "e2e",
+  "event": "workflow_dispatch",
+  "measuredAt": "2026-11-16T19:03:49Z",
+  "origin": "restart 2 after #667, count run 3, FAILED: cold start flow failed twice (restore cell not filled, then Face ID sheet); gate failed, cause found in #668",
+  "tool": "Maestro 2.11.0, iOS simulator, e2e.yml",
+  "results": [
+    {
+      "metric": "Flows retried",
+      "value": 1,
+      "unit": "flows",
+      "threshold": {
+        "op": "<=",
+        "value": 1
+      },
+      "pass": true,
+      "n": 5,
+      "window": "one run"
+    },
+    {
+      "metric": "Flows failed",
+      "value": 1,
+      "unit": "flows",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": false,
+      "n": 5,
+      "window": "one run"
+    },
+    {
+      "metric": "Warm-up flow failures",
+      "value": 0,
+      "unit": "warm-ups",
+      "threshold": null,
+      "pass": null,
+      "n": 1,
+      "window": "one run"
+    },
+    {
+      "metric": "Lock gate retry taps",
+      "value": 0,
+      "unit": "taps",
+      "threshold": null,
+      "pass": null,
+      "n": 1,
+      "window": "one run"
+    }
+  ]
+}
