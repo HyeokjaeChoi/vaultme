@@ -88,7 +88,7 @@ esac
 if [ "$tags" = loop ]; then
   # Same flow, same simulator, no retry: one line per iteration. A failed iteration also keeps the coreauthd log of its minutes.
   pass=0; fail=0; longest=0
-  # LOOP_MAX_MINUTES (default 100): no new iteration starts when it could end after this budget (the job timeout cancels the upload otherwise, run 43951954002).
+  # LOOP_MAX_MINUTES (default 100; the workflow sets 130): no new iteration starts when it could end after this budget (the job timeout cancels the upload otherwise, run 43951954002).
   deadline=$(($(date +%s) + ${LOOP_MAX_MINUTES:-100} * 60))
   for i in $(seq "$loop_n"); do
     if [ "$i" -gt 1 ] && [ $(($(date +%s) + longest)) -gt "$deadline" ]; then echo "LOOP stops before iteration $i: no time left (longest iteration ${longest}s)" | tee -a ../e2e-artifacts/loop-summary.txt; break; fi

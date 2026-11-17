@@ -57,7 +57,7 @@ jobs:
       matrix:
         shard: ${{ fromJSON(inputs.loop_flow != '' && '[1,2,3]' || '[1]') }}
     runs-on: macos-26
-    timeout-minutes: ${{ inputs.loop_flow != '' && 150 || 75 }} # the diagnosis loop (#668) runs ~5 min per iteration
+    timeout-minutes: ${{ inputs.loop_flow != '' && 180 || 75 }} # the diagnosis loop (#668) runs ~5 min per iteration
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -94,7 +94,7 @@ jobs:
         env:
           LOOP_FLOW: ${{ inputs.loop_flow }}
           LOOP_N: ${{ inputs.loop_n }}
-          LOOP_MAX_MINUTES: 100
+          LOOP_MAX_MINUTES: 130
         run: |
           if [ -n "$LOOP_FLOW" ]; then apps/mobile/.maestro/run.sh loop "$LOOP_FLOW" "$LOOP_N"
           else apps/mobile/.maestro/run.sh ${{ github.event_name == 'pull_request' && 'critical' || 'full' }}; fi
