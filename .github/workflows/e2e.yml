@@ -50,7 +50,8 @@ jobs:
     needs: changes
     # A failed `changes` job must not skip this one (a skipped job passes the required check): then it runs.
     if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.run == 'true') }}
-    name: e2e # fixed: a matrix would rename the required check; the shards exist only for the diagnosis loop
+    # The name uses the matrix value only in the diagnosis loop: GitHub adds ` (1)` to a name without one, which would rename the required check `e2e`.
+    name: ${{ inputs.loop_flow != '' && format('e2e loop {0}', matrix.shard) || 'e2e' }}
     strategy:
       fail-fast: false
       matrix:
