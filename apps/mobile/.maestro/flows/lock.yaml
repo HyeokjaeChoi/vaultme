@@ -7,6 +7,20 @@ tags: [full, critical]
 # Relaunch without clearing: the lock gate (S90) shows, run.sh sends the Face ID match.
 - launchApp
 # OS auth and the Keychain read can take longer than the 7 s assertVisible default on the CI simulator (same reason as #473).
+# Two cold-simulator cases (#668, loop run 43991904625, coreauthd.log):
+# - the Face ID match came 26 s after the sheet was up: a wait of 60 s covers it (a wait, not a retry);
+# - the sheet UI missed coreauthd's 5 s activation watchdog, so the lock gate shows its own failure text and the 잠금 해제 button: a user taps it.
+#   That tap is counted as a retry: it saves the screenshot `unlock-retry-used` and run.sh reports it as `::warning::flaky` (MOB-1 allows 1 retry in 10 runs).
+# Remove the tap when 20 fresh-simulator loop iterations pass without it ever being used.
+- extendedWaitUntil:
+    visible: 'Sepolia ETH|잠금을 풀지 못했어요.*'
+    timeout: 60000
+- runFlow:
+    when:
+      visible: '잠금을 풀지 못했어요.*'
+    commands:
+      - takeScreenshot: unlock-retry-used
+      - tapOn: '잠금 해제'
 - extendedWaitUntil:
     visible: 'Sepolia ETH'
-    timeout: 30000
+    timeout: 60000

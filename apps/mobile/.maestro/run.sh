@@ -7,6 +7,12 @@
 # `loop <flow.yaml> <n> [app]` (iOS, #668): runs one flow n times, no retry, and prints pass or fail per iteration (a diagnosis loop for one flaky flow).
 set -euo pipefail
 cd "$(dirname "$0")"
+# A flow that tapped the lock gate's 잠금 해제 button saved the screenshot `unlock-retry-used` (flows/lock.yaml, #668): report it as a retry.
+report_unlock_retries() {
+  local n; n=$(find ../e2e-artifacts -name 'unlock-retry-used*' 2>/dev/null | wc -l | tr -d ' ')
+  [ "$n" -eq 0 ] || echo "::warning::flaky: the lock gate needed its 잠금 해제 button ($n time(s), flows/lock.yaml, #668)"
+  return 0
+}
 tags="${1:-}"
 if [ "$tags" = loop ]; then
   loop_flow="${2:-}"; loop_n="${3:-}"
@@ -109,6 +115,8 @@ if [ "$tags" = loop ]; then
       fail=$((fail + 1)); echo "LOOP $i/$loop_n FAIL ($(date -u +%T))" | tee -a ../e2e-artifacts/loop-summary.txt
       xcrun simctl spawn "$udid" log show --start "$started" --style compact --predicate 'process == "coreauthd" OR process == "biometrickitd" OR subsystem == "com.apple.LocalAuthentication"' 2>&1 | tail -n 600 > "../e2e-artifacts/loop-$i/coreauthd.log" || true
     fi
+    used=$(find "../e2e-artifacts/loop-$i" -name 'unlock-retry-used*' 2>/dev/null | wc -l | tr -d ' ')
+    [ "$used" -eq 0 ] || echo "LOOP $i used the 잠금 해제 retry (artifacts: unlock-retry-used*)" | tee -a ../e2e-artifacts/loop-summary.txt
     dur=$(($(date +%s) - iter_start)); [ "$dur" -le "$longest" ] || longest=$dur
   done
   echo "LOOP RESULT $loop_flow: $pass pass, $fail fail of $((pass + fail)) run (asked $loop_n)" | tee -a ../e2e-artifacts/loop-summary.txt
@@ -120,7 +128,7 @@ include=smoke
 [ "$tags" = critical ] && include=critical
 [ "$tags" = release ] && include=critical,funded
 rm -f ../e2e-report.xml ../e2e-report-retry.xml # a report left from an earlier local run must not pick the flows to retry
-maestro --udid "$udid" test flows --include-tags "$include" --format junit --output ../e2e-report.xml --test-output-dir ../e2e-artifacts && exit 0
+maestro --udid "$udid" test flows --include-tags "$include" --format junit --output ../e2e-report.xml --test-output-dir ../e2e-artifacts && { report_unlock_retries; exit 0; }
 # One retry of the failed flows only (owner decision 2026-11-03, #376): the CI simulator sometimes loses a flow to its own
 # hiccups (driver unreachable, a label not found on a screen that shows it). A flow that fails twice fails the job; a pass on
 # the retry is reported as flaky. A run with no report (e.g. the driver never started) fails at once.
