@@ -4,14 +4,55 @@
 # Device auth (ADR-0016): no bypass in the app. The simulator gets Face ID enrolled, and while the flows run a loop sends the
 # Face ID "match" event every second; it matters only while an OS auth sheet is up (create, reveal, lock gate), else it is ignored.
 # Android: the emulator gets a PIN and a fingerprint, and the loop touches finger 1 every second (scripts/sim-auth.sh match android).
+# `loop <flow.yaml> <n> [app]` (iOS, #668): runs one flow n times, no retry, and prints pass or fail per iteration (a diagnosis loop for one flaky flow).
 set -euo pipefail
 cd "$(dirname "$0")"
+# A flow that tapped the lock gate's 잠금 해제 button saved the screenshot `unlock-retry-used` (flows/lock.yaml, #668): report it as a retry.
+report_unlock_retries() {
+  local n; n=$(find ../e2e-artifacts -name 'unlock-retry-used*' 2>/dev/null | wc -l | tr -d ' ')
+  [ "$n" -eq 0 ] || echo "::warning::flaky: the lock gate needed its 잠금 해제 button ($n time(s), flows/lock.yaml, #668)"
+  return 0
+}
 tags="${1:-}"
-case "$tags" in smoke | full | critical | release) ;; *) echo "usage: $0 smoke|full|critical|release [VaultMe.app]" >&2; exit 2 ;; esac
+if [ "$tags" = loop ]; then
+  loop_flow="${2:-}"; loop_n="${3:-}"
+  # Both come from a workflow input: accept a plain file name in flows/ and a count only.
+  [[ "$loop_flow" =~ ^[a-z0-9-]+\.yaml$ && -f "flows/$loop_flow" && "$loop_n" =~ ^[1-9][0-9]*$ && "$loop_n" -le 40 ]] || { echo "usage: $0 loop <flows/x.yaml name> <1-40> [VaultMe.app]" >&2; exit 2; }
+  # A funded flow sends real Sepolia funds and is never repeated (ADR-0040); create.yaml shows a recovery phrase that must not reach the public artifact.
+  ! grep -qE '^tags:.*\bfunded\b' "flows/$loop_flow" && [ "$loop_flow" != create.yaml ] || { echo "the loop does not run funded flows or create.yaml" >&2; exit 2; }
+  set -- loop ${4:+"$4"}
+fi
+case "$tags" in smoke | full | critical | release | loop) ;; *) echo "usage: $0 smoke|full|critical|release|loop [VaultMe.app]" >&2; exit 2 ;; esac
+[ "$tags" != loop ] || [ "${PLATFORM:-ios}" = ios ] || { echo "loop runs on iOS only" >&2; exit 2; }
 export MAESTRO_CLI_NO_ANALYTICS=1
 # The first driver start on a fresh CI device is slow: the XCTest driver took 2.5 min (run 1) and timed out at the default (run 2).
 # Set before the Android enrollment, which is the first driver start there.
 export MAESTRO_DRIVER_STARTUP_TIMEOUT=600000
+ios_prepare() {
+  xcrun simctl install "$udid" "$app"
+  # The app follows the device language (ADR-0037) and the flows match Korean text: pin this E2E simulator to Korean.
+  # The global domain is read when the app starts, so the next launchApp picks it up without a reboot.
+  xcrun simctl spawn "$udid" defaults write -g AppleLanguages -array ko-KR
+  xcrun simctl spawn "$udid" defaults write -g AppleLocale ko_KR
+  # Enroll Face ID (same commands as apps/mobile/AGENTS.md, for a simulator made for E2E).
+  xcrun simctl spawn "$udid" notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
+  xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit.enrollmentChanged
+  # Warm-up of the fresh simulator (warmup.yaml, #668). A failed warm-up is reported and the flows still run: they show the real failure.
+  maestro --udid "$udid" test warmup.yaml --test-output-dir "../e2e-artifacts/warmup-$(date +%s)" || echo "::warning::warm-up flow failed (#668); the flows run anyway"
+  # `simctl notify_post` posts a Darwin notification on the device (xcrun simctl help notify_post); `spawn notifyutil` started a process in the
+  # simulator each second. A failed send was hidden by `|| true`: manual run 43881442664 had a Face ID sheet that never matched in 39 s
+  # (coreauthd started the match at 14:44:28 and logged no match), so failures and a count now go to e2e-artifacts/face-id-loop.log.
+}
+face_loop_start() {
+  mkdir -p ../e2e-artifacts
+  ( sent=0; failed=0
+    while true; do
+      if err=$(xcrun simctl notify_post "$udid" com.apple.BiometricKit_Sim.pearl.match 2>&1); then sent=$((sent + 1)); else failed=$((failed + 1)); echo "$(date -u +%T) send failed ($failed): $err" >> ../e2e-artifacts/face-id-loop.log; fi
+      [ $(((sent + failed) % 60)) -ne 0 ] || echo "$(date -u +%T) sent $sent, failed $failed" >> ../e2e-artifacts/face-id-loop.log
+      sleep 1
+    done ) &
+  loop=$!
+}
 # PLATFORM=android runs the same flows on an Android emulator (release.yml job android-critical, #382); default ios.
 platform="${PLATFORM:-ios}"
 case "$platform" in
@@ -21,26 +62,9 @@ case "$platform" in
     udid="${SIM_UDID:-$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' || true)}"
     [ -n "$udid" ] || { echo "no booted simulator; boot one or set SIM_UDID" >&2; exit 2; }
     [ "$(printf '%s\n' "$udid" | wc -l)" -eq 1 ] || { echo "several simulators are booted; set SIM_UDID to one of: $udid" >&2; exit 2; }
-    xcrun simctl install "$udid" "$app"
-    # The app follows the device language (ADR-0037) and the flows match Korean text: pin this E2E simulator to Korean.
-    # The global domain is read when the app starts, so the next launchApp picks it up without a reboot.
-    xcrun simctl spawn "$udid" defaults write -g AppleLanguages -array ko-KR
-    xcrun simctl spawn "$udid" defaults write -g AppleLocale ko_KR
-    # Enroll Face ID (same commands as apps/mobile/AGENTS.md, for a simulator made for E2E).
-    xcrun simctl spawn "$udid" notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
-    xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit.enrollmentChanged
-    # `simctl notify_post` posts a Darwin notification on the device (xcrun simctl help notify_post); `spawn notifyutil` started a process in the
-    # simulator each second. A failed send was hidden by `|| true`: manual run 43881442664 had a Face ID sheet that never matched in 39 s
-    # (coreauthd started the match at 14:44:28 and logged no match), so failures and a count now go to e2e-artifacts/face-id-loop.log.
-    mkdir -p ../e2e-artifacts
-    ( sent=0; failed=0
-      while true; do
-        if err=$(xcrun simctl notify_post "$udid" com.apple.BiometricKit_Sim.pearl.match 2>&1); then sent=$((sent + 1)); else failed=$((failed + 1)); echo "$(date -u +%T) send failed ($failed): $err" >> ../e2e-artifacts/face-id-loop.log; fi
-        [ $(((sent + failed) % 60)) -ne 0 ] || echo "$(date -u +%T) sent $sent, failed $failed" >> ../e2e-artifacts/face-id-loop.log
-        sleep 1
-      done ) &
-    loop=$!
-    trap 'kill $loop 2>/dev/null || true' EXIT
+    ios_prepare
+    face_loop_start
+    trap 'kill $loop 2>/dev/null || true; report_unlock_retries' EXIT
     ;;
   android)
     app="${2:-../android/app/build/outputs/apk/release/app-release.apk}"
@@ -59,7 +83,7 @@ case "$platform" in
     # The touch loop starts first: enrollment asks for several touches, and later the OS auth sheets need one each.
     ( while true; do ../../../scripts/sim-auth.sh match android >/dev/null 2>&1 || true; sleep 1; done ) &
     loop=$!
-    trap 'kill $loop 2>/dev/null || true' EXIT
+    trap 'kill $loop 2>/dev/null || true; report_unlock_retries' EXIT
     adb -s "$udid" shell am start -a android.settings.BIOMETRIC_ENROLL >/dev/null
     maestro --udid "$udid" test enroll-fingerprint-android.yaml --test-output-dir ../e2e-artifacts/enroll
     # The enroll flow taps optional buttons, so it can end without a fingerprint: fail here with the cause, not later in every auth flow.
@@ -69,6 +93,37 @@ case "$platform" in
     adb -s "$udid" shell input keyevent KEYCODE_HOME
     ;;
 esac
+if [ "$tags" = loop ]; then
+  # Same flow, same simulator, no retry: one line per iteration. A failed iteration also keeps the coreauthd log of its minutes.
+  pass=0; fail=0; longest=0
+  # LOOP_MAX_MINUTES (default 100; the workflow sets 130): no new iteration starts when it could end after this budget (the job timeout cancels the upload otherwise, run 43951954002).
+  deadline=$(($(date +%s) + ${LOOP_MAX_MINUTES:-100} * 60))
+  for i in $(seq "$loop_n"); do
+    if [ "$i" -gt 1 ] && [ $(($(date +%s) + longest)) -gt "$deadline" ]; then echo "LOOP stops before iteration $i: no time left (longest iteration ${longest}s)" | tee -a ../e2e-artifacts/loop-summary.txt; break; fi
+    iter_start=$(date +%s)
+    if [ "$i" -gt 1 ]; then
+      # A real run starts on a freshly booted simulator (iteration 1 does; 14 repeats on one simulator never failed, run 43937596396), so every
+      # later iteration erases and boots it again and enrolls Face ID again.
+      kill "$loop" 2>/dev/null || true
+      { xcrun simctl shutdown "$udid" && xcrun simctl erase "$udid" && xcrun simctl boot "$udid" && xcrun simctl bootstatus "$udid" -b >/dev/null && ios_prepare; } || { echo "LOOP stops before iteration $i: the simulator did not come back" | tee -a ../e2e-artifacts/loop-summary.txt; fail=$((fail + 1)); break; }
+      face_loop_start
+    fi
+    echo "$(date -u +%T) loop iteration $i" >> ../e2e-artifacts/face-id-loop.log
+    started=$(date +'%Y-%m-%d %H:%M:%S') # log show reads local time
+    if maestro --udid "$udid" test "flows/$loop_flow" --format junit --output "../e2e-report-loop-$i.xml" --test-output-dir "../e2e-artifacts/loop-$i"; then
+      pass=$((pass + 1)); echo "LOOP $i/$loop_n PASS ($(date -u +%T))" | tee -a ../e2e-artifacts/loop-summary.txt
+    else
+      fail=$((fail + 1)); echo "LOOP $i/$loop_n FAIL ($(date -u +%T))" | tee -a ../e2e-artifacts/loop-summary.txt
+      xcrun simctl spawn "$udid" log show --start "$started" --style compact --predicate 'process == "coreauthd" OR process == "biometrickitd" OR subsystem == "com.apple.LocalAuthentication"' 2>&1 | tail -n 600 > "../e2e-artifacts/loop-$i/coreauthd.log" || true
+    fi
+    used=$(find "../e2e-artifacts/loop-$i" -name 'unlock-retry-used*' 2>/dev/null | wc -l | tr -d ' ')
+    [ "$used" -eq 0 ] || echo "LOOP $i used the 잠금 해제 retry (artifacts: unlock-retry-used*)" | tee -a ../e2e-artifacts/loop-summary.txt
+    dur=$(($(date +%s) - iter_start)); [ "$dur" -le "$longest" ] || longest=$dur
+  done
+  echo "LOOP RESULT $loop_flow: $pass pass, $fail fail of $((pass + fail)) run (asked $loop_n)" | tee -a ../e2e-artifacts/loop-summary.txt
+  [ "$fail" -eq 0 ]
+  exit
+fi
 include=smoke
 [ "$tags" = full ] && include=smoke,full
 [ "$tags" = critical ] && include=critical

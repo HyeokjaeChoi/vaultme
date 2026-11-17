@@ -52,6 +52,18 @@ The `e2e-report` artifact leaves out the whole `create wallet through backup` di
 
 Every flow starts with `clearState` and `clearKeychain`, so it needs a clean app. It wipes the app data on the target simulator.
 
+## Cold simulator and the diagnosis loop
+
+A freshly booted CI simulator is slow for its first minutes. A manual `e2e.yml` dispatch with the input `loop_flow` (for example `lock.yaml`) runs only that flow `loop_n` times per shard, 3 shards at once, with no retry. Each iteration erases and boots the simulator again, as a real run starts on a fresh one. One iteration takes 8 to 14 minutes. Per iteration the artifact holds the Maestro output, `loop-summary.txt` and, for a failed one, `coreauthd.log`. Run it from the branch that holds the change (issue #668). It is the job `e2e-loop`; the required check `e2e` is a separate job that a loop dispatch skips. The loop refuses `create.yaml` (it shows a recovery phrase) and funded flows (ADR-0040).
+
+Result for `apps/mobile/.maestro/flows/lock.yaml` on a fresh simulator, 6 of 18 iterations failed (33 %, run 43978051337): the start screen came late (1), a tap on the start screen was ignored (2), no keyboard after the first Return on the restore screen (1), and the Face ID sheet missed the 5 s activation watchdog of `coreauthd` (2; a late Face ID match in another run, 26 s). Changes:
+
+- `apps/mobile/.maestro/warmup.yaml` runs once after the boot (start screen, restore screen, keyboard). With it, the first three symptoms did not come back in 21 iterations (run 43991904625: 19 pass, 2 fail, both the Face ID sheet).
+- `apps/mobile/.maestro/subflows/start-fresh.yaml` waits 30 s for the start screen, and the lock flow waits 60 s for Home.
+- If the lock gate shows its failure text, the lock flow taps the app's own `잠금 해제` button. That is a retry: it saves the screenshot `unlock-retry-used`, and `run.sh` writes `::warning::flaky`. It counts against the MOB-1 limit of one retry in 10 runs.
+
+After the changes: 21 of 21 iterations passed and the `잠금 해제` button was never needed (run 44007068356).
+
 ## Flake baseline
 
 Before MOB-1: 85 `e2e` runs from 2026-11-02 to 2026-11-07 (from the `::warning::flaky` annotations): 29 needed a retry (34.1 %), 10 failed after the retry. Most of those runs are from before ADR-0039. After MOB-1: 14 manual runs measured (evidence files in `docs/results/mob-1/`). Before #654 (create flow mitigation): 5 runs, 4 clean, 1 failed (run 43788765786, `create wallet through backup` failed twice). After #654: 9 runs counted, 7 clean, 2 needed a retry (both `cold start asks OS auth, then opens Home`: the failure screenshot of run 43881442664 shows the lock screen with the Face ID sheet still up after 30 s, so the simulator Face ID match did not finish the sign-in; not a balance read), 0 failed. The gate (at most 1 retry in 10 runs) failed at run 9; the count stopped and restarts after a fix of the Face ID path. The gate of MOB-1 is 10 manual runs (`e2e.yml` dispatch and `release.yml` with `dry_run`) with at most 1 retry and no failed run. Add one row per run here when they are done (the owner starts them).
@@ -60,6 +72,7 @@ Before MOB-1: 85 `e2e` runs from 2026-11-02 to 2026-11-07 (from the `::warning::
 |---|---|---|---|
 | 2026-11-16 | [43814564369](https://github.com/HyeokjaeChoi/vaultme/actions/runs/43814564369) | `cold start asks OS auth, then opens Home` | no |
 | 2026-11-16 | [43881442664](https://github.com/HyeokjaeChoi/vaultme/actions/runs/43881442664) | `cold start asks OS auth, then opens Home` | no |
+| 2026-11-16 | [43910621423](https://github.com/HyeokjaeChoi/vaultme/actions/runs/43910621423) | `cold start asks OS auth, then opens Home` (failed twice) | no, run failed |
 
 ## Release size, cold start and store rules
 
