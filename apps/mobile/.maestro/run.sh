@@ -17,7 +17,9 @@ tags="${1:-}"
 if [ "$tags" = loop ]; then
   loop_flow="${2:-}"; loop_n="${3:-}"
   # Both come from a workflow input: accept a plain file name in flows/ and a count only.
-  [[ "$loop_flow" =~ ^[a-z0-9-]+\.yaml$ && -f "flows/$loop_flow" && "$loop_n" =~ ^[0-9]+$ && "$loop_n" -ge 1 && "$loop_n" -le 40 ]] || { echo "usage: $0 loop <flows/x.yaml name> <1-40> [VaultMe.app]" >&2; exit 2; }
+  [[ "$loop_flow" =~ ^[a-z0-9-]+\.yaml$ && -f "flows/$loop_flow" && "$loop_n" =~ ^[1-9][0-9]*$ && "$loop_n" -le 40 ]] || { echo "usage: $0 loop <flows/x.yaml name> <1-40> [VaultMe.app]" >&2; exit 2; }
+  # A funded flow sends real Sepolia funds and is never repeated (ADR-0040); create.yaml shows a recovery phrase that must not reach the public artifact.
+  ! grep -qE '^tags:.*\bfunded\b' "flows/$loop_flow" && [ "$loop_flow" != create.yaml ] || { echo "the loop does not run funded flows or create.yaml" >&2; exit 2; }
   set -- loop ${4:+"$4"}
 fi
 case "$tags" in smoke | full | critical | release | loop) ;; *) echo "usage: $0 smoke|full|critical|release|loop [VaultMe.app]" >&2; exit 2 ;; esac
@@ -62,7 +64,7 @@ case "$platform" in
     [ "$(printf '%s\n' "$udid" | wc -l)" -eq 1 ] || { echo "several simulators are booted; set SIM_UDID to one of: $udid" >&2; exit 2; }
     ios_prepare
     face_loop_start
-    trap 'kill $loop 2>/dev/null || true' EXIT
+    trap 'kill $loop 2>/dev/null || true; report_unlock_retries' EXIT
     ;;
   android)
     app="${2:-../android/app/build/outputs/apk/release/app-release.apk}"
@@ -81,7 +83,7 @@ case "$platform" in
     # The touch loop starts first: enrollment asks for several touches, and later the OS auth sheets need one each.
     ( while true; do ../../../scripts/sim-auth.sh match android >/dev/null 2>&1 || true; sleep 1; done ) &
     loop=$!
-    trap 'kill $loop 2>/dev/null || true' EXIT
+    trap 'kill $loop 2>/dev/null || true; report_unlock_retries' EXIT
     adb -s "$udid" shell am start -a android.settings.BIOMETRIC_ENROLL >/dev/null
     maestro --udid "$udid" test enroll-fingerprint-android.yaml --test-output-dir ../e2e-artifacts/enroll
     # The enroll flow taps optional buttons, so it can end without a fingerprint: fail here with the cause, not later in every auth flow.
@@ -103,12 +105,11 @@ if [ "$tags" = loop ]; then
       # A real run starts on a freshly booted simulator (iteration 1 does; 14 repeats on one simulator never failed, run 43937596396), so every
       # later iteration erases and boots it again and enrolls Face ID again.
       kill "$loop" 2>/dev/null || true
-      xcrun simctl shutdown "$udid"; xcrun simctl erase "$udid"; xcrun simctl boot "$udid"; xcrun simctl bootstatus "$udid" -b >/dev/null
-      ios_prepare
+      { xcrun simctl shutdown "$udid" && xcrun simctl erase "$udid" && xcrun simctl boot "$udid" && xcrun simctl bootstatus "$udid" -b >/dev/null && ios_prepare; } || { echo "LOOP stops before iteration $i: the simulator did not come back" | tee -a ../e2e-artifacts/loop-summary.txt; fail=$((fail + 1)); break; }
       face_loop_start
     fi
     echo "$(date -u +%T) loop iteration $i" >> ../e2e-artifacts/face-id-loop.log
-    started=$(date -u +'%Y-%m-%d %H:%M:%S')
+    started=$(date +'%Y-%m-%d %H:%M:%S') # log show reads local time
     if maestro --udid "$udid" test "flows/$loop_flow" --format junit --output "../e2e-report-loop-$i.xml" --test-output-dir "../e2e-artifacts/loop-$i"; then
       pass=$((pass + 1)); echo "LOOP $i/$loop_n PASS ($(date -u +%T))" | tee -a ../e2e-artifacts/loop-summary.txt
     else
@@ -128,7 +129,7 @@ include=smoke
 [ "$tags" = critical ] && include=critical
 [ "$tags" = release ] && include=critical,funded
 rm -f ../e2e-report.xml ../e2e-report-retry.xml # a report left from an earlier local run must not pick the flows to retry
-maestro --udid "$udid" test flows --include-tags "$include" --format junit --output ../e2e-report.xml --test-output-dir ../e2e-artifacts && { report_unlock_retries; exit 0; }
+maestro --udid "$udid" test flows --include-tags "$include" --format junit --output ../e2e-report.xml --test-output-dir ../e2e-artifacts && exit 0
 # One retry of the failed flows only (owner decision 2026-11-03, #376): the CI simulator sometimes loses a flow to its own
 # hiccups (driver unreachable, a label not found on a screen that shows it). A flow that fails twice fails the job; a pass on
 # the retry is reported as flaky. A run with no report (e.g. the driver never started) fails at once.
