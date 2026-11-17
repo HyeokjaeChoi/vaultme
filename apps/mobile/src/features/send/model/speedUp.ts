@@ -29,7 +29,8 @@ export type ReplaceKind = 'speedUp' | 'cancel'
 /**
  * Where a replacement starts from: the fee fields (and, for a speed up, the gas limit) the latest tx was signed with. The record holds them; one
  * written before they were saved has none, so the sent tx is read from the chain by hash (newest own hash first: the newest may never have reached
- * the node). A tx the node does not know throws: a bump from today's market value could be refused as underpriced. A cancel is always 21000 gas.
+ * the node). A tx the node does not know (dropped, or never reached it): a cancel gets no base and bumps from today's market fees (#659; the
+ * node may refuse that as underpriced: a `ChainError`, nothing is recorded). A speed up throws: it shows the base as the current fee. A cancel is always 21000 gas.
  */
 async function sentBase(tx: PendingTx, chain: Pick<ChainPort, 'getTransaction'>, needGas: boolean) {
   let fees: FeeFields | null = null
@@ -46,7 +47,8 @@ async function sentBase(tx: PendingTx, chain: Pick<ChainPort, 'getTransaction'>,
       break
     }
   }
-  if (fees === null || (needGas && gasLimit === null))
+  // A speed up shows the base as "current fee" and needs the gas limit, so it keeps the error. A cancel shows only its own estimate (Figma 1050:12042).
+  if (needGas && (fees === null || gasLimit === null))
     throw new Error('replace: the sent transaction is not known to the node')
   return { latestSent: fees, gasLimit }
 }
@@ -68,15 +70,16 @@ export async function quoteReplace(
     sentBase(tx, chain, !cancel),
   ])
   const market = marketFeesOf(snap)
+  const latestSent = base.latestSent ?? market
   if (cancel)
     return planCancel({
-      latestSent: base.latestSent,
+      latestSent,
       market,
       baseFeePerGas: snap.baseFeePerGas,
       nativeBalance: snap.nativeBalance,
     })
   return planSpeedUp({
-    latestSent: base.latestSent,
+    latestSent,
     gasLimit: base.gasLimit ?? snap.gasLimit, // never null for a speed up (`sentBase` throws)
     market,
     baseFeePerGas: snap.baseFeePerGas,
