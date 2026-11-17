@@ -73,6 +73,9 @@ Before MOB-1: 85 `e2e` runs from 2026-11-02 to 2026-11-07 (from the `::warning::
 | 2026-11-16 | [43814564369](https://github.com/HyeokjaeChoi/vaultme/actions/runs/43814564369) | `cold start asks OS auth, then opens Home` | no |
 | 2026-11-16 | [43881442664](https://github.com/HyeokjaeChoi/vaultme/actions/runs/43881442664) | `cold start asks OS auth, then opens Home` | no |
 | 2026-11-16 | [43910621423](https://github.com/HyeokjaeChoi/vaultme/actions/runs/43910621423) | `cold start asks OS auth, then opens Home` (failed twice) | no, run failed |
+| 2026-11-17 | [44095063459](https://github.com/HyeokjaeChoi/vaultme/actions/runs/44095063459) | `cold start asks OS auth, then opens Home` (retry passed; the `잠금 해제` tap was used once in the first attempt) | no |
+
+Restarts of the MOB-1 count (10 manual runs, at most 1 retry, no failed run; a `잠금 해제` tap counts as a retry). Restart 2 (after #667): 2 clean runs, then run 43910621423 failed at the cold-start flow; the cause is a freshly booted simulator (#668). Restart 3 (after #670, runs 44027035121 to 44095063459): 9 clean runs and run 44095063459 with 2 recoveries (1 flow rerun and 1 `잠금 해제` tap), so the gate failed; 0 failed runs. In that run the Face ID sheet missed the 5 s activation watchdog of `coreauthd` twice in a row. Run 44054224068 had 1 warm-up failure (the first tap on `기존 지갑 복구` was ignored, #671); the warm-up is not a gated flow, so it is not a retry, and the count is its own column in the evidence files. MOB-1 is still open.
 
 ## Release size, cold start and store rules
 
