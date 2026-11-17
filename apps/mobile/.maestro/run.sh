@@ -29,6 +29,8 @@ ios_prepare() {
   # Enroll Face ID (same commands as apps/mobile/AGENTS.md, for a simulator made for E2E).
   xcrun simctl spawn "$udid" notifyutil -s com.apple.BiometricKit.enrollmentChanged 1
   xcrun simctl spawn "$udid" notifyutil -p com.apple.BiometricKit.enrollmentChanged
+  # Warm-up of the fresh simulator (warmup.yaml, #668). A failed warm-up is reported and the flows still run: they show the real failure.
+  maestro --udid "$udid" test warmup.yaml --test-output-dir "../e2e-artifacts/warmup-$(date +%s)" || echo "::warning::warm-up flow failed (#668); the flows run anyway"
   # `simctl notify_post` posts a Darwin notification on the device (xcrun simctl help notify_post); `spawn notifyutil` started a process in the
   # simulator each second. A failed send was hidden by `|| true`: manual run 43881442664 had a Face ID sheet that never matched in 39 s
   # (coreauthd started the match at 14:44:28 and logged no match), so failures and a count now go to e2e-artifacts/face-id-loop.log.

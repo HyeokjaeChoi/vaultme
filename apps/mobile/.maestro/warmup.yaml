@@ -1,0 +1,20 @@
+# Warm-up of a freshly booted simulator (#668). Not in flows/, so no run picks it as a flow; run.sh runs it once after boot, before the flows.
+# In 18 loop iterations on a fresh simulator, 6 failed with a slow first start: a start screen that took longer than 7 s to show, a tap on the
+# start screen that was ignored, no keyboard after the first Return (restore), and the Face ID sheet missing coreauthd's 5 s watchdog (run 43978051337).
+# One pass through the start screen, the restore screen and the keyboard lets the simulator start the app, its touch handling and the keyboard once
+# before a flow depends on them. Remove it when 20 fresh-simulator iterations pass without it.
+appId: dev.stackline.vaultme
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- extendedWaitUntil:
+    visible: '기존 지갑 복구'
+    timeout: 90000
+- tapOn: '기존 지갑 복구'
+- extendedWaitUntil:
+    visible: '1번째 단어'
+    timeout: 30000
+- tapOn: '1번째 단어'
+- waitForAnimationToEnd:
+    timeout: 3000
