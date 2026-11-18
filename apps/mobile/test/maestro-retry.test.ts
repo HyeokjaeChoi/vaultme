@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { chmodSync, cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -46,5 +46,42 @@ describe('retry-flows.sh', () => {
   })
   it('reports a failed flow that matches no file, so it cannot pass unseen', () => {
     expect(classify(['no such flow'])).toEqual(['unknown no such flow'])
+  })
+})
+
+// run.sh, release mode, with stub tools (no simulator): a failed funded flow fails the job, but the failed non-funded flow still gets its one retry,
+// and the retry never contains a funded flow (it would broadcast again).
+describe('run.sh release with a failed funded flow', () => {
+  it('retries the plain failed flow only, then exits 1', () => {
+    const root = mkdtempSync(join(tmpdir(), 'runsh-'))
+    cpSync(maestro, join(root, '.maestro'), { recursive: true })
+    const bin = join(root, 'bin')
+    mkdirSync(bin)
+    const funded = info.find((f) => f.funded)!
+    const plain = info.find((f) => !f.funded)!
+    const calls = join(root, 'calls.txt')
+    const stub = (name: string, body: string) => {
+      writeFileSync(join(bin, name), `#!/usr/bin/env bash\n${body}\n`)
+      chmodSync(join(bin, name), 0o755)
+    }
+    stub('xcrun', 'exit 0')
+    stub('sleep', 'exit 0')
+    // The first call is the whole run: it writes a report with both flows failed. Later calls are the retry; the warm-up is not recorded.
+    const report = `<testsuites><testsuite><testcase name="${funded.name}"><failure>x</failure></testcase><testcase name="${plain.name}"><failure>x</failure></testcase></testsuite></testsuites>`
+    stub(
+      'maestro',
+      `case "$*" in *warmup.yaml*) exit 0 ;; esac
+if [ ! -f ${calls} ]; then echo first > ${calls}; printf '%s' '${report}' > ../e2e-report.xml; exit 1; fi
+echo "$*" >> ${calls}; exit 0`,
+    )
+    const r = spawnSync('bash', [join(root, '.maestro', 'run.sh'), 'release', 'x.app'], {
+      encoding: 'utf8',
+      env: { ...process.env, PATH: `${bin}:${process.env.PATH ?? ''}`, SIM_UDID: 'UDID', GITHUB_STEP_SUMMARY: '' },
+    })
+    expect(r.status).toBe(1)
+    expect(r.stdout).toContain('funded flow failed and is never retried')
+    const retry = readFileSync(calls, 'utf8').split('\n').slice(1).join('\n')
+    expect(retry).toContain(plain.file)
+    expect(retry).not.toContain(funded.file)
   })
 })
