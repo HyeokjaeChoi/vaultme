@@ -80,5 +80,21 @@ appId: dev.stackline.vaultme
 - extendedWaitUntil:
     visible: '보냈어요'
     timeout: 1200000
+    optional: true
+# Text-only diagnosis for a timeout (tag run 44225225354: the ETH send was mined, the screen never showed `보냈어요`). A tag run keeps no screenshots
+# or command logs, only the JUnit failure message, so each state of the result screen gets its own assertion: the first one that fails names the
+# state the screen was in when the wait ended. Only runs when `보냈어요` is not on screen, so a good run never meets these. Pending, Included, Failed, Replaced, Unknown (ko.ts `send.result`).
+- runFlow:
+    when:
+      notVisible: '보냈어요'
+    commands:
+      - assertNotVisible: '네트워크 처리를 기다리는 중이에요.'
+      - assertNotVisible: '블록에 포함됐어요.*'
+      - assertNotVisible: '보내지 못했어요'
+      - assertNotVisible: '실행되지 않았어요'
+      - assertNotVisible: '보낸 결과를 확인하지 못했어요'
+      # None of the five: the screen is not the result screen (the labels of the amount and the hash show on every state).
+      - assertVisible: '보낸 금액.*|거래 해시.*'
+- assertVisible: '보냈어요'
 - tapOn: '홈으로'
 - assertVisible: 'Sepolia ETH'
