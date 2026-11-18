@@ -119,4 +119,16 @@ appId: dev.stackline.vaultme
     timeout: 30000
 - assertVisible: '(?i).*${PREFIX}.*'
 - tapOn: '지갑 열기'
-- assertVisible: 'Sepolia ETH'
+# iOS offers to save the passphrase after it was typed into the masked field (a system sheet "암호를 저장하겠습니까?" over Home; iOS probe run 44246654627,
+# screenshot step-136: Home is behind the sheet, so 'Sepolia ETH' is not visible until a button is tapped). A person taps "지금 안 함". A wait, then a tap.
+- extendedWaitUntil:
+    visible: '지금 안 함|Sepolia ETH'
+    timeout: 30000
+- runFlow:
+    when:
+      visible: '지금 안 함'
+    commands:
+      - tapOn: '지금 안 함'
+- extendedWaitUntil:
+    visible: 'Sepolia ETH'
+    timeout: 30000
