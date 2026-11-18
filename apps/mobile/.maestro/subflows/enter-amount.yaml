@@ -1,0 +1,53 @@
+# Types the amount "0.[000]D1D2[D3]" on the send amount screen. Params: ASSET (ETH|USDC), D1..D3 (see send-funded.yaml). Used by send-funded.yaml.
+# Android: the emulator screen is shorter than the amount screen, so the bottom keypad row ('.', '0', backspace) sits under the footer and is not in the view
+# hierarchy until the screen is scrolled (dry run 44297931307: '0' not found below '25%', the screenshot shows rows 1 to 9 only). One scroll (the content overflows by about 146 px, so it
+# reaches the end) puts the whole keypad on screen and keeps the '25%' chip above it (dry run 44302681236; the failure was tag run 44225225354, funded-1).
+# This is a workaround for an app layout problem on short screens (384x640 dp: a user must scroll to reach '0'), issue #686. Remove the scroll when the amount
+# screen shows the whole keypad on that size.
+appId: dev.stackline.vaultme
+---
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scroll
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: '0'
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: '소수점'
+- runFlow:
+    when:
+      true: ${ASSET == 'ETH'}
+    commands:
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: '0'
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: '0'
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: '0'
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: ${D1}
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: ${D2}
+- runFlow:
+    when:
+      true: ${ASSET == 'ETH'}
+    commands:
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: ${D3}
