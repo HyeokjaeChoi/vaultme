@@ -53,3 +53,18 @@ describe('flows/config.yaml order', () => {
     expect(first.tags).toContain('critical')
   })
 })
+
+// The result headline sits inside AmountHero, one accessible element with a joined label, and Maestro matches a whole text: the wait for
+// Confirmed takes the bare headline and the joined label, but not the warning under a Pending send.
+describe('send-funded Confirmed pattern', () => {
+  const text = readFileSync(join(__dirname, '..', '.maestro', 'subflows', 'send-funded.yaml'), 'utf8')
+  const pattern = /^\s+visible: '(보냈어요.*)'$/m.exec(text)?.[1] ?? ''
+  const matches = (s: string) => new RegExp(`^(?:${pattern})$`, 's').test(s)
+  it('matches the headline alone and joined, not the pending warning or the pending headline', () => {
+    expect(pattern).not.toBe('')
+    expect(matches('보냈어요')).toBe(true)
+    expect(matches('보냈어요. 0.000165 ETH. 확정')).toBe(true)
+    expect(matches('이미 네트워크에 보냈어요.')).toBe(false)
+    expect(matches('보내는 중이에요. 0.000165 ETH')).toBe(false)
+  })
+})
