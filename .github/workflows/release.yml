@@ -139,8 +139,10 @@ jobs:
           retention-days: 90
           if-no-files-found: warn
       # run.sh prints `::warning::flaky ...` when a flow failed once and passed on the retry (#377).
+      # Reporting only, not a gate: a failed GitHub API call keeps the job green, because a re-run would broadcast the funded sends again (ADR-0040, #693).
       - name: Open or update the flaky e2e issue
         if: ${{ success() }}
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: apps/mobile/.maestro/flaky-issue.sh iOS "$RUNNER_TEMP/critical.log" "$GITHUB_REF_NAME"
@@ -288,8 +290,10 @@ jobs:
           retention-days: 90
           if-no-files-found: warn
       # run.sh prints `::warning::flaky ...` when a flow failed once and passed on the retry (#377).
+      # Reporting only, not a gate: a failed GitHub API call keeps the job green, because a re-run would broadcast the funded sends again (ADR-0040, #693).
       - name: Open or update the flaky e2e issue
         if: ${{ success() }}
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: apps/mobile/.maestro/flaky-issue.sh Android "$RUNNER_TEMP/critical.log" "$GITHUB_REF_NAME"
