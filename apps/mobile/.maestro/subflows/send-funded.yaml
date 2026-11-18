@@ -77,8 +77,28 @@ appId: dev.stackline.vaultme
 # but `보냈어요` shows only for Confirmed (a receipt at or below the `safe` block), and `safe` lags the newest block by 7 to 13 minutes on
 # Sepolia (ADR-0006). 1,200 s = 13 min + the 15 s poll + about 6 min for inclusion and block-time jitter (ADR-0040). The flow is never
 # retried (run.sh): a retry would broadcast again. A timeout here fails the release; check the chain with scripts/release-verify.mts.
+# The result headline sits inside AmountHero, which is one accessible element with a joined label ("보냈어요. 0.000165 ETH. ..."; AmountHero.tsx):
+# iOS then shows the headline only inside that label, and Maestro matches a whole text, so a plain '보냈어요' can miss it. The pattern takes both forms
+# and still not '이미 네트워크에 보냈어요.' (the warning under a Pending send). This may be why the iOS wait of tag run 44225225354 ran out although the tx was mined.
 - extendedWaitUntil:
-    visible: '보냈어요'
+    visible: '보냈어요(\. .*)?'
     timeout: 1200000
+    optional: true
+# Text-only diagnosis for a timeout (tag run 44225225354: the ETH send was mined, the screen never showed `보냈어요`). A tag run keeps no screenshots
+# or command logs, only the JUnit failure message, so each state of the result screen gets its own assertion: the first one that fails names the
+# state the screen was in when the wait ended. Only runs when `보냈어요` is not on screen, so a good run never meets these. Pending, Included, Failed, Replaced, Unknown (ko.ts `send.result`).
+# Each pattern is `.*text.*`: the text can be part of the joined AmountHero label.
+- runFlow:
+    when:
+      notVisible: '보냈어요(\. .*)?'
+    commands:
+      - assertNotVisible: '.*네트워크 처리를 기다리는 중이에요.*'
+      - assertNotVisible: '.*블록에 포함됐어요.*'
+      - assertNotVisible: '.*보내지 못했어요.*'
+      - assertNotVisible: '.*실행되지 않았어요.*'
+      - assertNotVisible: '.*보낸 결과를 확인하지 못했어요.*'
+      # None of the five: the screen is not the result screen (it lists `받는 주소` on every state).
+      - assertVisible: '.*받는 주소.*'
+- assertVisible: '보냈어요(\. .*)?'
 - tapOn: '홈으로'
 - assertVisible: 'Sepolia ETH'

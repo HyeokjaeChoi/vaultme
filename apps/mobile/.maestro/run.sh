@@ -19,7 +19,7 @@ if [ "$tags" = loop ]; then
   # Both come from a workflow input: accept a plain file name in flows/ and a count only.
   [[ "$loop_flow" =~ ^[a-z0-9-]+\.yaml$ && -f "flows/$loop_flow" && "$loop_n" =~ ^[1-9][0-9]*$ && "$loop_n" -le 40 ]] || { echo "usage: $0 loop <flows/x.yaml name> <1-40> [VaultMe.app]" >&2; exit 2; }
   # A funded flow sends real Sepolia funds and is never repeated (ADR-0040); create.yaml shows a recovery phrase that must not reach the public artifact.
-  ! grep -qE '^tags:.*\bfunded\b' "flows/$loop_flow" && [ "$loop_flow" != create.yaml ] || { echo "the loop does not run funded flows or create.yaml" >&2; exit 2; }
+  ! grep -qE '^tags:.*\bfunded\b' "flows/$loop_flow" && [ "$loop_flow" != create.yaml ] && [ "$loop_flow" != config.yaml ] || { echo "the loop does not run funded flows or create.yaml" >&2; exit 2; }
   set -- loop ${4:+"$4"}
 fi
 case "$tags" in smoke | full | critical | release | loop) ;; *) echo "usage: $0 smoke|full|critical|release|loop [VaultMe.app]" >&2; exit 2 ;; esac
@@ -142,8 +142,15 @@ unknown=0
 while read -r kind f; do
   case "$kind" in retry) retry+=("$f") ;; funded) funded+=("$f") ;; unknown) unknown=1; echo "::error::failed flow without a file in flows/: $f" ;; esac
 done < <(./retry-flows.sh ../e2e-report.xml)
+# A failed funded flow fails the job (exit 1, after the retry below), but the failed non-funded flows still get their one retry first: it shows a start-screen flake
+# apart from the funded failure (tag run 44225225354: the Android lock flow failed once and was never retried). `retry` holds only
+# non-funded flows, so nothing is broadcast again.
 if [ ${#funded[@]} -gt 0 ]; then
   echo "::error::funded flow failed and is never retried (a retry would broadcast again): ${funded[*]}. Check the chain (scripts/release-verify.mts), fix, then tag again."
+  if [ $unknown -eq 0 ] && [ ${#retry[@]} -gt 0 ]; then
+    echo "::warning::flaky: retrying ${retry[*]}"
+    maestro --udid "$udid" test "${retry[@]}" --format junit --output ../e2e-report-retry.xml --test-output-dir ../e2e-artifacts/retry || true
+  fi
   exit 1
 fi
 [ $unknown -eq 0 ] || exit 1
