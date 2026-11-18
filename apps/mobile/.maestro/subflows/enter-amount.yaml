@@ -2,6 +2,8 @@
 # Android: the emulator screen is shorter than the amount screen, so the bottom keypad row ('.', '0', backspace) sits under the footer and is not in the view
 # hierarchy until the screen is scrolled (dry run 44297931307: '0' not found below '25%', the screenshot shows rows 1 to 9 only). One scroll to the end puts the
 # whole keypad on screen and keeps the '25%' chip above it (tag run 44225225354, funded-1).
+# This is a workaround for an app layout problem on short screens (384x640 dp: a user must scroll to reach '0'), issue #686. Remove the scroll when the amount
+# screen shows the whole keypad on that size.
 appId: dev.stackline.vaultme
 ---
 - runFlow:
