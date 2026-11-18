@@ -72,7 +72,10 @@ appId: dev.stackline.vaultme
 # Optional BIP39 passphrase: the row is collapsed; on the small Android screen scroll to it first.
 - runFlow:
     when:
-      true: ${PASSPHRASE.length > 0}
+      # An empty shell value (wallet A has no passphrase) reaches the flow as the text 'undefined', not as '': Maestro prints
+      # "Inputting text: undefined" in the Android dry run 44232240159, and A's restore then typed it and got another address
+      # (tag run 44225225354, funded-2-receive). Covered by apps/mobile/test/restore-funded.test.ts.
+      true: ${PASSPHRASE !== 'undefined' && PASSPHRASE.length > 0}
     commands:
       - scrollUntilVisible:
           element: '고급 · 패스프레이즈 입력'

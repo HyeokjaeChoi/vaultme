@@ -1,0 +1,13 @@
+# Order of the flows of this directory (Maestro docs, "Sequential execution": flows in `flowsOrder` run first, in this order; any flow not listed runs after, in no
+# fixed order). Without it the Android job on Linux ran `funded-2-receive` before `funded-1-send` (tag run 44225225354: the receive check ran before the
+# send, so no deposit could be there), because the directory is not read in file name order there. The funded flows run last, funded-1 before funded-2.
+# `continueOnFailure` stays at its default (true): a failed flow does not stop the rest, as before.
+executionOrder:
+  flowsOrder:
+    - restore
+    - receive
+    - send
+    - lock
+    - create
+    - funded-1-send
+    - funded-2-receive

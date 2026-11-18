@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 // CHAIN-1 (ADR-0040): run.sh retries a failed flow once, but never a flow tagged `funded`: a retry would broadcast a second real send.
 const maestro = join(__dirname, '..', '.maestro')
-const flows = readdirSync(join(maestro, 'flows')).filter((f) => f.endsWith('.yaml'))
+const flows = readdirSync(join(maestro, 'flows')).filter((f) => f.endsWith('.yaml') && f !== 'config.yaml') // config.yaml is the order of the flows, not a flow
 const info = flows.map((file) => {
   const text = readFileSync(join(maestro, 'flows', file), 'utf8')
   return {
