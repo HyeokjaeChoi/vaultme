@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "gate": "mob-1",
+  "commit": "15a027cffc101f84539753a9b71231108de8d518",
+  "runId": 44302048359,
+  "runUrl": "https://github.com/HyeokjaeChoi/vaultme/actions/runs/44302048359",
+  "workflow": "e2e",
+  "event": "workflow_dispatch",
+  "measuredAt": "2026-11-18T13:50:09Z",
+  "origin": "restart 5 after #684 and #690, run 6 of 10 (branch mob1-r5-06 at 15a027c, same commit as main; the e2e concurrency group is per ref), clean",
+  "tool": "Maestro 2.11.0, iOS simulator, e2e.yml",
+  "results": [
+    {
+      "metric": "Flows retried",
+      "value": 0,
+      "unit": "flows",
+      "threshold": {
+        "op": "<=",
+        "value": 1
+      },
+      "pass": true,
+      "n": 5,
+      "window": "one run"
+    },
+    {
+      "metric": "Flows failed",
+      "value": 0,
+      "unit": "flows",
+      "threshold": {
+        "op": "==",
+        "value": 0
+      },
+      "pass": true,
+      "n": 5,
+      "window": "one run"
+    },
+    {
+      "metric": "Warm-up flow failures",
+      "value": 0,
+      "unit": "warm-ups",
+      "threshold": null,
+      "pass": null,
+      "n": 1,
+      "window": "one run"
+    },
+    {
+      "metric": "Lock gate retry taps",
+      "value": 0,
+      "unit": "taps",
+      "threshold": null,
+      "pass": null,
+      "n": 1,
+      "window": "one run"
+    }
+  ]
+}
