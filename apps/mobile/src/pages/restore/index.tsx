@@ -33,7 +33,7 @@ import {
   TextLink,
   WordCell,
 } from '@/shared/ui'
-import { NO_AUTOFILL } from '@/shared/ui'
+import { PASSPHRASE_FIELD } from '@/shared/ui'
 
 /**
  * B-S05 지갑 복구 (Figma 423:15293 + 10 states): title + helper, 12/24 chips + 붙여넣기, numbered word cells in 2 columns
@@ -350,7 +350,7 @@ export function RestorePage({ initial, dev }: { initial?: { words: string[]; cou
                   label: showPass ? t('restore.passphrase.hide') : t('restore.passphrase.show'),
                   onPress: () => setShowPass(!showPass),
                 }}
-                {...NO_AUTOFILL}
+                {...PASSPHRASE_FIELD}
               />
             ) : null}
             {passOpen ? (

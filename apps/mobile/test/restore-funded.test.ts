@@ -68,3 +68,27 @@ describe('send-funded Confirmed pattern', () => {
     expect(matches('보내는 중이에요. 0.000165 ETH')).toBe(false)
   })
 })
+
+describe('every Maestro wait for the Home hero', () => {
+  // Home's hero is named 'Sepolia ETH, 0 ETH. …' once the balance of an empty wallet has loaded (iOS joins the children into one label), and Maestro matches the whole text:
+  // an exact 'Sepolia ETH' passes only while the balance loads or when the wallet has one (probe run 44276820026); the pattern must take both.
+  const root = join(__dirname, '..', '.maestro')
+  const files = ['flows', 'subflows'].flatMap((d) => readdirSync(join(root, d)).map((f) => join(root, d, f)))
+  const patterns = files.flatMap((f) =>
+    [...readFileSync(f, 'utf8').matchAll(/^[^#\n]*(?:visible|assertVisible): '([^']*Sepolia ETH[^']*)'$/gm)].map(
+      (m) => ({
+        file: f.slice(root.length + 1),
+        p: m[1] ?? '',
+      }),
+    ),
+  )
+  it('finds the waits', () => {
+    expect(patterns.length).toBeGreaterThanOrEqual(6)
+  })
+  it.each(['Sepolia ETH', 'Sepolia ETH, 0 ETH. 테스트넷 자산은 시장 가격이 없어요.'])(
+    'every one matches %j',
+    (label) => {
+      for (const { file, p } of patterns) expect(new RegExp(`^(?:${p})$`, 's').test(label), `${file}: ${p}`).toBe(true)
+    },
+  )
+})

@@ -129,12 +129,15 @@ appId: dev.stackline.vaultme
     file: dismiss-save-password.yaml
 # The sheet can cover Home for a while: wait for Home or the sheet, dismiss, wait for Home, and look once more for a late sheet.
 - extendedWaitUntil:
-    visible: 'Sepolia ETH|지금 안 함'
+    visible: 'Sepolia ETH(, .*)?|지금 안 함'
     timeout: 30000
 - runFlow:
     when:
       true: ${PASSPHRASE !== 'undefined' && PASSPHRASE.length > 0}
     file: dismiss-save-password.yaml
+# Home's hero is one accessible element: once the balance has loaded iOS names it 'Sepolia ETH, 0 ETH. 테스트넷 자산은 …', and an exact 'Sepolia ETH' does not
+# match on an empty wallet (probe run 44276820026: clean Home in the screenshot, hierarchy 'Sepolia ETH, 0 ETH. …', the wait failed; a wallet with a balance
+# shows a button named exactly 'Sepolia ETH', so the pattern takes both). Same cause as the AmountHero '보냈어요' pattern.
 - extendedWaitUntil:
-    visible: 'Sepolia ETH'
+    visible: 'Sepolia ETH(, .*)?'
     timeout: 30000
