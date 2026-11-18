@@ -11,7 +11,7 @@ tags: [smoke, critical]
 # Wallet saved behind the OS auth sheet (Face ID match comes from run.sh), then Home. The save can take longer than the 7 s
 # assertVisible default on the CI simulator (same reason as #473).
 - extendedWaitUntil:
-    visible: 'Sepolia ETH'
+    visible: 'Sepolia ETH(, .*)?'
     timeout: 30000
 - tapOn: '복구 구문을 아직 백업하지 않았어요'
 - tapOn: '탭해서 보기'

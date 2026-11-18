@@ -83,4 +83,4 @@ appId: dev.stackline.vaultme
     timeout: 30000
 - assertVisible: '.*0x9858.*'
 - tapOn: '지갑 열기'
-- assertVisible: 'Sepolia ETH'
+- assertVisible: 'Sepolia ETH(, .*)?'

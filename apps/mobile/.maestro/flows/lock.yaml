@@ -13,7 +13,7 @@ tags: [full, critical]
 #   That tap is counted as a retry: it saves the screenshot `unlock-retry-used` and run.sh reports it as `::warning::flaky` (MOB-1 allows 1 retry in 10 runs).
 # Remove the tap when 20 fresh-simulator loop iterations pass without it ever being used.
 - extendedWaitUntil:
-    visible: 'Sepolia ETH|잠금을 풀지 못했어요.*'
+    visible: 'Sepolia ETH(, .*)?|잠금을 풀지 못했어요.*'
     timeout: 60000
 - runFlow:
     when:
@@ -22,5 +22,5 @@ tags: [full, critical]
       - takeScreenshot: unlock-retry-used
       - tapOn: '잠금 해제'
 - extendedWaitUntil:
-    visible: 'Sepolia ETH'
+    visible: 'Sepolia ETH(, .*)?'
     timeout: 60000

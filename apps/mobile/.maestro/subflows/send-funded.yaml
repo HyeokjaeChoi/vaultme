@@ -101,4 +101,4 @@ appId: dev.stackline.vaultme
       - assertVisible: '.*받는 주소.*'
 - assertVisible: '보냈어요(\. .*)?'
 - tapOn: '홈으로'
-- assertVisible: 'Sepolia ETH'
+- assertVisible: 'Sepolia ETH(, .*)?'
