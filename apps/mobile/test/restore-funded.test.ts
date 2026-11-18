@@ -68,3 +68,15 @@ describe('send-funded Confirmed pattern', () => {
     expect(matches('보내는 중이에요. 0.000165 ETH')).toBe(false)
   })
 })
+
+describe('restore-funded Home wait', () => {
+  // Home's hero is named 'Sepolia ETH, 0 ETH. …' once the balance has loaded (iOS joins the children into one label), and Maestro matches the whole text.
+  const patterns = [...text.matchAll(/^\s+visible: '(Sepolia ETH[^']*)'$/gm)].map((m) => m[1] ?? '')
+  it.each(['Sepolia ETH', 'Sepolia ETH, 0 ETH. 테스트넷 자산은 시장 가격이 없어요.'])(
+    'every Home wait matches %j',
+    (label) => {
+      expect(patterns.length).toBeGreaterThanOrEqual(2)
+      for (const p of patterns) expect(new RegExp(`^(?:${p})$`, 's').test(label)).toBe(true)
+    },
+  )
+})

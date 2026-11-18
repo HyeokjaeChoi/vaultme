@@ -13,10 +13,11 @@ export const NO_AUTOFILL = {
 
 /**
  * The passphrase field (masked) on top of NO_AUTOFILL: textContentType 'oneTimeCode' instead of 'none'.
- * Why: with 'none' iOS still showed its "Save Password?" sheet after a masked passphrase was typed (iOS 26.5 simulator, release dry runs 44246654627 and
- * 44263799485, issue #683), so the passphrase could be saved to Passwords / iCloud Keychain. React Native docs (TextInput, 0.88): textContentType is the iOS
- * autofill hint, values other than username / password / newPassword do not offer to save a login; 'oneTimeCode' marks the field as a code to fill, not a credential
- * to store. Not documented by Apple or React Native as a way to suppress the sheet: only an iOS run proves it (the release dry-run probe must reach Home with no sheet).
+ * Why: with 'none' (plus autoComplete 'off') iOS still showed its "Save Password?" sheet after a masked passphrase was typed (iOS simulator, release dry runs
+ * 44246654627, 44263799485, issue #683), so the passphrase could be saved to Passwords / iCloud Keychain. With 'oneTimeCode' the dry run 44276820026 showed no sheet
+ * (9 of 9 checks). React Native docs (TextInput, 0.88): textContentType is the iOS autofill hint; they do not say it suppresses the sheet: only an iOS run shows it.
+ * Side effect: iOS may offer an SMS one-time code in the QuickType bar for this field (a wrong suggestion for a secret; it fills only a code that just arrived).
+ * Rejected: a plain field with our own mask (changes the screen, needs Figma, loses secureTextEntry's keyboard protections).
  * Remove it (back to NO_AUTOFILL) when a plain 'none' is shown to suppress the sheet on the iOS version in use.
  */
 export const PASSPHRASE_FIELD = { ...NO_AUTOFILL, textContentType: 'oneTimeCode' } as const
