@@ -70,8 +70,8 @@ describe('send-funded Confirmed pattern', () => {
 })
 
 describe('every Maestro wait for the Home hero', () => {
-  // Home's hero is named 'Sepolia ETH, 0 ETH. …' once the balance has loaded (iOS joins the children into one label), and Maestro matches the whole text:
-  // an exact 'Sepolia ETH' passes only while the balance still loads (probe run 44276820026; send-funded runs on a funded wallet).
+  // Home's hero is named 'Sepolia ETH, 0 ETH. …' once the balance of an empty wallet has loaded (iOS joins the children into one label), and Maestro matches the whole text:
+  // an exact 'Sepolia ETH' passes only while the balance loads or when the wallet has one (probe run 44276820026); the pattern must take both.
   const root = join(__dirname, '..', '.maestro')
   const files = ['flows', 'subflows'].flatMap((d) => readdirSync(join(root, d)).map((f) => join(root, d, f)))
   const patterns = files.flatMap((f) =>

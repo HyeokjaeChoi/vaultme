@@ -135,8 +135,9 @@ appId: dev.stackline.vaultme
     when:
       true: ${PASSPHRASE !== 'undefined' && PASSPHRASE.length > 0}
     file: dismiss-save-password.yaml
-# Home's hero is one accessible element: once the balance has loaded iOS names it 'Sepolia ETH, 0 ETH. 테스트넷 자산은 …', and an exact 'Sepolia ETH' never
-# matches (probe run 44276820026: clean Home in the screenshot, hierarchy 'Sepolia ETH, 0 ETH. …', the wait failed). Same cause as the AmountHero '보냈어요' pattern.
+# Home's hero is one accessible element: once the balance has loaded iOS names it 'Sepolia ETH, 0 ETH. 테스트넷 자산은 …', and an exact 'Sepolia ETH' does not
+# match on an empty wallet (probe run 44276820026: clean Home in the screenshot, hierarchy 'Sepolia ETH, 0 ETH. …', the wait failed; a wallet with a balance
+# shows a button named exactly 'Sepolia ETH', so the pattern takes both). Same cause as the AmountHero '보냈어요' pattern.
 - extendedWaitUntil:
     visible: 'Sepolia ETH(, .*)?'
     timeout: 30000
