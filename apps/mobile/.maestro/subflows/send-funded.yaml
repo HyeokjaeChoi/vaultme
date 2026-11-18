@@ -26,45 +26,12 @@ appId: dev.stackline.vaultme
       - tapOn: '보낼 자산.*'
       - tapOn: 'USD Coin.*'
 - runFlow:
-    file: tap-key.yaml
+    file: enter-amount.yaml
     env:
-      KEY: '0'
-- runFlow:
-    file: tap-key.yaml
-    env:
-      KEY: '소수점'
-- runFlow:
-    when:
-      true: ${ASSET == 'ETH'}
-    commands:
-      - runFlow:
-          file: tap-key.yaml
-          env:
-            KEY: '0'
-      - runFlow:
-          file: tap-key.yaml
-          env:
-            KEY: '0'
-      - runFlow:
-          file: tap-key.yaml
-          env:
-            KEY: '0'
-- runFlow:
-    file: tap-key.yaml
-    env:
-      KEY: ${D1}
-- runFlow:
-    file: tap-key.yaml
-    env:
-      KEY: ${D2}
-- runFlow:
-    when:
-      true: ${ASSET == 'ETH'}
-    commands:
-      - runFlow:
-          file: tap-key.yaml
-          env:
-            KEY: ${D3}
+      ASSET: ${ASSET}
+      D1: ${D1}
+      D2: ${D2}
+      D3: ${D3}
 - tapOn: '검토'
 # The fee is read from the API first: the confirm button is on only after that.
 - extendedWaitUntil:

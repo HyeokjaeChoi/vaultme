@@ -1,0 +1,51 @@
+# Types the amount "0.[000]D1D2[D3]" on the send amount screen. Params: ASSET (ETH|USDC), D1..D3 (see send-funded.yaml). Used by send-funded.yaml and by the keypad probe.
+# Android: the emulator screen is shorter than the amount screen, so the bottom keypad row ('.', '0', backspace) sits under the footer and is not in the view
+# hierarchy until the screen is scrolled (dry run 44297931307: '0' not found below '25%', the screenshot shows rows 1 to 9 only). One scroll to the end puts the
+# whole keypad on screen and keeps the '25%' chip above it (tag run 44225225354, funded-1).
+appId: dev.stackline.vaultme
+---
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scroll
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: '0'
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: '소수점'
+- runFlow:
+    when:
+      true: ${ASSET == 'ETH'}
+    commands:
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: '0'
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: '0'
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: '0'
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: ${D1}
+- runFlow:
+    file: tap-key.yaml
+    env:
+      KEY: ${D2}
+- runFlow:
+    when:
+      true: ${ASSET == 'ETH'}
+    commands:
+      - runFlow:
+          file: tap-key.yaml
+          env:
+            KEY: ${D3}
