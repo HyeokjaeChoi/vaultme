@@ -1,13 +1,15 @@
 # Order of the flows of this directory (Maestro docs, "Sequential execution": flows in `flowsOrder` run first, in this order; any flow not listed runs after, in no
 # fixed order). Without it the Android job on Linux ran `funded-2-receive` before `funded-1-send` (tag run 44225225354: the receive check ran before the
 # send, so no deposit could be there), because the directory is not read in file name order there. The funded flows run last, funded-1 before funded-2.
+# A flow is listed by its `name:` (Maestro 2.11.0 keys a flow by name when it has one, not by file name). The first listed flow must be in every run mode
+# (smoke, critical, full, release): Maestro fails the whole run when it is filtered out by tag. apps/mobile/test/restore-funded.test.ts checks both.
 # `continueOnFailure` stays at its default (true): a failed flow does not stop the rest, as before.
 executionOrder:
   flowsOrder:
-    - restore
-    - receive
-    - send
-    - lock
-    - create
-    - funded-1-send
-    - funded-2-receive
+    - 'restore from the public test vector'
+    - 'receive shows the restored address'
+    - 'send flow up to the amount screen (never broadcasts)'
+    - 'cold start asks OS auth, then opens Home'
+    - 'create wallet through backup'
+    - 'funded sends to the paired wallet'
+    - 'funded restored wallet shows deposits'
