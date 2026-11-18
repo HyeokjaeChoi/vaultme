@@ -381,7 +381,11 @@ jobs:
       - run: pnpm install --frozen-lockfile --filter @vaultme/mobile...
       # Official Expo action (installs eas-cli at a fixed version, logs in with the token). eas-cli is not a repo dependency:
       # its exact-pinned transitive packages (joi, minimatch, nanoid, ...) carry known advisories that osv-scanner blocks in the lockfile.
+      # The action runs `pnpm add eas-cli`; pnpm 12 stops on the unreviewed build scripts of dtrace-provider and protobufjs
+      # (strictDepBuilds, ERR_PNPM_IGNORED_BUILDS, #696). false only warns: the scripts still do not run. Remove when eas-cli has no such dependency.
       - uses: expo/expo-github-action@9da89d3617bb88139671bad31b09c65714c2ee06 # 9.0.1
+        env:
+          pnpm_config_strict_dep_builds: 'false'
         with:
           eas-version: 26.0.0 # published 2026-10-26; newer waits for the 7-day rule
           packager: pnpm
