@@ -45,6 +45,12 @@ describe('generated license list (S64 / S65)', () => {
     expect(find('chalk')?.variants.flatMap((v) => v.versions)).toEqual(['5.6.2', '4.1.2', '2.4.2'])
   })
 
+  // src/generated is git-ignored, so the EAS archive lacks it; the hook runs after install and before EAGER_BUNDLE (#702).
+  it('the EAS build generates the list before it bundles', async () => {
+    const pkg = (await import('../package.json')).default as { scripts: Record<string, string> }
+    expect(pkg.scripts['eas-build-post-install']).toBe('node scripts/generate-licenses.mjs')
+  })
+
   it('keeps one variant per distinct license text of a name', () => {
     // chalk 2.4.2 and 4.1.2 share one text; 5.6.2 has another
     expect(find('chalk')?.variants.map((v) => v.versions)).toEqual([['5.6.2'], ['4.1.2', '2.4.2']])
