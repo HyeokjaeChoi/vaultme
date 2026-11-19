@@ -64,7 +64,23 @@ appId: dev.stackline.vaultme
       - assertNotVisible: '.*보내지 못했어요.*'
       - assertNotVisible: '.*실행되지 않았어요.*'
       - assertNotVisible: '.*보낸 결과를 확인하지 못했어요.*'
-      # None of the five: the screen is not the result screen (it lists `받는 주소` on every state).
+      # Not the result screen (tag run 44426674807, Android USDC: never broadcast, none of these named the screen, #698). Before the broadcast:
+      # the OS auth sheet (`send.authPrompt`), a sheet over the review screen (ko.ts `send.*Error`, `needsReview`, `blocked`, `pendingBlock`,
+      # `apiError`, `updateRequired`), the review screen itself, then Home. A sheet can hide the review screen from Maestro, so it comes first.
+      - assertNotVisible: '.*보내려면 인증하세요.*'
+      - assertNotVisible: '.*인증하지 못했어요.*'
+      - assertNotVisible: '.*네트워크 정보를 가져오지 못했어요.*'
+      - assertNotVisible: '.*내용이 바뀌었어요.*'
+      - assertNotVisible: '.*수수료가 너무 높아요.*'
+      - assertNotVisible: '.*보낼 수 없어요.*'
+      - assertNotVisible: '.*진행 중인 보내기가 있어요.*'
+      - assertNotVisible: '.*서버에 연결하지 못했어요.*'
+      - assertNotVisible: '.*서버가 지금 바빠요.*'
+      - assertNotVisible: '.*기기 시간이 맞지 않아요.*'
+      - assertNotVisible: '.*앱을 업데이트하세요.*'
+      - assertNotVisible: '확인하고 보내기'
+      - assertNotVisible: 'Sepolia ETH(, .*)?'
+      # None of the above: the screen is not the result screen (it lists `받는 주소` on every state).
       - assertVisible: '.*받는 주소.*'
 - assertVisible: '보냈어요(\. .*)?'
 - tapOn: '홈으로'
