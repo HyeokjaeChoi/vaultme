@@ -1,6 +1,6 @@
 // Open-source license list for S64/S65 (owner decision 2026-10-17): built from the installed dependency closure of this app, transitive dependencies included.
 // Source of truth = the pnpm install (node_modules is a view of pnpm-lock.yaml; each package.json and LICENSE file is read as installed). No network, no dependency.
-// Output: src/generated/licenses.json (git-ignored). Run by `pnpm generate:licenses`; typecheck, lint, test and start run it first.
+// Output: src/generated/licenses.json (git-ignored). Run by `pnpm generate:licenses`; typecheck, lint, test and start run it first, and the EAS build runs it as `eas-build-post-install`.
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

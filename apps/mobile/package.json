@@ -5,6 +5,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "generate:licenses": "node scripts/generate-licenses.mjs",
+    "eas-build-post-install": "node scripts/generate-licenses.mjs",
     "start": "node scripts/generate-licenses.mjs && expo start",
     "ios": "node scripts/generate-licenses.mjs && expo run:ios",
     "android": "node scripts/generate-licenses.mjs && expo run:android",
