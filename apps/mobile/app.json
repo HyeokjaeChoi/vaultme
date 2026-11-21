@@ -68,7 +68,8 @@
       "expo-status-bar",
       "expo-system-ui",
       ["expo-navigation-bar", { "enforceContrast": false }],
-      ["expo-localization", { "supportedLocales": ["ko", "en"] }]
+      ["expo-localization", { "supportedLocales": ["ko", "en"] }],
+      ["./plugins/with-ndk-version", { "ndkVersion": "30.0.16248370" }]
     ],
     "icon": "./assets/icon.png",
     "extra": {

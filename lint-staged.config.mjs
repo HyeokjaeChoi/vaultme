@@ -5,7 +5,10 @@ const q = (files) => files.map((f) => JSON.stringify(f)).join(' ')
 export default {
   '*.{ts,tsx,js,mjs,cjs}': (files) => {
     const ws = files.filter((f) => /\/(apps|packages)\//.test(f))
-    return [...(ws.length ? [`eslint --max-warnings=0 --fix ${q(ws)}`] : []), `prettier --write ${q(files)}`]
+    return [
+      ...(ws.length ? [`eslint --max-warnings=0 --no-warn-ignored --fix ${q(ws)}`] : []),
+      `prettier --write ${q(files)}`,
+    ]
   },
   // Stylelint runs on the web app's CSS only (apps/web/stylelint.config.mjs); other CSS is generated or has no config.
   '*.css': (files) => {
