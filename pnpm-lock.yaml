@@ -222,7 +222,7 @@ importers:
     devDependencies:
       '@cloudflare/vitest-plugin':
         specifier: 1.4.11
-        version: 1.4.11(@cloudflare/workers-types@5.20261101.1)(@types/node@24.19.2)(vitest@5.0.5)
+        version: 1.4.11(@cloudflare/workers-types@5.20261101.1)(@types/node@24.19.2)(vitest@5.1.0)
       '@cloudflare/workers-types':
         specifier: 5.20261101.1
         version: 5.20261101.1
@@ -234,13 +234,13 @@ importers:
         version: link:../../packages/config
       '@vitest/coverage-istanbul':
         specifier: 5.0.5
-        version: 5.0.5(vitest@5.0.5)
+        version: 5.0.5(vitest@5.1.0)
       drizzle-kit:
         specifier: 0.31.11
         version: 0.31.11
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       fast-check:
         specifier: 4.10.2
         version: 4.10.2
@@ -249,7 +249,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.1.0)(jsdom@30.1.3)(vite@8.3.5)
       wrangler:
         specifier: 4.156.0
         version: 4.156.0(@cloudflare/workers-types@5.20261101.1)(@types/node@24.19.2)
@@ -430,19 +430,19 @@ importers:
         version: link:../../packages/config
       '@vitest/coverage-v8':
         specifier: 5.0.5
-        version: 5.0.5(vitest@5.0.5)
+        version: 5.0.5(vitest@5.1.0)
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       eslint-plugin-react-hooks:
         specifier: 7.1.1
-        version: 7.1.1(eslint@10.14.0)(supports-color@10.2.2)
+        version: 7.1.1(eslint@10.15.0)(supports-color@10.2.2)
       eslint-plugin-react-you-might-not-need-an-effect:
         specifier: 1.1.0
-        version: 1.1.0(eslint@10.14.0)
+        version: 1.1.0(eslint@10.15.0)
       eslint-plugin-unicorn:
         specifier: 78.0.0
-        version: 78.0.0(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)
+        version: 78.0.0(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)
       expo-doctor:
         specifier: 1.21.5
         version: 1.21.5
@@ -457,7 +457,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
 
   apps/web:
     dependencies:
@@ -515,7 +515,7 @@ importers:
         version: 4.3.3(vite@8.3.5)
       '@testing-library/jest-dom':
         specifier: ^7.0.1
-        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.5)
+        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.1.0)
       '@testing-library/react':
         specifier: ^16.3.3
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.3.0)(react@19.3.0)
@@ -539,10 +539,10 @@ importers:
         version: link:../../packages/contracts
       '@vitest/coverage-v8':
         specifier: 5.0.5
-        version: 5.0.5(vitest@5.0.5)
+        version: 5.0.5(vitest@5.1.0)
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       fake-indexeddb:
         specifier: 6.2.7
         version: 6.2.7
@@ -575,7 +575,7 @@ importers:
         version: 8.3.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
       wrangler:
         specifier: 4.156.0
         version: 4.156.0(@cloudflare/workers-types@5.20261101.1)(@types/node@24.19.2)
@@ -591,43 +591,43 @@ importers:
         version: link:../config
       '@vitest/coverage-v8':
         specifier: 5.0.5
-        version: 5.0.5(vitest@5.0.5)
+        version: 5.0.5(vitest@5.1.0)
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
 
   packages/config:
     dependencies:
       '@eslint/js':
         specifier: ^10.0.1
-        version: 10.0.1(eslint@10.14.0)
+        version: 10.0.1(eslint@10.15.0)
       '@feature-sliced/steiger-plugin':
         specifier: 0.8.1
         version: 0.8.1(typescript@6.0.3)
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       eslint-config-prettier:
         specifier: 10.1.8
-        version: 10.1.8(eslint@10.14.0)
+        version: 10.1.8(eslint@10.15.0)
       eslint-import-resolver-typescript:
         specifier: 4.4.5
-        version: 4.4.5(eslint@10.14.0)(supports-color@10.2.2)
+        version: 4.4.5(eslint@10.15.0)(supports-color@10.2.2)
       eslint-plugin-boundaries:
         specifier: 7.2.0
-        version: 7.2.0(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-typescript@4.4.5)(eslint@10.14.0)(supports-color@10.2.2)
+        version: 7.2.0(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-typescript@4.4.5)(eslint@10.15.0)(supports-color@10.2.2)
       steiger:
         specifier: 0.8.1
         version: 0.8.1(typescript@6.0.3)
       typescript-eslint:
         specifier: ^8.71.1
-        version: 8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)
+        version: 8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)
     devDependencies:
       '@types/node':
         specifier: ^24.19.1
@@ -637,7 +637,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.1.0)(jsdom@30.1.3)(vite@8.3.5)
 
   packages/contracts:
     dependencies:
@@ -650,16 +650,16 @@ importers:
         version: link:../config
       '@vitest/coverage-v8':
         specifier: 5.0.5
-        version: 5.0.5(vitest@5.0.5)
+        version: 5.0.5(vitest@5.1.0)
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
 
   packages/history:
     dependencies:
@@ -678,22 +678,22 @@ importers:
         version: 10.1.1(@types/node@24.19.2)
       '@stryker-mutator/vitest-runner':
         specifier: 10.1.1
-        version: 10.1.1(@stryker-mutator/core@10.1.1)(vitest@5.0.5)
+        version: 10.1.1(@stryker-mutator/core@10.1.1)(vitest@5.1.0)
       '@vaultme/config':
         specifier: workspace:*
         version: link:../config
       '@vitest/coverage-v8':
         specifier: 5.0.5
-        version: 5.0.5(vitest@5.0.5)
+        version: 5.0.5(vitest@5.1.0)
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
 
   packages/i18n:
     dependencies:
@@ -709,10 +709,10 @@ importers:
         version: link:../config
       '@vitest/coverage-v8':
         specifier: 5.0.5
-        version: 5.0.5(vitest@5.0.5)
+        version: 5.0.5(vitest@5.1.0)
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       react:
         specifier: 19.3.0
         version: 19.3.0
@@ -721,7 +721,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
 
   packages/perf:
     dependencies:
@@ -740,16 +740,16 @@ importers:
         version: link:../config
       '@vitest/coverage-v8':
         specifier: 5.0.5
-        version: 5.0.5(vitest@5.0.5)
+        version: 5.0.5(vitest@5.1.0)
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
 
   packages/tokens:
     dependencies:
@@ -765,16 +765,16 @@ importers:
         version: link:../config
       '@vitest/coverage-v8':
         specifier: 5.0.5
-        version: 5.0.5(vitest@5.0.5)
+        version: 5.0.5(vitest@5.1.0)
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
 
   packages/wallet-core:
     dependencies:
@@ -783,23 +783,23 @@ importers:
         version: 2.4.0
       viem:
         specifier: ^2.57.3
-        version: 2.57.7(typescript@6.0.3)(zod@4.6.7)
+        version: 2.57.19(typescript@6.0.3)(zod@4.6.7)
     devDependencies:
       '@stryker-mutator/core':
         specifier: 10.1.1
         version: 10.1.1(@types/node@24.19.2)
       '@stryker-mutator/vitest-runner':
         specifier: 10.1.1
-        version: 10.1.1(@stryker-mutator/core@10.1.1)(vitest@5.0.5)
+        version: 10.1.1(@stryker-mutator/core@10.1.1)(vitest@5.1.0)
       '@vaultme/config':
         specifier: workspace:*
         version: link:../config
       '@vitest/coverage-v8':
-        specifier: 5.0.5
-        version: 5.0.5(vitest@5.0.5)
+        specifier: 5.1.0
+        version: 5.1.0(vitest@5.1.0)
       eslint:
         specifier: ^10.12.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       fast-check:
         specifier: ^4.10.2
         version: 4.10.2
@@ -808,7 +808,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+        version: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.1.0)(jsdom@30.1.3)(vite@8.3.5)
 
 packages:
 
@@ -1938,6 +1938,10 @@ packages:
     resolution: {integrity: sha512-Y3kKLvC1dvTOT+oGlqNQ1XLqK6D1HU2YXPc52NmAlJZbMMWDzGYXMiPRJ8TYD39muD/OTjlZmNJ4ib7dvSrMBA==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
+  '@eslint/config-array@0.23.6':
+    resolution: {integrity: sha512-WrTH7nioI9QPY4NZGnsywmecswJdgeq4BCM76qok9VgjTO29ZgUzUvcuJLVPYVQM4uDbaPBU0M33R9DIxI8X3w==}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
   '@eslint/config-helpers@0.7.0':
     resolution: {integrity: sha512-DObd/KKUsU+FaFv4PLxSRenpXfQWmPXXP3pPZ6/K1PCrMu2vQpMDMuQe/BqYeoLcz8ro0bVDF1RxOJgfVEdhUw==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
@@ -2599,6 +2603,9 @@ packages:
     peerDependenciesMeta:
       '@types/node':
         optional: true
+
+  '@isaacs/nonrecursive-glob-match@1.1.0':
+    resolution: {integrity: sha512-GPm/Dbvk5RLmhRnxXIa7nTpK0xtl4E0wj0MslsuNiJ1FIROU+2+9lgUC/dgF7Ey4QCWhfEsgxilMRMCdHPfDfw==}
 
   '@isaacs/ttlcache@1.4.1':
     resolution: {integrity: sha512-RQgQ4uQ+pLbqXfOmieB91ejmLwvSgv9nLx6sT6sD83s7umBypgg+OIBOBbEUiJXrfpnp9j0mRhYYdzp9uqq3lA==}
@@ -4309,8 +4316,21 @@ packages:
       '@vitest/browser':
         optional: true
 
+  '@vitest/coverage-v8@5.1.0':
+    resolution: {integrity: sha512-OY9aShBQG5KOIw2zCo9fDoCHI9RHliNHJ//nM7m6jGg41Hyke9JOGWmeMlK74xYErsxMoK8mIB3gAeEyFVA7LA==}
+    peerDependencies:
+      '@vitest/browser': 5.1.0
+      vitest: 5.1.0
+    peerDependenciesMeta:
+      '@vitest/browser':
+        optional: true
+
   '@vitest/istanbul-lib-coverage@1.0.2':
     resolution: {integrity: sha512-9J/JMwOf9AoJhAywhrn7ScKTL38hsWQP/qPG60OtaAFcQ5OXPwKsxZFlbnuCKmZ61m8/lGgHYnFpdyQZUvG/iA==}
+    engines: {node: '>=22'}
+
+  '@vitest/istanbul-lib-coverage@2.1.0':
+    resolution: {integrity: sha512-WOjuS+xcjSIy7ruYBQ+9BUcV7XZQ0FyVcbWbWxW9TRx/kLGx5SQaeFRIFDJxjNplb6YsT7SpKo2zuXXUo91OIQ==}
     engines: {node: '>=22'}
 
   '@vitest/istanbul-lib-instrument@1.0.2':
@@ -4321,12 +4341,16 @@ packages:
     resolution: {integrity: sha512-gUsfXZJbzPamoIY5TvHFiMMoXESBrUMo+xqaj+rYrWI69+EnvRlYBlP96ZnHPY4vX8kyUpgAnFUCg5wZG/HkDQ==}
     engines: {node: '>=22'}
 
+  '@vitest/istanbul-lib-report@2.1.0':
+    resolution: {integrity: sha512-+ZFta25nWtGCOBG9/IET8w1RO5Oawsd6H8Uf6AJ9EA/StFuKVtKAEJEJ6uRt84OH+T4YkI0ASmIHAhRA+0KVxw==}
+    engines: {node: '>=22'}
+
   '@vitest/istanbul-lib-source-maps@1.0.2':
     resolution: {integrity: sha512-Ia3+9WDB5UKN940ztJ5LyhqDaS/It05Uh2VQ70KIPDWlOed2ZsJTJTyMb7x6OIW4eAwWSBFknpqJafJetTTXLw==}
     engines: {node: '>=22'}
 
-  '@vitest/mocker@5.0.5':
-    resolution: {integrity: sha512-xLL3lkDegJZw+MGoGaCCsFayDZthGgpAtr3Vziyfc4p7xH89K7KRPcRBBh/kEYm0Aqkt5DtTmkYpBtRV/FrHZg==}
+  '@vitest/mocker@5.1.0':
+    resolution: {integrity: sha512-5umB9/jlWcqVS6fsrFmv5Gdnpu6wAUio/lEOwAmvB7v+lFo/IW2B9FhAD0p19GCULTgMzLCdUmuCDCnAzWgppQ==}
     peerDependencies:
       msw: ^2.4.9 || ^3.0.0
       vite: ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -4336,8 +4360,8 @@ packages:
       vite:
         optional: true
 
-  '@vitest/spy@5.0.5':
-    resolution: {integrity: sha512-lwJRExuH417257Q5wv9QYugN9IMJkoxcrKrYxGPQkBzl7wlNpTUxD/5yNX4ESKVUIShKPgkGchYPFMWOOk0wzw==}
+  '@vitest/spy@5.1.0':
+    resolution: {integrity: sha512-2DPO5OMHWKrBngC+fCmTQqemNF0gidRhp3lxbBmRhW+M1XJrfgPpqNqWVevXtn2f2ufD5ZaR1B6B641aAlcX5A==}
 
   '@xmldom/xmldom@0.8.15':
     resolution: {integrity: sha512-/5NV/vDALVFDXgLmfsy9TRCBlKwO2LNBFzpzvb9iIj+jR+eSc6DLYYvVOdivT/jm7MtU6TebYuRmzEOI7w40UA==}
@@ -5430,6 +5454,16 @@ packages:
 
   eslint@10.14.0:
     resolution: {integrity: sha512-T0pNsxkb9IKmtQjhpK3d7nWOpFv+YHuMbTJnSVMoQblF0onvXfErrtp4V1jHtsQPan7dKaGVD0q1WCXnzMF31A==}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+    hasBin: true
+    peerDependencies:
+      jiti: '*'
+    peerDependenciesMeta:
+      jiti:
+        optional: true
+
+  eslint@10.15.0:
+    resolution: {integrity: sha512-+5Wg4p+ze3sG1WErYgUO/3H1IQIfFBymVUA0Fo/XTeBOLS6UQIUekpSJ8sdRkn7O7wjh84b55w/roqavH2aScg==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
     hasBin: true
     peerDependencies:
@@ -7020,6 +7054,10 @@ packages:
     resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
     engines: {node: 18 || 20 || >=22}
 
+  minimatch@11.0.8:
+    resolution: {integrity: sha512-nFQuYSTVrGvysVBps5Ih+0BdnYFN/Cj3C816r6+p7yK+FHrVLGE4O4N9AFwykrlNlvM2HYt+Rad1Uiro6h88Ig==}
+    engines: {node: 20 || >=22}
+
   minimatch@3.1.5:
     resolution: {integrity: sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w==}
 
@@ -7210,8 +7248,8 @@ packages:
     resolution: {integrity: sha512-eNwHudNbO1folBP3JsZ19v9azXWtQZjICdr3Q0TDPIaeBQ3mXLrh54wM+er0+hSp+dWKf+Z8KM58CYzEyIYxYg==}
     engines: {node: '>=6'}
 
-  ox@0.14.56:
-    resolution: {integrity: sha512-Feinlj+deWEam6RIwurRE+eHZ2N3hoUb3AAjQ10BmxRCYIymfqNkv0eZ+4ln4GkgDmSGLD2rGtTMqsFYSVDC6w==}
+  ox@0.14.65:
+    resolution: {integrity: sha512-K7oj+jvEP4Gf78ZOYuWAWzKEX/g5z7p6ukj84gdbFnezmFSt6SpprEp9tH5tymXsywSqRdeqk+8JL4+9o0Schw==}
     peerDependencies:
       typescript: '>=5.4.0'
     peerDependenciesMeta:
@@ -8488,11 +8526,14 @@ packages:
   vfile@6.0.3:
     resolution: {integrity: sha512-KzIbH/9tXat2u30jf+smMwFCsno4wHVdNmzFyL+T/L3UGqqk6JKfVqOFOZEpZSHADH1k40ab6NUIXZq422ov3Q==}
 
-  viem@2.57.7:
-    resolution: {integrity: sha512-x3UqqrcQuESaRVK6a0BvNmoNP0SVhu913uxEAxYLJx1lNYnj6ylTntfUdakCUKjk1+T+63gkdwFGJQ2O5C/nRw==}
+  viem@2.57.19:
+    resolution: {integrity: sha512-ULAHSwef42oL1reV41Os40iR34PF9BFNIX/RBapHLAJL1X6VmrgQikS4q4ulZ7/8GqlFLqrRI5GoNms3hcxsHw==}
     peerDependencies:
+      mppx: '>=0.17.0'
       typescript: '>=5.0.4'
     peerDependenciesMeta:
+      mppx:
+        optional: true
       typescript:
         optional: true
 
@@ -8539,20 +8580,20 @@ packages:
       yaml:
         optional: true
 
-  vitest@5.0.5:
-    resolution: {integrity: sha512-cPODOMF8YnkiiYtDdHo6n4wWmBrOBBbOIYH2d33M4l3CdNn72h+qMmO6uXffUN6A5AZFXNND/d+krS9mgkXRfg==}
+  vitest@5.1.0:
+    resolution: {integrity: sha512-MzmNFnrwa8v8lF1bLxw3UJ4EREwVOVb75VqJZmUDRjJ6EluK/x9th7qTbaeDk41WxE1GxWqmTXcdsfobfH5sOA==}
     engines: {node: ^22.12.0 || ^24.0.0 || >=26.0.0}
     hasBin: true
     peerDependencies:
       '@edge-runtime/vm': '*'
       '@opentelemetry/api': ^1.9.0
       '@types/node': ^22.0.0 || >=24.0.0
-      '@vitest/browser-playwright': 5.0.5
-      '@vitest/browser-preview': 5.0.5
+      '@vitest/browser-playwright': 5.1.0
+      '@vitest/browser-preview': 5.1.0
       '@vitest/browser-webdriverio': ^5.0.0-beta.5 || >=5.0.0
-      '@vitest/coverage-istanbul': 5.0.5
-      '@vitest/coverage-v8': 5.0.5
-      '@vitest/ui': 5.0.5
+      '@vitest/coverage-istanbul': 5.1.0
+      '@vitest/coverage-v8': 5.1.0
+      '@vitest/ui': 5.1.0
       happy-dom: '*'
       jsdom: '*'
       vite: ^6.4.0 || ^7.0.0 || ^8.0.0
@@ -9890,10 +9931,10 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@boundaries/elements@3.1.1(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-typescript@4.4.5)(eslint@10.14.0)(supports-color@10.2.2)':
+  '@boundaries/elements@3.1.1(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-typescript@4.4.5)(eslint@10.15.0)(supports-color@10.2.2)':
     dependencies:
       eslint-import-resolver-node: 0.3.9(supports-color@10.2.2)
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.4.5)(eslint@10.14.0)(supports-color@10.2.2)
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.4.5)(eslint@10.15.0)(supports-color@10.2.2)
       handlebars: 4.7.10
       is-core-module: 2.16.1
       micromatch: 4.0.8
@@ -9963,12 +10004,12 @@ snapshots:
     optionalDependencies:
       workerd: 1.20261023.1
 
-  '@cloudflare/vitest-plugin@1.4.11(@cloudflare/workers-types@5.20261101.1)(@types/node@24.19.2)(vitest@5.0.5)':
+  '@cloudflare/vitest-plugin@1.4.11(@cloudflare/workers-types@5.20261101.1)(@types/node@24.19.2)(vitest@5.1.0)':
     dependencies:
       cjs-module-lexer: 1.2.3
       esbuild: 0.28.2
       miniflare: 5.20261023.3-beta(@types/node@24.19.2)
-      vitest: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+      vitest: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.1.0)(jsdom@30.1.3)(vite@8.3.5)
       wrangler: 4.156.0(@cloudflare/workers-types@5.20261101.1)(@types/node@24.19.2)
       zod: 4.6.6
     transitivePeerDependencies:
@@ -10245,6 +10286,11 @@ snapshots:
       eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
       eslint-visitor-keys: 3.4.3
 
+  '@eslint-community/eslint-utils@4.10.1(eslint@10.15.0)':
+    dependencies:
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint-visitor-keys: 3.4.3
+
   '@eslint-community/regexpp@4.12.2': {}
 
   '@eslint/config-array@0.23.5(supports-color@10.2.2)':
@@ -10252,6 +10298,14 @@ snapshots:
       '@eslint/object-schema': 3.0.5
       debug: 4.4.3(supports-color@10.2.2)
       minimatch: 10.2.6
+    transitivePeerDependencies:
+      - supports-color
+
+  '@eslint/config-array@0.23.6(supports-color@10.2.2)':
+    dependencies:
+      '@eslint/object-schema': 3.0.5
+      debug: 4.4.3(supports-color@10.2.2)
+      minimatch: 11.0.8
     transitivePeerDependencies:
       - supports-color
 
@@ -10268,9 +10322,9 @@ snapshots:
       mdn-data: 2.37.2
       source-map-js: 1.2.2
 
-  '@eslint/js@10.0.1(eslint@10.14.0)':
+  '@eslint/js@10.0.1(eslint@10.15.0)':
     optionalDependencies:
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
 
   '@eslint/object-schema@3.0.5': {}
 
@@ -10991,6 +11045,8 @@ snapshots:
   '@inquirer/type@4.2.1(@types/node@24.19.2)':
     optionalDependencies:
       '@types/node': 24.19.2
+
+  '@isaacs/nonrecursive-glob-match@1.1.0': {}
 
   '@isaacs/ttlcache@1.4.1': {}
 
@@ -12218,14 +12274,14 @@ snapshots:
 
   '@stryker-mutator/util@10.1.1': {}
 
-  '@stryker-mutator/vitest-runner@10.1.1(@stryker-mutator/core@10.1.1)(vitest@5.0.5)':
+  '@stryker-mutator/vitest-runner@10.1.1(@stryker-mutator/core@10.1.1)(vitest@5.1.0)':
     dependencies:
       '@stryker-mutator/api': 10.1.1
       '@stryker-mutator/core': 10.1.1(@types/node@24.19.2)
       '@stryker-mutator/util': 10.1.1
       semver: 7.8.5
       tslib: 2.8.1
-      vitest: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+      vitest: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
 
   '@tailwindcss/node@4.3.3':
     dependencies:
@@ -12332,7 +12388,7 @@ snapshots:
       picocolors: 1.1.1
       pretty-format: 27.5.1
 
-  '@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.5)':
+  '@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.1.0)':
     dependencies:
       '@adobe/css-tools': 4.5.0
       '@testing-library/dom': 10.4.2
@@ -12342,7 +12398,7 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
     optionalDependencies:
-      vitest: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+      vitest: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
 
   '@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.3.0)(react@19.3.0)':
     dependencies:
@@ -12467,15 +12523,15 @@ snapshots:
       '@types/node': 24.19.2
     optional: true
 
-  '@typescript-eslint/eslint-plugin@8.72.1(@typescript-eslint/parser@8.72.1)(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)':
+  '@typescript-eslint/eslint-plugin@8.72.1(@typescript-eslint/parser@8.72.1)(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
-      '@typescript-eslint/parser': 8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)
+      '@typescript-eslint/parser': 8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)
       '@typescript-eslint/scope-manager': 8.72.1
-      '@typescript-eslint/type-utils': 8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)
-      '@typescript-eslint/utils': 8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)
+      '@typescript-eslint/type-utils': 8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)
+      '@typescript-eslint/utils': 8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)
       '@typescript-eslint/visitor-keys': 8.72.1
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       ignore: 7.0.12
       natural-compare: 1.4.0
       ts-api-utils: 2.5.0(typescript@6.0.3)
@@ -12483,14 +12539,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)':
+  '@typescript-eslint/parser@8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)':
     dependencies:
       '@typescript-eslint/scope-manager': 8.72.1
       '@typescript-eslint/types': 8.72.1
       '@typescript-eslint/typescript-estree': 8.72.1(supports-color@10.2.2)(typescript@6.0.3)
       '@typescript-eslint/visitor-keys': 8.72.1
       debug: 4.4.3(supports-color@10.2.2)
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -12513,13 +12569,13 @@ snapshots:
     dependencies:
       typescript: 6.0.3
 
-  '@typescript-eslint/type-utils@8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)':
+  '@typescript-eslint/type-utils@8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)':
     dependencies:
       '@typescript-eslint/types': 8.72.1
       '@typescript-eslint/typescript-estree': 8.72.1(supports-color@10.2.2)(typescript@6.0.3)
-      '@typescript-eslint/utils': 8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)
+      '@typescript-eslint/utils': 8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)
       debug: 4.4.3(supports-color@10.2.2)
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       ts-api-utils: 2.5.0(typescript@6.0.3)
       typescript: 6.0.3
     transitivePeerDependencies:
@@ -12542,13 +12598,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)':
+  '@typescript-eslint/utils@8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)':
     dependencies:
-      '@eslint-community/eslint-utils': 4.10.1(eslint@10.14.0)
+      '@eslint-community/eslint-utils': 4.10.1(eslint@10.15.0)
       '@typescript-eslint/scope-manager': 8.72.1
       '@typescript-eslint/types': 8.72.1
       '@typescript-eslint/typescript-estree': 8.72.1(supports-color@10.2.2)(typescript@6.0.3)
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -12630,7 +12686,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
 
-  '@vitest/coverage-istanbul@5.0.5(vitest@5.0.5)':
+  '@vitest/coverage-istanbul@5.0.5(vitest@5.1.0)':
     dependencies:
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
@@ -12641,9 +12697,9 @@ snapshots:
       magicast: 0.5.5
       obug: 3.0.0
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+      vitest: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.1.0)(jsdom@30.1.3)(vite@8.3.5)
 
-  '@vitest/coverage-v8@5.0.5(vitest@5.0.5)':
+  '@vitest/coverage-v8@5.0.5(vitest@5.1.0)':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/istanbul-lib-coverage': 1.0.2
@@ -12653,9 +12709,23 @@ snapshots:
       obug: 3.0.0
       std-env: 4.3.0
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+      vitest: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5)
+
+  '@vitest/coverage-v8@5.1.0(vitest@5.1.0)':
+    dependencies:
+      '@bcoe/v8-coverage': 1.0.2
+      '@vitest/istanbul-lib-coverage': 2.1.0
+      '@vitest/istanbul-lib-report': 2.1.0
+      ast-v8-to-istanbul: 1.0.7
+      magicast: 0.5.5
+      obug: 3.0.0
+      std-env: 4.3.0
+      tinyrainbow: 3.2.0
+      vitest: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.1.0)(jsdom@30.1.3)(vite@8.3.5)
 
   '@vitest/istanbul-lib-coverage@1.0.2': {}
+
+  '@vitest/istanbul-lib-coverage@2.1.0': {}
 
   '@vitest/istanbul-lib-instrument@1.0.2':
     dependencies:
@@ -12669,22 +12739,26 @@ snapshots:
     dependencies:
       '@vitest/istanbul-lib-coverage': 1.0.2
 
+  '@vitest/istanbul-lib-report@2.1.0':
+    dependencies:
+      '@vitest/istanbul-lib-coverage': 2.1.0
+
   '@vitest/istanbul-lib-source-maps@1.0.2':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/istanbul-lib-coverage': 1.0.2
       obug: 2.2.1
 
-  '@vitest/mocker@5.0.5(vite@8.3.5)':
+  '@vitest/mocker@5.1.0(vite@8.3.5)':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
-      '@vitest/spy': 5.0.5
+      '@vitest/spy': 5.1.0
       estree-walker: 3.0.3
       magic-string: 1.4.3
     optionalDependencies:
       vite: 8.3.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
 
-  '@vitest/spy@5.0.5': {}
+  '@vitest/spy@5.1.0': {}
 
   '@xmldom/xmldom@0.8.15': {}
 
@@ -13637,9 +13711,9 @@ snapshots:
     optionalDependencies:
       source-map: 0.6.1
 
-  eslint-config-prettier@10.1.8(eslint@10.14.0):
+  eslint-config-prettier@10.1.8(eslint@10.15.0):
     dependencies:
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
 
   eslint-import-context@0.1.9(unrs-resolver@1.12.2):
     dependencies:
@@ -13656,10 +13730,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@4.4.5(eslint@10.14.0)(supports-color@10.2.2):
+  eslint-import-resolver-typescript@4.4.5(eslint@10.15.0)(supports-color@10.2.2):
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       eslint-import-context: 0.1.9(unrs-resolver@1.12.2)
       get-tsconfig: 4.14.3
       is-bun-module: 2.0.0
@@ -13669,24 +13743,24 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.4.5)(eslint@10.14.0)(supports-color@10.2.2):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.4.5)(eslint@10.15.0)(supports-color@10.2.2):
     dependencies:
       debug: 3.2.7(supports-color@10.2.2)
     optionalDependencies:
-      '@typescript-eslint/parser': 8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      '@typescript-eslint/parser': 8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       eslint-import-resolver-node: 0.3.9(supports-color@10.2.2)
-      eslint-import-resolver-typescript: 4.4.5(eslint@10.14.0)(supports-color@10.2.2)
+      eslint-import-resolver-typescript: 4.4.5(eslint@10.15.0)(supports-color@10.2.2)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-boundaries@7.2.0(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-typescript@4.4.5)(eslint@10.14.0)(supports-color@10.2.2):
+  eslint-plugin-boundaries@7.2.0(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-typescript@4.4.5)(eslint@10.15.0)(supports-color@10.2.2):
     dependencies:
-      '@boundaries/elements': 3.1.1(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-typescript@4.4.5)(eslint@10.14.0)(supports-color@10.2.2)
+      '@boundaries/elements': 3.1.1(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-typescript@4.4.5)(eslint@10.15.0)(supports-color@10.2.2)
       chalk: 4.1.2
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       eslint-import-resolver-node: 0.3.9(supports-color@10.2.2)
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.4.5)(eslint@10.14.0)(supports-color@10.2.2)
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.72.1)(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.4.5)(eslint@10.15.0)(supports-color@10.2.2)
       handlebars: 4.7.10
       micromatch: 4.0.8
     transitivePeerDependencies:
@@ -13695,24 +13769,24 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-react-hooks@7.1.1(eslint@10.14.0)(supports-color@10.2.2):
+  eslint-plugin-react-hooks@7.1.1(eslint@10.15.0)(supports-color@10.2.2):
     dependencies:
       '@babel/core': 7.29.7(supports-color@10.2.2)
       '@babel/parser': 7.29.9
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       hermes-parser: 0.25.1
       zod: 4.6.7
       zod-validation-error: 4.0.2(zod@4.6.7)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-react-you-might-not-need-an-effect@1.1.0(eslint@10.14.0):
+  eslint-plugin-react-you-might-not-need-an-effect@1.1.0(eslint@10.15.0):
     dependencies:
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
 
-  eslint-plugin-unicorn@78.0.0(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3):
+  eslint-plugin-unicorn@78.0.0(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3):
     dependencies:
-      '@eslint-community/eslint-utils': 4.10.1(eslint@10.14.0)
+      '@eslint-community/eslint-utils': 4.10.1(eslint@10.15.0)
       '@eslint/css-tree': 4.1.2
       browserslist: 4.29.3
       change-case: 5.4.4
@@ -13720,7 +13794,7 @@ snapshots:
       core-js-compat: 3.50.0
       detect-indent: 7.0.2
       entities: 8.1.0
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       find-up-simple: 1.0.1
       globals: 17.13.0
       identifier-regex: 1.1.0
@@ -13781,6 +13855,43 @@ snapshots:
       is-glob: 4.0.3
       json-stable-stringify-without-jsonify: 1.0.1
       minimatch: 10.2.6
+      natural-compare: 1.4.0
+      optionator: 0.9.4
+    optionalDependencies:
+      jiti: 2.7.0
+    transitivePeerDependencies:
+      - supports-color
+
+  eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2):
+    dependencies:
+      '@eslint-community/eslint-utils': 4.10.1(eslint@10.15.0)
+      '@eslint-community/regexpp': 4.12.2
+      '@eslint/config-array': 0.23.6(supports-color@10.2.2)
+      '@eslint/config-helpers': 0.7.0
+      '@eslint/core': 1.2.1
+      '@eslint/plugin-kit': 0.7.3
+      '@humanfs/node': 0.16.8
+      '@humanwhocodes/module-importer': 1.0.1
+      '@humanwhocodes/retry': 0.4.3
+      '@types/estree': 1.0.9
+      ajv: 6.15.0
+      cross-spawn: 7.0.6
+      debug: 4.4.3(supports-color@10.2.2)
+      escape-string-regexp: 4.0.0
+      eslint-scope: 9.1.2
+      eslint-visitor-keys: 5.0.1
+      espree: 11.2.0
+      esquery: 1.7.0
+      esutils: 2.0.3
+      fast-deep-equal: 3.1.3
+      file-entry-cache: 11.1.5
+      find-up: 5.0.0
+      glob-parent: 6.0.2
+      ignore: 5.3.2
+      imurmurhash: 0.1.4
+      is-glob: 4.0.3
+      json-stable-stringify-without-jsonify: 1.0.1
+      minimatch: 11.0.8
       natural-compare: 1.4.0
       optionator: 0.9.4
     optionalDependencies:
@@ -15715,6 +15826,11 @@ snapshots:
     dependencies:
       brace-expansion: 5.0.12
 
+  minimatch@11.0.8:
+    dependencies:
+      '@isaacs/nonrecursive-glob-match': 1.1.0
+      brace-expansion: 5.0.12
+
   minimatch@3.1.5:
     dependencies:
       brace-expansion: 1.1.21
@@ -15892,7 +16008,7 @@ snapshots:
       strip-ansi: 5.2.0
       wcwidth: 1.0.1
 
-  ox@0.14.56(typescript@6.0.3)(zod@4.6.7):
+  ox@0.14.65(typescript@6.0.3)(zod@4.6.7):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -17212,13 +17328,13 @@ snapshots:
     dependencies:
       is-typedarray: 1.0.0
 
-  typescript-eslint@8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3):
+  typescript-eslint@8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3):
     dependencies:
-      '@typescript-eslint/eslint-plugin': 8.72.1(@typescript-eslint/parser@8.72.1)(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)
-      '@typescript-eslint/parser': 8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)
+      '@typescript-eslint/eslint-plugin': 8.72.1(@typescript-eslint/parser@8.72.1)(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)
+      '@typescript-eslint/parser': 8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)
       '@typescript-eslint/typescript-estree': 8.72.1(supports-color@10.2.2)(typescript@6.0.3)
-      '@typescript-eslint/utils': 8.72.1(eslint@10.14.0)(supports-color@10.2.2)(typescript@6.0.3)
-      eslint: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      '@typescript-eslint/utils': 8.72.1(eslint@10.15.0)(supports-color@10.2.2)(typescript@6.0.3)
+      eslint: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -17388,7 +17504,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  viem@2.57.7(typescript@6.0.3)(zod@4.6.7):
+  viem@2.57.19(typescript@6.0.3)(zod@4.6.7):
     dependencies:
       '@noble/curves': 1.9.1
       '@noble/hashes': 1.8.0
@@ -17396,7 +17512,7 @@ snapshots:
       '@scure/bip39': 1.6.0
       abitype: 1.2.3(typescript@6.0.3)(zod@4.6.7)
       isows: 1.0.7(ws@8.21.0)
-      ox: 0.14.56(typescript@6.0.3)(zod@4.6.7)
+      ox: 0.14.65(typescript@6.0.3)(zod@4.6.7)
       ws: 8.21.0
     optionalDependencies:
       typescript: 6.0.3
@@ -17421,10 +17537,10 @@ snapshots:
       tsx: 4.23.15
       yaml: 2.9.1
 
-  vitest@5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5):
+  vitest@5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-istanbul@5.0.5)(@vitest/coverage-v8@5.1.0)(jsdom@30.1.3)(vite@8.3.5):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.0.5(vite@8.3.5)
+      '@vitest/mocker': 5.1.0(vite@8.3.5)
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -17440,8 +17556,32 @@ snapshots:
     optionalDependencies:
       '@opentelemetry/api': 1.10.0
       '@types/node': 24.19.2
-      '@vitest/coverage-istanbul': 5.0.5(vitest@5.0.5)
-      '@vitest/coverage-v8': 5.0.5(vitest@5.0.5)
+      '@vitest/coverage-istanbul': 5.0.5(vitest@5.1.0)
+      '@vitest/coverage-v8': 5.1.0(vitest@5.1.0)
+      jsdom: 30.1.3(@noble/hashes@2.4.0)
+    transitivePeerDependencies:
+      - msw
+
+  vitest@5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3)(vite@8.3.5):
+    dependencies:
+      '@types/chai': 5.2.3
+      '@vitest/mocker': 5.1.0(vite@8.3.5)
+      chai: 6.3.0
+      es-module-lexer: 2.3.2
+      expect-type: 1.4.0
+      magic-string: 1.4.3
+      obug: 3.0.0
+      picomatch: 4.0.7
+      std-env: 4.3.0
+      tinybench: 6.2.2
+      tinyexec: 1.3.1
+      tinyglobby: 0.2.17
+      vite: 8.3.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
+      why-is-node-running: 3.2.1
+    optionalDependencies:
+      '@opentelemetry/api': 1.10.0
+      '@types/node': 24.19.2
+      '@vitest/coverage-v8': 5.0.5(vitest@5.1.0)
       jsdom: 30.1.3(@noble/hashes@2.4.0)
     transitivePeerDependencies:
       - msw
