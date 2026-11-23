@@ -361,4 +361,23 @@ else
   echo "check-repo-rules: R19: actionlint not installed, lint skipped (CI runs it)" >&2
 fi
 
+# R20. A cited evidence folder holds a committed file (ADR-0043: a number is citable only when its file exists; #577, #588, #556, #639).
+# In tracked *.md outside work/, every docs/results/<gate> reference must name a folder with at least one .json file.
+# A file reference (docs/results/README.md) is left to R11.
+if ! files '*.md' ':!work/**' | python3 -c '
+import os, re, sys
+bad = 0
+for m in sys.stdin.read().split("\n"):
+    if not m or not os.path.exists(m):
+        continue
+    for n, line in enumerate(open(m, encoding="utf-8", errors="replace"), 1):
+        for g in re.findall(r"docs/results/([A-Za-z0-9_-]+)(?![A-Za-z0-9_-]|\.[A-Za-z])", line):
+            d = os.path.join("docs/results", g)
+            if not (os.path.isdir(d) and any(f.endswith(".json") for f in os.listdir(d))):
+                print(f"{m}:{n}: docs/results/{g} has no committed evidence file", file=sys.stderr); bad = 1
+sys.exit(bad)
+'; then
+  err "R20: a Markdown file cites a docs/results folder with no committed evidence file (ADR-0043; see above)"
+fi
+
 exit "$fail"
