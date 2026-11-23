@@ -79,3 +79,9 @@ Use this format. Keep it short. Link the PRs.
 - Do: decode the text first (JSON strings, escapes), then drop separators and fold case before you match. Test split, encoded and capitalized forms through the real entry point, not only through the inner helper. Use only the public test vectors.
 - Check: manual (the two matchers have tests: `scripts/review-output.py` and `packages/contracts/src/scrub.ts`)
 - Source: [#545](https://github.com/HyeokjaeChoi/vaultme/pull/545), [#338](https://github.com/HyeokjaeChoi/vaultme/pull/338)
+
+### L09. Cite a measured number only after its evidence file is committed
+- Why: rows and PRs cited evidence that was not in docs/results yet: a folder path that did not exist, mutation scores with no MUT-1 file, "1,000 runs, 0 counterexamples" with no CHAIN-5 file, and `Closes #572` on a PR with no evidence file.
+- Do: commit the evidence file (ADR-0043, `evidence collect`) in the same PR, or write the number as planned and link the issue that adds the file. Use `Refs #N`, not `Closes #N`, until the file is in.
+- Check: `scripts/check-repo-rules.sh` R20 for docs/results folder paths; manual for numbers in prose and for issue links
+- Source: [#577](https://github.com/HyeokjaeChoi/vaultme/pull/577), [#588](https://github.com/HyeokjaeChoi/vaultme/pull/588), [#556](https://github.com/HyeokjaeChoi/vaultme/pull/556), [#639](https://github.com/HyeokjaeChoi/vaultme/pull/639)
