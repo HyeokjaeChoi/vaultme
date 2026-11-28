@@ -63,7 +63,7 @@ jobs:
         run: >
           node packages/perf/src/cli.ts evidence emit --gate API-6 --origin 'GitHub Actions ubuntu-latest, Workers Analytics Engine SQL API'
           --tool 'packages/perf cli.ts availability' --from availability=answer.json --out evidence-API-6.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: hashFiles('evidence-API-6.json') != ''
         with:
           name: evidence-API-6
